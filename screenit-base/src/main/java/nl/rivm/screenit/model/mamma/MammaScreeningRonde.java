@@ -68,7 +68,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief, MammaAfmelding, MammaUitnodiging>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)

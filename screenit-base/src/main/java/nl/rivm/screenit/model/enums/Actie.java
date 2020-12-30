@@ -26,13 +26,13 @@ import nl.rivm.screenit.model.INaam;
 
 public enum Actie implements INaam
 {
-	
+
 	INZIEN("Inzien", 1),
-	
+
 	AANPASSEN("Wijzigen", 2),
-	
+
 	TOEVOEGEN("Toevoegen", 3),
-	
+
 	VERWIJDEREN("Verwijderen", 4);
 
 	private final String naam;

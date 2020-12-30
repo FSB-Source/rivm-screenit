@@ -1,0 +1,312 @@
+.rooster {
+  position: relative;
+  width: 100%;
+}
+
+.timelines {
+  padding-left: 150px;
+  height: 10000px;
+  border-left: 1px solid $scheduleColor2;
+  border-right: 1px solid $scheduleColor2;
+  table {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    td {
+      padding: 0;
+    }
+  }
+}
+
+.hour {
+  border-left: 1px solid $scheduleColor2;
+  &.acht-uur {
+    border-left: 1px dashed $scheduleColor1;
+  }
+}
+
+.half-hour {
+  border-left: 1px dotted $scheduleColor2;
+}
+
+.resource {
+  padding: 5px 10px;
+  width: 130px;
+  float: left;
+  font-size: $scheduleFontSize2;
+}
+
+.resource-schedule {
+  float: left;
+  position: relative;
+}
+
+.rows {
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+
+.schedule-row {
+  min-height: 40px;
+  border-bottom: 1px solid $scheduleColor2;
+  overflow: hidden;
+}
+
+.cal-event {
+  display: inline-block;
+  position: absolute;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  .time {
+    font-size: $scheduleFontSize2;
+    font-weight: bold;
+    color: $scheduleColor3;
+    background-color: #2B72D0;
+  }
+  .title {
+    font-size: 11px;
+    padding: 3px;
+    ul.simplelist {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  }
+}
+
+.cal-event .time,
+.cal-event .title,
+.cal-event .title ul.simplelist li {
+  white-space: nowrap;
+}
+
+.schedule-header {
+  padding-left: 150px;
+  border: 1px solid $scheduleColor2;
+  background-color: $scheduleBackgrouncolor1;
+  table {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    font-size: $scheduleFontSize1;
+    td {
+      padding: 0;
+    }
+    .day-name {
+      margin: 0;
+      padding: 10px 0;
+      border-left: 1px solid $scheduleColor2;
+      color: $scheduleColor1;
+      text-align: center;
+      font-size: $scheduleFontSize3;
+      font-weight: bold;
+    }
+    .hour {
+      padding-left: 3px;
+    }
+  }
+}
+
+.cal-event {
+  background-color: $scheduleColor4;
+  filter: alpha(opacity=80);
+  -moz-opacity: 0.8;
+  -khtml-opacity: 0.8;
+  opacity: 0.8;
+  border: 1px solid $scheduleColor1;
+  position: absolute;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  color: $scheduleColor5;
+  width: 100%;
+  display: block;
+  -moz-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+
+  .time {
+    background-color: $scheduleColor1;
+  }
+}
+
+.new-cal-event {
+  min-height: 10px;
+}
+
+.cal-event.rood {
+  background-color: #ff8383 !important;
+  color: $scheduleColor5;
+  border: 1px solid #e50000 !important;
+}
+
+.cal-event.rood .time {
+  background-color: #e50000 !important;
+  color: $scheduleColor3;
+}
+
+.cal-event.rood .time a {
+  color: white;
+}
+
+.cal-event.oranje {
+  background-color: #ffd480 !important;
+  color: $scheduleColor5;
+  border: 1px solid #ffa800 !important;
+}
+
+.cal-event.oranje .time {
+  background-color: #ffa800 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.groen {
+  background-color: #ACEF69 !important;
+  color: $scheduleColor5;
+  border: 1px solid #18C700 !important;
+}
+
+.cal-event.groen .time {
+  background-color: #18C700 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.geel {
+  background-color: #fdfeb7 !important;
+  color: $scheduleColor5;
+  border: 1px solid #f7e519 !important;
+}
+
+.cal-event.geel .time {
+  background-color: #fbfe00 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.blauw {
+  background-color: #68a1e5 !important;
+  color: $scheduleColor3;
+  border: 1px solid #1b62c0 !important;
+}
+
+.cal-event.blauw .time {
+  background-color: #2b72d0 !important;
+  color: $scheduleColor3;
+}
+
+.cal-event.paars {
+  background-color: #e2b4ff !important;
+  color: $scheduleColor5;
+  border: 1px solid #40024d !important;
+}
+
+.cal-event.paars .time {
+  background-color: #76048f !important;
+  color: $scheduleColor3;
+}
+
+.cal-event.paars .time a {
+  color: white;
+}
+
+.cal-event.zwart {
+  background-color: #bebebe !important;
+  color: $scheduleColor5;
+  border: 1px solid #000 !important;
+}
+
+.cal-event.zwart .time {
+  background-color: #000 !important;
+  color: $scheduleColor3;
+}
+
+.cal-event.grijs {
+  background-color: #dfdfdf !important;
+  color: $scheduleColor5;
+  border: 1px solid #959595 !important;
+}
+
+.cal-event.grijs .time {
+  background-color: #959595 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.licht-blauw {
+  background-color: #C7E0FF !important;
+  color: $scheduleColor5;
+  border: 1px solid #68A1E5 !important;
+}
+
+.cal-event.licht-blauw .time {
+  background-color: #68A1E5 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.licht-groen {
+  background-color: #dff9c6 !important;
+  color: $scheduleColor5;
+  border: 1px solid #ACEF69 !important;
+}
+
+.cal-event.licht-groen .time {
+  background-color: #ACEF69 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.roze {
+  background-color: #ffeaea !important;
+  color: $scheduleColor5;
+  border: 1px solid #ff0080 !important;
+}
+
+.cal-event.roze .time {
+  background-color: #ff0080 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.lime {
+  background-color: #ecfc71 !important;
+  color: $scheduleColor5;
+  border: 1px solid #BAF700 !important;
+}
+
+.cal-event.lime .time {
+  background-color: #BAF700 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.turquoise {
+  background-color: #5dcfc3 !important;
+  color: $scheduleColor5;
+  border: 1px solid #009e8e !important;
+}
+
+.cal-event.turquoise .time {
+  background-color: #009e8e !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.licht-paars {
+  background-color: #f4ecf9 !important;
+  color: $scheduleColor5;
+  border: 1px solid #c894e1 !important;
+}
+
+.cal-event.licht-paars .time {
+  background-color: #c894e1 !important;
+  color: $scheduleColor5;
+}
+
+.cal-event.bruin {
+  background-color: #FAD4B4 !important;
+  color: $scheduleColor5;
+  border: 1px solid #57381F !important;
+}
+
+.cal-event.bruin .time {
+  background-color: #57381F !important;
+  color: $scheduleColor3;
+}

@@ -25,7 +25,7 @@ import org.krysalis.barcode4j.impl.code128.Code128Bean;
 
 public abstract class CervixBarcode extends Code128Bean
 {
-	
+
 	public CervixBarcode()
 	{
 

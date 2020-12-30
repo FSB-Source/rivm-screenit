@@ -74,7 +74,7 @@ import ca.uhn.hl7v2.util.StringUtil;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwerkingService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectBestandVerwerkingServiceImpl.class);
 
 	@Autowired

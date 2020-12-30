@@ -29,7 +29,7 @@ import nl.rivm.screenit.util.IFOBTTestUtil;
 
 public enum IFOBTTestStatus
 {
-	
+
 	ACTIEF
 	{
 		@Override

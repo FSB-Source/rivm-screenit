@@ -88,7 +88,7 @@ import org.hibernate.type.Type;
 @Repository
 public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectDaoImpl.class);
 
 	@Autowired

@@ -1,0 +1,51 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <tr class="show-active">
+        <td>
+            <h2 wicket:id="bevolkingsonderzoek"></h2>
+        </td>
+        <td>
+            <div class="control-group form-inline table-form-inline active" wicket:id="isActief">
+                <span class="badge badge-success status-actief">Actief</span>
+                <span wicket:id="actiefLabelTekst"></span>
+            </div>
+            <div class="control-group form-inline table-form-inline inactive" wicket:id="isInactief">
+                <span class="badge status-inactief">Inactief</span>
+                <span wicket:id="inactiefLabelTekst"></span>
+            </div>
+
+            <div class="control-group form-inline table-form-inline" wicket:id="projectBadges" style="width: auto;"/>
+
+            <div wicket:id="dossierGebeurtenissenContainer">
+                <div wicket:id="dossierGebeurtenissen">
+                        <span class="badge" wicket:id="dossierGebeurtenisContainer">
+                            <span wicket:id="bron"></span>
+                            <span class="omschrijving" wicket:id="omschrijving"></span>
+                            <span class="datum right" wicket:id="tijd"></span>
+                        </span>
+                </div>
+            </div>
+        </td>
+    </tr>
+</wicket:panel>
+</html>

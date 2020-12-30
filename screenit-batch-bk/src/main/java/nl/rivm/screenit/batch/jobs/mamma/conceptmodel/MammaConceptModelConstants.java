@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.mamma.conceptmodel;
 
 public class MammaConceptModelConstants
 {
-    
+
     private MammaConceptModelConstants()
     {
     }

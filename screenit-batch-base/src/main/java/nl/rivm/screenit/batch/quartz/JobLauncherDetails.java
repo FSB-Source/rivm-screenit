@@ -40,7 +40,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 
 public class JobLauncherDetails extends QuartzJobBean
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(JobLauncherDetails.class);
 
 	@Override

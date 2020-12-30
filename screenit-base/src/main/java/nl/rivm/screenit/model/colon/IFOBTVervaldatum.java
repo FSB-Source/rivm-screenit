@@ -34,7 +34,7 @@ import nl.rivm.screenit.model.AbstractHoudbaarheid;
 @Table(schema = "colon")
 public class IFOBTVervaldatum extends AbstractHoudbaarheid
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)

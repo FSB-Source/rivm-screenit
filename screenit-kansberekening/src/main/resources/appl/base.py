@@ -23,10 +23,13 @@ import pandas
 
 from pandas.core.common import SettingWithCopyWarning
 
+
 warnings.simplefilter("ignore", UserWarning)
 warnings.filterwarnings('ignore', category=SettingWithCopyWarning)
 
+
 pandas.set_option('mode.chained_assignment', None)
+
 
 filestore: str = None
 connection_url: str = None

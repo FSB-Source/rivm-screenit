@@ -33,7 +33,7 @@ import nl.rivm.screenit.util.DateUtil;
 
 public class MammaKansberekeningAfspraakContext extends MammaKansberekeningScreeningRondeContext
 {
-	
+
 	MammaVerzettenReden verzettenReden;
 
 	LocalDateTime vanaf;

@@ -1,0 +1,105 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="form-container tijdelijk-adres">
+        <form wicket:id="form">
+            <h2>Tijdelijk adres</h2>
+            <p>
+                Woont u tijdelijk op een ander adres of wilt u de correspondentie over het bevolkingsonderzoek op een ander adres ontvangen, dan kunt u een tijdelijk adres (binnen
+                Nederland) opgeven.
+            </p>
+            <div class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Straatnaam</label>
+                    <div class="form-validation-icon"></div>
+                    <div class="controls">
+                        <input type="text" wicket:id="persoon.tijdelijkAdres.straat" class="straatnaam"/>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Huisnummer / letter</label>
+                    <div class="form-validation-icon"></div>
+                    <div class="controls">
+                        <input type="text" wicket:id="persoon.tijdelijkAdres.huisnummer" class="input-small required" placeholder="nummer"/> /
+                        <input type="text" wicket:id="persoon.tijdelijkAdres.huisletter" class="input-small" placeholder="letter"/>
+                    </div>
+                </div>
+
+                <div class="row-fluid">
+                    <div class="span6">
+                        <div class="control-group">
+                            <label class="control-label">Huisnummertoevoeging</label>
+                            <div class="controls">
+                                <input type="text" class="input-small" wicket:id="persoon.tijdelijkAdres.huisnummerToevoeging"/>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Aanduiding bij huisnummer</label>
+                    <wicket:container wicket:id="tijdelijkAdresAanduidingHuisnummerTooltip"></wicket:container>
+                    <div class="controls">
+                        <input type="text" class="aanduiding-huisnummer" wicket:id="persoon.tijdelijkAdres.huisnummerAanduiding"/>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Postcode / plaats</label>
+                    <div class="form-validation-icon"></div>
+                    <div class="controls">
+                        <input wicket:id="persoon.tijdelijkAdres.postcode" type="text" class="postcode"/> <span class="divider">/</span>
+                        <div class="append-woonplaats">
+                            <input wicket:id="persoon.tijdelijkAdres.plaats" type="text" class="plaatsnaam"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group required">
+                    <label class="control-label">Periode</label>
+                    <div class="form-validation-icon"></div>
+                    <div class="controls">
+                        <div class="input-append">
+                            <input type="text" class="datum" wicket:id="persoon.tijdelijkAdres.startDatum"/>
+                            <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                    class="icon-calendar"></i></a>
+                        </div>
+                        tot en met
+                        <div class="input-append">
+                            <input type="text" class="datum" wicket:id="persoon.tijdelijkAdres.eindDatum"/>
+                            <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                    class="icon-calendar"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="buttons">
+                <div class="verplicht-legenda">
+                    <span>Verplichte velden zijn gemarkeerd met een</span>
+                    <div class="form-validation-icon"></div>
+                </div>
+                <a href="#" class="btn" wicket:id="annuleren"><span><wicket:message key="label.annuleren"></wicket:message></span></a>
+                <a href="#" class="btn btn-primary" wicket:id="opslaan"><span><wicket:message key="label.opslaan"></wicket:message></span></a>
+            </div>
+        </form>
+    </div>
+</wicket:panel>
+</html>

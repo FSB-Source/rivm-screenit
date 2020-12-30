@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+    <title>ScreenIT</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+
+    <script src="assets/js/libs/select2/select2.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="assets/js/libs/select2/select2.css"/>
+
+    <script src="assets/js/scripts.js" type="text/javascript"></script>
+    <script src="assets/js/bootstrap.min.js" type="text/javascript"></script>
+
+    <link rel="stylesheet" type="text/css" href="assets/css/bootstrap/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="assets/css/colonis-ui/jquery-ui-1.8.16.custom.css">
+
+    <link rel="stylesheet" type="text/css" href="assets/css/base_styles.css"/>
+
+    <!--[if IE 9]>
+    <link rel="stylesheet" type="text/css" href="assets/css/beheer/ie9.css"/>
+    <![endif]-->
+    <!--[if lt IE 9]>
+    <link rel="stylesheet" type="text/css" href="assets/css/beheer/ie.css"/>
+    <![endif]-->
+    <!--[if IE 7]>
+    <link rel="stylesheet" type="text/css" href="assets/css/beheer/ie.css"/>
+    <link rel="stylesheet" type="text/css" href="assets/css/beheer/ie7.css"/>
+    <![endif]-->
+</head>
+<body class="canvas background beheer">
+
+<div class="canvas row-fluid topnav">
+    <div class="span1 logo">
+        <a href="medewerkerportaal" title="Naar het login pagina"><img src="assets/images/screenit_logo.png" width="60" height="14" alt="Logo ScreenIT"></a>
+    </div>
+
+    <div class="span11">
+        <ul class="nav right">
+        </ul>
+        <span class="topnav divider right"></span>
+    </div>
+</div>
+
+<div class="content-container container-fluid">
+
+    <div class="canvas row-fluid content" id="jp-container">
+        <div class="content-inner tab-content">
+            <h1>Foutmelding</h1>
+
+            <p class="bodytext">Er is een fout opgetreden in de applicatie met foutcode '<span wicket:id="errorId"></span>'. Graag alleen deze code gebruiken tijdens
+                correspondentie over deze fout. Gelieve geen screenshot, maar alleen de foutcode doorgeven.</p>
+
+            <p class="bodytext">Geef hieronder eventuele toelichting of stappen die u heeft genomen voordat deze fout optrad.</p>
+            <form wicket:id="feedbackForm">
+                <div class="leftColumn">
+                    <textarea wicket:id="feedback" class="feedback" id="feedback"></textarea>
+                    <div class="buttons">
+                        <a wicket:id="submit" class="button floatright last" title="Hiermee navigeert u naar het beginscherm">Verstuur toelichting</a>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="canvas footer">
+        <div class="innerborder"></div>
+        <div class="row-fluid">
+            <div class="span3 logo-colonis">
+            </div>
+            <div class="span6 fill">
+                <span class="divider left"></span>
+            </div>
+            <div class="span3 poweredby">
+                <wicket:container wicket:id="applicatieInfo"></wicket:container>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class IFOBTBestandCleanupProcessor implements ItemProcessor<Long, IFOBTBestand>
 {
-	
+
 	@Autowired
 	private HibernateService hibernateService;
 

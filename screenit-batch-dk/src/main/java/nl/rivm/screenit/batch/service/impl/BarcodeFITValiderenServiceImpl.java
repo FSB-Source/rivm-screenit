@@ -74,13 +74,13 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 	public List<String> voerSemantischeValiatieUit(List<KOPPELDATA.VERZONDENUITNODIGING> koppeldata)
 	{
 		List<String> foutmeldingen = new ArrayList<>();
+		List<String> barcodesUitKoppeldata = new ArrayList<>();
 
 		DateTime nu = currentDateSupplier.getDateTime();
+		DateTime minstensHoudbaarTotMetColon = houdbaarheidService.getMinstensHoudbaarTotMet(nu, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_IFOBT_MONSTERS_VOOR_CONTROLE);
 
 		for (KOPPELDATA.VERZONDENUITNODIGING verzondenUitnodiging : koppeldata)
 		{
-
-			DateTime minstensHoudbaarTotMetColon = houdbaarheidService.getMinstensHoudbaarTotMet(nu, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_IFOBT_MONSTERS_VOOR_CONTROLE);
 
 			ColonUitnodiging colonUitnodiging = getColonUitnodiging(verzondenUitnodiging);
 			ColonOnderzoeksVariant onderzoeksVariant = getOnderzoeksVariant(colonUitnodiging);
@@ -92,27 +92,6 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 			String ifobtBarcodeExtra = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.COLON_KOPPEL_BARCODE_EXTRA);
 			String trackTraceId = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.KOPPEL_TRACK_ID);
 
-			if (barcodeGoldVerplicht && StringUtils.isBlank(ifobtBarcodeGold))
-			{
-				addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_MIST_BIJ_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
-					StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, ""));
-			}
-			if (barcodeExtraVerplicht && StringUtils.isBlank(ifobtBarcodeExtra))
-			{
-				addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_MIST_BIJ_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
-					StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra"));
-			}
-			if (!barcodeGoldVerplicht && StringUtils.isNotBlank(ifobtBarcodeGold))
-			{
-				addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_ONVERWACHT_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
-					StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, ""));
-			}
-			if (!barcodeExtraVerplicht && StringUtils.isNotBlank(ifobtBarcodeExtra))
-			{
-				addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_ONVERWACHT_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
-					StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra"));
-			}
-
 			if (colonUitnodiging == null)
 			{
 				addFout(foutmeldingen, String.format(KoppelConstants.COLON_UITNODIGINGSID_ONBEKEND, verzondenUitnodiging.getID(), ifobtBarcodeGold,
@@ -120,6 +99,26 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 			}
 			else
 			{
+				if (barcodeGoldVerplicht && StringUtils.isBlank(ifobtBarcodeGold))
+				{
+					addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_MIST_BIJ_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
+						StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, ""));
+				}
+				if (barcodeExtraVerplicht && StringUtils.isBlank(ifobtBarcodeExtra))
+				{
+					addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_MIST_BIJ_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
+						StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra"));
+				}
+				if (!barcodeGoldVerplicht && StringUtils.isNotBlank(ifobtBarcodeGold))
+				{
+					addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_ONVERWACHT_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
+						StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, ""));
+				}
+				if (!barcodeExtraVerplicht && StringUtils.isNotBlank(ifobtBarcodeExtra))
+				{
+					addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_ONVERWACHT_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
+						StringUtils.defaultIfBlank(ifobtBarcodeGold, "<geen>"), StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra"));
+				}
 				if (StringUtils.isNotBlank(ifobtBarcodeGold))
 				{
 					IFOBTTest bestaandeIfobtGoldTest = iFobtDao.getIfobtTest(ifobtBarcodeGold);
@@ -147,6 +146,14 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_HOUDBAARHEID_TE_KORT, verzondenUitnodiging.getID(), ifobtBarcodeGold,
 							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, ""));
 					}
+					if (barcodeAlTeruggekoppeld(barcodesUitKoppeldata, ifobtBarcodeGold))
+					{
+						addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_IS_DUBBEL, verzondenUitnodiging.getID(), ifobtBarcodeGold, StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId));
+					}
+					else
+					{
+						barcodesUitKoppeldata.add(ifobtBarcodeGold);
+					}
 				}
 				if (StringUtils.isNotBlank(ifobtBarcodeExtra))
 				{
@@ -157,26 +164,33 @@ public class BarcodeFITValiderenServiceImpl extends BaseValiderenService impleme
 						addFout(foutmeldingen,
 							String.format(KoppelConstants.COLON_BUISID_AL_GEKOPPELD, verzondenUitnodiging.getID(),
 								StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"),
-								StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra",
+								StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra ",
 								bestaandeIfobtExtraTest.getColonUitnodiging().getUitnodigingsId()));
 					}
-
 					if (colonUitnodiging.getGekoppeldeExtraTest() != null && !colonUitnodiging.getGekoppeldeExtraTest().getBarcode().equals(ifobtBarcodeExtra))
 					{
 						addFout(foutmeldingen,
 							String.format(KoppelConstants.COLON_UITNODIGINGSID_AL_GEKOPPELD, verzondenUitnodiging.getID(), ifobtBarcodeGold,
-								StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra", colonUitnodiging.getGekoppeldeExtraTest().getBarcode()));
+								StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra ", colonUitnodiging.getGekoppeldeExtraTest().getBarcode()));
 					}
 					IFOBTVervaldatum ifobtVervaldatum = houdbaarheidDao.getHoudbaarheidVoor(IFOBTVervaldatum.class, ifobtBarcodeExtra);
 					if (ifobtVervaldatum == null)
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_HOUDBAARHEID_ONBEKEND, verzondenUitnodiging.getID(), ifobtBarcodeGold,
-							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra"));
+							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra "));
 					}
 					else if (ifobtVervaldatum.getVervalDatum().before(minstensHoudbaarTotMetColon.toDate()))
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.COLON_HOUDBAARHEID_TE_KORT, verzondenUitnodiging.getID(), ifobtBarcodeGold,
-							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra"));
+							StringUtils.defaultIfBlank(ifobtBarcodeExtra, "<geen>"), trackTraceId, "Extra "));
+					}
+					if (barcodeAlTeruggekoppeld(barcodesUitKoppeldata, ifobtBarcodeExtra))
+					{
+						addFout(foutmeldingen, String.format(KoppelConstants.COLON_BUISID_IS_DUBBEL, verzondenUitnodiging.getID(), ifobtBarcodeGold, ifobtBarcodeExtra, trackTraceId));
+					}
+					else
+					{
+						barcodesUitKoppeldata.add(ifobtBarcodeExtra);
 					}
 				}
 			}

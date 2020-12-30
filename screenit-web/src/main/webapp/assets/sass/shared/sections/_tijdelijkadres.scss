@@ -1,0 +1,37 @@
+%tijdelijk-adres-fields {
+  input.straatnaam,
+  input.aanduiding-huisnummer,
+  input.plaatsnaam {
+    @include box-sizing('border-box');
+    height: 30px;
+    width: 100%;
+  }
+
+  input.postcode {
+    width: 90px;
+    float: left;
+  }
+
+  .controls .divider {
+    float: left;
+    padding: 0 5px;
+    display: block;
+    line-height: 30px;
+    text-align: center;
+  }
+  div.append-woonplaats {
+    padding-left: 118px;
+  }
+}
+
+.tijdelijk-adres {
+  border: 1px solid #ddd;
+  @include column(8, 12);
+  @include box-sizing('border-box');
+
+  @include respond-to('tablet-portrait') {
+    @include column(12, 12);
+  }
+
+  @extend %tijdelijk-adres-fields;
+}

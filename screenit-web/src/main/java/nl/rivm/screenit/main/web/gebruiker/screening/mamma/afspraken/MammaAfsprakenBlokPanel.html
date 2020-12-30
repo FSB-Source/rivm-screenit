@@ -1,0 +1,48 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <table class="table table-striped table-bordered table-condensed">
+        <tr>
+            <th class="input-micro"><input wicket:id="selectColumn" type="checkbox" onchange="toggleBkAfsprakenCheckboxes($(this));"></th>
+            <th class="input-small">Tijd</th>
+            <th class="input-large">Cliënt</th>
+            <th class="input-small">Geboortedatum</th>
+            <th class="input-small">BSN</th>
+            <th class="input-small">Telefoonnr.</th>
+            <th class="input-small">Opkomstkans</th>
+            <th class="input-small">Doelgroep</th>
+            <th class="input-small">Verzet (reden)?</th>
+        </tr>
+        <tr wicket:id="items">
+            <td><input wicket:id="select" type="checkbox" onchange="toggleBkAfsprakenSuperCheckboxes($(this));"></td>
+            <td><span wicket:id="tijd"/> <a wicket:id="verzetten" class="icon-share-alt"/></td>
+            <td wicket:id="client"></td>
+            <td wicket:id="geboortedatum"></td>
+            <td wicket:id="bsn"></td>
+            <td wicket:id="telefoonnr"></td>
+            <td wicket:id="opkomstkans"></td>
+            <td wicket:id="doelgroep"></td>
+            <td wicket:id="verzet"></td>
+        </tr>
+    </table>
+</wicket:panel>
+</html>

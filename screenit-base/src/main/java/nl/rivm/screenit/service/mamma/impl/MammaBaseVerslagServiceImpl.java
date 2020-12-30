@@ -28,7 +28,6 @@ import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
-import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.AsposeService;
@@ -124,7 +123,7 @@ public class MammaBaseVerslagServiceImpl implements MammaBaseVerslagService
 	private MailMergeContext maakMailMergeContext(MammaBeoordeling beoordeling)
 	{
 		MailMergeContext context = new MailMergeContext();
-		context.putValue(MergeField.MAMMA_ONDERZOEK_DATUM.getFieldName(), beoordeling.getOnderzoek().getCreatieDatum());
+		context.putValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING, beoordeling);
 		context.setClient(beoordelingService.getClientVanBeoordeling(beoordeling));
 		context.setBrief(beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getLaatsteBrief());
 		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, clientService.bepaalCe(context.getClient()));

@@ -34,7 +34,7 @@ import nl.topicuszorg.util.collections.CollectionUtils;
 
 public enum BriefType
 {
-	
+
 	COLON_VOORAANKONDIGING(
 		OrganisatieType.SCREENINGSORGANISATIE,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
@@ -704,8 +704,14 @@ public enum BriefType
 		MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_4_5, MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_4_5_ZONDER_HUISARTS,
 		MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_0_ZONDER_HUISARTS);
 
+	private static final List<BriefType> MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAGEN = Arrays.asList(MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_0,
+			MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_4_5, MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_4_5_ZONDER_HUISARTS,
+			MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_0_ZONDER_HUISARTS);
+
 	public static final List<BriefType> COLON_UITSLAG_BRIEVEN = Arrays.asList(COLON_GUNSTIGE_UITSLAG, COLON_UITSLAGBRIEF_ONBEOORDEELBAAR_BUITEN_DOELGROEP,
 		COLON_UITSLAGBRIEF_ONGUNSTIGE_BUITEN_DOELGROEP, COLON_UITNODIGING_INTAKE);
+
+	private static final List<BriefType> COLON_CONCLUSIE_BRIEVEN = Arrays.asList(COLON_BEVESTIGING_DEFINITIEVE_EXCLUSIE, COLON_BEVESTIGING_TERUG_NAAR_SCREENING, COLON_INTAKE_NO_SHOW);
 
 	private final Bevolkingsonderzoek[] onderzoeken;
 
@@ -815,6 +821,18 @@ public enum BriefType
 		return MAMMA_ONGUNSTIGE_UITSLAGEN;
 	}
 
+	public static List<BriefType> getMammaFotobesprekingOngunstigeUitslagen()
+	{
+		return MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAGEN;
+	}
+
+	public static List<BriefType> getMammaGunstigeUitslagBriefTypen()
+	{
+		List<BriefType> uitslagBriefTypes = new ArrayList<>(MAMMA_OVERIGE_UITSLAGEN);
+		uitslagBriefTypes.remove(BriefType.MAMMA_GEEN_ONDERZOEK);
+		return uitslagBriefTypes;
+	}
+
 	public static boolean isMammaUitslagBrief(BriefType briefType)
 	{
 		List<BriefType> uitslagBriefTypes = new ArrayList<>(getMammaOngunstigeUitslagBriefTypen());
@@ -830,6 +848,11 @@ public enum BriefType
 	public static boolean isMammaUitnodigingBrief(BriefType briefType)
 	{
 		return getMammaUitnodigingenBriefTypen().contains(briefType);
+	}
+
+	public static List<BriefType> getColonConclusieBrieven()
+	{
+		return COLON_CONCLUSIE_BRIEVEN;
 	}
 
 	public boolean isActief()

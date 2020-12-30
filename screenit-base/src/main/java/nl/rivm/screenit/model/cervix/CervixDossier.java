@@ -53,7 +53,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class CervixDossier extends Dossier<CervixScreeningRonde, CervixAfmelding>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(mappedBy = "cervixDossier", optional = false)

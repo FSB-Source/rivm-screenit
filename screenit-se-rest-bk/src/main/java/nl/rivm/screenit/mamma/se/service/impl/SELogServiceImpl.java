@@ -35,6 +35,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class SELogServiceImpl implements SELogService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(SELogServiceImpl.class);
 
 	@Autowired
@@ -84,6 +85,17 @@ public class SELogServiceImpl implements SELogService
 	public void logInfo(LogGebeurtenis logGebeurtenis, Account account, String seCode, LocalDateTime datumTijd, String message)
 	{
 		MammaScreeningsEenheid screeningsEenheid = screeningsEenheidService.getActieveScreeningsEenheidByCode(seCode);
+		if (screeningsEenheid == null && StringUtils.isNotBlank(seCode))
+		{
+			if (StringUtils.isBlank(message))
+			{
+				message = "Onbekende SE code: " + seCode;
+			}
+			else
+			{
+				message += message + " (Onbekende SE code: " + seCode + ")";
+			}
+		}
 		logInfo(logGebeurtenis, account, null, screeningsEenheid, datumTijd, message);
 	}
 
@@ -102,7 +114,7 @@ public class SELogServiceImpl implements SELogService
 
 	private String createLogMessage(Account account, LogGebeurtenis logGebeurtenis, MammaScreeningsEenheid se, String message)
 	{
-		String result = String.format("%s; %s; %s", logGebeurtenis.name(), se == null ? "SE-???" : se.getCode(), message);
+		String result = String.format("%s; %s; %s", logGebeurtenis.name(), se == null ? "SE-???" : se.getCode(), message != null ? message : "");
 		return account == null ? result : String.format("%s %s", SELogin.accountIdLogTekst(account), result);
 	}
 

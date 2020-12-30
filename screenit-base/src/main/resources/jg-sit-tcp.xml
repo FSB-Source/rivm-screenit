@@ -1,0 +1,55 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns="urn:org:jgroups"
+        xsi:schemaLocation="urn:org:jgroups http://www.jgroups.org/schema/jgroups.xsd">
+    <TCP bind_addr="match-interface:eth0,localhost"
+    	 bind_port="${jgroups.bind_port:7899}"
+         recv_buf_size="${tcp.recv_buf_size:130k}"
+         send_buf_size="${tcp.send_buf_size:130k}"
+         max_bundle_size="64K"
+         sock_conn_timeout="300"
+         thread_pool.min_threads="0"
+         thread_pool.max_threads="20"
+         thread_pool.keep_alive_time="30000"/>
+
+    <TCPPING async_discovery="true"             
+             port_range="2"/>
+    <MERGE3  min_interval="10000"
+             max_interval="30000"/>
+    <FD_SOCK start_port="${jgroups.fdsock.startport:7840}"/>
+    <FD_ALL timeout="9000" interval="3000" />
+    <VERIFY_SUSPECT timeout="1500"  />
+    <BARRIER />
+    <pbcast.NAKACK2 use_mcast_xmit="false"
+                   discard_delivered_msgs="true"/>
+    <UNICAST3 />
+    <pbcast.STABLE desired_avg_gossip="50000"
+                   max_bytes="4M"/>
+    <pbcast.GMS print_local_addr="false" join_timeout="2000"/>
+    <UFC max_credits="2M"
+         min_threshold="0.4"/>
+    <MFC max_credits="2M"
+         min_threshold="0.4"/>
+    <FRAG2 frag_size="60K"  />
+    
+    <pbcast.STATE_TRANSFER/>
+</config>

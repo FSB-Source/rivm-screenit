@@ -36,7 +36,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public abstract class AbstractHoudbaarheid extends TablePerClassHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)

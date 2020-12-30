@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.model;
 
 /*-
@@ -31,17 +30,14 @@ import nl.rivm.screenit.util.BigDecimalUtil;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.drools.planner.api.domain.entity.PlanningEntity;
-import org.drools.planner.api.domain.variable.PlanningVariable;
-import org.drools.planner.api.domain.variable.ValueRange;
-import org.drools.planner.api.domain.variable.ValueRangeType;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.optaplanner.core.api.domain.entity.PlanningEntity;
+import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 @PlanningEntity
 public class ClientAfspraak implements Cloneable
 {
-
 	private Long clientId;
 
 	private Long colonScreeningRondeId;
@@ -68,8 +64,7 @@ public class ClientAfspraak implements Cloneable
 
 	private double distance;
 
-	@PlanningVariable(strengthComparatorClass = VrijSlotComparator.class)
-	@ValueRange(type = ValueRangeType.FROM_SOLUTION_PROPERTY, solutionProperty = "vrijeSloten")
+	@PlanningVariable(strengthComparatorClass = VrijSlotComparator.class, valueRangeProviderRefs = { "vrijeSlotenRange" })
 	public VrijSlot getVrijSlot()
 	{
 		return vrijSlot;
@@ -152,7 +147,7 @@ public class ClientAfspraak implements Cloneable
 	{
 		if (vrijSlot == null)
 		{
-			return Integer.valueOf(0);
+			return 0;
 		}
 		if (cachedWachttijd != null)
 		{
@@ -161,7 +156,7 @@ public class ClientAfspraak implements Cloneable
 
 		long wachttijd = new Interval(new DateTime(analyseDatum), new DateTime(vrijSlot.getStartTijd())).toDuration().getStandardHours();
 
-		cachedWachttijd = Integer.valueOf((int) Math.pow(wachttijd * wachttijdNormering, 2.0));
+		cachedWachttijd = (int) Math.pow(wachttijd * wachttijdNormering, 2.0);
 		return cachedWachttijd;
 	}
 
@@ -169,7 +164,7 @@ public class ClientAfspraak implements Cloneable
 	{
 		if (vrijSlot == null)
 		{
-			return Integer.valueOf(0);
+			return 0;
 		}
 		if (cachedAfstand != null)
 		{
@@ -179,13 +174,13 @@ public class ClientAfspraak implements Cloneable
 		BigDecimal longitudeTo = vrijSlot.getLongitude();
 		if (latitudeTo == null || latitude == null)
 		{
-			cachedAfstand = Integer.valueOf((int) (Math.pow(defaultAfstand * afstandNormering, 2.0)));
+			cachedAfstand = (int) (Math.pow(defaultAfstand * afstandNormering, 2.0));
 			return cachedAfstand;
 		}
 
 		distance = BigDecimalUtil.berekenDistance(latitude, longitude, latitudeTo, longitudeTo);
 
-		cachedAfstand = Integer.valueOf((int) (Math.pow(distance * afstandNormering, 2.0)));
+		cachedAfstand = (int) (Math.pow(distance * afstandNormering, 2.0));
 		return cachedAfstand;
 	}
 
@@ -248,5 +243,4 @@ public class ClientAfspraak implements Cloneable
 	{
 		return distance;
 	}
-
 }

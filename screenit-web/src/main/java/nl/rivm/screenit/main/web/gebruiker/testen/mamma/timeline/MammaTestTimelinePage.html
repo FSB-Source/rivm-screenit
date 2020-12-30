@@ -1,0 +1,178 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div wicket:id="dialog"></div>
+    <div class="row-fluid">
+        <div class="span12">
+            <h1 class="pageTitle">Testen Timeline</h1>
+        </div>
+    </div>
+    <div class="row-fluid form-horizontal">
+        <form wicket:id="form">
+            <fieldset wicket:id="formComponents">
+                <div class="row-fluid">
+                    <div class="span4">
+                        <div class="control-group">
+                            <label for="bsn1" class="control-label span2">BSN:<i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                                <div class="input-append">
+                                    <input class="form-control input-small" type="text" placeholder="123456789" name="bsn" wicket:id="bsn">
+                                    <span class="add-on" wicket:id="bsnGenereren"><i class="icon-refresh"></i></span>
+                                    <span class="add-on" wicket:id="bsnToevoegen"><i class="icon-plus"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Doelgroep:</label>
+                            <div class="controls">
+                                <select wicket:id="doelgroep"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span4">
+                        <div class="control-group">
+                            <label class="control-label">Geboortedatum:</label>
+                            <div class="controls">
+                                <div class="btn-group periode-filter">
+                                    <div class="input-append">
+                                        <input name="geboortedatum" wicket:id="geboortedatum" type="text" placeholder="dd-mm-jaar" size="16" id="startDatum"
+                                               class="input-small datum datum three-months"/>
+                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
+                                           tabindex="-1"> <i class="icon-calendar"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Deelnamekans:</label>
+                            <div class="controls">
+                                <input type="text" class="form-control input-small" style="width: 30px" name="deelnamekans" wicket:id="deelnamekans"/>%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span4">
+                        <div class="control-group">
+                            <label for="" class="control-label span2">Gemeente:</label>
+                            <div class="controls">
+                                <select class="form-control" name="gemeente" wicket:id="gemeente"></select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="" class="control-label span2">Postcode:</label>
+                            <div class="controls">
+                                <input type="text" class="form-control" name="postcode" wicket:id="postcode"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="form-actions clearfix">
+                            <button class="btn" name="wijzigClient" wicket:id="clientWijzigOfMaak">Wijzig of maak client</button>
+                            <button class="btn btn-primary" name="zoekClient" wicket:id="clientVindOfMaak">Zoek of maak client</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset wicket:id="gebeurtenissenContainer">
+                <table class="table table-bordered table-condensed status-bevolkingsonderzoek">
+                    <thead>
+                    <tr>
+                        <th class="input-micro">Ronde</th>
+                        <th>
+                            <div class="right" wicket:id="nieuweRonde">Maak MammaScreeningRonde</div>
+                            <label style="margin-top: 10px; font-weight: bold;">Gebeurtenis Borstkanker</label>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody wicket:id="rondes">
+                    <tr class="show-active">
+                        <td class="center-content"><span class="badge" wicket:id="rondeNummer">1</span></td>
+                        <td class="gebeurtenissen">
+                            <div wicket:id="snelKeuzeMamma">Maak MammaScreeningRonde</div>
+                            <span class="badge" wicket:id="gebeurtenissen">
+									<span class="omschrijving"> 
+											<wicket:container wicket:id="bron">Afgerond</wicket:container>
+											<wicket:container wicket:id="gebeurtenis">Afgerond</wicket:container>
+											<wicket:container wicket:id="extraOmschrijving">Afgerond</wicket:container>
+									</span> 
+									<span class="datum" wicket:id="datum">12-10-2010</span>
+								</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="form-actions clearfix">
+                            <label for="verstuurHL7Berichten" class="label">Verstuur HL7 berichten</label>
+                            <input type="checkbox" id="verstuurHL7Berichten" wicket:id="verstuurHl7Berichten">
+                            <button class="right btn" wicket:id="bijzondereClientData">Bijzondere client data</button>
+                            <button class="right btn btn-info" wicket:id="directNaarClientDossier">Client dossier</button>
+                            <button class="right btn btn-info" wicket:id="directNaarClientPortaal">Client portaal</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+        <div class="row-fluid">
+            <div class="span4">
+                <form wicket:id="clientResetForm">
+                    <fieldset>
+                        <h3>Reset clienten</h3>
+                        <p>
+                            BSN's (kommaseperated)
+                            <textarea wicket:id="bsns"></textarea>
+                            <button class="btn" wicket:id="resetten">Clienten resetten</button>
+                        </p>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="span4">
+                <form wicket:id="pocClienten">
+                    <fieldset>
+                        <h3>Import (PoC) clienten/studies</h3>
+                        <div>
+                            <label class="control-label">CSV</label>
+                            <div class="controls">
+                                <input type="file" wicket:id="csv"/>
+                            </div>
+                            <label class="control-label">SE:</label>
+                            <div class="controls">
+                                <select wicket:id="screeningsEenheid"></select>
+                            </div>
+                            <label class="control-label">Laatste ronde:</label>
+                            <div class="controls">
+                                <select wicket:id="laatsteRonde"></select>
+                            </div>
+                            <button class="btn" wicket:id="import">Importeer clienten</button>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="span4">
+                <wicket:container wicket:id="deelnamekansen"></wicket:container>
+            </div>
+        </div>
+    </div>
+</wicket:extend>
+</html>

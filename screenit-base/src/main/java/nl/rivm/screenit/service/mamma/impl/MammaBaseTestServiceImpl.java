@@ -75,7 +75,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaBaseTestServiceImpl implements MammaBaseTestService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseTestServiceImpl.class);
 
 	@Autowired
@@ -209,7 +209,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 
 		kwaliteitscontroleService.verwijderKwaliteitscontroleOnderzoeken(dossier);
 
-		screeningrondeService.verwijderScreeningRondes(dossier);
+		screeningrondeService.verwijderAlleScreeningRondes(dossier);
 
 		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))
 		{

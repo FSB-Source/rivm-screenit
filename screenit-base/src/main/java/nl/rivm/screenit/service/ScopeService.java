@@ -31,7 +31,7 @@ import org.apache.shiro.subject.PrincipalCollection;
 
 public interface ScopeService
 {
-	
+
 	boolean isObjectInScope(Constraint constraintToCheck, Account account, PrincipalCollection principals);
 
 	ToegangLevel getHoogsteToegangLevel(PrincipalCollection principalCollection, Constraint constraintToCheck);

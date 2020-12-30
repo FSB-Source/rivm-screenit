@@ -27,7 +27,7 @@ import javax.persistence.Transient;
 
 public interface ICervixHuisartsportaalObject
 {
-	
+
 	public Long getHuisartsportaalId();
 
 	public void setHuisartsportaalId(Long huisartsportaalId);

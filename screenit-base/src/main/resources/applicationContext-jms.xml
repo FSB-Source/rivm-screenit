@@ -1,0 +1,110 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<beans xmlns:amq="http://activemq.apache.org/schema/core"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+  http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd
+  http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
+
+    <bean class="nl.rivm.screenit.factory.impl.JndiPropertyPlaceholderConfigurer">
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+        <property name="order" value="-1"/>
+    </bean>
+
+    
+    <amq:queue id="verwerkColonCdaBerichtDestination" physicalName="nl.rivm.screenit.batch.colon.cdaberichten.${applicationEnvironment}"/>
+    <amq:queue id="verwerkMammaIMSBerichtDestination" physicalName="nl.rivm.screenit.batch.mamma.hl7berichten.${applicationEnvironment}"/>
+   	<amq:queue id="verzamelOnderzoekDataBerichtDestination" physicalName="nl.rivm.screenit.batch.mamma.verzamelondezoeksdata.${applicationEnvironment}"/> 
+   	<amq:queue id="uploadBeeldenVerzoekBerichtDestination" physicalName="nl.rivm.screenit.batch.mamma.uploadbeeldenverzoek.${applicationEnvironment}"/>
+
+    <amq:queue id="verwerkCervixCdaBerichtDestination" physicalName="nl.rivm.screenit.batch.cervix.cdaberichten.${applicationEnvironment}"/>
+    <amq:queue id="verwerkHpvBerichtDestination" physicalName="nl.rivm.screenit.batch.cervix.hpvberichten.${applicationEnvironment}"/>
+    <amq:queue id="verwerkIFobtBerichtDestination" physicalName="nl.rivm.screenit.batch.colon.ifobtberichten.${applicationEnvironment}"/>
+    <amq:queue id="verwerkBulkHuisartsenDestination" physicalName="nl.rivm.screenit.batch.cervix.bulkhuisarsen.${applicationEnvironment}"/>
+
+	<amq:queue id="verwerkMammaCdaBerichtDestination" physicalName="nl.rivm.screenit.batch.mamma.cdaberichten.${applicationEnvironment}"/>
+    <amq:queue id="verwerkMammaSeRestDestination" physicalName="nl.rivm.screenit.mamma.se.jms.listener.${applicationEnvironment}"/>
+    
+
+    
+    <amq:queue id="colonJobsDestination" physicalName="nl.rivm.screenit.batch.colon.jobs.${applicationEnvironment}"/>
+    <amq:queue id="generalisJobsDestination" physicalName="nl.rivm.screenit.batch.generalis.jobs.${applicationEnvironment}"/>
+    <amq:queue id="cervixJobsDestination" physicalName="nl.rivm.screenit.batch.cervix.jobs.${applicationEnvironment}"/>
+    <amq:queue id="mammaJobsDestination" physicalName="nl.rivm.screenit.batch.mamma.jobs.${applicationEnvironment}"/>
+
+
+    <amq:queue id="huisartsporaalDestination" physicalName="nl.rivm.screenit.huisartsportaal.listener.${applicationEnvironment}"/>
+    <amq:queue id="huisartsportaalListenerDestination" physicalName="nl.rivm.screenit.main.jms.listener.huisartsportaallistener.${applicationEnvironment}"/>
+
+    
+    <amq:topic id="batchServerStatusDestination" physicalName="nl.rivm.screenit.batch.batchServerStatus.${applicationEnvironment}."/>
+
+    
+    <amq:queue id="quartzDestination" physicalName="nl.rivm.screenit.batch.quartz.${applicationEnvironment}"/>
+
+    <bean id="prefetchPolicy" class="org.apache.activemq.ActiveMQPrefetchPolicy">
+        <property name="queuePrefetch" value="1"/>
+    </bean>
+
+    
+    <bean id="redeliveryPolicy" class="org.apache.activemq.RedeliveryPolicy">
+        <property name="maximumRedeliveries" value="3"/>
+        <property name="initialRedeliveryDelay" value="3000"/>
+    </bean>
+
+    
+    <bean id="jmsFactory" class="org.apache.activemq.pool.PooledConnectionFactory" init-method="start"
+          destroy-method="stop">
+        <property name="connectionFactory">
+            <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+                <property name="brokerURL" ref="brokerUrl"/>
+                <property name="useAsyncSend">
+                    <value>true</value>
+                </property>
+                <property name="prefetchPolicy" ref="prefetchPolicy"></property>
+                <property name="redeliveryPolicy" ref="redeliveryPolicy"/>
+                <property name="trustedPackages">
+                    <list>
+                        <value>org.quartz.utils</value>
+                        <value>nl.rivm.screenit.model.batch</value>
+                        <value>nl.rivm.screenit.huisartsenportaal.dto</value>
+                        <value>nl.rivm.screenit.model.enums</value>
+                        <value>java.lang</value>
+                        <value>java.util</value>
+                    </list>
+                </property>
+            </bean>
+        </property>
+        <property name="idleTimeout">
+            <value>0</value>
+        </property>
+    </bean>
+
+    
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory">
+            <ref bean="jmsFactory"/>
+        </property>
+    </bean>
+
+    <jee:jndi-lookup id="brokerUrl" jndi-name="jms/broker_url"></jee:jndi-lookup>
+</beans>

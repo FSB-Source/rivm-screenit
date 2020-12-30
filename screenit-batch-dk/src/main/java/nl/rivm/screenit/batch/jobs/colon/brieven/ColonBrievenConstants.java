@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.colon.brieven;
 
 public class ColonBrievenConstants
 {
-	
+
 	private ColonBrievenConstants()
 	{
 	}

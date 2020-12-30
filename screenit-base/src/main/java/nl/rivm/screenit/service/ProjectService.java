@@ -52,7 +52,7 @@ import com.aspose.words.Document;
 
 public interface ProjectService
 {
-	
+
 	void saveOrUpdateProject(Project project, InstellingGebruiker loggedInInstellingGebruiker);
 
 	List<Project> getProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject, long first, long count, SortState<String> sortState);

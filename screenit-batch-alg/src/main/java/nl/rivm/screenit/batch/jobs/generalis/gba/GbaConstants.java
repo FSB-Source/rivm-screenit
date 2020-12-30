@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gba;
 
 public class GbaConstants
 {
-	
+
 	private GbaConstants()
 	{
 	}

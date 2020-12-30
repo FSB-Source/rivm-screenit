@@ -46,7 +46,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class JobServiceImpl implements JobService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(JobServiceImpl.class);
 
 	@Autowired
@@ -132,7 +132,7 @@ public class JobServiceImpl implements JobService
 
 	private class MessageStoringMessageCreator implements MessageCreator
 	{
-		
+
 		private final BatchJob batchJob;
 
 		private Message message;

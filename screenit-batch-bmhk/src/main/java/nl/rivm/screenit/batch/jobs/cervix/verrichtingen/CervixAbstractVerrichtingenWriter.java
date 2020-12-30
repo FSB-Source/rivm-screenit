@@ -48,20 +48,20 @@ public abstract class CervixAbstractVerrichtingenWriter<T extends CervixMonster>
 		{
 			if (HibernateHelper.deproxy(ronde.getMonsterHpvUitslag()) instanceof CervixUitstrijkje)
 			{
-				
+
 				verrichtingenFactory.maakLabVerrichting(uitstrijkje, CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE, cytologieVerrichtingsDatum);
 				aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_CYTOLOGIE_UITSTRIJKJE_AANTAL_KEY);
 			}
 			else
 			{
-				
+
 				verrichtingenFactory.maakLabVerrichting(uitstrijkje, CervixTariefType.LAB_CYTOLOGIE_NA_HPV_ZAS, cytologieVerrichtingsDatum);
 				aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_CYTOLOGIE_ZAS_AANTAL_KEY);
 			}
 		}
 		else
 		{
-			
+
 			verrichtingenFactory.maakLabVerrichting(uitstrijkje, CervixTariefType.LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE, cytologieVerrichtingsDatum);
 			aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE_AANTAL_KEY);
 		}

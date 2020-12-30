@@ -25,7 +25,7 @@ import java.util.Random;
 
 public final class CodeGenerator
 {
-	
+
 	private static char[] characters = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWKYZ23456789".toCharArray();
 
 	private CodeGenerator()

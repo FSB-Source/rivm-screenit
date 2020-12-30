@@ -38,7 +38,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class BagAdres extends ScreenitAdres
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String naamOpenbareRuimte;

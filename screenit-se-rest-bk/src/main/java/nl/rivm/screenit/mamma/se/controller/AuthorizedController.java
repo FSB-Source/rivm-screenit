@@ -48,7 +48,7 @@ abstract class AuthorizedController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(AuthorizedController.class);
 
-	protected ExecutorService executorService = Executors.newFixedThreadPool(50);
+	protected static ExecutorService executorService = Executors.newFixedThreadPool(50);
 
 	protected static final int ASYNC_REQUEST_TIMEOUT_MS = 30000;
 

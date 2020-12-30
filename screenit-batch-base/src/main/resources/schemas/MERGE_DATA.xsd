@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.dm-ict.nl/photo/358/"
+           elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xs:element name="MERGE_DATA">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="UITNODIGING" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="ID" type="xs:long"/>
+                            <xs:element name="TEMPLATE" type="xs:normalizedString"/>
+                            <xs:element name="MERGEFIELDS">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="MERGEFIELD" minOccurs="0" maxOccurs="unbounded">
+                                            <xs:complexType>
+                                                <xs:sequence>
+                                                    <xs:element name="NAME" type="xs:normalizedString"/>
+                                                    <xs:element name="VALUE" type="xs:normalizedString"/>
+                                                </xs:sequence>
+                                            </xs:complexType>
+                                        </xs:element>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

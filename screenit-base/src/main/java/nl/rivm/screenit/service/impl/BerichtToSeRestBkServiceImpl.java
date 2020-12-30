@@ -21,13 +21,17 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import javax.jms.Destination;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.helper.ActiveMQHelper;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -35,7 +39,8 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
-import org.apache.commons.lang.time.DateUtils;
+import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,50 +68,55 @@ public class BerichtToSeRestBkServiceImpl implements BerichtToSeRestBkService
 	@Qualifier("verwerkMammaSeRestDestination")
 	private Destination mammaSeRestDestination;
 
-	@Override
-	public Set<MammaScreeningsEenheid> notificeerSesEnGeefSesTerug(Client client)
-	{
-		return notificeerSesMetUitzonderingVanEnGeefSesTerug(new HashSet<>(), client);
-	}
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	@Override
-	public void notificeerSesMetUitzonderingVan(Set<MammaScreeningsEenheid> genotificeerdeSes, Client client)
+	public void notificeerSes(Client client)
 	{
-		notificeerSesMetUitzonderingVanEnGeefSesTerug(genotificeerdeSes, client);
-	}
-
-	private Set<MammaScreeningsEenheid> notificeerSesMetUitzonderingVanEnGeefSesTerug(Set<MammaScreeningsEenheid> genotificeerdeSes, Client client)
-	{
-
-		Date vandaag = currentDateSupplier.getDate();
-		Set<MammaScreeningsEenheid> updateEenheden = new HashSet<>();
+		Map<MammaScreeningsEenheid, HashSet<LocalDate>> updateEenheden = new HashMap<>();
 		List<MammaAfspraak> afspraken = client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getAfspraken();
 		for (MammaAfspraak afspraak : afspraken)
 		{
-			if (DateUtils.isSameDay(vandaag, afspraak.getVanaf()))
+			if (moetSeNotificerenVoorAfspraak(DateUtil.toLocalDateTime(afspraak.getVanaf())))
 			{
-				updateEenheden.add(afspraak.getStandplaatsPeriode().getScreeningsEenheid());
+				HashSet<LocalDate> updateDates = updateEenheden.computeIfAbsent(afspraak.getStandplaatsPeriode().getScreeningsEenheid(), k -> new HashSet<>());
+				updateDates.add(DateUtil.toLocalDate(afspraak.getVanaf()));
 			}
 		}
 
-		updateEenheden.removeAll(genotificeerdeSes);
-		updateEenheden.forEach(se -> queueBericht(mammaSeRestDestination, se.getCode()));
-		return updateEenheden;
+		updateEenheden.forEach((se, datums) -> datums.forEach(datum -> {
+			notificeerSe(se, datum);
+		}));
 	}
 
 	@Override
-	public void notificeerSe(MammaScreeningsEenheid se)
+	public void notificeerSe(MammaScreeningsEenheid se, LocalDate daglijstDatum)
 	{
-		queueBericht(mammaSeRestDestination, se.getCode());
+		queueBericht(mammaSeRestDestination, se.getCode() + ":" + daglijstDatum.format(DateTimeFormatter.ISO_DATE));
 	}
 
 	@Override
-	public void updateTijdVoorIedereSe(String durationOffset)
+	public void dbCleanupVoorIedereSe()
 	{
 		if (Boolean.TRUE.equals(testModus))
 		{
-			queueBericht(mammaSeRestDestination, durationOffset);
+			queueBericht(mammaSeRestDestination, "DB_CLEANUP");
 		}
+	}
+
+	@Override
+	public boolean moetSeNotificerenVoorAfspraak(LocalDateTime afspraakDatum)
+	{
+		LocalDate notificerenTotEnMet = getDaglijstNotificerenTot();
+		return DateUtil.isBetween(currentDateSupplier.getLocalDate().atStartOfDay(), notificerenTotEnMet.atStartOfDay(), afspraakDatum);
+	}
+
+	private LocalDate getDaglijstNotificerenTot()
+	{
+		int aantalDagenDaglijst = preferenceService.getInteger(PreferenceKey.MAMMA_SE_DAGLIJST_OPHALEN_DAGEN.name(), 0);
+		LocalDate vandaag = currentDateSupplier.getLocalDate();
+		return vandaag.plusDays(aantalDagenDaglijst + 1);
 	}
 
 	private void queueBericht(Destination destination, final String bericht)

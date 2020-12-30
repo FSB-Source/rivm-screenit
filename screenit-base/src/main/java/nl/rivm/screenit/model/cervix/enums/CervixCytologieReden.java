@@ -23,7 +23,7 @@ package nl.rivm.screenit.model.cervix.enums;
 
 public enum CervixCytologieReden
 {
-	
+
 	INITIEEL_NA_ZAS("0"),
 
 	INITIEEL_ZONDER_ZAS("1"),

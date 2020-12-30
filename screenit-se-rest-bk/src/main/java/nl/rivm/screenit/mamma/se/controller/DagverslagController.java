@@ -73,9 +73,9 @@ public class DagverslagController extends AuthorizedController
 		Future future = executorService.submit(dagverslagOphaler);
 		try
 		{
-			LOG.info("Dagverslag ophalen start (" + seCode + ")");
+			LOG.info("Dagverslag ophalen start (" + seCode + ") dag: " + datum);
 			future.get(ASYNC_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-			LOG.info("Dagverslag ophalen eind (" + seCode + ")");
+			LOG.info("Dagverslag ophalen eind (" + seCode + ") dag: " + datum);
 			return ResponseEntity.ok(dagverslagOphaler.getDagverslagDto());
 		}
 		catch (TimeoutException e)

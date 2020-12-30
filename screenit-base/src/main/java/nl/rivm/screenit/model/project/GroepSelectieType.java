@@ -27,7 +27,7 @@ import nl.rivm.screenit.model.INaam;
 
 public enum GroepSelectieType implements INaam
 {
-	
+
 	@CodeboekDoc("Kan via import of via criteria") STATISCH("Statisch"),
 
 	@CodeboekDoc("Kan alleen via criteria") DYNAMISCH("Dynamisch");

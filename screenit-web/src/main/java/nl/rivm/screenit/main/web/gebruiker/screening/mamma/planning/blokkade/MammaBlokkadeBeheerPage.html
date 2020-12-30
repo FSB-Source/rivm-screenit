@@ -1,0 +1,100 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:extend>
+    <div class="btn-top dropdown pull-right">
+        <button class="btn btn-primary" data-toggle="dropdown" wicket:id="blokkade">
+            <span class="icon-plus-sign icon-white"/> Blokkade
+        </button>
+    </div>
+    <h1 class="pageTitle">Blokkade - Blokkades beheren</h1>
+    <fieldset class="form-horizontal">
+        <form wicket:id="form">
+            <div class="row-fluid">
+                <div class="span6">
+                    <wicket:enclosure child="regio">
+                        <div class="control-group">
+                            <label class="control-label">Screeningsorganisatie</label>
+                            <div class="controls">
+                                <select wicket:id="regio"></select>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                    <div class="control-group">
+                        <label class="control-label">Screeningseenheid</label>
+                        <div class="controls">
+                            <select wicket:id="screeningsEenheid"></select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Standplaats</label>
+                        <div class="controls">
+                            <select wicket:id="standplaats"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">Type</label>
+                        <div class="controls">
+                            <select wicket:id="type"></select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Vanaf / tot en met</label>
+                        <div class="controls">
+                            <div class="input-append">
+                                <input type="text" class="datum" wicket:id="vanaf"/>
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');">
+                                    <i class="icon-calendar"/>
+                                </a>
+                            </div>
+                            <div class="input-append">
+                                <input type="text" class="datum" wicket:id="totEnMet"/>
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');">
+                                    <i class="icon-calendar"/>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="form-actions clearfix">
+                        <button class="btn btn-primary" wicket:id="blokkadeZoeken">
+                            <i class="icon-search icon-white"></i> Zoeken
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+
+    <div class="row-fluid show-results">
+        <div class="span12" wicket:id="blokkadesContainer">
+            <div wicket:id="blokkades"/>
+        </div>
+    </div>
+
+    <div wicket:id="dialog" class="dialog-large"/>
+</wicket:extend>
+</html>

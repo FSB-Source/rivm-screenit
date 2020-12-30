@@ -42,7 +42,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 public class UitslagenCsvFileProvider implements CsvFileProvider
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(UitslagenCsvFileProvider.class);
 
 	@Autowired

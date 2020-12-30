@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 
 public interface LogDao
 {
-	
+
 	void saveOrUpdateLogRegel(LogRegel logRegel);
 
 	List<LogRegel> getLogRegelsVanDashboard(DashboardStatus status, int first, int count, SortState<String> sortState);

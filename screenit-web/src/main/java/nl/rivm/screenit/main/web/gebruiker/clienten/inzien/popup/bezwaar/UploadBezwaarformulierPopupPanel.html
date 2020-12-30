@@ -1,0 +1,75 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="uploadForm">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>Afronden bezwaar</h3>
+        </div>
+        <div class="modal-body form-horizontal">
+            <fieldset class="hero-unit">
+                <p>Om het bezwaar te kunnen afronden moet eerst het antwoordformulier <strong>MET een handtekening van
+                    de cli&euml;nt</strong> worden geupload.</p>
+            </fieldset>
+            <div class="control-group span7">
+                <div class="row">
+                    <div class="control-group">
+                        <label class="control-label">Aanvraag gedaan via</label>
+                        <div class="controls">
+                            <label class="control-label" style="font-weight: bold;">Infolijn</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="control-group">
+                        <label class="control-label">Bezwaarformulier verstuurd</label>
+                        <div class="controls">
+                            <ul class="lijst" wicket:id="brievenLijst">
+                                <li><label style="font-weight: bold;" wicket:id="brief">Geen gegevens beschikbaar
+                                    stellen voor wetenschappelijk onderzoek = Actief</label></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="control-group">
+                        <label class="control-label">Bestand selecteren</label>
+                        <div class="controls">
+                            <input class="control-input" type="file" wicket:id="fileUpload">
+                        </div>
+                    </div>
+                </div>
+                <div wicket:id="bezwaarEditPanel"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a class="btn left" wicket:id="nogmaalsVersturen">Nogmaals versturen <span class="muted">*</span></a>
+            <a class="btn left" wicket:id="tegenhouden">Brief tegenhouden <span class="muted">*</span></a>
+            <a class="btn left" wicket:id="doorvoeren">Brief aanmaken herstellen <span class="muted">*</span></a>
+            <a class="btn left" wicket:id="geenHandtekening">Geen handtekening?</a>
+            <a class="btn" data-dismiss="modal">Annuleren</a>
+            <a href="javascript:void(0);" class="btn btn-primary" wicket:id="doorgaan">Bezwaar afronden</a>
+            <p class="muted">* geldt voor de laatste brief</p>
+        </div>
+    </form>
+</wicket:panel>
+</html>

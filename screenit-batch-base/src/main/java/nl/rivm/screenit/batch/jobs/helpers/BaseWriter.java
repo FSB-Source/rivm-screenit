@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class BaseWriter<S extends HibernateObject> implements ItemWriter<Long>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(BaseWriter.class);
 
 	private JobExecution jobExecution;

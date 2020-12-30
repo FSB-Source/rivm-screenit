@@ -31,7 +31,7 @@ import org.hibernate.criterion.Restrictions;
 
 public class CervixGevolgenLabprocesVerwerkenReader extends BaseScrollableResultReader
 {
-	
+
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{

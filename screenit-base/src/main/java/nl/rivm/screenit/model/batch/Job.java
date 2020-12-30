@@ -28,7 +28,7 @@ import java.util.List;
 
 public class Job implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String jobName;

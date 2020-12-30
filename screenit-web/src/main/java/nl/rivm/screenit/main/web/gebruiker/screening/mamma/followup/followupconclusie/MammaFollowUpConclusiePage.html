@@ -1,0 +1,73 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:head>
+    <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css"/>
+    <style>
+        .red {
+            background-color: #da4f49 !important;
+        }
+    </style>
+</wicket:head>
+<wicket:extend>
+
+    <h1 class="pageTitle">Follow-up conclusie</h1>
+
+    <wicket:container wicket:id="paspoort"></wicket:container>
+
+    <div>
+        <fieldset class="span12">
+            <h2>Onderzoekgegevens</h2>
+            <div class="control-group value span4">
+                <label class="control-label">Datum onderzoek</label>
+                <div class="controls"><span wicket:id="laatsteUitnodiging.laatsteAfspraak.onderzoek.creatieDatum">10-10-10</span></div>
+            </div>
+            <div class="control-group value span4">
+                <label class="control-label">Uitslag</label>
+                <div class="controls"><span wicket:id="laatsteUitnodiging.laatsteAfspraak.onderzoek.laatsteBeoordeling.status">10-10-10</span></div>
+            </div>
+            <div wicket:id="biradsContainer" class="control-group value span4">
+                <label class="control-label">BIRADS verwijsverslag</label>
+                <div class="controls">BIRADS <span wicket:id="biradsLinks">10-10-10</span> - <span wicket:id="biradsRechts">10-10-10</span></div>
+            </div>
+        </fieldset>
+    </div>
+
+    <div wicket:id="followUpRadiologieVerslagen">
+        <fieldset wicket:id="radiologieVerslag" class="span6"></fieldset>
+    </div>
+
+    <div wicket:id="followUpVerslagen">
+        <fieldset wicket:id="paVerslag" class="span12"></fieldset>
+    </div>
+
+    <form wicket:id="conclusieForm">
+        <div class="buttons btn-group" wicket:id="conclusieContainer">
+            <button class="btn" wicket:id="conclusie">
+                <wicket:container wicket:id="label">Alle intakes</wicket:container>
+            </button>
+        </div>
+        <div class="buttons">
+            <a wicket:id="opslaan" href="#" class="btn btn-primary">Opslaan</a>
+        </div>
+    </form>
+</wicket:extend>
+</html>

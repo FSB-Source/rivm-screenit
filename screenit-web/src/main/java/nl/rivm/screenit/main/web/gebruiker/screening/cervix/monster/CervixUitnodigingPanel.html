@@ -1,0 +1,141 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:panel>
+    <fieldset wicket:id="fieldset">
+        <form wicket:id="form" class="form-horizontal">
+            <div>
+                <div class="control-group value">
+                    <div class="span6 floatleft">
+                        <label class="control-label">Monster-id</label>
+
+                        <div class="controls" wicket:id="monsterId"></div>
+
+                    </div>
+                    <label class="control-label span6 floatright"><a class="btn floatright" wicket:id="printMonsterId"><i class="icon-print"></i></a></label>
+                </div>
+                <hr>
+                <div class="control-group value">
+                    <label class="control-label">Status formulier</label>
+
+                    <div class="controls">
+                        <span class="naam" wicket:id="labformulier.status"></span> <span
+                            wicket:id="labformulierLaboratoriumContainer"> in <span
+                            wicket:id="labformulier.laboratorium.naam"></span></span>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Digitaal</label>
+
+                    <div class="controls">
+                        <span class="naam" wicket:id="labformulier.digitaal"></span>
+                    </div>
+                </div>
+                <hr>
+                <div class="control-group value">
+                    <label class="control-label">Vervolgstap</label>
+
+                    <div class="controls vervolgstap">
+                        <div wicket:id="reedsIngeboekt"></div>
+                        <div wicket:id="vervolgTekst"></div>
+                    </div>
+                </div>
+                <hr>
+                <div class="control-group value">
+                    <label class="control-label">Cli&euml;nt</label>
+
+                    <div class="controls" wicket:id="uitnodiging.screeningRonde.dossier.client.persoon.naamVolledig"></div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Geboortedatum</label>
+
+                    <div class="controls" wicket:id="uitnodiging.screeningRonde.dossier.client.persoon.geboortedatum"></div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">BSN</label>
+
+                    <div class="controls" wicket:id="uitnodiging.screeningRonde.dossier.client.persoon.bsn"></div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Screeningsorganisatie</label>
+
+                    <div class="controls" wicket:id="uitnodiging.screeningRonde.dossier.client.persoon.gbaAdres.gbaGemeente.screeningOrganisatie.naam"></div>
+                </div>
+                <hr>
+                <div class="control-group value">
+                    <label class="control-label">Type monster</label>
+
+                    <div class="controls" wicket:id="uitnodiging.monsterType"></div>
+                </div>
+                <wicket:enclosure wicket:id="labformulier.datumUitstrijkje">
+                <div class="control-group value">
+                    <label class="control-label">Datum Uitstrijkje</label>
+
+                    <div class="controls" wicket:id="labformulier.datumUitstrijkje"></div>
+                </div>
+                </wicket:enclosure>
+                <div class="control-group value">
+                    <label class="control-label">Verzenddatum</label>
+
+                    <div class="controls" wicket:id="verzenddatum"></div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Status monster</label>
+
+                    <div class="controls">
+                        <select wicket:id="monsterStatus"></select> <span wicket:id="monsterLaboratoriumContainer"><b> in <span
+                            wicket:id="laboratorium.naam"></span></b></span>
+                    </div>
+                </div>
+                <wicket:enclosure child="nietAnalyseerbaarReden">
+                    <div class="control-group">
+                        <label class="control-label">Reden</label>
+
+                        <div class="controls" wicket:id="nietAnalyseerbaarReden"></div>
+                    </div>
+                </wicket:enclosure>
+                <div class="control-group" wicket:id="monsterSignaleringenContainer">
+                    <label class="control-label">Signalering</label>
+                    <div class="controls">
+                        <div class="checkbox" wicket:id="signaleringen"></div>
+                        <label class="control-label">Overige, namelijk:</label>
+                        <div class="controls">
+                            <input wicket:id="overigeSignalering" class="input-large" type="text">
+                        </div>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Ontvangstdatum</label>
+
+                    <div class="controls" wicket:id="ontvangstdatum"></div>
+                </div>
+            </div>
+            <hr>
+            <div class="control-group value">
+                <div class="controls">
+                    <object class="pull-left" height="280" width="130" wicket:id="barcode"></object>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+    <div wicket:id="dialog"></div>
+</wicket:panel>
+</html>

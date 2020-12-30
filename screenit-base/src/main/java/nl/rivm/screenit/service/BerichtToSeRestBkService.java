@@ -22,18 +22,19 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Set;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface BerichtToSeRestBkService
 {
-	Set<MammaScreeningsEenheid> notificeerSesEnGeefSesTerug(Client client);
+	void notificeerSes(Client client);
 
-	void notificeerSe(MammaScreeningsEenheid screeningsEenheid);
+	void notificeerSe(MammaScreeningsEenheid se, LocalDate daglijstDatum);
 
-	void notificeerSesMetUitzonderingVan(Set<MammaScreeningsEenheid> genotificeerdeSes, Client client);
+	void dbCleanupVoorIedereSe();
 
-	void updateTijdVoorIedereSe(String durationOffset);
+	boolean moetSeNotificerenVoorAfspraak(LocalDateTime afspraakDatum);
 }

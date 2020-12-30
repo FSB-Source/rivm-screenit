@@ -1,0 +1,107 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="modal-header">
+        <button data-dismiss="modal" class="close" type="button">x</button>
+        <h3>Tijdelijk GBA adres</h3>
+    </div>
+    <div class="modal-body">
+        <div style="display: block;" id="handmatig"
+             class="form-container form-horizontal">
+            <form wicket:id="form">
+                <div class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Straatnaam</label>
+                        <div class="controls">
+                            <input wicket:id="persoon.tijdelijkGbaAdres.straat" class="input-large" type="text"
+                                   value="">
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Huisnummer</label>
+                                <div class="controls">
+                                    <input wicket:id="persoon.tijdelijkGbaAdres.huisnummer" class="input-small" type="text"
+                                           value="">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Huisletter</label>
+                                <div class="controls">
+                                    <input wicket:id="persoon.tijdelijkGbaAdres.huisletter" class="input-small" type="text"
+                                           value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Huisnummertoevoeging</label>
+                                <div class="controls">
+                                    <input wicket:id="persoon.tijdelijkGbaAdres.huisnummerToevoeging" class="input-small"
+                                           type="text" value="">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Aanduiding bij huisnummer</label>
+                                <div class="controls">
+                                    <input wicket:id="persoon.tijdelijkGbaAdres.huisnummerAanduiding" class="input-small"
+                                           type="text" value="">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Postcode</label>
+                        <div class="controls">
+                            <input wicket:id="persoon.tijdelijkGbaAdres.postcode" class="input-mini" type="text"
+                                   value="">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Plaats</label>
+                        <div class="controls">
+                            <input wicket:id="persoon.tijdelijkGbaAdres.plaats" class="input-large" type="text"
+                                   value="">
+                        </div>
+                    </div>
+                    <wicket:enclosure child="persoon.tijdelijkGbaAdres.locatieBeschrijving">
+                        <div class="control-group">
+                            <label class="control-label">Locatiebeschrijving</label>
+                            <div class="controls">
+                                <label wicket:id="persoon.tijdelijkGbaAdres.locatieBeschrijving">Locatieomschrijving</label>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                </div>
+            </form>
+        </div>
+        <div wicket:id="dialog"></div>
+    </div>
+
+    <div class="modal-footer">
+        <button data-dismiss="modal" class="btn btn-danger pull-left" wicket:id="verwijderen">Verwijderen</button>
+        <button data-dismiss="modal" class="btn" wicket:id="annuleren">Annuleren</button>
+        <button class="btn btn-primary" wicket:id="opslaan">Opslaan</button>
+    </div>
+</wicket:panel>
+</html>

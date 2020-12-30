@@ -50,7 +50,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public abstract class MergedBrieven<B extends Brief> extends TablePerClassHibernateObject implements IActief
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Temporal(TemporalType.TIMESTAMP)

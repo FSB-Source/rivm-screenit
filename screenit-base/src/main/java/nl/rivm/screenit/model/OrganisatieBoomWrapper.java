@@ -26,7 +26,7 @@ import nl.topicuszorg.hibernate.object.annot.objects.Transient;
 @Transient
 public class OrganisatieBoomWrapper
 {
-	
+
 	private Long organisatieId;
 
 	private Long parentId;

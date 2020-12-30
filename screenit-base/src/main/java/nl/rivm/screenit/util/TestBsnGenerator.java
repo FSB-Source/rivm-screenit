@@ -32,7 +32,7 @@ import com.google.common.math.DoubleMath;
 
 public class TestBsnGenerator
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(TestBsnGenerator.class);
 
 	private static Random randomNum = new Random();

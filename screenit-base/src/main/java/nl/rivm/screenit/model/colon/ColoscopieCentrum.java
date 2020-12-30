@@ -49,7 +49,7 @@ import org.joda.time.MutableDateTime;
 @Audited
 public class ColoscopieCentrum extends Instelling
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "coloscopieCentrum")

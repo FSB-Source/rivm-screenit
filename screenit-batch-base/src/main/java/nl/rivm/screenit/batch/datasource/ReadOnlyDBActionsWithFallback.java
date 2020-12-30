@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 
 public final class ReadOnlyDBActionsWithFallback
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ReadOnlyDBActionsWithFallback.class);
 
 	private ReadOnlyDBActionsWithFallback()

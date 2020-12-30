@@ -72,8 +72,10 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 	public List<String> voerSemantischeValiatieUit(List<KOPPELDATA.VERZONDENUITNODIGING> koppeldata)
 	{
 		List<String> foutmeldingen = new ArrayList<>();
+		List<String> barcodesUitKoppeldata = new ArrayList<>();
 
 		DateTime nu = currentDateSupplier.getDateTime();
+		DateTime minstensHoudbaarTotMetCervix = houdbaarheidService.getMinstensHoudbaarTotMet(nu, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_ZAS_MONSTERS_VOOR_CONTROLE);
 
 		for (KOPPELDATA.VERZONDENUITNODIGING verzondenUitnodiging : koppeldata)
 		{
@@ -81,17 +83,7 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 			String zasBarcode = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.CERVIX_KOPPEL_BARCODE_ZAS);
 			String trackTraceId = getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.KOPPEL_TRACK_ID);
 
-			DateTime minstensHoudbaarTotMetCervix = houdbaarheidService.getMinstensHoudbaarTotMet(nu, PreferenceKey.PERIODE_MINIMALE_HOUDBAARHEID_ZAS_MONSTERS_VOOR_CONTROLE);
-
 			CervixUitnodiging cervixUitnodiging = getCervixUitnodiging(verzondenUitnodiging);
-
-			if (StringUtils.isBlank(zasBarcode))
-			{
-				addFout(foutmeldingen,
-					String.format(KoppelConstants.CERVIX_ZASID_MIST_BIJ_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
-						StringUtils.defaultIfBlank(zasBarcode, "<geen>"),
-						trackTraceId, ""));
-			}
 
 			if (cervixUitnodiging == null)
 			{
@@ -99,6 +91,13 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 			}
 			else
 			{
+				if (StringUtils.isBlank(zasBarcode))
+				{
+					addFout(foutmeldingen,
+						String.format(KoppelConstants.CERVIX_ZASID_MIST_BIJ_TYPE_UITNODIGING, verzondenUitnodiging.getID(),
+							StringUtils.defaultIfBlank(zasBarcode, "<geen>"),
+							trackTraceId, ""));
+				}
 				if (StringUtils.isNotBlank(zasBarcode))
 				{
 					CervixZas bestaandeZas = cervixMonsterDao.getZas(zasBarcode);
@@ -122,6 +121,14 @@ public class BarcodeZasValiderenServiceImpl extends BaseValiderenService impleme
 					{
 						addFout(foutmeldingen, String.format(KoppelConstants.CERVIX_HOUDBAARHEID_TE_KORT, verzondenUitnodiging.getID(),
 							StringUtils.defaultIfBlank(zasBarcode, "<geen>"), trackTraceId));
+					}
+					if (barcodeAlTeruggekoppeld(barcodesUitKoppeldata, zasBarcode))
+					{
+						addFout(foutmeldingen, String.format(KoppelConstants.CERVIX_ZASID_IS_DUBBEL, verzondenUitnodiging.getID(), zasBarcode, trackTraceId));
+					}
+					else
+					{
+						barcodesUitKoppeldata.add(zasBarcode);
 					}
 				}
 			}

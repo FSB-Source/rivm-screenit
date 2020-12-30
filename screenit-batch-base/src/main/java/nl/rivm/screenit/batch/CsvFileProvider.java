@@ -31,12 +31,12 @@ import au.com.bytecode.opencsv.CSVReader;
 
 public interface CsvFileProvider
 {
-	
+
 	Iterator<CSVReader> getReaders() throws Exception;
 
 	class CSVFileReader extends CSVReader
 	{
-		
+
 		private final String sourceFileNaam;
 
 		public CSVFileReader(Reader reader, char separator, String sourceFileNaam)
@@ -54,7 +54,7 @@ public interface CsvFileProvider
 
 	class CSVReaderIterator implements Iterator<CSVReader>, Closeable
 	{
-		
+
 		private final Iterator<CSVReader> readers;
 
 		private CSVReader current;

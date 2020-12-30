@@ -27,7 +27,7 @@ import nl.topicuszorg.gba.vertrouwdverbonden.model.Vo105Bericht;
 
 public class Vo105BerichtWrapper
 {
-	
+
 	private Vo105Bericht vo105Bericht;
 
 	private ScreeningOrganisatie screeningOrganisatie;

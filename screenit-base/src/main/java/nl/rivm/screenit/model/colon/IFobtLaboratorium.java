@@ -35,7 +35,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class IFobtLaboratorium extends Instelling
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String labId;

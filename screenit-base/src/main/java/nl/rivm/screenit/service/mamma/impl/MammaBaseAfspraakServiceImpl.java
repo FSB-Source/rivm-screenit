@@ -28,9 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
@@ -274,11 +272,11 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	{
 		MammaUitnodiging laatsteUitnodiging = screeningRonde.getLaatsteUitnodiging();
 
-		Set<MammaScreeningsEenheid> genotificeerdeSes = new HashSet<>();
 		MammaAfspraak laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
 		if (laatsteAfspraak != null)
 		{
-			genotificeerdeSes = afspraakAnnuleren(laatsteAfspraak, MammaAfspraakStatus.VERPLAATST, null, vorigeAfspraakVerzetten);
+
+			afspraakAnnuleren(laatsteAfspraak, MammaAfspraakStatus.VERPLAATST, null, vorigeAfspraakVerzetten, false);
 		}
 
 		if (screeningRonde.getLaatsteUitstel() != null)
@@ -286,8 +284,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 			uitstelService.uitstelAfzeggen(screeningRonde.getLaatsteUitstel(), MammaUitstelGeannuleerdReden.NIEUWE_AFSPRAAK, dateSupplier.getDate());
 		}
 
-		MammaAfspraak afspraak = baseFactory.maakAfspraak(screeningRonde, capaciteitBlok, vanaf, standplaatsPeriode, verzettenReden, notificeerBetrokkenSe, genotificeerdeSes,
-			stuurBerichtNaarSectra, isGeforceerdeAfspraak);
+		MammaAfspraak afspraak = baseFactory.maakAfspraak(screeningRonde, capaciteitBlok, vanaf, standplaatsPeriode, verzettenReden, notificeerBetrokkenSe, stuurBerichtNaarSectra,
+			isGeforceerdeAfspraak);
 
 		if (logGebeurtenis)
 		{
@@ -376,14 +374,12 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 	public void afspraakAnnuleren(MammaAfspraak afspraak, MammaAfspraakStatus nieuweStatus, Date rondeAfgemeldOp)
 	{
 		boolean afspraakStatusWijzigen = afspraak.getVanaf().compareTo(dateSupplier.getDate()) > 0;
-		afspraakAnnuleren(afspraak, nieuweStatus, rondeAfgemeldOp, afspraakStatusWijzigen);
+		afspraakAnnuleren(afspraak, nieuweStatus, rondeAfgemeldOp, afspraakStatusWijzigen, true);
 	}
 
 	@Override
-	public Set<MammaScreeningsEenheid> afspraakAnnuleren(MammaAfspraak afspraak, MammaAfspraakStatus nieuweStatus, Date rondeAfgemeldOp, boolean afspraakStatusWijzigen)
+	public void afspraakAnnuleren(MammaAfspraak afspraak, MammaAfspraakStatus nieuweStatus, Date rondeAfgemeldOp, boolean afspraakStatusWijzigen, boolean notificeerSE)
 	{
-		Set<MammaScreeningsEenheid> genotificeerdeSes = new HashSet<>();
-
 		if (afspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND))
 		{
 
@@ -401,15 +397,17 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 				}
 
 				MammaScreeningRonde screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
-				baseBriefService.setNietGegenereerdeBrievenOpTegenhouden(screeningRonde, BriefType.MAMMA_AFSPRAAK_VERZET);
+				baseBriefService.setNietGegenereerdeBrievenOpTegenhouden(screeningRonde, Collections.singletonList(BriefType.MAMMA_AFSPRAAK_VERZET));
 				hibernateService.saveOrUpdate(afspraak);
 
 				this.berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde.getDossier().getClient(), MammaHL7v24ORMBerichtStatus.CANCELLED);
 
-				genotificeerdeSes = berichtToSeRestBkService.notificeerSesEnGeefSesTerug(screeningRonde.getDossier().getClient());
+				if (notificeerSE)
+				{
+					berichtToSeRestBkService.notificeerSes(screeningRonde.getDossier().getClient());
+				}
 			}
 		}
-		return genotificeerdeSes;
 	}
 
 	@Override

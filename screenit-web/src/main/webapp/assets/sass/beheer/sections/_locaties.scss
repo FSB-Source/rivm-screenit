@@ -1,0 +1,17 @@
+textarea.locatiebeschrijving {
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.filter-view {
+  .active {
+    color: black;
+    font-weight: normal;
+  }
+  .filter-actief.active {
+    background-color: #97a300;
+    .icon-ok-circle {
+      background-image: url("../images/icons/glyphicons-halflings-white.png");
+    }
+  }
+}

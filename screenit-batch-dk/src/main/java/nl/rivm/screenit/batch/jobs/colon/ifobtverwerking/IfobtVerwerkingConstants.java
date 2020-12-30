@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking;
 
 public class IfobtVerwerkingConstants
 {
-	
+
 	private IfobtVerwerkingConstants()
 	{
 	}

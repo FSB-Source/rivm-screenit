@@ -1,0 +1,337 @@
+input, textarea, select, .uneditable-input {
+  @include border-radius(5);
+}
+
+input[type=number].error, input[type=text].error, .error textarea,
+.error .select2-container .select2-choice,
+.input-append.date .error {
+  border: 1px solid $invalidColor;
+  color: $invalidColor;
+}
+
+.btn {
+  @include border-radius(5);
+
+  &.btn-primary {
+    border: solid 1px $colorColonis-beheer4;
+    background-image: none;
+    background-color: $colorColonis3;
+  }
+}
+
+.form-horizontal .control-label {
+  text-align: left;
+}
+
+.form-actions {
+  margin: 0;
+  padding: 0;
+  border-top: 0 none;
+  text-align: right;
+  background-color: transparent;
+}
+
+input.hasDatepicker,
+input.datum {
+  width: 80px;
+}
+
+.ui-datepicker {
+  z-index: 99999;
+  clip: auto;
+}
+
+.datum-tijd {
+  margin-right: 5px;
+  float: left;
+}
+
+.datum-tijd-value .controls span {
+  font-weight: normal;
+}
+
+.time-field {
+  display: block;
+  float: left;
+  line-height: $fontSize;
+}
+
+input.tijd {
+  width: 28px;
+}
+
+input.straat {
+  width: 143px;
+}
+
+input.huisnummer {
+  width: 20px;
+}
+
+input.huisnummerToevoeging {
+  width: 10px;
+}
+
+input.postcode {
+  width: 50px;
+}
+
+input[type="text"].digits-2,
+input[type="text"][maxlength="2"] {
+  width: 20px;
+}
+
+input[type="text"].digits-3,
+input[type="text"][maxlength="3"] {
+  width: 30px;
+}
+
+input[type="text"].digits-4,
+input[type="text"][maxlength="4"] {
+  width: 40px;
+}
+
+.input-append input {
+  position: inherit;
+}
+
+.control-group.value {
+  margin: 7px 0;
+
+  .control-label {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 16px;
+    color: #5A5A5A;
+  }
+
+  .controls {
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: bold;
+
+    p {
+      margin: 0 0 10px 0;
+      font-family: $fontFamily1;
+      font-size: 13px;
+      line-height: 16px;
+      font-weight: normal;
+    }
+  }
+
+  &.no-label .controls {
+    margin: 0;
+    font-weight: normal;
+  }
+}
+
+.control-group.no-label .controls {
+  margin: 0;
+}
+
+.selectie-dag {
+  width: 100px;
+}
+
+.dagdeel-selectie {
+  margin-right: 10px;
+}
+
+.formulier-container {
+  padding: 15px;
+  margin: 0 0 10px 0;
+  border: 1px solid #DDD;
+  @include border-radius(5px);
+}
+
+.formSection {
+  margin: 0px 0px 15px 0px;
+  background-color: #fff;
+}
+
+.formSection .row-fluid > .span6 {
+  min-height: 0;
+}
+
+.formSection .formSection {
+  padding: 0 10px;
+  margin: 0;
+  background: transparent none;
+
+  .formSection {
+    padding: 0;
+  }
+}
+
+.formSection:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+.formSection div.question {
+  > label {
+    width: 400px;
+  }
+
+  div.answer {
+    padding: 0 20px 0 436px;
+
+    input[type="text"].integer {
+      width: 40px;
+    }
+  }
+
+}
+
+.span6 .formSection div.question {
+  > label {
+    width: $defaultLabelWidth;
+  }
+
+  div.answer {
+    padding: 0 20px 0 $defaultLabelWidth + 36;
+  }
+}
+
+h2.form_trigger {
+  padding: 5px 10px;
+  margin: 0;
+  clear: left;
+  color: #54026e;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  line-height: 18px;
+  font-weight: normal;
+  text-decoration: none;
+  border-bottom: 1px solid #97a300;
+}
+
+h3.form_trigger {
+  margin: 0;
+  color: #54026e;
+  clear: both;
+}
+
+.beheer .herhalend-blok {
+  padding: 5px;
+  margin-bottom: 5px;
+  background-color: $colorColonis4;
+  overflow: hidden;
+  clear: both;
+  @include border-radius(3px);
+
+  .form-block-actions {
+    float: right;
+  }
+
+  h3 {
+    padding-left: 0;
+    line-height: 30px;
+    clear: none;
+  }
+
+  .span6.formSection {
+    padding: 0;
+  }
+
+  .row-fluid {
+    clear: both;
+  }
+}
+
+.verwijder {
+  margin-right: 5px;
+}
+
+div.question div.answer select.unit {
+
+}
+
+.select2-container {
+  width: 225px;
+
+  &.selectie-dag {
+    width: 100px;
+  }
+
+  &.select2-container-multi {
+    .select2-choices {
+      border: solid 1px #CCC;
+      border-radius: 3px;
+    }
+  }
+}
+
+.select2-container
+.select2-drop {
+  &.select2-drop-active {
+    border-top: solid 1px $select2BorderColor1;
+
+    .select2-search {
+      margin: 5px 0 0 0;
+    }
+  }
+
+  &.select2-drop-active.select2-drop-above {
+    border-bottom: solid 1px $select2BorderColor1;
+
+    .select2-search {
+      margin: 0;
+    }
+  }
+
+  .select2-results .select2-highlighted {
+    background-color: $colorColonis-beheer4;
+  }
+
+  .select2-result-sub {
+    padding: 0;
+  }
+}
+
+.select2-filteroptie .select2-container {
+  .select2-choice {
+    margin: 0;
+  }
+}
+
+.select2-container
+.select2-chosen, .select2-results {
+  font-size: 13px;
+}
+
+
+.btn-group .select2-container {
+  font-size: $fontSize;
+}
+
+textarea#opmerkingen {
+  width: 96%;
+}
+
+select.select-large {
+  width: 500px;
+}
+
+div.question div.answer textarea.textarea-large,
+textarea.textarea-large {
+  height: 192px;
+}
+
+.binnenNietWijzigbaarPeriode {
+  span {
+    padding-left: 4px;
+  }
+
+  input {
+    margin-top: 1px;
+  }
+}
+
+.control-group .controls .select2-container {
+  margin-right: 4px !important;
+}

@@ -27,7 +27,7 @@ import nl.topicuszorg.wicket.planning.model.schedule.ScheduleSet;
 
 public class AfspraakFilterObject extends Afspraak
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private ScheduleSet roosterblok;

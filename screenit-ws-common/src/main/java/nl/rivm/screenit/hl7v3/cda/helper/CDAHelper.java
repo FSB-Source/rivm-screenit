@@ -50,7 +50,7 @@ import org.slf4j.LoggerFactory;
 
 public class CDAHelper
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CDAHelper.class);
 
 	private CDAHelper()

@@ -1,0 +1,48 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="retourzending-totalen form-horizontal">
+        <div class="control-group value" wicket:id="afhandelingLogListView">
+            <label class="control-label" wicket:id="label">Straat/huisnummer bestaat niet</label>
+            <div class="controls" wicket:id="aantal">
+                4
+            </div>
+        </div>
+        <div class="overgeslagen">
+            <div class="control-group value">
+                <label class="control-label">Overgeslagen retourzendingen</label>
+                <div class="controls" wicket:id="skippedRegels">
+                    4
+                </div>
+            </div>
+            <br/>
+            <div wicket:id="trackIdMelding" class="melding"></div>
+            <div wicket:id="retourRedenMelding" class="melding"></div>
+            <div wicket:id="clientNietGevondenMelding" class="melding"></div>
+            <div wicket:id="zendingHeeftAlRetourstatusMelding" class="melding"></div>
+            <div wicket:id="rondeNietActiefMelding" class="melding"></div>
+            <div wicket:id="uitnodigingNietValideMelding" class="melding"></div>
+        </div>
+    </div>
+
+</wicket:panel>
+</html>

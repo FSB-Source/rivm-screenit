@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.verslag;
 
 public @interface DSValueSetValue
 {
-	
+
 	String code();
 
 	String codeSystem();

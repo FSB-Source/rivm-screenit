@@ -1,0 +1,25 @@
+.bezwaar {
+  .controls {
+    position: relative;
+    display: inline-block;
+  }
+  .controls > .checkbox:first-child,
+  .checkbox {
+    display: inline-block;
+    padding-top: 0;
+    margin: 0;
+    position: relative;
+  }
+
+  .control-group {
+    clear: left;
+    margin-bottom: 5px;
+    vertical-align: middle;
+  }
+
+  .info-icon {
+    float: none;
+    margin: 0 0 0 5px;
+    margin-top: -10px;
+  }
+} 

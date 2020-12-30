@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class IfobtRappelBriefWriter extends BaseWriter<Client>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(IfobtRappelBriefWriter.class);
 
 	@Autowired

@@ -1,0 +1,64 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<body>
+<wicket:panel>
+    <div class="row-fluid">
+        <div class="span12">
+            <h2 class="pageTitle" wicket:id="naam"></h2>
+        </div>
+    </div>
+
+    <div class="row-fluid form-horizontal">
+        <table class="table table-condensed table-bordered">
+            <thead>
+            <tr>
+                <th>Screeningseenheid</th>
+                <th>Uitnodigen tot en met</th>
+                <th>Standplaats</th>
+                <th>Afspraak uitnodigingen</th>
+                <th>Open uitnodigingen</th>
+                <th>Mindervalide uitnodigingen</th>
+                <th>Suspect uitnodigingen</th>
+                <th style="border-left: 3px solid #dddddd;">Uitnodigingen na uitstel</th>
+                <th style="border-left: 3px solid #dddddd;">Uitgesteld mindervalide uitwijk standplaats</th>
+                <th>Uitgesteld achtervang standplaats</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr wicket:id="standplaatsPeriodeUitnodigenRapportages">
+                <td wicket:id="standplaatsPeriode.screeningsEenheid.naam"/>
+                <td wicket:id="uitnodigenTotEnMet"/>
+                <td wicket:id="standplaatsPeriode.standplaatsRonde.standplaats.naam"/>
+                <td wicket:id="uitgenodigdAfspraak"/>
+                <td wicket:id="uitgenodigdOpen"/>
+                <td wicket:id="uitgenodigdMinderValide"/>
+                <td wicket:id="uitgenodigdSuspect"/>
+                <td style="border-left: 3px solid #dddddd;" wicket:id="uitgenodigdNaUitstel"/>
+                <td style="border-left: 3px solid #dddddd;" wicket:id="uitgesteldMinderValideUitgewijktUitstel"/>
+                <td wicket:id="uitgesteldAchtervangUitstel"/>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</wicket:panel>
+</body>
+</html>

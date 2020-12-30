@@ -1,0 +1,76 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="pull right">
+        <a class="btn" href="javascript:void(0);" wicket:id="wijzigHuisarts">Zoek huisarts</a>
+    </div>
+    <h2>Huisarts darmkanker</h2>
+    <div class="row-fluid">
+        <div class="span6">
+            <div class="control-group value">
+                <label class="control-label">Naam huisarts</label>
+                <div class="controls"><span wicket:id="huisartsNaam">Dhr. A.C. Haanraads</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Praktijknaam</label>
+                <div class="controls"><span wicket:id="praktijkNaam">Huisartspraktijk Haanraads en Severins</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Adres</label>
+                <div class="controls"><span wicket:id="praktijkAdres">Stationsweg 25a, Deventer</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label" wicket:message="title:title.edifactadres">EDI-fact adres</label>
+                <div class="controls"><span wicket:id="ediadres">012234@lms.lifeline.nl</span></div>
+            </div>
+            <div class="control-group value" wicket:id="verzendHaBerichtenOpnieuwContainer">
+                <label class="control-label">Bericht met laatste (afspraak)status naar huisarts verzenden: </label>
+                <div class="controls">
+                    <input type=checkbox wicket:id="verzendHaBerichtenOpnieuw"/>
+                </div>
+            </div>
+        </div>
+        <div class="span6">
+            <div class="control-group value">
+                <label class="control-label">AGB-Code huisarts</label>
+                <div class="controls"><span wicket:id="huisartsAgb">00345678</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Weergave naam</label>
+                <div class="controls"><span wicket:id="weergaveNaam">haanraads</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Klantnummer</label>
+                <div class="controls"><span wicket:id="klantnummer">123456789</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label" wicket:message="title:title.communicatieadres">Communicatieadres</label>
+                <div class="controls"><span wicket:id="communicatieadres">012234@lms.lifeline.nl</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="pull right">
+        <button class="btn btn-danger" wicket:id="verwijderHuisarts">Verwijder Huisarts</button>
+    </div>
+</wicket:panel>
+</html>

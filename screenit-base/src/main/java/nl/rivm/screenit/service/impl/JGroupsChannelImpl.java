@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -22,12 +21,12 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.net.InetAddress;
 import java.util.List;
 
 import nl.rivm.screenit.service.JGroupsChannel;
 
 import org.apache.commons.lang.StringUtils;
+import org.jgroups.Global;
 import org.jgroups.JChannel;
 import org.jgroups.PhysicalAddress;
 import org.jgroups.protocols.TCP;
@@ -41,7 +40,6 @@ import org.springframework.stereotype.Service;
 @Service(value = "jGroupsChannel")
 public class JGroupsChannelImpl implements JGroupsChannel
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(JGroupsChannelImpl.class);
 
 	@Autowired
@@ -67,19 +65,26 @@ public class JGroupsChannelImpl implements JGroupsChannel
 			{
 				try
 				{
-					channel = new JChannel(JGroupsChannelImpl.class.getResource("/tcp.xml"));
+					LOG.info("External bind IP: " + jgroupsBindIP + "; bind port: " + jgroupsCommonBindPort + "; initialHosts: " + jgroupsCommonIPPorts);
+					if (System.getProperty(Global.EXTERNAL_ADDR) == null && !jgroupsBindIP.equals("127.0.0.1") && !jgroupsBindIP.equals("localhost"))
+					{
+						System.getProperties().put(Global.EXTERNAL_ADDR, jgroupsBindIP);
+					}
 
-					TCP tcpProtocol = (TCP) channel.getProtocolStack().findProtocol(TCP.class);
+					channel = new JChannel(JGroupsChannelImpl.class.getResource("/jg-sit-tcp.xml"));
+
+					TCP tcpProtocol = channel.getProtocolStack().findProtocol(TCP.class);
 					tcpProtocol.setBindPort(jgroupsCommonBindPort);
-					tcpProtocol.setBindAddress(InetAddress.getByName(jgroupsBindIP));
 
-					TCPPING tcpPingProtocol = (TCPPING) channel.getProtocolStack().findProtocol(TCPPING.class);
+					TCPPING tcpPingProtocol = channel.getProtocolStack().findProtocol(TCPPING.class);
 					List<PhysicalAddress> initialHosts = Util.parseCommaDelimitedHosts(jgroupsCommonIPPorts, 0);
 					tcpProtocol.setPortRange(initialHosts.size());
-					tcpPingProtocol.setInitialHosts(initialHosts);
+
+					tcpPingProtocol.setInitialHosts2(initialHosts);
 
 					channel.setName("jgCommon-" + applicatieInstantie.toLowerCase());
 					channel.connect("jgCommon-GROUP");
+					LOG.info(channel.toString(true));
 				}
 				catch (Exception e)
 				{

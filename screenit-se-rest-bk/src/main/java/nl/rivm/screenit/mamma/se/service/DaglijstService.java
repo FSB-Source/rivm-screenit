@@ -30,5 +30,5 @@ public interface DaglijstService
 {
 	List<AfspraakSeDto> readDaglijst(LocalDate datum, String seCode);
 
-	void verstuurUpdate(String seCode);
+	void verstuurUpdate(String seCodeEnDatum);
 }

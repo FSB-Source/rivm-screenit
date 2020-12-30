@@ -1,0 +1,74 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-batch-bk
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+    <bean id="verwerkMammaIMSBerichtListener" class="nl.rivm.screenit.batch.jms.listener.JMSVerwerkIMSBerichtListener"/>
+    <bean id="verwerkMammaCdaBerichtListener" class="nl.rivm.screenit.batch.jms.listener.JMSVerwerkCdaBerichtListener"/>
+
+    <bean id="mammaJobJmsContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="destination" ref="mammaJobsDestination"/>
+        <property name="messageListener" ref="startJobMessageListener"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+
+    <bean id="verwerkIMSBerichtListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="concurrentConsumers" value="1"/>
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="destination" ref="verwerkMammaIMSBerichtDestination"/>
+        <property name="messageListener" ref="verwerkMammaIMSBerichtListener"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+    
+    <bean id="verzamelOnderzoekDataBerichtListener" class="nl.rivm.screenit.batch.jms.listener.JMSVerzamelOnderzoekDataBerichtListener"/>
+
+    <bean id="verzamelOnderzoekDataBerichtListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="concurrentConsumers" value="1"/>
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="destination" ref="verzamelOnderzoekDataBerichtDestination"/>
+        <property name="messageListener" ref="verzamelOnderzoekDataBerichtListener"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+
+    <bean id="uploadBeeldenVerzoekBerichtListener" class="nl.rivm.screenit.batch.jms.listener.JMSUploadBeeldenBerichtListener"/>
+
+    <bean id="uploadBeeldenVerzoekBerichtListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="concurrentConsumers" value="1"/>
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="destination" ref="uploadBeeldenVerzoekBerichtDestination"/>
+        <property name="messageListener" ref="uploadBeeldenVerzoekBerichtListener"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+
+    <bean id="batchApplicationType" class="java.lang.String">
+        <constructor-arg value="MAMMA"/>
+    </bean>
+    
+     <bean id="verwerkCdaBerichtListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="concurrentConsumers" value="1"/>
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="destination" ref="verwerkMammaCdaBerichtDestination"/>
+        <property name="messageListener" ref="verwerkMammaCdaBerichtListener"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+</beans>

@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class FqdnServiceImpl implements FqdnService
 {
-	
+
 	@Autowired
 	private OrganisatieZoekDao zoekDao;
 

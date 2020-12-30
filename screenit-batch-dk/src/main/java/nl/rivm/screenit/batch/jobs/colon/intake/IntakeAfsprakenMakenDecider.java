@@ -30,7 +30,7 @@ import org.springframework.batch.core.job.flow.JobExecutionDecider;
 
 public class IntakeAfsprakenMakenDecider implements JobExecutionDecider
 {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(IntakeAfsprakenMakenDecider.class);
 
 	@Override

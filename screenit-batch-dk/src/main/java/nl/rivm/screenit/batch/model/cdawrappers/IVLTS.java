@@ -25,7 +25,7 @@ import java.util.Date;
 
 public class IVLTS extends nl.rivm.screenit.hl7v3.cda.IVLTS
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public static Date lowValue(nl.rivm.screenit.hl7v3.cda.IVLTS ivlts)

@@ -1,0 +1,71 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:panel>
+
+    <form wicket:id="innerForm" class="form-horizontal">
+        <div class="row-fluid">
+            <div class="control-group">
+                <label class="control-label">Huisarts</label>
+                <div class="controls">
+                    <input class="input" type="text" wicket:id="achternaam">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">AGB-code</label>
+                <div class="controls">
+                    <input class="input" type="text" wicket:id="agbcode">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Locatie</label>
+                <div class="controls">
+                    <input class="input" type="text" wicket:id="locatieNaam">
+                </div>
+            </div>
+            <wicket:container wicket:id="adresZoekvelden">
+                <div class="control-group">
+                    <label class="control-label">Straatnaam</label>
+                    <div class="controls">
+                        <input class="input" type="text" wicket:id="straat">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Postcode</label>
+                    <div class="controls">
+                        <input class="input" type="text" wicket:id="postcode">
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Plaats</label>
+                    <div class="controls">
+                        <input class="input" type="text" wicket:id="plaats">
+                    </div>
+                </div>
+            </wicket:container>
+        </div>
+    </form>
+
+    <div class="row-fluid show-results">
+        <div wicket:id="huisartsLocaties"/>
+    </div>
+</wicket:panel>
+</html>

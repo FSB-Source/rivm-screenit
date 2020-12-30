@@ -46,7 +46,7 @@ import au.com.bytecode.opencsv.CSVReader;
 
 public class EnovationHuisartsCsvFileProvider implements CsvFileProvider
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(EnovationHuisartsCsvFileProvider.class);
 
 	@Autowired

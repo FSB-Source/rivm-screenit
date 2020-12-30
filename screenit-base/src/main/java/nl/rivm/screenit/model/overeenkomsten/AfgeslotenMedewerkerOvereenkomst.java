@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.Gebruiker;
 @Entity
 public class AfgeslotenMedewerkerOvereenkomst extends AbstractAfgeslotenOvereenkomst
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne

@@ -69,10 +69,13 @@ if _file_handler is not None:
 
 logging.basicConfig(level=logging.INFO, format=_format, datefmt=_datefmt, handlers=_handlers)
 
+
 def _handle_exception(exc_type, exc_value, exc_traceback):
     logging.error("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
 
+
 sys.excepthook = _handle_exception
+
 
 class KansberekeningService(object):
 
@@ -99,6 +102,7 @@ class KansberekeningService(object):
 
         return str(score)
 
+
 cherrypy.config.update({'log.access_file': '', 'log.error_file': ''})
 cherrypy.engine.unsubscribe('graceful', cherrypy.log.reopen_files)
 
@@ -106,6 +110,7 @@ logging.getLogger('cherrypy.access').handlers = _handlers
 logging.getLogger('cherrypy.access').propagate = False
 logging.getLogger('cherrypy.error').handlers = _handlers
 logging.getLogger('cherrypy.error').propagate = False
+
 
 class StartServerPlugin(plugins.SimplePlugin):
     def start(self):
@@ -120,6 +125,7 @@ class StartServerPlugin(plugins.SimplePlugin):
             base.afspraak_classifier_vervolgronde = externals.load_afspraak_classifier_vervolgronde()
         except:
             logging.exception('Kon classification niet laden')
+
 
 StartServerPlugin(cherrypy.engine).subscribe()
 

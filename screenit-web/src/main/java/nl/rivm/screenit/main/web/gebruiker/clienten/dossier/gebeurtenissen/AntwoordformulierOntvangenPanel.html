@@ -1,0 +1,114 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="info"></div>
+    <object wicket:id="aanvraagformulier" class="pull-left" height="500" width="100%"></object>
+    <a wicket:id="download" class="pull-right">Download hier indien weergave niet mogelijk is</a>
+    <div wicket:id="confirmDialog"></div>
+
+    <wicket:fragment wicket:id="gescandeWaarden">
+        <fieldset class="form-horizontal">
+            <div class="row-fluid span12">
+                <div class="span6">
+                    <div class="control-group value">
+                        <label class="control-label">Afnamedatum</label>
+                        <div class="controls" wicket:id="afnameDatum"></div>
+                    </div>
+                    <div class="control-group value">
+                        <label class="control-label">Telefoonnummer 1</label>
+                        <div class="controls" wicket:id="telefoonNummer1"></div>
+                    </div>
+                    <div class="control-group value">
+                        <label class="control-label">Telefoonnummer 2</label>
+                        <div class="controls" wicket:id="telefoonNummer2"></div>
+                    </div>
+                    <div class="control-group value">
+                        <label class="control-label" wicket:id="statusLabel">Resultaat OCR</label>
+                        <div class="controls" wicket:id="status"></div>
+                    </div>
+                    <wicket:enclosure child="ifobtStatus">
+                        <div class="control-group value">
+                            <label class="control-label">Test status</label>
+                            <div class="controls" wicket:id="ifobtStatus"></div>
+                        </div>
+                    </wicket:enclosure>
+                </div>
+                <div class="span6">
+                    <div class="control-group value">
+                        <label class="control-label">Eenmalige afmelding</label>
+                        <div class="controls" wicket:id="eenmaligAfmelden"></div>
+                    </div>
+                    <div class="control-group value">
+                        <label class="control-label">Definitieve afmelding</label>
+                        <div class="controls" wicket:id="definitiefAfmelden"></div>
+                    </div>
+                    <div class="control-group value">
+                        <label class="control-label">Handtekening geplaatst</label>
+                        <div class="controls" wicket:id="handtekening"></div>
+                    </div>
+                    <div class="control-group value">
+                        <label class="control-label">Afmeldreden</label>
+                        <div class="controls" wicket:id="afmeldReden"></div>
+                    </div>
+                    <wicket:enclosure child="meedoenBVOenWO">
+                        <div class="control-group value">
+                            <label class="control-label">Meedoen met BVO en WO</label>
+                            <div class="controls" wicket:id="meedoenBVOenWO"></div>
+                        </div>
+                        <div class="control-group value">
+                            <label class="control-label">Toestemming bewaren</label>
+                            <div class="controls" wicket:id="toestemmingBewaren"></div>
+                        </div>
+                        <div class="control-group value">
+                            <label class="control-label">Toestemming inzage</label>
+                            <div class="controls" wicket:id="toestemmingInzage"></div>
+                        </div>
+                    </wicket:enclosure>
+                </div>
+            </div>
+            <div class="dropdown right toon-audit">
+                <button type="button" class="btn btn-default pull-right dropdown-toggle" data-toggle="dropdown">
+                    Toon Audit <span class="caret"></span>
+                </button>
+                <div class="dropdown-menu pull-right">
+                    <table class="table table-bordered table-condensed">
+                        <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Gebruiker</th>
+                            <th>Bericht</th>
+                        </tr>
+                        </thead>
+                        <tbody wicket:id="transactionTrails">
+                        <tr>
+                            <td wicket:id="datum"></td>
+                            <td wicket:id="gebruiker"></td>
+                            <td wicket:id="bericht">bericht</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+    </wicket:fragment>
+</wicket:panel>
+</html>

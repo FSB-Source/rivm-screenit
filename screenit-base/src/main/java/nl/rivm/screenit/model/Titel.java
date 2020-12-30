@@ -41,7 +41,7 @@ import org.hibernate.annotations.Proxy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public class Titel extends AbstractHibernateObject implements INaam
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String titel;

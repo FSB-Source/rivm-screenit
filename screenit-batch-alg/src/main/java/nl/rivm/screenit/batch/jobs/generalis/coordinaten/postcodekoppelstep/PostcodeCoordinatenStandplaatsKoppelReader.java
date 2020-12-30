@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class PostcodeCoordinatenStandplaatsKoppelReader extends BaseScrollableResultReader
 {
-	
+
 	@Autowired
 	private CoordinatenDao coordinatenDao;
 

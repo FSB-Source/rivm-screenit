@@ -1,0 +1,63 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:panel>
+    <div wicket:id="afbeelding"/>
+    <form wicket:id="birads_form" class="form-horizontal lezing">
+        <div class="row-fluid">
+            <div class="span6"><label wicket:id="beoordeling_type">1e lezing</label></div>
+            <div class="span6"><label wicket:id="beoordelaar.medewerker.voornaamAchternaam">Katrien Bruggen</label></div>
+        </div>
+        <div class="row-fluid">
+            <div class="span6"><label>BI-RADS Beoordeling</label></div>
+            <div class="span6"><label wicket:id="textboxname"/></div>
+        </div>
+        <div class="row-fluid">
+            <div class="span6" wicket:id="biradskeuze"/>
+            <div class="span6">
+                <div class="control-group">
+                    <div style="padding-right: 14px;">
+                        <textarea class="low-max-width biradsopmerking" type="text" value="" wicket:id="biradsOpmerking"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span8" wicket:id="beperktBeoordeelbaarPanel"/>
+            <div class="span4"/>
+        </div>
+        <div class="row-fluid" style="margin-top: 9px;">
+            <div class="span12">
+                <div class="form-actions clearfix" style="padding-left: 0">
+                    <div class="span6"/>
+                    <div class="span6 lezing-options-container">
+                        <button class="btn btn-primary clearfix btn-arbitrage" wicket:id="arbitrage">Arbitrage</button>
+                        <button class="btn btn-primary clearfix" wicket:id="overnemen">Overnemen</button>
+                        <button class="btn btn-primary clearfix" wicket:id="afronden" x-keypad-bevestigen>Afronden</button>
+                        <button class="btn btn-primary clearfix" wicket:id="verslagPdf">Toon verslag</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div wicket:id="dialog"></div>
+</wicket:panel>
+</html>

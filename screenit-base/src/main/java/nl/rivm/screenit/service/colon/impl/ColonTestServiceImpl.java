@@ -931,11 +931,11 @@ public class ColonTestServiceImpl implements ColonTestService
 		{
 			return;
 		}
-		
+
 		verwijderRondesVanColonDossier(dossier);
 		hibernateService.deleteAll(client.getAfspraken());
 		client.setAfspraken(new ArrayList<>());
-		
+
 		hibernateService.deleteAll(client.getComplicaties());
 		if (dossier.getColonVooraankondiging() != null)
 		{

@@ -32,7 +32,7 @@ import nl.topicuszorg.formulieren2.api.rendering.AntwoordRenderType;
 @Entity
 public class SimpleKeuzeVraagDefinitieImpl<T> extends SimpleVraagDefinitieImpl<T> implements AntwoordKeuzeVraagDefinitie<T>, IdentifierElement
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Enumerated(EnumType.STRING)

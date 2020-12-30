@@ -24,19 +24,19 @@ package nl.rivm.screenit.model.berichten.cda;
 
 public enum PdBerichtResponseCode
 {
-	
+
 	OK("OK"),
-	
+
 	CLIENT_UNK("In bericht met id %s staat een onbekende client met bsn %s."),
-	
+
 	CLIENT_BEZWAAR("Client met bsn %s heeft bezwaar gemaakt op gegevensuitwisseling, dit bericht mag niet worden ingelezen."),
-	
+
 	REEDS_CORRECT_VERWERKT("Bericht met id %s is al eerder ontvangen en succesvol verwerkt."),
-	
+
 	ONGELDIGE_VERSIE("Van het bericht met setId %s is reeds een versie >=%s ontvangen."),
-	
+
 	SYSTEM_ERROR("Er is een fout opgetreden in de broker bij verwerken van bericht"),
-	
+
 	CDA_SOAP_INCONSISTENT("%s (%s) in SOAP is niet gelijk aan %s (%s) in CDA.");
 
 	private final String omschrijving;

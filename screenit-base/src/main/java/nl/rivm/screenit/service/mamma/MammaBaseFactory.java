@@ -22,7 +22,6 @@ package nl.rivm.screenit.service.mamma;
  */
 
 import java.util.Date;
-import java.util.Set;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -34,7 +33,6 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
@@ -52,8 +50,7 @@ public interface MammaBaseFactory
 	MammaUitnodiging maakUitnodiging(MammaScreeningRonde ronde, MammaStandplaatsRonde standplaatsRonde, BriefType briefType);
 
 	MammaAfspraak maakAfspraak(MammaScreeningRonde ronde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
-		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, Set<MammaScreeningsEenheid> genotificeerdeSes, boolean stuurBerichtNaarSectra,
-		boolean isGeforceerdeAfspraak);
+		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, boolean stuurBerichtNaarSectra, boolean isGeforceerdeAfspraak);
 
 	MammaUitstel maakUitstel(MammaScreeningRonde screeningRonde, MammaStandplaats standplaats, Date streefDatum, MammaUitstelReden uitstelReden);
 

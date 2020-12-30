@@ -1,0 +1,112 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="row-fluid form-horizontal">
+        <form wicket:id="form">
+            <fieldset>
+                <h1>Hpv bericht maken</h1>
+                <div class="row-fluid">
+                    <div class="span3">
+                        <div class="control-group">
+                            <label for="bsn" class="control-label span2">MessageId:</label>
+                            <div class="controls">
+                                <input wicket:id="messageId" class="form-control" type="text">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="bsn" class="control-label span2">Labnaam:</label>
+                            <div class="controls">
+                                <input wicket:id="labNaam" class="form-control" type="text">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="bsn" class="control-label span2">InstrumentId:</label>
+                            <div class="controls">
+                                <input wicket:id="instrumentId" class="form-control" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span8">
+                        <div class="controls">
+                            <table
+                                    class="table table-bordered table-condensed organisatie right">
+                                <thead>
+                                <tr>
+                                    <th class="span1">Barcode</th>
+                                    <th>Uitslag</th>
+                                    <th>Analysedatum</th>
+                                    <th>Autorisatiedatum</th>
+                                    <th class="status-download">Verwijderen</th>
+                                </tr>
+                                </thead>
+                                <tbody wicket:id="uitslagenContainer">
+                                <tr wicket:id="monsterWrappers">
+                                    <td><input wicket:id="barcode" class="form-control input-small" type="text"/></td>
+                                    <td><select wicket:id="uitslag" class="form-control"></select></td>
+                                    <td>
+                                        <div class="input-append">
+                                            <input wicket:id="analyseDatum" type="text" placeholder="dd-mm-jaar" size="16"
+                                                   id="analyseDatum"
+                                                   class="input-small datum datum three-months"/> <a
+                                                href="javascript:void(0);" class="add-on"
+                                                onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});"
+                                                title="Datum" tabindex="-1"> <i class="icon-calendar"></i>
+                                        </a>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-append">
+                                            <input wicket:id="autorisatieDatum" type="text" placeholder="dd-mm-jaar" size="16"
+                                                   id="autorisatieDatum"
+                                                   class="input-small datum datum three-months"/> <a
+                                                href="javascript:void(0);" class="add-on"
+                                                onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});"
+                                                title="Datum" tabindex="-1"> <i class="icon-calendar"></i>
+                                        </a>
+                                        </div>
+                                    </td>
+                                    <td class="status"><a class="btn" wicket:id="verwijderen"> <i
+                                            class="icon-trash"></i>
+                                    </a></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div class="form-actions btn-bottom right">
+                                <a class="btn" wicket:id="uitslagToevoegen"> <i class="icon-plus-sign"></i>uitslag
+                                    toevoegen
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="form-actions clearfix">
+                            <button class="btn btn-info" wicket:id="verstuurHl7Bericht">Verstuur HL7 bericht</button>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</wicket:panel>
+</html>

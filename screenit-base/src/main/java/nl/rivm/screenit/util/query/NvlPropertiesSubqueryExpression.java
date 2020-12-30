@@ -30,7 +30,7 @@ import org.hibernate.criterion.SubqueryExpression;
 
 public class NvlPropertiesSubqueryExpression extends SubqueryExpression
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private final String[] propertyNames;

@@ -1,0 +1,135 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="form">
+        <div class="row-fluid">
+            <div class="span6">
+                <div class="control-group">
+                    <label class="control-label"><wicket:message key="mamma.afspraak.zoeken.vanaf.label">Datum</wicket:message></label>
+
+                    <div class="controls">
+                        <div class="input-append">
+                            <input type="text" class="datum form-control" wicket:id="vanaf"/>
+                            <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');"><i class="icon-calendar"></i></a>
+                        </div>
+                        <wicket:enclosure child="totEnMet">
+                            t/m
+                            <div class="input-append">
+                                <input type="text" class="datum form-control" wicket:id="totEnMet"/>
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');"><i class="icon-calendar"></i></a>
+                            </div>
+                        </wicket:enclosure>
+                    </div>
+                </div>
+            </div>
+            <wicket:enclosure child="standplaatsenContainer">
+            <div class="span6">
+                <div class="control-group">
+                    <label class="control-label">Standplaatsen</label>
+
+                    <div class="controls" wicket:id="standplaatsenContainer">
+                        <select wicket:id="standplaatsen">
+                            <option>Zevenaar</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            </wicket:enclosure>
+            <wicket:enclosure child="plaatsContainer">
+            <div class="span6">
+                <div class="control-group">
+                    <label class="control-label">Plaats</label>
+
+                    <div class="controls" wicket:id="plaatsContainer">
+                        <select wicket:id="plaats">
+                            <option>Zevenaar</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            </wicket:enclosure>
+        </div>
+        <div class="row-fluid">
+            <div class="span6">
+                <div class="control-group">
+                    <label class="control-label">Afstand (km)</label>
+
+                    <div class="controls">
+                        <select wicket:id="afstand">
+                            <option>5</option>
+                            <option>10</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <wicket:enclosure child="screeningsEenhedenContainer">
+            <div class="span6">
+                <div class="control-group">
+                    <label class="control-label">Screeningseenheden</label>
+
+                    <div class="controls" wicket:id="screeningsEenhedenContainer">
+                        <select wicket:id="screeningsEenheden">
+                            <option>SE 001</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            </wicket:enclosure>
+        </div>
+        <div class="row-fluid">
+	   		<div class="span6">
+			   	<div class="control-group value" wicket:id="redenContainer">
+		            <label class="control-label">Reden            
+		            </label>
+		            <div class="controls" wicket:id="verzettenReden">
+		            </div>
+		        </div>
+		    </div>
+            <div class="span6">
+                <wicket:enclosure child="extraOpties">
+                    <div class="control-group">
+                        <label class="control-label">Meer opties</label>
+
+                        <div class="controls"><input wicket:id="extraOpties" type="checkbox"/></div>
+                    </div>
+                </wicket:enclosure>
+            	<wicket:enclosure child="buitenRegio">
+                    <div class="control-group">
+                        <label class="control-label">Buiten regio</label>
+                        <div class="controls">
+                            <input wicket:id="buitenRegio" type="checkbox"/>
+                        </div>
+                    </div>
+            	</wicket:enclosure>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="pull-right">
+            	<a class="btn" wicket:id="toonMeerAfspraken">Toon meer afspraken</a>
+                <a class="btn btn-primary pull-right" wicket:id="zoeken">
+                    <i class="icon-search icon-white"/> Zoeken
+                </a>
+            </div>
+        </div>
+    </form>
+</wicket:panel>
+</html>

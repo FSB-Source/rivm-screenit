@@ -40,7 +40,7 @@ import ca.uhn.hl7v2.model.Message;
 
 public class CsvToHpvBericht
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CsvToHpvBericht.class);
 
 	private static SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");

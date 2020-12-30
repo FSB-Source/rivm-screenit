@@ -23,7 +23,7 @@ package nl.rivm.screenit.util;
 
 public class JavaScriptPdfHelper
 {
-	
+
 	private JavaScriptPdfHelper()
 	{
 	}

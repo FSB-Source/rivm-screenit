@@ -1,0 +1,54 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="opnieuw-aanmelden">
+        <div class="form-container">
+            <h2 wicket:id="titelheraanmeld">Opnieuw aanmelden bevolkingsonderzoek darmkanker</h2>
+            <label class="radio">
+                <input type="radio"
+                       onclick="if($(this).is(':checked')) { $('#opslaanBtn').removeAttr('disabled'); $('#aanvullendeActies').show();  } else { $('#opslaanBtn').attr('disabled', true); $('#aanvullendeActies').hide();  }"><span
+                    wicket:id="heraanmeldtekst">Ik wil mij weer aanmelden voor deelname aan het bevolkingsonderzoek darmkanker en mijn eerdere afmelding ongedaan maken.</span>
+            </label>
+        </div>
+
+        <div id="aanvullendeActies" style="display: none;">
+            <div class="form-horizontal">
+                <wicket:enclosure child="nieuweUitnodiging">
+                    <div class="control-group">
+                        <label class="control-label">Nieuwe uitnodiging sturen</label>
+                        <div class="controls" wicket:id="nieuweUitnodiging">
+                            <label class="radio"> <input type="radio" name="reden_afmelden" id=""> Ja</label>
+                            <label class="radio"> <input type="radio" name="reden_afmelden" id=""> Nee</label>
+                        </div>
+                    </div>
+                </wicket:enclosure>
+            </div>
+            <wicket:enclosure child="afspraakMaken">
+                <div class="vervolgstap" id="nieuweAfspraak">
+                    <h2>Nieuwe intake afspraak</h2>
+                    <wicket:container wicket:id="afspraakMaken"></wicket:container>
+                </div>
+            </wicket:enclosure>
+        </div>
+    </div>
+</wicket:panel>
+</html>

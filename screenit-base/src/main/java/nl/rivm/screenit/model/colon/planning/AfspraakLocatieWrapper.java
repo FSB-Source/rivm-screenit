@@ -29,7 +29,7 @@ import org.joda.time.Minutes;
 
 public class AfspraakLocatieWrapper
 {
-	
+
 	private Long locatieId;
 
 	private Date startTime;

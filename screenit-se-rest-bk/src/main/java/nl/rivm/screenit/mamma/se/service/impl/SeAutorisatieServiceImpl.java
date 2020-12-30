@@ -93,12 +93,6 @@ public class SeAutorisatieServiceImpl implements SeAutorisatieService
 		dto.setKwaliteitsopnameRecht(getSeRechtDto(instellingGebruiker, securityManager, principals, Recht.GEBRUIKER_SCREENING_MAMMA_SE_KWALITEITSOPNAME));
 		dto.setConnectiestatusRecht(getSeRechtDto(instellingGebruiker, securityManager, principals, Recht.GEBRUIKER_SCREENING_MAMMA_SE_CONNECTIESTATUS_INZIEN));
 
-		dto.setInschrijven(dto.getInschrijvenRecht().isAuthorized());
-		dto.setOnderzoeken(dto.getOnderzoekenRecht().isAuthorized());
-		dto.setSignaleren(dto.getSignalerenRecht().isAuthorized());
-		dto.setKwaliteitsopname(dto.getKwaliteitsopnameRecht().isAuthorized());
-		dto.setConnectiestatus(dto.getConnectiestatusRecht().isAuthorized());
-
 		return dto;
 	}
 

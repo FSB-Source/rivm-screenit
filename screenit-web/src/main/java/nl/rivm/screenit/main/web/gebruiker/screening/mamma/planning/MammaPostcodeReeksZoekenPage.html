@@ -1,0 +1,84 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:extend>
+    <div class="btn-top dropdown pull-right">
+        <button class="btn btn-primary" data-toggle="dropdown" wicket:id="postcodeReeksToevoegen">
+            <span class="icon-plus-sign icon-white"/> Postcodereeks
+        </button>
+    </div>
+    <h1 class="pageTitle">Postcodereeks - Postcodereeks zoeken</h1>
+    <fieldset class="form-horizontal">
+        <form wicket:id="zoekForm">
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">Postcode</label>
+                        <div class="controls">
+                            <input class="input-large" type="text" wicket:id="vanPostcode">
+                        </div>
+                    </div>                    
+                </div>
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">Standplaats</label>
+                        <div class="controls">
+                            <select wicket:id="standplaats">
+                             </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           	<wicket:enclosure child="standplaats.regio">
+				<div class="row-fluid">
+	                <div class="span6">
+                    	<div class="control-group">
+                            <label class="control-label">Screeningsorganisatie</label>
+                            <div class="controls">
+                                <select wicket:id="standplaats.regio">
+                                    <option></option>
+                                    <option>Screeningsorganisatie 1</option>
+                                    <option>Screeningsorganisatie 2</option>
+                                </select>
+                            </div>
+                        </div>
+		            </div>
+		        </div>
+            </wicket:enclosure>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="form-actions clearfix">
+                        <button class="btn btn-primary" wicket:id="zoeken">
+                            <i class="icon-search icon-white"></i> Zoeken
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+    <div wicket:id="resultaten">
+    </div>
+    <div>
+	    <h2>Postcodes (van clienten) die niet onder een postcodereeks vallen</h2>
+	    <fieldset class="form-horizontal"><div wicket:id="uncoveredPostcodes"></div></fieldset>
+    </div>
+</wicket:extend>
+</html>

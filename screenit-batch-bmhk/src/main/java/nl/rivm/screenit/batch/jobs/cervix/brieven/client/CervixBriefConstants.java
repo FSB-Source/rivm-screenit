@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client;
 
 public class CervixBriefConstants
 {
-	
+
 	private CervixBriefConstants()
 	{
 	}

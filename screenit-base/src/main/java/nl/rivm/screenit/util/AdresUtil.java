@@ -47,7 +47,7 @@ import com.google.common.base.Strings;
 
 public final class AdresUtil
 {
-	
+
 	public static final Pattern POSTCODE_NL = Pattern.compile("([1-9][0-9]{3}?)[\\s]?([a-zA-Z]{2})");
 
 	private AdresUtil()
@@ -181,7 +181,7 @@ public final class AdresUtil
 
 	public static String getAdres(Adres adres)
 	{
-		
+
 		StringBuilder adresString = new StringBuilder();
 		if (adres != null)
 		{

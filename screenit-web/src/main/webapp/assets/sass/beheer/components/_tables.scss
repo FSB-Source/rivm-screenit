@@ -1,0 +1,171 @@
+
+.move-handle {
+  cursor: pointer;
+}
+
+.move-handle:active {
+  cursor: move;
+}
+
+.point-handle {
+  cursor: pointer;
+}
+
+.ui-sortable-helper {
+  cursor: move;
+}
+
+div.split-table {
+  width: 49%;
+}
+
+.table-condensed {
+  td, th {
+    padding: 10px 10px 10px 10px;
+  }
+  th {
+    padding: 10px;
+    vertical-align: middle;
+    font-size: 13px;
+    background-color: #EEE;
+    a {
+      color: $colorColonis-beheer1;
+    }
+  }
+
+  td {
+    color: $colorColonis-beheer1;
+    vertical-align: middle;
+    a {
+      color: $colorColonis-beheer1;
+    }
+
+    a.btn.btn-primary {
+      color: white;
+    }
+
+    a.btn {
+      color: #333333;
+    }
+
+    a.btn.btn-danger {
+      color: white;
+    }
+
+    a:hover {
+      text-decoration: none;
+    }
+  }
+
+  th.column-button {
+    width: 150px;
+  }
+
+  th.status-center {
+    width: 160px;
+    text-align: center;
+  }
+  th.status-upload {
+    width: 290px;
+  }
+  th.status-download {
+    width: 90px;
+  }
+
+  th.table-col-datum {
+    width: 120px;
+  }
+
+  th.checkBoxColumn {
+    width: 10px;
+  }
+
+  th.table-col-icon,
+  th.trash {
+    width: 30px;
+  }
+
+  th.table-col-aantal {
+    width: 120px;
+  }
+
+  td.table-col-icon {
+    text-align: center;
+  }
+
+  td.status, th.status-header, th.status-download {
+    padding: 8px 15px 8px 15px;
+    text-align: center;
+    span {
+      margin-right: 5px;
+    }
+  }
+  &.cols-2 {
+    th, td {
+      padding: 10px 15px;
+      width: 50%;
+    }
+  }
+
+  tr.totalen td {
+    font-weight: bold;
+    border-top: 2px solid #EEE;
+  }
+}
+
+.totaal-aantal {
+  padding-left: 10px;
+  color: #666;
+  line-height: 30px;
+  float: left;
+}
+
+.table-condensed tr.status-afgerond td {
+  color: #a5a5a5;
+}
+
+table.clickable {
+  td {
+    cursor: pointer;
+  }
+
+  tr:hover td {
+    background-color: $colorColonis4;
+  }
+
+  tr:hover td.no-hover {
+    background-color: white;
+  }
+}
+
+table.table tbody tr.selected td {
+  background-color: $colorColonis4;
+}
+
+.table h2 {
+  margin: 5px 0 5px 0;
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 18px;
+  color: $colorColonis-beheer1;
+}
+
+.table-condensed.static {
+  tbody tr:hover td {
+    background-color: #fff;
+  }
+  td {
+    vertical-align: middle;
+  }
+}
+
+.pagination {
+  margin-top: 0;
+  ul {
+    padding: 0;
+    margin: 0;
+  }
+  a {
+    color: $color4;
+  }
+}

@@ -36,8 +36,8 @@ import nl.rivm.screenit.mamma.se.dto.actions.AfspraakSignalerenDto;
 import nl.rivm.screenit.mamma.se.dto.actions.InschrijvenDto;
 import nl.rivm.screenit.mamma.se.dto.actions.LogAmputatieBeeldenAnnotatieMismatchActionDto;
 import nl.rivm.screenit.mamma.se.dto.actions.LogBeeldenOpgehaaldActionDto;
-import nl.rivm.screenit.mamma.se.dto.actions.LogGefaaldeTransactieActionDto;
 import nl.rivm.screenit.mamma.se.dto.actions.LogGeenMppsBerichtActionDto;
+import nl.rivm.screenit.mamma.se.dto.actions.LogGefaaldeTransactieActionDto;
 import nl.rivm.screenit.mamma.se.dto.actions.MaakDubbeleTijdDto;
 import nl.rivm.screenit.mamma.se.dto.actions.MaakDubbeleTijdRedenDto;
 import nl.rivm.screenit.mamma.se.dto.actions.MammografieOpslaanDto;
@@ -381,7 +381,7 @@ public class SeTransactionServiceImpl implements SeTransactionService
 	{
 		MammaKwaliteitsopnameDto kwaliteitsopname = objectMapper.readValue(actionDto.getNodeText(), MammaKwaliteitsopnameDto.class);
 		LOG.info("Kwaliteitsopname " + ormBerichtStatus + ", " + ToStringBuilder.reflectionToString(kwaliteitsopname));
-		hl7BerichtenToBatchService.queueMammaHL7v24BerichtUitgaand(kwaliteitsopname, ormBerichtStatus);
+		hl7BerichtenToBatchService.queueMammaKwaliteitsopnameHL7v24BerichtUitgaand(kwaliteitsopname, ormBerichtStatus);
 	}
 
 	private List<Recht> getRechtenVoorTransactie(List<ActionDto> acties)

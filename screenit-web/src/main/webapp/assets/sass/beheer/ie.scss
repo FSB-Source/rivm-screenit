@@ -1,0 +1,68 @@
+@import "compass/utilities";
+@import "compass/typography";
+@import "compass/css3";
+@import "globals/base";
+
+.canvas.topnav-home,
+.canvas.topnav {
+  background-color: $color5;
+}
+
+.canvas.innerborder {
+  height: 1px;
+}
+
+.canvas.content {
+  @include filter-gradient(#ffffff, #fafafa);
+
+  .row-fluid .widget-1 {
+    @include filter-gradient(#F7FBEF, #C4DF83);
+  }
+  .row-fluid .widget-2 {
+    h2 {
+      font-weight: normal;
+    }
+  }
+  .row-fluid .buttongroup-vragenlijst {
+    margin: 0 -5px 12px 0;
+    .button-vragenlijst {
+      @include filter-gradient(#CDD97F, #6A9220);
+      display: block;
+      span.description {
+        background: transparent url('../../images/arrow_vragenlijst.png') no-repeat right 5px !important;
+      }
+      &:hover {
+        @include filter-gradient(#6A9220, #6A9220);
+      }
+    }
+  }
+
+  #vragenlijst-navigatie h3, #vragenlijst-mantelzorger-navigatie h3 {
+    margin-top: 0px;
+  }
+
+  .vragenlijst-container {
+    @include filter-gradient(#FFFFFF, #EDEDED);
+    &.keuze-vragenlijst {
+      @include filter-gradient(#F7FBEF, #C4DF83);
+    }
+  }
+
+  .buttons {
+    padding-bottom: 20px;
+    overflow: hidden;
+  }
+}
+
+.canvas.footer {
+  background-color: $colorColonis1;
+}
+
+.close {
+  filter: none;
+}
+
+.select2-drop-mask {
+  @include opacity(0);
+  background-color: black;
+}

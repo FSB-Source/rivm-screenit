@@ -100,4 +100,14 @@ public enum MammaBeoordelingStatus implements INaam
 		return eindStatussen().contains(status);
 	}
 
+	public static List<MammaBeoordelingStatus> annulerenNietMogelijkStatussen()
+	{
+		return Arrays.asList(EERSTE_LEZING, EERSTE_LEZING_OPGESLAGEN, UITSLAG_ONGUNSTIG, GEANNULEERD, OPGESCHORT_MET_AFSPRAAK);
+	}
+
+	public static boolean isAnnulerenMogelijk(MammaBeoordelingStatus status)
+	{
+		return !annulerenNietMogelijkStatussen().contains(status);
+	}
+
 }

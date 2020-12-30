@@ -27,7 +27,7 @@ import nl.rivm.screenit.model.cervix.CervixHpvBericht;
 
 public interface CervixVerwerkHpvBerichtService
 {
-	
+
 	List<CervixHpvBericht> getAlleNietVerwerkteHpvBerichten();
 
 	void verwerkOntvangenHpvBericht(Long berichtId);

@@ -27,7 +27,7 @@ import nl.rivm.screenit.model.enums.BezwaarType;
 
 public class BezwaarViewWrapper implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private BezwaarType type;

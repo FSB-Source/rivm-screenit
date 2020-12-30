@@ -27,7 +27,7 @@ import java.util.List;
 
 public class CervixHpvBerichtGeneratorWrapper implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private List<CervixHpvBerichtGeneratorMonsterWrapper> monsterWrappers = new ArrayList<>();

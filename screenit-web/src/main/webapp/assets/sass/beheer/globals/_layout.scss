@@ -1,0 +1,131 @@
+
+html, body {
+  font-family: $fontFamily1;
+  font-size: $fontSize;
+  color: $color2;
+  line-height: $fontLineHeight;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+}
+
+body.canvas.background {
+  background-color: $backgroundColor1;
+}
+
+button,
+input,
+select,
+textarea,
+strong {
+  font-family: $fontFamily1;
+}
+
+.input-xmini {
+  width: 30px;
+}
+
+.input-micro {
+  width: 15px;
+}
+
+.input-xmicro {
+  width: 10px;
+}
+
+.left {
+  float: left;
+}
+
+.right {
+  float: right;
+}
+
+.fill {
+  min-height: 1px;
+}
+
+.hide {
+  display: none;
+}
+
+.floatleft {
+  float: left;
+}
+
+.floatright {
+  float: right;
+}
+
+.debug {
+  border: solid 1px red;
+  min-height: 1px;
+}
+
+.canvas.content {
+  height: 1000px;
+  overflow-y: scroll;
+  background-color: #FFF;
+  .content-inner {
+    margin: 10px;
+  }
+  .row.innerborder {
+    border-bottom: $border5;
+  }
+}
+
+.tab-content > fieldset {
+  width: 100%;
+  @include box-sizing('border-box');
+}
+
+@include respond-to('large-screen') {
+  .page-large div.content-inner > div.row-fluid, .page-large div.content-inner > .form-horizontal > div.row-fluid,
+  .page-large div.content-inner > fieldset > div.row-fluid {
+    .span9 {
+      width: 100%;
+    }
+    .span3 {
+      margin-left: 0px;
+      width: 450px;
+    }
+  }
+}
+
+@include respond-to('tablet-landscape') {
+  div.content-inner > div.row-fluid, div.content-inner > .form-horizontal > div.row-fluid {
+    div.span9 {
+      width: 100%;
+    }
+    div.span3 {
+      margin-left: 0px;
+      width: 450px;
+    }
+  }
+}
+
+.wicket-ajax-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 2000;
+
+  img {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    background: url("../images/ajax-indicator.gif");
+    height: 0;
+    overflow: hidden;
+    padding-top: 16px;
+    width: 16px;
+  }
+}

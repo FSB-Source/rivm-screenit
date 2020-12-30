@@ -29,11 +29,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 
 public class StringUtil
 {
+	private static final Pattern CONTROLS_PATTERN = Pattern.compile("[\\p{C}&&[^\r\n\t]]", Pattern.MULTILINE);
 
 	private StringUtil()
 	{
@@ -127,5 +129,14 @@ public class StringUtil
 		CharBuffer data = StandardCharsets.UTF_8.decode(inputBuffer);
 		ByteBuffer outputBuffer = StandardCharsets.ISO_8859_1.encode(data);
 		return new String(outputBuffer.array(), StandardCharsets.ISO_8859_1);
+	}
+
+	public static boolean containsControlCharacter(String str)
+	{
+		if (str == null)
+		{
+			return false;
+		}
+		return CONTROLS_PATTERN.matcher(str).find();
 	}
 }

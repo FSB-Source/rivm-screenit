@@ -1,0 +1,19 @@
+.afnamedatum.control-group.value {
+  .control-label {
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: rs(14);
+  }
+}
+
+.pagina-titel {
+  font-family: $fontFamily1;
+  font-size: rs(21, $base-fs);
+  line-height: rs(21, $base-fs);
+  color: $primary-color;
+  padding-left: 15px;
+}
+
+.stap .buttons {
+  margin-top: 30px;
+}

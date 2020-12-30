@@ -1,0 +1,52 @@
+.huisarts-zoekresultaten table {
+  margin-bottom: 20px;
+}
+
+.huisarts-zoekresultaten {
+  td.naam {
+    font-weight: bold;
+  }
+  td.select-icon {
+    vertical-align: middle;
+    text-align: center;
+
+    .icon-chevron-right {
+      @include transition-property(left);
+      @include transition-duration(0.2s);
+      @include transition-timing-function(ease-out);
+    }
+  }
+}
+
+tr:hover .select-icon .icon-chevron-right {
+  position: relative;
+  left: 5px;
+  background-image: url("../images/icons/glyphicons-halflings-white.png");
+}
+
+.huisarts-handmatig,
+.huisarts-bevestigen {
+  @include column(12, 12);
+  @include box-sizing('border-box');
+
+  @include respond-to('tablet-portrait') {
+    @include column(12, 12);
+  }
+}
+
+.huisarts-handmatig .verplicht-legenda {
+  margin-bottom: 20px;
+}
+
+.paginering {
+  padding-top: 10px;
+
+  .totaal-aantal {
+    display: none;
+  }
+
+}
+
+fieldset.form-container.huidige-huisarts {
+  margin-bottom: 20px;
+}

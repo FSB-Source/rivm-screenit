@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 
 public class ClientCategorieEntry implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private final Long clientId;

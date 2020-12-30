@@ -44,7 +44,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class ColonHuisartsBericht extends HuisartsBericht
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)

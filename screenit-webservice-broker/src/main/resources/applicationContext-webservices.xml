@@ -1,0 +1,184 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-webservice-broker
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:cxf="http://cxf.apache.org/core"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:soap="http://cxf.apache.org/bindings/soap"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+         http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+
+         http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
+         http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.0.xsd
+         http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd">
+
+    <import resource="classpath:META-INF/cxf/cxf.xml"/>
+    <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
+
+    
+    <jaxws:endpoint id="provideDocumentService"
+                    implementor="#ProvideDocument_PortType"
+                    address="/verslagen">
+        <jaxws:properties>
+            <entry key="mtom-enabled" value="false"/>
+            <entry key="org.apache.cxf.stax.force-start-document" value="true"/>
+            <entry key="faultStackTraceEnabled" value="true"/>
+        </jaxws:properties>
+        <jaxws:binding>
+            <soap:soapBinding mtomEnabled="false" version="1.2"/>
+        </jaxws:binding>
+        <jaxws:inInterceptors>
+            <ref bean="certificaatInterceptor"/>
+            <ref bean="schematronInterceptor"/>
+            <ref bean="locationUriInterceptorVerslagen"/>
+        </jaxws:inInterceptors>
+    </jaxws:endpoint>
+    
+    <bean id="certificaatInterceptor" class="nl.rivm.screenit.wsb.interceptors.CertificaatInterceptor">
+        <property name="fqdncontrole" ref="fqdncontrole"/>
+    </bean>
+
+    <bean id="schematronInterceptor" class="nl.rivm.screenit.wsb.pd.interceptor.SchematronInterceptor"/>
+
+    <bean id="locationUriInterceptorVerslagen" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
+        <property name="wsContext" value="verslagen"/>
+    </bean>
+
+    <bean id="securityInterceptor" class="nl.rivm.screenit.wsb.interceptors.BasicAuthAuthorizationInterceptor">
+        <property name="username" ref="scanInlognaam"/>
+        <property name="password" ref="scanWachtwoord"/>
+    </bean>
+
+    <bean id="locationUriInterceptorPaVerwacht" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
+        <property name="wsContext" value="mammaPaVerwacht"/>
+    </bean>
+
+    
+    <jaxws:endpoint id="vragenlijstService"
+                    implementor="#VragenlijstAntwoordenService_PortType"
+                    address="/vragenlijstantwoordenservice">
+        <jaxws:inInterceptors>
+            <ref bean="securityInterceptor"/>
+            <ref bean="locationUriInterceptorVragenlijstAntwoordenservice"/>
+        </jaxws:inInterceptors>
+    </jaxws:endpoint>
+
+    <bean id="locationUriInterceptorVragenlijstAntwoordenservice" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
+        <property name="wsContext" value="vragenlijstantwoordenservice"/>
+    </bean>
+
+    
+    <jaxws:endpoint id="vragenlijstDefinitieService"
+                    implementor="#VragenlijstDefinitieService_PortType"
+                    address="/vragenlijstdefinitieservice">
+        <jaxws:inInterceptors>
+            <ref bean="securityInterceptor"/>
+            <ref bean="locationUriInterceptorVragenlijstDefinitieservice"/>
+        </jaxws:inInterceptors>
+    </jaxws:endpoint>
+
+    <bean id="locationUriInterceptorVragenlijstDefinitieservice" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
+        <property name="wsContext" value="vragenlijstdefinitieservice"/>
+    </bean>
+
+
+    
+    <jaxws:endpoint id="inpakcentrumKoppelService"
+                    implementor="#InpakcentrumKoppelService_PortType"
+                    address="/inpakcentrum">
+        <jaxws:inInterceptors>
+            <ref bean="inpakCentrumSchemaValidationInterceptor"/>
+            <ref bean="inpakSecurityInterceptor"/>
+            <ref bean="locationUriInterceptorInpakcentrum"/>
+        </jaxws:inInterceptors>
+    </jaxws:endpoint>
+
+    <bean id="locationUriInterceptorInpakcentrum" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
+        <property name="wsContext" value="inpakcentrum"/>
+    </bean>
+
+    <bean id="inpakCentrumSchemaValidationInterceptor" class="nl.rivm.screenit.wsb.inpakcentrum.InpakCentrumSchemaValidationInterceptor">
+        <property name="schemaFile" value="/schemas/KOPPEL_DATA.xsd"/>
+    </bean>
+
+    <bean id="inpakSecurityInterceptor" class="nl.rivm.screenit.wsb.interceptors.BasicAuthAuthorizationInterceptor">
+        <property name="username" ref="inpakCentrumInlognaam"/>
+        <property name="password" ref="inpakCentrumWachtwoord"/>
+    </bean>
+
+
+    
+    <jaxws:endpoint id="organisatieBoomService"
+                    implementor="#OrganisatieBoomService_PortType"
+                    address="/organisatieboomservice">
+        <jaxws:inInterceptors>
+            <ref bean="boomSecurityInterceptor"/>
+            <ref bean="locationUriInterceptorBoomservice"/>
+        </jaxws:inInterceptors>
+    </jaxws:endpoint>
+
+    <bean id="boomSecurityInterceptor" class="nl.rivm.screenit.wsb.interceptors.BasicAuthAuthorizationInterceptor">
+        <property name="username" ref="ultimviewInlognaam"/>
+        <property name="password" ref="ultimviewWachtwoord"/>
+    </bean>
+
+    <bean id="locationUriInterceptorBoomservice" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
+        <property name="wsContext" value="organisatieboomservice"/>
+    </bean>
+
+    
+    <jaxws:endpoint id="labformulierService"
+                    implementor="#LabformulierService_PortType"
+                    address="/labformulierservice">
+        <jaxws:inInterceptors>
+            <ref bean="labformulierSecurityInterceptor"/>
+            <ref bean="locationUriInterceptorLabformulierservice"/>
+        </jaxws:inInterceptors>
+    </jaxws:endpoint>
+
+    <bean id="labformulierSecurityInterceptor" class="nl.rivm.screenit.wsb.interceptors.BasicAuthAuthorizationInterceptor">
+        <property name="username" ref="labformulierInlognaam"/>
+        <property name="password" ref="labformulierWachtwoord"/>
+    </bean>
+
+    <bean id="locationUriInterceptorLabformulierservice" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
+        <property name="wsContext" value="labformulierservice"/>
+    </bean>
+
+    
+    <bean id="logInbound" class="nl.rivm.screenit.util.logging.cxf.ScreenITLoggingInInterceptor"/>
+    <bean id="logOutbound" class="nl.rivm.screenit.util.logging.cxf.ScreenITLoggingOutInterceptor"/>
+
+    <cxf:bus>
+        <cxf:inInterceptors>
+            <ref bean="logInbound"/>
+        </cxf:inInterceptors>
+        <cxf:outInterceptors>
+            <ref bean="logOutbound"/>
+        </cxf:outInterceptors>
+        <cxf:outFaultInterceptors>
+            <ref bean="logOutbound"/>
+        </cxf:outFaultInterceptors>
+        <cxf:inFaultInterceptors>
+            <ref bean="logInbound"/>
+        </cxf:inFaultInterceptors>
+    </cxf:bus>
+</beans>

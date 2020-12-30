@@ -25,7 +25,7 @@ import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 
 public interface CervixVerwerkVerslagService
 {
-	
+
 	void verwerkInDossier(CervixCytologieVerslag cytologieVerslag);
 
 	void onAfterVerwerkVerslagContent(CervixCytologieVerslag cytologieVerslag);

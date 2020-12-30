@@ -1,0 +1,106 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div class="row-fluid">
+        <div class="span9">
+            <h1 class="pageTitle">Standplaats - Gegevens</h1>
+        </div>
+        <div class="span3">
+            <button class="btn right" wicket:id="terug">Terug</button>
+        </div>
+    </div>
+    <div class="row-fluid form-horizontal">
+        <fieldset wicket:id="mainContainer">
+            <form wicket:id="mainForm">
+                <div class="row-fluid">
+                    <div class="span7" style="margin-left: 0;">
+                        <div class="control-group form-inline">
+                            <label class="control-label">Naam</label>
+                            <div class="controls">
+                                <input type="text" wicket:id="naam" class="input-xxlarge">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span2" style="margin-left: 0;">
+                        <div class="control-group form-inline">
+                            <label wicket:id="gekoppeldeSEs">SE:</label>
+                        </div>
+                    </div>
+                    <div class="span3">
+                        <button class="btn btn-primary right" wicket:id="opslaan">Opslaan</button>
+                        <button wicket:id="inActiveren" class="btn right">
+                            <i class="icon-minus-sign"/> <span wicket:id="inActiverenTitle"/>
+                        </button>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12" style="margin-left: 0;">
+                        <wicket:enclosure id="regio">
+                            <div class="control-group form-inline">
+                                <label class="control-label">Screeningsorganisatie</label>
+                                <div class="controls">
+                                    <select wicket:id="regio"></select>
+                                </div>
+                            </div>
+                        </wicket:enclosure>
+                    </div>
+                </div>
+            </form>
+        </fieldset>
+        <div wicket:id="persistent">
+            <fieldset class="hero-unit">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <h2 class="pageTitle">Opmerkingen</h2>
+                    </div>
+                </div>
+                <div wicket:id="opmerkingen"/>
+            </fieldset>
+
+            <div class="row-fluid">
+                <div class="span6" style="margin-left: 0;">
+                    <div wicket:id="locatie">
+                    </div>
+                </div>
+                <div class="span6">
+                    <div wicket:id="tijdelijkeLocatie">
+                    </div>
+                </div>
+            </div>
+            <fieldset class="hero-unit">
+                <div class="row-fluid">
+                    <div class="span9">
+                        <h2 class="pageTitle">Postcodereeksen</h2>
+                    </div>
+                    <div class="span3">
+                        <button class="btn btn-primary right" data-toggle="dropdown" wicket:id="postcodeReeksToevoegen">
+                            <span class="icon-plus-sign icon-white"/> Postcodereeks
+                        </button>
+                    </div>
+                </div>
+                <div wicket:id="reeksen"></div>
+            </fieldset>
+        </div>
+    </div>
+    <div wicket:id="dialog"></div>
+</wicket:extend>
+</html>

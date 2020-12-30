@@ -68,7 +68,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 public class SERealm extends AuthorizingRealm implements IScreenitRealm
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ScreenitRealm.class);
 
 	@Autowired

@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtinlezen;
 
 public class IfobtInlezenConstants
 {
-	
+
 	private IfobtInlezenConstants()
 	{
 	}

@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:extend>
+    <h1>Logging inzien</h1>
+    <form wicket:id="form">
+        <fieldset>
+            <div class="row-fluid form-horizontal">
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">Gebruikersnaam</label>
+                        <div class="controls">
+                            <input wicket:id="gebruikersnaam" type="text"
+                                   class="input-large"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Burgerservicenummer</label>
+                        <div class="controls">
+                            <input wicket:id="bsnClient" type="text" class="input-large"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Melding</label>
+                        <div class="controls">
+                            <input wicket:id="melding" type="text" class="input-large"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Logregel Niveau <span
+                                class="label label-info">Multiselect</span></label>
+                        <div class="controls">
+                            <select multiple="multiple" wicket:id="level">
+                                <option>Inloggen</option>
+                                <option>Inloggen mislukt</option>
+                            </select>
+                        </div>
+                    </div>
+                    <wicket:enclosure child="screeningsEenheidId">
+                        <div class="control-group">
+                            <label class="control-label">Screeningseenheid</label>
+                            <div class="controls">
+                                <select wicket:id="screeningsEenheidId">
+                                    <option>SE 1</option>
+                                    <option>SE 2</option>
+                                </select>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                </div>
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">Gebeurtenis <span
+                                class="label label-info">Multiselect</span></label>
+                        <div class="controls">
+                            <select multiple="multiple" wicket:id="gebeurtenis">
+                                <option>Inloggen</option>
+                                <option>Inloggen mislukt</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Bevolkingsonderzoek <span
+                                class="label label-info">Multiselect</span></label>
+                        <div class="controls">
+                            <select multiple="multiple" wicket:id="bevolkingsonderzoeken">
+                                <option>Darmkanker</option>
+                                <option>Baarmoederhalskanker</option>
+                                <option>Borstkanker</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Datum/tijd vanaf</label>
+                        <div class="controls">
+                            <wicket:container wicket:id="vanaf"></wicket:container>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Datum/tijd tot</label>
+                        <div class="controls">
+                            <wicket:container wicket:id="tot"></wicket:container>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Regio</label>
+                        <div class="controls">
+                            <select wicket:id="regio"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button wicket:id="filteren" class="btn btn-primary">Filteren</button>
+            </div>
+        </fieldset>
+    </form>
+    <div wicket:id="refreshContainer">
+        <div wicket:id="logging" class="logging-overview"></div>
+    </div>
+</wicket:extend>
+</body>
+</html>

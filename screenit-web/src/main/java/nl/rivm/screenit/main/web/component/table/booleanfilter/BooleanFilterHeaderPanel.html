@@ -1,0 +1,36 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<wicket:panel>
+    <div class="btn-group filter-view">
+        <label class="row-fluid" wicket:id="header" style="font-weight: bold">header</label>
+        <a title="Toon alle" href="javascript:void(0);" wicket:id="all" class="btn filter-beide">
+            <i class="icon-ok-circle"></i>
+            /
+            <i class="icon-ban-circle"></i>
+        </a>
+        <a title="Toon alleen actief" href="javascript:void(0);" wicket:id="active" class="btn filter-actief">
+            <i class="icon-ok-circle"></i>
+        </a>
+        <a title="Toon alleen inactief" href="javascript:void(0);" wicket:id="inactive" class="btn filter-geen">
+            <i class="icon-ban-circle"></i>
+        </a>
+    </div>
+</wicket:panel>

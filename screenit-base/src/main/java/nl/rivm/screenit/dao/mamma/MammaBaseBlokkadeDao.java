@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaats;
 
 public interface MammaBaseBlokkadeDao
 {
-	
+
 	int countBlokkades(MammaBlokkade zoekObject);
 
 	List<MammaBlokkade> getBlokkades(MammaBlokkade zoekObject, int first, int count, String sortProperty, boolean asc);

@@ -31,36 +31,49 @@ _dossier_classifier_vervolgronde = 'dossier_classifier_vervolgronde.pkl'
 _afspraak_classifier_eerste_ronde = 'afspraak_classifier_eerste_ronde.pkl'
 _afspraak_classifier_vervolgronde = 'afspraak_classifier_vervolgronde.pkl'
 
+
 def dump_dossier_classification_eerste_ronde(classifier):
     _dump(classifier, _dossier_classifier_eerste_ronde)
+
 
 def dump_dossier_classification_vervolgronde(classifier):
     _dump(classifier, _dossier_classifier_vervolgronde)
 
+
 def load_dossier_classifier_eerste_ronde():
     return _load(_dossier_classifier_eerste_ronde)
+
 
 def load_dossier_classifier_vervolgronde():
     return _load(_dossier_classifier_vervolgronde)
 
+
 def dump_afspraak_classification_eerste_ronde(classifier):
     _dump(classifier, _afspraak_classifier_eerste_ronde)
+
 
 def dump_afspraak_classification_vervolgronde(classifier):
     _dump(classifier, _afspraak_classifier_vervolgronde)
 
+
 def load_afspraak_classifier_eerste_ronde():
     return _load(_afspraak_classifier_eerste_ronde)
+
 
 def load_afspraak_classifier_vervolgronde():
     return _load(_afspraak_classifier_vervolgronde)
 
+
 def _dump(value, filename):
     logging.info("dump " + filename)
+
     if not os.path.exists(base.filestore):
         os.makedirs(base.filestore)
+
     joblib.dump(value, base.filestore + '/' + filename)
+
 
 def _load(filename):
     logging.info("load " + filename)
+
     return joblib.load(base.filestore + '/' + filename)

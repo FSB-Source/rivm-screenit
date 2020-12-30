@@ -33,6 +33,7 @@ import nl.rivm.screenit.util.SequenceGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,7 @@ public class TechnischeBerichtenLoggingSaverServiceImpl implements TechnischeBer
 
 		event.type = type;
 		event.exchangeId = exchangeId;
-		event.service = service;
+		event.service = StringUtils.left(service, 255);
 		event.message = message;
 
 		logEvent(event);
@@ -108,7 +109,7 @@ public class TechnischeBerichtenLoggingSaverServiceImpl implements TechnischeBer
 
 	private void logEvent(TechnischeLogEvent logEvent)
 	{
-		String logVerwijzing = logEvent.type + ": Vind %s bericht met 'select * from gedeeld.berichten_technische_log_event from id = " + logEvent.exchangeId + "';";
+		String logVerwijzing = logEvent.type + ": Vind %s bericht met 'select * from gedeeld.technische_berichten_log_regel where id = " + logEvent.exchangeId + "';";
 		if (logEvent.request)
 		{
 			LOGGER.info(String.format(logVerwijzing, "request"));

@@ -42,7 +42,7 @@ import org.hibernate.envers.Audited;
 @Table(schema = "gedeeld")
 public class UploadDocument extends AbstractHibernateObject implements IUploadDocument
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)

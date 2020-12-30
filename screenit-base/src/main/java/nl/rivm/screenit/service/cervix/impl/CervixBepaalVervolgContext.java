@@ -42,7 +42,7 @@ import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 public class CervixBepaalVervolgContext
 {
-	
+
 	public CervixMonster huidigeMonster;
 
 	public Date huidigeOntvangstdatum = null;

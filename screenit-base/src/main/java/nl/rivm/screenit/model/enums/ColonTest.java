@@ -25,7 +25,7 @@ import nl.rivm.screenit.model.INaam;
 
 public enum ColonTest implements INaam
 {
-	
+
 	U1(Boolean.TRUE),
 
 	U2_1(Boolean.TRUE),

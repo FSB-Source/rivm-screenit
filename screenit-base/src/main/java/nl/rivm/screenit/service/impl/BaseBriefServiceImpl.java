@@ -29,12 +29,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.BaseBriefDao;
@@ -51,6 +53,7 @@ import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
@@ -869,14 +872,27 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void setNietGegenereerdeBrievenOpTegenhouden(MammaScreeningRonde screeningRonde, BriefType briefType)
+	public <B extends Brief> List<B> getNietGegenereerdeBrievenVanBriefTypes(List<B> brieven, List<BriefType> brieftypes)
 	{
-		screeningRonde.getBrieven().stream().filter(mammaBrief -> briefType.equals(mammaBrief.getBriefType()) && !mammaBrief.isGegenereerd())
+		return brieven.stream()
+			.filter(brief -> brieftypes.contains(brief.getBriefType()) && !brief.isGegenereerd()).collect(Collectors.toList());
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void setNietGegenereerdeBrievenOpTegenhouden(ScreeningRonde<?, ?, ?, ?> screeningRonde, Collection<BriefType> brieftypes)
+	{
+		screeningRonde.getBrieven().stream().filter(brief -> brieftypes.contains(brief.getBriefType()) && !brief.isGegenereerd())
 			.forEach(brief -> {
 				brief.setTegenhouden(true);
 				hibernateService.saveOrUpdate(brief);
 			});
+	}
+
+	@Override
+	public boolean briefTypeAlVerstuurdInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes)
+	{
+		return ronde.getBrieven().stream().anyMatch(brief -> brieftypes.contains(brief.getBriefType()) && brief.isGegenereerd());
 	}
 
 	@Override

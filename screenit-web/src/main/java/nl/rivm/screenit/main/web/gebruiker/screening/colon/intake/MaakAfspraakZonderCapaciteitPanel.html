@@ -1,0 +1,124 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="control-group">
+        <div class="column-nieuwe-afspraak">
+            <fieldset class="form-horizontal nieuwe-afspraak" wicket:id="nieuweAfspraak">
+                <h3>Nieuwe afspraak</h3>
+                <div class="control-group value">
+                    <label class="control-label">Locatie</label>
+                    <div class="controls">
+                        <a href="javascript:void(0);" class="cp-btn pull-right" wicket:id="coloscopieCentrumWijzigen">Locatie wijzigen</a>
+                        <span wicket:id="conclusie.locatieNieuweAfspraak.coloscopieCentrum.naam">Coloscopiecentrum 1</span> <span wicket:id="conclusie.locatieNieuweAfspraak.name">Kamer 1</span>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Locatieomschrijving</label>
+                    <div class="controls">
+                        <span wicket:id="conclusie.locatieNieuweAfspraak.coloscopieCentrum.locatieBeschrijving">Coloscopiecentrum 1</span>
+                    </div>
+                </div>
+                <wicket:enclosure child="conclusie.datumTijdNieuweAfspraak">
+                    <div id="gekozenDatum">
+                        <div class="control-group value">
+                            <label class="control-label">Datum/tijd</label>
+                            <div class="controls">
+                                <div wicket:id="conclusie.datumTijdNieuweAfspraak"></div>
+                            </div>
+                        </div>
+                    </div>
+                </wicket:enclosure>
+            </fieldset>
+        </div>
+    </div>
+    <div wicket:id="container"></div>
+    <wicket:fragment wicket:id="centraZoekenContainer">
+        <fieldset class="centrum-zoeken" id="centrumZoeken">
+            <h3>Intakelocatie zoeken</h3>
+            <form wicket:id="innerForm">
+                <div class="row-fluid">
+                    <div class="span4">
+                        <div class="control-group">
+                            <label>Naam</label>
+                            <div>
+                                <input wicket:id="naam" class="input-large" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span4">
+                        <div class="control-group">
+                            <label>Plaats</label>
+                            <div>
+                                <input wicket:id="plaats" class="input-large" type="text">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span4">
+                        <div class="control-group">
+                            <label>Afstand</label>
+                            <div>
+                                <select wicket:id="afstand">
+                                    <option></option>
+                                    <option>&lt; 5</option>
+                                </select> km
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div class="form-actions clearfix">
+                <a href="javascript:void(0);" class="btn" wicket:id="centraZoekenAnnuleren">Zoeken
+                    annuleren</a>
+                <a href="javascript:void(0);" class="btn btn-primary" wicket:id="centraZoeken">
+                    <i class="icon-search icon-white"></i> Zoeken
+                </a>
+            </div>
+            <div class="row-fluid show-results">
+                <div class="span12">
+                    <hr>
+                    <table class="table table-bordered table-condensed organisatie">
+                        <thead>
+                        <tr>
+                            <th>Naam</th>
+                            <th>Kamer</th>
+                            <th>Plaats</th>
+                            <th>Afstand</th>
+                        </tr>
+                        </thead>
+                        <tbody wicket:id="resultatenContainer">
+                        <tr wicket:id="centraResultaten">
+                            <td><strong wicket:id="naam">Coloscopiecentrum 1</strong></td>
+                            <td wicket:id="kamer">Kamer 1</td>
+                            <td wicket:id="plaats">Plaatsnaam</td>
+                            <td wicket:id="afstand">± 12 km</td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+    </wicket:fragment>
+</wicket:panel>
+</body>
+</html>

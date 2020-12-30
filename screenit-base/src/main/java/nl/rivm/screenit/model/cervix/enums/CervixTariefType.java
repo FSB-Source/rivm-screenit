@@ -32,7 +32,7 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 public enum CervixTariefType implements INaam
 {
-	
+
 	LAB_HPV_ANALYSE_UITSTRIJKJE("hpvAnalyseUitstrijkjeTarief", "HPV analyse uitstrijkje"),
 
 	LAB_HPV_ANALYSE_ZAS("hpvAnalyseZasTarief", "HPV analyse ZAS"),

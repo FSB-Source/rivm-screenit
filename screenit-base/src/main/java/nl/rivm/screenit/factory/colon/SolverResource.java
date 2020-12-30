@@ -58,7 +58,7 @@ public class SolverResource implements ISolverResource
 
 		return new IParticipant()
 		{
-			
+
 			private static final long serialVersionUID = 1L;
 
 			@Override

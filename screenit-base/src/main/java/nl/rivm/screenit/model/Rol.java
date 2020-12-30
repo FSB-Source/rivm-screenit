@@ -49,7 +49,7 @@ import org.hibernate.annotations.Where;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public class Rol extends AbstractHibernateObject implements INaam, IActief, IBevolkingsonderzoek
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String naam;

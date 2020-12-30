@@ -1,0 +1,56 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <h1 class="pageTitle">
+        <a href="javascript:void(0);" wicket:id="terugViaTitle" class="page">Schema externe kwaliteitscontrole</a>
+        <span class="divider">&gt;</span> <span class="subpage">XLS toevoegen</span>
+    </h1>
+    <fieldset>
+        <form wicket:id="uploadForm">
+            <div class="form-horizontal">
+                <div class="span12">
+                    <wicket:message key="label.skmlexternxlstoevoegen.info">
+                        Op deze pagina kunt u een schema voor SKML externe kwaliteitscontrole uploaden in excel-vorm
+                    </wicket:message>
+                </div>
+                <div class="span12">
+                    <div class="control-group">
+                        <label for="allesOverschrijven" class="control-label">Alles overschrijven</label>
+                        <div class="controls">
+                            <input class="input-small" id="allesOverschrijven" wicket:id="allesOverschrijven" type="checkbox" value="">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="bestand" class="control-label">XLS Bestand</label>
+                        <div class="controls">
+                            <input type="file" id="bestand" wicket:id="bestand">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <a class="btn btn-primary" wicket:id="importeer">Importeer</a>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+</wicket:extend>
+</html>

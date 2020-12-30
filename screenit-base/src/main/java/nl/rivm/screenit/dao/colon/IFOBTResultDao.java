@@ -28,7 +28,7 @@ import java.util.List;
 
 public interface IFOBTResultDao
 {
-	
+
 	IFobtLaboratorium getIFobtLaboratorium(String labId);
 
 	List<ColonIFobtUitslagBericht> getAlleNietVerwerkteHpvBerichten();

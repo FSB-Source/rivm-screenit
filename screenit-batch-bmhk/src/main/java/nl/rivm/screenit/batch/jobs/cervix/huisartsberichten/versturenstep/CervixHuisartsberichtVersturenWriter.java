@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixHuisartsberichtVersturenWriter extends BaseWriter<CervixHuisartsBericht>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixHuisartsberichtVersturenWriter.class);
 
 	@Autowired

@@ -127,28 +127,41 @@ public class PlanningUitnodigenController
 	@RequestMapping
 	public Long uitnodigen()
 	{
-		uitnodigenService.clear();
-		uitnodigenVanafJaar = dateSupplier.getLocalDate().getYear();
-
-		readModelDao.readDataModel();
-
-		hibernateService.getHibernateSession().setFlushMode(FlushMode.COMMIT);
-
-		MammaUitnodigenRapportage rapportage = new MammaUitnodigenRapportage();
-
-		uitnodigen(rapportage);
-
-		readModelDao.readDataModel();
-
-		rapportage.setDatumVerwerking(dateSupplier.getDate());
-		hibernateService.save(rapportage);
-		hibernateService.saveOrUpdateAll(rapportage.getStandplaatsRondeUitnodigenRapportages());
-		for (MammaStandplaatsRondeUitnodigenRapportage standplaatsRondeUitnodigenRapportage : rapportage.getStandplaatsRondeUitnodigenRapportages())
+		try
 		{
-			hibernateService.saveOrUpdateAll(standplaatsRondeUitnodigenRapportage.getStandplaatsPeriodeUitnodigenRapportages());
-		}
+			uitnodigenService.clear();
+			uitnodigenVanafJaar = dateSupplier.getLocalDate().getYear();
 
-		return rapportage.getId();
+			readModelDao.readDataModel();
+
+			hibernateService.getHibernateSession().setFlushMode(FlushMode.COMMIT);
+
+			MammaUitnodigenRapportage rapportage = new MammaUitnodigenRapportage();
+
+			uitnodigen(rapportage);
+
+			readModelDao.readDataModel();
+
+			rapportage.setDatumVerwerking(dateSupplier.getDate());
+			hibernateService.save(rapportage);
+			hibernateService.saveOrUpdateAll(rapportage.getStandplaatsRondeUitnodigenRapportages());
+			for (MammaStandplaatsRondeUitnodigenRapportage standplaatsRondeUitnodigenRapportage : rapportage.getStandplaatsRondeUitnodigenRapportages())
+			{
+				hibernateService.saveOrUpdateAll(standplaatsRondeUitnodigenRapportage.getStandplaatsPeriodeUitnodigenRapportages());
+			}
+
+			return rapportage.getId();
+		}
+		catch (Exception e)
+		{
+			LOG.error("Error tijdens uitnodigen", e);
+			List<Instelling> instellingList = new ArrayList<>(instellingService.getAllActiefScreeningOrganisaties());
+			Instelling rivm = instellingService.getActieveInstellingen(Rivm.class).get(0);
+			instellingList.add(rivm);
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_UITNODIGEN_FOUT, instellingList, new LogEvent("Technische fout bij uitnodigen"),
+				Bevolkingsonderzoek.MAMMA);
+			return null;
+		}
 	}
 
 	private void uitnodigen(MammaUitnodigenRapportage rapportage)

@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class MammaBaseBlokkadeServiceImpl implements MammaBaseBlokkadeService
 {
-	
+
 	@Autowired
 	private MammaBaseBlokkadeDao blokkadeDao;
 

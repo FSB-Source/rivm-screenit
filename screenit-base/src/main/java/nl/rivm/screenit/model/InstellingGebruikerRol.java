@@ -49,7 +49,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public class InstellingGebruikerRol extends AbstractHibernateObject implements IActief, IBevolkingsonderzoek
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY)

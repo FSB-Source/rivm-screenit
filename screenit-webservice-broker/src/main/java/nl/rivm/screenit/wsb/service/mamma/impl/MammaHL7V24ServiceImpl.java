@@ -23,21 +23,25 @@ package nl.rivm.screenit.wsb.service.mamma.impl;
 
 import java.util.List;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaIMSDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.logging.MammaHl7v24BerichtFoutenLogEvent;
+import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.berichten.MammaHL7OntvangenBerichtWrapper;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
+import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.wsb.service.BaseHL7v2Service;
 import nl.rivm.screenit.wsb.service.mamma.MammaHL7v24Service;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +73,12 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 
 	@Autowired
 	private LogService logService;
+
+	@Autowired
+	private BezwaarService bezwaarService;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	@Override
 	public Message processTypedMessage(ORM_O01 message)
@@ -108,7 +118,7 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 			{
 				LOG.error("Er is een onbekende fout opgetreden in de applicatie.", exception);
 			}
-			MammaHl7v24BerichtFoutenLogEvent logEvent = new MammaHl7v24BerichtFoutenLogEvent();
+			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
 			logEvent.setHl7MessageStructure(message.toString());
 			logEvent.setMelding(exception.getMessage());
 			logEvent.setLevel(Level.ERROR);
@@ -138,6 +148,8 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 		beeldenBeschikbaarBericht.setOrmStatus(berichtWrapper.getStatus());
 		beeldenBeschikbaarBericht.setOntvangstDatum(dateSupplier.getDate());
 
+		Client client = clientService.getClientByBsn(berichtWrapper.getBsn());
+
 		if (!getAcceptedOrmBerichtStatussen().contains(berichtWrapper.getStatus()))
 		{
 			throw new HL7Exception("Ontvangen IMS bericht heeft niet de verwachte status maar: " + berichtWrapper.getStatus().name());
@@ -145,7 +157,7 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 
 		if (!mammaIMSDao.isBerichtAlOntvangen(berichtWrapper.getMessageId()))
 		{
-			if (checkAccessionNumberAndBSN(berichtWrapper))
+			if (isValideBerichtVoorClient(client, berichtWrapper))
 			{
 				hibernateService.saveOrUpdate(beeldenBeschikbaarBericht);
 			}
@@ -158,26 +170,34 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 		}
 		else
 		{
-			Client client = clientService.getClientByBsn(berichtWrapper.getBsn());
-			MammaHl7v24BerichtFoutenLogEvent logEvent = new MammaHl7v24BerichtFoutenLogEvent();
+			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
 			logEvent.setClient(client);
 			logEvent.setHl7MessageStructure(berichtWrapper.getMessage().toString());
 			logEvent.setMelding("IMS HL7 Bericht (messageID: " + berichtWrapper.getMessageId() + ") binnengekomen, bericht bestaat al");
 			logEvent.setLevel(Level.WARNING);
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_AL_ONTVANGEN, logEvent, Bevolkingsonderzoek.MAMMA);
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_AL_ONTVANGEN, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
 		}
+	}
+
+	private boolean isVerwijderdMetBezwaar(Client client, MammaHL7v24ORMBerichtStatus status)
+	{
+		return (status.equals(MammaHL7v24ORMBerichtStatus.DELETED) || status.equals(MammaHL7v24ORMBerichtStatus.ERROR)) && bezwaarService.heeftBezwaarInAfgelopenAantalDagen(
+			client,
+			BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER,
+			Bevolkingsonderzoek.MAMMA,
+			preferenceService.getInteger(PreferenceKey.ILM_BEZWAARTERMIJN_BEELDEN_VERWIJDERD.name()));
 	}
 
 	abstract List<MammaHL7v24ORMBerichtStatus> getAcceptedOrmBerichtStatussen();
 
-	private boolean checkAccessionNumberAndBSN(MammaHL7OntvangenBerichtWrapper berichtWrapper)
+	private boolean isValideBerichtVoorClient(Client client, MammaHL7OntvangenBerichtWrapper berichtWrapper)
 	{
-		Client client = clientService.getClientByBsn(berichtWrapper.getBsn());
 		if (client == null)
 		{
 			return false;
 		}
-		return isMammografieAccessionNumberVanClient(berichtWrapper.getAccessionNumber(), client) || isAccessionNumberVanUploadPoging(berichtWrapper.getAccessionNumber(), client);
+		return isMammografieAccessionNumberVanClient(berichtWrapper.getAccessionNumber(), client) || isAccessionNumberVanUploadPoging(berichtWrapper.getAccessionNumber(),
+			client) || isVerwijderdMetBezwaar(client, berichtWrapper.getStatus());
 	}
 
 	private boolean isMammografieAccessionNumberVanClient(Long accessionNumber, Client client)

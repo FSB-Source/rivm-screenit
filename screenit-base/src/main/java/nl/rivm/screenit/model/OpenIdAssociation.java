@@ -33,7 +33,7 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 @Table(schema = "algemeen")
 public class OpenIdAssociation extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(unique = true, nullable = false)

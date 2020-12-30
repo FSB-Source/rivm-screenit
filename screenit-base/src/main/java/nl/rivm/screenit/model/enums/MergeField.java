@@ -140,7 +140,7 @@ public enum MergeField
 
 	UNIEK_BRIEF_KENMERK("_UNIEK_BRIEF_KENMERK", MergeFieldTestType.OVERIGE, String.class, "K6BD83FL", NIET_NAAR_INPAKCENTRUM)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -159,7 +159,7 @@ public enum MergeField
 	},
 	SO_ID("_SO_ID")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -174,7 +174,7 @@ public enum MergeField
 
 	SO_NAAM("_SO_NAAM")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -189,7 +189,7 @@ public enum MergeField
 
 	SO_LOGO("_SO_LOGO", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -246,7 +246,7 @@ public enum MergeField
 
 	SO_POSTADRES("_SO_POSTADRES")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -256,7 +256,7 @@ public enum MergeField
 
 	SO_STRAATNAAM("_SO_STRAATNAAM")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -272,7 +272,7 @@ public enum MergeField
 
 	SO_HUISNUMMER_TOEV("_SO_HUISNUMMER_TOEV")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -313,7 +313,7 @@ public enum MergeField
 
 	SO_POSTCODE("_SO_POSTCODE")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -329,7 +329,7 @@ public enum MergeField
 
 	SO_PLAATS("_SO_PLAATS")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -345,7 +345,7 @@ public enum MergeField
 
 	SO_POSTBUSNR("_SO_POSTBUSNR")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -418,7 +418,7 @@ public enum MergeField
 
 	SO_POSTBUSPOSTCODE("_SO_POSTBUSPOSTCODE")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -491,7 +491,7 @@ public enum MergeField
 
 	SO_POSTBUSPLAATS("_SO_POSTBUSPLAATS")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -833,7 +833,7 @@ public enum MergeField
 
 	SO_TEL("_SO_TEL")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -953,7 +953,7 @@ public enum MergeField
 
 	SO_FAX("_SO_FAX")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -968,7 +968,7 @@ public enum MergeField
 
 	SO_EMAILDRES("_SO_EMAILADRES")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1075,7 +1075,7 @@ public enum MergeField
 
 	SO_WEBSITE("_SO_WEBSITEADRES")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1090,7 +1090,7 @@ public enum MergeField
 
 	SO_RCMDL("_SO_RCMDL")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1212,7 +1212,7 @@ public enum MergeField
 
 	CLIENT_BSN("_CLIENT_BSN", NIET_NAAR_INPAKCENTRUM)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1226,7 +1226,7 @@ public enum MergeField
 
 	CLIENT_NAAM("_CLIENT_NAAM")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1240,7 +1240,7 @@ public enum MergeField
 
 	CLIENT_ADRES("_CLIENT_ADRES")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1254,7 +1254,7 @@ public enum MergeField
 
 	CLIENT_POSTCODE("_CLIENT_POSTCODE")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1268,7 +1268,7 @@ public enum MergeField
 
 	CLIENT_WOONPLAATS("_CLIENT_WOONPLAATS")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1282,7 +1282,7 @@ public enum MergeField
 
 	KIX_CLIENT("_CLIENT_KIX", RoyalMailCBCBean.class, null)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1297,7 +1297,7 @@ public enum MergeField
 
 	CLIENT_GEBOORTEDATUM("_CLIENT_GEBOORTEDATUM")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1317,7 +1317,7 @@ public enum MergeField
 
 	CLIENT_AANHEF("_CLIENT_AANHEF")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1367,7 +1367,7 @@ public enum MergeField
 
 	IL_NAAM("_IL_NAAM")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1381,7 +1381,7 @@ public enum MergeField
 
 	IL_ADRES("_IL_ADRES")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1395,7 +1395,7 @@ public enum MergeField
 
 	IL_STRAATNAAM("_IL_STRAATNAAM")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1719,7 +1719,7 @@ public enum MergeField
 
 	ZI_NAAM("_ZI_NAAM", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.naam", String.class)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1734,7 +1734,7 @@ public enum MergeField
 
 	ZI_STRAATNAAM("_ZI_STRAATNAAM", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].straat", String.class)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1749,7 +1749,7 @@ public enum MergeField
 
 	ZI_HUISNUMMER_TOEV("_ZI_HUISNUMMER_TOEVOEGING")
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1764,7 +1764,7 @@ public enum MergeField
 
 	ZI_POSTCODE("_ZI_POSTCODE", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].postcode", String.class)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1779,7 +1779,7 @@ public enum MergeField
 
 	ZI_PLAATS("_ZI_PLAATS", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].plaats", String.class)
 	{
-		
+
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -3619,18 +3619,23 @@ public enum MergeField
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
-			Date value = context.getValue(this.getFieldName());
-			if (value != null)
+			MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
+			Date onderzoekDatum = null;
+			if (beoordeling != null && beoordeling.getOnderzoek() != null && beoordeling.getOnderzoek().getCreatieDatum() != null)
 			{
-				return Constants.getDateFormat().format(value);
+				onderzoekDatum = beoordeling.getOnderzoek().getCreatieDatum();
 			}
 			else
 			{
 				MammaAfspraak afspraak = getAfspraakVanLaatsteOnderzoek(context);
 				if (afspraak != null)
 				{
-					return Constants.getDateFormat().format(afspraak.getOnderzoek().getCreatieDatum());
+					onderzoekDatum = afspraak.getOnderzoek().getCreatieDatum();
 				}
+			}
+			if (onderzoekDatum != null)
+			{
+				return Constants.getDateFormat().format(onderzoekDatum);
 			}
 			return null;
 		}
@@ -3833,7 +3838,46 @@ public enum MergeField
 			}
 			return ""; 
 		}
-	};
+	},
+
+	MAMMA_VERSLAG_UITSLAG_CONCLUSIE("_BK_VERSLAG_UITSLAG_CONCLUSIE", NIET_NAAR_INPAKCENTRUM)
+	{
+
+		@Override
+		public Object getFieldValue(MailMergeContext context)
+		{
+			MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
+			if (beoordeling != null)
+			{
+				final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
+				if (reden != null)
+				{
+					switch (reden)
+					{
+					case KWALITEIT_KOMT_NIET_OVEREEN_MET_STANDAARD:
+					case FOTOS_VAN_EEN_OF_BEIDE_ZIJDEN_BEWOGEN:
+					case FOTOS_MAAR_IN_1_RICHTING_GEMAAKT:
+					case MAMMA_NIET_VOLLEDIG_AFGEBEELD:
+						return "Bij dit onderzoek was slechts een gedeeltelijke beoordeling mogelijk. Op het gedeelte dat we wél konden beoordelen, hebben we geen aanwijzingen voor borstkanker gevonden.";
+
+					case PROTHESE_MEER_DAN_0_PUNT_8:
+						return "Door de aanwezigheid van prothese(n) was slechts een gedeeltelijke beoordeling mogelijk. Op het gedeelte dat we wél konden beoordelen, hebben we geen aanwijzingen voor borstkanker gevonden.";
+
+					case GEEN_BEOORDELING_MOGELIJK:
+						return "Bij dit onderzoek was geen beoordeling mogelijk.";
+					}
+				}
+				else
+				{
+					return "Bij dit onderzoek zijn geen afwijkingen gevonden.";
+				}
+			}
+			return null;
+		}
+
+	}
+
+	;
 
 	private String fieldName;
 

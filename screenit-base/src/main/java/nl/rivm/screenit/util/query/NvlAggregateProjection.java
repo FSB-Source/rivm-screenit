@@ -29,7 +29,7 @@ import org.hibernate.criterion.AggregateProjection;
 
 public class NvlAggregateProjection extends AggregateProjection
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String nvlObject;

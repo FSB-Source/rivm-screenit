@@ -23,6 +23,6 @@ package nl.rivm.screenit.service;
 
 public interface FqdnService
 {
-	
+
 	boolean isFqdnBekend(String fdqn);
 }

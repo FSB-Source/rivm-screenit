@@ -25,9 +25,9 @@ import nl.rivm.screenit.model.INaam;
 
 public enum HuisartsGeslacht implements INaam
 {
-	
+
 	MAN("Dhr."),
-	
+
 	VROUW("Dhs."),
 
 	ONBEKEND("Dhs./Dhr."),

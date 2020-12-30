@@ -27,7 +27,7 @@ import java.util.Date;
 
 public class AddTriggerResponse implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Date firstScheduleDate;

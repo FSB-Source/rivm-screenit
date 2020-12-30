@@ -1,0 +1,48 @@
+.afmelden {
+  .control-group label.control-label {
+    font-weight: bold;
+    span {
+      font-weight: normal;
+    }
+  }
+
+  p {
+    line-height: rs(20, 13);
+  }
+}
+
+.reden-afmelding {
+  @include column(12, 12);
+  @include box-sizing('border-box');
+
+  margin: 20px 0 0 0;
+  clear: left;
+}
+
+@include respond-to('tablet-portrait') {
+  .afmelden,
+  .reden-afmelding {
+    @include column(12, 12);
+    margin-bottom: 20px;
+  }
+}
+
+.afmelden-keuze {
+  margin-bottom: 0;
+
+  p {
+    padding-left: 20px;
+  }
+
+  .icon-asterisk {
+    display: none;
+  }
+
+  .controls label {
+    font-weight: bold;
+
+    span {
+      text-decoration: underline;
+    }
+  }
+}

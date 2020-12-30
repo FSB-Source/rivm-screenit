@@ -55,7 +55,7 @@ import org.hibernate.envers.NotAudited;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 public class MammaDownloadOnderzoekenVerzoek extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(fetch = FetchType.LAZY)

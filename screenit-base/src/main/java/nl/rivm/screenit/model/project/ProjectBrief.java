@@ -45,7 +45,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, ProjectBrief>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)

@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.AbstractHoudbaarheid;
 @Table(schema = "cervix", name = "zas_houdbaarheid")
 public class CervixZasHoudbaarheid extends AbstractHoudbaarheid
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 }

@@ -33,7 +33,7 @@ import org.hibernate.sql.JoinType;
 
 public class CervixHuisartsberichtVersturenReader extends BaseScrollableResultReader
 {
-	
+
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{

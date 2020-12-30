@@ -52,7 +52,7 @@ public class MammaMislukteHuisartsberichtenVersturenReader extends BaseScrollabl
 		criteria.add(Restrictions.or(
 			Restrictions.eq("huisartsbericht.status", MammaHuisartsBerichtStatus.VERSTUREN_MISLUKT),
 			Restrictions.and(
-				
+
 				Restrictions.eq("huisartsbericht.status", MammaHuisartsBerichtStatus.AANGEMAAKT),
 				Restrictions.le("huisartsbericht.statusDatum", huisartsberichtWachttijdDate))));
 

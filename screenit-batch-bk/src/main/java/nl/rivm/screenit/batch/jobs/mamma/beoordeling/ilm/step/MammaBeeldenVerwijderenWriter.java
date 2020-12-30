@@ -57,7 +57,7 @@ public class MammaBeeldenVerwijderenWriter extends BaseWriter<MammaOnderzoek>
 		MammaScreeningRonde screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
 		LOG.info("gevonden ronde: {}", screeningRonde.getId());
 		aantalContextOphogen(MammaIlmJobListener.KEY_BEELDEN_VERWIJDERD_AANTAL);
-		berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE, MammaHL7BerichtType.IMS_ORM_ILM);
+		berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE, MammaHL7BerichtType.IMS_ORM_ILM);
 		screeningRonde.getUitnodigingen()
 			.forEach(uitnodiging -> uitnodiging.getAfspraken()
 				.forEach(afspraak -> {

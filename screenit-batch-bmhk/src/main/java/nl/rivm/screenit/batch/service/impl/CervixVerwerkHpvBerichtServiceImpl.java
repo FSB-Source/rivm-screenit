@@ -74,7 +74,7 @@ import ca.uhn.hl7v2.parser.Parser;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBerichtService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixVerwerkHpvBerichtServiceImpl.class);
 
 	@Autowired

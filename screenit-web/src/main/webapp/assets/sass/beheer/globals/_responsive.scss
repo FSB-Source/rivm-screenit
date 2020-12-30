@@ -1,0 +1,23 @@
+body.is-mobile-device {
+  overflow: auto;
+  .canvas.content {
+    height: auto;
+    overflow-y: auto;
+  }
+  .content-container {
+    margin: 0px;
+    .topnav {
+      .nav li {
+        clear: both;
+      }
+    }
+  }
+  .alert {
+    left: 0;
+    margin: 0;
+    width: 100%;
+    .close {
+      right: 25px;
+    }
+  }
+}

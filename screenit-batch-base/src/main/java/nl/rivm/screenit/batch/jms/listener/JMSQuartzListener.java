@@ -58,7 +58,7 @@ import org.springframework.jms.listener.SessionAwareMessageListener;
 
 public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(JMSQuartzListener.class);
 
 	@Autowired
@@ -119,7 +119,7 @@ public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQOb
 					}
 					jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
 					{
-						
+
 						@Override
 						public Message createMessage(Session session) throws JMSException
 						{
@@ -155,7 +155,7 @@ public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQOb
 
 					jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
 					{
-						
+
 						@Override
 						public Message createMessage(Session session) throws JMSException
 						{
@@ -181,7 +181,7 @@ public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQOb
 
 					jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
 					{
-						
+
 						@Override
 						public Message createMessage(Session session) throws JMSException
 						{

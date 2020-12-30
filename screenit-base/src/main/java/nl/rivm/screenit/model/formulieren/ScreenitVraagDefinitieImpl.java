@@ -37,7 +37,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = { "identifier", "domein" }) )
 public class ScreenitVraagDefinitieImpl<T> extends VraagDefinitieImpl<T>implements IdentifierElement
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column

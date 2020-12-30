@@ -82,6 +82,8 @@ public enum ClientContactActieType
 
 	MAMMA_HERAANMELDEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),
 
+	MAMMA_HERBEOORDELEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),
+
 	MAMMA_DOELGROEP_WIJZIGEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),
 
 	MAMMA_HUISARTS_WIJZIGEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }),

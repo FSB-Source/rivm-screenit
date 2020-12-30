@@ -27,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import nl.rivm.screenit.batch.service.MammaHL7CreateMessageService;
+import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.model.Client;
@@ -71,13 +72,13 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 	private DateTimeFormatter hl7DateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 	@Override
-	public ORM_O01 maakOrmIlmBericht(MammaHL7v24ORMBerichtStatus status, Client client, MammaScreeningRonde ronde) throws IOException, HL7Exception
+	public ORM_O01 maakOrmIlmBericht(Client client, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws IOException, HL7Exception
 	{
 		ORM_O01 ormBericht = createOrm_o01();
 		buildPIDSegment(ormBericht.getPATIENT().getPID(), client);
-		buildIlmOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), client, ronde, status);
+		buildIlmOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), triggerDto);
 
-		buildORCSegmentILM(ormBericht.getORDER().getORC(), ronde);
+		buildORCSegmentILM(ormBericht.getORDER().getORC(), triggerDto.getAccessionNumber());
 		return ormBericht;
 	}
 
@@ -248,11 +249,6 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 		buildPIDSegment(pid, client, client.getPersoon().getBsn());
 	}
 
-	private void buildORCSegmentILM(ORC orc, MammaScreeningRonde ronde) throws DataTypeException
-	{
-		buildORCSegmentILM(orc, ronde.getUitnodigingsNr());
-	}
-
 	private void buildORCSegmentILM(ORC orc, Long accessionNumber) throws DataTypeException
 	{
 		orc.getOrc1_OrderControl().setValue("DC");
@@ -276,10 +272,25 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 
 	}
 
-	private void buildIlmOBRSegment(OBR obr, Client client, MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status) throws DataTypeException
+	private void buildIlmOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws DataTypeException
 	{
-		buildOBRSegment(obr, ronde, status);
-		obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(String.valueOf(ronde.getUitnodigingsNr()));
+		buildOBRSegment(obr, triggerDto);
+		obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(triggerDto.getAccessionNumber().toString());
+	}
+
+	private void buildOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws DataTypeException
+	{
+		Date laatsteOnderzoekAfgerondOpDatum = triggerDto.getLaatsteOnderzoekAfgerondOpDatum();
+
+		buildOBRSegment(
+			obr,
+			triggerDto.getStatus(),
+			triggerDto.getAccessionNumber().toString(),
+			"MAMMO",
+			"Mammografie",
+			laatsteOnderzoekAfgerondOpDatum,
+			triggerDto.getLaatsteAfspraakDatum(),
+			triggerDto.getScreeningsEenheidCode());
 	}
 
 	private void buildOBRSegment(OBR obr, MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status) throws DataTypeException

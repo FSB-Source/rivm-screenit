@@ -24,9 +24,9 @@ package nl.rivm.screenit.model;
 
 public enum RedenOpnieuwAanvragenClientgegevens
 {
-	
+
 	ONJUIST_ADRES("Onjuist adres"),
-	
+
 	ONJUISTE_PERSOONSGEGEVENS("Onjuiste persoonsgegevens"),
 
 	BEZWAAR_INGETROKKEN("Bezwaar uitwisseling BRP ingetrokken");

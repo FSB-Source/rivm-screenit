@@ -25,7 +25,7 @@ import java.util.Date;
 
 public enum PreferenceKey
 {
-	
+
 	VOORAANKONDIGINSPERIODE("Vooraankondingsperiode", Integer.class),
 
 	UITNODIGINGSINTERVAL("Spreidingsperiode (interval)", Integer.class),
@@ -352,7 +352,13 @@ public enum PreferenceKey
 
 	ILM_SIGNALEERTERMIJN_BEELDEN_STATUS("Signaleertermijn beelden status", Integer.class),
 
-	MAMMA_SE_MAX_OFFLINE_INLOGPERIODE("SE offline inloggen", Integer.class);
+	ILM_BEZWAARTERMIJN_BEELDEN_VERWIJDERD("Bezwaartermijn beelden verwijderd", Integer.class),
+
+	MAMMA_SE_MAX_OFFLINE_INLOGPERIODE("SE offline inloggen", Integer.class),
+
+	MAMMA_SE_DAGLIJST_OPHALEN_DAGEN("SE daglijst ophalen dagen", Integer.class),
+
+	INTERNAL_MAMMA_SE_INFORMATIE_OPHALEN_CRON("SE informatie ophalen CRON", String.class);
 
 	private final String layoutName;
 

@@ -25,6 +25,7 @@ import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_GEBRUIK_LICHAAMSMATE
 import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -87,6 +88,7 @@ import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Polis;
@@ -545,7 +547,7 @@ public class BezwaarServiceImpl implements BezwaarService
 				case GEEN_SIGNALERING_VERWIJSADVIES:
 					if (isBezwaarNieuwVergelekeVorigeBezwaarMoment(moment, GEEN_SIGNALERING_VERWIJSADVIES))
 					{
-						verwerkGeenConroleVerwijsAdvies(moment.getClient());
+						verwerkGeenControleVerwijsAdvies(moment.getClient());
 					}
 					break;
 				case GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS:
@@ -694,7 +696,7 @@ public class BezwaarServiceImpl implements BezwaarService
 		{
 			colonDossierBaseService.setDatumVolgendeUitnodiging(dossier, ColonUitnodigingsintervalType.VERWIJDERD_DOSSIER);
 		}
-		
+
 		List<ColonScreeningRonde> rondes = dossier.getScreeningRondes();
 		dossier.setLaatsteScreeningRonde(null);
 		dossier.setScreeningRondes(new ArrayList<ColonScreeningRonde>());
@@ -899,7 +901,7 @@ public class BezwaarServiceImpl implements BezwaarService
 		return !nieuweBezwaarTypen.isEmpty();
 	}
 
-	private void verwerkGeenConroleVerwijsAdvies(Client client)
+	private void verwerkGeenControleVerwijsAdvies(Client client)
 	{
 		if (mailService != null && rondeDao != null)
 		{
@@ -938,5 +940,25 @@ public class BezwaarServiceImpl implements BezwaarService
 		return laatstVoltooideBezwaarMoment
 			.getBezwaren().stream()
 			.anyMatch(bezwaar -> bezwaar.getType().equals(bezwaarType));
+	}
+
+	@Override
+	public boolean heeftBezwaarInAfgelopenAantalDagen(Client client, BezwaarType bezwaarType, Bevolkingsonderzoek bevolkingsonderzoek, int aantalDagen)
+	{
+		LocalDate bezwaarTermijn = currentDateSupplier.getLocalDate().minusDays(aantalDagen);
+		for (BezwaarMoment bezwaarMoment : client.getBezwaarMomenten())
+		{
+			if (DateUtil.toLocalDate(bezwaarMoment.getBezwaarDatum()).isAfter(bezwaarTermijn))
+			{
+				for (Bezwaar bezwaar : bezwaarMoment.getBezwaren())
+				{
+					if (bezwaarType.equals(bezwaar.getType()) && bevolkingsonderzoek.equals(bezwaar.getBevolkingsonderzoek()))
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 }

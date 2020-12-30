@@ -25,37 +25,37 @@ import nl.topicuszorg.planning.model.IEventType;
 
 public enum EventType implements IEventType
 {
-	
+
 	RED("rood"),
-	
+
 	GREEN("groen"),
-	
+
 	DARKGREEN("donkergroen"),
-	
+
 	YELLOW("geel"),
-	
+
 	BLUE("blauw"),
-	
+
 	PURPLE("paars"),
-	
+
 	LIGHT_PURPLE("licht-paars"),
-	
+
 	BLACK("zwart"),
-	
+
 	GREY("grijs"),
-	
+
 	ORANGE("oranje"),
-	
+
 	LIGHT_BLUE("licht-blauw"),
-	
+
 	LIGHT_GREEN("licht-groen"),
-	
+
 	BROWN("bruin"),
-	
+
 	PINK("roze"),
-	
+
 	LIME("lime"),
-	
+
 	TURQUOISE("turquoise");
 
 	private String name;

@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class OneindigeTijdslotWriter<T extends AbstractAppointment> extends BaseWriter<T>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(OneindigeTijdslotWriter.class);
 
 	@Autowired

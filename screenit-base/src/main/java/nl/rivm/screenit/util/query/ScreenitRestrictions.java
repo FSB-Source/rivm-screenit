@@ -25,6 +25,7 @@ import java.time.LocalDate;
 
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.colon.ColonBrief;
+import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
@@ -54,7 +55,8 @@ public class ScreenitRestrictions
 	public static Criterion colonOngunstig(String alias)
 	{
 		alias = fixAlias(alias);
-		return Restrictions.geProperty(alias + "uitslag", alias + "normWaarde");
+		return Restrictions.or(Restrictions.geProperty(alias + "uitslag", alias + "normWaarde"),
+				Restrictions.eq(alias + "geinterpreteerdeUitslag", ColonGeinterpreteerdeUitslag.ONGUNSTIG));
 	}
 
 	public static void addNogGeenColonUitslagbriefOntvangenCriteria(Criteria crit, String rondeAlias)

@@ -32,7 +32,7 @@ import org.joda.time.DateTime;
 
 public interface CervixHuisartsLocatieDao
 {
-	
+
 	List<CervixHuisartsLocatie> getHuisartsLocaties(CervixHuisartsLocatieFilter filter, long first, long count, String sortProperty, boolean asc);
 
 	List<CervixHuisartsLocatie> getHuisartsLocaties(long first, long count, String orderByProperty, boolean ascending,

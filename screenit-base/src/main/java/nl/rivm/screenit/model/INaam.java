@@ -23,6 +23,6 @@ package nl.rivm.screenit.model;
 
 public interface INaam
 {
-	
+
 	String getNaam();
 }

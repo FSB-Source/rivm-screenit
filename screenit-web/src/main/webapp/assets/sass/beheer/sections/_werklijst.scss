@@ -1,0 +1,21 @@
+.periode-filter {
+  .input-append {
+    margin-bottom: 0;
+  }
+
+  label {
+    margin: 0 1em;
+  }
+
+}
+
+.bsn-filter {
+  margin-left: 5px;
+  input[type=text] {
+    width: 100px;
+  }
+}
+
+.view-werklijst fieldset.form-inline form {
+  display: inline-block;
+}

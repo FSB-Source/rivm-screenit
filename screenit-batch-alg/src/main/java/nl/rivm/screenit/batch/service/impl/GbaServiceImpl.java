@@ -1350,7 +1350,7 @@ public class GbaServiceImpl implements GbaService
 	private DatumPrecisie getDatumPrecisieUitBericht(Vo107Bericht bericht, GbaRubriek gbaRubriek)
 	{
 		String stringValue = getStringUitBericht(bericht, gbaRubriek);
-		
+
 		if (stringValue != null && stringValue.endsWith("0000"))
 		{
 			return DatumPrecisie.JAAR;

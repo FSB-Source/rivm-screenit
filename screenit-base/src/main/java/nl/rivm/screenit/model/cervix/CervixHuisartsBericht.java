@@ -46,7 +46,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixHuisartsBericht extends HuisartsBericht
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)

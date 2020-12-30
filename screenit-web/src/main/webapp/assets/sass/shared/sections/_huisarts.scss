@@ -1,0 +1,48 @@
+.huisarts-zoek-form {
+  margin-bottom: 10px;
+
+  div.control-group {
+    @include column(4, 12);
+  }
+
+}
+
+.huisarts-geen-zoekresultaten {
+  @extend .box-bordered !optional;
+}
+
+.huisarts-bevestigen,
+.huisarts-handmatig {
+  @extend %tijdelijk-adres-fields;
+
+  %field-size {
+    @include box-sizing('border-box');
+    height: 30px;
+  }
+
+  input.naam-huisarts,
+  input.naam-praktijk {
+    @extend %field-size;
+    width: 47%;
+  }
+
+  input.telefoonnummer {
+    @extend %field-size;
+    width: 100%;
+  }
+
+  .of-tekst {
+    @include box-sizing('border-box');
+    display: inline-block;
+    width: 6%;
+    text-align: center;
+  }
+}
+
+.paginering {
+  .pagination {
+    width: 60%;
+    float: right;
+    text-align: right;
+  }
+}

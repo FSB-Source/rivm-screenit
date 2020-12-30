@@ -21,15 +21,21 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.ws.BindingProvider;
+
 import nl.rivm.screenit.batch.service.WebserviceInpakcentrumOpzettenService;
-import nl.rivm.screenit.batch.util.LoggingOutInterceptor;
+import nl.rivm.screenit.util.logging.cxf.ScreenITLoggingInInterceptor;
+import nl.rivm.screenit.util.logging.cxf.ScreenITLoggingOutInterceptor;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.ConduitSelector;
 import org.apache.cxf.endpoint.PreexistingConduitSelector;
 import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.interceptor.LoggingInInterceptor;
 import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transports.http.configuration.ProxyServerType;
 import org.apache.cxf.ws.policy.PolicyConstants;
@@ -41,83 +47,79 @@ import org.springframework.stereotype.Service;
 import org.tempuri.DaklapackWebService;
 import org.tempuri.IUpload;
 
-import javax.xml.ws.BindingProvider;
-import java.util.List;
-import java.util.Map;
-
 @Service
 public class WebserviceInpakcentrumOpzettenServiceImpl implements WebserviceInpakcentrumOpzettenService
 {
-    @Autowired
-    @Qualifier(value = "inpakCentrumEndpointUrl")
-    private String inpakCentrumEndpointUrl;
+	@Autowired
+	@Qualifier(value = "inpakCentrumEndpointUrl")
+	private String inpakCentrumEndpointUrl;
 
-    @Autowired
-    @Qualifier(value = "inpakCentrumProxyServer")
-    private String inpakCentrumProxyServer;
+	@Autowired
+	@Qualifier(value = "inpakCentrumProxyServer")
+	private String inpakCentrumProxyServer;
 
-    @Autowired
-    @Qualifier(value = "inpakCentrumProxyServerPort")
-    private Integer inpakCentrumProxyServerPort;
+	@Autowired
+	@Qualifier(value = "inpakCentrumProxyServerPort")
+	private Integer inpakCentrumProxyServerPort;
 
-    @Autowired
-    @Qualifier(value = "testModus")
-    private Boolean testModus;
+	@Autowired
+	@Qualifier(value = "testModus")
+	private Boolean testModus;
 
-    @Override
-    public IUpload initialiseerWebserviceInpakcentrum()
-    {
-        DaklapackWebService webserviceClient = new DaklapackWebService();
-        IUpload upload = webserviceClient.getDataUploadEndpoint();
-        BindingProvider bindingProvider = (BindingProvider) upload;
-        Map<String, Object> requestContext = bindingProvider.getRequestContext();
-        requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, inpakCentrumEndpointUrl);
+	@Override
+	public IUpload initialiseerWebserviceInpakcentrum()
+	{
+		DaklapackWebService webserviceClient = new DaklapackWebService();
+		IUpload upload = webserviceClient.getDataUploadEndpoint();
+		BindingProvider bindingProvider = (BindingProvider) upload;
+		Map<String, Object> requestContext = bindingProvider.getRequestContext();
+		requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, inpakCentrumEndpointUrl);
 
-        if (Boolean.TRUE.equals(testModus) && inpakCentrumEndpointUrl.startsWith("http:"))
-        {
-            requestContext.put(PolicyConstants.POLICY_OVERRIDE, new HttpPolicy());
-        }
+		if (Boolean.TRUE.equals(testModus) && inpakCentrumEndpointUrl.startsWith("http:"))
+		{
+			requestContext.put(PolicyConstants.POLICY_OVERRIDE, new HttpPolicy());
+		}
 
-        Client client = ClientProxy.getClient(upload);
-        client.getInInterceptors().add(new LoggingInInterceptor());
-        client.getOutInterceptors().add(new LoggingOutInterceptor());
+		Client client = ClientProxy.getClient(upload);
+		client.getInInterceptors().add(new ScreenITLoggingInInterceptor());
+		client.getOutInterceptors().add(new ScreenITLoggingOutInterceptor());
 
-        HTTPConduit httpConduit = (HTTPConduit) client.getConduit();
+		HTTPConduit httpConduit = (HTTPConduit) client.getConduit();
 
-        TLSClientParameters tlsClientParameters = new TLSClientParameters();
-        tlsClientParameters.setDisableCNCheck(true);
+		TLSClientParameters tlsClientParameters = new TLSClientParameters();
+		tlsClientParameters.setDisableCNCheck(true);
 
-        httpConduit.setTlsClientParameters(tlsClientParameters);
+		httpConduit.setTlsClientParameters(tlsClientParameters);
 
-        if (StringUtils.isNotBlank(inpakCentrumProxyServer))
-        {
-            httpConduit.getClient().setProxyServerType(ProxyServerType.HTTP);
-            httpConduit.getClient().setProxyServer(inpakCentrumProxyServer);
-        }
+		if (StringUtils.isNotBlank(inpakCentrumProxyServer))
+		{
+			httpConduit.getClient().setProxyServerType(ProxyServerType.HTTP);
+			httpConduit.getClient().setProxyServer(inpakCentrumProxyServer);
+		}
 
-        if (inpakCentrumProxyServerPort != null && inpakCentrumProxyServerPort > 0)
-        {
-            httpConduit.getClient().setProxyServerPort(inpakCentrumProxyServerPort);
-        }
+		if (inpakCentrumProxyServerPort != null && inpakCentrumProxyServerPort > 0)
+		{
+			httpConduit.getClient().setProxyServerPort(inpakCentrumProxyServerPort);
+		}
 
-        ConduitSelector selector = new PreexistingConduitSelector(httpConduit, client.getEndpoint());
-        client.setConduitSelector(selector);
+		ConduitSelector selector = new PreexistingConduitSelector(httpConduit, client.getEndpoint());
+		client.setConduitSelector(selector);
 
-        return upload;
-    }
+		return upload;
+	}
 
-    private class HttpPolicy extends Policy
-    {
-        @Override
-        public void addPolicyComponent(PolicyComponent component)
-        {
+	private class HttpPolicy extends Policy
+	{
+		@Override
+		public void addPolicyComponent(PolicyComponent component)
+		{
 
-        }
+		}
 
-        @Override
-        public void addPolicyComponents(List<? extends PolicyComponent> components)
-        {
+		@Override
+		public void addPolicyComponents(List<? extends PolicyComponent> components)
+		{
 
-        }
-    }
+		}
+	}
 }

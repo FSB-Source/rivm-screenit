@@ -33,7 +33,9 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -187,7 +189,6 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		List<MammaBeoordeling> beoordelingen = onderzoek.getBeoordelingen();
 		beoordelingen.add(beoordeling);
 		beoordeling.setBeoordelingsEenheid(bepaalBeVoorOnderzoek(onderzoek));
-		onderzoek.getBeoordelingen().add(beoordeling);
 		onderzoek.setLaatsteBeoordeling(beoordeling);
 		hibernateService.saveOrUpdateAll(onderzoek, beoordeling);
 		return beoordeling;
@@ -250,7 +251,13 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		if (error)
 		{
 			String melding = String.format("Fout bij het verwijderen van beelden voor accession number %s. Raadpleeg het IMS systeem voor verdere analyse.", accessionNumber);
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, client, melding, Bevolkingsonderzoek.MAMMA);
+			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
+			logEvent.setMelding(melding);
+			logEvent.setHl7MessageStructure(bericht.getHl7Bericht());
+			logEvent.setLevel(Level.WARNING);
+			logEvent.setClient(client);
+
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
 		}
 	}
 

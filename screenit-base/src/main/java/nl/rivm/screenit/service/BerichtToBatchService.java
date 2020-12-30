@@ -22,6 +22,8 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+
 import nl.rivm.screenit.dto.mamma.se.MammaKwaliteitsopnameDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.gba.GbaMutatie;
@@ -29,8 +31,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
-
-import java.util.Date;
 
 public interface BerichtToBatchService
 {
@@ -46,13 +46,14 @@ public interface BerichtToBatchService
 
 	void queueMammaUploadBeeldenVerzoekBericht();
 
-	void queueMammaHL7v24BerichtUitgaand(MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType);
+	void queueMammaIlmHL7v24BerichtUitgaand(MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType);
 
 	void queueMammaHL7v24BerichtUitgaand(Client client, MammaHL7v24ORMBerichtStatus status);
 
-	void queueMammaHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, Date onderzoeksDatum, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType);
+	void queueMammaUploadBeeldenHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, Date onderzoeksDatum, MammaHL7v24ORMBerichtStatus status,
+		MammaHL7BerichtType berichtType);
 
-	void queueMammaHL7v24BerichtUitgaand(MammaKwaliteitsopnameDto kwaliteitsopname, MammaHL7v24ORMBerichtStatus status);
+	void queueMammaKwaliteitsopnameHL7v24BerichtUitgaand(MammaKwaliteitsopnameDto kwaliteitsopname, MammaHL7v24ORMBerichtStatus status);
 
 	void queueMammaInkomendIMSBericht(String messageId);
 

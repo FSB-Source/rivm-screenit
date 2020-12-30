@@ -28,7 +28,7 @@ import org.hibernate.criterion.PropertyExpression;
 
 public class AuditRappelPropertyExpression extends PropertyExpression
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private final String propertyName;

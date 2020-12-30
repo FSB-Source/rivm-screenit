@@ -74,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SchemaValidation
 public class ProvideDocumentPortTypeImpl implements ProvideDocumentPortType
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ProvideDocumentPortTypeImpl.class);
 
 	@Autowired

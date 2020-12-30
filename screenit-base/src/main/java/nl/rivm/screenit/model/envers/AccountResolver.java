@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.Account;
 
 public class AccountResolver
 {
-	
+
 	private static List<AccountResolverDelegate> delegates = new ArrayList<>();
 
 	private AccountResolver()

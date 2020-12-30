@@ -371,7 +371,7 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 		TransformerFactory tf = new TransformerFactoryImpl();
 		tf.setURIResolver(new URIResolver()
 		{
-			
+
 			@Override
 			public Source resolve(String href, String base) throws TransformerException
 			{

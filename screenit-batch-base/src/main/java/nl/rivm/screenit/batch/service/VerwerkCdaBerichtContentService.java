@@ -27,6 +27,6 @@ import nl.rivm.screenit.model.verslag.VerslagContent;
 
 public interface VerwerkCdaBerichtContentService
 {
-	
+
 	void verwerkVerslagContent(Verslag verslag, Class<? extends VerslagContent> rootClazz);
 }

@@ -37,7 +37,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public abstract class ClientBrief<SR extends ScreeningRonde, AF extends Afmelding, CB extends ClientBrief> extends Brief
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(optional = true, fetch = FetchType.LAZY, mappedBy = "brief")

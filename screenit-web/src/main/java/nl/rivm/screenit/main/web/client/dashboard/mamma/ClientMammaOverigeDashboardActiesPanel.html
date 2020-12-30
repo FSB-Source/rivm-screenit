@@ -1,0 +1,78 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <section class="widget">
+        <h1>Opties</h1>
+        <div class="widget-content">
+            <ul class="overige-links">
+                <wicket:enclosure child="bezwaar">
+                    <li>
+                        <wicket:container wicket:id="bezwaarTooltip"></wicket:container>
+                        <a wicket:id="bezwaar" class="cp-btn"><span>Bezwaar maken</span> <i class="cp-icon-next"></i></a>
+                    </li>
+                </wicket:enclosure>
+                <wicket:enclosure child="afmelden">
+                    <li>
+                        <wicket:container wicket:id="afmeldenTooltip"></wicket:container>
+                        <a wicket:id="afmelden" class="cp-btn"><span>Afmelden voor bevolkingsonderzoek</span> <i class="cp-icon-next"></i></a>
+                    </li>
+                </wicket:enclosure>
+                <wicket:enclosure child="heraanmelden">
+                    <li>
+                        <wicket:container wicket:id="heraanmeldenTooltip"></wicket:container>
+                        <a wicket:id="heraanmelden" class="cp-btn"><span>Opnieuw aanmelden bevolkingsonderzoek</span> <i class="cp-icon-next"></i></a>
+                    </li>
+                </wicket:enclosure> 
+                <wicket:enclosure child="afspraakAanmaken">
+                    <li>
+                        <wicket:container wicket:id="afspraakAanmakenTooltip"></wicket:container>
+                        <a wicket:id="afspraakAanmaken" class="cp-btn"><span>Afspraak aanmaken</span> <i class="cp-icon-next"></i></a>
+                    </li>
+                </wicket:enclosure>        
+            </ul>
+            <p>
+                Heeft u vragen of wilt u uw gegevens liever telefonisch wijzigen?<br/>
+                Dan kunt u bellen met onze informatielijn, telefoonnummer <strong wicket:id="soTel">0900 - 20 30 100</strong><i><br/>
+                <wicket:container wicket:id="clientPortaalVrijeTekst">Op werkdagen van 09.00 tot 12.30 uur en 13.30 tot 16.00 uur.</wicket:container>
+            </i>
+            </p>
+
+        </div>
+    </section>
+    <section wicket:id="huisarts" class="widget adresgegevens">
+        <h1>Huisartsgegevens</h1>
+        <div class="widget-content">
+	        <div class="huisarts-naam" wicket:id="huisarts.naam">T. Test</div>
+	        <div class="huisarts-praktijk" wicket:id="huisarts.praktijknaam">Huisartspraktijk Test</div>
+            <p wicket:id="aanvullendeTekstHuisarts">
+
+            </p>
+	        <div class="buttons">
+	            <a class="cp-btn" wicket:id="huisarts"><span wicket:id="button.label">Huisarts opgeven</span> <i class="cp-icon-next"></i></a>
+	        </div>
+        </div>
+    </section>
+    <div>
+    	<button class="btn" wicket:id="directNaarClientDossier">Direct naar het Clientdossier</button>
+    </div>
+</wicket:panel>
+</html>

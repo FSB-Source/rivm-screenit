@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class GbaBaseDaoImpl extends AbstractAutowiredDao implements GbaBaseDao
 {
-	
+
 	@Override
 	public <T extends GbaStamtabel> T getStamtabelByCode(Class<T> clazz, String code)
 	{

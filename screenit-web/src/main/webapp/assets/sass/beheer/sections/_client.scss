@@ -1,0 +1,53 @@
+.passport {
+  position: fixed;
+  width: 21.5%;
+}
+
+.table-condensed.status-bevolkingsonderzoek {
+  th.bevolkingsonderzoek {
+    width: 300px;
+  }
+
+  tbody tr:hover td {
+    background-color: #fff;
+  }
+  td {
+    padding: 5px 10px;
+    vertical-align: middle;
+  }
+  .center-content {
+    text-align: center;
+    .badge {
+      display: block;
+      float: none;
+    }
+  }
+}
+
+.datum-overlijden {
+  color: red;
+}
+
+address {
+  margin: 0 0 5px 0;
+}
+
+td.ronde {
+  text-align: center;
+  width: 30px;
+}
+
+th.bvo {
+  width: 100px;
+}
+
+.label-info, .badge-info {
+  padding: 3px 6px 3px 6px;
+  margin-left: 3px;
+  background-color: $colorColonis-beheer3;
+  vertical-align: middle;
+}
+
+.wijzig-huisarts {
+  margin-top: 20px;
+}

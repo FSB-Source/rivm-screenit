@@ -38,7 +38,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class ProjectMergedBrieven extends MergedBrieven<ProjectBrief>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "mergedBrieven")

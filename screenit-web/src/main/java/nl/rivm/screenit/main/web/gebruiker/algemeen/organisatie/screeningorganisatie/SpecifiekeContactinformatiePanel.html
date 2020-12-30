@@ -1,0 +1,91 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+        <fieldset>
+            <div class="row-fluid">
+                <div class="span12">
+                    <legend>Specifieke contactinformatie</legend>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span12">
+                    <table class="table table-bordered table-condensed">
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th>DK</th>
+                            <th>BMHK</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Telefoonnummer</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.telefoon" class="input-large" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.telefoon" class="input-large" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>E-mail</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.email" class="input-large" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.email" class="input-large" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>Postbusnummer</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.postbusnummerAdres.huisnummer" class="input-small" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.postbusnummerAdres.huisnummer" class="input-small" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>Postbusnummer postcode</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.postbusnummerAdres.postcode" class="input-mini" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.postbusnummerAdres.postcode" class="input-mini" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>Postbusnummer plaats</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.postbusnummerAdres.plaats" class="input-large" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.postbusnummerAdres.plaats" class="input-large" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>Antwoordnummer</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.antwoordnummerAdres.huisnummer" class="input-small" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.antwoordnummerAdres.huisnummer" class="input-small" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>Antwoordnummer postcode</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.antwoordnummerAdres.postcode" class="input-mini" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.antwoordnummerAdres.postcode" class="input-mini" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>Antwoordnummer plaats</td>
+                                <td><input wicket:id="regioBvoContactGegevensDk.antwoordnummerAdres.plaats" class="input-large" type="text"></td>
+                                <td><input wicket:id="regioBvoContactGegevensBmhk.antwoordnummerAdres.plaats" class="input-large" type="text"></td>
+                            </tr>
+                            <tr>
+                                <td>Informatie openingstijden</td>
+                                <td><div wicket:id="clientPortaalVrijeTekstContainerDk"><textarea wicket:id="regioBvoContactGegevensDk.clientPortaalVrijeTekst" maxlength="256"></textarea></div></td>
+                                <td><div wicket:id="clientPortaalVrijeTekstContainerBmhk"><textarea wicket:id="regioBvoContactGegevensBmhk.clientPortaalVrijeTekst" maxlength="256"></textarea></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </fieldset>
+</wicket:panel>
+</html>

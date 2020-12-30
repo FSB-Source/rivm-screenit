@@ -45,7 +45,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class PaLaboratorium extends Instelling
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToMany(fetch = FetchType.LAZY)

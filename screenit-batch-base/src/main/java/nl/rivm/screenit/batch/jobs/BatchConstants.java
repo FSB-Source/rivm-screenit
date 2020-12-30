@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.jobs;
 
 public final class BatchConstants
 {
-	
+
 	private BatchConstants()
 	{
 

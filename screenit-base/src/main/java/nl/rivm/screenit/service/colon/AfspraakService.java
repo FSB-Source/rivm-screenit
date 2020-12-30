@@ -46,7 +46,7 @@ import org.joda.time.Interval;
 
 public interface AfspraakService extends AppointmentService
 {
-	
+
 	List<? extends IAppointment> getAppointments(Location locatie, Date start, Date end, boolean showSchedule);
 
 	List<Afspraak> getAppointments(Client client);

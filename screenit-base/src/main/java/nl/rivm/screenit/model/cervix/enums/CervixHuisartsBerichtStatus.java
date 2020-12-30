@@ -23,7 +23,7 @@ package nl.rivm.screenit.model.cervix.enums;
 
 public enum CervixHuisartsBerichtStatus
 {
-	
+
 	AANGEMAAKT,
 
 	VERSTUURD,

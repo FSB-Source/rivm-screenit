@@ -26,13 +26,13 @@ public class KoppelConstants
 
 	public static final String COLON_UITNODIGINGSID_ONBEKEND = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: UitnodigingsID is niet bekend";
 
-	public static final String COLON_BUISID_AL_GEKOPPELD = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: %5$s BuisID is al gekoppeld aan ander UitnodigingsId %6$s";
+	public static final String COLON_BUISID_AL_GEKOPPELD = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: %5$sBuisID is al gekoppeld aan ander UitnodigingsId %6$s";
 
-	public static final String COLON_UITNODIGINGSID_AL_GEKOPPELD = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: UitnodigingsId is al gekoppeld aan ander %5$s BuisID %6$s";
+	public static final String COLON_UITNODIGINGSID_AL_GEKOPPELD = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: UitnodigingsId is al gekoppeld aan ander %5$sBuisID %6$s";
 
-	public static final String COLON_HOUDBAARHEID_TE_KORT = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: Houdbaarheid van %5$s BuisID te kort";
+	public static final String COLON_HOUDBAARHEID_TE_KORT = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: Houdbaarheid van %5$sBuisID te kort";
 
-	public static final String COLON_HOUDBAARHEID_ONBEKEND = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: Houdbaarheid van %5$s BuisID kan niet bepaald worden";
+	public static final String COLON_HOUDBAARHEID_ONBEKEND = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: Houdbaarheid van %5$sBuisID kan niet bepaald worden";
 
 	public static final String COLON_GEEN_BUISID = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: Geen BuisId meegegeven";
 
@@ -41,6 +41,8 @@ public class KoppelConstants
 	public static final String COLON_BUISID_MIST_BIJ_TYPE_UITNODIGING = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: %5$s BuisID mist bij type uitnodiging";
 
 	public static final String COLON_BUISID_ONVERWACHT_TYPE_UITNODIGING = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: %5$s BuisID onverwacht bij type uitnodiging";
+
+	public static final String COLON_BUISID_IS_DUBBEL = "UitnodigingsID %1$s, BuisID %2$s, Extra BuisID %3$s, TrackID %4$s: De BuisID is twee keer teruggekoppeld";
 
 	public static final String CERVIX_UITNODIGINGSID_ONBEKEND = "UitnodigingsID %1$s, ZasID %2$s, TrackID %3$s: UitnodigingsID is niet bekend";
 
@@ -57,6 +59,8 @@ public class KoppelConstants
 	public static final String CERVIX_HOUDBAARHEID_ONBEKEND = "UitnodigingsID %1$s, ZasID %2$s, TrackID %3$s: Houdbaarheid van ZasID kan niet bepaald worden";
 
 	public static final String CERVIX_HOUDBAARHEID_TE_KORT = "UitnodigingsID %1$s, ZasID %2$s, TrackID %3$s: Houdbaarheid van ZasID te kort";
+
+	public static final String CERVIX_ZASID_IS_DUBBEL = "UitnodigingsID %1$s, ZasID %2$s, TrackID %3$s: De ZasID is twee keer teruggekoppeld";
 
 	public static final String COLON_KOPPEL_BARCODE_GOLD = "_BARCODE_IFOBT";
 

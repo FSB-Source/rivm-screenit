@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.formulieren;
 
 public class PalgaNumber extends Number
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Integer waarde;

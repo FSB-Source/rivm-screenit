@@ -28,19 +28,19 @@ import org.joda.time.DateTimeConstants;
 
 public enum Dag
 {
-	
+
 	ZONDAG(Calendar.SUNDAY, DateTimeConstants.SUNDAY),
-	
+
 	MAANDAG(Calendar.MONDAY, DateTimeConstants.MONDAY),
-	
+
 	DINSDAG(Calendar.TUESDAY, DateTimeConstants.TUESDAY),
-	
+
 	WOENSDAG(Calendar.WEDNESDAY, DateTimeConstants.WEDNESDAY),
-	
+
 	DONDERDAG(Calendar.THURSDAY, DateTimeConstants.THURSDAY),
-	
+
 	VRIJDAG(Calendar.FRIDAY, DateTimeConstants.FRIDAY),
-	
+
 	ZATERDAG(Calendar.SATURDAY, DateTimeConstants.SATURDAY);
 
 	private int calendarDay;

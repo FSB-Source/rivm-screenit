@@ -47,7 +47,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixBetaalopdrachtRegel extends AbstractHibernateObject
 {
-	
+
 	@Column(nullable = false)
 	private BigDecimal bedrag;
 

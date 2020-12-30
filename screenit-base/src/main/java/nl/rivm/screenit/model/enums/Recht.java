@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.OrganisatieType;
 
 public enum Recht implements INaam
 {
-	
+
 	CLIENT_DASHBOARD("Cli\u00EBnt dashboard", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
 
 	CLIENT_GEGEVENS("Cli\u00EBnt gegevens", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
@@ -139,7 +139,7 @@ public enum Recht implements INaam
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN)
 	{
-		
+
 		@Override
 		public List<OrganisatieType> getOrganisatieTypes()
 		{
@@ -172,7 +172,7 @@ public enum Recht implements INaam
 
 	GEBRUIKER_LOCATIE_ROOSTER("Beheer rooster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON })
 	{
-		
+
 		@Override
 		public List<OrganisatieType> getOrganisatieTypes()
 		{
@@ -319,7 +319,7 @@ public enum Recht implements INaam
 		"Beheer kwaliteitsplatform",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK }),
-	
+
 	GEBRUIKER_CLIENT_GEGEVENS("Cli\u00EBnt gegevens", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
 	GEBRUIKER_CLIENT_ZOEKEN(
@@ -817,6 +817,13 @@ public enum Recht implements INaam
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
 		new Actie[] { Actie.AANPASSEN }),
+
+	GEBRUIKER_CLIENT_MAMMA_HERBEOORDELEN(
+		"Herbeoordeling aanvragen",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
+		Actie.VERWIJDEREN),
 
 	GEBRUIKER_SCREENING_MAMMA_IMS_KOPPELING(
 		"IMS desktop sync",

@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.gba;
 
 public enum GbaFoutCategorie
 {
-	
+
 	PROCES,
 
 	INHOUDELIJK_ERNGSTIG,

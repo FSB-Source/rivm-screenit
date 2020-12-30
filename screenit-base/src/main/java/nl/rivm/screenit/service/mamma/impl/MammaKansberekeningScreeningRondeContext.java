@@ -39,7 +39,7 @@ import nl.rivm.screenit.util.DateUtil;
 
 public class MammaKansberekeningScreeningRondeContext
 {
-	
+
 	MammaScreeningRonde screeningRonde;
 
 	LocalDate screeningRondeCreatieDatum;

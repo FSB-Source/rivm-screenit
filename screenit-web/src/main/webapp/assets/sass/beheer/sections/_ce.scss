@@ -1,0 +1,19 @@
+.big-dialog {
+  .modal-body {
+    max-height: 500px;
+  }
+
+  #radioloogZoekVeldTabel {
+    height: 250px;
+    overflow: scroll;
+    overflow-x: hidden;
+
+    tr.selected td {
+      background-color: #FAEBFF;
+    }
+  }
+}
+
+.mamma_uitslag_ongunstig {
+  max-height: 500px;
+}

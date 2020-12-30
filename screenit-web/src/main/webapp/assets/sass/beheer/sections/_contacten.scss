@@ -1,0 +1,59 @@
+.historie-contacten {
+  ul.vervolgacties {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+}
+
+.beheer .vervolgstap {
+  > h2 {
+    margin: 15px 0;
+    padding: 0 0 5px 0;
+    font-size: 18px;
+    line-height: 18px;
+    color: $colorColonis2;
+    border-bottom: 1px solid $colorColonis3;
+  }
+
+  .nieuwe-afspraak {
+  }
+
+  .column-afspraak-zoeken {
+    clear: both;
+  }
+
+  .label-inline {
+    display: inline-block;
+    width: 75px;
+  }
+
+  .ifobt-gegevens .control-group.value .control-label,
+  .ifobt-gegevens .control-group.value .controls {
+    line-height: 22px;
+  }
+}
+
+.beheer .wijzigingen-lijst {
+  padding-left: 15px;
+  li {
+    line-height: $fontSize;
+  }
+}
+
+.number-alert {
+  position: relative;
+  left: 4px;
+  display: inline-block;
+  border-radius: 50%;
+  background-color: red;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  line-height: 20px;
+  color: white;
+}
+
+.number-alert:empty {
+  display: none;
+}

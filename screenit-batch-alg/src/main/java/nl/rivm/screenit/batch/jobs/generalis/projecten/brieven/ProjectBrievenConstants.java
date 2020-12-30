@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven;
 
 public class ProjectBrievenConstants
 {
-	
+
 	private ProjectBrievenConstants()
 	{
 	}

@@ -31,7 +31,7 @@ import org.hibernate.envers.RevisionListener;
 
 public class ScreenitRevisionListener implements RevisionListener
 {
-	
+
 	@Override
 	public void newRevision(Object revisionEntity)
 	{

@@ -42,7 +42,7 @@ import org.hibernate.envers.Audited;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class ProjectClientAttribuut extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Cascade({ CascadeType.SAVE_UPDATE })

@@ -1,0 +1,129 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:head>
+    <link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css"/>
+</wicket:head>
+<body>
+<wicket:extend>
+    <div class="form-horizontal">
+        <div class="row-fluid">
+            <div class="span8" wicket:id="content">
+            </div>
+
+            <div class="span4 pull-right">
+                <div wicket:id="paspoort"></div>
+            </div>
+        </div>
+        <div wicket:id="openstaandeRadiologieVerslagenContainer">
+            <h1>Openstaande radiologieverslagen</h1>
+            <fieldset class="form-horizontal">
+                <div class="row-fluid">
+                    <div wicket:id="doorverwezenFilter">
+                        <label class="radio"> <input type="radio" name="doorverwezenFilter"> Alles</label>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="row-fluid show-results">
+                <div class="span12">
+                    <div wicket:id="openstaandeRadiologieVerslagenTabel"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <wicket:container wicket:id="fragments">
+        <wicket:fragment wicket:id="geenScreeningRondeFragment">
+            <fieldset>
+                <div class="control-group value">
+                    <label style="font-size: 14px;">Client heeft nog geen onderzoek gehad</label>
+                </div>
+            </fieldset>
+        </wicket:fragment>
+        <wicket:fragment wicket:id="geenBeeldenGedownloadedFragment">
+            <fieldset>
+                <div class="control-group value">
+                    <label style="font-size: 14px;">Er zijn (nog) geen beelden gedownloaded voor het laatste onderzoek van deze client. Wilt u alsnog radiologiegevens
+                        opvoeren?</label>
+                </div>
+                <div class="buttons">
+                    <a class="btn btn-primary" wicket:id="tochInvoeren">Toch invoeren</a>
+                </div>
+            </fieldset>
+        </wicket:fragment>
+        <wicket:fragment wicket:id="formulier">
+            <form wicket:id="form">
+                <fieldset>
+                    <div class="control-group value">
+                        <label class="control-label">Informatie beschikbaar:</label>
+                        <div class="controls">
+                            <input type="checkbox" wicket:id="informatieBeschikbaar"/>
+                        </div>
+                    </div>
+
+                    <div wicket:id="valuesContainer">
+
+                        <div class="control-group value">
+                            <label class="control-label">Pathologie aangevraagd:</label>
+                            <div class="controls" wicket:id="pathologieUitgevoerd">
+                            </div>
+                        </div>
+                        <div wicket:enclosure="radioloogTumorGrootte" class="control-group value">
+                            <label class="control-label">Tumorgrootte voor behandeling:</label>
+                            <div class="controls">
+                                <input wicket:id="radioloogTumorGrootte" type="text" class="input-small"/> cm
+                                <wicket:container wicket:id="tumorGrootteTooltip"></wicket:container>
+                            </div>
+                        </div>
+
+                        <div wicket:enclosure="radioloogTumorGrootteClassificatie" class="control-group value">
+                            <label class="control-label">Classificatie:</label>
+                            <div class="controls">
+                                <label wicket:id="radioloogTumorGrootteClassificatie"></label>
+                            </div>
+
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Conclusie BI-RADS</label>
+                            <div class="controls">
+                                <select wicket:id="conclusieBirads">
+                                    <option></option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="control-group value">
+                            <label class="control-label">Conclusie eerste uitslag radiologie</label>
+                            <div class="controls">
+                                <textarea wicket:id="conclusieEersteUitslagRadiologie"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="buttons">
+                        <a href="" class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
+                    </div>
+                </fieldset>
+            </form>
+        </wicket:fragment>
+    </wicket:container>
+
+</wicket:extend>
+</body>
+</html>

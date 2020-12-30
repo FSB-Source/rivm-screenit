@@ -58,7 +58,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class CervixScreeningRonde extends ScreeningRonde<CervixDossier, CervixBrief, CervixAfmelding, CervixUitnodiging>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)

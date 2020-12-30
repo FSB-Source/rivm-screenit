@@ -25,7 +25,7 @@ import java.util.Comparator;
 
 public class VolgordeObjectComparator implements Comparator<VolgordeObject<?>>
 {
-	
+
 	@Override
 	public int compare(VolgordeObject<?> o1, VolgordeObject<?> o2)
 	{

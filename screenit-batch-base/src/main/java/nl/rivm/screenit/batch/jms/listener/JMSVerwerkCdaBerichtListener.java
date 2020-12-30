@@ -35,7 +35,7 @@ import org.springframework.jms.listener.SessionAwareMessageListener;
 
 public class JMSVerwerkCdaBerichtListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(JMSVerwerkCdaBerichtListener.class);
 
 	@Autowired

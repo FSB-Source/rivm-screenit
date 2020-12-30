@@ -1,0 +1,71 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:extend>
+    <div wicket:id="dialog" class="big-dialog"></div>
+
+    <h1 class="pageTitle">CE - verwijsverslag</h1>
+
+    <wicket:container wicket:id="paspoort"></wicket:container>
+
+    <div class="row-fluid" style="height: calc(100vh - 225px)">
+        <div class="span6">
+            <wicket:enclosure child="nevenbevindingen">
+                <div class="span12 hero-unit" style="line-height:normal;">
+                    <h3>Nevenbevindingen</h3>
+                    <wicket:container wicket:id="nevenbevindingen"/>
+                </div>
+            </wicket:enclosure>
+            <div class="span12" style="height: calc(100vh - 225px);width: 100%" wicket:id="pdfContainer">
+                <div class="span12" style="width: inherit;height: inherit;">
+                    <wicket:container wicket:id="pdf"></wicket:container>
+                </div>
+            </div>
+        </div>
+        <div class="span6" style="height: inherit;">
+
+            <div wicket:id="huisartsInfoContainer" class="hero-unit" style="padding-bottom: 45px;">
+                <div wicket:id="huisartsInfo"></div>
+            </div>
+
+            <div wicket:id="altHuisartsInfoContainer" class="hero-unit" style="padding-bottom: 45px;">
+                <h2>Alternatief</h2>
+                <div wicket:id="huisartsInfo"></div>
+            </div>
+
+            <div class="pull-right" wicket:id="verslagActies">
+                <wicket:enclosure child="directPrinten">
+                    <div class="input-group text-right">
+                        <label for="directPrinten">
+                            <input type="checkbox" id="directPrinten" wicket:id="directPrinten"> Direct printen client uitslag
+                        </label>
+                    </div>
+                </wicket:enclosure>
+                <a class="btn" wicket:id="kiesAlternativeHa">Kies alternatieve huisarts</a>
+                <a class="btn" wicket:id="laterGoedkeuren">Verslag goedkeuring opschorten</a>
+                <a class="btn btn-danger" wicket:id="verslagAfkeuren">Verslag afkeuren</a>
+                <a class="btn btn-success" wicket:id="uitslagVerzenden">Uitslag verzenden</a>
+                <a class="btn btn-success" wicket:id="beoordelingDoorzetten">Uitslag verzenden</a>
+            </div>
+        </div>
+    </div>
+</wicket:extend>
+</html>

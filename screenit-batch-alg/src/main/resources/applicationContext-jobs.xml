@@ -1,0 +1,494 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-batch-alg
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.springframework.org/schema/batch"
+             xsi:schemaLocation="
+           http://www.springframework.org/schema/beans 
+           http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+           http://www.springframework.org/schema/batch 
+           http://www.springframework.org/schema/batch/spring-batch-3.0.xsd">
+
+    
+
+    
+    <beans:bean id="projectBrievenCleanUpReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.cleanupstep.ProjectBriefCleanUpReader"/>
+    <beans:bean id="projectBrievenCleanUpWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.cleanupstep.ProjectBriefCleanUpWriter"/>
+
+
+    <beans:bean id="projectBrievenListener"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.ProjectenBrievenListener"/>
+    <beans:bean id="projectBrievenAanmaakReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.aanmaakstep.ProjectBrievenAanmaakReader"/>
+    <beans:bean id="projectBrievenAanmaakWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.aanmaakstep.ProjectBrievenAanmaakWriter"/>
+
+    <beans:bean id="projectBrievenGenererenReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep.ProjectBrievenGenererenReader"/>
+    <beans:bean id="projectBrievenGenererenProcessor"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep.ProjectBrievenGenererenProcessor"/>
+    <beans:bean id="projectBrievenGenererenWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep.ProjectBrievenGenererenWriter"/>
+    <beans:bean id="projectBrievenPartitioner"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.genererenstep.ProjectBrievenGenererenPartitioner"/>
+    <beans:bean id="projectBrievenPartitionHandler"
+                class="org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler">
+        <beans:property name="taskExecutor" ref="taskExecutor"/>
+        <beans:property name="step" ref="project_brieven_genereren_step"/>
+        <beans:property name="gridSize" value="10"/>
+    </beans:bean>
+    <beans:bean id="projectBrievenControleReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.controle.ProjectBrievenControleReader"/>
+    <beans:bean id="projectBrievenControleWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.controle.ProjectBrievenControleWriter"/>
+
+
+    
+    <job id="project_brieven">
+        <step id="project_brieven_cleanup_step" next="project_brieven_klaarzetten_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="projectBrievenCleanUpReader"
+                       writer="projectBrievenCleanUpWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <step id="project_brieven_klaarzetten_step" next="project_brieven_partitioner_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="projectBrievenAanmaakReader"
+                       writer="projectBrievenAanmaakWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <step id="project_brieven_partitioner_step" next="project_brieven_controle_step">
+            <partition partitioner="projectBrievenPartitioner" handler="projectBrievenPartitionHandler"
+                       step="project_brieven_genereren_step"/>
+        </step>
+        <step id="project_brieven_controle_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="projectBrievenControleReader"
+                       writer="projectBrievenControleWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="projectBrievenListener"/>
+        </listeners>
+    </job>
+    <step id="project_brieven_genereren_step">
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="projectBrievenGenererenReader" processor="projectBrievenGenererenProcessor"
+                   writer="projectBrievenGenererenWriter" commit-interval="50">
+            </chunk>
+        </tasklet>
+    </step>
+
+    
+    <beans:bean id="gbaListener" class="nl.rivm.screenit.batch.jobs.generalis.gba.GbaListener"/>
+    <beans:bean id="clientItemWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step.ClientItemWriter"/>
+    <beans:bean id="vo107ItemReader" class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step.Vo107ItemReader">
+        <beans:property name="vo107Provider" ref="vo107Provider"/>
+        <beans:property name="voFileStorePath" ref="voFileStorePath"></beans:property>
+    </beans:bean>
+    <beans:bean id="vo107Provider"
+                class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step.VertrouwdVerbondenVo107Provider">
+        <beans:property name="host" ref="gbaFtpHost"/>
+        <beans:property name="port" ref="gbaFtpPort"/>
+        <beans:property name="username" ref="gbaFtpUsername"/>
+        <beans:property name="password" ref="gbaFtpPassword"/>
+        <beans:property name="knownHostPath" ref="gbaFtpKnownHostFile"/>
+        <beans:property name="downloadPath" ref="gbaDownloadFolder"/>
+        <beans:property name="sftpConnectionTimeout" ref="sftpConnectionTimeout"/>
+        <beans:property name="tryInterval" ref="tryInterval"/>
+        <beans:property name="maxNoTries" ref="maxNoTries"/>
+    </beans:bean>
+    
+
+    <beans:bean id="gbaVraagItemReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step.GbaVraagItemReader"/>
+    <beans:bean id="vo105ItemProcessor"
+                class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step.Vo105ItemProcessor"/>
+    <beans:bean id="vo105ItemWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step.Vo105ItemWriter">
+        <beans:property name="voFileStorePath" ref="voFileStorePath"></beans:property>
+    </beans:bean>
+
+    <beans:bean id="vo105UploadTasklet"
+                class="nl.rivm.screenit.batch.jobs.generalis.gba.upload105step.Vo105UploadTasklet">
+        <beans:property name="host" ref="gbaFtpHost"/>
+        <beans:property name="port" ref="gbaFtpPort"/>
+        <beans:property name="username" ref="gbaFtpUsername"/>
+        <beans:property name="password" ref="gbaFtpPassword"/>
+        <beans:property name="knownHostPath" ref="gbaFtpKnownHostFile"/>
+        <beans:property name="uploadPath" ref="gbaUploadFolder"/>
+        <beans:property name="voFileStorePath" ref="voFileStorePath"></beans:property>
+        <beans:property name="sftpConnectionTimeout" ref="sftpConnectionTimeout"/>
+        <beans:property name="tryInterval" ref="tryInterval"/>
+        <beans:property name="maxNoTries" ref="maxNoTries"/>
+    </beans:bean>
+    <beans:bean id="dossierReader" class="nl.rivm.screenit.batch.jobs.generalis.gba.dossiers.DossierReader"/>
+    <beans:bean id="dossierWriter" class="nl.rivm.screenit.batch.jobs.generalis.gba.dossiers.DossierWriter"/>
+
+    <beans:bean id="gbaPromotionListener"
+                class="org.springframework.batch.core.listener.ExecutionContextPromotionListener">
+        <beans:property name="keys">
+            <beans:list>
+                <beans:value>key.bestandenmap</beans:value>
+                <beans:value>key.verwerkingslogid</beans:value>
+            </beans:list>
+        </beans:property>
+        <beans:property name="statuses">
+            <beans:list>
+                <beans:value>COMPLETED</beans:value>
+                <beans:value>FAILED</beans:value>
+            </beans:list>
+        </beans:property>
+    </beans:bean>
+
+    
+    <job id="gba" restartable="true">
+        <step id="verwerk107">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="vo107ItemReader"
+                       writer="clientItemWriter" commit-interval="1">
+                </chunk>
+                <listeners>
+                    <listener ref="gbaPromotionListener"/>
+                </listeners>
+            </tasklet>
+            <next on="*" to="verwerk105"/>
+            <next on="FAILED" to="dossiersAanmaken"/>
+        </step>
+        <step id="verwerk105">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="gbaVraagItemReader"
+                       processor="vo105ItemProcessor"
+                       writer="vo105ItemWriter" commit-interval="10">
+                </chunk>
+                <listeners>
+                    <listener ref="gbaPromotionListener"/>
+                </listeners>
+            </tasklet>
+            <next on="*" to="uploadVo105"/>
+            <next on="FAILED" to="dossiersAanmaken"/>
+        </step>
+        <step id="uploadVo105">
+            <tasklet ref="vo105UploadTasklet" transaction-manager="transactionManager">
+            </tasklet>
+            <next on="*" to="dossiersAanmaken"/>
+            <next on="FAILED" to="dossiersAanmaken"/>
+        </step>
+        <step id="dossiersAanmaken">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="dossierReader" writer="dossierWriter" commit-interval="250"/>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="gbaListener"/>
+        </listeners>
+    </job>
+
+    
+    <job id="gba_zonder_vo105" restartable="true">
+        <step id="verwerk107_zonder_vo105">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="vo107ItemReader"
+                       writer="clientItemWriter" commit-interval="1">
+                </chunk>
+                <listeners>
+                    <listener ref="gbaPromotionListener"/>
+                </listeners>
+            </tasklet>
+            <next on="*" to="dossiersAanmaken_zonder_vo105"/>
+            <next on="FAILED" to="dossiersAanmaken_zonder_vo105"/>
+        </step>
+        <step id="dossiersAanmaken_zonder_vo105">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="dossierReader" writer="dossierWriter" commit-interval="250"/>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="gbaListener"/>
+        </listeners>
+    </job>
+
+    
+    <beans:bean id="coordListener" class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.CoordinatenListener"/>
+    <beans:bean id="postcodeCoordReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.PostcodeNlDataReader">
+        <beans:property name="productCode" value="NUM"/>
+    </beans:bean>
+    <beans:bean id="postcodeCoordWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodecoordstep.PostcodeCoordinatenWriter"/>
+    <beans:bean id="postcodeCoordClientKoppelReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenClientKoppelReader"/>
+    <beans:bean id="postcodeCoordClientKoppelWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenClientKoppelWriter"/>
+    <beans:bean id="postcodeCoordILKoppelReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenIntakeLocatieKoppelReader"/>
+    <beans:bean id="postcodeCoordILKoppelWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenIntakeLocatieKoppelWriter"/>
+    <beans:bean id="postcodeCoordStandplaatsKoppelReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenStandplaatsKoppelReader"/>
+    <beans:bean id="postcodeCoordStandplaatsKoppelWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep.PostcodeCoordinatenStandplaatsKoppelWriter"/>
+    <beans:bean id="gemeenteCoordReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.PostcodeNlDataReader">
+        <beans:property name="productCode" value="WPL"/>
+    </beans:bean>
+
+    <beans:bean id="gemeenteCoordWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.coordinaten.gemeentecoordstep.GemeenteCoordinatenWriter"/>
+
+    
+    <job id="coordinaten" restartable="true">
+        <step id="postcodeCoordinatenStep" next="gemeenteCoordinatenStep">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="postcodeCoordReader"
+                       writer="postcodeCoordWriter" commit-interval="250">
+                </chunk>
+                <listeners>
+                    <listener ref="coordListener"/>
+                </listeners>
+            </tasklet>
+        </step>
+        <step id="gemeenteCoordinatenStep" next="postcodeCoordClientKoppelStep">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="gemeenteCoordReader"
+                       writer="gemeenteCoordWriter" commit-interval="250">
+                </chunk>
+                <listeners>
+                    <listener ref="coordListener"/>
+                </listeners>
+            </tasklet>
+        </step>
+        <step id="postcodeCoordClientKoppelStep" next="postcodeCoordILKoppelStep">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="postcodeCoordClientKoppelReader"
+                       writer="postcodeCoordClientKoppelWriter" commit-interval="250">
+                </chunk>
+                <listeners>
+                    <listener ref="coordListener"/>
+                </listeners>
+            </tasklet>
+        </step>
+        <step id="postcodeCoordILKoppelStep" next="postcodeCoordStandplaatsKoppelStep">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="postcodeCoordILKoppelReader"
+                       writer="postcodeCoordILKoppelWriter" commit-interval="250">
+                </chunk>
+                <listeners>
+                    <listener ref="coordListener"/>
+                </listeners>
+            </tasklet>
+        </step>
+        <step id="postcodeCoordStandplaatsKoppelStep">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="postcodeCoordStandplaatsKoppelReader"
+                       writer="postcodeCoordStandplaatsKoppelWriter" commit-interval="250">
+                </chunk>
+                <listeners>
+                    <listener ref="coordListener"/>
+                </listeners>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="coordListener"/>
+        </listeners>
+    </job>
+
+    
+    <job id="bezwaar_brieven">
+        <step id="bezwaar_brieven_cleanup_step" next="bezwaar_brieven_partitioner_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="bezwaarBrievenCleanUpReader"
+                       writer="bezwaarBrievenCleanUpWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <step id="bezwaar_brieven_partitioner_step" next="bezwaar_brieven_controle_step">
+            <partition partitioner="bezwaarBrievenPartitioner" handler="bezwaarBrievenPartitionHandler"
+                       step="bezwaar_brieven_genereren_step"/>
+        </step>
+        <step id="bezwaar_brieven_controle_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="bezwaarBrievenControleReader"
+                       writer="bezwaarBrievenControleWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="bezwaarBrievenListener"/>
+        </listeners>
+    </job>
+    <step id="bezwaar_brieven_genereren_step">
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="bezwaarBrievenGenererenReader" processor="bezwaarBrievenGenererenProcessor"
+                   writer="bezwaarBrievenGenererenWriter" commit-interval="250">
+            </chunk>
+        </tasklet>
+    </step>
+
+    
+    <beans:bean id="bezwaarBrievenCleanUpReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.cleanupstep.BezwaarBrievenCleanUpReader"/>
+    <beans:bean id="bezwaarBrievenCleanUpWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.cleanupstep.BezwaarBrievenCleanUpWriter"/>
+
+    <beans:bean id="bezwaarBrievenControleReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.controlestep.BezwaarBrievenControleReader"/>
+    <beans:bean id="bezwaarBrievenControleWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.controlestep.BezwaarBrievenControleWriter"/>
+
+    <beans:bean id="bezwaarBrievenListener"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.BezwaarBrievenListener"/>
+    <beans:bean id="bezwaarBrievenGenererenProcessor"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep.BezwaarBrievenGenererenProcessor"/>
+    <beans:bean id="bezwaarBrievenGenererenReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep.BezwaarBrievenGenererenReader"/>
+    <beans:bean id="bezwaarBrievenGenererenWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep.BezwaarBrievenGenererenWriter"/>
+    <beans:bean id="bezwaarBrievenPartitioner"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep.BezwaarBrievenGenererenPartitioner"/>
+    <beans:bean id="bezwaarBrievenPartitionHandler"
+                class="org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler">
+        <beans:property name="taskExecutor" ref="taskExecutor"/>
+        <beans:property name="step" ref="bezwaar_brieven_genereren_step"/>
+    </beans:bean>
+
+    
+    <job id="algemene_brieven">
+        <step id="algemene_brieven_cleanup_step" next="algemene_brieven_partitioner_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="algemeneBrievenCleanUpReader"
+                       writer="algemeneBrievenCleanUpWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <step id="algemene_brieven_partitioner_step" next="algemene_brieven_controle_step">
+            <partition partitioner="algemeneBrievenPartitioner" handler="algemeneBrievenPartitionHandler"
+                       step="algemene_brieven_genereren_step"/>
+        </step>
+        <step id="algemene_brieven_controle_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="algemeneBrievenControleReader"
+                       writer="algemeneBrievenControleWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="algemeneBrievenListener"/>
+        </listeners>
+    </job>
+    <step id="algemene_brieven_genereren_step">
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="algemeneBrievenGenererenReader" processor="algemeneBrievenGenererenProcessor"
+                   writer="algemeneBrievenGenererenWriter" commit-interval="250">
+            </chunk>
+        </tasklet>
+    </step>
+
+    
+    <beans:bean id="algemeneBrievenCleanUpReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.cleanupstep.AlgemeneBrievenCleanupReader"/>
+    <beans:bean id="algemeneBrievenCleanUpWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.cleanupstep.AlgemeneBrievenCleanupWriter"/>
+    <beans:bean id="algemeneBrievenControleReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.controlestep.AlgemeneBrievenControleReader"/>
+    <beans:bean id="algemeneBrievenControleWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.controlestep.AlgemeneBrievenControleWriter"/>
+    <beans:bean id="algemeneBrievenListener"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.AlgemeneBrievenListener"/>
+    <beans:bean id="algemeneBrievenGenererenProcessor"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.genererenstep.AlgemeneBrievenGenererenProcessor"/>
+    <beans:bean id="algemeneBrievenGenererenReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.genererenstep.AlgemeneBrievenGenererenReader"/>
+    <beans:bean id="algemeneBrievenGenererenWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.genererenstep.AlgemeneBrievenGenererenWriter"/>
+    <beans:bean id="algemeneBrievenPartitioner"
+                class="nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.genererenstep.AlgemeneBrievenGenererenPartitioner"/>
+    <beans:bean id="algemeneBrievenPartitionHandler"
+                class="org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler">
+        <beans:property name="taskExecutor" ref="taskExecutor"/>
+        <beans:property name="step" ref="algemene_brieven_genereren_step"/>
+    </beans:bean>
+
+    <beans:bean id="huisartsCsvFileProvider" class="nl.rivm.screenit.batch.jobs.generalis.huisarts.importstep.EnovationHuisartsCsvFileProvider"/>
+    <beans:bean id="huisartsImportReader" class="nl.rivm.screenit.batch.jobs.generalis.huisarts.importstep.EnovationHuisartsReader">
+        <beans:property name="csvFileProvider" ref="huisartsCsvFileProvider"/>
+    </beans:bean>
+    <beans:bean id="huisartsImportWriter" class="nl.rivm.screenit.batch.jobs.generalis.huisarts.importstep.EnovationHuisartsWriter"/>
+    <beans:bean id="huisartsJobListener" class="nl.rivm.screenit.batch.jobs.generalis.huisarts.EnovationHuisartsJobListener"/>
+    <beans:bean id="afterImportEnovationHuisartsTasklet" class="nl.rivm.screenit.batch.jobs.generalis.huisarts.afterimportstep.AfterImportEnovationHuisartsTasklet"/>
+
+    <job id="enovation_huisartsen_batch" restartable="true">
+        <step id="huisarts_info_update" next="run_after_jobs">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="huisartsImportReader"
+                       writer="huisartsImportWriter"
+                       commit-interval="10">
+                </chunk>
+            </tasklet>
+        </step>
+        <step id="run_after_jobs">
+            <tasklet transaction-manager="transactionManager" ref="afterImportEnovationHuisartsTasklet">
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="huisartsJobListener"/>
+        </listeners>
+    </job>
+
+    
+    <beans:bean id="ilmApplicatieLoggingVerwijderenReader" class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenReader">
+    	<beans:property name="bvo" value=""/>
+    </beans:bean>
+    <beans:bean id="ilmApplicatieLoggingVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenWriter"/>
+    
+    <beans:bean id="ilmTechnischeBerichtenLoggingVerwijderenReader" class="nl.rivm.screenit.batch.jobs.generalis.ilm.technischelogging.IlmTechnischeBerichtenLoggingVerwijderenReader"/>    	
+    <beans:bean id="ilmTechnischeBerichtenLoggingVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.generalis.ilm.technischelogging.IlmTechnischeBerichtenLoggingVerwijderenWriter"/>
+    <beans:bean id="ilmAlgemeneGegevensVerwijderenListener" class="nl.rivm.screenit.batch.jobs.generalis.ilm.IlmAlgemeneGegevensVerwijderenListener"/>
+
+    <job id="ilm_algemene_gegevens_verwijderen">
+        <step id="ilm_applicatie_logging_verwijderen">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="ilmApplicatieLoggingVerwijderenReader"
+                       writer="ilmApplicatieLoggingVerwijderenWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+            <next on="*" to="ilm_technische_berichten_logging_verwijderen"/>
+            <next on="FAILED" to="ilm_technische_berichten_logging_verwijderen"/>
+        </step>
+        <step id="ilm_technische_berichten_logging_verwijderen">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="ilmTechnischeBerichtenLoggingVerwijderenReader"
+                       writer="ilmTechnischeBerichtenLoggingVerwijderenWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="ilmAlgemeneGegevensVerwijderenListener"/>
+        </listeners>
+    </job>
+
+
+</beans:beans>

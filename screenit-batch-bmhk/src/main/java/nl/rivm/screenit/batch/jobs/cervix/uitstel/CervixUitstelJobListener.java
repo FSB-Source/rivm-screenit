@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixUitstelJobListener extends BaseLogListener
 {
-	
+
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 

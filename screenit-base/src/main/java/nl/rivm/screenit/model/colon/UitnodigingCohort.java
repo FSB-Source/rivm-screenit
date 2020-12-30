@@ -43,7 +43,7 @@ import org.hibernate.envers.Audited;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class UitnodigingCohort extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(unique = true)

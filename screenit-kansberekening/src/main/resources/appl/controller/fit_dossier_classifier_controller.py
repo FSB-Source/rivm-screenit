@@ -22,6 +22,7 @@ import base
 import logging
 from util import fit, externals, classification, preprocess, dao
 
+
 def fit_dossier_classifier():
     logging.info("Eerste ronde")
 
@@ -38,6 +39,8 @@ def fit_dossier_classifier():
         fit.fit_dossier_classifier(_classifier, _feature_columns, _screening_ronde_samples)
 
         externals.dump_dossier_classification_eerste_ronde(_classifier)
+
+        del base.dossier_classifier_eerste_ronde
 
         base.dossier_classifier_eerste_ronde = _classifier
 
@@ -56,5 +59,7 @@ def fit_dossier_classifier():
         fit.fit_dossier_classifier(_classifier, _feature_columns, _screening_ronde_samples)
 
         externals.dump_dossier_classification_vervolgronde(_classifier)
+
+        del base.dossier_classifier_vervolgronde
 
         base.dossier_classifier_vervolgronde = _classifier

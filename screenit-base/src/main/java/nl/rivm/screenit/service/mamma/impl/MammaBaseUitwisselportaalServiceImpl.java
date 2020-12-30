@@ -197,6 +197,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 		uploadBeeldenPoging.setIlmStatus(MammaMammografieIlmStatus.TE_VERWIJDEREN);
 		uploadBeeldenPoging.setIlmStatusDatum(dateSupplier.getDate());
 		hibernateService.saveOrUpdateAll(uploadBeeldenPoging, uploadBeeldenVerzoek);
-		berichtToBatchService.queueMammaHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.DELETE, MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
+		berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.DELETE,
+			MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
 	}
 }

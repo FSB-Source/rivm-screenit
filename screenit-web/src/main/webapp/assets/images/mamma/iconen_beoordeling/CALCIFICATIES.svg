@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg width="30px" height="33px" viewBox="0 0 30 33" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generator: Sketch 48.2 (47327) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Calcificaties</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Icons/Calcificaties" fill="#D0021B">
+            <circle id="Oval-2" cx="11.5" cy="3.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-2" cx="14.5" cy="6.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-7" cx="4.5" cy="9.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-9" cx="14" cy="11" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="9" cy="7" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="18" cy="7" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="18" cy="25" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="21" cy="16" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="23" cy="13" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="23" cy="23" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="6" cy="6" r="1"></circle>
+            <circle id="Oval-2-Copy-9" cx="8" cy="14" r="1"></circle>
+            <circle id="Oval-2-Copy-11" cx="14.5" cy="14.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-11" cx="18.5" cy="16.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-12" cx="11.5" cy="17.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-13" cx="3.5" cy="14.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-18" cx="16.5" cy="2.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-19" cx="22.5" cy="19.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-21" cx="11.5" cy="22.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-21" cx="10.5" cy="10.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-22" cx="3.5" cy="22.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-23" cx="2.5" cy="18.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-25" cx="16.5" cy="28.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-26" cx="12.5" cy="27.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-29" cx="22.5" cy="26.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-30" cx="26.5" cy="22.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-31" cx="27.5" cy="17.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-32" cx="26.5" cy="13.5" r="1.5"></circle>
+            <circle id="Oval-2-Copy-34" cx="21.5" cy="3.5" r="1.5"></circle>
+            <circle id="Oval-4" cx="19" cy="11" r="2"></circle>
+            <circle id="Oval-4" cx="16" cy="21" r="2"></circle>
+            <circle id="Oval-4" cx="24" cy="9" r="2"></circle>
+            <circle id="Oval-5" cx="8" cy="20" r="2"></circle>
+            <circle id="Oval-5" cx="7" cy="26" r="2"></circle>
+        </g>
+    </g>
+</svg>

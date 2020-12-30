@@ -1,0 +1,24 @@
+.modal-header h3 {
+  font-size: rs(14, $base-fs);
+  font-weight: normal;
+  color: black;
+}
+
+.modal {
+  background-color: $primary-color;
+}
+
+.modal-body {
+  background-color: white;
+}
+
+.modal .modal-body fieldset.hero-unit {
+  border: 0 none;
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+
+  font-size: rs(13, $base-fs);
+  line-height: rs(20, $base-fs);
+  font-weight: normal;
+}

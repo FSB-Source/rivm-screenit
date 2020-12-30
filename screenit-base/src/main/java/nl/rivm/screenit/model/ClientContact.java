@@ -49,7 +49,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class ClientContact extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.EAGER, optional = false)

@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.Account;
 
 public class ScreenitPrincipal implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private final Class<? extends Account> accountClass;

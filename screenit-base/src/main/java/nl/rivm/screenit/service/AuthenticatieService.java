@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 
 public interface AuthenticatieService
 {
-	
+
 	Map<Gebruiker, Boolean> requestNewPassword(Gebruiker searchObject);
 
 	Map<Gebruiker, Boolean> accountGeblokkeerd(Gebruiker searchObject);

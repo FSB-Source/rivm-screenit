@@ -35,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixUitstelReader extends BaseScrollableResultReader
 {
-	
+
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 

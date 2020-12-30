@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-batch-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+    <xs:import schemaLocation="DaklapackWebService.svc.0.xml" namespace="http://schemas.microsoft.com/Message"/>
+    <xs:element name="UploadRequest">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element xmlns:q1="http://schemas.microsoft.com/Message" name="Stream" type="q1:StreamBody"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="DataType" nillable="true" type="xs:string"/>
+    <xs:element name="FileName" nillable="true" type="xs:string"/>
+    <xs:element name="NumberOfRecords" type="xs:int"/>
+    <xs:element name="UploadResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0" name="UploadSucceeded" type="xs:boolean"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="GetReady">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0" name="value" type="xs:boolean"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="GetReadyResponse">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="0" name="GetReadyResult" type="xs:boolean"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+</xs:schema>

@@ -1,0 +1,100 @@
+.beheer {
+  .content-container {
+    padding: 0;
+  }
+
+  h1 {
+    font-size: 24px;
+    color: $colorColonis2;
+    margin: 10px 10px 15px 15px;
+
+    .subpage,
+    .divider {
+      font-size: 18px;
+    }
+  }
+
+  h2 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+    line-height: 18px;
+    font-weight: normal;
+  }
+
+  td h2 {
+    margin: 0 0 0 0;
+  }
+
+  hr {
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid transparent;
+  }
+
+  fieldset {
+    border: 1px solid #DDD;
+    border-radius: 5px 5px 5px 5px;
+    margin: 0 0 10px 0;
+    padding: 15px;
+
+    h3 {
+      margin: 0 0 10px 0;
+      line-height: 1em;
+    }
+
+    &.fieldset-last {
+      margin-bottom: 0;
+    }
+  }
+
+  .hero-unit {
+    font-size: $fontSize;
+    padding: 15px;
+
+    legend {
+      font-size: 18px;
+    }
+  }
+
+  legend {
+    margin-bottom: 15px;
+    line-height: 30px;
+  }
+
+  .label-info, .badge-info {
+    padding: 3px 6px 3px 6px;
+    margin-left: 3px;
+    background-color: $colorColonis-beheer3;
+    vertical-align: middle;
+  }
+
+
+  .canvas.footer {
+    position: relative;
+    z-index: 2;
+    background-color: $colorColonis1;
+    height: 40px;
+  }
+}
+
+
+.login-disclaimer {
+  color: white;
+  padding-left: 35px;
+  padding-right: 35px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.responsible-disclosure {
+  padding: 5px;
+
+  a {
+    color: #97a300;
+    text-decoration: underline;
+  }
+
+  a:hover {
+    color: white;
+    text-decoration: none;
+  }
+}

@@ -1,0 +1,30 @@
+.table.koppel-gemeentes {
+  td.multiselect-td {
+    padding: 0;
+    vertical-align: top;
+    .multiselect-div {
+      height: 174px;
+      overflow: auto;
+      .table.multiselect-table {
+        margin: 0;
+        td {
+          padding: 10px 13px 0 10px;
+          border: none;
+        }
+      }
+    }
+    a {
+      margin: 0 0 5px 0;
+      display: block;
+      text-align: left;
+      color: #333;
+      clear: both;
+      i {
+        margin: 2px 0 0 0;
+      }
+      &.btn-primary {
+        color: #FFF;
+      }
+    }
+  }
+}

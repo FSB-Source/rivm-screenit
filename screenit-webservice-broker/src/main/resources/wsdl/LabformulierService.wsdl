@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="LabformulierService" targetNamespace="http://screenit.rivm.nl/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://screenit.rivm.nl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://screenit.rivm.nl/" attributeFormDefault="unqualified" elementFormDefault="unqualified" targetNamespace="http://screenit.rivm.nl/">
+            <xs:element name="labformulier" type="tns:labformulier"/>
+            <xs:complexType name="labformulier">
+                <xs:sequence>
+                    <xs:element name="scanDatum" type="xs:dateTime" nillable="false"/>
+                    <xs:element name="objid" type="xs:string" nillable="false"/>
+                    <xs:element name="labIdScanner" type="xs:string" nillable="false"/>
+                    <xs:element name="barcode" type="xs:string" maxOccurs="unbounded" nillable="false"/>
+                    <xs:element name="datumUitstrijkje" type="tns:labformulierDate" nillable="false"/>
+                    <xs:element name="klachtenGeen" type="xs:boolean" nillable="true"/>
+                    <xs:element name="klachtenGeenConf" type="xs:int" nillable="true"/>
+                    <xs:element name="klachtenContactbloedingen" type="xs:boolean" nillable="true"/>
+                    <xs:element name="klachtenContactbloedingenConf" type="xs:int" nillable="true"/>
+                    <xs:element name="klachtenKlachtenVanAbnormaleFluorZonderDuidelijkeOorzaak" type="xs:boolean" nillable="true"/>
+                    <xs:element name="klachtenKlachtenVanAbnormaleFluorZonderDuidelijkeOorzaakConf" type="xs:int" nillable="true"/>
+                    <xs:element name="klachtenIntermenstrueelBloedverlies" type="xs:boolean" nillable="true"/>
+                    <xs:element name="klachtenIntermenstrueelBloedverliesConf" type="xs:int" nillable="true"/>
+                    <xs:element name="klachtenPostmenopauzaalBloedverlies" type="xs:boolean" nillable="true"/>
+                    <xs:element name="klachtenPostmenopauzaalBloedverliesConf" type="xs:int" nillable="true"/>
+                    <xs:element name="klachtenAndersNamelijk" type="xs:boolean" nillable="true"/>
+                    <xs:element name="klachtenAndersNamelijkConf" type="xs:int" nillable="true"/>
+                    <xs:element name="klachtenAndersNamelijkTekst" type="xs:boolean" nillable="true"/>
+                    <xs:element name="klachtenAndersNamelijkTekstConf" type="xs:int" nillable="true"/>
+                    <xs:element name="menstruatieNormaal" type="xs:boolean" nillable="true"/>
+                    <xs:element name="menstruatieNormaalConf" type="xs:int" nillable="true"/>
+                    <xs:element name="menstruatieGeenMenstruatie" type="xs:boolean" nillable="true"/>
+                    <xs:element name="menstruatieGeenMenstruatieConf" type="xs:int" nillable="true"/>
+                    <xs:element name="menstruatieMenopauze" type="xs:boolean" nillable="true"/>
+                    <xs:element name="menstruatieMenopauzeConf" type="xs:int" nillable="true"/>
+                    <xs:element name="menstruatiePostmenopauze" type="xs:boolean" nillable="true"/>
+                    <xs:element name="menstruatiePostmenopauzeConf" type="xs:int" nillable="true"/>
+                    <xs:element name="datumLaatsteMenstruatie" type="tns:labformulierDate" nillable="false"/>
+                    <xs:element name="anticonceptieGeen" type="xs:boolean" nillable="true"/>
+                    <xs:element name="anticonceptieGeenConf" type="xs:int" nillable="true"/>
+                    <xs:element name="anticonceptiePil" type="xs:boolean" nillable="true"/>
+                    <xs:element name="anticonceptiePilConf" type="xs:int" nillable="true"/>
+                    <xs:element name="anticonceptieIudKoper" type="xs:boolean" nillable="true"/>
+                    <xs:element name="anticonceptieIudKoperConf" type="xs:int" nillable="true"/>
+                    <xs:element name="anticonceptieIudMirena" type="xs:boolean" nillable="true"/>
+                    <xs:element name="anticonceptieIudMirenaConf" type="xs:int" nillable="true"/>
+                    <xs:element name="anticonceptieAnders" type="xs:boolean" nillable="true"/>
+                    <xs:element name="anticonceptieAndersConf" type="xs:int" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwegeOvergangsklachten" type="xs:boolean" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwegeOvergangsklachtenConf" type="xs:int" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwegeBorstkanker" type="xs:boolean" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwegeBorstkankerConf" type="xs:int" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwege" type="xs:boolean" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwegeConf" type="xs:int" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwegeTekst" type="xs:boolean" nillable="true"/>
+                    <xs:element name="gebruikHormonenJaVanwegeTekstConf" type="xs:int" nillable="true"/>
+                    <xs:element name="gebruikHormonenGeen" type="xs:boolean" nillable="true"/>
+                    <xs:element name="gebruikHormonenGeenConf" type="xs:int" nillable="true"/>
+                    <xs:element name="aspectCervixNormaal" type="xs:boolean" nillable="true"/>
+                    <xs:element name="aspectCervixNormaalConf" type="xs:int" nillable="true"/>
+                    <xs:element name="aspectCervixNietGezien" type="xs:boolean" nillable="true"/>
+                    <xs:element name="aspectCervixNietGezienConf" type="xs:int" nillable="true"/>
+                    <xs:element name="aspectCervixAbnormaalOfVerdachtePortio" type="xs:boolean" nillable="true"/>
+                    <xs:element name="aspectCervixAbnormaalOfVerdachtePortioConf" type="xs:int" nillable="true"/>
+                    <xs:element name="aspectCervixAbnormaalOfVerdachtePortioTekst" type="xs:boolean" nillable="true"/>
+                    <xs:element name="aspectCervixAbnormaalOfVerdachtePortioTekstConf" type="xs:int" nillable="true"/>
+                    <xs:element name="opmerkingenTekst" type="xs:boolean" nillable="true"/>
+                    <xs:element name="opmerkingenTekstConf" type="xs:int" nillable="true"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="labformulierDate">
+                <xs:sequence>
+                    <xs:element name="datum" type="xs:string" nillable="true"/>
+                    <xs:element name="datumConf" type="xs:int" nillable="true"/>
+                    <xs:element name="dag" type="xs:string" nillable="true"/>
+                    <xs:element name="dagConf" type="xs:int" nillable="true"/>
+                    <xs:element name="maand" type="xs:string" nillable="true"/>
+                    <xs:element name="maandConf" type="xs:int" nillable="true"/>
+                    <xs:element name="jaar" type="xs:string" nillable="true"/>
+                    <xs:element name="jaarConf" type="xs:int" nillable="true"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:element name="LabformulierServiceException" type="tns:LabformulierServiceException"/>
+            <xs:complexType name="LabformulierServiceException">
+                <xs:sequence/>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="LabformulierServiceException">
+        <wsdl:part name="LabformulierServiceException" element="tns:LabformulierServiceException">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="labformulierResponse"/>
+    <wsdl:message name="labformulier">
+        <wsdl:part name="labformulier" element="tns:labformulier">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="LabformulierService">
+        <wsdl:operation name="labformulierScanned">
+            <wsdl:input name="labformulier" message="tns:labformulier"/>
+            <wsdl:output name="labformulierResponse" message="tns:labformulierResponse"/>
+            <wsdl:fault name="LabformulierServiceException" message="tns:LabformulierServiceException"/>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="LabformulierServiceSoapBinding" type="tns:LabformulierService">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="labformulierScanned">
+            <soap:operation soapAction="{http://screenit.rivm.nl/}labformulierScanned" style="document"/>
+            <wsdl:input name="labformulier">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="labformulierResponse"/>
+            <wsdl:fault name="LabformulierServiceException">
+                <soap:fault name="LabformulierServiceException" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="LabformulierService">
+        <wsdl:port name="LabformulierServicePort" binding="tns:LabformulierServiceSoapBinding">
+            <soap:address location="http://localhost:9090/LabformulierServicePort"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

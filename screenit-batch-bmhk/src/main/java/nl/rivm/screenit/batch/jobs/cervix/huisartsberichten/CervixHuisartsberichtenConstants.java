@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten;
 
 public class CervixHuisartsberichtenConstants
 {
-	
+
 	public static final String HUISARTS_KON_NIET_WORDEN_BEPAALD = "huisartsberichten.huisarts.kon.niet.worden.bepaald";
 
 	public static final String HUISARTS_BEPAALD = "huisartsberichten.huisarts.bepaald";

@@ -1,0 +1,62 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<wicket:panel>
+    <section class="contactgegevens">
+        <h2 wicket:id="title">Telefoonnummer(s)</h2>
+        <div>
+        	<p><b>Vul uw telefoonnummer(s) in of controleer deze!</b></p>
+             <p> 
+             	Dit is belangrijk zodat we u kunnen bereiken bij onvoorziene omstandigheden. U kunt twee telefoonnummers opgeven waarop u te bereiken bent.               
+             </p>
+        </div>
+        <wicket:enclosure child="opgevenTelefoonnummers">
+            <div id="geen-telefoonnummers">
+                <div class="buttons">
+                    <a href="#" wicket:id="opgevenTelefoonnummers" class="cp-btn"><span>Telefoonnummer(s) opgeven</span> <i class="cp-icon-next"></i></a>
+                </div>
+            </div>
+        </wicket:enclosure>
+        <wicket:enclosure child="wijzigTelefoonnummers">
+            <div class="question value">
+                <label>
+                    <wicket:message key="label.telefoonnummerhuis"></wicket:message>
+                </label>
+                <div class="answer" wicket:id="persoon.telefoonnummer1">
+                    012-23456789
+                </div>
+            </div>
+            <div class="question value">
+                <label>
+                    <wicket:message key="label.telefoonnummerwerk"></wicket:message>
+                </label>
+                <div class="answer" wicket:id="persoon.telefoonnummer2">
+                    -
+                </div>
+            </div>
+            <div class="buttons">
+                <a href="#" class="cp-btn" wicket:id="wijzigTelefoonnummers"><span>Telefoonnummer(s) wijzigen</span> <i class="cp-icon-next"></i></a>
+            </div>
+        </wicket:enclosure>
+    </section>
+
+</wicket:panel>
+</html>

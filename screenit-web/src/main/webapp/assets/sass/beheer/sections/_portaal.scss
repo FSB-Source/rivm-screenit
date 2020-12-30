@@ -1,0 +1,153 @@
+.medewerker.portaal {
+  margin: auto;
+  max-width: 980px;
+
+  .content-container {
+    margin: 0 20px 20px 20px;
+    padding: 0;
+    @include box-shadow(#a2a2a3 0px 0px 10px);
+  }
+
+  .topbar {
+    margin: 0 20px;
+    height: 32px;
+    @include clearfix();
+  }
+
+  .canvas.logo-row {
+    text-align: center;
+    background-color: white;
+    a.logo {
+      margin: 0 auto;
+      img {
+        width: 200px;
+        margin: 20px 0;
+      }
+    }
+  }
+
+  .canvas.logo-row a.logo img {
+    width: 272px;
+  }
+
+  .topnav-title {
+    font-family: $fontFamily1;
+    font-size: 14pt;
+    font-weight: 600;
+    font-style: italic;
+    line-height: 29px;
+    background-color: $colorColonis1;
+    color: white;
+    .title {
+      padding-left: 25px;
+    }
+    .subtitle {
+      font-size: 16px;
+      font-weight: normal;
+    }
+  }
+
+  .canvas.topnav {
+    position: relative;
+    z-index: 2;
+    background-color: $colorColonis2;
+
+    .nav {
+      margin: 25px 0 0 25px;
+      padding: 0px;
+      vertical-align: middle;
+      > li {
+        padding: 0;
+        margin-right: 5px;
+        line-height: 25px;
+        float: left;
+        a {
+          padding: 5px 10px;
+          font-size: 16px;
+          font-weight: normal;
+          color: white;
+        }
+        a:hover {
+          background-color: $colorColonis1;
+          color: #000;
+        }
+      }
+      > li:hover {
+        background-color: #FFF;
+      }
+      > li.active a {
+        background-color: $colorColonis1;
+        color: white;
+      }
+      span {
+        font-weight: bold;
+      }
+      .open .caret {
+        border-top: 4px solid $color1;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+      }
+      .dropdown {
+        > a:hover .caret {
+          border-top-color: $color1;
+          border-bottom-color: $color1;
+        }
+        .dropdown-menu {
+          border-top: none;
+          border-radius: 0 0 10px 10px;
+          li {
+            a {
+              padding: 3px 10px 3px 10px;
+              color: $color1;
+            }
+            a:hover {
+              background: $color3 none;
+            }
+          }
+          .dropdown-header {
+            padding: 0px 10px 3px 10px;
+            font-weight: normal;
+            font-size: 11px;
+            color: $color6;
+          }
+        }
+      }
+    }
+  }
+
+  .top-subnav {
+    .sub-menu-container {
+      min-height: 15px;
+      background-color: $colorColonis1;
+    }
+
+    ul.subnav {
+      margin: 0 0 0 25px;
+      padding: 5px 0;
+      list-style: none;
+      li a {
+        display: inline-block;
+        font-size: 14px;
+        border-right: 1px solid white;
+        color: #525252;
+        padding: 5px 10px;
+      }
+    }
+
+    .current-item {
+      float: left;
+      padding: 10px 0;
+      margin-left: 25px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #525252;
+    }
+  }
+
+  .canvas.footer {
+    position: relative;
+    z-index: 2;
+    background-color: $colorColonis1;
+    height: 40px;
+  }
+}

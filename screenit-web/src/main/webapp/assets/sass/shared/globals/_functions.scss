@@ -1,0 +1,13 @@
+
+
+@function relative-size( $target, $context: $base-fs, $unit: em ) {
+
+  @return #{$target/$context}$unit;
+
+}
+
+@function rs( $target, $context: $base-fs, $unit: em ) {
+
+  @return relative-size($target, $context, $unit);
+
+}

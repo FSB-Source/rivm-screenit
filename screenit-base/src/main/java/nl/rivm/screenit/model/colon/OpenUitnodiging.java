@@ -45,7 +45,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class OpenUitnodiging extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(optional = false)

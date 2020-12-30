@@ -1,0 +1,63 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<body>
+<wicket:panel>
+    <div class="row-fluid doNotSelect" onmousemove="mouseMoveLaesie(event)" onmouseup="mouseUpLaesie()">
+        <div class="row-fluid">
+            <div class="span6 form-horizontal">
+                <p class="text-center beoordelingsafbeeldingRichtingaanduiding">craniaal</p>
+                <div class="row-fluid">
+                    <div class="span6 form-horizontal beoordelingsafbeeldingContainerR">
+                        <div class="RECHTER_BORST_verticaleDoorsnede beoordelingsafbeelding" wicket:id="RechterborstVerticaleDoorsnedeContainer" ondrop="drop(event, this, 'RECHTER_BORST', 'verticaleDoorsnede')">
+                            <img class="beoordelingsafbeelding" wicket:id="RechterborstVerticaleDoorsnede" draggable="false" alt=""/>
+                        </div>
+                    </div>
+                    <div class="span6 form-horizontal beoordelingsafbeeldingContainerL">
+                        <div class="LINKER_BORST_verticaleDoorsnede beoordelingsafbeelding" wicket:id="LinkerborstVerticaleDoorsnedeContainer" ondrop="drop(event, this, 'LINKER_BORST', 'verticaleDoorsnede')">
+                            <img class="beoordelingsafbeelding" wicket:id="LinkerborstVerticaleDoorsnede" draggable="false" alt=""/>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center beoordelingsafbeeldingRichtingaanduiding">caudaal</p>
+            </div>
+            <div class="span6 form-horizontal">
+                <p class="text-center beoordelingsafbeeldingRichtingaanduiding">lateraal</p>
+                <div class="row-fluid">
+                    <div class="span6 form-horizontal beoordelingsafbeeldingContainerR" style="padding-left: 5%">
+                        <div class="RECHTER_BORST_horizontaleDoorsnede beoordelingsafbeelding" wicket:id="RechterborstHorizontaleDoorsnedeContainer" ondrop="drop(event, this, 'RECHTER_BORST', 'horizontaleDoorsnede')">
+                            <img class="beoordelingsafbeelding" wicket:id="RechterborstHorizontaleDoorsnede" draggable="false" alt=""/>
+                        </div>
+                    </div>
+                    <div class="span6 form-horizontal beoordelingsafbeeldingContainerL" style="padding-right: 5%">
+                        <div class="LINKER_BORST_horizontaleDoorsnede beoordelingsafbeelding" wicket:id="LinkerborstHorizontaleDoorsnedeContainer" ondrop="drop(event, this, 'LINKER_BORST', 'horizontaleDoorsnede')">
+                            <img class="beoordelingsafbeelding" wicket:id="LinkerborstHorizontaleDoorsnede" draggable="false" alt=""/>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center beoordelingsafbeeldingRichtingaanduiding">mediaal</p>
+            </div>
+        </div>
+    </div>
+    <div class="beoordelingIconenPanel" wicket:id="beoordelingIconenPanel"></div>
+</wicket:panel>
+</body>
+</html>

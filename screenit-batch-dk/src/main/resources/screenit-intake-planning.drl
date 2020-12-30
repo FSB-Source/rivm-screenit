@@ -1,0 +1,28 @@
+package nl.rivm.screenit.intake
+
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScoreHolder;
+import nl.rivm.screenit.batch.model.ClientAfspraak
+
+global HardSoftScoreHolder scoreHolder;
+
+rule "eenAfspraakPerSlot"
+    when
+        $client : ClientAfspraak($leftId : clientId, $leftVrijSlot : vrijSlot)
+        $client2 : ClientAfspraak(vrijSlot == $leftVrijSlot, clientId > $leftId)
+    then
+        scoreHolder.addHardConstraintMatch(kcontext, -1);
+end
+
+rule "wachttijd"
+    when
+        $client : ClientAfspraak()
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, - $client.getWachttijd());
+end
+
+rule "afstand"
+    when
+        $client : ClientAfspraak()
+    then
+        scoreHolder.addSoftConstraintMatch(kcontext, - $client.getAfstand());
+end

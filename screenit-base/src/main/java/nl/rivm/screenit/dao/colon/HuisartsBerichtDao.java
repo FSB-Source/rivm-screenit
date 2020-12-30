@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.Instelling;
 
 public interface HuisartsBerichtDao
 {
-	
+
 	long countBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject);
 
 	Iterator<? extends ColonHuisartsBericht> searchBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject, String sortProperty, boolean ascending, int first, int count,

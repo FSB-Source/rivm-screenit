@@ -26,7 +26,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 
 public class DigiDToken implements AuthenticationToken, BrowserOSToken
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private final String bsn;

@@ -23,10 +23,10 @@ package nl.rivm.screenit.batch.service;
 
 import java.io.IOException;
 
+import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 
 import ca.uhn.hl7v2.HL7Exception;
@@ -50,5 +50,5 @@ public interface MammaHL7CreateMessageService
 
 	ADT_AXX maakADTBerichtGewijzigdBsn(Client client, String oudBsn, String nieuweBsn) throws IOException, HL7Exception;
 
-	ORM_O01 maakOrmIlmBericht(MammaHL7v24ORMBerichtStatus status, Client client, MammaScreeningRonde onderzoek) throws IOException, HL7Exception;
+	ORM_O01 maakOrmIlmBericht(Client client, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws IOException, HL7Exception;
 }

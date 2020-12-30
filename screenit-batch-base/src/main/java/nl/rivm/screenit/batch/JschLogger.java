@@ -28,7 +28,7 @@ import com.jcraft.jsch.Logger;
 
 public class JschLogger implements Logger
 {
-	
+
 	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(JschLogger.class);
 
 	@Override

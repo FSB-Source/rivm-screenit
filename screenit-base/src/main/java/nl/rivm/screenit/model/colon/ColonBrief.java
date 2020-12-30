@@ -41,7 +41,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class ColonBrief extends ClientBrief<ColonScreeningRonde, ColonAfmelding, ColonBrief>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)

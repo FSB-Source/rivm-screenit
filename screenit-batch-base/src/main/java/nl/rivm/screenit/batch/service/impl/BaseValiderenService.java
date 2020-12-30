@@ -27,6 +27,8 @@ import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.LogService;
 
+import nl.rivm.screenit.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,4 +74,10 @@ public abstract class BaseValiderenService
 		this.logService = logService;
 	}
 
+	protected boolean barcodeAlTeruggekoppeld(List<String> barcodes, String barcodeNieuw)
+	{
+		return barcodes.stream()
+				.filter(StringUtils::isNotBlank)
+				.anyMatch(barcode -> barcode.equals(barcodeNieuw));
+	}
 }

@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.Instelling;
 @Entity
 public class AfgeslotenInstellingOvereenkomst extends AbstractAfgeslotenOvereenkomst
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne

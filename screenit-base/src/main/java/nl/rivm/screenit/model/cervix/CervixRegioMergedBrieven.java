@@ -39,7 +39,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixRegioMergedBrieven extends MergedBrieven<CervixRegioBrief>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "mergedBrieven", fetch = FetchType.LAZY)

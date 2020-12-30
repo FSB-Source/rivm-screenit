@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.util;
 
 /*-
@@ -22,11 +21,23 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+
 public abstract class PercentageUtil
 {
 
 	public static String percentageToString(Integer value)
 	{
 		return value != null ? value * 1.0 / 100.0 + "%" : "";
+	}
+
+	public static String getPercentageVanGeheel(long deel, long geheel)
+	{
+		BigDecimal percentage = BigDecimal.valueOf(deel)
+			.divide(BigDecimal.valueOf(geheel), 4, BigDecimal.ROUND_HALF_UP)
+			.multiply(BigDecimal.valueOf(100), new MathContext(4));
+
+		return String.format("%.2f%%", percentage);
 	}
 }

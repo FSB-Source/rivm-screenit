@@ -34,7 +34,7 @@ import nl.rivm.screenit.model.colon.ColonDossier;
 
 public class AfmeldingUtil
 {
-	
+
 	private AfmeldingUtil()
 	{
 	}

@@ -1,0 +1,103 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<wicket:extend>
+    <div class="row-fluid">
+        <div class="span12">
+            <h1 class="pageTitle">Wachtwoord configuratie</h1>
+        </div>
+    </div>
+    <form wicket:id="form">
+        <div class="row-fluid form-horizontal">
+            <fieldset>
+                <div class="row-fluid">
+                    <div class="span3">
+                        <div class="control-group">
+                            <label class="control-label" for="wachtwoordaanvragen">Wachtwoorden
+                                aanvragen</label>
+                            <div class="controls">
+                                <input type="checkbox" id="wachtwoordaanvragen"
+                                       wicket:id="wachtwoordaanvragen"/>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="maximumFoutieveAanmeldpogingen">Maximum
+                                foutieve aanmeldpogingen</label>
+                            <div class="controls">
+                                <input type="text" class="text nummer"
+                                       id="maximumFoutieveAanmeldpogingen"
+                                       wicket:id="maximumFoutieveAanmeldpogingen"/>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="foutieveAanmeldpogingenTimeout">Duur
+                                account blokkering<br>(in minuten)
+                            </label>
+                            <div class="controls">
+                                <input type="text" class="text nummer"
+                                       id="foutieveAanmeldpogingenTimeout"
+                                       wicket:id="foutieveAanmeldpogingenTimeout"/>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="dagenWachtwoordGeldig">Aantal
+                                dagen wachtwoord geldig</label>
+                            <div class="controls">
+                                <input type="text" class="text nummer"
+                                       id="dagenWachtwoordGeldig" wicket:id="dagenWachtwoordGeldig"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span3">
+                        <div class="control-group">
+                            <label for="wachtwoordemailsubject">Wachtwoordaanvragen
+                                e-mailonderwerp</label> <input type="text" class="text"
+                                                               id="wachtwoordemailsubject" wicket:id="wachtwoordemailsubject"/>
+                        </div>
+                        <div class="control-group full-width">
+                            <label for="wachtwoordemail">Wachtwoordaanvragen e-mail</label>
+							<textarea class="textarea-full-width" id="wachtwoordemail"
+                                      wicket:id="wachtwoordemail" cols="60" rows="4"></textarea>
+                        </div>
+                    </div>
+                    <div class="span3">
+                        <div class="control-group">
+                            <label for="uziemailsubject">Uzi e-mailonderwerp</label> <input
+                                type="text" wicket:id="uziemailsubject" class="text"
+                                id="uziemailsubject"/>
+                        </div>
+                        <div class="control-group full-width">
+                            <label for="uziemail">Uzi e-mail</label>
+							<textarea class="textarea-full-width" id="uziemail"
+                                      wicket:id="uziemail" cols="60" rows="4"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="form-actions btn-bottom">
+                        <a wicket:id="opslaan" class="btn btn-primary right"><span>Opslaan</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</wicket:extend>

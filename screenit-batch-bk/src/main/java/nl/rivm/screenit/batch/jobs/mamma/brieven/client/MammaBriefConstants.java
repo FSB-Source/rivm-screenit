@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client;
 
 public class MammaBriefConstants
 {
-    
+
     private MammaBriefConstants()
     {
     }

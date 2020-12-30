@@ -103,7 +103,7 @@ import com.aspose.words.Document;
 @Transactional(propagation = Propagation.REQUIRED)
 public class CervixTestServiceImpl implements CervixTestService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixTestServiceImpl.class);
 
 	@Autowired

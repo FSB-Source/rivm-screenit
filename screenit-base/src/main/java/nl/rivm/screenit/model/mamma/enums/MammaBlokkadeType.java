@@ -23,7 +23,7 @@ package nl.rivm.screenit.model.mamma.enums;
 
 public enum MammaBlokkadeType
 {
-	
+
 	SCREENINGS_ORGANISATIE,
 
 	SCREENINGS_EENHEID,

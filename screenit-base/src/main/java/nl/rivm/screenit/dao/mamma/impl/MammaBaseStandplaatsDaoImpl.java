@@ -183,8 +183,6 @@ public class MammaBaseStandplaatsDaoImpl extends AbstractAutowiredDao implements
 		aantalAfspraakCrit.createAlias("standplaatsPeriode", "standplaatsPeriode");
 		aantalAfspraakCrit.createAlias("standplaatsPeriode.standplaatsRonde", "standplaatsRonde");
 		aantalAfspraakCrit.createAlias("standplaatsRonde.standplaats", "standplaats");
-		aantalAfspraakCrit.add(Restrictions.in("status", MammaAfspraakStatus.NIET_GEANNULEERD));
-		aantalAfspraakCrit.add(Restrictions.gt("vanaf", currentDateSupplier.getDate()));
 		aantalAfspraakCrit.add(Restrictions.eq("standplaats.id", standplaats.getId()));
 		aantalAfspraakCrit.add(Restrictions.ge("standplaatsPeriode.totEnMet", vandaag));
 		aantalAfspraakCrit.setProjection(Projections.rowCount());

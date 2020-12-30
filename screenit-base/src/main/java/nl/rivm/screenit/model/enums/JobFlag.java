@@ -23,7 +23,7 @@ package nl.rivm.screenit.model.enums;
 
 public enum JobFlag
 {
-	
+
 	BLOCK_MANUAL_START;
 
 	JobFlag()

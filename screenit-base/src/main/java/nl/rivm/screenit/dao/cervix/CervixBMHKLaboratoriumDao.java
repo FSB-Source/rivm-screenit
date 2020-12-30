@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 
 public interface CervixBMHKLaboratoriumDao
 {
-	
+
 	BMHKLaboratorium getBmhkLaboratoriumfromUserIdScanner(String userIdScanner);
 
 	BMHKLaboratorium getBmhkLaboratoriumfromZInstrumentNames(String zInstrumentName);

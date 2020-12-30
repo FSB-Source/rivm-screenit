@@ -43,7 +43,7 @@ import org.hibernate.annotations.CascadeType;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class ProjectBestandVerwerking extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(fetch = FetchType.LAZY, optional = false)

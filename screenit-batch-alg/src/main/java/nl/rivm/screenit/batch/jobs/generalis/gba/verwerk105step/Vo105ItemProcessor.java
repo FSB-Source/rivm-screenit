@@ -47,7 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class Vo105ItemProcessor implements ItemProcessor<Long, List<Vo105BerichtWrapper>>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(Vo105ItemProcessor.class);
 
 	@Autowired

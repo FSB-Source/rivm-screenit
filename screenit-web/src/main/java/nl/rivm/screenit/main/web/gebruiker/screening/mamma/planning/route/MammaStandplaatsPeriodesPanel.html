@@ -1,0 +1,109 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div style="margin-top: 10px">
+        <div wicket:id="standplaatsPerioden1Container">
+            <fieldset>
+                <table class="table table-striped table-bordered table-condensed" wicket:id="standplaatsPerioden">
+                    <tr class="headers">
+                        <th>Standplaatsperiode</th>
+                        <th>Opmerkingen</th>
+                        <th>Drempel</th>
+                        <th>Start</th>
+                        <th>Eind</th>
+                        <th>Blokkades</th>
+                        <th>Interval</th>
+                        <th>Indicatie</th>
+                        <th wicket:id="handleHeader1"></th>
+                    </tr>
+                    <tr wicket:id="items">
+                        <td class="item point-handle" wicket:id="standplaats">[label]</td>
+                        <td wicket:id="opmerkingen"></td>
+                        <td wicket:id="afspraakDrempel" class="point-handle"></td>
+                        <td wicket:id="vanaf" class="point-handle"></td>
+                        <td wicket:id="totEnMet" class="point-handle"></td>
+                        <td wicket:id="blokkades"></td>
+                        <td wicket:id="interval"></td>
+                        <td wicket:id="indicatie"></td>
+                        <td wicket:id="handle" class="handle move-handle"><span class="icon-move"></span></td>
+                        <td wicket:id="emptyHandle"></td>
+                    </tr>
+                </table>
+            </fieldset>
+        </div>
+        <div wicket:id="standplaatsPerioden2Container">
+            <fieldset>
+                <table class="table table-striped table-bordered table-condensed" wicket:id="standplaatsPerioden2">
+                    <tr class="headers">
+                        <th>Standplaatsperiode</th>
+                        <th>Opmerkingen</th>
+                        <th>Drempel</th>
+                        <th>Start</th>
+                        <th>Eind</th>
+                        <th>Blokkades</th>
+                        <th>Interval</th>
+                        <th>Indicatie</th>
+                        <th wicket:id="handleHeader2"></th>
+                    </tr>
+                    <tr wicket:id="items">
+                        <td class="item point-handle" wicket:id="standplaats">[label]</td>
+                        <td wicket:id="opmerkingen"></td>
+
+                        <td wicket:id="afspraakDrempel" class="point-handle"></td>
+                         <td wicket:id="vanaf" class="point-handle"></td>
+                        <td wicket:id="totEnMet" class="point-handle"></td>
+                        <td wicket:id="blokkades"></td>
+                        <td wicket:id="interval"></td>
+                        <td wicket:id="indicatie"></td>
+                        <td wicket:id="handle" class="handle move-handle"><span class="icon-move"></span></td>
+                        <td wicket:id="emptyHandle"></td>
+                    </tr>
+                </table>
+            </fieldset>
+        </div>
+    </div>
+    <div wicket:id="tooltipContainer">
+        <div wicket:id="tooltip" style="display: none;"></div>
+    </div>    
+    <wicket:fragment wicket:id="meldingenFragment">
+    	<table class="table table-bordered table-condensed">
+            <tbody>
+	            <tr wicket:id="meldingen">
+	                <td><label class="control-label icon-warning-sign" wicket:id="niveau">INFO</label></td>
+	                <td wicket:id="tekst"></td>
+	            </tr>
+            </tbody>
+        </table>
+     </wicket:fragment>    
+    <wicket:fragment wicket:id="blokkadesFragment">
+    	<table class="table table-bordered table-condensed">
+            <tbody>
+	            <tr wicket:id="blokkades">
+	                <td><label class="control-label" wicket:id="naam"></label></td>
+	                <td wicket:id="vanaf"></td>
+	                <td wicket:id="totEnMet"></td>
+	            </tr>
+            </tbody>
+        </table>
+     </wicket:fragment>    
+</wicket:panel>
+</html>

@@ -28,7 +28,7 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface VraagElement
 {
-	
+
 	String code() default "";
 
 	String displayName();

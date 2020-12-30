@@ -45,7 +45,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class GebruikerNieuwsItem extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne

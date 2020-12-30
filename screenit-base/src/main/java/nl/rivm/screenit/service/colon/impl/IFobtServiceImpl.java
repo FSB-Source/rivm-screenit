@@ -408,8 +408,8 @@ public class IFobtServiceImpl implements IFobtService
 
 	private void setStatusEnDatum(IFOBTTest buis, IFOBTTestStatus nieuweStatus, Date newStatusDatumTijd)
 	{
-		if (buis != null && ((IFOBTTestStatus.ACTIEF.equals(nieuweStatus) && buis.getStatus() == null)
-				|| (IFOBTTestStatus.VERLOREN.equals(nieuweStatus) && buis.getStatus() == null)
+		if (buis != null && ((IFOBTTestStatus.ACTIEF.equals(nieuweStatus) && buis.getStatus() == null) ||
+			(IFOBTTestStatus.VERLOREN.equals(nieuweStatus) && buis.getStatus() == null)
 			|| buis.getStatus().magWijzigenNaarStatus(nieuweStatus, buis)))
 		{
 			logStatusChange(buis, nieuweStatus);

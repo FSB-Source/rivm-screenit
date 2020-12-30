@@ -23,11 +23,11 @@ package nl.rivm.screenit.model.colon.enums;
 
 public enum ColonDefinitiefVervolgbeleid
 {
-	
+
 	TERUG_NAAR_SCREENING(InactiveerReden.DEF_VERVOLGBELEID_TERUG_NAAR_SCREENING),
-	
+
 	DEFINITIEVE_EXCLUSIE(InactiveerReden.DEF_VERVOLGBELEID_DEFINITIEVE_EXCLUSIE),
-	
+
 	ONBEKEND(InactiveerReden.DEF_VERVOLGBELEID_ONBEKEND);
 
 	private final InactiveerReden inactiveerReden;

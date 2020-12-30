@@ -57,7 +57,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Audited
 public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief, ColonAfmelding, ColonUitnodiging>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "colonScreeningRonde", cascade = CascadeType.ALL)

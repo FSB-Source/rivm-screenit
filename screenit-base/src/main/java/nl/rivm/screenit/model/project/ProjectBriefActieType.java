@@ -26,7 +26,7 @@ import nl.rivm.screenit.model.CodeboekDoc;
 
 public enum ProjectBriefActieType
 {
-	
+
 	@CodeboekDoc("Extra brief na een bepaald moment")
 	XDAGENNAY,
 

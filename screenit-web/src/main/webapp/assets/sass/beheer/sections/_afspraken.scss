@@ -1,0 +1,81 @@
+.terug-overzicht-afspraken {
+  position: relative;
+  top: -7px;
+}
+
+h2.afspraak-titel {
+  margin: 0 0 5px 0;
+}
+
+.filter-view {
+  margin-left: 10px;
+}
+
+table.beschikbare-tijden {
+  empty-cells: show;
+  td {
+    padding: 5px 10px;
+    text-align: center;
+  }
+}
+
+.dag-column {
+  text-align: center;
+  font-size: 12px;
+  font-weight: normal;
+  strong {
+    clear: both;
+  }
+  &.vandaag {
+    color: $colorColonis-beheer1;
+  }
+}
+
+.beschikbaar,
+.niet-beschikbaar {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.beschikbaar {
+  cursor: pointer;
+  @include background-image(linear-gradient(white, #D1F8B6));
+}
+
+.beschikbaar.selected {
+  @include background-image(linear-gradient(white, #CEF3FF));
+}
+
+.niet-beschikbaar {
+  background-color: #F4F4F4;
+}
+
+table.tijd-selectie td {
+  padding: 0;
+  text-align: center;
+}
+
+table.tijd-selectie td span {
+  padding: 5px;
+  display: block;
+  background-color: #F4F4F4;
+  color: #aaa;
+}
+
+table.tijd-selectie td a {
+  padding: 5px;
+  display: block;
+  text-decoration: underline;
+  color: #00801b;
+  @include background-image(linear-gradient(white, #D1F8B6));
+
+  &:hover {
+    background-color: #E9F8FF;
+  }
+}
+
+table.tijd-selectie td a.selected {
+  color: #005782;
+  text-decoration: none;
+  @include background-image(linear-gradient(white, #CEF3FF));
+}

@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaBaseTehuisServiceImpl implements MammaBaseTehuisService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseTehuisServiceImpl.class);
 
 	@Autowired

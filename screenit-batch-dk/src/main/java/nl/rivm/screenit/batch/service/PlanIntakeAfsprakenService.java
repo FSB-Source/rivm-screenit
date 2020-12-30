@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.colon.planning.VrijSlot;
 
 public interface PlanIntakeAfsprakenService
 {
-	
+
 	List<ClientAfspraak> planIntakeAfspraken(List<ClientAfspraak> clienten, List<VrijSlot> vrijeSloten, StringBuilder planningResultaat);
 
 	List<ClientAfspraak> planIntakeAfspraken(List<ClientAfspraak> clienten, List<VrijSlot> vrijeSloten, StringBuilder planningResultaat, Long maximumSecondsSpend);

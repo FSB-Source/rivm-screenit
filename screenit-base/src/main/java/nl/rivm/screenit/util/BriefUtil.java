@@ -33,7 +33,7 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 public class BriefUtil
 {
-	
+
 	private BriefUtil()
 	{
 

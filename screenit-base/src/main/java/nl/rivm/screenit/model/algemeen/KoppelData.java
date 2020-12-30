@@ -41,7 +41,7 @@ import org.hibernate.annotations.Type;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class KoppelData extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String filename;

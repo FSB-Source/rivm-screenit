@@ -25,7 +25,7 @@ import nl.rivm.screenit.model.INaam;
 
 public enum CervixHpvUitslag implements INaam
 {
-	
+
 	NEGATIEF("Negatief"),
 
 	POSITIEF("Positief"),

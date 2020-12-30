@@ -1,0 +1,67 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+    <session-factory>
+        <property name="hibernate.dialect">nl.rivm.screenit.ScreenITPostgreSQLDialect</property>
+        <property name="hibernate.mapping.precedence">class, hbm</property>
+
+        
+        
+
+        
+        <property name="hibernate.show_sql">false</property>
+        <property name="hibernate.format_sql">false</property>
+        <property name="hibernate.use_sql_comments">false</property>
+        <property name="hibernate.generate_statistics">false</property>
+
+        
+        <property name="hibernate.jdbc.use_streams_for_binary">true</property>
+
+        <property name="connection.isolation">2</property>
+        <property name="hibernate.max_fetch_depth">1</property>
+
+        
+        <property name="hibernate.session_factory_name">ScreenITSessionFactory</property>
+        <property name="hibernate.session_factory_name_is_jndi">false</property>
+        <property name="org.hibernate.envers.audit_table_prefix"></property>
+        <property name="org.hibernate.envers.audit_table_suffix">_aud</property>
+        <property name="hibernate.listeners.envers.autoRegister">true</property>
+        <property name="org.hibernate.envers.store_data_at_delete">true</property>
+
+        
+        <property name="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory</property>
+        <property name="net.sf.ehcache.configurationResourceName">/ehcache.xml</property>
+        <property name="hibernate.cache.use_minimal_puts">false</property>
+        <property name="hibernate.cache.use_query_cache">true</property>
+        <property name="hibernate.cache.use_second_level_cache">true</property>
+        <property name="hibernate.cache.use_structured_entries">false</property>
+        <property name="hibernate.jdbc.batch_size">20</property>
+        <property name="org.hibernate.envers.revision_on_collection_change">false</property>
+
+        <property name="default_schema">gedeeld</property>
+    </session-factory>
+</hibernate-configuration>

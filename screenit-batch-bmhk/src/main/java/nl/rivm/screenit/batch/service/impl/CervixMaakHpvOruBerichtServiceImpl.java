@@ -50,7 +50,7 @@ import ca.uhn.hl7v2.model.v24.segment.OBX;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixMaakHpvOruBerichtServiceImpl implements CervixMaakHpvOruBerichtService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixMaakHpvOruBerichtServiceImpl.class);
 
 	@Autowired

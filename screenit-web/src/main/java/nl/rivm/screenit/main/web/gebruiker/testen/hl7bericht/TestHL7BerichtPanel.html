@@ -1,0 +1,57 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div style="padding-left: 10px;" class="row-fluid form-horizontal">
+        <div class="container-fluid" wicket:id="ifobtBerichtHandleiding">
+            <div class="row"><span class="span2">MSH:4 = ScreenIT Labid</span><span class="span2">vervang LAB_ID </span><span class="span8">bv. Rot1</span></div>
+            <div class="row"><span class="span2">MSH:10 = Uniek message-id</span><span class="span2">vervang MESSAGE_ID</span><span class="span8">bv. 123456789</span></div>
+            <div class="row"><span class="span2">SAC:3  = FIT barcode</span><span class="span2">vervang FIT_BARCODE</span><span class="span8">bv. AAA001</span></div>
+            <div class="row"><span class="span2"> OBX:5  = FIT uitslag</span><span class="span2">vervang UITSLAG</span><span class="span8">bv. 270.1</span></div>
+            <div class="row"><span class="span2">OBX:19 = Datum/tijd uitslag</span><span class="span2">vervang ANALYSE_DATUM</span><span class="span8">bv. 20170206145314</span>
+            </div>
+        </div>
+        <div class="container-fluid" wicket:id="ormBerichtHandleiding">
+            <div class="row"><span class="span2">MSH:10 = Uniek message-id</span><span class="span2">vervang MESSAGE_ID</span><span class="span8">bv. 123456789</span></div>
+            <div class="row"><span class="span2">PID:3 = BSN</span><span class="span2">vervang BSN</span><span class="span8">bv. 888800000</span></div>
+            <div class="row"><span class="span2">OBR:2 = Uitnodigings-id</span><span class="span2">vervang UITNODIGING_ID</span><span class="span8">bv. 1</span></div>
+            <div class="row"><span class="span2">OBR:25  = Statuscode</span><span class="span2">vervang STATUS_CODE</span><span class="span8">bv. Scheduled, Started, Completed, Reported, Authorised, Cancelled, CentralAvailable, Delete, Deleted, Error</span>
+            </div>
+            <div class="row"><span class="span2">OBR:27  = SE naam</span><span class="span2">vervang SE_CODE</span><span class="span8">bv. SE 1</span></div>
+        </div>
+        <br/>
+        <br/>
+        <form wicket:id="form">
+            <div class="row-fluid">
+                <select wicket:id="berichtType"></select>
+                <textarea style="width: 1000px;" wicket:id="hl7BerichtTekst" cols="255" rows="17"></textarea>
+            </div>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="form-actions clearfix">
+                        <button class="btn btn-info" wicket:id="verstuurHl7Bericht">Verstuur HL7 bericht</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</wicket:panel>
+</html>

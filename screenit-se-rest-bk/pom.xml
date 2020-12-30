@@ -18,8 +18,14 @@
         <dependency>
             <groupId>nl.rivm.screenit</groupId>
             <artifactId>screenit-base</artifactId>
+            <exclusions>
+            	<exclusion>
+            		 <groupId>org.apache.cxf</groupId>
+		    		 <artifactId>cxf-rt-features-logging</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
-        
+
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
@@ -112,6 +118,12 @@
             <artifactId>screenit-base</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
+            <exclusions>
+            	<exclusion>
+            		 <groupId>org.apache.cxf</groupId>
+		    		 <artifactId>cxf-rt-features-logging</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

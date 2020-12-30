@@ -50,7 +50,7 @@ import com.aspose.words.Document;
 
 public interface CervixTestService
 {
-	
+
 	CervixDossier geefDossier(GbaPersoon gbaPersoon);
 
 	CervixScreeningRonde geefScreeningRonde(GbaPersoon gbaPersoon);

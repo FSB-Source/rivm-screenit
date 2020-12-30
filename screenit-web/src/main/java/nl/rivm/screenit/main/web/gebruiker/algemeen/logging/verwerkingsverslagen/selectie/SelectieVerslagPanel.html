@@ -1,0 +1,94 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<body>
+<wicket:panel>
+    <div class="row-fluid">
+        <div class="span12">
+            <h1 class="pageTitle">
+                Verwerkingsverslag vooraankondigen en uitnodigen
+            </h1>
+        </div>
+    </div>
+    <div class="row-fluid form-horizontal">
+        <fieldset>
+            <div class="span6">
+                <div class="control-group value">
+                    <label class="control-label">Datum verwerking</label>
+                    <div wicket:id="datumVerwerking" class="controls">
+                        10 werkdagen
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <table class="table table-condensed table-bordered">
+            <thead>
+            <tr>
+                <th>Categorie</th>
+                <th>Aantal uitnodigingen gemaakt</th>
+            </tr>
+            </thead>
+            <tbody> 
+            <tr wicket:id="gemaakt">
+                <td wicket:id="colonUitnodigingCategorie">U1</td>
+                <td><span wicket:id="aantal">10</span> <span wicket:id="gepusht"></span></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-condensed table-bordered">
+            <thead>
+            <tr>
+                <th>Project/groep</th>
+                <th>Aantal uitnodigingen gemaakt</th>
+                <th>Aantal uitnodigingen nog te gaan</th>
+                <th>Aantal (werk)dagen nog te gaan</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr wicket:id="groep">
+                <td><span wicket:id="projectGroep.project.naam"></span>/<span wicket:id="projectGroep.naam"></span></td>
+                <td><span wicket:id="aantal">10</span> <span wicket:id="gepusht"></span></td>
+                <td wicket:id="clientenNogTeGaan">10</td>
+                <td wicket:id="dagenNogTeGaan">10</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <table class="table table-condensed table-bordered">
+            <thead>
+            <tr>
+                <th>Gebied</th>
+                <th>Percentage (negatief: leeglopend, postitief: capaciteit erbij, &#8734;: niet te bepalen)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr wicket:id="gewijzigdeGebieden">
+                <td wicket:id="uitnodigingsGebied.naam">G1</td>
+                <td><span wicket:id="percentage"></span>%</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</wicket:panel>
+</body>
+</html>

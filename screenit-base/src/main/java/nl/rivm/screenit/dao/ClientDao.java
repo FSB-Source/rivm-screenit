@@ -32,7 +32,7 @@ import nl.rivm.screenit.model.colon.ColonUitnodiging;
 
 public interface ClientDao
 {
-	
+
 	void saveOrUpdateClient(Client client);
 
 	Client getClientByBsn(String bsn);

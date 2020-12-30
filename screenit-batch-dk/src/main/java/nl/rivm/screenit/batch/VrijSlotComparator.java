@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.colon.planning.VrijSlot;
 
 public class VrijSlotComparator implements Comparator<VrijSlot>
 {
-	
+
 	@Override
 	public int compare(VrijSlot o1, VrijSlot o2)
 	{

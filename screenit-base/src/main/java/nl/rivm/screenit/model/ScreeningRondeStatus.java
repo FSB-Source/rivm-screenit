@@ -24,7 +24,7 @@ package nl.rivm.screenit.model;
 
 public enum ScreeningRondeStatus
 {
-	
+
 	LOPEND,
 
 	AFGEROND;

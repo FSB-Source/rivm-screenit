@@ -1,0 +1,51 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-batch-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd">
+
+    <bean id="startJobMessageListener" class="nl.rivm.screenit.batch.jms.listener.JMSStartJobListener">
+        <constructor-arg type="nl.rivm.screenit.model.enums.BatchApplicationType">
+            <ref bean="batchApplicationType"/>
+        </constructor-arg>
+    </bean>
+
+    <bean id="jobStatusMessageListener" class="nl.rivm.screenit.batch.jms.listener.JMSJobStatusListener"/>
+
+    <bean id="quartzListener" class="nl.rivm.screenit.batch.jms.listener.JMSQuartzListener"/>
+
+    <bean id="jobStatusJmsContainer"
+          class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="destination" ref="batchServerStatusDestination"/>
+        <property name="messageListener" ref="jobStatusMessageListener"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+
+    <bean id="quartzJmsContainer"
+          class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="jmsFactory"/>
+        <property name="destination" ref="quartzDestination"/>
+        <property name="messageListener" ref="quartzListener"/>
+        <property name="sessionTransacted" value="true"/>
+    </bean>
+
+</beans>

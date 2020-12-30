@@ -1,0 +1,358 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:panel>
+	<fieldset>
+		<div class="row-fluid">
+			<div class="span12">
+				<h2>(Samenvoeg)velden</h2>							
+				<div class="accordion" wicket:id="container" data-chevron-direction="left">
+					<div class="accordion-group samenvoegvelden" wicket:id="mergeTypes">
+						<div class="accordion-heading header-samenvoegvelden">
+							 <a class="accordion-toggle" data-toggle="collapse" wicket:id="collapseLink"><i class="icon-purple pull-right icon-chevron-left"></i>
+			                    <wicket:container wicket:id="mergeTypeLabel">Landelijke parameters</wicket:container>
+			                </a>										
+						</div>
+						<div class="accordion-body collapse" wicket:id="content">
+						<div class="accordion-inner">
+							<wicket:enclosure child="fromDB">
+							<div class="row-fluid">
+								<div class="span6">
+									<div class="control-group">
+										<label wicket:id="fromDBLabel" class="control-label">Gegevens uit
+											database?:</label>
+										<input wicket:id="fromDB" type="checkbox" class="fromDB">
+									</div>
+								</div>
+								<div class="span6">
+									<wicket:enclosure child="extraField">
+									<div class="control-group">
+										<label class="control-label">Ondertekenaar:</label>
+										<div class="controls" wicket:id="extraField"></div>
+									</div>					
+									</wicket:enclosure>				
+								</div>
+							</div>
+							<hr>
+							</wicket:enclosure>
+
+							<wicket:container wicket:id="fields"/>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</fieldset>
+	<div wicket:id="printDialog"></div>
+
+	<wicket:fragment wicket:id="fragmentMergeFields">
+		<div class="control-group" wicket:id="mergeFields">
+			<label class="control-label" wicket:id="fieldName"></label>
+			<div wicket:id="invoerField"></div>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="fragmentClientFields">
+		<div class="row-fluid">
+			<div class="span6">
+				<div class="control-group">
+					<label class="control-label">Bsn </label>
+					<div class="controls">
+						<input class="form-control input-small" type="text" placeholder="123456789" wicket:id="bsn">
+                           <span class="add-on" wicket:id="bsnGenereren"><i class="icon-refresh"></i></span>
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label class="control-label">Titel </label>
+					<div class="controls">
+						<select wicket:id="titel">
+						</select>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Voornamen</label>
+					<div class="controls">
+						<input class="input-large" type="text"
+							wicket:id="voornaam">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Achternaam</label>
+					<div class="controls">
+						<input class="input-large" type="text"
+							wicket:id="achternaam">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Tussenvoegsel</label>
+					<div class="controls">
+						<input class="input-large" type="text"
+							wicket:id="tussenvoegsel">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Geboortedatum</label>
+					<div class="controls">
+						<input wicket:id="geboortedatum" type="text" maxlength="10" class="input-small datum">
+					</div>
+				</div>
+
+				<div class="control-group">
+					<label class="control-label">Geslacht</label>
+					<div class="controls">
+						<select wicket:id="geslacht"></select>
+					</div>
+				</div>
+			</div>
+			<div class="span6">
+				<div class="control-group">
+					<label class="control-label">Straat</label>
+					<div class="controls">
+						<input class="input-large" type="text"
+							wicket:id="gbaAdres.straat">
+					</div>
+				</div>
+				<div class="row-fluid">
+                       <div class="span6">
+                           <div class="control-group">
+                               <label class="control-label">Huisnummer</label>
+                               <div class="controls">
+                                   <input wicket:id="gbaAdres.huisnummer" class="input-small" type="text"
+                                          value="">
+                               </div>
+                           </div>
+                           <div class="control-group">
+                               <label class="control-label">Huisletter</label>
+                               <div class="controls">
+                                   <input wicket:id="gbaAdres.huisletter" class="input-small" type="text"
+                                          value="">
+                               </div>
+                           </div>
+                       </div>
+                       <div class="span6">
+                           <div class="control-group">
+                               <label class="control-label">Huisnummertoevoeging</label>
+                               <div class="controls">
+                                   <input wicket:id="gbaAdres.huisnummerToevoeging" class="input-small"
+                                          type="text" value="">
+                               </div>
+                           </div>
+                           <div class="control-group">
+                               <label class="control-label">Aanduiding bij huisnummer</label>
+                               <div class="controls">
+                                   <input wicket:id="gbaAdres.huisnummerAanduiding" class="input-small"
+                                          type="text" value="">
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+				<div class="control-group">
+					<label class="control-label">Postcode</label>
+					<div class="controls">
+						<input class="input-mini" type="text" value="1234 AB"
+							wicket:id="gbaAdres.postcode">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Plaats</label>
+					<div class="controls">
+						<input class="input-large" type="text" value="Plaatsnaam"
+							wicket:id="gbaAdres.plaats">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Locatiebeschrijving</label>
+					<div class="controls">
+						<textarea wicket:id="gbaAdres.locatieBeschrijving"
+							class="textarea-full-width locatiebeschrijving" cols="3"></textarea>
+					</div>
+				</div>
+			</div>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="fragmentIntakeLocatieFields">
+		<div class="row-fluid">
+			<div class="span6">
+				<div class="control-group">
+					<label class="control-label">Naam organisatie </label>
+					<div class="controls">
+						<input class="input-xlarge" type="text"
+							value="Organisatie 1" wicket:id="naam">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Straatnaam</label>
+					<div class="controls">
+						<input class="input-xlarge" type="text" value="Straatnaam"
+							wicket:id="adressen[0].straat">
+					</div>
+				</div>
+				<div class="row-fluid">
+                       <div class="span6">
+                           <div class="control-group">
+                               <label class="control-label">Huisnummer</label>
+                               <div class="controls">
+                                   <input wicket:id="adressen[0].huisnummer" class="input-small" type="text"
+                                          value="">
+                               </div>
+                           </div>
+                           <div class="control-group">
+                               <label class="control-label">Huisletter</label>
+                               <div class="controls">
+                                   <input wicket:id="adressen[0].huisletter" class="input-small" type="text"
+                                          value="">
+                               </div>
+                           </div>
+                       </div>
+                       <div class="span6">
+                           <div class="control-group">
+                               <label class="control-label">Huisnummertoevoeging</label>
+                               <div class="controls">
+                                   <input wicket:id="adressen[0].huisnummerToevoeging" class="input-small"
+                                          type="text" value="">
+                               </div>
+                           </div>
+                           <div class="control-group">
+                               <label class="control-label">Aanduiding bij huisnummer</label>
+                               <div class="controls">
+                                   <input wicket:id="adressen[0].huisnummerAanduiding" class="input-small"
+                                          type="text" value="">
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+				<div class="control-group">
+					<label class="control-label">Postcode</label>
+					<div class="controls">
+						<input class="input-mini" type="text" value="1234 AB"
+							wicket:id="adressen[0].postcode">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Plaats</label>
+					<div class="controls">
+						<input class="input-large" type="text" value="Plaatsnaam"
+							wicket:id="adressen[0].plaats">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Postbusnummer</label>
+					<div class="controls">
+						<input class="input-small" type="text" value="1233"
+							wicket:id="adressen[1].huisnummer">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Postbusnummer postcode</label>
+					<div class="controls">
+						<input class="input-mini" type="text" value="4321 ZY"
+							wicket:id="adressen[1].postcode">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Postbusnummer plaats</label>
+					<div class="controls">
+						<input class="input-large" type="text" value="Plaatsnaam"
+							wicket:id="adressen[1].plaats">
+					</div>
+				</div>
+			</div>
+			<div class="span6">
+				<div class="control-group">
+					<label class="control-label">Telefoonnummer 1</label>
+					<div class="controls">
+						<input class="input-medium" type="text"
+							wicket:id="telefoon">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Faxnummer</label>
+					<div class="controls">
+						<input class="input-medium" type="text" wicket:id="fax">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">E-mail</label>
+					<div class="controls">
+						<input class="input-large" type="text" wicket:id="email">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Website</label>
+					<div class="controls">
+						<input class="input-large" type="text" wicket:id="website">
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Locatiebeschrijving</label>
+					<div class="controls">
+						<textarea wicket:id="locatieBeschrijving"
+							class="textarea-full-width locatiebeschrijving" cols="3"></textarea>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Tijdsduur intake</label>
+					<div class="controls">
+						<select wicket:id="duurAfspraakInMinuten"></select> 
+					</div>
+				</div>
+			</div>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="fragmentDatePicker">
+		<div class="controls input-append" style="margin-left: 185px">
+			<input wicket:id="formComponent" class="input-medium" type="text" />
+			<a href="javascript:void(0);" class="add-on"
+			   onclick="$(this).prev().datepicker('show');return false;"
+			   title="Datum" tabindex="-1"><i class="icon-calendar"></i></a>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="fragmentText">
+		<div class="controls" style="margin-left: 345px">
+			<input wicket:id="formComponent" class="input-medium" type="text" />
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="fragmentBoolean">
+		<div class="controls" wicket:id="formComponent" style="margin-left: 355px">
+		</div>
+	</wicket:fragment>
+    <wicket:fragment wicket:id="fragmentEnum">
+        <div class="controls">
+           	<span wicket:id="formContainer"> <select wicket:id="formComponent" style="margin-left: 165px">
+		   	</select></span>
+        </div>
+    </wicket:fragment>
+	<wicket:fragment wicket:id="fragmentMammaAfspraakRedenVerzet">
+		<div class="controls">
+			<span wicket:id="formContainer"><select wicket:id="formComponent" style="margin-left: 165px">
+			</select></span>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="fragmentBKRadioloogOndertekenaar">
+		<div class="controls">
+			<input class="input-medium" type="text" wicket:id="textField"></input>
+			<span wicket:id="formContainer"><select wicket:id="formComponent" style="margin-left: 165px">
+			</select></span>
+		</div>
+	</wicket:fragment>
+</wicket:panel>
+</html>

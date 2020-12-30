@@ -23,7 +23,7 @@ package nl.rivm.screenit.dao;
 
 public interface UitnodigingsDao
 {
-	
+
 	Long getNextUitnodigingsId();
 
 	boolean uniqueMammaUitnodigingsNr(Long uitnodigingsNr);

@@ -41,7 +41,7 @@ import org.hibernate.annotations.Proxy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public class Functie extends AbstractHibernateObject implements INaam
 {
-	
+
 	public static final String PATHOLOOG = "Patholoog";
 
 	public static final String ENDOSCOPIST = "Endoscopist";

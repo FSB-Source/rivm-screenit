@@ -26,7 +26,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 
 public class UziToken implements AuthenticationToken
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private final String uziCode;

@@ -34,7 +34,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixHuisartsTarief extends CervixTarief
 {
-	
+
 	@Column(nullable = true, precision = HibernateMagicNumber.P5, scale = HibernateMagicNumber.S2) 
 	private BigDecimal tarief;
 

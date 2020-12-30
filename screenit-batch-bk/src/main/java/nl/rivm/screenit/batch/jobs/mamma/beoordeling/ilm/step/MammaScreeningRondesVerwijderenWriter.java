@@ -27,11 +27,7 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
-import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.util.DateUtil;
@@ -58,17 +54,20 @@ public class MammaScreeningRondesVerwijderenWriter extends BaseWriter<MammaScree
 	protected void write(MammaScreeningRonde ronde)
 	{
 		boolean heeftLaatstePositieveUitslagBinnenBewaartermijn = heeftLaatstePositieveUitslagBinnenBewaartermijn(ronde);
-		boolean heeftIlmBeelden = heeftIlmBeelden(ronde);
-		if (!heeftLaatstePositieveUitslagBinnenBewaartermijn && !heeftIlmBeelden)
+		boolean isVerwijderd = false;
+		if (!heeftLaatstePositieveUitslagBinnenBewaartermijn)
 		{
-			screeningrondeService.verwijderScreeningRonde(ronde);
-			LOG.info("Verwijderd, rondeId: {}", ronde.getId());
-			aantalContextOphogen(MammaIlmJobListener.KEY_RONDES_VERWIJDERD_AANTAL);
-		}
-		else
-		{
-			LOG.info("Niet verwijderd, rondeId: {}, heeftIlmBeelden: {}, heeftLaatstePositieveUitslagBinnenBewaartermijn: {}", ronde.getId(), heeftIlmBeelden,
-				heeftLaatstePositieveUitslagBinnenBewaartermijn);
+			isVerwijderd = screeningrondeService.verwijderScreeningRonde(ronde, false);
+			if (isVerwijderd)
+			{
+				LOG.info("Verwijderd, rondeId: {}", ronde.getId());
+				aantalContextOphogen(MammaIlmJobListener.KEY_RONDES_VERWIJDERD_AANTAL);
+			}
+			else
+			{
+				LOG.info("Niet verwijderd, rondeId: {}, heeftIlmBeelden: {}, heeftLaatstePositieveUitslagBinnenBewaartermijn: {}", ronde.getId(), !isVerwijderd,
+					heeftLaatstePositieveUitslagBinnenBewaartermijn);
+			}
 		}
 	}
 
@@ -81,23 +80,6 @@ public class MammaScreeningRondesVerwijderenWriter extends BaseWriter<MammaScree
 			int bewaartermijnInDagen = preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name());
 			LocalDate verwijderGrensDatum = currentDateSupplier.getLocalDate().minusDays(bewaartermijnInDagen);
 			return DateUtil.toLocalDate(laatsteScreeningRondeMetPositieveUitslag.getStatusDatum()).isAfter(verwijderGrensDatum);
-		}
-		return false;
-	}
-
-	private boolean heeftIlmBeelden(MammaScreeningRonde ronde)
-	{
-		for (MammaUitnodiging uitnodiging : ronde.getUitnodigingen())
-		{
-			for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
-			{
-				MammaMammografie mammografie = afspraak.getOnderzoek() != null ? afspraak.getOnderzoek().getMammografie() : null;
-				if (mammografie != null
-					&& !(MammaMammografieIlmStatus.VERWIJDERD.equals(mammografie.getIlmStatus()) || MammaMammografieIlmStatus.NIET_BESCHIKBAAR.equals(mammografie.getIlmStatus())))
-				{
-					return true;
-				}
-			}
 		}
 		return false;
 	}

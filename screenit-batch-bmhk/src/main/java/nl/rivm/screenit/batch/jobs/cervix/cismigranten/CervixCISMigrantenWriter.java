@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixCISMigrantenWriter extends BaseWriter<Client>
 {
-	
+
 	@Autowired
 	private CervixFactory factory;
 

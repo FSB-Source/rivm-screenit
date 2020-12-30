@@ -26,7 +26,7 @@ import java.io.Serializable;
 
 public class SortState<S> implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private S sortParam;

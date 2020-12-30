@@ -1,0 +1,152 @@
+.inlog-keuzes {
+  margin: 30px auto 0 auto;
+  text-align: center;
+  -moz-transition: all 0.5s ease;
+  -ms-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+  .keuze {
+    padding: 10px;
+    display: inline-block;
+    width: 200px;
+    background-color: $colorColonis1;
+
+    &:hover {
+      -moz-transform: scale(1.1);
+      -webkit-transform: scale(1.1);
+      -o-transform: scale(1.1);
+      transform: scale(1.02);
+      -ms-transform: scale(1.1);
+    }
+
+    @include border-radius(5px);
+    .inner {
+      padding: 10px;
+      display: inline-block;
+      width: 180px;
+      background-color: $colorColonis2;
+      @include border-radius(5px);
+    }
+
+    .icon {
+      width: 150px;
+      height: 150px;
+      margin: 0 auto 10px auto;
+      display: block;
+
+    }
+
+    .titel {
+      color: white;
+      font-size: 18px;
+    }
+  }
+
+  .keuze.uzi-pas,
+  .keuze.gebruikersnaam {
+    margin-right: 20px;
+  }
+
+  .keuze.uzi-pas .icon {
+    background: transparent url(../images/inlog/uzi-pas.png) no-repeat center center;
+  }
+
+  .keuze.gebruikersnaam .icon {
+    background: transparent url(../images/inlog/gebruikersnaam.png) no-repeat center center;
+  }
+
+  .keuze.yubikey .icon {
+    background: transparent url(../images/inlog/yubikey.png) no-repeat center center;
+  }
+}
+
+.inlog-container {
+  margin: 0 auto;
+  padding: 10px;
+  width: 425px;
+  background-color: $colorColonis1;
+  color: white;
+
+  h1 {
+    margin: 0 0 5px 0;
+    padding: 0;
+    font-size: 18px;
+    line-height: 20px;
+    font-weight: normal;
+  }
+
+  > p {
+    font-size: 15px;
+    margin: 0 0 10px 0;
+  }
+
+  .accorderen-lijst {
+    padding-left: 20px;
+    margin-bottom: 0;
+    overflow: hidden;
+
+    li {
+      line-height: 30px;
+      float: left;
+      width: 100%;
+    }
+  }
+
+  .gelezen-check {
+    margin: 0;
+  }
+}
+
+.inlog-formulier {
+  padding: 10px;
+  clear: both;
+  background-color: $colorColonis2;
+
+  p {
+    margin: 0 0 10px 0;
+  }
+
+  a {
+    padding: 5px 0 5px 10px;
+    float: right;
+    display: inline-block;
+    color: $colorColonis3;
+    text-decoration: underline;
+
+    &:hover {
+      color: white;
+      text-decoration: none;
+    }
+  }
+
+  .form-horizontal {
+    .control-group {
+      margin: 10px 0 10px 0;
+    }
+    .control-label {
+      text-align: left;
+      color: white;
+      width: 150px;
+    }
+    .controls input,
+    .controls select {
+    }
+  }
+
+  .btn {
+    margin: 0 0 10px 0;
+  }
+}
+
+.uzipasinlog {
+  display: block;
+  overflow: hidden;
+
+  .uzipasPincodeLabel {
+    width: 180px;
+  }
+
+  .uzipasPincodeLabel {
+    width: 180px;
+  }
+}

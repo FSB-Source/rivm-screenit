@@ -1,0 +1,208 @@
+div.question {
+  margin: 0 0 5px;
+  float: left;
+  clear: both;
+  width: 100%;
+  box-sizing: border-box;
+
+  > label {
+    float: left;
+    width: $defaultLabelWidth;
+  }
+
+  div.answer {
+    padding: 0 20px 0 $defaultLabelWidth + 36;
+
+  }
+
+  div.answer > ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    div.answer > ul.lijst {
+      list-style-type: disc;
+      margin: 0;
+      padding-left: 18px;
+    }
+  }
+
+  .vertical li,
+  .vertical li label {
+    width: 100%;
+    display: block;
+  }
+  .answer li input[type=radio],
+  .answer li input[type=checkbox] {
+    float: left;
+    margin: 2px 5px 2px 0;
+    overflow: hidden;
+  }
+  
+  div.answer li > label > span {
+    display: block;
+    padding-left: 23px;
+  }
+  div.answer.horizontal > ul > li {
+    margin-right: 10px;
+    float: left;
+    padding: 0;
+  }
+
+  .double div.answer input[type="text"] {
+	  float: left;
+	  width: 50px;
+   }
+	
+  .bevatNullFlavour div.answer input[type="checkbox"] {
+	  margin-left: 5px;
+  } 
+
+
+  div.answer {
+    input[type=text], textarea,
+    select,
+    textarea {
+      padding: 3px;
+      margin: 0;
+      width: 100%;
+      @include box-sizing(border-box);
+      height: 24px;
+    }
+    textarea {
+      height: auto;
+    }
+
+	.samengesteld div.select2-container.unit {
+		width: 100px;
+	}
+
+
+    input[type="text"][maxlength="2"] {
+      width: 28px;
+    }
+    input[type="text"][maxlength="3"] {
+      width: 33px;
+    }
+    input[type="text"][maxlength="4"] {
+      width: 40px;
+    }
+    input[type="text"][maxlength="5"] {
+      width: 50px;
+    }
+    input[type="text"][maxlength="6"] {
+      width: 60px;
+    }
+    input[type="text"][maxlength="7"] {
+      width: 70px;
+    }
+
+    input[type=text].geboortedatum,
+    input[type=text].datum {
+      width: 80px;
+    }
+    input[type=text].tijd {
+      width: 40px;
+    }
+
+    .input-append .add-on, .input-prepend .add-on {
+      padding: 1px 4px;
+    }
+
+    .input-append .time-fields {
+      margin-left: 5px;
+      .divider {
+        font-size: 13px;
+        line-height: 23px;
+        padding: 0 2px;
+      }
+      input[type="text"][maxlength="2"] {
+        border-radius: 4px;
+        width: 32px;
+      }
+
+    }
+  }
+}
+
+div.question.no-label div.answer,
+div.question.no-icons div.answer {
+  padding: 0;
+}
+
+
+div.question {
+  .select2-container {
+    width: 100%;
+  }
+
+  .select2-default {
+    color: #444444 !important;
+  }
+
+  .select2-container.select2-container-multi .select2-choices {
+    border: 1px solid $colorColonis1;
+    background: white url(../images/icons/select2-multi.png) no-repeat top right;
+  }
+}
+
+
+span.form-validation-icon,
+span.form-icon.questionmark,
+span.form-icon.information {
+  display: inline-block;
+  float: left;
+  width: 16px;
+  height: 16px;
+  padding: 1px 0;
+  background: transparent url(../images/icons/formulier-icons.png) no-repeat -16px 100%;
+}
+
+span.form-validation-icon.not-required {
+  background: transparent none;
+}
+
+.error span.form-validation-icon {
+  background-position: 0 100%;
+}
+
+span.form-icon.questionmark,
+span.form-icon.information {
+  float: left;
+}
+
+span.form-icon.questionmark {
+  background-position: -48px 100%;
+}
+
+span.form-icon.information {
+  background-position: 0 100%;
+}
+
+
+div.question.samengesteld {
+  div.select2-container {
+    width: 220px;
+  }
+
+}
+
+p.buttons, div.buttons {
+  float: left;
+  clear: both;
+  width: 100%;
+  margin: 0 0 10px 0;
+  padding-top: 10px;
+  text-align: right;
+}
+
+div.column {
+  float: left;
+  width: 48.717948717948715%;
+  margin-left: 2.564102564102564%;
+  box-sizing: border-box;
+
+  &:first-child {
+    margin-left: 0;
+  }
+}
+

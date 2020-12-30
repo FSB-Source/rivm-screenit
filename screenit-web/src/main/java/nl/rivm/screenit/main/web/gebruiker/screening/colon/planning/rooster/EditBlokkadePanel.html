@@ -1,0 +1,129 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="editForm">
+
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>
+                <span wicket:id="actie" class="actie">Wijzig roosterblok - Intakelocatie noord 2</span>
+				<span class="roosterblok-info">
+					<span class="locatie-tijd"><label wicket:id="kamer">Kamer0:</label> <span wicket:id="tijd">30-07-2013 14:00-16:00</span></span>
+					<wicket:enclosure child="periode"><span class="periode"><label>Periode:</label>  <span wicket:id="periode">30-07-2013 t/m 30-08-2013</span></span>
+                    </wicket:enclosure>
+				</span>
+            </h3>
+        </div>
+        <div class="modal-body">
+            <div class="row-fluid">
+                <div class="span6">
+                    <fieldset class="hero-unit form-horizontal edit-blokkade">
+                        <div class="control-group">
+                            <label class="control-label">Type</label>
+                            <div class="controls" wicket:id="title">
+                            </div>
+                        </div>
+                            <div class="control-group">
+                                <label class="control-label">Kamer <i class="icon-asterisk icon-purple"></i></label>
+                                <div class="controls" wicket:id="locationContainer">
+                                    <select wicket:id="location"></select>
+                                </div>
+                                <wicket:enclosure child="alleKamers">
+                                <div class="controls">
+                                	<span>Alle kamers <input type="checkbox" wicket:id="alleKamers"> </span>
+                                </div>
+                                </wicket:enclosure>
+                            </div>
+
+                        <div class="control-group">
+                            <label class="control-label">Datum <i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                            	<span>
+                                	<span wicket:id="startTime"></span>
+                                </span>
+                                <span>
+                                	<span style="display: block; padding-bottom: 5px;">Hele dag <input type="checkbox" wicket:id="heleDag"/></span>
+                                	<span style="clear: left;"><span style="padding: 0 10px 0 10px;">tot</span><span wicket:id="endTime">13:30</span></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Omschrijving <i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                                <input type="text" wicket:id="description" class="input-large">
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="span6">
+                    <div wicket:id="recurrenceOptionContainer">
+                        <fieldset>
+                            <h2>Wijzig of verwijder</h2>
+                            <div class="control-group">
+                                <span wicket:id="recurrenceOption"></span>
+                            </div>
+                            <div class="control-group" wicket:id="recurrenceEditEndContainer">
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input wicket:id="recurrenceEditEnd" type="text"/>
+                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                                class="icon-calendar"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div wicket:id="herhalingContainer">
+                        <fieldset>
+                            <div wicket:id="herhaling" class="herhaling form-horizontal"></div>
+                            <div wicket:id="herhalingEindDatum" class="herhaling form-horizontal">
+                                <div class="control-group herhaling-einddatum">
+                                    <label class="control-label">Einddatum:</label>
+                                    <div class="controls">
+                                        <div class="input-append">
+                                            <input wicket:id="recurrence.endDate" type="text"/>
+                                            <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                                    class="icon-calendar"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="modal-footer">
+        <button wicket:id="deleteLink" class="btn btn-danger pull-left">
+            <span wicket:id="deleteTekst">Verwijderen</span>
+        </button>
+        <a wicket:id="deleteSubmit" style="display: none;"></a>
+        <button class="btn" data-dismiss="modal">Annuleren</button>
+        <button class="btn btn-primary" wicket:id="opslaanLink" type="submit">
+            <span wicket:id="opslaanTekst">Opslaan</span>
+        </button>
+    </div>
+
+    <div wicket:id="confirmPopup"></div>
+</wicket:panel>
+</html>

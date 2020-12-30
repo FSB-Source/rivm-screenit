@@ -1,0 +1,92 @@
+.herhaling {
+  ul {
+    margin: 0 0 18px 0;
+    padding: 0;
+    list-style: none;
+
+    label {
+      width: 160px;
+      float: left;
+    }
+  }
+
+  .herhaling-wekelijks {
+    .interval .control-label {
+      display: inline;
+      width: auto;
+      margin-right: 0.5em;
+    }
+
+    .interval .controls,
+    .interval-dagen .controls {
+      margin-left: 0;
+    }
+
+    .interval-dagen .checkbox.inline {
+      padding-left: 18px;
+      padding-right: 8px;
+      border-right: 1px dotted #ccc;
+
+      input[type=checkbox] {
+        margin-left: -18px;
+      }
+    }
+
+    .interval-dagen .checkbox.inline + .checkbox.inline {
+      margin-left: 7px;
+    }
+
+    .interval-dagen .checkbox.inline:last-child {
+      border: 0 none;
+    }
+  }
+}
+
+.herhaleningSelectie {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.maandelijkseSelectie label,
+.herhaleningSelectie label {
+  width: auto;
+  display: inline;
+  margin-right: 0.5em;
+}
+
+.maandelijkseSelectie {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.maandelijkseSelectie select {
+  display: inline;
+  width: auto;
+}
+
+.edit-blokkade {
+  .time-field {
+    clear: left;
+    padding-top: 5px;
+    margin-left: 20px;
+  }
+}
+
+.herhaling,
+.edit-blokkade,
+.edit-bk-capaciteit,
+.edit-roosterblok {
+  .controls {
+    margin-left: 90px;
+  }
+
+  .control-label {
+    width: 110px;
+  }
+}
+
+.edit-bk-capaciteit {
+  .control-label {
+    width: 80px;
+  }
+}

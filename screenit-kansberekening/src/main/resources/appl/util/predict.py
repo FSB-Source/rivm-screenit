@@ -23,29 +23,43 @@ import logging
 import numpy
 from pandas import DataFrame, Series
 
+
 def predict_dossiers(classifier, dossier_feature_columns, screening_ronde_events):
     logging.info('predict dossiers')
+
     return _predict(classifier, dossier_feature_columns, screening_ronde_events, 'dossier')
+
 
 def predict_afspraken(classifier, afspraak_feature_columns, afspraak_events: DataFrame):
     logging.info('predict afspraken')
+
     _idsScores = _predict(classifier, afspraak_feature_columns, afspraak_events, 'afspraak')
+
     indexes = afspraak_events.loc[afspraak_events['event_doelgroep'] > -10].index.values
     for i in indexes:
         _idsScores[i] = (_idsScores[i][0], 1)
+
     return _idsScores
+
+
 
 def _predict(classifier, feature_columns: Series, events: DataFrame, id_column):
     if id_column in events.columns:
         ids = events[id_column].values.tolist()
-        events.drop(columns=[id_column], inplace=True) 
+        events.drop(columns=[id_column], inplace=True)
     else:
         ids = ['dummy_id']
+
     events = events[feature_columns]
+
     logging.debug('gebruikte feature kolommen ' + ', '.join(events.columns))
+
     scores = classifier.predict_proba(events)[:, 1]
     scores = numpy.around(scores, 5)
+
     logging.info('events ' + str(scores.size) + ' gemiddelde score ' + str(numpy.mean(scores)))
+
     idsScores = [ids, scores]
     idsScores = [*zip(*idsScores)]
+
     return idsScores

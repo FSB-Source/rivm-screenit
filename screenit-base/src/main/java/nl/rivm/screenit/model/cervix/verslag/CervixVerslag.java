@@ -57,7 +57,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public abstract class CervixVerslag<T extends VerslagContent<?>> extends SingleTableHibernateObject implements Verslag<T, CervixScreeningRonde>
 {
-	
+
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private CervixScreeningRonde screeningRonde;
 

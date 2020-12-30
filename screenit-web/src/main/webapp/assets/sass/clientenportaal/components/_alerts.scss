@@ -1,0 +1,93 @@
+.alert-error,
+.alert-success {
+  font-family: $fontFamily2;
+  font-size: rs(14, $base-fs);
+
+  @include border-radius(0);
+}
+
+.alert-success {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 450px;
+  overflow: hidden;
+  z-index: 9999;
+  margin-left: -225px;
+  margin-top: -100px;
+  padding: 0;
+  border: 0 none;
+  opacity: 0;
+
+  @include box-shadow(#7f7f7f 0px 0px 30px);
+
+  .message,
+  .buttons {
+    background-color: #ececec;
+    text-align: center;
+    border: 1px solid #c7c7c7;
+  }
+
+  .message {
+    padding: 30px 30px 30px 100px;
+    color: #383838;
+    border-width: 1px 1px 0 1px;
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+  }
+ 	
+  .buttons {
+    margin-bottom: 0;
+    padding: 0 0 10px 70px;
+    border-width: 0 1px 1px 1px;
+    width: auto;
+    float: none;
+  }
+
+  .check-icon {
+    height: 100%;
+    position: absolute;
+    left: 0;
+    width: 70px;
+    border: 1px solid darken($succesBgColor, 10);
+    background: $succesBgColor url(../images/clientenportaal/succes-feedback-check.png) no-repeat center center;
+  }
+
+  .close {
+    top: 10px;
+    right: 10px;
+    color: #383838;
+    @include opacity(0.8);
+    @include text-shadow(0 0 0 transparent);
+
+    &:hover {
+      @include opacity(1);
+    }
+  }
+}
+
+.alert-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url(../images/clientenportaal/alert-overlay.png) repeat top left;
+  background: rgba(#000, 0.5);
+}
+
+.alert-error {
+  ul {
+    padding: 18px;
+    margin: 0;
+  } 
+}
+
+.alert ul li span p {
+ 	display: inline;
+}
+

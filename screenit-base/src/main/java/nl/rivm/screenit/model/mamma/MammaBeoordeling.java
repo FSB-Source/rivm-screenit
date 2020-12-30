@@ -136,6 +136,9 @@ public class MammaBeoordeling extends AbstractHibernateObject
 	@Enumerated(EnumType.STRING)
 	private XdsStatus xdsVerslagStatus;
 
+	@Column
+	private String redenAnnuleren;
+
 	public List<MammaHuisartsBericht> getHuisartsBerichten()
 	{
 		return huisartsBerichten;
@@ -334,5 +337,15 @@ public class MammaBeoordeling extends AbstractHibernateObject
 	public void setXdsVerslagStatus(XdsStatus xdsVerslagStatus)
 	{
 		this.xdsVerslagStatus = xdsVerslagStatus;
+	}
+
+	public String getRedenAnnuleren()
+	{
+		return redenAnnuleren;
+	}
+
+	public void setRedenAnnuleren(String redenAnnuleren)
+	{
+		this.redenAnnuleren = redenAnnuleren;
 	}
 }

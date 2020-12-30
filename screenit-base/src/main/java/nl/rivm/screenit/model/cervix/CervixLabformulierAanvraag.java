@@ -49,7 +49,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixLabformulierAanvraag extends AbstractHibernateObject implements ICervixHuisartsportaalObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Long huisartsportaalId;

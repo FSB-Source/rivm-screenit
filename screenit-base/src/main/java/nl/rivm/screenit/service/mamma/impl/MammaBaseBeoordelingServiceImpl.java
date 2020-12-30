@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -33,6 +34,7 @@ import java.util.stream.Stream;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
+import nl.rivm.screenit.dao.mamma.MammaBaseKwaliteitscontroleDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.INaam;
@@ -49,6 +51,7 @@ import nl.rivm.screenit.model.mamma.MammaAsymmetrieLaesie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaCalcificatiesLaesie;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaLaesie;
 import nl.rivm.screenit.model.mamma.MammaLaesieIcoon;
 import nl.rivm.screenit.model.mamma.MammaLezing;
@@ -64,6 +67,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaLaesieType;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -72,6 +76,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseLezingService;
+import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsBerichtService;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.NaamUtil;
@@ -128,6 +133,15 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	@Autowired
 	private MammaBaseFollowUpService followUpService;
+
+	@Autowired
+	private MammaBaseKwaliteitscontroleDao baseKwaliteitscontroleDao;
+
+	@Autowired
+	private MammaBaseOnderzoekService onderzoekService;
+
+	@Autowired
+	private BaseScreeningRondeService screeningrondeService;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -529,11 +543,10 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 				}
 
 				MammaScreeningRonde ronde = getScreeningRonde(beoordeling);
-				boolean isOpnieuwBeoordeeld = isOpnieuwBeoordeeld(beoordeling);
 				final MammaBeperktBeoordeelbaarReden beperktBeoordeelbaarReden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
 				if (beperktBeoordeelbaarReden == null)
 				{
-					maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_GUNSTIGE_UITSLAG, isOpnieuwBeoordeeld, false);
+					maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_GUNSTIGE_UITSLAG, false);
 				}
 				else
 				{
@@ -541,23 +554,23 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 					{
 					case FOTOS_MAAR_IN_1_RICHTING_GEMAAKT:
 					case MAMMA_NIET_VOLLEDIG_AFGEBEELD:
-						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_BEPERKT_BEOORDEELBAAR, isOpnieuwBeoordeeld, false);
+						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_BEPERKT_BEOORDEELBAAR, false);
 						break;
 					case PROTHESE_MEER_DAN_0_PUNT_8:
-						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_BEPERKT_BEOORDEELBAAR_PROTHESE, isOpnieuwBeoordeeld, false);
+						boolean gunstigeUitslagBriefIsGemaakt = maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_BEPERKT_BEOORDEELBAAR_PROTHESE, false);
 						final EnovationHuisarts huisarts = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getHuisarts();
-						if (huisarts != null && !isOpnieuwBeoordeeld)
+						if (huisarts != null && gunstigeUitslagBriefIsGemaakt)
 						{
 							huisartsBerichtService.verstuurHuisartsBericht(beoordeling, huisarts, HuisartsBerichtType.MAMMA_PROTHESE_MEER_DAN_80_PROCENT);
 						}
 						break;
 					case GEEN_BEOORDELING_MOGELIJK:
 						setStatus(beoordeling, MammaBeoordelingStatus.ONBEOORDEELBAAR_TE_VERSTUREN);
-						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_GEEN_BEOORDELING_MOGELIJK, isOpnieuwBeoordeeld, true);
+						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_GEEN_BEOORDELING_MOGELIJK, true);
 						break;
 					case FOTOS_VAN_EEN_OF_BEIDE_ZIJDEN_BEWOGEN:
 					case KWALITEIT_KOMT_NIET_OVEREEN_MET_STANDAARD:
-						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_GUNSTIGE_UITSLAG, isOpnieuwBeoordeeld, false);
+						maakGunstigeUitlagBrief(ronde, BriefType.MAMMA_GUNSTIGE_UITSLAG, false);
 						break;
 					default:
 						throw new IllegalStateException("Beperkt beoordeelbaar reden: " + beperktBeoordeelbaarReden + " bestaat niet.");
@@ -574,12 +587,14 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		}
 	}
 
-	private void maakGunstigeUitlagBrief(MammaScreeningRonde ronde, BriefType briefType, boolean isOpnieuwBeoordeeld, boolean briefGegenereerd)
+	private boolean maakGunstigeUitlagBrief(MammaScreeningRonde ronde, BriefType briefType, boolean briefGegenereerd)
 	{
-		if (!isOpnieuwBeoordeeld)
+		if (!briefService.briefTypeAlVerstuurdInDezeRonde(ronde, Collections.singletonList(briefType)))
 		{
 			briefService.maakMammaBrief(ronde, briefType, briefGegenereerd);
+			return true;
 		}
+		return false;
 	}
 
 	private boolean heeftOnderzoekNevenbevindingen(MammaBeoordeling beoordeling)
@@ -833,13 +848,6 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public boolean isOpnieuwBeoordeeld(MammaBeoordeling beoordeling)
-	{
-		return beoordeling.getOnderzoek().getBeoordelingen().size() > 1;
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBeoordeling getBeoordelingMetVerslagLezing(MammaAfspraak afspraak)
 	{
 		if (afspraak != null && afspraak.getOnderzoek() != null)
@@ -908,6 +916,43 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	}
 
 	@Override
+	public void valideerEnHerbeoordeelBeoordeling(MammaBeoordeling laatsteBeoordeling, InstellingGebruiker ingelogdeGebruiker)
+	{
+		if (beoordelingReserveringService.gereserveerdDoorIemandAnders(ingelogdeGebruiker, laatsteBeoordeling))
+		{
+			throw new IllegalStateException("Een radioloog is bezig met een lezing voor deze beoordeling, wacht met annuleren tot de lezing is opgeslagen.");
+		}
+		if (beoordelingZitInActieveFotobespreking(laatsteBeoordeling))
+		{
+			throw new IllegalStateException("De beoordeling is meegenomen in een fotobespreking");
+		}
+		else
+		{
+			herbeoordeelBeoordeling(laatsteBeoordeling);
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public boolean beoordelingZitInActieveFotobespreking(MammaBeoordeling beoordeling)
+	{
+		MammaScreeningRonde ronde = getScreeningRonde(beoordeling);
+		List<MammaFotobesprekingOnderzoek> fbOnderzoeken = baseKwaliteitscontroleDao.getKwaliteitscontroleOnderzoeken(ronde, MammaFotobesprekingOnderzoek.class);
+		return fbOnderzoeken.stream().anyMatch(fbOnderzoek -> fbOnderzoek.getFotobespreking().getAfgerondOp() == null && fbOnderzoek.getBeoordeling().equals(beoordeling));
+	}
+
+	private void herbeoordeelBeoordeling(MammaBeoordeling laatsteBeoordeling)
+	{
+		annuleerBeoordeling(laatsteBeoordeling);
+		MammaScreeningRonde ronde = getScreeningRonde(laatsteBeoordeling);
+		screeningrondeService.heropenScreeningRonde(ronde);
+		onderzoekService.voegNieuweBeoordelingToe(laatsteBeoordeling.getOnderzoek());
+
+		briefService.setNietGegenereerdeBrievenOpTegenhouden(ronde, BriefType.getMammaGunstigeUitslagBriefTypen());
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaBeoordeling getLaatsteBeoordelingMetUitslag(MammaDossier dossier)
 	{
 		return baseBeoordelingDao.getLaatsteBeoordelingMetUitslag(dossier);

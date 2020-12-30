@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
 public interface IBevolkingsonderzoek
 {
-	
+
 	List<Bevolkingsonderzoek> getBevolkingsonderzoeken();
 
 	void setBevolkingsonderzoeken(List<Bevolkingsonderzoek> bevolkingsonderzoeken);

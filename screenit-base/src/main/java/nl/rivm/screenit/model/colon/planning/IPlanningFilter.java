@@ -30,7 +30,7 @@ import nl.topicuszorg.wicket.planning.model.appointment.Location;
 
 public interface IPlanningFilter
 {
-	
+
 	Date getBegintijd();
 
 	Date getEindtijd();

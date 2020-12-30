@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.enums.ToegangLevel;
 
 public class Constraint extends Permissie
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Class<?> scopeObjectClass;

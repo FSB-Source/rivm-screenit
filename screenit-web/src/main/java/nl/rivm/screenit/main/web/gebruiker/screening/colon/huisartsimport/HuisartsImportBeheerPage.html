@@ -1,0 +1,67 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:extend>
+    <h1 class="pageTitle">Huisarts Import</h1>
+    <fieldset wicket:id="colonHuisartsImporteren">
+        <div class="form-horizontal">
+            <h2>Importeren huisartsen</h2>
+			<span> <wicket:message key="label.huisartsimport.info">
+                Op deze pagina kunt u het EDI-Adresboek van E-Novation importeren.
+                Na voltooiing van de verwerking van dit XLS bestand,
+                zult u een mail ontvangen met een rapportage over het geimporteerde bestand
+            </wicket:message>
+			</span>
+            <form wicket:id="uploadForm">
+                <input type="file" wicket:id="fileInput"> <br/>
+                <span>Edifact adres overschrijven</span><input type="checkbox"
+                                                               wicket:id="ediAdresOverschrijven">
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" wicket:id="importeer">
+                        Importeer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </fieldset>
+    <fieldset wicket:id="cervixBulkContainer">
+        <div class="form-horizontal">
+            <h2>Bulk huisartsen</h2>
+            <form wicket:id="cervixBulkUploadFrom">
+                <div class="control-group">
+                    <label class="control-label">
+                        Bulk huisartsen upload
+                        <i class="icon-asterisk icon-purple"></i>
+                    </label>
+                    <div class="controls">
+                        <input type="file" wicket:id="bulkFile">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-primary" wicket:id="bulkSubmit">
+                        Importeer bulk huisartsen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </fieldset>
+</wicket:extend>
+</html>

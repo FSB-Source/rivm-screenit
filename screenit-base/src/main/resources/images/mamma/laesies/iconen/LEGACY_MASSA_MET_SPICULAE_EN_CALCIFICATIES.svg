@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<svg width="32px" height="30px" viewBox="0 0 32 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Verdichting uitl microcalc</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Icons/Verdichting-uitl-microcalc" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Oval-2" fill="#D0021B" cx="16.6393839" cy="15.6393839" r="11.6393839"></circle>
+        <path d="M17,4 L17,-1" id="Line" stroke="#D0021B" stroke-width="2" stroke-linecap="square"></path>
+        <ellipse id="Oval-3" fill="#FFFFFF" cx="16.6056192" cy="8.72933635" rx="2.60561917" ry="2.72933635"></ellipse>
+        <ellipse id="Oval-3" fill="#FFFFFF" cx="16.6056192" cy="15.7293363" rx="2.60561917" ry="2.72933635"></ellipse>
+        <ellipse id="Oval-3" fill="#FFFFFF" cx="9.60561917" cy="13.7293363" rx="2.60561917" ry="2.72933635"></ellipse>
+        <ellipse id="Oval-3" fill="#FFFFFF" cx="12.6056192" cy="21.7293363" rx="2.60561917" ry="2.72933635"></ellipse>
+        <ellipse id="Oval-3" fill="#FFFFFF" cx="20.6056192" cy="21.7293363" rx="2.60561917" ry="2.72933635"></ellipse>
+        <ellipse id="Oval-3" fill="#FFFFFF" cx="23.6056192" cy="13.7293363" rx="2.60561917" ry="2.72933635"></ellipse>
+        <path d="M-2,26 L8,21" id="Line" stroke="#D0021B" stroke-width="2" stroke-linecap="square"></path>
+        <path d="M32,26 L25,20" id="Line" stroke="#D0021B" stroke-width="2" stroke-linecap="square"></path>
+        <path d="M0,2 L9,7" id="Line" stroke="#D0021B" stroke-width="2" stroke-linecap="square"></path>
+        <path d="M22,7 L33,2" id="Line" stroke="#D0021B" stroke-width="2" stroke-linecap="square"></path>
+    </g>
+</svg>

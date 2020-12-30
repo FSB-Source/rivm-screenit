@@ -49,7 +49,7 @@ import org.hibernate.envers.Audited;
 public abstract class ScreeningRonde<D extends Dossier<?, ?>, B extends ClientBrief<?, ?, ?>, AF extends Afmelding<?, ?, ?>, U extends Uitnodiging<?>> extends
 	TablePerClassHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Temporal(TemporalType.TIMESTAMP)

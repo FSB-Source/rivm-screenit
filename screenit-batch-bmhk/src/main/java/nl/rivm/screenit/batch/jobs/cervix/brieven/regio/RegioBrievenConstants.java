@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio;
 
 public class RegioBrievenConstants
 {
-	
+
 	private RegioBrievenConstants()
 	{
 

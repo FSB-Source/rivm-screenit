@@ -46,8 +46,8 @@ import org.hibernate.Criteria;
 
 public interface InstellingService
 {
-	
-	List<CentraleEenheid> getMogelijkeCentraleEenheden(ScreeningOrganisatie screeningOrganisatie);
+
+	List<CentraleEenheid> getMogelijkeCentraleEenheden(Instelling instelling);
 
 	List<InstellingGebruiker> getActieveInstellingGebruikers(@Nonnull Gebruiker medewerker);
 

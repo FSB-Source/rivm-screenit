@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class IFOBTVerwerkingProcessor implements ItemProcessor<Long, IFOBTUitslag>
 {
-	
+
 	@Autowired
 	private HibernateService hibernateService;
 

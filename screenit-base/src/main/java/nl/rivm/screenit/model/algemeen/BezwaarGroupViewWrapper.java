@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
 public class BezwaarGroupViewWrapper implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String key;

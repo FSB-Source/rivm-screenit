@@ -40,7 +40,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixRegioBrief extends Brief
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY)

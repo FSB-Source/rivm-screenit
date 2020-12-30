@@ -30,7 +30,7 @@ import nl.topicuszorg.formulieren2.persistence.definitie.AbstractAntwoordDefinit
 @Entity
 public class PalgaNumberAntwoordDefintie extends AbstractAntwoordDefinitie<PalgaNumber>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(name = "intValue")

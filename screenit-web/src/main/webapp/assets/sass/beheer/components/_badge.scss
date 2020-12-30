@@ -1,0 +1,121 @@
+.badge {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.gebeurtenissen .badge {
+  position: relative;
+  padding-right: 130px;
+
+  .datum {
+    position: absolute;
+    right: 10px;
+    top: 5px;
+  }
+
+  .omschrijving {
+    white-space: normal;
+  }
+}
+
+.badge-clickable {
+  width: 100%;
+  cursor: pointer;
+  background-color: $colorColonis4;
+  color: black;
+  font-weight: normal;
+
+  @include text-shadow(0 0 0 transparent);
+  @include box-sizing('border-box');
+}
+
+.badge-not-clickable {
+  width: 100%;
+  background-color: transparent;
+  color: black;
+  font-weight: normal;
+  cursor: default;
+
+  @include text-shadow(0 0 0 transparent);
+  @include box-sizing('border-box');
+}
+
+.badge-inverse,
+.badge.badge-success {
+  width: 100%;
+  font-weight: normal;
+  color: white;
+  @include box-sizing('border-box');
+}
+
+.badge-success {
+  background-color: $colorColonis3;
+}
+
+.badge-inverse {
+  background-color: $colorColonis-beheer3;
+}
+
+.label-info, .badge-info {
+  padding: 3px 6px 3px 6px;
+  margin-left: 3px;
+  background-color: $colorColonis-beheer3;
+  vertical-align: middle;
+}
+
+.status-bevolkingsonderzoek {
+  .badge {
+    margin: 3px 0;
+    float: left;
+    clear: both;
+    width: 100%;
+    box-sizing: border-box;
+
+    &.badge-success {
+      width: auto;
+    }
+
+    &.badge-inactive {
+      width: auto;
+    }
+  }
+
+  .badge.badge.status-inactief,
+  .badge.badge-success.status-actief {
+    margin-right: 7px;
+    width: auto;
+    text-align: center;
+  }
+
+  .center-content {
+    text-align: center;
+    .badge {
+      display: block;
+      float: none;
+    }
+  }
+}
+
+.modal .badge {
+  padding: 5px 10px;
+  font-size: 12px;
+  white-space: normal;
+}
+
+.version-prototype {
+  .badge-prototype {
+    position: fixed;
+    bottom: 5px;
+    left: 10px;
+    z-index: 3;
+    cursor: pointer;
+    .label {
+      padding: 5px 7px 5px 7px;
+      border: solid 1px #FFF;
+      vertical-align: middle;
+    }
+    i {
+      background-position: -432px -1px;
+    }
+  }
+}

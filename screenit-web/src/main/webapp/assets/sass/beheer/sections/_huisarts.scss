@@ -1,0 +1,54 @@
+.huisarts-handmatig .verplicht-legenda {
+  display: none;
+}
+
+.controle-huisarts .huisartsgegevens .span6 {
+  width: 100%;
+  margin-left: 0;
+  float: none;
+}
+
+.huisarts-bevestigen,
+.huisarts-handmatig,
+.huisarts-zoek-form {
+  border: 1px solid #DDD;
+  background-color: #eee;
+  padding: 15px;
+
+  width: 100%;
+  @include box-sizing('border-box');
+  @include border-radius(5px);
+  @include clearfix();
+}
+
+.huisarts-zoekresultaten h2 {
+  margin-top: 30px;
+  padding-left: 10px;
+  color: $colorColonis2;
+}
+
+.controle-huisarts .huisarts-handmatig {
+  width: 100%;
+  @include box-sizing(border-box);
+
+  .control-label {
+    width: 120px;
+  }
+
+  .controls {
+    margin-left: 130px;
+  }
+}
+
+.controle-huisarts {
+  .huisarts-zoek-form {
+    div.control-group {
+      width: 100%;
+      margin-bottom: 5px;
+    }
+
+    .btn-primary {
+      margin-top: 0;
+    }
+  }
+}

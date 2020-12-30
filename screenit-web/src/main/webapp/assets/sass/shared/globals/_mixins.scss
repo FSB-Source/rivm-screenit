@@ -1,0 +1,46 @@
+$break-tablet-landscape: 1024px;
+$break-tablet-portrait: 768px;
+$break-small: 1280px;
+$break-medium: 1440px;
+$break-large: 1824px;
+
+$breakpoint-property: max-width;
+
+@mixin respond-to($point) {
+  @if $point == tablet-landscape {
+    @media ($breakpoint-property: $break-tablet-landscape) {
+      @content;
+    }
+  } @else if $point == tablet-portrait {
+    @media ($breakpoint-property: $break-tablet-portrait) {
+      @content;
+    }
+  } @else if $point == small-screen {
+    @media ($breakpoint-property: $break-small) {
+      @content;
+    }
+  } @else if $point == medium-screen {
+    @media ($breakpoint-property: $break-medium) {
+      @content;
+    }
+  } @else if $point == large-screen {
+    @media ($breakpoint-property: $break-large) {
+      @content;
+    }
+  }
+}
+
+@mixin keyframes($name) {
+  @-webkit-keyframes #{$name} {
+    @content;
+  }
+  @-moz-keyframes #{$name} {
+    @content;
+  }
+  @-ms-keyframes #{$name} {
+    @content;
+  }
+  @keyframes #{$name} {
+    @content;
+  }
+}

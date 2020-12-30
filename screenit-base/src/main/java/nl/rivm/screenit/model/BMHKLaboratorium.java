@@ -41,7 +41,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class BMHKLaboratorium extends Instelling
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ElementCollection(fetch = FetchType.LAZY)

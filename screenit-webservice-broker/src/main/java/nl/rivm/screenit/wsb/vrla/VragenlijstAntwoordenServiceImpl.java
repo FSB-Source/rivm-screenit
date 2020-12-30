@@ -74,7 +74,7 @@ import org.springframework.transaction.annotation.Transactional;
 @WebService(targetNamespace = "http://screenit.rivm.nl/", name = "VragenlijstAntwoordenService")
 public class VragenlijstAntwoordenServiceImpl implements VragenlijstAntwoordenService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(VragenlijstAntwoordenServiceImpl.class);
 
 	@Autowired

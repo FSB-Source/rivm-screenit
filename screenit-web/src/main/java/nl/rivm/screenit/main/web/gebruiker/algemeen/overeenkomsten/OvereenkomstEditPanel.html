@@ -1,0 +1,83 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="modal" id="modalOvereenkomst" role="dialog">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3 wicket:id="titel">Nieuwe modelovereenkomst</h3>
+        </div>
+        <div class="modal-body">
+            <form wicket:id="form">
+                <fieldset class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Type <i class="icon-asterisk icon-purple"></i></label>
+                        <div class="controls">
+                            <div wicket:id="overeenkomst">
+                                <label class="radio">
+                                    <input type="radio" name="type-overeenkomst" wicket:id="typeOvereenkomst"/>
+                                    Overeenkomst
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="type-overeenkomst"
+                                           wicket:id="typeKwaliteitsovereenkomst"/>
+                                    Kwaliteitsovereenkomst
+                                </label>
+                                <label class="radio">
+                                    <input type="radio" name="type-overeenkomst" wicket:id="typeZakelijkeovereenkomst"/>
+                                    Zakelijke voorwaarden BMHK huisarts
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Naam <i class="icon-asterisk icon-purple"></i></label>
+                        <div class="controls">
+                            <input class="input-large" wicket:id="naam" type="text">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Bestand <i class="icon-asterisk icon-purple"></i></label>
+                        <div class="controls">
+                            <input type="file" wicket:id="upload" accept=".docx,.doc">
+                        </div>
+                    </div>
+                    <div wicket:id="organisatieTypeContainer">
+                        <wicket:enclosure child="organisatieType">
+                            <div class="control-group">
+                                <label class="control-label">Organisatietype <i
+                                        class="icon-asterisk icon-purple"></i></label>
+                                <div class="controls">
+                                    <select wicket:id="organisatieType"></select>
+                                </div>
+                            </div>
+                        </wicket:enclosure>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" data-dismiss="modal">Annuleren</button>
+            <button class="btn btn-primary" wicket:id="submit" type="submit">Opslaan</button>
+        </div>
+    </div>
+</wicket:panel>
+</html>

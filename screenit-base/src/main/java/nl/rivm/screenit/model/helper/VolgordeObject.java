@@ -23,7 +23,7 @@ package nl.rivm.screenit.model.helper;
 
 public interface VolgordeObject<T> extends Comparable<T>
 {
-	
+
 	Integer getVolgorde();
 
 	void setVolgorde(Integer volgorde);

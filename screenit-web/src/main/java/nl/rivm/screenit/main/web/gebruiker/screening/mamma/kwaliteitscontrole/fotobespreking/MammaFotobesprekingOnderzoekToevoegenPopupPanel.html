@@ -1,0 +1,50 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div id="kwaliteitsopname-dialog">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>Cli&eumlnt toevoegen</h3>
+        </div>
+        <form wicket:id="form">
+            <div class="modal-body form-horizontal">
+                <div class="control-group span7 row">
+                    <label class="control-label">BSN</label>
+                    <div class="controls">
+                        <input type="text" wicket:id="bsn" class="input-small">
+                    </div>
+                </div>
+                <div class="control-group span7 row">
+                    <label class="control-label">Geboortedatum</label>
+                    <div class="controls">
+                        <input type="text" wicket:id="geboortedatum" class="input-small" maxlength="10">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:void(0);" class="btn" data-dismiss="modal">Annuleren</a>
+                <a class="btn btn-primary" wicket:id="submit">Toevoegen</a>
+            </div>
+        </form>
+    </div>
+</wicket:panel>
+</html>

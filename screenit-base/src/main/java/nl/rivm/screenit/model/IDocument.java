@@ -28,7 +28,7 @@ import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 public interface IDocument extends HibernateObject
 {
-	
+
 	UploadDocument getDocument();
 
 	void setDocument(UploadDocument document);

@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface LogService
 {
-	
+
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken);
 
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken);

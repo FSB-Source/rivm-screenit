@@ -64,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
 @WebService(targetNamespace = "http://screenit.rivm.nl/", name = "VragenlijstDefinitieService")
 public class VragenlijstDefinitieServiceImpl implements VragenlijstDefinitieService
 {
-	
+
 	@Autowired
 	private VragenlijstBaseService vragenlijstBaseService;
 

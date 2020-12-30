@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 
 public interface CurrentDateDispatcher
 {
-	
+
 	void setOffset(Duration offset);
 
 	void setNow(LocalDateTime now);

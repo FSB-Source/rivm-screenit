@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultVrijSlotFactory implements VrijSlotFactory<VrijSlot>
 {
-	
+
 	@Override
 	public VrijSlot createVrijSlot()
 	{

@@ -1,0 +1,194 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:head>
+	<link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css"/>
+</wicket:head>
+<wicket:extend>
+    <div class="row-fluid">
+        <div class="span9">
+            <h1 class="pageTitle">Tehuis - Gegevens</h1>
+        </div>
+        <div class="span3">
+            <button class="btn right" wicket:id="terug">Terug</button>
+        </div>
+    </div>
+    <div class="row-fluid form-horizontal">
+        <fieldset class="form-horizontal">
+            <form wicket:id="tehuisWijzigenForm" novalidate>
+                <fieldset>
+                    <div class="row-fluid">
+
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Naam tehuis</label>
+                                <div class="controls">
+                                    <input type="text" wicket:id="naam">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Standplaats</label>
+                                <div class="controls">
+                                    <select wicket:id="standplaats"/>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Contactpersoon</label>
+                                <div class="controls">
+                                    <input type="text" wicket:id="contactpersoon">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span6">
+                            <h3>Locatiegegevens</h3>
+                            <div class="control-group">
+                                <label class="control-label">Straatnaam/Huisnummer</label>
+                                <div class="controls">
+                                    <input wicket:id="aanschrijfAdres.straat" class="input-large" type="text"
+                                           value=""> / <input wicket:id="aanschrijfAdres.huisnummer"
+                                                              class="input-small" type="text" value="">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Huisnummertoevoeging/ Huisletter</label>
+                                <div class="controls">
+                                    <input wicket:id="aanschrijfAdres.huisnummerToevoeging" class="input-large" type="text"
+                                           value=""> / <input wicket:id="aanschrijfAdres.huisletter"
+                                                              class="input-small" type="text" value="">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Postcode/Plaats</label>
+                                <div class="controls">
+                                    <input wicket:id="aanschrijfAdres.postcode" class="input-mini" type="text"
+                                           value=""> / <input wicket:id="aanschrijfAdres.plaats"
+                                                              class="input-large" type="text" value="">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Telefoonnummer</label>
+                                <div class="controls">
+                                    <input type="text" wicket:id="telefoonnummer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="form-actions clearfix">
+            				<button class="btn" wicket:id="uitnodigen">Uitnodigen</button>
+                            <button wicket:id="inActiverenBtn" class="btn">
+                                <i class="icon-minus-sign"></i><span wicket:id="inActiverenTitle">Verwijderen</span>
+                            </button>
+                            <button class="btn btn-primary" wicket:id="opslaan">Opslaan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <br/>
+                <wicket:enclosure child="opmerkingen">
+                    <fieldset class="hero-unit">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <h2 class="pageTitle">Opmerkingen</h2>
+                            </div>
+                        </div>
+                        <div wicket:id="opmerkingen"/>
+                    </fieldset>
+                </wicket:enclosure>
+            </form>
+        </fieldset>
+
+        <div wicket:id="persistentContainer">
+            <div class="row-fluid">
+                <div class="span12">
+                    <fieldset>
+                        <h3>Tehuis adressen</h3>
+                        <div class="form-actions clearfix">
+                            <button class="btn btn-primary" wicket:id="adresToevoegenBtn"><i class="icon-plus-sign icon-white"></i> Adres toevoegen</button>
+                            <br/><br/>
+                        </div>
+                        <div class="row-fluid show-results ">
+                            <div class="span12" wicket:id="tehuisAdressenContainer">
+                                <div wicket:id="tehuisAdressenTabel"></div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div class="row-fluid form-horizontal">
+                <fieldset class="form-horizontal">
+                    <h3>Cli&euml;nten koppelen</h3>
+                    <form wicket:id="clientZoekenForm" novalidate>
+                        <fieldset>
+                            <div class="row-fluid">
+
+                                <div class="span6">
+                                    <div class="control-group">
+                                        <label class="control-label">Postcode + huisnummer</label>
+                                        <div class="controls">
+                                            <input wicket:id="postcode"
+                                                   class="input-mini" type="text">
+                                            <input wicket:id="huisnummer" class="input-mini" type="text">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span6">
+                                    <div class="control-group">
+                                        <label class="control-label">Huisnummertoevoeging</label>
+                                        <div class="controls">
+                                            <input wicket:id="huisnummerToevoeging" class="input-mini" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Huisletter</label>
+                                        <div class="controls">
+                                            <input wicket:id="huisletter" class="input-mini" type="text">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row-fluid">
+                                <div class="span12">
+                                    <div class="form-actions clearfix">
+                                        <button class="btn btn-primary" wicket:id="clientZoekenBtn">
+                                            <i class="icon-search icon-white"></i> Zoeken
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </form>
+                    <p>Klik op een cliënt om deze te koppelen.</p>
+                    <div class="row-fluid show-results">
+                        <div class="span12" wicket:id="tehuisClientenContainer">
+                            <div wicket:id="tehuisClientenTabel"></div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    <div wicket:id="dialog"></div>
+</wicket:extend>
+</html>

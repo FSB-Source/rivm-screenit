@@ -95,8 +95,6 @@ public interface MammaBaseBeoordelingService
 
 	String getNevenbevindingOpmerkingTekst(String lineBreak, MammaLezing... lezing);
 
-	boolean isOpnieuwBeoordeeld(MammaBeoordeling beoordeling);
-
 	void verstuurXdsBericht(MammaBeoordeling beoordeling);
 
 	void opgeschortOnderzoekTerugNaarWerklijst(MammaBeoordeling beoordeling);
@@ -108,6 +106,10 @@ public interface MammaBaseBeoordelingService
 	Optional<MammaBeoordeling> zoekOpgeschorteBeoordelingInRonde(MammaScreeningRonde ronde, MammaBeoordelingOpschortenReden... opschortenRedenen);
 
 	void annuleerBeoordeling(MammaBeoordeling beoordeling);
+
+	void valideerEnHerbeoordeelBeoordeling(MammaBeoordeling beoordeling, InstellingGebruiker ingelogdeGebruiker);
+
+	boolean beoordelingZitInActieveFotobespreking(MammaBeoordeling beoordeling);
 
 	MammaBeoordeling getLaatsteBeoordelingMetUitslag(MammaDossier dossier);
 }

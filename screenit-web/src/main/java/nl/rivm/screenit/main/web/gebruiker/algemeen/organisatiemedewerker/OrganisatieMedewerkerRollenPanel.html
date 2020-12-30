@@ -1,0 +1,120 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<wicket:panel>
+    <div class="modal-header">
+        <button type="button" data-dismiss="modal" class="close">&times;</button>
+        <h3>Rollen</h3>
+    </div>
+    <form wicket:id="rollenForm">
+        <div class="modal-body">
+            <fieldset class="hero-unit">
+                <div class="row-fluid">
+                    <div class="span3">
+                        U koppelt rollen voor
+                    </div>
+                    <div class="span3">
+                        <strong wicket:id="achternaam">Achternaam</strong>
+                        <wicket:container wicket:id="voornaam">Voornaam</wicket:container>
+                    </div>
+                    <div class="span3">
+                        De rollen zijn gekoppeld aan
+                    </div>
+                    <div class="span3" wicket:id="organisatie">
+                        <strong>Organisatie 3</strong>
+                    </div>
+                </div>
+            </fieldset>
+            <hr>
+
+            <div class="row-fluid">
+
+                <div class="span12">
+                    <table class="table table-bordered table-condensed">
+                        <thead>
+                        <tr>
+                            <th>Rol</th>
+                            <th>Bvo</th>
+                            <th>Begindatum</th>
+                            <th>Einddatum</th>
+                            <th class="status-header">
+                                <wicket:container wicket:id="actiefHeader"></wicket:container>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="add-rol rol-3" wicket:id="rollen">
+                            <td>
+                                <select wicket:id="rol">
+                                    <option selected disabled>- Maak een keuze -</option>
+                                    <option>Medewerker Screeningsorganisatie</option>
+                                    <option>Medewerker Landelijke organisatie</option>
+                                    <option>Functioneel Beheerder Landelijk</option>
+                                    <option>Regionaal Co&ouml;rdinerend Patholoog</option>
+                                    <option>Regionaal Co&ouml;rdinerend Radioloog</option>
+                                    <option>Regionaal Co&ouml;rdinerend MDL-arts</option>
+                                    <option>Medewerker iFOBTlab</option>
+                                    <option>Medewerker Inpakcentrum</option>
+                                    <option>Instellingsgemachtigde</option>
+                                    <option>Instellingsbeheerder</option>
+                                    <option>Agendabeheer Coloscopiecentrum</option>
+                                    <option>Intaker</option>
+                                    <option>Endoscopist</option>
+                                    <option>Patholoog</option>
+                                    <option>Radioloog</option>
+                                    <option>MDL-arts</option>
+                                    <option>Zorgverzekeraar</option>
+                                </select>
+                                <wicket:container wicket:id="rolVast"></wicket:container>
+                            </td>
+                            <td>
+                                <div wicket:id="bevolkingsonderzoekenContainer">
+                                    <select wicket:id="bevolkingsonderzoeken"/>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-append">
+                                    <input wicket:id="beginDatum" class="input-small" type="text">
+                                    <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-append">
+                                    <input wicket:id="eindDatum" class="input-small" type="text">
+                                    <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                            </td>
+                            <td class="status"><a href="javascript:void(0);" wicket:id="toggleActief" class="btn btn-success"><i class="icon-ok-circle"></i></a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary left" wicket:id="toevoegen"><i class="icon-plus-sign icon-white"></i> Rol toevoegen</button>
+            <button class="btn" wicket:id="sluiten">Annuleren</button>
+            <button href="javascript:void(0);" class="btn btn-primary" wicket:id="opslaan">Opslaan</button>
+        </div>
+    </form>
+</wicket:panel>

@@ -29,9 +29,9 @@ import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
 public interface MammaBaseScreeningrondeService
 {
-	void verwijderScreeningRondes(MammaDossier dossier);
+	void verwijderAlleScreeningRondes(MammaDossier dossier);
 
-	void verwijderScreeningRonde(MammaScreeningRonde screeningRonde);
+	boolean verwijderScreeningRonde(MammaScreeningRonde screeningRonde, boolean forceerVerwijderBeelden);
 
 	MammaScreeningRonde getRondeVanUitnodigingsr(Client client, Long uitnodigingsNr);
 

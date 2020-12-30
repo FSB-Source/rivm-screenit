@@ -1,0 +1,107 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <h1 class="pageTitle">
+        Overzicht van de batches
+    </h1>
+
+    <fieldset class="form-horizontal filter-overzicht-batches">
+        <form wicket:id="form">
+            <div class="row-fluid">
+                <div class="span3">
+                    <div class="btn-group" data-toggle="buttons-radio">
+                        <button class="btn" wicket:id="status">
+                            <wicket:container wicket:id="label">Alle intakes</wicket:container>
+                        </button>
+                    </div>
+                </div>
+                <div class="span5">
+                    <div class="control-group datum-van">
+                        <label class="control-label">Datum van</label>
+                        <div class="controls">
+                            <div class="btn-group periode-filter">
+                                <div class="input-append">
+                                    <input wicket:id="datumVan" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
+                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">tot</label>
+                        <div class="controls">
+                            <div class="btn-group periode-filter">
+                                <div class="input-append">
+                                    <input wicket:id="datumTot" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
+                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">op</label>
+                        <div class="controls">
+                            <div class="input-append" wicket:id="analyseDatum"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="span4">
+                    <div class="control-group">
+                        <wicket:enclosure child="lab">
+                            <label class="control-label">Laboratorium</label>
+                            <div class="controls">
+                                <select wicket:id="lab">
+                                    <option value="1">Laboratorium 1</option>
+                                    <option value="1">Laboratorium 2</option>
+                                    <option value="1">Laboratorium 3</option>
+                                </select>
+                            </div>
+                        </wicket:enclosure>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+    <fieldset>
+        <form wicket:id="buttonForm">
+            <div wicket:id="tabel" class="table table-bordered table-condensed">
+            </div>
+            <div class="buttons">
+                <a href="javascript:void(0);" class="btn btn-danger pull-left" wicket:id="verwijderen">Verwijderen</a>
+				<span wicket:id="beoordelenContainer">
+					<a href="javascript:void(0);" class="btn" wicket:id="beoordelen"><i class="icon-download"></i> Beoordelen (QBase)</a>
+				</span>
+                <a href="javascript:void(0);" class="btn btn-primary" wicket:id="autoriseer">Autoriseer</a>
+            </div>
+        </form>
+    </fieldset>
+    <div wicket:id="dialog"></div>
+
+    <wicket:container wicket:id="statusIconFragmentContainer">
+        <wicket:fragment wicket:id="statusIconFragment">
+            <i wicket:id="icon"></i>
+        </wicket:fragment>
+    </wicket:container>
+</wicket:extend>
+</html>

@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.colon.Kamer;
 
 public class VrijSlot implements Comparable<VrijSlot>
 {
-	
+
 	private Date startTijd;
 
 	private Date eindTijd;

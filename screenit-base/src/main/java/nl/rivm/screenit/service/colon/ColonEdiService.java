@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 
 public interface ColonEdiService
 {
-	
+
 	void verstuurMedVry(ColonHuisartsBericht bericht);
 
 	ColonHuisartsBericht maakHuisartsBericht(HuisartsBerichtType berichtType, ColonHuisartsBerichtStatus status, Client client, EnovationHuisarts huisarts,

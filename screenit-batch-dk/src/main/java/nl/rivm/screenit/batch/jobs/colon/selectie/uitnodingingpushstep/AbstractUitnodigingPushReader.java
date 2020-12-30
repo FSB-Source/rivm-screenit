@@ -44,7 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableResultReader<ClientCategorieEntry>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractUitnodigingPushReader.class);
 
 	private static final String CLIENTID = "clientId";

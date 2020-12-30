@@ -38,7 +38,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public abstract class ScannedFormulier extends TablePerClassHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)

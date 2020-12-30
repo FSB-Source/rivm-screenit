@@ -1,0 +1,117 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="editForm">
+
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>
+                <span wicket:id="actie" class="actie">Wijzig</span> capaciteitblok
+                <span class="roosterblok-info">
+					<span class="locatie-tijd"><label wicket:id="screeningsEenheid.naam">Blok</label> <span
+                            wicket:id="tijd">30-07-2013 14:00-16:00</span></span>
+				</span>
+            </h3>
+        </div>
+        <div class="modal-body">
+            <div class="row-fluid">
+                <div class="span6">
+                    <fieldset class="hero-unit form-horizontal edit-bk-capaciteit">
+                        <div class="control-group">
+                            <label class="control-label">Type</label>
+                            <div class="controls">
+                                <select wicket:id="blokType"></select>
+                                <i class="icon-asterisk icon-purple right"></i>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Start</label>
+                            <div class="controls">
+                                <wicket:container wicket:id="vanaf"></wicket:container>
+                                <i class="icon-asterisk icon-purple right"></i>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Eind tot</label>
+                            <div class="controls">
+                                <wicket:container wicket:id="tot"></wicket:container>
+                                <i class="icon-asterisk icon-purple right"></i>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="span6">
+                    <fieldset class="hero-unit form-horizontal edit-bk-capaciteit">
+                        <div wicket:id="aantalOnderzoekenContainer">
+                            <div class="control-group">
+                                <label class="control-label">
+                                    Onderzoeken
+                                </label>
+                                <div class="controls">
+                                    <input wicket:id="aantalOnderzoeken" type="text" maxlength="3"/>
+                                    <i class="icon-asterisk icon-purple"></i>
+                                </div>
+                            </div>
+                            <div class="control-group value" wicket:id="aantalReguliereOnderzoekenContainer">
+                                <label class="control-label">
+                                    Regulier
+                                </label>
+                                <div class="controls">
+                                    <label wicket:id="aantalReguliereOnderzoeken"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div wicket:id="minderValideAfspraakMogelijkContainer">
+                            <label class="control-label" style="width: 190px">
+                                Mindervalide afspraak mogelijk
+                            </label>
+                            <div class="controls">
+                                <input wicket:id="minderValideAfspraakMogelijk" type="checkbox"/>
+                                <i class="icon-asterisk icon-purple"></i>
+                            </div>
+                        </div>
+                        <div wicket:id="opmerkingenContainer">
+                            <label class="control-label">
+                                Opmerkingen
+                                <i class="icon-asterisk icon-purple right"></i>
+                            </label>
+                            <div class="controls">
+                                <textarea rows="3" wicket:id="opmerkingen"></textarea>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div class="modal-footer">
+        <button wicket:id="verwijderen" class="btn btn-danger pull-left">
+            <span wicket:id="verwijderenTekst">Verwijderen</span>
+        </button>
+        <button class="btn btn-info" wicket:id="opslaan">
+            <span wicket:id="opslaanTekst">Onthouden</span>
+        </button>
+    </div>
+
+    <div wicket:id="confirmPopup"></div>
+</wicket:panel>
+</html>

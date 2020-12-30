@@ -51,7 +51,7 @@ import com.aspose.words.MailMergeCleanupOptions;
 
 public class CervixBetaalOpdrachtSpecificatieDocumentCreator extends BaseDocumentCreator
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixBetaalOpdrachtSpecificatieDocumentCreator.class);
 
 	private List<CervixBetaalopdrachtRegel> labRegels = new ArrayList<>();

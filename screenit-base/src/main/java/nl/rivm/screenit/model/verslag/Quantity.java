@@ -30,7 +30,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class Quantity implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column

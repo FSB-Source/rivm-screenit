@@ -1,0 +1,102 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="row-fluid">
+        <h2>Pathologieverslag</h2>
+        <div class="form-horizontal">
+            <div class="control-group value">
+                <label class="control-label">Datum authorisatie uitslag</label>
+                <div class="controls"><span wicket:id="verslagContent.pathologieMedischeObservatie.datumAutorisatieUitslag">0</span></div>
+            </div>
+
+            <div class="control-group value">
+                <label class="control-label">Datum ontvangst materiaal</label>
+                <div class="controls">
+                    <span wicket:id="verslagContent.pathologieMedischeObservatie.datumOntvangstMateriaal">0</span>
+                </div>
+            </div>
+
+            <div class="control-group value">
+                <label class="control-label">T-nummer laboratorium</label>
+                <div class="controls">
+                    <span wicket:id="verslagContent.pathologieMedischeObservatie.tnummerLaboratorium">0</span>
+                </div>
+            </div>
+
+            <div class="control-group value">
+                <label class="control-label">Einde verrichting</label>
+                <div class="controls">
+                    <span wicket:id="verslagContent.verrichting.eindeVerrichting">0</span>
+                </div>
+            </div>
+
+            <div class="control-group value">
+                <label class="control-label">Invoermethode verslag</label>
+                <div class="controls">
+                    <span wicket:id="invoermethode">0</span>
+                </div>
+            </div>
+
+            <div wicket:id="verslagContent.followupPa">
+                <table wicket:id="table" class="table table-striped table-bordered table-condensed">
+                    <thead>
+                    <tr>
+                        <th wicket:id="headerVerkrijgingswijze">Verkrijgingswijze</th>
+                        <th wicket:id="headerLocatietopologie">Locatie (topologie)</th>
+                        <th wicket:id="headerLocatieuren">Locatie (uren)</th>
+                        <th wicket:id="headerZijdigheid">Zijdigheid</th>
+                        <th wicket:id="headerCclassificatiePunctie">C-classificatie punctie</th>
+                        <th wicket:id="headerOestrogeenReceptorStatus">Oestrogeen receptor status</th>
+                        <th wicket:id="headerProgesteronReceptorStatus">Progesteron receptor status</th>
+                        <th wicket:id="headerHer2Status">HER2 status</th>
+                        <th wicket:id="headerBclassificatieOpMammabiopt">B-classificatie op mammabiopt</th>
+                        <th wicket:id="headerMaligniteitsgraad">Maligniteitsgraad</th>
+                        <th wicket:id="headerPtnmbreastGradering">pTNM (breast) gradering</th>
+                        <th wicket:id="headerPt">pT</th>
+                        <th wicket:id="headerPn">pN</th>
+                        <th wicket:id="headerPm">pM</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td wicket:id="monstermateriaal.verkrijgingswijze.displayNameNl"></td>
+                        <td wicket:id="monstermateriaal.locatietopologie.displayNameNl"></td>
+                        <td wicket:id="monstermateriaal.locatieuren.displayNameNl"></td>
+                        <td wicket:id="monstermateriaal.zijdigheid.displayNameNl"></td>
+                        <td wicket:id="cclassificatiePunctie.displayNameNl"></td>
+                        <td wicket:id="oestrogeenReceptorStatus.displayNameNl"></td>
+                        <td wicket:id="progesteronReceptorStatus.displayNameNl"></td>
+                        <td wicket:id="her2Status.displayNameNl"></td>
+                        <td wicket:id="bclassificatieOpMammabiopt.displayNameNl"></td>
+                        <td wicket:id="maligniteitsgraad.displayNameNl"></td>
+                        <td wicket:id="ptnmEnGradering.ptnmbreastGradering.displayNameNl"></td>
+                        <td wicket:id="ptnmEnGradering.pt.displayNameNl"></td>
+                        <td wicket:id="ptnmEnGradering.pn.displayNameNl"></td>
+                        <td wicket:id="ptnmEnGradering.pm.displayNameNl"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class BasicAuthAuthorizationInterceptor extends SoapHeaderInterceptor
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(BasicAuthAuthorizationInterceptor.class);
 
 	private String username;

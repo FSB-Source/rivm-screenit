@@ -24,10 +24,10 @@ package nl.rivm.screenit.model.dashboard;
 
 public enum DashboardActieType
 {
-	
+
 	DAG,
-	
+
 	START,
-	
+
 	OVERIG
 }

@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class ClientItemWriter implements ItemWriter<Vo107Bericht>
 {
-	
+
 	@Autowired
 	private GbaService gbaService;
 

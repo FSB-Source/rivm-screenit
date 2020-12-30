@@ -44,7 +44,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public abstract class Huisarts extends TablePerClassHibernateObject
 {
-	
+
 	private String achternaam;
 
 	private String voorletters;

@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.aftergba;
 
 public class AfterGbaConstants
 {
-	
+
 	private AfterGbaConstants()
 	{
 	}

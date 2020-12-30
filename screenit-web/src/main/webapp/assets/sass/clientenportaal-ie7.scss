@@ -1,0 +1,12 @@
+div.question,
+div.question div.answer,
+div.column-clientgegevens,
+div.column-widgets-1,
+div.column-widgets-2,
+div.column-widgets-big {
+  *behavior: url(../assets/js/boxsizing.htc);
+}
+
+.content-container {
+  *behavior: url(../assets/js/PIE.htc);
+}

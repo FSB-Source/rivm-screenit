@@ -51,7 +51,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixHuisarts extends Instelling implements ICervixHuisartsportaalObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Long huisartsportaalId;

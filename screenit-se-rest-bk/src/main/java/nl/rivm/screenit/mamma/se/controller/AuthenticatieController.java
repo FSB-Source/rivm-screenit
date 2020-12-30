@@ -23,18 +23,20 @@ package nl.rivm.screenit.mamma.se.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.mamma.se.SERequestHeader;
 import nl.rivm.screenit.mamma.se.SELogin;
 import nl.rivm.screenit.mamma.se.dto.LoginDto;
 import nl.rivm.screenit.mamma.se.dto.SeAutorisatieDto;
 import nl.rivm.screenit.mamma.se.security.SERealm;
+import nl.rivm.screenit.mamma.se.service.ConfiguratieService;
 import nl.rivm.screenit.mamma.se.service.MammaScreeningsEenheidService;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -44,7 +46,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.NaamUtil;
 
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.codec.Base64;
@@ -76,15 +77,13 @@ public class AuthenticatieController extends AuthorizedController
 	private SERealm seRealm;
 
 	@Autowired
-	private SimplePreferenceService preferenceService;
+	private ConfiguratieService configuratieService;
 
-	private static final SimpleBeanPropertyFilter FILTER_JSON_VELDEN_OUDE_VERSIE = SimpleBeanPropertyFilter.serializeAllExcept("inschrijvenRecht", "onderzoekenRecht",
-		"signalerenRecht", "kwaliteitsopnameRecht", "connectiestatusRecht");
+	private static final SimpleBeanPropertyFilter FILTER_JSON_VELDEN_OUDE_VERSIE = SimpleBeanPropertyFilter.serializeAllExcept("seParameters");
 
-	private static final SimpleBeanPropertyFilter FILTER_JSON_VELDEN_NIEUWE_VERSIE = SimpleBeanPropertyFilter.serializeAllExcept("inschrijven", "onderzoeken", "signaleren",
-		"kwaliteitsopname", "connectiestatus");
+	private static final SimpleBeanPropertyFilter FILTER_JSON_VELDEN_NIEUWE_VERSIE = SimpleBeanPropertyFilter.serializeAllExcept("seMaxOfflineInlogPeriode");
 
-	private static final String OUDE_VERSIE = "20.4";
+	private static final String OUDE_VERSIE = "20.5";
 
 	private static final String LOGGING = "logging";
 
@@ -135,7 +134,8 @@ public class AuthenticatieController extends AuthorizedController
 			result.setUsername(medewerker.getGebruikersnaam());
 			result.setMedewerkercode(medewerker.getMedewerkercode().toString());
 			result.setNavigatie(navigatie);
-			result.setSeMaxOfflineInlogPeriode(preferenceService.getInteger(PreferenceKey.MAMMA_SE_MAX_OFFLINE_INLOGPERIODE.name(), 0));
+
+			configuratieService.voegParametersToe(result);
 
 			SimpleFilterProvider filterProvider = new SimpleFilterProvider();
 

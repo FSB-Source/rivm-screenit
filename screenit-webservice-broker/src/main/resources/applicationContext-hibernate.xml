@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-webservice-broker
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+
+    http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
+
+    <bean id="hibernateConfigLocations" class="java.util.ArrayList">
+        <constructor-arg>
+            <list>
+                <value>classpath:hibernate.cfg.xml</value>
+                <value>classpath:hibernate-dataset-mapping.cfg.xml</value>
+                <value>classpath:hibernate-mapping.cfg.xml</value>
+                <value>classpath:hibernate-organisatie.cfg.xml</value>
+                <value>classpath:hibernate-persoonsgegevens.cfg.xml</value>
+                <value>classpath:hibernate-wicket-planning.cfg.xml</value>
+                <value>classpath:hibernate-formulieren2.cfg.xml</value>
+            </list>
+        </constructor-arg>
+    </bean>
+
+    <jee:jndi-lookup id="hibernateDatasource" jndi-name="jdbc/screenit"></jee:jndi-lookup>
+</beans>

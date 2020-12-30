@@ -58,7 +58,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class ColonVerslag<T extends VerslagContent<?>> extends SingleTableHibernateObject implements Verslag<T, ColonScreeningRonde>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)

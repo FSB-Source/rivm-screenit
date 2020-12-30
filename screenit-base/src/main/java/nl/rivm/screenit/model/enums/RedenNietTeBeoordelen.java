@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.enums;
 
 public enum RedenNietTeBeoordelen
 {
-	
+
 	GEEN_MONSTER,
 
 	BARCODE_ONLEESBAAR,

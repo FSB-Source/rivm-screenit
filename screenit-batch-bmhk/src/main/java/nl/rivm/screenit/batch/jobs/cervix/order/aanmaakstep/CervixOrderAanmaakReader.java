@@ -35,7 +35,7 @@ import org.springframework.batch.core.JobParameters;
 
 public class CervixOrderAanmaakReader extends BaseScrollableResultReader
 {
-	
+
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{

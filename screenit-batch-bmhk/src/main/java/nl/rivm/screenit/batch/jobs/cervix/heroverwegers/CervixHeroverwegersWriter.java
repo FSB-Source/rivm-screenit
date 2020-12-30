@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixHeroverwegersWriter extends BaseWriter<CervixCISHistorie>
 {
-	
+
 	@Autowired
 	private BaseBriefService briefService;
 

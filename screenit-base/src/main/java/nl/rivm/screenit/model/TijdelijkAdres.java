@@ -35,7 +35,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class TijdelijkAdres extends ScreenitAdres
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Temporal(TemporalType.TIMESTAMP)

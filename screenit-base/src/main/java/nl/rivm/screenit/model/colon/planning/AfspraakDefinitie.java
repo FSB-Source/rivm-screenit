@@ -47,7 +47,7 @@ import org.hibernate.annotations.Proxy;
 @Proxy(lazy = true)
 public class AfspraakDefinitie extends ActionDefinition implements HibernateObject, IContactDefinitie, IActief
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(length = HibernateMagicNumber.L250)

@@ -52,7 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 {
-	
+
 	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Vo107ItemReader.class);
 
 	private static final String OFFSET = "key.offset";

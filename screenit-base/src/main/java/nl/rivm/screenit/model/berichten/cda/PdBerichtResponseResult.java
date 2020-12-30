@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.berichten.cda;
 
 public class PdBerichtResponseResult
 {
-	
+
 	private PdBerichtResponseCode code;
 
 	private String omschrijving;

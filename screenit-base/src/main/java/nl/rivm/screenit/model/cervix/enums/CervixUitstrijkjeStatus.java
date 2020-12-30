@@ -25,7 +25,7 @@ import nl.rivm.screenit.model.INaam;
 
 public enum CervixUitstrijkjeStatus implements INaam
 {
-	
+
 	NIET_ONTVANGEN("Niet ontvangen"),
 
 	ONTVANGEN("Ontvangen"),

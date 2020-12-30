@@ -1,0 +1,121 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:head>
+    <script>
+        function showAccorderen($file) {
+            var $teAccorderen = $('.teAccorderen');
+            if ($file.val() != '') {
+                $teAccorderen.show();
+                $teAccorderen.find('input[type=checkbox]').attr('checked', true);
+            }
+            else if (!$teAccorderen.is(':disabled')) {
+                $teAccorderen.hide();
+                $teAccorderen.find('input[type=checkbox]').attr('checked', true);
+            }
+        }
+    </script>
+</wicket:head>
+<wicket:panel>
+    <div class="modal" id="modalOvereenkomst" role="dialog">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3 wicket:id="titel">Nieuwe overeenkomst</h3>
+        </div>
+        <div class="modal-body">
+            <form wicket:id="form" id='form'>
+                <fieldset class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label">Overeenkomst <i class="icon-asterisk icon-purple"></i></label>
+                        <div class="controls">
+                            <select wicket:id="overeenkomst">
+                                <option>- Kies er een -</option>
+                                <option>Analyseren FIT</option>
+                                <option>Verrichten colografie</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Begindatum <i class="icon-asterisk icon-purple"></i></label>
+                        <div class="controls">
+                            <div class="input-append">
+                                <input wicket:id="startDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                        class="icon-calendar"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Einddatum</label>
+                        <div class="controls">
+                            <div class="input-append">
+                                <input wicket:id="eindDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small datum">
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                        class="icon-calendar"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <wicket:enclosure>
+                        <div class="control-group teAccorderen">
+                            <label class="control-label">Overeenkomst te accorderen</label>
+                            <div class="controls">
+                                <div class="input-append">
+                                    <input type="checkbox" wicket:id="teAccoderen"/>
+                                </div>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                    <wicket:enclosure>
+                        <div class="control-group">
+                            <label class="control-label">Screeningsorganisatie <i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                                <select wicket:id="screeningOrganisatie"></select>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                    <wicket:enclosure>
+                        <div class="control-group">
+                            <label class="control-label">Actueel document</label>
+                            <div class="controls">
+                                <span wicket:id="gescandDocument.naam"></span>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                    <wicket:enclosure>
+                        <div class="control-group">
+                            <label class="control-label">Definitieve overeenkomst</label>
+                            <div class="controls">
+                                <div class="input-append">
+                                    <input type="file" wicket:id="upload" onChange="showAccorderen($(this))"/>
+                                </div>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                </fieldset>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick='oldFormValues = getFormValues()' data-dismiss="modal">Annuleren</button>
+            <button wicket:id="submit" class="btn btn-primary">Opslaan</button>
+        </div>
+    </div>
+</wicket:panel>
+</html>

@@ -45,7 +45,7 @@ import org.hibernate.annotations.CascadeType;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public abstract class Vragenlijst extends SingleTableHibernateObject implements IActief, INaam
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Boolean actief;

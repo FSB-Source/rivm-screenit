@@ -32,7 +32,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class EnovationHuisarts extends Huisarts
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 }

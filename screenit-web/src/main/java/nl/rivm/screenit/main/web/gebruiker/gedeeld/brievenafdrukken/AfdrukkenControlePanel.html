@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+        "http://www.w3.org/TR/html4/strict.dtd">
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+
+<html xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:panel>
+    <div class="modal-body" style="max-height: 600px;">
+        <h1 class="pageTitle">Controle afdrukken</h1>
+        <fieldset>
+            <form wicket:id="form" class="form-horizontal">
+                <div class="control-group">
+                    <label class="control-label">Aantal brieven:</label>
+                    <div class="controls" wicket:id="aantalBrievenContainer">
+                        <input wicket:id="aantalBrieven" class="input-small" type="text"></input>
+
+                    </div>
+                </div>
+            </form>
+        </fieldset>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success left" data-dismiss="modal" aria-hidden="true" wicket:id="close">Sluiten</button>
+        <button class="btn btn-warning" wicket:id="controle">Controle</button>
+    </div>
+</wicket:panel>
+</body>
+</html>

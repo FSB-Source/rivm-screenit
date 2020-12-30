@@ -1,0 +1,21 @@
+﻿A100000000110200000000110300000000110D4000001101209280321ZAg313000250           <Anummer>BATCH                                             N00000  00000000A00000000             0000          <BSN>                 00000                                         X
+B010110  I<Anummer>                                                                                                                                                                                                                                                    X
+B010120  I<BSN>                                                                                                                                                                                                                                                     X
+B010210  I<Voornamen>X
+B010230  I<Tussenvoegsel>X
+B010240  I<Geslachtsnaam>X
+B010310  I<Geboortedatum>                                                                                                                                                                                                                                                      X
+B010320  I<Geboorteplaats>X
+B010330  I<Geboorteland><Geboortlandcode>          X
+B010410  I<Geslachtsaanduiding>                                                                                                                                                                                                                                                             X
+B040510  I<Nationaliteit><Nationaliteitcode>          X
+B060810  I<DatumOverlijden>                                                                                                                                                                                                                                                      X
+B080910  I<Gemeente van inschrijving><Gemeentecode>          X
+B081020  I<Gemeentedeel>X
+B081110  I<Straatnaam>X
+B081120  I<Huisnummer>X
+B081130  I<Huisletter>X
+B081140  I<Huisnummertoevoeging>X
+B081150  I<Aanduiding bij huisnummer>X
+B081160  I<Postcode>                                                                                                                                                                                                                                                        X
+B081170  I<Woonplaatsnaam>X

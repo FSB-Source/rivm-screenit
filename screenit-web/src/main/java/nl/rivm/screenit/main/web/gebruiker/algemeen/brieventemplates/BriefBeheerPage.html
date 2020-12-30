@@ -1,0 +1,71 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <h1 class="pageTitle">Brieven</h1>
+    <div wicket:id="bvoFilter"></div>
+    <div class="form-horizontal">
+        <table class="table table-bordered table-condensed organisatie">
+            <thead>
+            <tr>
+                <th>Bvo</th>
+                <th>Type</th>
+                <th>Naam</th>
+                <th>Volgnr</th>
+                <th title="Alleen van toepassing voor minigrip brieven">FORMNR</th>
+                <th class="dateTimeColumn">Geldig van</th>
+                <th class="dateTimeColumn">Geldig tot</th>
+                <th>Uploader</th>
+                <th class="status-upload">Uploaden</th>
+                <th class="status-download">Downloaden</th>
+            </tr>
+            </thead>
+            <tbody wicket:id="brievenContainer">
+            <tr wicket:id="brieven">
+                <td wicket:id="bvo">DK</td>
+                <td wicket:id="type">Vooraankondiging</td>
+                <td>
+                    <wicket:container wicket:id="documentNaam">Vooraankondiging</wicket:container>
+                    <span wicket:id="geenDocument" class="badge">Er is nog geen document toegevoegd</span>
+                </td>
+                <td><img wicket:id="uitklapknop" src="../../assets/images/icons/arrow.gif" style="float:left; cursor: pointer; padding: 6px 0"/>
+                    <div wicket:id="volgnummer" style="float:right"></div>
+                </td>
+                <td title="Alleen van toepassing voor minigrip brieven"><span wicket:id="formulierNummer"></span></td>
+                <td wicket:id="geldigVanaf" class="dateTimeColumn">dd-mm-jaar</td>
+                <td wicket:id="geldigTot" class="dateTimeColumn"></td>
+                <td wicket:id="geuploadDoor">Medewerker</td>
+                <td class="status-upload">
+                    <form wicket:id="uploadForm" class="form-inline">
+                        <input type="file" wicket:id="fileUpload" accept=".docx">
+                        <a href="javascript:void(0);" wicket:id="uploaden" class="btn upload" title="Uploaden"><i class="icon-upload"></i></a>
+                    </form>
+                </td>
+                <td class="status">
+                    <a wicket:id="download" class="btn" title="Downloaden"><i class="icon-download"></i></a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div wicket:id="dialog"></div>
+</wicket:extend>
+</html>

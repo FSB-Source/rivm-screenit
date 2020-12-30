@@ -26,7 +26,7 @@ import java.io.Serializable;
 
 public class JobInstance implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String samenvatting;

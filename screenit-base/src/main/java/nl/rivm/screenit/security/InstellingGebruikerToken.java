@@ -28,7 +28,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 
 public class InstellingGebruikerToken implements AuthenticationToken, BrowserOSToken
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private final Serializable id;

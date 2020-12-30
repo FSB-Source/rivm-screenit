@@ -30,7 +30,7 @@ import org.springframework.batch.item.ExecutionContext;
 
 public interface ColonUitnodigingsgebiedCapaciteitService
 {
-	
+
 	Collection<ColonUitnodigingsgebiedSelectieContext> bepaalCapaciteit(ExecutionContext executionContext, boolean vooraankondigen);
 
 	List<ColonUitnodigingsgebiedSelectieContext> leegloopHerverdelen(Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsGebieden);

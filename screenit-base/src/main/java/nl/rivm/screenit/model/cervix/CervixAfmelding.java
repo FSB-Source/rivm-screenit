@@ -44,7 +44,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixAfmelding extends Afmelding<CervixScreeningRonde, CervixDossier, CervixBrief>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)

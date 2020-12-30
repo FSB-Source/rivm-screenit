@@ -47,7 +47,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public abstract class Dossier<SR extends ScreeningRonde<?, ?, ?, ?>, AF extends Afmelding<?, ?, ?>> extends TablePerClassHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Enumerated(EnumType.STRING)

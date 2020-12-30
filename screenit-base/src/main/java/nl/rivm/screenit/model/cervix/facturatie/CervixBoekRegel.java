@@ -39,7 +39,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixBoekRegel extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)

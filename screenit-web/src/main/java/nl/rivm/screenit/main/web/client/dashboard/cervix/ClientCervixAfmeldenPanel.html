@@ -1,0 +1,78 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <wicket:container wicket:id="container">
+        <div class="form-container afmelden">
+            <h2>Afmelden bevolkingsonderzoek baarmoederhalskanker</h2>
+            <p>
+            Wilt of kunt u niet meedoen aan het bevolkingsonderzoek? Dan kunt u zich eenmalig of definitief afmelden.
+            </p>
+            <div class="control-group no-label afmelden-keuze" wicket:id="typeContainer">
+                <div wicket:id="type">
+                    <div class="controls">
+                        <wicket:enclosure child="eenmalig">
+                            <label class="radio" style="margin: 0">
+                                <input type="radio" name="afmelden" id="eenmaligAfmelden" wicket:id="eenmalig"  onchange="if($(this).is(':checked')){ $('[name*=reden]').attr('disabled', true).attr('checked', false)}">
+                                Eenmalige afmelding
+                            </label>
+                            <p style="font-size:1em; margin-top:0">
+                                Ik doe deze keer niet mee aan het bevolkingsonderzoek baarmoederhalskanker.
+                            </p>
+                			<p style="font-size:1em">
+								U ontvangt over vijf jaar opnieuw een uitnodiging voor het bevolkingsonderzoek baarmoederhalskanker, tenzij u dan niet meer in de doelgroep valt.
+                            </p>
+                        </wicket:enclosure>
+                        <wicket:enclosure child="definitief">
+                            <label class="radio" style="margin: 0">
+                                <input type="radio" name="afmelden" id="aanvraagDefinitief" wicket:id="definitief" onclick="if($(this).is(':checked')){ $('[name*=reden]').removeAttr('disabled').removeAttr('enabled')}">
+                                Definitieve afmelding
+                            </label>
+                            <p style="font-size:1em; margin-top:0">
+                            	Ik doe nooit meer mee aan het bevolkingsonderzoek baarmoederhalskanker.
+                            </p>
+                            <p style="font-size:1em">
+				                Geef hieronder de reden voor uw definitieve afmelding aan:
+				            </p>				            
+				            <div class="control-group">
+				                <div class="controls" wicket:id="reden">
+				                    <label class="radio" style="margin: 0 0 0 20px">
+				                        <input type="radio" name="reden_afmelden" id="">
+				                        mijn baarmoederhals is verwijderd
+				                    </label>
+				                    <label class="radio" style="margin: 0 0 0 20px">
+				                        <input type="radio" name="reden_afmelden" id="">
+				                        andere reden
+				                    </label>
+				                </div>
+				            </div>				            
+                            <p style="font-size:1em;">
+                                U ontvangt een schriftelijke bevestiging van uw definitieve afmelding.<br>
+								Wilt u op een later tijdstip toch weer meedoen, dan kunt u zich opnieuw aanmelden via Mijn Bevolkingsonderzoek of via de informatielijn van de regionale screeningsorganisatie.
+                            </p>
+                        </wicket:enclosure>
+                    </div>
+                </div>
+            </div>
+        </div>        
+    </wicket:container>
+</wicket:panel>
+</html>

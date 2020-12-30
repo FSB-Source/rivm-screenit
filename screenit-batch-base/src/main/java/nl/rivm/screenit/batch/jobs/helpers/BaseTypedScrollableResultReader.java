@@ -57,7 +57,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T>, ItemStream
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(BaseTypedScrollableResultReader.class);
 
 	protected final ThreadLocal<ScrollableResults> resultSet = new ThreadLocal<>();

@@ -47,7 +47,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class RoosterItem extends ScheduleItem implements Cloneable, ITijdObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "roosterItem", fetch = FetchType.LAZY)

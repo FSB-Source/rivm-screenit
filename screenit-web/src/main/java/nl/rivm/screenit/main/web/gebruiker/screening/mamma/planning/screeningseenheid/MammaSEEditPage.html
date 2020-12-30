@@ -1,0 +1,236 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div class="row-fluid">
+        <div class="span9">
+            <h1 class="pageTitle">Screeningseenheid - Gegevens</h1>
+        </div>
+        <div class="span3">
+            <button class="btn right" wicket:id="terug">Terug</button>
+        </div>
+    </div>
+    <div class="row-fluid form-horizontal">
+        <fieldset class="form-horizontal">
+            <form wicket:id="seWijzigenForm" novalidate>
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Code screeningseenheid</label>
+                                <div class="controls">
+                                    <input type="text" wicket:id="code">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Naam screeningseenheid</label>
+                                <div class="controls">
+                                    <input type="text" wicket:id="naam">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">IP-adres server screeningseenheid</label>
+                                <div class="controls">
+                                    <input type="text" wicket:id="ipAdres">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <wicket:enclosure child="beoordelingsEenheid.parent.regio.naam">
+                                <div class="control-group">
+                                    <label class="control-label span4">Screeningsorganisatie</label>
+                                    <div class="controls">
+                                        <strong wicket:id="beoordelingsEenheid.parent.regio.naam"/>
+                                    </div>
+                                </div>
+                            </wicket:enclosure>
+                        </div>
+                    </div>
+
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Beoordelingseenheid</label>
+                                <div class="controls">
+                                    <select wicket:id="beoordelingsEenheid"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <legend>Tijdelijke beoordelingseenheid</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <div class="control-group ">
+                                <label class="control-label span3">Tijdelijke beoordelingseenheid</label>
+                                <div class="controls">
+                                    <select wicket:id="tijdelijkeBeoordelingsEenheid"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <div class="control-group">
+                                <label class="control-label span3" for="vanafDatum">Vanaf onderzoeksdatum</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input class="input" type="text" placeholder="dd-mm-yyyy" id="vanafDatum" wicket:id="tijdelijkeBeVanafDatum">
+                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
+                                           tabindex="-1"> <i class="icon-calendar"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <div class="control-group">
+                                <label class="control-label span3" for="totEnMetDatum">Tot en met onderzoeksdatum</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input class="input" placeholder="dd-mm-yyyy" type="text" id="totEnMetDatum" wicket:id="tijdelijkeBeTotEnMetDatum">
+                                        <a href="javascript:void(0);" class="add-on" onclick="$(this).prev().datepicker({ changeMonth: true, changeYear: true});" title="Datum"
+                                           tabindex="-1"> <i class="icon-calendar"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>Eigenschappen</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Mobiliteit</label>
+                                <div class="controls">
+                                    <select wicket:id="isMobiel">
+                                        <option>Mobiel</option>
+                                        <option>Vast</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Lift</label>
+                                <div class="controls">
+                                    <select wicket:id="heeftLift">
+                                        <option>Ja</option>
+                                        <option>Nee</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>Mindervalide afspraken</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Duur per afspraak</label>
+                                <div class="controls">
+                                    <select wicket:id="duurMinderValideAfspraak">
+                                        <option></option>
+                                    </select> minuten
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Periode voor mindervalide afspraken (1)</label>
+                                <div class="controls">
+                                    <wicket:container wicket:id="minderValidePeriode1Vanaf"></wicket:container> - <wicket:container wicket:id="minderValidePeriode1TotEnMet"></wicket:container>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span9">
+                            <div class="control-group">
+                                <label class="control-label span4">Periode voor mindervalide afspraken (2)</label>
+                                <div class="controls">
+                                    <wicket:container wicket:id="minderValidePeriode2Vanaf"></wicket:container> - <wicket:container wicket:id="minderValidePeriode2TotEnMet"></wicket:container>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="form-actions clearfix">
+                            <button wicket:id="inActiveren" class="btn">
+                                <i class="icon-minus-sign"></i><span wicket:id="inActiverenTitle">Verwijderen</span>
+                            </button>
+                            <button class="btn btn-primary" wicket:id="opslaan">Opslaan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </fieldset>
+
+    </div>
+    <fieldset>
+        <div class="row-fluid">
+            <div class="span12">
+                <div wicket:id="mammografenPanel"/>
+            </div>
+        </div>
+    </fieldset>
+    <div wicket:id="dialog"></div>
+</wicket:extend>
+</html>

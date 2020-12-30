@@ -26,7 +26,7 @@ import nl.rivm.screenit.model.dashboard.DashboardType;
 
 public enum LogGebeurtenis
 {
-	
+
 	INLOGGEN(Level.INFO),
 
 	INLOGGEN_MISLUKT(Level.ERROR),
@@ -452,7 +452,7 @@ public enum LogGebeurtenis
 	IFOBT_UITSLAG_VERWIJDERD(Level.INFO),
 
 	COORDINATEN_IMPORT_GESTART(Level.INFO),
-	
+
 	COORDINATEN_IMPORT_AFGEROND(Level.INFO),
 
 	PROJECT_AANGEMAAKT(Level.INFO),
@@ -919,6 +919,8 @@ public enum LogGebeurtenis
 	MAMMA_HL7_BERICHT_QUEUE_ERG_GROOT(Level.WARNING, DashboardType.MAMMA_IMS_UITGAAND, DashboardActieType.DAG),
 
 	MAMMA_HL7_BERICHT_QUEUE_NORMAAL(Level.INFO, DashboardType.MAMMA_IMS_UITGAAND, DashboardActieType.DAG),
+
+	MAMMA_HL7_BERICHT_BEELDEN_VERWIJDERD(Level.INFO, DashboardType.MAMMA_IMS_INKOMEND, DashboardActieType.DAG),
 
 	MAMMA_HUISARTSBERICHTEN_OPNIEUW_VERSTUREN_GESTART(Level.INFO, DashboardType.MAMMA_HUISARTS_BERICHTEN, DashboardActieType.START),
 

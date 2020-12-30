@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRestrictionsService
 {
-	
+
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 

@@ -81,7 +81,7 @@ import au.com.bytecode.opencsv.CSVReader;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixBulkHuisartsenServiceImpl.class);
 
 	private ExecutorService executorService;

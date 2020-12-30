@@ -49,7 +49,7 @@ import org.springframework.batch.item.ExecutionContext;
 
 public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 {
-	
+
 	private static final String UITNODIGINGSCAT = "key.uitnodigingscat";
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientSelectieItemCursor.class);

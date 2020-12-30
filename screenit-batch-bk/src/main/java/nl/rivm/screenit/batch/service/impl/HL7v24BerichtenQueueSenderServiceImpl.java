@@ -49,6 +49,7 @@ import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7v24SendService;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24BerichtTriggerDto;
+import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
@@ -57,7 +58,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.model.logging.MammaHl7v24BerichtFoutenLogEvent;
+import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.MammaHL7v24Message;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.service.LogService;
@@ -238,9 +239,13 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 				switch (hl7v24Message.getHl7BerichtType())
 				{
 				case IMS_ORM:
-				case IMS_ORM_ILM:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerMetClientDto.class);
 					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerMetClientDto) triggerDto,
+						connectionContexts.get(hl7v24Message.getHl7BerichtType()));
+					break;
+				case IMS_ORM_ILM:
+					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerIlmDto.class);
+					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerIlmDto) triggerDto,
 						connectionContexts.get(hl7v24Message.getHl7BerichtType()));
 					break;
 				case IMS_ORM_KWALITEITSOPNAME:
@@ -296,7 +301,7 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 	{
 		if (verstuurProblemen)
 		{
-			MammaHl7v24BerichtFoutenLogEvent logEvent = new MammaHl7v24BerichtFoutenLogEvent();
+			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
 			logEvent.setLevel(Level.INFO);
 			logEvent.setMelding("IMS berichten worden weer succesvol verstuurd");
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_VERBINDING_HERSTELD, logEvent, Bevolkingsonderzoek.MAMMA);
@@ -322,12 +327,12 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 		if (!verstuurProblemen)
 		{
 			String messageStructure = e instanceof HL7SendMessageException ? ((HL7SendMessageException) e).getHl7Message() : "";
-			MammaHl7v24BerichtFoutenLogEvent logEvent = new MammaHl7v24BerichtFoutenLogEvent();
+			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
 			logEvent.setClient(getClient(hl7BerichtTriggerDto));
 			logEvent.setHl7MessageStructure(messageStructure);
 			logEvent.setLevel(Level.ERROR);
 			logEvent.setMelding(String.format("IMS bericht kon niet worden afgeleverd. %s. %s", mammaHL7v24Message.getHl7BerichtType(), e.getMessage()));
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_VERSTUREN_MISLUKT, logEvent, Bevolkingsonderzoek.MAMMA);
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_VERSTUREN_MISLUKT, logEvent, null, getClient(hl7BerichtTriggerDto), Bevolkingsonderzoek.MAMMA);
 		}
 		verstuurProblemen = true;
 	}

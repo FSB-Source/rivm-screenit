@@ -58,7 +58,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class GbaPersoon extends Persoon
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(unique = true)

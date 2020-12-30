@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.berichten.enums;
 
 public enum BerichtStatus
 {
-	
+
 	NIEUW,
 	WAARSCHUWING,
 	FOUT,

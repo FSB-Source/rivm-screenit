@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen;
 
 public class ZasUitnodigingenVersturenConstants
 {
-    
+
     private ZasUitnodigingenVersturenConstants()
     {
     }

@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:extend>
+    <div class="content-inner">
+        <div class="row-fluid">
+            <div class="span12">
+                <h1 class="pageTitle">Werklijst <wicket:container wicket:id="title"></wicket:container> -
+                    <wicket:container wicket:id="intakelocatie"></wicket:container>
+                </h1>
+            </div>
+        </div>
+
+        <fieldset>
+            <div class="view-werklijst">
+                <fieldset class="form-inline">
+                    <form wicket:id="form">
+                        <div class="periode-filter input-append" style="font-size: 12px">
+                            Vanaf
+                            <div class="input-append">
+                                <input wicket:id="vanaf" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months vanafDatum">
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
+                            </div>
+                            Tot en met
+                            <div class="input-append">
+                                <input wicket:id="totEnMet" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months totEnMetDatum">
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
+                            </div>
+                            <a href="javascript:void(0);" onclick="$('.vanafDatum').datepicker('setDate', new Date());$('.vanafDatum').change();$('.totEnMetDatum').datepicker('setDate', new Date());$('.totEnMetDatum').change();return false;" class="btn">Vandaag</a>
+                           	<wicket:enclosure child="conclusieTypeFilter">
+                            Conclusie
+                            <div class="input-append" style="font-size: 12px">
+                                <select wicket:id="conclusieTypeFilter"/>
+                            </div>
+                            </wicket:enclosure>
+                        </div>
+                    </form>
+                    <form wicket:id="bsnForm">
+                        <span class="bsn-filter">
+                            <input type="text" maxlength="9" wicket:id="bsn" placeholder="BSN">
+                        </span>
+                        <button wicket:id="submitOnEnter" type="button" style="visibility: hidden;"></button>
+                    </form>
+                </fieldset>
+
+                <fieldset>
+                    <div wicket:id="csv"></div>
+                    <div wicket:id="tabel"></div>
+                    <br/>
+                    <p style="padding-left: 10px;">* = buiten rooster om gepland</p>
+                </fieldset>
+            </div>
+        </fieldset>
+    </div>
+    <div wicket:id="dialog" class="modal-large"></div>
+</wicket:extend>
+</body>
+</html>

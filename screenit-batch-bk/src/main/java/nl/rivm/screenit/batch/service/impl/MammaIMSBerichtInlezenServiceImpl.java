@@ -31,7 +31,7 @@ import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.logging.MammaHl7v24BerichtFoutenLogEvent;
+import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
@@ -144,32 +144,38 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 
 	private void verwerkBerichtBeeldenVerwijderd(MammaIMSBericht bericht, Client client)
 	{
+		String melding = "Beelden verwijderd voor ";
 		MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenService.getUploadPoging(bericht.getAccessionNumber());
 		if (uploadBeeldenPoging != null)
 		{
 			uploadBeeldenService.beeldenVerwijderdUploadVerzoek(uploadBeeldenPoging, bericht, client, false);
-			LOG.info(String.format("Beelden verwijderd voor uploadverzoek met accession number: %s, client id: %d", bericht.getAccessionNumber(), client.getId()));
+			melding += "uploadverzoek";
 		}
 		else
 		{
 			onderzoekService.beeldenVerwijderdVoorOnderzoek(bericht, client, false);
-			LOG.info(String.format("Beelden verwijderd voor accession number: %s, client id: %d", bericht.getAccessionNumber(), client.getId()));
+			melding += "onderzoek";
 		}
+		melding = String.format("%s met accession number: %s en  client id: %d", melding, bericht.getAccessionNumber(), client.getId());
+		LOG.info(melding);
 	}
 
 	private void verwerkBerichtBeeldenVerwijderenError(MammaIMSBericht bericht, Client client)
 	{
+		String melding = "Error tijdens verwijderen beelden ";
 		MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenService.getUploadPoging(bericht.getAccessionNumber());
 		if (uploadBeeldenPoging != null)
 		{
 			uploadBeeldenService.beeldenVerwijderdUploadVerzoek(uploadBeeldenPoging, bericht, client, true);
-			LOG.info(String.format("Error tijdens verwijderen beelden uploadverzoek met accession number: %s, client id: %d", bericht.getAccessionNumber(), client.getId()));
+			melding += "uploadverzoek";
 		}
 		else
 		{
 			onderzoekService.beeldenVerwijderdVoorOnderzoek(bericht, client, true);
-			LOG.info(String.format("Error tijdens verwijderen beelden voor accession number: %s, client id: %d", bericht.getAccessionNumber(), client.getId()));
+			melding += "onderzoek";
 		}
+		melding = String.format("%s met accession number: %s en  client id: %d", melding, bericht.getAccessionNumber(), client.getId());
+		LOG.error(melding);
 	}
 
 	@Override
@@ -179,7 +185,7 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 		hibernateService.saveOrUpdate(bericht);
 		melding = String.format("%s, bericht: %s", melding, bericht.getHl7Bericht());
 
-		MammaHl7v24BerichtFoutenLogEvent logEvent = new MammaHl7v24BerichtFoutenLogEvent();
+		MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
 		logEvent.setMelding(melding);
 		logEvent.setHl7MessageStructure(bericht.getHl7Bericht());
 		logEvent.setLevel(Level.WARNING);

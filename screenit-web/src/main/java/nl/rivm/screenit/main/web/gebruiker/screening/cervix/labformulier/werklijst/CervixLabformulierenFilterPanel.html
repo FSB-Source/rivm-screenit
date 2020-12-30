@@ -1,0 +1,105 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:panel>
+    <fieldset>
+        <form wicket:id="form" class="form-horizontal">
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">
+                            <wicket:message key="barcode"/>
+                        </label>
+
+                        <div class="controls">
+                            <input class="input" type="text" wicket:id="monsterId">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">BSN</label>
+
+                        <div class="controls">
+                            <input class="input" type="text" wicket:id="bsn">
+                        </div>
+                    </div>
+                    <wicket:enclosure child="geboortedatum">
+                        <div class="control-group">
+                            <label class="control-label">Geboortedatum</label>
+
+                            <div class="controls">
+                                <input class="input" type="text" wicket:id="geboortedatum">
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+
+                    <div class="control-group" wicket:id="minimaalTweeWaardesContainer">
+                        <div>Vul minimaal twee velden in en bevestig met de Enter-toets.</div>
+                    </div>
+
+                </div>
+                <div class="span6">
+                    <wicket:enclosure child="labformulierStatussen">
+                        <div class="control-group">
+                            <label class="control-label">Status formulier</label>
+
+                            <div class="controls">
+                                <select wicket:id="labformulierStatussen"/>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                    <wicket:enclosure child="digitaal">
+                        <div class="control-group">
+                            <label class="control-label">Digitaal</label>
+
+                            <div class="controls">
+                                <div class="btn-group">
+                                    <a href="javascript:void(0);" wicket:id="digitaal" class="btn">
+                                        <wicket:container wicket:id="label"></wicket:container>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                    <wicket:enclosure child="scanDatumVanaf">
+                        <div class="control-group">
+                            <label class="control-label">Scandatum vanaf</label>
+
+                            <div class="controls">
+                                <div class="input-append">
+                                    <input type="text" class="datum" wicket:id="scanDatumVanaf"/>
+                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                                t/m
+                                <div class="input-append">
+                                    <input type="text" class="datum" wicket:id="scanDatumTotEnMet"/>
+                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </wicket:enclosure>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+</wicket:panel>
+</html>

@@ -46,7 +46,7 @@ import org.xml.sax.SAXParseException;
 
 public class InpakCentrumSchemaValidationInterceptor extends AbstractSoapInterceptor
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(InpakCentrumSchemaValidationInterceptor.class);
 
 	private String schemaFile;

@@ -71,7 +71,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTimeService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixTestTimelineTimeService.class);
 
 	@Autowired

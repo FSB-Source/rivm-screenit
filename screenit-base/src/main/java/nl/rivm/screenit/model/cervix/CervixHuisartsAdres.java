@@ -40,7 +40,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class CervixHuisartsAdres extends BagAdres implements ICervixHuisartsportaalObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column

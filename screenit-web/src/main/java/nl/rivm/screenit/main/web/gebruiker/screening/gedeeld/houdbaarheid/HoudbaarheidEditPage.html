@@ -1,0 +1,115 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div class="row-fluid">
+        <div class="span12">
+            <h1 class="pageTitle" wicket:id="title">
+            </h1>
+        </div>
+    </div>
+
+    <fieldset>
+        <form wicket:id="form">
+            <fieldset class="">
+                <div class="row-fluid">
+                    <div class="span4">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <legend><strong>Begin</strong> id</legend>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div class="input-prepend input-append">
+                                    <input wicket:id="barcodeStart" class="input-large" placeholder="Begin id van de batch..." type="text"/>
+                                    <i class="icon-asterisk icon-purple"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="span4">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <legend><strong>Eind</strong> id</legend>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div class="input-prepend input-append">
+                                    <input wicket:id="barcodeEnd" class="input-large" placeholder="Eind id van de batch..." type="text"/>
+                                    <i class="icon-asterisk icon-purple"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <wicket:enclosure child="type">
+                    <div class="span4">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <legend>Type</legend>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div>
+                                    <select wicket:id="type"></select>
+                                    <i class="icon-asterisk icon-purple"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </wicket:enclosure>
+                </div>
+            </fieldset>
+            <fieldset class="">
+                <div class="row-fluid">
+                    <div class="span6">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <legend>Einddatum <strong>houdbaarheid</strong></legend>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div class="input-append">
+                                    <input class="input-small datum" placeholder="dd-mm-jaar" type="text" wicket:id="vervalDatum">
+                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum" tabindex="-1"><i
+                                            class="icon-calendar"></i></a>
+                                    <i class="icon-asterisk icon-purple"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <div class="row-fluid">
+                <div class="span12">
+                    <div class="form-actions btn-bottom">
+                        <button wicket:id="annuleren" class="btn">Annuleren</button>
+                        <button wicket:id="submit" class="btn btn-primary" type="submit">Opslaan</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </fieldset>
+</wicket:extend>
+</html>

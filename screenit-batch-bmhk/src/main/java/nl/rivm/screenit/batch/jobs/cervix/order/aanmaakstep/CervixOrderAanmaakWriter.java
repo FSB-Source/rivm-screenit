@@ -46,7 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixOrderAanmaakWriter.class);
 
 	@Autowired

@@ -53,7 +53,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class MammaUitstel extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)

@@ -42,7 +42,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 
 public interface CervixVerrichtingDao
 {
-	
+
 	List<CervixBoekRegel> getVerrichtingenVoorBetaling(CervixBetalingsZoekObject zoekObject, SortState<String> sortState, long first, long count);
 
 	List<CervixBoekRegel> getLabVerrichtingen(CervixVerrichtingenZoekObject verrichtingenCriteria, ScreeningOrganisatie screeningOrganisatie, BMHKLaboratorium bmhkLaboratorium,

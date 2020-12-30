@@ -40,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixBMHKLaboratoriumServiceImpl implements CervixBMHKLaboratoriumService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixBMHKLaboratoriumServiceImpl.class);
 
 	@Autowired

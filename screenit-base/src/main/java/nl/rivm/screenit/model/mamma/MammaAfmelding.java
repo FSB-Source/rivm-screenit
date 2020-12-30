@@ -44,7 +44,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class MammaAfmelding extends Afmelding<MammaScreeningRonde, MammaDossier, MammaBrief>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)

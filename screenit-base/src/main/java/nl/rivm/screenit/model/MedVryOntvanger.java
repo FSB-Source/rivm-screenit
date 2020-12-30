@@ -32,7 +32,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class MedVryOntvanger implements IMedVryOntvanger
 {
-	
+
 	private String agbcode;
 
 	private String volledigeOntvangerNaam;

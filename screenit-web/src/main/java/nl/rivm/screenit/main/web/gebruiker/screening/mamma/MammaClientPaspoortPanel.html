@@ -1,0 +1,98 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:head>
+	<link rel="stylesheet" href="assets/font-awesome/css/font-awesome.min.css"/>
+</wicket:head>
+<wicket:panel>
+
+    <div class="form-horizontal">
+        <fieldset class="hero-unit">
+            <div class="row-fluid">
+                <div class="span10">
+                    <legend>
+                    <span class="clearfix">
+                        <strong wicket:id="persoon.naam">naam</strong>
+                    </span>
+                    </legend>
+                    <div class="control-group value">
+                        <label class="control-label">Uitgenodigd:</label>
+                        <div class="controls">
+                            <wicket:container wicket:id="mammaDossier.uitgenodigd">0</wicket:container>
+                        </div>
+                    </div>
+                    <div class="control-group value">
+                        <label class="control-label">Onderzocht:</label>
+                        <div class="controls">
+                            <wicket:container wicket:id="mammaDossier.onderzocht">0</wicket:container>
+                        </div>
+                    </div>
+                </div>
+                <div class="span1">
+                    <div class="fa fa-wheelchair" wicket:id="rolstoelClient"></div>
+                </div>
+            </div>
+            <wicket:enclosure child="dossier.client.persoon.bsn">
+            <hr>
+            <div class="row-fluid">
+                <div class="control-group value">
+                    <label class="control-label">Uitnodigingsnr.:</label>
+                    <div class="controls">
+                        <wicket:container wicket:id="uitnodigingsNr">9000000001</wicket:container>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">BSN</label>
+                    <div class="controls">
+                        <wicket:container wicket:id="dossier.client.persoon.bsn"></wicket:container>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Geboortedatum:</label>
+                    <div class="controls">
+                        <wicket:container wicket:id="dossier.client.persoon.geboortedatum">dd-mm-jaar</wicket:container>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Straat/Loc.:</label>
+                    <div class="controls">
+                        <wicket:container wicket:id="gbaLocatiebeschrijving">Straatlaan 12</wicket:container>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Postcode:</label>
+                    <div class="controls">
+                        <wicket:container wicket:id="dossier.client.persoon.gbaAdres.postcode">1234AA</wicket:container>
+                    </div>
+                </div>
+                <div class="control-group value">
+                    <label class="control-label">Woonplaats:</label>
+                    <div class="controls">
+                        <wicket:container wicket:id="dossier.client.persoon.gbaAdres.plaats">Amsterdam</wicket:container>
+                    </div>
+                </div>
+            </div>
+        	</wicket:enclosure>
+        </fieldset>
+    </div>
+
+</wicket:panel>
+</html>

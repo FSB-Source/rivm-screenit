@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.enums.JobType;
 
 public class Trigger implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String cronExpressie;

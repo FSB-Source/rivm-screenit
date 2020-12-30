@@ -59,7 +59,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class CervixCytologieVerslag extends CervixVerslag<CervixCytologieVerslagContent>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(mappedBy = "cytologieVerslag", optional = false, fetch = FetchType.LAZY)

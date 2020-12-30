@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar;
 
 public class BezwaarBrievenConstants
 {
-	
+
 	private BezwaarBrievenConstants()
 	{
 

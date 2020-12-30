@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class FileVo107Provider implements IVo107Provider
 {
-	
+
 	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(FileVo107Provider.class);
 
 	private String vo107File;
@@ -83,7 +83,7 @@ public class FileVo107Provider implements IVo107Provider
 
 	private class Vo107ClasspathFile implements Vo107File
 	{
-		
+
 		private final String path;
 
 		public Vo107ClasspathFile(String path)

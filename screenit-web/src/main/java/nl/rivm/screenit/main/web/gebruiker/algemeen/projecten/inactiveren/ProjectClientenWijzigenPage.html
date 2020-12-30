@@ -1,0 +1,82 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:extend>
+    <h1 class="pageTitle">
+        Wijzigen project clienten
+    </h1>
+
+    <div class="row-fluid">
+        <div class="span9 form-horizontal">
+            <form wicket:id="form">
+                <fieldset>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Reden
+                        </label>
+
+                        <div class="control">
+                            <input type="text" wicket:id="dynamischeInactiveerReden">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Bestand
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="control">
+                            <input type="file" wicket:id="bestand">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Verwerking
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+                        <div class="control-group">
+                            <div class="controls" wicket:id="type">
+                                <label class="radio" style="padding-left:5px">
+                                    <input type="radio" name="type_bestand" id="">
+                                    Activeren1
+                                </label>
+                                <label class="radio" style="padding-left:5px">
+                                    <input type="radio" name="type_bestand" id="">
+                                    Inactiveren1
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+            <div class="buttons">
+                <button class="btn btn-primary" wicket:id="inactiveren">Opslaan</button>
+            </div>
+        </div>
+        <div class="span3">
+            <div class="passpoort" wicket:id="projectPasspoortContainer">
+                <wicket:container wicket:id="projectPasspoort"></wicket:container>
+            </div>
+        </div>
+    </div>
+    <div wicket:id="dialog"></div>
+</wicket:extend>
+</html>

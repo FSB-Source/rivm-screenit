@@ -177,7 +177,7 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 							}
 
 							BigDecimal uitnodigingsCapaciteit = intakecapaciteitPerDag.multiply(gebiedsFactor);
-							
+
 							BigDecimal capVoorGebiedFactor = BigDecimal.valueOf(capaciteitVerdeling.getPercentageCapaciteit()).divide(BigDecimal.valueOf(10000), 4,
 								RoundingMode.HALF_UP);
 

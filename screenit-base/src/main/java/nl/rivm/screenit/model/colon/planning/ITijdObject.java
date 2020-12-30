@@ -25,7 +25,7 @@ import java.util.Date;
 
 public interface ITijdObject
 {
-	
+
 	Date getStartTime();
 
 	Date getEndTime();

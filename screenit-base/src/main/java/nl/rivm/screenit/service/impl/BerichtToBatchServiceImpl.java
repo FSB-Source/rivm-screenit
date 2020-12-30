@@ -34,6 +34,7 @@ import javax.jms.Session;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dto.mamma.MammaAbstractHL7v24OrmBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
+import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
@@ -41,7 +42,9 @@ import nl.rivm.screenit.dto.mamma.se.MammaKwaliteitsopnameDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.helper.ActiveMQHelper;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaHL7v24Message;
+import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7ADTBerichtType;
@@ -165,11 +168,17 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	}
 
 	@Override
-	public void queueMammaHL7v24BerichtUitgaand(MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
+	public void queueMammaIlmHL7v24BerichtUitgaand(MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
 	{
-		MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
+		MammaHL7v24OrmBerichtTriggerIlmDto triggerDto = new MammaHL7v24OrmBerichtTriggerIlmDto();
+		MammaAfspraak laatsteAfspraak = ronde.getLaatsteUitnodiging().getLaatsteAfspraak();
+		MammaOnderzoek laatsteOnderzoek = ronde.getLaatsteOnderzoek();
 		triggerDto.setRondeId(ronde.getId());
 		triggerDto.setClientId(ronde.getDossier().getClient().getId());
+		triggerDto.setAccessionNumber(ronde.getUitnodigingsNr());
+		triggerDto.setLaatsteAfspraakDatum(laatsteAfspraak.getVanaf());
+		triggerDto.setLaatsteOnderzoekAfgerondOpDatum(laatsteOnderzoek.getAfgerondOp());
+		triggerDto.setScreeningsEenheidCode(laatsteOnderzoek.getScreeningsEenheid().getCode());
 		queueHL7(status, triggerDto, berichtType);
 		LOG.debug("Sending client message to batch BK HL7 queue");
 	}
@@ -185,7 +194,8 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	}
 
 	@Override
-	public void queueMammaHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, Date onderzoeksDatum, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
+	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, Date onderzoeksDatum, MammaHL7v24ORMBerichtStatus status,
+		MammaHL7BerichtType berichtType)
 	{
 		MammaHL7v24OrmBerichtTriggerUploadBeeldenDto triggerDto = new MammaHL7v24OrmBerichtTriggerUploadBeeldenDto();
 
@@ -200,7 +210,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	}
 
 	@Override
-	public void queueMammaHL7v24BerichtUitgaand(MammaKwaliteitsopnameDto kwaliteitsopname, MammaHL7v24ORMBerichtStatus status)
+	public void queueMammaKwaliteitsopnameHL7v24BerichtUitgaand(MammaKwaliteitsopnameDto kwaliteitsopname, MammaHL7v24ORMBerichtStatus status)
 	{
 		MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto();
 		triggerDto.setType(kwaliteitsopname.getType());
@@ -310,7 +320,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	{
 		jmsTemplate.send(destination, new MessageCreator()
 		{
-			
+
 			@Override
 			public Message createMessage(Session session) throws JMSException
 			{
@@ -324,7 +334,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	{
 		jmsTemplate.send(destination, new MessageCreator()
 		{
-			
+
 			@Override
 			public Message createMessage(Session session) throws JMSException
 			{
@@ -338,7 +348,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	{
 		jmsTemplate.send(destination, new MessageCreator()
 		{
-			
+
 			@Override
 			public Message createMessage(Session session) throws JMSException
 			{

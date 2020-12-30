@@ -31,7 +31,9 @@ public interface MammaBaseBeoordelingReserveringService
 {
 	List<Long> reserveerBeoordelingen(Long startBeoordelingId, List<Long> beoordelingenIds, InstellingGebruiker ingelogdeGebruiker, MammaBeLezerSoort lezerSoort);
 
-	void reserveringenVrijgeven(InstellingGebruiker ingelogdeGebruiker);
+    boolean gereserveerdDoorIemandAnders(InstellingGebruiker ingelogdeGebruiker, MammaBeoordeling beoordeling);
+
+    void reserveringenVrijgeven(InstellingGebruiker ingelogdeGebruiker);
 
 	void geefBeoordelingVrij(MammaBeoordeling beoordeling);
 }

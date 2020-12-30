@@ -28,7 +28,7 @@ import org.hibernate.Hibernate;
 
 public abstract class ScreenitAdres extends Adres
 {
-	
+
 	@Override
 	public int hashCode()
 	{

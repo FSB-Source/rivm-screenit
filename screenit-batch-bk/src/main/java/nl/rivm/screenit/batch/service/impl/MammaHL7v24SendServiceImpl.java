@@ -33,12 +33,12 @@ import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7CreateMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7v24SendService;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
+import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV24MessageWrapper;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7ADTBerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -119,7 +119,7 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 		}
 		catch (HL7Exception | HL7SendMessageException | LLPException | IOException e)
 		{
-			LOG.error(String.format("Fout bij het versturen van HL7 bericht: %s", bericht.toString()));
+			LOG.error("Fout bij het versturen van HL7 bericht", e);
 			throw new HL7SendMessageException(e.getMessage(), bericht.toString(), e);
 		}
 	}
@@ -207,10 +207,9 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 	{
 		try
 		{
-			if (MammaHL7v24ORMBerichtStatus.DELETE.equals(hl7BerichtTrigger.getStatus()) && hl7BerichtTrigger.getRondeId() != null)
+			if (hl7BerichtTrigger instanceof MammaHL7v24OrmBerichtTriggerIlmDto)
 			{
-				MammaScreeningRonde ronde = hibernateService.load(MammaScreeningRonde.class, hl7BerichtTrigger.getRondeId());
-				return hl7CreateMessageService.maakOrmIlmBericht(hl7BerichtTrigger.getStatus(), client, ronde);
+				return hl7CreateMessageService.maakOrmIlmBericht(client, (MammaHL7v24OrmBerichtTriggerIlmDto) hl7BerichtTrigger);
 			}
 			else
 			{
@@ -278,6 +277,7 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 			{
 				openHl7Connection(messageConnection);
 			}
+			connection = messageContext.getConnection(); 
 			LOG.info(String.format("Sending message to %s:%d", connection.getRemoteAddress().getHostName(), connection.getRemotePort()));
 			sendMessageService.sendHL7Message(hl7Bericht, messageContext);
 		}

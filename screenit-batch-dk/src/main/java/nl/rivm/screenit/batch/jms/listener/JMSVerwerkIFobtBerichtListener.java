@@ -35,7 +35,7 @@ import java.util.List;
 
 public class JMSVerwerkIFobtBerichtListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(JMSVerwerkIFobtBerichtListener.class);
 
 	@Autowired

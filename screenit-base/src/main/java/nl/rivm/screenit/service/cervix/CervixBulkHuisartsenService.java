@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.cervix.CervixBulkUpload;
 
 public interface CervixBulkHuisartsenService
 {
-	
+
 	void verwerkBulkHuisartsen(CervixBulkUpload cervixBulkUpload);
 
 	CervixBulkUpload saveExcelBestand(File file, String contentType, String filename, InstellingGebruiker gebruiker) throws IOException;

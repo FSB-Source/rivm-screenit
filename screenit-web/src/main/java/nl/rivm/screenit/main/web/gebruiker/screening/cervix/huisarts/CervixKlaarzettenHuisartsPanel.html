@@ -1,0 +1,122 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:panel>
+    <fieldset>
+        <form wicket:id="form" class="form-horizontal">
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group">
+                        <div class="control-label">Ingevoerde AGB-code</div>
+                        <div class="controls value">
+                            <span wicket:id="agbcode">123456789</span>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">AGB status</div>
+                        <div class="controls">
+                            <span wicket:id="agbStatus"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">Aanhef</label>
+                        <div class="controls">
+                            <select wicket:id="organisatieMedewerkers[0].medewerker.aanhef">
+                                <option selected disabled>- Maak een keuze -</option>
+                                <option>Dhr.</option>
+                                <option>Mevr.</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Achternaam</label>
+                        <div class="controls">
+                            <input class="input-large" type="text"
+                                   wicket:id="organisatieMedewerkers[0].medewerker.achternaam">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Tussenvoegsel</label>
+                        <div class="controls">
+                            <input class="input-mini" type="text"
+                                   wicket:id="organisatieMedewerkers[0].medewerker.tussenvoegsel">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Voorletter(s)</label>
+                        <div class="controls">
+                            <input class="input-mini" type="text"
+                                   wicket:id="organisatieMedewerkers[0].medewerker.voorletters">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">E-mailadres (geen zorgmail)</div>
+                        <div class="controls">
+                            <input class="input-large" wicket:id="email" type="text"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <p>Dit is het adres is waar het registratieformulier van de huisarts naar toe gaat.</p>
+                    <div class="control-group">
+                        <div class="control-label">Straatnaam</div>
+                        <div class="controls">
+                            <input class="input-large praktijkadres straat" wicket:id="postadres.straat"
+                                   type="text"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Huisnummer + toevoeging</div>
+                        <div class="controls">
+                            <input class="input-small praktijkadres huisnummer" wicket:id="postadres.huisnummer"
+                                   type="text"/> <input class="input-mini praktijkadres huisnummerToevoeging"
+                                                        wicket:id="postadres.huisnummerToevoeging" type="text"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Postcode</div>
+                        <div class="controls">
+                            <input class="input-large praktijkadres postcode" wicket:id="postadres.postcode"
+                                   type="text"/>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="control-label">Plaats</div>
+                        <div class="controls">
+                            <select wicket:id="postadres.woonplaats"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="form-actions btn-bottom">
+                <button class="btn btn-primary pull-right" wicket:id="uitnodigingVersturen">Verstuur aanvraag registratie</button>
+                <button class="btn pull-right" wicket:id="annuleren">Annuleren</button>
+            </div>
+        </form>
+    </fieldset>
+</wicket:panel>
+</html>

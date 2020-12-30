@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag;
 
 public class GunstigeUitslagConstants
 {
-	
+
 	private GunstigeUitslagConstants()
 	{
 	}

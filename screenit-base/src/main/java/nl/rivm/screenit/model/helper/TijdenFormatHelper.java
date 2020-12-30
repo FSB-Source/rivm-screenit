@@ -26,7 +26,7 @@ import nl.rivm.screenit.model.colon.planning.ITijdObject;
 
 public final class TijdenFormatHelper
 {
-	
+
 	private TijdenFormatHelper()
 	{
 	}

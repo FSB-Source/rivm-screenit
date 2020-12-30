@@ -48,6 +48,8 @@ public class MailMergeContext
 
 	public static final String CONTEXT_BMHK_BETAALOPDRACHT = "BMHK_BETAALOPDRACHT";
 
+	public static final String CONTEXT_MAMMA_BEOORDELING = "BK_BEOORDELING";
+
 	private Boolean useTestValue = Boolean.FALSE;
 
 	private Client client;

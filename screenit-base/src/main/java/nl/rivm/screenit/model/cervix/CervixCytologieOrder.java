@@ -49,7 +49,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixCytologieOrder extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(mappedBy = "cytologieOrder", optional = false)

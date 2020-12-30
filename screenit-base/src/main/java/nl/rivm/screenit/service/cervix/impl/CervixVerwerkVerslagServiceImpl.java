@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixVerwerkVerslagServiceImpl implements CervixVerwerkVerslagService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixVerwerkVerslagServiceImpl.class);
 
 	@Autowired

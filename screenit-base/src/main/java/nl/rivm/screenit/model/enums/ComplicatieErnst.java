@@ -25,7 +25,7 @@ import nl.rivm.screenit.model.verslag.DSValue;
 
 public enum ComplicatieErnst
 {
-	
+
 	MILD("255604002", "2.16.840.1.113883.6.96"),
 
 	MATIG("6736007", "2.16.840.1.113883.6.96"),

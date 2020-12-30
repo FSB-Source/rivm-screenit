@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.colon.enums;
 
 public enum RedenAfspraakAfzeggen
 {
-	
+
 	CLIENT_WIL_NIET_DEELNEMEN("Cli\u00EBnt wil niet deelnemen"),
 
 	HUISARTS_ADVISEERT_ANNULERING("Huisarts adviseert annulering"),

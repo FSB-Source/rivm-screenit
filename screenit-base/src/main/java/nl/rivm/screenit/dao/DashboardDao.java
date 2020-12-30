@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.logging.LogRegel;
 
 public interface DashboardDao
 {
-	
+
 	List<DashboardStatus> getDashboardStatussen(DashboardType item);
 
 	List<DashboardStatus> getListOfDashboardStatussen(ToegangLevel toegang);

@@ -56,6 +56,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 	name = "dossier",
 	indexes = {
 		@Index(name = "idx_MAMMA_DOSSIER_STATUS", columnList = "status"),
+		@Index(name = "idx_MAMMA_DOSSIER_FU_CONCLUSIE", columnList = "updateFollowUpConclusie"),
 	},
 	uniqueConstraints = {
 		@UniqueConstraint(columnNames = "laatste_screening_ronde"),

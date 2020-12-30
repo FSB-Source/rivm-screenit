@@ -37,7 +37,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixZas extends CervixMonster
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Enumerated(EnumType.STRING)

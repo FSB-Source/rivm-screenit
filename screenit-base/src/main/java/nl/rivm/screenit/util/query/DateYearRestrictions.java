@@ -24,7 +24,7 @@ package nl.rivm.screenit.util.query;
 
 public class DateYearRestrictions
 {
-	
+
 	private DateYearRestrictions()
 	{
 	}

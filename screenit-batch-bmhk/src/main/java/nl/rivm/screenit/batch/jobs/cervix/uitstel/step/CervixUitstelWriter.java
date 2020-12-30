@@ -39,7 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 {
-	
+
 	@Autowired
 	private CervixFactory factory;
 

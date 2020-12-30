@@ -1,0 +1,73 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="form-container bezwaar">
+        <h2>Bezwaar</h2>
+        <p>
+            Bij deelname aan een bevolkingsonderzoek worden uw gegevens elektronisch verwerkt. Wij gebruiken hiervoor beveiligde systemen. De resultaten van het bevolkingsonderzoek
+            kunnen worden gebruikt voor het steeds verder verbeteren van het onderzoek en voor wetenschappelijk onderzoek. Uw privacy wordt hierbij optimaal beschermd.<br>
+            Als u bezwaar maakt tegen het registreren en/of gebruik van uw gegevens, heeft dit uiteraard geen invloed op de manier waarop u voor, tijdens of na het
+            bevolkingsonderzoek wordt bejegend.
+        </p>
+        <p>
+            U maakt bezwaar door het gewenste vakje aan te vinken. Wilt u een eerder gemaakt bezwaar intrekken, dan verwijdert u het vinkje door erop te klikken. U ontvangt een
+            schriftelijke bevestiging.
+        </p>
+        <div>
+            <div wicket:id="algemeenBezwaren">
+                <div wicket:id="bezwaarCheckBox"></div>
+            </div>
+            <div wicket:id="bvoBezwaren">
+                <div wicket:id="bezwaarCheckBox"></div>
+            </div>
+        </div>
+
+        <p>
+            <b>Overige bezwaren</b><br>
+            U kunt ook bezwaar maken tegen de opname van uw gegevens vanuit de Basisregistratie personen en tegen het bewaren van uw dossier. De inhoud van deze bezwaren wordt
+            hieronder beschreven.<br>
+            Omdat het registreren van dit bezwaar een beveiligde handeling is binnen ons systeem, moet u hiervoor contact opnemen met de informatielijn van de
+            screeningsorganisatie.
+        </p>
+        <p>
+            <b>Geen opname van mijn gegevens vanuit de basisregistratie personen</b><br>
+            Wij nemen voor het bevolkingsonderzoek uw gegevens niet meer over van de basisregistratie personen. Om het ophalen van uw gegevens te kunnen blokkeren, blijven uw naam,
+            adres, woonplaats, geboortedatum, BSN en het feit dat u dit bezwaar heeft gemaakt, bewaard.
+            <b>Let op!</b> U ontvangt geen uitnodigingen meer voor het bevolkingsonderzoek.<br>
+            <i>Dit bezwaar geldt voor de bevolkingsonderzoeken baarmoederhalskanker, borstkanker en darmkanker.</i>
+        </p>
+        <p>
+            <b>Verzoek tot vernietiging van mijn dossier</b><br>
+            Wij verwijderen uw uitslagen van het bevolkingsonderzoek. Wij kunnen deze gegevens daarna niet meer terughalen. Na verwerking van uw bezwaar stopt uw lopende
+            uitnodigingsronde. Dit betekent dat u na verwerking van het bezwaar geen uitslag of andere berichten meer ontvangt. U kunt dit bezwaar na uitvoering niet meer
+            intrekken. U ontvangt automatisch weer een uitnodiging voor het bevolkingsonderzoek in de volgende uitnodigingsronde. Wilt u dat wij de resultaten van uw deelname dan
+            weer verwijderen, dan moet u dit opnieuw aangeven.
+        </p>
+        <wicket:child/>
+        <p>
+            <b>Bezwaar registratie geboorteland vervallen</b><br>
+            Vanaf december 2019 leggen wij geboorteland, geboorteplaats en nationaliteit niet meer vast. De gegevens die wij hierover hadden vastgelegd zijn verwijderd.
+            Eerder gemaakte bezwaren tegen registratie geboorteland zijn daarmee vervallen.
+        </p>
+    </div>
+</wicket:panel>
+</html>

@@ -41,7 +41,7 @@ import org.springframework.batch.item.ItemWriter;
 
 public class Vo105ItemWriter implements ItemWriter<List<Vo105BerichtWrapper>>, ItemStreamWriter<List<Vo105BerichtWrapper>>
 {
-	
+
 	public static final String BESTANDEN_MAP_KEY = "key.bestandenmap";
 
 	private Map<String, String> vo105Bestanden = new HashMap<>();

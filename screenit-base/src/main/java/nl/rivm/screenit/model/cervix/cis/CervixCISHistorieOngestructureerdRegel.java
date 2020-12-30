@@ -42,7 +42,7 @@ import org.hibernate.annotations.Type;
 @Table(schema = "cervix", name = "cis_historie_ongestructureerd_regel")
 public class CervixCISHistorieOngestructureerdRegel extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)

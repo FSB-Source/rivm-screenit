@@ -37,7 +37,7 @@ import org.springframework.jms.listener.SessionAwareMessageListener;
 
 public class JMSVerwerkHpvBerichtListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(JMSVerwerkHpvBerichtListener.class);
 
 	@Autowired

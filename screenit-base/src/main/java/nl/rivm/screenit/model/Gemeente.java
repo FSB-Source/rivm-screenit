@@ -52,7 +52,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class Gemeente extends AbstractHibernateObject implements GbaStamtabel, IGeografischeCoordinaten
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public static final String RNI_CODE = "1999";

@@ -26,7 +26,7 @@ import java.io.Serializable;
 
 public class AddTriggerRequest implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Trigger trigger;

@@ -32,7 +32,7 @@ import org.springframework.batch.item.ExecutionContext;
 
 public class ColonBrievenGenererenReader extends AbstractBrievenGenererenReader<ColonBrief>
 {
-	
+
 	@Override
 	protected Long getScreeningOrganisatieId(ExecutionContext context)
 	{

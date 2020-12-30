@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 
 public interface FileService
 {
-	
+
 	void delete(UploadDocument document);
 
 	void delete(UploadDocument document, boolean deleteFile);

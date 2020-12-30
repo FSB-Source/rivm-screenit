@@ -74,7 +74,7 @@ public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveM
 			{
 				jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
 				{
-					
+
 					@Override
 					public Message createMessage(Session session) throws JMSException
 					{
@@ -120,7 +120,7 @@ public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveM
 			{
 				jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
 				{
-					
+
 					@Override
 					public Message createMessage(Session session) throws JMSException
 					{

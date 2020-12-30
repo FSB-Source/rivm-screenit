@@ -33,8 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 
-import java.time.Duration;
-
 public class SeRestMessageListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
 	private static final Logger LOG = LoggerFactory.getLogger(SeRestMessageListener.class);
@@ -61,7 +59,7 @@ public class SeRestMessageListener implements SessionAwareMessageListener<Active
 				}
 				else
 				{
-					seProxyWebsocket.sendTijdUpdateNaarIedereSe(Duration.parse(bericht));
+					seProxyWebsocket.sendDbCleanupNaarIedereSe();
 				}
 			}
 			else

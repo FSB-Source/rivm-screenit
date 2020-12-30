@@ -34,7 +34,7 @@ import nl.topicuszorg.formulieren2.persistence.definitie.VraagDefinitieImpl;
 @Table(uniqueConstraints = @UniqueConstraint(name = "form_vraag_definite_id_domein_ukey", columnNames = { "identifier", "domein" }))
 public class SimpleVraagDefinitieImpl<T> extends VraagDefinitieImpl<T> implements IdentifierElement
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column

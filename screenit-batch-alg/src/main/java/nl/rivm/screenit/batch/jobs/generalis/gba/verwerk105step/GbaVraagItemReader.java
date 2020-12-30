@@ -43,7 +43,7 @@ import org.springframework.orm.hibernate5.SessionFactoryUtils;
 
 public class GbaVraagItemReader implements ItemReader<Long>, ItemStream
 {
-	
+
 	private static final String ROWNUMBER = "key.rownumber";
 
 	@Autowired

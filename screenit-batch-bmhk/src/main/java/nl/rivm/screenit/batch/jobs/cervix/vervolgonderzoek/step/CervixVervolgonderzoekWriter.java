@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixVervolgonderzoekWriter extends BaseWriter<CervixScreeningRonde>
 {
-	
+
 	@Autowired
 	private CervixFactory factory;
 

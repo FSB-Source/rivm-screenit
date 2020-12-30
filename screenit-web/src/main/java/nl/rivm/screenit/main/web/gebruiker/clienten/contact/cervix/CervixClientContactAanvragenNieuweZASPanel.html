@@ -1,0 +1,90 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <h2>Aanvragen nieuwe ZAS</h2>
+    <fieldset class="form-horizontal hero-unit ifobt-gegevens">
+        <h3>Gegevens aanvraag nieuwe ZAS</h3>
+        <div class="row-fluid">
+            <div class="span6">
+                <div class="control-group value">
+                    <label class="control-label">Bevolkingsonderzoek</label>
+                    <div class="controls">Baarmoederhalskanker</div>
+                </div>
+            </div>
+            <div class="span6">
+                <div class="control-group value">
+                    <label class="control-label">Ronde</label>
+                    <div class="controls">
+                        <span class="badge" wicket:id="rondeNr">2</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <wicket:enclosure child="extraOmschrijving">
+            <div class="control-group value">
+                <label class="control-label">Gebeurtenis</label>
+                <div class="controls">
+                    <span class="badge badge-inverse"><wicket:container wicket:id="gebeurtenis"></wicket:container> (<span wicket:id="extraOmschrijving"></span>) : <wicket:container
+                            wicket:id="datum"> 21-10-2012</wicket:container></span>
+                </div>
+            </div>
+        </wicket:enclosure>
+        <wicket:enclosure child="uitstelPeriodeNemen">
+            <div class="control-group value">
+                <label class="control-label">Uitstel</label>
+                <div wicket:id="uitstelPeriodeNemen">
+                    <div class="controls">
+                        De client heeft uitstel aangevraagd. Het uitstel wordt nav. deze ZAS aanvraag geannuleerd. De client kan nu kiezen uit de volgende opties:
+                        <label class="radio">
+                            <input type="radio" wicket:id="uitstel">
+                            De ZAS laten bezorgen vanaf de datum dat het uitstel is beeindigd (
+                            <wicket:container wicket:id="uitstelDatum"></wicket:container>
+                            )
+                        </label>
+                        <label class="radio">
+                            <input type="radio" wicket:id="ZAS">
+                            De ZAS laten bezorgen vanaf de datum dat ZAS op z'n vroegst afgeleverd kan worden (
+                            <wicket:container wicket:id="zasUitnodigingsDatum"></wicket:container>
+                            )
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </wicket:enclosure>
+        <div class="control-group value" wicket:id="gbaMessageContainer">
+            <label class="control-label">Opmerking</label>
+            <div class="controls">
+                <span class="badge"><wicket:message key="message.aanvraagnagba"></wicket:message></span>
+            </div>
+        </div>
+        <wicket:enclosure child="maxZASOverschredenWaarschuwing">
+            <div class="control-group value">
+                <label class="control-label">Waarschuwing</label>
+                <div class="controls">
+                    <span wicket:id="maxZASOverschredenWaarschuwing"></span>
+                </div>
+            </div>
+        </wicket:enclosure>
+
+    </fieldset>
+</wicket:panel>
+</html>

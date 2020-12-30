@@ -55,7 +55,7 @@ import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 
 public class ExtractCDA
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ExtractCDA.class);
 
 	private static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";

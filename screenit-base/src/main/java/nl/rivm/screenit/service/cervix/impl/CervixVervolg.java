@@ -30,7 +30,7 @@ import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 
 public class CervixVervolg
 {
-	
+
 	private CervixVervolgTekst vervolgTekst = null;
 
 	private BriefType briefType = null;

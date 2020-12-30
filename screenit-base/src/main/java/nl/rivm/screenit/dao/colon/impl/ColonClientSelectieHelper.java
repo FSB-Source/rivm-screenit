@@ -194,7 +194,7 @@ public abstract class ColonClientSelectieHelper
 		return critAfsprakenZonderVervolg;
 	}
 
-	private static DetachedCriteria critEersteOngunstigeUitslagUitLaatsteRonde()
+	public static DetachedCriteria critEersteOngunstigeUitslagUitLaatsteRonde()
 	{
 
 		DetachedCriteria critEersteOngunstigeUitslagUitLaatsteRonde = DetachedCriteria.forClass(ColonDossier.class);

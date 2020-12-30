@@ -130,10 +130,10 @@ public class DaglijstServiceImpl implements DaglijstService
 	}
 
 	@Override
-	public void verstuurUpdate(String seCode)
+	public void verstuurUpdate(String seCodeEnDatum)
 	{
-		LOG.info("SE met code " + seCode + " moet de daglijst opnieuw binnenhalen.");
-		seProxyWebsocket.sendDaglijstUpdate(seCode);
+		LOG.info("SE met code en datum " + seCodeEnDatum + " moet de daglijst opnieuw binnenhalen.");
+		seProxyWebsocket.sendDaglijstUpdate(seCodeEnDatum);
 	}
 
 	private AfspraakSeDto createAfspraakDto(MammaAfspraak afspraak)

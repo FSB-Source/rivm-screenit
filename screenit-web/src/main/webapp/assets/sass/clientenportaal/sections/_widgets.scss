@@ -1,0 +1,15 @@
+.widget {
+  margin-bottom: 20px;
+  @include clearfix();
+
+  h1 {
+    padding: 5px;
+    margin: 0 0 10px 0;
+    border-bottom: 1px solid $primary-color;
+    color: $primary-color;
+  }
+
+  &.bevolkingsonderzoek .widget-content {
+    padding: 0 5px 5px 5px;
+  }
+}

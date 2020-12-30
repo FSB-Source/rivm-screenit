@@ -1,0 +1,81 @@
+[class^="icon-"],
+[class*="icon-"],
+.dropdown-menu > li > a:hover > [class^="icon-"],
+.dropdown-menu > li > a:hover > [class*=" icon-"] {
+
+  &.icon-purple {
+    background-image: url("../images/icons/glyphicons-halflings-purple.png");
+  }
+
+  &.icon-green {
+    background-image: url("../images/icons/glyphicons-halflings-green.png");
+  }
+
+  &.icon-light-green {
+    background-image: url("../images/icons/glyphicons-halflings-light-green.png");
+  }
+
+  &.icon-orange {
+    background-image: url("../images/icons/glyphicons-halflings-orange.png");
+  }
+
+  &.icon-red {
+    background-image: url("../images/icons/glyphicons-halflings-red.png");
+  }
+
+  &.icon-white {
+    background-image: url("../images/icons/glyphicons-halflings-white.png");
+  }
+}
+
+.icon {
+  margin: -1px 0 -1px 0;
+  display: inline-block;
+  vertical-align: text-top;
+}
+
+.icon-mimetype-pdf {
+  width: 16px;
+  height: 16px;
+  background: url(../images/icons/ico-mimetype-pdf.png) transparent no-repeat 0 0;
+}
+
+.icon-mimetype-doc {
+  width: 16px;
+  height: 16px;
+  background: url(../images/icons/ico-mimetype-txt.png) transparent no-repeat 0 0;
+}
+
+.icon-mimetype-csv {
+  width: 16px;
+  height: 16px;
+  background: url(../images/icons/ico-mimetype-csv.png) transparent no-repeat 0 0;
+}
+
+.icon-plus-icon {
+  margin-right: 5px;
+}
+
+.icon-link {
+  width: 16px;
+  height: 16px;
+  background: url(../images/icons/ico-link.png) transparent no-repeat 0 0;
+}
+
+.icon-link.icon-white {
+  background: url(../images/icons/ico-link-white.png) transparent no-repeat 0 0;
+}
+
+.icon-barcode {
+  background: transparent url(../images/icons/ico-barcode.png) no-repeat 0 0;
+}
+
+.icon-nieuwe-afspraak {
+  width: 16px;
+  height: 16px;
+  background: transparent url(../images/icons/nieuwe-afspraak.png) no-repeat 0 0;
+}
+
+.fa.icon-large-font {
+  font-size: large;
+}

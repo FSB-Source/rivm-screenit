@@ -61,7 +61,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 public class EikenInlezenResultWriter implements ItemWriter<IFOBTResult>
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(EikenInlezenResultWriter.class);
 
 	@Autowired

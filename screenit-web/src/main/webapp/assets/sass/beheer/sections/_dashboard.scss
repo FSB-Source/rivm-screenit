@@ -1,0 +1,79 @@
+@include keyframes(blink) {
+  0% {
+    background-color: rgba(255, 0, 0, 1);
+  }
+  50% {
+    background-color: rgba(255, 0, 0, 0);
+  }
+  100% {
+    background-color: rgba(255, 0, 0, 1);
+  }
+}
+
+.dashboard-status {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  position: relative;
+  top: 3px;
+  border-radius: 50%;
+  margin-right: 10px;
+
+  &.red {
+    background-color: red;
+    -webkit-animation: blink 1.5s ease infinite;
+    -moz-animation: blink 1.5s ease infinite;
+    -ms-animation: blink 1.5s ease infinite;
+    animation: blink 1.5s ease infinite;
+  }
+  &.orange {
+    background-color: orange;
+  }
+  &.green {
+    background-color: green;
+  }
+}
+
+.alert.dashboard-error {
+  position: relative;
+  top: 0;
+  right: auto;
+  left: auto;
+  margin: 0 0 10px 0;
+  width: auto;
+  z-index: auto;
+}
+
+.table-striped tbody > tr:nth-child(even) {
+  &.log-error td {
+    color: #b94a48;
+    background-color: tint(#f2dede, 50);
+  }
+
+  &.log-warning td {
+    color: darken(orange, 10);
+    background-color: tint(orange, 90) !important;
+  }
+
+  .log-info td {
+  }
+}
+
+.table-striped tbody > tr:nth-child(odd) {
+  &.log-error td {
+    color: #b94a48;
+    background-color: tint(#f2dede, 30);
+  }
+
+  &.log-warning td {
+    color: darken(orange, 10);
+    background-color: tint(orange, 85) !important;
+  }
+
+  .log-info td {
+  }
+}
+
+.text-red {
+  color: #a0261e;
+}

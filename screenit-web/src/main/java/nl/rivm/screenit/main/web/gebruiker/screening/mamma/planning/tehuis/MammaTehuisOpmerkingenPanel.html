@@ -1,0 +1,64 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:panel>
+    <div>
+        <button class="btn btn-primary" wicket:id="nieuw"><span class="icon-plus-sign icon-white"/> Opmerking</button>
+    </div>
+    <div wicket:id="editOpmerkingContainer" style="margin-top: 10px;">
+        <form wicket:id="opmerkingForm">
+            <div class="row-fluid">
+                <div class="span10" style="margin-left: 0">
+                    <textarea style="width: 100%; resize: none;" wicket:id="opmerking"></textarea>
+                </div>
+                <div class="span2">
+                    <button class="btn btn-primary right" wicket:id="opslaan">Opslaan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div wicket:id="opmerkingen">
+        <table class="table">
+            <col width="90"/>
+            <col/>
+            <col width="150"/>
+            <thead>
+            <tr>
+                <th>Datum/tijd</th>
+                <th>Opmerking</th>
+                <th class="status-header">
+                    <div wicket:id="actiefHeader"></div>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr wicket:id="list">
+                <td style="vertical-align: top; color: #612d83;"><label wicket:id="creatieDatum"></label></td>
+                <td style="vertical-align: top; color: #612d83;"><label wicket:id="opmerking"></label></td>
+                <td class="status">
+                    <div wicket:id="actiefToggle"></div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</wicket:panel>
+</html>

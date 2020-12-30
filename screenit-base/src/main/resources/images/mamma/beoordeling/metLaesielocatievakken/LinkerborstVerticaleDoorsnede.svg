@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg width="200px" height="291px" viewBox="0 0 200 291" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>LCC verslag optie 2</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="LCC-verslag-optie-2" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M74,1 L1,182" id="Path-39" stroke="#000000" stroke-width="2"></path>
+        <path d="M1,46 L35,99" id="Path-41" stroke="#000000" stroke-width="2"></path>
+        <path d="M1,115 L18,141" id="Path-43" stroke="#000000" stroke-width="2"></path>
+        <path d="M15,-1 L51,56" id="Path-14" stroke="#000000" stroke-width="2"></path>
+        <path d="M57,-4 L69,13" id="Path-16" stroke="#000000" stroke-width="2"></path>
+        <path d="M36,-4 L60,35" id="Path-15" stroke="#000000" stroke-width="2"></path>
+        <path d="M126.091385,2 C122.059299,13.0267386 133.945702,59.6930138 64.0943748,110.348681 C-5.75695235,161.004348 18.8965676,251.412855 112.921844,262.366712 C153.720064,267.119666 146.451583,265.092128 168.797157,274.163469 C177.073723,277.523398 183.141337,282.802242 187,290"
+              id="Path-37" stroke="#000000" stroke-width="2" transform="translate(105.500000, 146.000000) scale(-1, 1) translate(-105.500000, -146.000000) "></path>
+        <path d="M1,11 L43,76" id="Path-40" stroke="#000000" stroke-width="2"></path>
+        <path d="M1,80 L26,120" id="Path-42" stroke="#000000" stroke-width="2"></path>
+        <path d="M1,150 L9,162" id="Path-44" stroke="#000000" stroke-width="2"></path>
+        <path d="M199,197.999656 C189.666667,198.018222 185,192.826227 185,182.423671 C185,172.021115 189.666667,166.880593 199,167.002104" id="Path-56" stroke="#000000"
+              stroke-width="2" transform="translate(192.000000, 182.500000) scale(-1, 1) translate(-192.000000, -182.500000) "></path>
+        <polygon id="L" fill="#000000" points="143.578313 29.8926554 155 29.8926554 155 33 140 33 140 8 143.578313 8"></polygon>
+        <path d="M1,0 L1,291" id="Path-5" stroke="#000000" stroke-width="2"></path>
+        <path d="M124.5,0.5 L124.5,290.5" id="Line" stroke="#BBBBBB" stroke-linecap="square" stroke-dasharray="3,5"></path>
+        <path d="M199.5,182.5 L0.5,182.5" id="Line" stroke="#BBBBBB" stroke-linecap="square" stroke-dasharray="3,5"></path>
+        <path d="M185.5,165.5 L124.5,165.5" id="Line" stroke="#BBBBBB" stroke-linecap="square" stroke-dasharray="3,5"></path>
+        <path d="M185.5,198.5 L124.5,198.5" id="Line" stroke="#BBBBBB" stroke-linecap="square" stroke-dasharray="3,5"></path>
+        <path d="M62.5,0.5 L62.5,290.5" id="Line" stroke="#BBBBBB" stroke-linecap="square" stroke-dasharray="3,5"></path>
+    </g>
+</svg>

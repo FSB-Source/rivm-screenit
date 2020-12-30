@@ -29,7 +29,7 @@ import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 class CervixBepaalGevolgenLabproces
 {
-	
+
 	CervixBepaalVervolgContext context;
 
 	CervixVervolg vervolg;

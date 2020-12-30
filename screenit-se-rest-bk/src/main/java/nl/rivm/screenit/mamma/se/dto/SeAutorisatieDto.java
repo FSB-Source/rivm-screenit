@@ -25,6 +25,8 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @JsonFilter("autorisatieFilter")
@@ -42,16 +44,6 @@ public class SeAutorisatieDto
 
 	private long instellingGebruikerId;
 
-	private boolean inschrijven;
-
-	private boolean onderzoeken;
-
-	private boolean signaleren;
-
-	private boolean kwaliteitsopname;
-
-	private boolean connectiestatus;
-
 	private SERechtDto inschrijvenRecht;
 
 	private SERechtDto onderzoekenRecht;
@@ -65,4 +57,6 @@ public class SeAutorisatieDto
 	private String navigatie;
 
 	private int seMaxOfflineInlogPeriode;
+
+	private Map<SeConfiguratieKey, String> seParameters;
 }

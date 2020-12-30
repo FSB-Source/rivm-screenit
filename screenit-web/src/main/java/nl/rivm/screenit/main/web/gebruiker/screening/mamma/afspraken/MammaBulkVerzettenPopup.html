@@ -1,0 +1,99 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Bulk verzetten
+            <div class="row-fluid">            
+                <div class="span6">
+	                <div class="control-group value">
+	                	<label>Screeningseenheid: <span wicket:id="standplaatsPeriode.screeningsEenheid.naam" class="controls"></span></label>
+	                    <label>Standplaats: <span wicket:id="standplaatsPeriode.standplaatsRonde.standplaats.naam" class="controls"></span></label>
+	                    <label>Huidige datum afspraken: <span wicket:id="currentDay" class="controls"></span></label>
+	                </div>                	               
+            	</div>
+            	<div class="span6">
+            		<div class="control-group value">
+	            		<label># geselecteerde afspraken: <span wicket:id="aantalAfspraken" class="controls"></span></label>
+	                	<label>Benodigde capaciteit totaal: <span wicket:id="benodigdeCapaciteitTotaal" class="controls"></span></label>                	
+                	</div>
+            	</div>
+            </div>
+        </h3>
+    </div>
+    <form wicket:id="form">
+        <div class="modal-body">
+            <fieldset class="hero-unit form-horizontal">
+	            <div class="row-fluid">
+	                <div class="span6">
+                        <div class="control-group">
+                            <label style="width: 140px;" class="control-label">Standplaats:<i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                                <div>
+                                    <select style="width: 171px;" wicket:id="standplaatsPeriodeNaar" class="input-large three-months"></select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label style="width: 140px;" class="control-label">Vanaf:<i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                                <div class="input-append">
+                                    <input maxlength="0" style="width: 120px;" wicket:id="vanaf" type="text" class="input-large three-months">
+                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label style="width: 140px;" class="control-label">Tot en met:<i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                                <div class="input-append">
+                                    <input maxlength="0" style="width: 120px;" wicket:id="totEnMet" type="text" class="input-large three-months">
+                                    <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label style="width: 140px;" class="control-label">Reden:<i class="icon-asterisk icon-purple"></i></label>
+                            <div class="controls">
+                                <div class="input-append">
+                                    <div wicket:id="reden"></div>
+                                </div>
+                            </div>
+                        </div>
+	                </div>
+	                <div class="span6" wicket:id="vrijeCapaciteitContainer">
+                        <div class="control-group" >
+                            <label style="width: 140px;" class="control-label">Vrije capaciteit totaal:</label>
+                            <div class="controls" wicket:id="vrijeCapaciteitTotaal"></div>
+                        </div>                        
+	                </div>
+	            </div>
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" wicket:id="verzetten" type="button">Verzetten</button>
+        </div>
+    </form>
+
+    <div wicket:id="confirmPopup"></div>
+</wicket:panel>
+</html>

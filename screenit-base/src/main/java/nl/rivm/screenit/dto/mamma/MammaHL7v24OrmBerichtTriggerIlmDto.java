@@ -21,6 +21,20 @@ package nl.rivm.screenit.dto.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class MammaHL7v24OrmBerichtTriggerIlmDto extends MammaHL7v24OrmBerichtTriggerMetClientDto
 {
+	private Long accessionNumber;
+
+	private String screeningsEenheidCode;
+
+	private Date laatsteOnderzoekAfgerondOpDatum;
+
+	private Date laatsteAfspraakDatum;
 }

@@ -30,7 +30,7 @@ import org.hibernate.Criteria;
 
 public interface GbaDao
 {
-	
+
 	<T extends GbaStamtabel> T getStamtabelByCode(Class<T> clazz, String code);
 
 	void updateVerstuurdeVragen(String uniqueBatchId);

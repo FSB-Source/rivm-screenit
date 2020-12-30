@@ -59,7 +59,7 @@ import com.google.common.primitives.Ints;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class LogDaoImpl extends AbstractAutowiredDao implements LogDao
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(LogDaoImpl.class);
 
 	@Autowired

@@ -24,7 +24,7 @@ package nl.rivm.screenit.util;
 
 public class RomanNumeral
 {
-	
+
 	private RomanNumeral()
 	{
 	}

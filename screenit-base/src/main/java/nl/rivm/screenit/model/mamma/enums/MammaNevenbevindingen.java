@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.INaam;
 
 public enum MammaNevenbevindingen implements INaam
 {
-	
+
 	VERGROTE_LYMFEKLIEREN("Vergrote lymfeklieren"),
 
 	LEKKEND_IMPLANTAAT("Lekkend of gescheurd implantaat"),

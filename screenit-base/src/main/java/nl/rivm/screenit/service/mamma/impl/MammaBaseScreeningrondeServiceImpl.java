@@ -27,13 +27,19 @@ import java.util.List;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
+import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
+import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
@@ -69,10 +75,14 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	@Autowired
 	private MammaBaseKwaliteitscontroleService baseKwaliteitscontroleService;
 
+	@Autowired
+	private BerichtToBatchService berichtToBatchService;
+
 	@Override
-	public void verwijderScreeningRondes(MammaDossier dossier)
+	public void verwijderAlleScreeningRondes(MammaDossier dossier)
 	{
 		List<MammaScreeningRonde> rondes = dossier.getScreeningRondes();
+
 		dossier.setLaatsteScreeningRonde(null);
 		dossier.setScreeningRondes(new ArrayList<>());
 		hibernateService.saveOrUpdate(dossier);
@@ -80,16 +90,29 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		{
 			for (MammaScreeningRonde ronde : rondes)
 			{
-				verwijderScreeningRonde(ronde);
+				verwijderScreeningRonde(ronde, true);
 			}
 		}
 	}
 
 	@Override
-	public void verwijderScreeningRonde(MammaScreeningRonde screeningRonde)
+	public boolean verwijderScreeningRonde(MammaScreeningRonde screeningRonde, boolean forceerBeeldenVerwijderen)
 	{
+		if (heeftIlmBeelden(screeningRonde))
+		{
+			if (forceerBeeldenVerwijderen)
+			{
+				berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.GOINGTODELETE, MammaHL7BerichtType.IMS_ORM_ILM);
+				berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE, MammaHL7BerichtType.IMS_ORM_ILM);
+			}
+			else
+			{
+				return false;
+			}
+		}
 		baseUitwisselportaalService.verwijderDownloadVerzoeken(screeningRonde);
 		baseKwaliteitscontroleService.verwijderKwaliteitscontroleOnderzoeken(screeningRonde);
+
 		MammaDossier dossier = screeningRonde.getDossier();
 		boolean isRondeMetLaatsteBeoordelingMetUitslag = dossier.getLaatsteBeoordelingMetUitslag() != null &&
 			dossier.getLaatsteBeoordelingMetUitslag().getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().equals(screeningRonde);
@@ -133,6 +156,24 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		screeningRonde.setDossier(null);
 		hibernateService.delete(screeningRonde);
 		hibernateService.saveOrUpdate(dossier);
+		return true;
+	}
+
+	private boolean heeftIlmBeelden(MammaScreeningRonde ronde)
+	{
+		for (MammaUitnodiging uitnodiging : ronde.getUitnodigingen())
+		{
+			for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
+			{
+				MammaMammografie mammografie = afspraak.getOnderzoek() != null ? afspraak.getOnderzoek().getMammografie() : null;
+				if (mammografie != null
+					&& !(MammaMammografieIlmStatus.VERWIJDERD.equals(mammografie.getIlmStatus()) || MammaMammografieIlmStatus.NIET_BESCHIKBAAR.equals(mammografie.getIlmStatus())))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private void verwijderAlleUitnodigingen(List<MammaUitnodiging> uitnodigingen)

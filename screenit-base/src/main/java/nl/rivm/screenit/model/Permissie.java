@@ -42,7 +42,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public class Permissie extends AbstractHibernateObject implements Permission
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Enumerated(EnumType.STRING)

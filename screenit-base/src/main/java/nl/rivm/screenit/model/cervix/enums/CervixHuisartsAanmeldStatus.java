@@ -23,7 +23,7 @@ package nl.rivm.screenit.model.cervix.enums;
 
 public enum CervixHuisartsAanmeldStatus
 {
-	
+
 	AANGEMAAKT,
 
 	REGISTRATIE_KLAARGEZET,

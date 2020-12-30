@@ -62,10 +62,10 @@ public class DaglijstController extends AuthorizedController
 
 		try
 		{
-			LOG.info("Daglijst ophalen start (" + seCode + ")");
+			LOG.info("Daglijst ophalen start (" + seCode + ") dag: " + datum);
 			future.get(ASYNC_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 			List<AfspraakSeDto> afspraken = daglijstOphaler.getAfspraken();
-			LOG.info("Daglijst ophalen eind (" + seCode + ")");
+			LOG.info("Daglijst ophalen eind (" + seCode + ") dag: " + datum);
 
 			return ResponseEntity.ok(afspraken);
 		}

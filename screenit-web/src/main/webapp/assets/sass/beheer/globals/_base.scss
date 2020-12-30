@@ -1,0 +1,97 @@
+$fontFamily1: Arial, Verdana, Tahoma, Sans-Serif;
+$fontFamily2: Verdana, Arial, Helvetica, sans-serif;
+
+$fontSize: 12px;
+$fontLineHeight: 18px;
+
+$backgroundColor1: #F1F2F3;
+
+$color1: #000;
+$color2: #333;
+$color3: #E2E2DD;
+$color4: #666;
+$color5: #FFF;
+$color6: #ACACAC;
+$color7: #322734;
+$color8: #008DCA;
+$color9: #F2F0CE;
+$color10: #D6D8D8;
+$color11: #4B4B4B;
+
+$primary-color: #623483;
+$colorColonis1: #DCB0EB;
+$colorColonis2: #54026e;
+$colorColonis3: #97a300;
+$colorColonis4: #FAEBFF;
+
+$colorColonis-beheer1: #612D83;
+$colorColonis-beheer2: #D8BEFF;
+$colorColonis-beheer3: #9772C4;
+$colorColonis-beheer4: #828D00;
+
+$colorColonis-beheer-gradient1: #E0DAEA;
+$colorColonis-beheer-gradient2: #FFF;
+
+$widgetbackground: #f3f6fb;
+
+$border1: solid 1px #CAD8CC;
+$border2: solid 1px #F8FAFA;
+$border3: solid 1px $color4;
+$border4: solid 1px $color2;
+$border5: solid 1px #BCCFD1;
+$border6: solid 3px $color5;
+$border7: solid 1px #769FA3;
+$border8: solid 1px $color10;
+
+$backgroundImage: url(../images/bg-gradient.png) $color6 repeat-x bottom left fixed;
+
+$experimental-support-for-svg: true;
+
+$defaultLabelWidth: 175px;
+$invalidColor: #990000;
+
+
+$scheduleColor1: #612D83;
+$scheduleColor2: #DDD;
+$scheduleColor3: #FFF;
+$scheduleColor4: #9772C4;
+$scheduleColor5: #000;
+$scheduleBackgrouncolor1: #F9F9F9;
+
+$scheduleFontSize1: 10px;
+$scheduleFontSize2: 11px;
+$scheduleFontSize3: 14px;
+
+
+$agendaColor1: #eee;
+$agendaColor2: #f9f9f9;
+$agendaColor3: #ddd;
+$agendaColor4: #fff;
+$agendaColor5: $colorColonis2;
+$agendaColor6: #612d83;
+
+
+$select2Width: 100%;
+$select2WidthSmall: 25%;
+$select2WidthMedium: 50%;
+$select2WidthLarge: 75%;
+$select2BorderColor1: #aaa;
+
+.highlight {
+  padding-left: 5px;
+  margin-left: -5px;
+  background-color: #f7e519;
+  border-radius: 4px;
+}
+
+.highlight strong {
+  color: #b20000;
+}
+
+.dateTimeColumn {
+  width: 67px;
+}
+
+.subrow {
+  background-color: #fefcdc;
+}

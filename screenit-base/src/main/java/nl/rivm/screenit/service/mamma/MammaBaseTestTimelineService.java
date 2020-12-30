@@ -30,9 +30,9 @@ import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 
 public interface MammaBaseTestTimelineService
 {
-	
+
 	MammaUitnodiging nieuweRondeAfspraakUitnodiging(Client client, MammaScreeningsEenheid screeningsEenheid);
-	
+
 	MammaUitnodiging nieuweRondeAfspraakUitnodiging(Client client, MammaScreeningsEenheid screeningsEenheid, boolean stuurHl7Bericht);
 
 	MammaUitnodiging nieuweRondeAfspraakUitnodiging(Client client, MammaScreeningsEenheid screeningsEenheid, MammaStandplaatsRonde standplaatsRonde,

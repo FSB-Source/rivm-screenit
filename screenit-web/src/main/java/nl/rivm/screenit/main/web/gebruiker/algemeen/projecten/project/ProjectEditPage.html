@@ -1,0 +1,236 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:extend>
+    <h1 class="pageTitle" wicket:id="title">
+        Project toevoegen
+    </h1>
+
+    <form class="form-horizontal" wicket:id="form">
+        <fieldset>
+            <div class="row-fluid">
+                <div class="span6">
+                    <h2>Projectgegevens</h2>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            Naam
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls">
+                            <input wicket:id="naam" class="input-large" type="text" value="">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Screeningsorganisatie
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls">
+                            <select wicket:id="screeningOrganisaties">
+                                <option>Organisatie1</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Bevolkingsonderzoek(en)
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls">
+                            <select wicket:id="bevolkingsonderzoeken">
+                                <option>Darmkanker</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group print">
+                        <label class="control-label">
+                            Startdatum
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls">
+                            <div class="input-append date">
+                                <input wicket:id="startDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small three-months">
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group print">
+                        <label class="control-label">
+                            Einddatum instroom
+                        </label>
+
+                        <div class="controls">
+                            <div class="input-append date">
+                                <input wicket:id="correspondentieDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small three-months">
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group print">
+                        <label class="control-label">
+                            Einddatum
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls">
+                            <div class="input-append date">
+                                <input wicket:id="eindDatum" type="text" placeholder="dd-mm-jaar" size="16" class="input-small three-months">
+                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="Datum"><i class="icon-calendar"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">
+                            Anoniem
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls" wicket:id="anoniem">
+                            <label class="radio"> <input type="radio" name="anoniem" id=""> Ja</label>
+                            <label class="radio"> <input type="radio" name="anoniem" id=""> Nee</label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="span5">
+                    <h2>Uitvoerende organisatie</h2>
+
+                    <div class="control-group">
+                        <label class="control-label">
+                            Organisatie
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls">
+                            <select wicket:id="organisatie">
+                                <option>Organisatie1</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div wicket:id="medewerkersContainer">
+                        <div class="control-group">
+                            <label class="control-label">
+                                Contactpersoon
+                                <i class="icon-asterisk icon-purple"></i>
+                            </label>
+
+                            <div class="controls">
+                                <select wicket:id="contactpersoon">
+                                    <option>Medewerker 1</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">Medewerkers</label>
+
+                            <div class="controls">
+                                <select multiple="multiple" wicket:id="medewerkers">
+                                    <option>Medewerker 1</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset>
+            <h2>Selectie populatie</h2>
+
+            <div class="row-fluid">
+                <div class="span6">
+                    <div class="control-group">
+                        <label class="control-label">
+                            Type Selectie
+                            <i class="icon-asterisk icon-purple"></i>
+                        </label>
+
+                        <div class="controls" wicket:id="groepSelectieType">
+                            <label class="radio"> <input type="radio" name="groepSelectieType" id=""> Ja</label>
+                            <label class="radio"> <input type="radio" name="groepSelectieType" id=""> Nee</label>
+                        </div>
+                    </div>
+                    <div class="control-group" wicket:enclosure="excludeerAfmelding">
+                        <label class="control-label">
+                            Excludeer bij afmelding voor
+                        </label>
+
+                        <div class="controls">
+                            <select wicket:id="excludeerAfmelding">
+                                <option>DK</option>
+                                <option>BMHK</option>
+                                <option>BK</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <div class="control-group" wicket:enclosure="excludeerOpenRonde">
+                        <label class="control-label">
+                            Excludeer bij openronde
+                        </label>
+
+                        <div class="controls">
+                            <select wicket:id="excludeerOpenRonde">
+                                <option>DK</option>
+                                <option>BMHK</option>
+                                <option>BK</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group" wicket:enclosure="excludeerBezwaar">
+                        <label class="control-label">Excludeer bezwaarmakers</label>
+                        <div class="controls" wicket:id="excludeerBezwaar">
+                            <label class="radio"> <input type="radio" name="bezwaar" id=""> Ja</label>
+                            <label class="radio"> <input type="radio" name="bezwaar" id=""> Nee</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <div wicket:id="parameters"></div>
+        <fieldset>
+            <h2>Overige gegevens</h2>
+
+            <div class="row-fluid">
+                <div class="span5">
+                    <div class="control-group">
+                        <label class="control-label">Opmerkingen</label>
+
+                        <div class="controls">
+                            <textarea class="textarea" wicket:id="opmerkingen"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+    </form>
+    <div class="buttons">
+        <button class="btn" wicket:id="annuleren">Annuleren</button>
+        <button class="btn btn-primary" wicket:id="opslaan">Opslaan</button>
+    </div>
+</wicket:extend>
+</html>

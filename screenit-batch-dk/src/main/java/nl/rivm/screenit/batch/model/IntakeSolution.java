@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.model;
 
 /*-
@@ -22,26 +21,30 @@ package nl.rivm.screenit.batch.model;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.model.colon.planning.VrijSlot;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.drools.planner.api.domain.solution.PlanningEntityCollectionProperty;
-import org.drools.planner.core.score.buildin.hardandsoft.HardAndSoftScore;
-import org.drools.planner.core.solution.Solution;
+import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
+import org.optaplanner.core.api.domain.solution.PlanningScore;
+import org.optaplanner.core.api.domain.solution.PlanningSolution;
+import org.optaplanner.core.api.domain.solution.ProblemFactCollectionProperty;
+import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
+import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 
-public class IntakeSolution implements Solution<HardAndSoftScore>
+@PlanningSolution
+public class IntakeSolution
 {
 	private List<VrijSlot> vrijeSloten;
 
 	private List<ClientAfspraak> clientAfspraken;
 
-	private HardAndSoftScore score;
+	private HardSoftScore score;
 
+	@ValueRangeProvider(id = "vrijeSlotenRange")
+	@ProblemFactCollectionProperty
 	public List<VrijSlot> getVrijeSloten()
 	{
 		return vrijeSloten;
@@ -63,40 +66,15 @@ public class IntakeSolution implements Solution<HardAndSoftScore>
 		this.clientAfspraken = clientAfspraken;
 	}
 
-	@Override
-	public HardAndSoftScore getScore()
+	@PlanningScore
+	public HardSoftScore getScore()
 	{
 		return score;
 	}
 
-	@Override
-	public void setScore(HardAndSoftScore score)
+	public void setScore(HardSoftScore score)
 	{
 		this.score = score;
-	}
-
-	@Override
-	public Collection<? extends Object> getProblemFacts()
-	{
-		List<Object> facts = new ArrayList<>();
-		facts.addAll(vrijeSloten);
-		return facts;
-	}
-
-	@Override
-	public Solution<HardAndSoftScore> cloneSolution()
-	{
-		IntakeSolution clone = new IntakeSolution();
-		clone.vrijeSloten = vrijeSloten;
-		List<ClientAfspraak> clonedClientAfspraken = new ArrayList<>(clientAfspraken.size());
-		for (ClientAfspraak clientAfspraak : clientAfspraken)
-		{
-			ClientAfspraak clonedClientAfspraak = clientAfspraak.clone();
-			clonedClientAfspraken.add(clonedClientAfspraak);
-		}
-		clone.clientAfspraken = clonedClientAfspraken;
-		clone.score = score;
-		return clone;
 	}
 
 	@Override

@@ -29,7 +29,7 @@ import org.hibernate.Criteria;
 
 public interface CoordinatenDao
 {
-	
+
 	PostcodeCoordinaten getCoordinaten(String postcode, Integer huisnummer, String huisnummerToevoeging, String huisletter);
 
 	void addOrUpdateCoordinaten(String postcode, String huisnr, String huisnummerToevoeging, String lat, String lon);

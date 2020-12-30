@@ -28,7 +28,7 @@ import org.apache.shiro.cache.Cache;
 
 public interface IScreenitRealm
 {
-	
+
 	void clearCachedAuthorizationInfo(InstellingGebruiker instellingGebruiker);
 
 	Cache<Object, AuthorizationInfo> getAuthorizationCache();

@@ -24,6 +24,6 @@ package nl.rivm.screenit.service.colon;
 
 public interface VrijSlotFactory<T>
 {
-	
+
 	T createVrijSlot();
 }

@@ -52,7 +52,7 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Audited
 public abstract class Brief extends TablePerClassHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)

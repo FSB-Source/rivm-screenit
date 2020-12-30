@@ -1,0 +1,378 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+
+        <mapping class="nl.rivm.screenit.model.envers.ScreenitRevisionEntity"/>
+
+        <mapping class="nl.rivm.screenit.model.Gebruiker"/>
+        <mapping class="nl.topicuszorg.yubikey.model.YubiKey"/>
+        <mapping class="nl.rivm.screenit.model.Instelling"/>
+        <mapping class="nl.rivm.screenit.model.OrganisatieParameter"/>
+        <mapping class="nl.rivm.screenit.model.ZorgInstelling"/>
+        <mapping class="nl.rivm.screenit.model.InstellingGebruiker"/>
+        <mapping class="nl.rivm.screenit.model.ScreeningOrganisatie"/>
+        <mapping class="nl.rivm.screenit.model.Rivm"/>
+        <mapping class="nl.rivm.screenit.model.Titel"/>
+        <mapping class="nl.rivm.screenit.model.Functie"/>
+        <mapping class="nl.rivm.screenit.model.ClientTooltip"/>
+        <mapping class="nl.rivm.screenit.model.RegioBvoContactGegevens"/>
+        <mapping class="nl.rivm.screenit.model.ProjectParameter"/>
+
+        <mapping class="nl.rivm.screenit.model.Client"/>
+        <mapping class="nl.rivm.screenit.model.EnovationHuisarts"/>
+        <mapping class="nl.rivm.screenit.model.OnbekendeHuisarts"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonHuisartsBericht"/>
+        <mapping class="nl.rivm.screenit.model.HuisartsBerichtTemplate"/>
+        <mapping class="nl.rivm.screenit.model.ClientContact"/>
+        <mapping class="nl.rivm.screenit.model.ClientContactActie"/>
+        <mapping class="nl.rivm.screenit.model.Gemeente"/>
+        <mapping class="nl.rivm.screenit.model.Woonplaats"/>
+        <mapping class="nl.rivm.screenit.model.PostcodeGebied"/>
+        <mapping class="nl.rivm.screenit.model.UitnodigingsGebied"/>
+        <mapping class="nl.rivm.screenit.model.TijdelijkAdres"/>
+        <mapping class="nl.rivm.screenit.model.TijdelijkGbaAdres"/>
+        <mapping class="nl.rivm.screenit.model.BagAdres"/>
+        <mapping class="nl.rivm.screenit.model.GbaPersoon"/>
+        <mapping class="nl.rivm.screenit.model.PostcodeCoordinaten"/>
+        <mapping class="nl.rivm.screenit.model.Afspraak"/>
+        <mapping class="nl.rivm.screenit.model.colon.Complicatie"/>
+
+        <mapping class="nl.rivm.screenit.model.vragenlijsten.Vragenlijst"/>
+        <mapping class="nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden"/>
+        <mapping class="nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoordenHolder"/>
+
+        <mapping class="nl.rivm.screenit.model.BriefDefinitie"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonBrief"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectBrief"/>
+        <mapping class="nl.rivm.screenit.model.MergedBrieven"/>
+
+        <mapping class="nl.rivm.screenit.model.gba.GbaMutatie"/>
+        <mapping class="nl.rivm.screenit.model.gba.Land"/>
+        <mapping class="nl.rivm.screenit.model.gba.Nationaliteit"/>
+        <mapping class="nl.rivm.screenit.model.gba.GbaVerwerkingsLog"/>
+        <mapping class="nl.rivm.screenit.model.gba.GbaVerwerkingEntry"/>
+        <mapping class="nl.rivm.screenit.model.gba.GbaFoutRegel"/>
+        <mapping class="nl.rivm.screenit.model.gba.GbaVraag"/>
+        <mapping class="nl.rivm.screenit.model.gba.GbaFile"/>
+
+        <mapping class="nl.rivm.screenit.model.InstellingGebruikerRol"/>
+        <mapping class="nl.rivm.screenit.model.Rol"/>
+        <mapping class="nl.rivm.screenit.model.Permissie"/>
+        <mapping class="nl.rivm.screenit.model.Bezwaar"/>
+        <mapping class="nl.rivm.screenit.model.BezwaarMoment"/>
+        <mapping class="nl.rivm.screenit.model.ScreenitPreferenceItem"/>
+
+        <mapping class="nl.rivm.screenit.model.logging.LogRegel"/>
+        <mapping class="nl.rivm.screenit.model.logging.LogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.TechnischeBerichtenLogRegel"/>
+        <mapping class="nl.rivm.screenit.model.logging.SelectieRondeBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.BrievenGenererenBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.IfobtHerinneringBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.IfobtVerwerkingBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.IfobtKoppelingBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.ScannedAntwoordBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.BerichtOntvangenLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.NieuweIFobtAanvraagLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.GbaVerwerkingBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.IntakeMakenLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.RetourzendingLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.GunstigeUitslagBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.UitnodigingVersturenLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.CervixUitnodigingVersturenLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.CervixGevolgenLabprocesVerwerkenBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.CervixSelectieBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.CervixHuisartsberichtenBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.CervixVervolgonderzoekBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.CervixUitstelBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.CervixHerinnerenBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.ZasKoppelingBeeindigdLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.MammaUitnodigenLogEvent"/>
+        <mapping class="nl.rivm.screenit.model.logging.MammaIlmLogEvent"/>
+
+        <mapping class="nl.rivm.screenit.model.colon.ColonAfmelding"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonIntakeAfspraak"/>
+        <mapping class="nl.rivm.screenit.model.colon.IntakeMakenLogEventRegel"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonConclusie"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonDossier"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonScreeningRonde"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonVerslag"/>
+        <mapping class="nl.rivm.screenit.model.colon.MdlVerslag"/>
+        <mapping class="nl.rivm.screenit.model.colon.PaVerslag"/>
+        <mapping class="nl.rivm.screenit.model.colon.IFOBTTest"/>
+        <mapping class="nl.rivm.screenit.model.colon.IFOBTVervaldatum"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonVooraankondiging"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonUitnodiging"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColoscopieCentrum"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColoscopieLocatie"/>
+        <mapping class="nl.rivm.screenit.model.colon.IFobtLaboratorium"/>
+        <mapping class="nl.rivm.screenit.model.colon.PaLaboratorium"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling"/>
+        <mapping class="nl.rivm.screenit.model.colon.Kamer"/>
+        <mapping class="nl.rivm.screenit.model.colon.UitnodigingCohort"/>
+        <mapping class="nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren"/>
+        <mapping class="nl.rivm.screenit.model.colon.ScannedAntwoordFormulier"/>
+        <mapping class="nl.rivm.screenit.model.colon.SAFTransactionTrail"/>
+        <mapping class="nl.rivm.screenit.model.algemeen.KoppelData"/>
+        <mapping class="nl.rivm.screenit.model.colon.SKMLControleBarcode"/>
+        <mapping class="nl.rivm.screenit.model.colon.SKMLSentineelControleBarcode"/>
+        <mapping class="nl.rivm.screenit.model.colon.SKMLInterneControleBarcode"/>
+        <mapping class="nl.rivm.screenit.model.colon.SKMLInterneControleSet"/>
+        <mapping class="nl.rivm.screenit.model.colon.SKMLExterneControleBarcode"/>
+        <mapping class="nl.rivm.screenit.model.colon.SKMLExternSchema"/>
+        <mapping class="nl.rivm.screenit.model.colon.IFOBTUitslag"/>
+        <mapping class="nl.rivm.screenit.model.colon.IFOBTBestand"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonMergedBrieven"/>
+        <mapping class="nl.rivm.screenit.model.colon.AntedateerRange"/>
+        <mapping class="nl.rivm.screenit.model.colon.OpenUitnodiging"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonKoppelresultaatKankerregistratie"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonUitnodigingsinterval"/>
+        <mapping class="nl.rivm.screenit.model.colon.ColonVolgendeUitnodiging"/>
+
+
+        
+        <mapping class="nl.rivm.screenit.model.colon.planning.AfspraakDefinitie"/>
+        <mapping class="nl.rivm.screenit.model.colon.planning.RoosterItem"/>
+        <mapping class="nl.rivm.screenit.model.colon.planning.ColonBlokkade"/>
+
+        <mapping class="nl.rivm.screenit.model.BMHKLaboratorium"/>
+        <mapping class="nl.rivm.screenit.model.ZASRetouradres"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixHuisarts"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixHuisartsLocatie"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixHuisartsAdres"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixDossier"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixScreeningRonde"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixUitnodiging"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixAfmelding"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixBrief"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixMergedBrieven"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixUitstel"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixUitstrijkje"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixZas"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixLabformulier"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixHpvBeoordeling"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixHuisartsBericht"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixCytologieOrder"/>
+        <mapping class="nl.rivm.screenit.model.cervix.verslag.CervixVerslag"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixCytologieVerslag"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixBulkUpload"/>
+
+        <mapping class="nl.rivm.screenit.model.overeenkomsten.Overeenkomst"/>
+        <mapping class="nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst"/>
+        <mapping class="nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst"/>
+        <mapping class="nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst"/>
+
+        <mapping class="nl.rivm.screenit.model.algemeen.BezwaarBrief"/>
+        <mapping class="nl.rivm.screenit.model.algemeen.BezwaarMergedBrieven"/>
+
+        <mapping class="nl.rivm.screenit.model.algemeen.AlgemeneBrief"/>
+        <mapping class="nl.rivm.screenit.model.algemeen.AlgemeneMergedBrieven"/>
+        <mapping class="nl.rivm.screenit.model.algemeen.OverdrachtPersoonsgegevens"/>
+
+        <mapping class="nl.rivm.screenit.model.cervix.CervixRegioBrief"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixRegioMergedBrieven"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.cervix.cis.CervixCISHistorie"/>
+        <mapping class="nl.rivm.screenit.model.cervix.cis.CervixCISHistorieOngestructureerdRegel"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageEntry"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageGewijzigdGebiedEntry"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageProjectGroepEntry"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.BrievenGenererenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.BrievenGenererenRapportageEntry"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportageEntry"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixSelectieRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVerwerkenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixZasVersturenRapportageProjectEntry"/>
+        <mapping
+                class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVerwerkenRapportageBriefType"/>
+        <mapping
+                class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVerwerkenRapportageHuisartsberichtType"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixVervolgonderzoekRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixUitstelRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixHerinnerenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixHerinnerenRapportageBriefType"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixHuisartsberichtenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixHuisartsberichtenRapportageEntry"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.cervix.CervixZasVersturenRapportage"/>
+
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaUitnodigenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeUitnodigenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportageEntry"/>
+
+
+        
+        <mapping class="nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht"/>
+        <mapping class="nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.cervix.CervixHpvBericht"/>
+        <mapping class="nl.rivm.screenit.model.colon.berichten.ColonIFobtUitslagBericht"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.UploadDocument"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.dashboard.DashboardStatus"/>
+        <mapping class="nl.rivm.screenit.model.dashboard.DashboardLogRegel"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.OpenIdAssociation"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.project.Project"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectClient"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectClientAttribuut"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectCriteria"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectImport"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectBestand"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectBestandVerwerking"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry"/>
+
+        <mapping class="nl.rivm.screenit.model.project.ProjectGroep"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectAttribuut"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectBriefActie"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectMergedBrieven"/>
+
+        <mapping class="nl.rivm.screenit.model.project.ProjectVragenlijst"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder"/>
+        <mapping class="nl.rivm.screenit.model.project.ProjectInactiveerDocument"/>
+        <mapping class="nl.rivm.screenit.model.project.ScannedVragenlijst"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie"/>
+        <mapping class="nl.rivm.screenit.model.formulieren.SimpleAntwoordKeuzeVraagDefinitieImpl"/>
+        <mapping class="nl.rivm.screenit.model.formulieren.SimpleKeuzeVraagDefinitieImpl"/>
+        <mapping class="nl.rivm.screenit.model.formulieren.SimpleVraagDefinitieImpl"/>
+        <mapping class="nl.rivm.screenit.model.formulieren.GebruikerAntwoord"/>
+        <mapping class="nl.rivm.screenit.model.formulieren.RomanHerhalingLabel"/>
+        <mapping class="nl.rivm.screenit.model.formulieren.PalgaLabel"/>
+        <mapping class="nl.rivm.screenit.model.formulieren.PalgaNumberAntwoordDefintie"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.nieuws.NieuwsItem"/>
+        <mapping class="nl.rivm.screenit.model.nieuws.GebruikerNieuwsItem"/>
+
+
+        <mapping class="nl.rivm.screenit.model.RetourredenAfhandeling"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief"/>
+        <mapping class="nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief"/>
+        <mapping class="nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecificatie"/>
+        <mapping class="nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel"/>
+        <mapping class="nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht"/>
+        <mapping class="nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting"/>
+        <mapping class="nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel"/>
+
+        
+        <mapping class="nl.rivm.screenit.model.mamma.MammaStandplaats"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaScreeningsEenheid"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaCapaciteitBlok"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaPostcodeReeks"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaBlokkade"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaStandplaatsRonde"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaTehuis"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaTehuisAdres"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaTehuisOpmerking"/>
+
+        <mapping class="nl.rivm.screenit.model.mamma.MammaScreeningRonde"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaDossier"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaDeelnamekans"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaUitnodiging"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaAfmelding"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaUitstel"/>
+
+        <mapping class="nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaKansberekeningRegioGemiddelden"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaKansberekeningStandplaatsRondeGemiddelden"/>
+
+        <mapping class="nl.rivm.screenit.model.mamma.MammaBrief"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaMergedBrieven"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaOnderzoek"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaMammografie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaSignaleren"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaAfspraak"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaOpkomstkans"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaBeoordeling"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaLezing"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaAnnotatieAfbeelding"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaAnnotatieIcoon"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaArchitectuurverstoringLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaAsymmetrieLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaCalcificatiesLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaArchitectuurverstoringCalcificatiesLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaArchitectuurverstoringMassaLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaConformLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaGeenBijzonderhedenLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaBenigneKalk"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaMarkering"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaMassaSpiculae"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaProjectiesLinksLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaProjectiesRechtsLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaMassaCalcificaties"/>
+        <mapping class="nl.rivm.screenit.model.mamma.legacyLaesies.MammaMassaSpiculaeCalcificaties"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaMassaLaesie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaLaesieIcoon"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaHL7v24Message"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaMammograaf"/>
+        <mapping class="nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht"/>
+        <mapping class="nl.rivm.screenit.model.mamma.berichten.MammaHuisartsBericht"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaFotobespreking"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaVisitatie"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek"/>
+        <mapping class="nl.rivm.screenit.model.mamma.verslag.MammaVerslag"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaFollowUpVerslag"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek"/>
+
+        <mapping class="nl.rivm.screenit.model.CentraleEenheid"/>
+        <mapping class="nl.rivm.screenit.model.BeoordelingsEenheid"/>
+        <mapping class="nl.rivm.screenit.model.Mammapoli"/>
+        <mapping class="nl.rivm.screenit.model.RadiologieAfdeling"/>
+
+        <mapping resource="META-INF/orm.xml"/>
+    </session-factory>
+</hibernate-configuration>

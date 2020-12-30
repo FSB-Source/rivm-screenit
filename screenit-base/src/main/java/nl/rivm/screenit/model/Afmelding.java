@@ -53,7 +53,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public abstract class Afmelding<SR extends ScreeningRonde<?, ?, ?, ?>, D extends Dossier<?, ?>, B extends ClientBrief<?, ?, ?>> extends TablePerClassHibernateObject
 {
-	
+
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date afmeldDatum;

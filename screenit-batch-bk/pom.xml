@@ -15,6 +15,25 @@
         <dependency>
             <groupId>nl.rivm.screenit</groupId>
             <artifactId>screenit-base</artifactId>
+            <exclusions>
+            	<exclusion>
+            		 <groupId>org.apache.cxf</groupId>
+		    		 <artifactId>cxf-rt-features-logging</artifactId>
+            	</exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>nl.rivm.screenit</groupId>
+            <artifactId>screenit-base</artifactId>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+            <exclusions>
+            	<exclusion>
+            		 <groupId>org.apache.cxf</groupId>
+		    		 <artifactId>cxf-rt-features-logging</artifactId>
+            	</exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -25,7 +44,7 @@
                     <groupId>com.thoughtworks.xstream</groupId>
                     <artifactId>xstream</artifactId>
                 </exclusion>
-                
+
                 <exclusion>
                     <groupId>org.apache.cxf</groupId>
                     <artifactId>cxf-rt-databinding-jaxb</artifactId>
@@ -131,13 +150,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>nl.rivm.screenit</groupId>
-            <artifactId>screenit-base</artifactId>
-            <classifier>tests</classifier>
-            <scope>test</scope>
-        </dependency>
-        
+
         <dependency>
             <groupId>nl.topicuszorg</groupId>
             <artifactId>fill-db</artifactId>
@@ -180,7 +193,7 @@
             <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>

@@ -1,0 +1,107 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<body>
+<wicket:extend>
+    <link rel="stylesheet" type="text/css" href="assets/css/base_styles_be.css"/>
+    <h1>
+        <wicket:message key="title"/>
+    </h1>
+
+    <div class="row-fluid">
+        <div class="span6">
+            <table class="table table-striped table-bordered table-condensed">
+                <thead>
+                <tr class="headers">
+                    <th>
+                        <wicket:message key="table.header.info"/>
+                    </th>
+                    <th>
+                        <wicket:message key="table.header.aantalVandaag"/>
+                    </th>
+                    <th style="text-align: right">
+                        <wicket:message key="table.header.aantalJaar"/>
+                    </th>
+                </tr>
+                </thead>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="aantalEersteLezingen"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="eersteLezingenVandaagLabel"></span></td>
+                    <td style="text-align: right"><span wicket:id="eersteLezingenKalenderjaarLabel"></span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="aantalTweedeLezingen"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="tweedeLezingenVandaagLabel"></span></td>
+                    <td style="text-align: right"><span wicket:id="tweedeLezingenKalenderjaarLabel"></span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="totaalAantalLezingen"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="totaalLezingenVandaagLabel"></span></td>
+                    <td style="text-align: right"><span wicket:id="totaalLezingenKalenderjaarLabel"></span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="totaalLezingenMetDiscrepantie"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="beoordelingenMetDiscrepantieVandaagLabel"></span></td>
+                    <td style="text-align: right"><span wicket:id="beoordelingenMetDiscrepantieKalenderjaarLabel"></span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="aantalVerwijzendeLezingenVanEersteRonde"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="lezingenVerwijzendEersteScreeningrondesVandaagLabel"></span></td>
+                    <td style="text-align: right"><span wicket:id="lezingenVerwijzendEersteScreeningrondesKalenderjaarLabel"></span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="aantalVerwijzendeLezingenVervolgRondes"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="lezingenVerwijzendMeerdereScreeningrondesVandaagLabel"></span></td>
+                    <td style="text-align: right"><span wicket:id="lezingenVerwijzendMeerdereScreeningrondesKalenderjaarLabel"></span></td>
+                </tr>
+            </table>
+            <span>
+                <wicket:message key="uitlegPercentageOnbekend"/>
+            </span>
+        </div>
+    </div>
+</wicket:extend>
+</body>
+</html>

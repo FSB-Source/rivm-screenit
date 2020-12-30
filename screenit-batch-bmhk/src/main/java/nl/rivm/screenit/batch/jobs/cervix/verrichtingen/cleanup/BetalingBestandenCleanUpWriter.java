@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class BetalingBestandenCleanUpWriter extends BaseWriter<CervixBetaalopdracht>
 {
-    
+
     private static final Logger LOG = LoggerFactory.getLogger(BetalingBestandenCleanUpWriter.class);
 
     @Autowired

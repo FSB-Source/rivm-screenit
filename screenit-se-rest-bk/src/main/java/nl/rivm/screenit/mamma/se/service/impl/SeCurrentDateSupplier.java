@@ -23,9 +23,9 @@ package nl.rivm.screenit.mamma.se.service.impl;
 
 import java.time.Duration;
 
-import nl.rivm.screenit.service.BerichtToSeRestBkService;
-
+import nl.rivm.screenit.mamma.se.websocket.socket.SeProxyWebsocket;
 import nl.rivm.screenit.service.impl.DefaultCurrentDateSupplier;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,11 +34,12 @@ public class SeCurrentDateSupplier extends DefaultCurrentDateSupplier
 {
 
 	@Autowired
-	private BerichtToSeRestBkService berichtToSeRestBkService;
+	private SeProxyWebsocket seProxyWebsocket;
 
+	@Override
 	public void setOffset(Duration offset)
 	{
-	    super.setOffset(offset);
-		berichtToSeRestBkService.updateTijdVoorIedereSe(offset.toString());
+		super.setOffset(offset);
+		seProxyWebsocket.sendTijdUpdateNaarIedereSe(offset);
 	}
 }

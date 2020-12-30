@@ -31,7 +31,7 @@ import org.joda.time.DateTime;
 
 public interface ICurrentDateSupplier
 {
-	
+
 	@Deprecated
 	DateTime getDateTime();
 

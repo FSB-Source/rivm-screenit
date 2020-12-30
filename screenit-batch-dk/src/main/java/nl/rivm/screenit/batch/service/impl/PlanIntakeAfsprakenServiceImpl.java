@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.service.impl;
 
 /*-
@@ -30,9 +29,9 @@ import nl.rivm.screenit.batch.model.IntakeSolution;
 import nl.rivm.screenit.batch.service.PlanIntakeAfsprakenService;
 import nl.rivm.screenit.model.colon.planning.VrijSlot;
 
-import org.drools.planner.config.SolverFactory;
-import org.drools.planner.config.XmlSolverFactory;
-import org.drools.planner.core.Solver;
+import org.optaplanner.core.api.solver.Solver;
+import org.optaplanner.core.api.solver.SolverFactory;
+import org.optaplanner.core.config.solver.SolverConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,18 +56,17 @@ public class PlanIntakeAfsprakenServiceImpl implements PlanIntakeAfsprakenServic
 	@Override
 	public List<ClientAfspraak> planIntakeAfspraken(List<ClientAfspraak> clienten, List<VrijSlot> vrijeSloten, StringBuilder planningResultaat, Long maximumSecondsSpend)
 	{
-		SolverFactory solverFactory = new XmlSolverFactory("/screenit-planning-solver-config.xml");
-		solverFactory.getSolverConfig().getTerminationConfig().setMaximumSecondsSpend(maximumSecondsSpend);
-		Solver solver = solverFactory.buildSolver();
+		SolverConfig solverConfig = SolverConfig.createFromXmlResource("screenit-planning-solver-config.xml");
+		solverConfig.getTerminationConfig().setSecondsSpentLimit(maximumSecondsSpend);
+		SolverFactory<IntakeSolution> solverFactory = SolverFactory.create(solverConfig);
+		Solver<IntakeSolution> solver = solverFactory.buildSolver();
 
 		IntakeSolution intakeSolution = new IntakeSolution();
 
 		intakeSolution.setClientAfspraken(clienten);
 		intakeSolution.setVrijeSloten(vrijeSloten);
-		solver.setPlanningProblem(intakeSolution);
-		solver.solve();
+		IntakeSolution bestSolution = solver.solve(intakeSolution);
 
-		IntakeSolution bestSolution = (IntakeSolution) solver.getBestSolution();
 		LOGGER.trace(bestSolution.toString());
 		planningResultaat.append("planner score ").append(bestSolution.getScore());
 		List<ClientAfspraak> clientAfspraken = new ArrayList<>();

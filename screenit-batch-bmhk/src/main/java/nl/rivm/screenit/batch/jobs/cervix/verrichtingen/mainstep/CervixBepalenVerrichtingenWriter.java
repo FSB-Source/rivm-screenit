@@ -53,7 +53,7 @@ public class CervixBepalenVerrichtingenWriter extends CervixAbstractVerrichtinge
 			}
 			if (hpvAnalyseDatum != null)
 			{
-				
+
 				verrichtingenFactory.maakLabVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_UITSTRIJKJE, hpvAnalyseDatum);
 				aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_UITSTRIJKJE_AANTAL_KEY);
 			}
@@ -67,7 +67,7 @@ public class CervixBepalenVerrichtingenWriter extends CervixAbstractVerrichtinge
 		{
 			if (hpvAnalyseDatum != null)
 			{
-				
+
 				verrichtingenFactory.maakLabVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_ZAS, hpvAnalyseDatum);
 				aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_ZAS_AANTAL_KEY);
 			}

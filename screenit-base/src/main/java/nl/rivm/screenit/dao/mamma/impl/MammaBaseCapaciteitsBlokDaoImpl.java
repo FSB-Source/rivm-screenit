@@ -68,7 +68,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implements MammaBaseCapaciteitsBlokDao
 {
-	
+
 	@Override
 	public List<Object> getBlokTijden(List<Interval> nieuweBlokken, MammaCapaciteitBlok blok, Interval currentViewInterval)
 	{

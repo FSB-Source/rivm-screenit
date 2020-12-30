@@ -23,7 +23,7 @@ package nl.rivm.screenit.service.cervix.enums;
 
 public enum CervixVervolgTekst
 {
-	
+
 	UITSTRIJKJE_REGISTREER_ONTVANGST(""),
 
 	UITSTRIJKJE_ONTVANGEN_NAAR_HPV("vervolgstap-naar-hpv"),

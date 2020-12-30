@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class ProjectBestandVerwerkThread extends OpenHibernate5SessionInThread
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectBestandVerwerkThread.class);
 
 	@Autowired

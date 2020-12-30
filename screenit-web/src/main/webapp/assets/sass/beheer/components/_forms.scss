@@ -1,0 +1,226 @@
+
+.btn-group > .btn:hover, .btn-group > .btn:focus, .btn-group > .btn:active, .btn-group > .btn.active {
+  z-index: 1 !important;
+}
+
+.btn-top {
+  margin: 10px 0 15px 0;
+  .dropdown-menu {
+    width: 180px;
+    border-radius: 0 0 5px 5px;
+    border-top: medium none;
+    padding: 8px 0;
+    li a {
+      color: #612D83;
+      padding: 3px 10px;
+      line-height: 18px;
+      font-size: 12px;
+    }
+  }
+
+  &.snelkeuze {
+    .btn {
+      width: 252px;
+      text-align: left;
+    }
+    .dropdown-menu {
+      width: 250px;
+    }
+  }
+}
+
+.btn-bottom {
+  margin-bottom: 10px;
+}
+
+.btn-success {
+  background-image: none;
+  background-color: $colorColonis3;
+}
+
+.btn.actief {
+  background-color: #97a300;
+  color: white;
+  text-shadow: 0 0 0 transparent;
+
+  i.icon-ok-circle {
+    background-image: url("../images/icons/glyphicons-halflings-white.png");
+  }
+}
+
+.btn.niet-actief {
+  border: 1px solid #bbbbbb;
+  background-color: #e6e6e6;
+  @include filter-gradient(#ffffff, #e6e6e6, vertical);
+  @include background-image(linear-gradient(top, #ffffff 0%, #e6e6e6 100%));
+
+  i.icon-ok-circle {
+    background-position: -216px -96px;
+  }
+}
+
+.filter-view .btn.active {
+  box-shadow: none;
+  background-color: #CCC;
+}
+
+.filter-view .form-inline {
+  label {
+    margin: 5px 10px 0 0;
+  }
+}
+
+.form-horizontal .control-group {
+  margin-bottom: 5px;
+
+}
+
+.form-horizontal .controls {
+  line-height: 30px;
+}
+
+.form-horizontal.page-filter .form-actions {
+  padding-left: 0px;
+}
+
+.control-group.table-form-inline {
+  margin: 0;
+  label {
+    margin: 5px 0;
+  }
+  div.input-append {
+    margin: 0 5px;
+  }
+}
+
+.hero-unit .control {
+  line-height: 30px;
+}
+
+.input-append {
+  margin-bottom: 5px;
+}
+
+textarea {
+  border: solid 1px #CCC;
+}
+
+.input-fullwidth {
+  width: 100%;
+  max-width: 600px;
+}
+
+textarea.input-fullwidth {
+  height: 200px;
+}
+
+.btn-top-header {
+  margin: 10px 0 15px 0;
+}
+
+.btn-top {
+  margin: 10px 0 15px 0;
+  .dropdown-menu {
+    width: 180px;
+    border-radius: 0 0 5px 5px;
+    border-top: medium none;
+    padding: 8px 0;
+    li a {
+      color: #612D83;
+      padding: 3px 10px;
+      line-height: 18px;
+      font-size: 12px;
+    }
+  }
+}
+
+.alert.inline {
+  margin: 0 0 10px 0;
+  padding: 8px 14px;
+  position: static;
+  width: auto;
+  text-align: left;
+  .close {
+    padding-top: 2px;
+    right: 0;
+  }
+}
+
+.snelkeuze {
+  .btn {
+    width: 252px;
+    text-align: left;
+    margin-left: 5px;
+  }
+  .dropdown-menu {
+    width: 250px;
+    text-align: left;
+  }
+}
+
+.toon-audit {
+  button:focus {
+    outline: none;
+  }
+
+  .dropdown-menu {
+    margin-top: 7px;
+    padding: 7px 7px 0 7px;
+    width: 687px;
+    border-radius: 8px;
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 9990;
+
+    table {
+      margin-bottom: 7px;
+      z-index: 9990;
+
+      th {
+        text-align: left;
+        padding: 5px 10px;
+      }
+      td {
+        padding: 5px 10px;
+        cursor: default;
+
+        &:first-child {
+          width: 120px;
+        }
+
+      }
+    }
+
+  }
+}
+
+.btn-group .btn.active {
+  background-color: $colorColonis3;
+  color: white;
+  @include text-shadow(black 1px 1px 0);
+}
+
+div.controls .text {
+  padding-top: 5px;
+}
+
+.control-group.value .controls a {
+  color: $colorColonis3;
+}
+
+div.controls .text {
+  padding-top: 8px;
+}
+
+div.vragenlijstinzien .row-fluid .span6 {
+  width: 100% !important;
+}
+
+
+.alert {
+  position: fixed;
+  left: 50%;
+  margin-left: -200px;
+  width: 400px;
+  clear: both;
+}

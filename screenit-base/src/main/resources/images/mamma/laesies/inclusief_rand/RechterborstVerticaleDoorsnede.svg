@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg width="240px" height="331px" viewBox="0 0 240 331" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>RCC</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g transform="translate(20, 20)">
+        <g id="RCC" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+            <path d="M167,96 L199,45" id="Path-51" stroke="#000000" stroke-width="2"></path>
+            <path d="M158,76 L199,10" id="Path-54" stroke="#000000" stroke-width="2"></path>
+            <path d="M141,-1 L133,11" id="Path-6" stroke="#000000" stroke-width="2"></path>
+            <path d="M189,-3 L151,55" id="Path-8" stroke="#000000" stroke-width="2"></path>
+            <path d="M166,-2 L142,33" id="Path-7" stroke="#000000" stroke-width="2"></path>
+            <path d="" id="Path-36" stroke="#000000" stroke-width="2"></path>
+            <path d="M115.091385,2 C111.059299,13.0267386 122.945702,59.6930138 53.0943748,110.348681 C-16.7569523,161.004348 7.89656764,251.412855 101.921844,262.366712 C142.720064,267.119666 135.451583,265.092128 157.797157,274.163469 C166.073723,277.523398 172.141337,282.802242 176,290"
+                  id="Path-37" stroke="#000000" stroke-width="2"></path>
+            <path d="M129,0 L199,181" id="Path-38" stroke="#000000" stroke-width="2"></path>
+            <path d="M183,140 L199,114" id="Path-47" stroke="#000000" stroke-width="2"></path>
+            <path d="M175,120 L199,78" id="Path-49" stroke="#000000" stroke-width="2"></path>
+            <path d="M15,195.999656 C5.66666667,196.018222 1,190.826227 1,180.423671 C1,170.021115 5.66666667,164.880593 15,165.002104" id="Path-56" stroke="#000000"
+                  stroke-width="2"></path>
+            <path d="M27.5287129,32 L24,32 L24,7 L32.0910891,7 C33.3029764,7 34.4554401,7.12358633 35.5485149,7.37076271 C36.6415896,7.61793909 37.5980157,8.01223835 38.4178218,8.55367232 C39.2376279,9.09510629 39.8851461,9.80719898 40.360396,10.6899718 C40.8356459,11.5727445 41.0732673,12.6497112 41.0732673,13.920904 C41.0732673,15.7570713 40.502976,17.2401073 39.3623762,18.3700565 C38.2217765,19.5000056 36.7485239,20.2179834 34.9425743,20.5240113 L42,32 L37.7227723,32 L31.3069307,20.8771186 L27.5287129,20.8771186 L27.5287129,32 Z M27.5287129,17.9463277 L31.5920792,17.9463277 C32.4237665,17.9463277 33.196036,17.8757069 33.9089109,17.7344633 C34.6217857,17.5932196 35.2455419,17.3637022 35.780198,17.045904 C36.3148542,16.7281058 36.7366321,16.3161513 37.0455446,15.8100282 C37.354457,15.3039052 37.5089109,14.6742034 37.5089109,13.920904 C37.5089109,13.1676045 37.354457,12.5379027 37.0455446,12.0317797 C36.7366321,11.5256566 36.3267352,11.1195872 35.8158416,10.8135593 C35.3049479,10.5075314 34.7049539,10.2897841 34.0158416,10.1603107 C33.3267292,10.0308374 32.601984,9.96610169 31.8415842,9.96610169 L27.5287129,9.96610169 L27.5287129,17.9463277 Z"
+                  id="R" fill="#000000"></path>
+            <path d="M199,0 L199,291" id="Path-5" stroke="#000000" stroke-width="2"></path>
+            <path d="M191,147 L199,159" id="Path-44" stroke="#000000" stroke-width="2"
+                  transform="translate(195.000000, 153.000000) scale(1, -1) translate(-195.000000, -153.000000) "></path>
+        </g>
+    </g>
+</svg>

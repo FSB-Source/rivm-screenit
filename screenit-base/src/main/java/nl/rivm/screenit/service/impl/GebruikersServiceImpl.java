@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class GebruikersServiceImpl implements GebruikersService
 {
-	
+
 	@Autowired
 	private GebruikerDao gebruikerDao;
 

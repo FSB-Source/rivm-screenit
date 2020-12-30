@@ -1,0 +1,83 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <fieldset class="form-horizontal">
+        <h3 wicket:id="title">Nieuwe afspraak</h3>
+
+        <wicket:enclosure child="standplaatsPeriode.standplaatsRonde.standplaats.naam">
+            <div class="control-group value">
+                <label class="control-label">Standplaats</label>
+                <div class="controls" wicket:id="standplaatsPeriode.standplaatsRonde.standplaats.naam">Zevenaar</div>
+            </div>
+        </wicket:enclosure>
+        <wicket:enclosure child="capaciteitBlok.screeningsEenheid.naam">
+            <div class="control-group value">
+                <label class="control-label">Screeningseenheid</label>
+                <div class="controls" wicket:id="capaciteitBlok.screeningsEenheid.naam">SE01</div>
+            </div>
+        </wicket:enclosure>
+        <div class="control-group value">
+            <label class="control-label">Locatie</label>
+            <div class="controls">
+                <span wicket:id="adres">Bakkerstraat 2, 1825 CR Zevenaar</span>
+                <span wicket:id="tijdelijk">(tijdelijk)</span>
+            </div>
+        </div>
+        <wicket:enclosure child="locatiebeschrijving">
+            <div class="control-group">
+                <div class="controls" wicket:id="locatiebeschrijving">Locatiebeschrijving</div>
+            </div>
+        </wicket:enclosure>
+        <div class="control-group value">
+            <label class="control-label">Datum/tijd</label>
+            <div class="controls">
+                <span wicket:id="vanaf">maandag 24-04-2022 14:00</span>
+                <a wicket:id="wijzigMoment">wijzigen</a></div>
+        </div>
+        <div class="control-group value" wicket:id="redenContainer">
+            <label class="control-label">Reden
+            </label>
+            <div class="controls" wicket:id="verzettenReden">
+            </div>
+        </div>
+        <wicket:enclosure child="uitnodigingsbriefTegenhouden">
+            <div class="control-group value">
+                <label class="control-label">Uitnodigingsbrief tegenhouden</label>
+                <div class="controls">
+                    <input wicket:id="uitnodigingsbriefTegenhouden" class="briefAanmaken" type="checkbox"/>
+                </div>
+            </div>
+        </wicket:enclosure>
+        <wicket:enclosure child="briefAanmaken">
+            <div class="control-group value">
+                <label class="control-label">Bevestigingsbrief aanmaken</label>
+                <div class="controls">
+                    <input wicket:id="briefAanmaken" class="briefAanmaken" type="checkbox"/>
+                </div>
+            </div>
+        </wicket:enclosure>
+        <div wicket:id="waarschuwing" class="control-group value">
+            <wicket:message key="mamma.nieuwe.afspraak.waarschuwing" escape="false"></wicket:message>
+        </div>
+    </fieldset>
+</wicket:panel>
+</html>

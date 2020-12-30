@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,7 +94,7 @@ import ca.uhn.hl7v2.util.StringUtil;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class InstellingServiceImpl implements InstellingService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(InstellingServiceImpl.class);
 
 	@Autowired
@@ -115,15 +116,24 @@ public class InstellingServiceImpl implements InstellingService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public List<CentraleEenheid> getMogelijkeCentraleEenheden(ScreeningOrganisatie screeningOrganisatie)
+	public List<CentraleEenheid> getMogelijkeCentraleEenheden(Instelling instelling)
 	{
-		if (screeningOrganisatie == null)
+		if (instelling == null)
 		{
-			return getActieveInstellingen(CentraleEenheid.class);
+			return Collections.emptyList();
 		}
-		else
+		OrganisatieType organisatieType = instelling.getOrganisatieType();
+		switch (organisatieType)
 		{
-			return getActieveCentraleEenhedenBinnenRegio(screeningOrganisatie);
+		case RIVM:
+		case KWALITEITSPLATFORM:
+			return getActieveInstellingen(CentraleEenheid.class);
+		case BEOORDELINGSEENHEID:
+			return Collections.singletonList((CentraleEenheid) hibernateService.deproxy(instelling.getParent()));
+		case SCREENINGSORGANISATIE:
+			return getActieveCentraleEenhedenBinnenRegio((ScreeningOrganisatie) hibernateService.deproxy(instelling));
+		default:
+			return Collections.emptyList();
 		}
 	}
 

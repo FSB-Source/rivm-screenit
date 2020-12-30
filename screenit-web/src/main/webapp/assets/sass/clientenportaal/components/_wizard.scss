@@ -1,0 +1,60 @@
+.wizard-nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  float: right;
+  width: 400px;
+
+  li {
+    width: 33%;
+    float: left;
+    border-bottom: 2px solid #a4a4a4;
+    position: relative;
+
+    a {
+      color: #a4a4a4;
+      padding-left: 15px;
+      font-size: rs(12, $base-fs);
+
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
+
+  li:before {
+    content: " ";
+    display: block;
+    background-color: #a4a4a4;
+    width: 10px;
+    height: 10px;
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    z-index: 1;
+
+    @include border-radius(5px);
+  }
+
+  li.active {
+    border-bottom-color: $primary-color;
+    a {
+      color: black;
+    }
+
+    &:before {
+      background-color: $primary-color;
+    }
+  }
+
+  li.done {
+    border-bottom-color: lighten($primary-color, 25);
+    a {
+      color: lighten($primary-color, 25);
+    }
+
+    &:before {
+      background-color: lighten($primary-color, 25);
+    }
+  }
+}

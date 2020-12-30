@@ -66,7 +66,7 @@ import ca.uhn.hl7v2.model.v24.segment.PV1;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixMaakOrderBerichtServiceImpl implements CervixMaakOrderBerichtService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixMaakOrderBerichtServiceImpl.class);
 
 	@Autowired

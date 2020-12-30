@@ -35,7 +35,7 @@ import nl.rivm.screenit.model.colon.CapaciteitsPercWijziging;
 
 public interface ColonUitnodigingsgebiedService
 {
-	
+
 	List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcode);
 
 	List<CapaciteitsPercWijziging> bepaalCapaciteitsWijzigingen(UitnodigingsGebied uitnodigingsGebied, Map<String, Integer> newAdherentiePercentages,

@@ -23,6 +23,7 @@ import logging
 from datetime import date
 from util import classification, predict, preprocess, dao
 
+
 def predict_dossiers():
     huidig_jaar = date.today().year
 

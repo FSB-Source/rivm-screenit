@@ -1,0 +1,77 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="btn-top pull-right">
+        <button class="btn btn-primary pull-right" wicket:id="contactAanmaken"><i class="icon-edit icon-white"></i>
+            Registreren cli&euml;nt contact
+        </button>
+    </div>
+    <h1 class="pageTitle">Rondes</h1>
+
+    <div class="row-fluid">
+        <div class="span9">
+            <wicket:container wicket:id="contactBvoFilter"></wicket:container>
+            <div wicket:id="gebeurtenissenContainer">
+                <table class="table table-bordered table-condensed">
+                    <thead>
+                    <tr>
+                        <th class="input-micro" style="width: 20%;">Bevolkingsonderzoek</th>
+                        <th class="input-micro">Ronde</th>
+                        <th class="input-medium">Gebeurtenis</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr wicket:id="rondes">
+                        <td>
+                            <h2><span wicket:id="bvo">Darmkanker</span></h2>
+                            <div class="control-group" wicket:id="projectBadges"
+                                 style="white-space: normal; word-wrap: break-word; width: 94%;">
+                            </div>
+                        </td>
+                        <td class="center-content">
+                            <span wicket:id="index" class="badge">1</span>
+                            <span wicket:id="gepusht" class="badge">Gepusht</span>
+                        </td>
+                        <td class="gebeurtenissen">
+								<span class="badge" wicket:id="gebeurtenissen">
+									<span class="omschrijving">
+										<wicket:container wicket:id="bron">Afgerond</wicket:container>
+										<wicket:container wicket:id="gebeurtenis">Afgerond</wicket:container>
+										<wicket:container wicket:id="extraOmschrijving">Afgerond</wicket:container> 
+									</span>
+									<span class="datum" wicket:id="datum">12-10-2010</span>
+								</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="span3">
+            <div class="passport">
+                <wicket:container wicket:id="passpoort"></wicket:container>
+            </div>
+        </div>
+    </div>
+    <div wicket:id="dialog"></div>
+</wicket:panel>
+</html>

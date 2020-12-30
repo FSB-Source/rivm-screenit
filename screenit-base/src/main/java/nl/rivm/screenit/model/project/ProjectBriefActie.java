@@ -54,7 +54,7 @@ import org.hibernate.envers.NotAudited;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class ProjectBriefActie extends AbstractHibernateObject implements IActief, IDocument
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private Boolean actief = true;

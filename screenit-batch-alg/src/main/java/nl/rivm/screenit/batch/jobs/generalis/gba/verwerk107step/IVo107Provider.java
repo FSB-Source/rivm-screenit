@@ -28,12 +28,12 @@ import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 
 public interface IVo107Provider
 {
-	
+
 	List<Vo107File> getVo107Files(GbaVerwerkingsLog gbaVerwerkingsLog);
 
 	interface Vo107File
 	{
-		
+
 		void saveToFile(File targetFile);
 
 		String getFilename();

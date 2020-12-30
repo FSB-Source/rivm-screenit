@@ -38,7 +38,7 @@ import org.springframework.batch.item.ExecutionContext;
 
 public abstract class AbstractBrievenGenererenReader<B extends Brief> extends BaseScrollableResultReader
 {
-	
+
 	protected abstract Long getScreeningOrganisatieId(ExecutionContext context);
 
 	@SuppressWarnings("unchecked")
@@ -51,7 +51,7 @@ public abstract class AbstractBrievenGenererenReader<B extends Brief> extends Ba
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		ExecutionContext stepContext = getStepExecutionContext();
-		
+
 		Criteria crit = session.createCriteria(getBriefClass());
 		crit.createAlias("client", "client");
 		crit.createAlias("client.persoon", "persoon");

@@ -17,11 +17,6 @@
 
     <inceptionYear>2012</inceptionYear>
 
-    <scm>
-        <connection>scm:git:ssh://git@stash.topicus.nl:7999/tlt/rivm-screenit.git</connection>
-        <tag>screenit-parent-20.5.8</tag>
-    </scm>
-
     <build>
         <resources>
             <resource>

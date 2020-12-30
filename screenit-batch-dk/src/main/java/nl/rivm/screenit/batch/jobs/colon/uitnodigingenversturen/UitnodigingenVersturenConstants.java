@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen;
 
 public class UitnodigingenVersturenConstants
 {
-    
+
     private UitnodigingenVersturenConstants()
     {
     }

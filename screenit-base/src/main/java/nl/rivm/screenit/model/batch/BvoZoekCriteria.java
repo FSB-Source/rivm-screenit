@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
 public class BvoZoekCriteria implements Serializable, IBevolkingsonderzoek
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private List<Bevolkingsonderzoek> bevolkingsonderzoeken = new ArrayList<>();

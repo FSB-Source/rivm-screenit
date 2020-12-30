@@ -26,7 +26,7 @@ import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 
 class CervixBepaalVervolgLabproces
 {
-	
+
 	private CervixBepaalVervolgContext context;
 
 	private CervixVervolg vervolg = new CervixVervolg();

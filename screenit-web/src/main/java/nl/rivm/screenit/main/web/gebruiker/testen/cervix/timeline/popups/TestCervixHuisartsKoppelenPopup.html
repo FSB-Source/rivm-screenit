@@ -1,0 +1,52 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="control-group span7 form-horizontal">
+        <div class="row">
+            <fieldset class="hero-unit">
+                <p>Selecteer een uitnodiging en selecteer de eerste huisarts met locatie in de db of voeg een eigen
+                    huisarts toe door middel van de agb.</p>
+            </fieldset>
+
+            <div class="control-group">
+                <label class="control-label">Uitnodigingen:</label>
+                <div class="controls">
+                    <select wicket:id="uitnodigingen"></select>
+                </div>
+            </div>
+            <hr/>
+            <div class="control-group">
+                <label class="control-label">Eerste huisarts met locatie in db:</label>
+                <div class="controls">
+                    <input wicket:id="eersteHuisartsCheck" type="checkbox"/>
+                </div>
+            </div>
+            <div class="control-group" wicket:id="agbCodeContainer">
+                <label class="control-label">Agbcode:</label>
+                <div class="controls">
+                    <input wicket:id="agbcode" class="input-large" type="text"/>
+                </div>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

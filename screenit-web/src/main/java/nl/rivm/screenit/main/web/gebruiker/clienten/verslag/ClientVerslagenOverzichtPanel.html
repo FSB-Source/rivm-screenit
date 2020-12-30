@@ -1,0 +1,60 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div wicket:id="tabel" class="table table-condensed clickable"></div>
+    <div wicket:id="tooltipContainter">
+        <div wicket:id="tooltip" style="display: none;"></div>
+    </div>
+    <wicket:fragment wicket:id="tooltipFragment">
+        <div class="form-horizontal">
+        	<wicket:enclosure child="uitvoerderMedewerker.naamVolledig">
+            <div class="control-group value">
+                <label class="control-label">Zorgverlener</label>
+                <div class="control">
+                    <span wicket:id="uitvoerderMedewerker.naamVolledig">M.D.L. de Groot</span>
+                    (
+                    <wicket:container wicket:id="uitvoerderOrganisatie.naam">Instelling A</wicket:container>
+                    )
+                </div>
+            </div>
+            </wicket:enclosure>
+            <wicket:enclosure child="invoerder.medewerker.naamVolledig">
+            <div class="control-group value">
+                <label class="control-label">Verslaglegger</label>
+                <div class="control">
+                    <span wicket:id="invoerder.medewerker.naamVolledig">M.D.L. de Groot</span>
+                    (
+                    <wicket:container wicket:id="invoerder.organisatie.naam">Instelling A</wicket:container>
+                    )
+                </div>
+            </div>
+            </wicket:enclosure>
+            <div class="control-group value">
+                <label class="control-label">Bron</label>
+                <div class="control" wicket:id="bron">
+                    Handmatig
+                </div>
+            </div>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</html>

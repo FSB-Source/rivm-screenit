@@ -1,0 +1,46 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:panel>
+    <div class="span12">
+        <fieldset wicket:id="eersteLezingNevenBevindingenContainer">
+            <p>
+                Nevenbevindingen uit de eerste lezing:<br/>
+                <span wicket:id="eersteLezingNevenbevindingen"></span>
+            </p>
+            <p>
+                Opmerking uit de eerste lezing:<br/>
+                <span wicket:id="eersteLezingNevenbevindingenOpmerking"></span>
+            </p>
+        </fieldset>
+        <label class="control-label">Nevenbevindingen</label>
+        <select class="fullwidth" multiple="multiple" wicket:id="nevenbevindingen">
+            <option>0</option>
+        </select>
+        <div class="control-group" wicket:id="nevenbevindingOpmerkingContainer">
+            <div class="span12">
+                <label class="control-label">Nevenbevinding opmerking</label>
+                <textarea class="nevenbevindingOpmerking span12" name="nevenbevindingOpmerking" wicket:id="nevenbevindingOpmerking"></textarea>
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

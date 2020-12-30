@@ -23,7 +23,7 @@ package nl.rivm.screenit.service;
 
 public class ZorgmailImportMapping
 {
-	
+
 	private int klantnummer;
 
 	private int weergavenaam;

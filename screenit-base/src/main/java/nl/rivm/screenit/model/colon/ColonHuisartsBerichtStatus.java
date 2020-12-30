@@ -23,15 +23,15 @@ package nl.rivm.screenit.model.colon;
 
 public enum ColonHuisartsBerichtStatus
 {
-	
+
 	@Deprecated
 	TE_CONTROLEREN,
-	
+
 	CONTROLE_NIET_NODIG,
-	
+
 	VERZENDEN_MISLUKT,
-	
+
 	VERZENDEN_GELUKT,
-	
+
 	GEEN_HUISARTS;
 }

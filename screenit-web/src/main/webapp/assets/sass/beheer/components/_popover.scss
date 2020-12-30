@@ -1,0 +1,26 @@
+.popoverHome {
+  margin-left: 5px;
+}
+
+.popover {
+  margin-bottom: 10px;
+}
+
+.popover.bottom .arrow {
+  border-bottom: 5px solid red;
+}
+
+.popover-inner {
+  padding: 5px;
+}
+
+.popover-title {
+  margin: 0px;
+}
+
+.popover-content {
+  padding-top: 0px;
+  color: $color1;
+  background: none;
+  font-weight: normal;
+}

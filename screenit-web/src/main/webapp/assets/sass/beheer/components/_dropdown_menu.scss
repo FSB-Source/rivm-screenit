@@ -1,0 +1,32 @@
+.dropdown-menu {
+  margin-bottom: 15px;
+  padding: 8px 0 8px 0;
+  border-radius: 10px 10px 10px 10px;
+  &:before {
+    border-bottom: none;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 7px solid $color6;
+    left: 9px;
+    top: 100%;
+  }
+  &:after {
+    border-bottom: none;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #fff;
+    left: 10px;
+    top: 100%;
+  }
+  li {
+    a {
+      padding: 3px 10px 3px 10px;
+      color: $color2;
+      font-size: 12px;
+    }
+    a:hover,
+    a.active {
+      background: $color3 none;
+    }
+  }
+}

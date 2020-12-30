@@ -23,6 +23,8 @@ import logging
 import pandas
 from util import classification, predict, preprocess
 
+
 def predict_afspraak(afspraak_json: str) -> float:
     _afspraken = pandas.read_json(afspraak_json, orient='records')
+
     return 1.0

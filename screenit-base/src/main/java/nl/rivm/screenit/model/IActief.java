@@ -26,7 +26,7 @@ import java.io.Serializable;
 
 public interface IActief extends Serializable
 {
-	
+
 	Boolean getActief();
 
 	void setActief(Boolean actief);

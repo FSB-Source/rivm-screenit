@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class PostcodeCoordinatenClientKoppelWriter extends BaseWriter<BagAdres>
 {
-	
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PostcodeCoordinatenClientKoppelWriter.class);
 
 	@Autowired

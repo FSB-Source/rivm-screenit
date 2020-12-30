@@ -1,0 +1,37 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <button class="btn" wicket:id="resumeClientSelectie">Resume client selectie DK</button>
+    <button class="btn" wicket:id="opruimenGefaaldeBatches">Opruimen gefaalde batchjobs</button>
+    <button class="btn" wicket:id="stopAllRunningBatches">Stop alle draaiende batchjobs</button>
+
+	<hr>
+	<div>
+	<span>CDA verslagen (Hl7v3 bericht(en)) (opnieuw) laten verwerken door een batch applicatie:</span>
+    <form wicket:id="form">
+        Id's van CDA bericht(en): <textarea wicket:id="berichtIds"/>
+        <button class="btn" wicket:id="berichtenNaarDK">Naar DK</button>
+        <button class="btn" wicket:id="berichtenNaarBMHK">Naar BMHK</button>
+    </form>
+    </div>
+</wicket:extend>
+</html>

@@ -30,7 +30,7 @@ import org.joda.time.DateTime;
 
 public interface ColonUitnodigingService
 {
-	
+
 	BriefDefinitie getBriefType(ColonUitnodiging colonUitnodiging);
 
 	DateTime getGeprognotiseerdeIntakeDatum(boolean vooraankondigen);

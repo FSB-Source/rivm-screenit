@@ -32,7 +32,7 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
 public class LoggingZoekCriteria implements Serializable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private String gebruikersnaam;

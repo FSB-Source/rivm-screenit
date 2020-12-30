@@ -1,0 +1,47 @@
+html, body {
+  overflow: hidden;
+}
+
+.canvas.content {
+  margin-bottom: 50px;
+  overflow-x: hidden;
+  .row-fluid .widget-1.client img {
+    position: absolute;
+    top: -25px;
+  }
+  .row-fluid .widget-1.medewerker img {
+    position: absolute;
+    top: 0px;
+  }
+  .row-fluid .widget-1 .dropdown-menu {
+    position: absolute;
+    bottom: 20px;
+    left: -40px;
+  }
+  .buttons {
+    padding-bottom: 0px;
+  }
+}
+
+.canvas.footer {
+  top: -50px;
+  height: 50px;
+  margin-bottom: -50px;
+}
+
+div.conditioneel {
+  width: 96%;
+}
+
+.answer li input[type=radio],
+.answer li input[type=checkbox] {
+  margin-top: 21px;
+}
+
+.answer textarea {
+  width: 98%;
+}
+
+.control-group.value.no-label .controls {
+  padding: 0;
+}

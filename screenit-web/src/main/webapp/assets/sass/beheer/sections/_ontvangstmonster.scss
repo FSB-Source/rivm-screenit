@@ -1,0 +1,62 @@
+.vervolgstap-reeds-ingeboekt {
+  border-color: rgb(25, 52, 174) !important;
+  background: rgb(239, 243, 255);
+
+  .vervolgstap {
+    color: rgb(25, 52, 174);
+  }
+}
+
+.vervolgstap-naar-hpv {
+  border-color: rgb(30, 165, 0) !important;
+  background: rgb(243, 255, 239);
+
+  .vervolgstap {
+    color: rgb(30, 165, 0);
+  }
+}
+
+.vervolgstap-naar-cytologie {
+  border-color: rgb(224, 136, 49) !important;
+  background: rgb(255, 244, 234);
+
+  .vervolgstap {
+    color: rgb(224, 136, 49);
+  }
+}
+
+.vervolgstap-vernietig {
+  border-color: rgb(178, 0, 0) !important;
+  background: rgb(255, 234, 234);
+
+  .vervolgstap {
+    color: rgb(178, 0, 0);
+  }
+}
+
+.vervolgstap-bewaar {
+  border-color: rgb(136, 49, 224) !important;
+  background: rgb(244, 234, 255);
+
+  .vervolgstap {
+    color: rgb(136, 49, 224);
+  }
+}
+
+.vervolgstap-bewaar-zas-positief {
+  border-color: rgb(156, 95, 34) !important;
+  background: rgb(245, 239, 232);
+
+  .vervolgstap {
+    color: rgb(156, 95, 34);
+  }
+}
+
+.vervolgstap-bewaar-zas-negatief {
+  border-color: rgb(34, 156, 156) !important;
+  background: rgb(234, 251, 251);
+
+  .vervolgstap {
+    color: rgb(34, 156, 156);
+  }
+}

@@ -1,0 +1,64 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<wicket:extend>
+    <form wicket:id="selectOrganisatieForm">
+        <div class="row-fluid">
+            <div class="span12">
+                <h1 class="pageTitle">
+                    Kies organisatie
+                </h1>
+            </div>
+        </div>
+
+        <fieldset>
+            <div class="row-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <legend>
+                            U bent werkzaam bij meerdere organisaties.
+                            <br>
+                            Selecteer de organisatie waarvoor u aan het werk gaat.
+                        </legend>
+                    </div>
+                </div>
+                <div class="row-fluid form-horizontal">
+                    <div class="span12">
+                        <div class="control-group">
+                            <label class="control-label">
+                                <wicket:message key="label.organisatie">Organisatie</wicket:message>
+                            </label>
+                            <div class="controls">
+                                <select id="organisatie" wicket:id="organisatie"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <a class="btn btn-primary right" wicket:id="selecteer">
+                            <wicket:message key="button.next">Selecteer</wicket:message>
+                        </a>
+                    </div>
+                </div>
+        </div>
+        </fieldset>
+    </form>
+</wicket:extend>

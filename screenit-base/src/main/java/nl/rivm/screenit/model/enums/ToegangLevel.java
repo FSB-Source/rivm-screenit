@@ -28,11 +28,11 @@ public enum ToegangLevel implements INaam
 {
 
 	EIGEN("Eigen data", 1),
-	
+
 	INSTELLING("Organisatie", 2),
-	
+
 	REGIO("Regio", 3),
-	
+
 	LANDELIJK("Landelijk", 4);
 
 	private final String naam;

@@ -37,7 +37,7 @@ import org.apache.shiro.crypto.hash.Sha512Hash;
 
 public class MultipleAuthenticationSourceCredentialsMatcher implements CredentialsMatcher
 {
-	
+
 	private final HashedCredentialsMatcher passwordCredentialsMatcher;
 
 	private final YubikeyMatcher yubikeyMatcher;

@@ -34,7 +34,7 @@ import org.springframework.batch.item.ExecutionContext;
 
 public class RegioBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
-	
+
 	public static final String KEY_SCREENINGORGANISATIEID = "screeningorganisatie.id";
 
 	public static final String KEY_BRIEFTYPE = "brieftype";

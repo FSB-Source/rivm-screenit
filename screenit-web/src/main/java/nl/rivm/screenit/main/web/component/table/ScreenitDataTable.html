@@ -1,0 +1,60 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<wicket:panel>
+    <div class="row-fluid">
+        <table class="table table-striped table-bordered table-condensed">
+            <caption wicket:id="caption"></caption>
+            <thead wicket:id="topToolbars">
+            <wicket:container wicket:id="toolbars"></wicket:container>
+            </thead>
+            <tbody wicket:id="body">
+            <tr wicket:id="rows">
+                <td wicket:id="cells" valign="top"><span wicket:id="cell">[cell]</span>
+                </td>
+            </tr>
+            </tbody>
+            <tfoot wicket:id="bottomToolbars">
+            <wicket:container wicket:id="toolbars"></wicket:container>
+            </tfoot>
+        </table>
+    </div>
+    <div class="paginering">
+        <div wicket:id="totaal" class="totaal-aantal">
+            Totaal: <strong>
+            <wicket:container wicket:id="aantal">3</wicket:container>
+            <wicket:container wicket:id="aantalLabel"></wicket:container>
+            <wicket:container wicket:id="customPanel"></wicket:container>
+        </strong>
+        </div>
+        <div class="pagination right">
+            <ul>
+                <li><a wicket:id="vorige" href="javascript:void(0);">Vorige</a></li>
+                <wicket:container wicket:id="navigation">
+                    <li wicket:id="container"><a wicket:id="pageLink" href="#"><span wicket:id="pageNumber">5</span></a></li>
+                </wicket:container>
+                <li><a wicket:id="volgende" href="javascript:void(0);">Volgende</a></li>
+            </ul>
+        </div>
+    </div>
+</wicket:panel>
+</html>

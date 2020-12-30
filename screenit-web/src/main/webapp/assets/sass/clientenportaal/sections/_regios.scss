@@ -1,0 +1,235 @@
+@mixin region-color($color1, $color2, $color3, $logo, $footer) {
+  .topnav-title {
+    background-color: $color1;
+  }
+
+  .topnav {
+    background-color: $color2;
+  }
+
+  .topnav .nav > li a:hover,
+  .topnav .nav > li.active a,
+  .topnav .topnav-bottom {
+    background-color: $color3;
+    color: black;
+  }
+
+  .logo-row .logo {
+    background-image: url($logo);
+  }
+
+  .footer > .row-fluid .logo-bevolkingsonderzoek {
+    background-image: url($footer);
+  }
+
+  .basisgegevens h1,
+  section h2 {
+    color: $color2;
+  }
+
+  .algemene-informatie {
+    border-bottom: 1px solid $color1;
+
+    h2 {
+      color: $color2;
+    }
+  }
+
+  .box-bordered {
+    border: 1px solid tint($color2, 50);
+    border: 1px solid rgba($color2, 0.5);
+  }
+
+  .widget h1 {
+    border-bottom: 1px solid $color2;
+    color: $color2;
+  }
+
+  .datum-tijd-container {
+    color: $color2;
+  }
+
+  .afspraken-lijst > li {
+    border-color: tint($color2, 50);
+  }
+
+  .datum-circle {
+    border-color: tint($color2, 50);
+  }
+
+  table.cp-table th {
+    border-color: $color1;
+  }
+
+  table.cp-table.clickable tr:hover td {
+    background-color: $color2;
+  }
+
+  fieldset.form-horizontal h3,
+  fieldset.form-horizontal h2.afspraak-titel,
+  .form-container h2,
+  fieldset.centrum-zoeken h3 {
+    color: $color2;
+  }
+
+  fieldset.centrum-zoeken table.table-bordered {
+    td {
+      border-color: $color1;
+    }
+
+    tbody tr:hover {
+      background-color: lighten($color1, 15);
+    }
+  }
+
+  .btn.btn-primary {
+    border: 1px solid darken($color2, $darkenStrength);
+    background-color: $color2;
+
+
+    &:hover {
+      background-color: darken($color2, $darkenStrength);
+    }
+  }
+
+  .popover-title {
+    color: white;
+    background-color: darken($color2, $darkenStrength);
+    border-bottom-color: $color2;
+
+    .close {
+      color: white;
+      @include opacity(0.5);
+      @include text-shadow(0 1px 0 $color1);
+
+      &:hover {
+        @include opacity(0.8);
+      }
+    }
+  }
+
+  .modal {
+    background-color: $color1;
+  }
+
+
+  .welkoms-bericht {
+    border-bottom: 1px solid $color1;
+
+    h2 {
+      color: $color2;
+    }
+  }
+
+
+  .huisarts-zoekresultaten h2 {
+    color: $color2;
+  }
+  .huisart-zoekresultaten ul.zoekresultaten li {
+    background-color: lighten($color1, 15);
+  }
+
+  th.dag-column.vandaag {
+    color: $color2;
+  }
+
+  .pagina-titel {
+    color: $color2;
+  }
+
+  .wizard-nav {
+    li.active {
+      border-bottom-color: $color2;
+
+      a {
+        color: black;
+      }
+
+      &:before {
+        background-color: $color2;
+      }
+    }
+
+    li.done {
+      border-bottom-color: lighten($color2, 25);
+
+      a {
+        color: $color2;
+      }
+
+      &:before {
+        background-color: lighten($color2, 20);
+      }
+    }
+  }
+}
+
+.regio-NO {
+  @include region-color($noord1, $noord2, $noord3, $noordLogo, $noordFooter);
+
+  .regiotitle:after {
+    content: "Noord";
+  }
+
+  .subtitle:after {
+    content: "Groningen, Friesland en Drenthe";
+  }
+}
+
+.regio-OO {
+  @include region-color($oost1, $oost2, $oost3, $oostLogo, $oostFooter);
+
+  .regiotitle:after {
+    content: "Oost";
+  }
+
+  .subtitle:after {
+    content: "Gelderland, Overijssel";
+  }
+
+  .wizard-nav li.done {
+    border-bottom-color: #e9e9cc;
+  }
+
+  fieldset.centrum-zoeken table.table-bordered tbody tr:hover {
+    background-color: #e9e9cc;
+  }
+
+}
+
+.regio-ZU {
+  @include region-color($zuid1, $zuid2, $zuid3, $zuidLogo, $zuidFooter);
+
+  .regiotitle:after {
+    content: "Zuid";
+  }
+
+  .subtitle:after {
+    content: "Noord-Brabant, Limburg";
+  }
+
+}
+
+.regio-MW {
+  @include region-color($middenWest1, $middenWest2, $middenWest3, $middenWestLogo, $middenWestFooter);
+
+  .regiotitle:after {
+    content: "Midden-West";
+  }
+
+  .subtitle:after {
+    content: "Noord-Holland, Flevoland, Utrecht";
+  }
+}
+
+.regio-ZW {
+  @include region-color($zuidWest1, $zuidWest2, $zuidWest3, $zuidWestLogo, $zuidWestFooter);
+
+  .regiotitle:after {
+    content: "Zuid-West";
+  }
+
+  .subtitle:after {
+    content: "Zuid Holland, Zeeland";
+  }
+}

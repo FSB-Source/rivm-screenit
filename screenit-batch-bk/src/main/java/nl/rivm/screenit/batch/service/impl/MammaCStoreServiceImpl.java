@@ -21,15 +21,28 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import ca.uhn.hl7v2.HL7Exception;
-import com.google.common.collect.ImmutableMap;
+import java.io.File;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.persistence.Column;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.MammaCStoreService;
 import nl.rivm.screenit.batch.service.impl.dicom.DicomCStoreSCU;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.DicomCStoreConfig;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
@@ -49,6 +62,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.apache.commons.lang.StringUtils;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.DatePrecision;
@@ -67,17 +81,9 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import javax.persistence.Column;
-import java.io.File;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import com.google.common.collect.ImmutableMap;
+
+import ca.uhn.hl7v2.HL7Exception;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
@@ -165,7 +171,13 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 		{
 			String melding = String.format("Fout bij het verwijderen van beelden voor accession number %s. Raadpleeg het IMS systeem voor verdere analyse.",
 				uploadBeeldenPoging.getAccessionNumber());
-			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, client, melding, Bevolkingsonderzoek.MAMMA);
+			MammaHl7v24BerichtLogEvent logEvent = new MammaHl7v24BerichtLogEvent();
+			logEvent.setMelding(melding);
+			logEvent.setHl7MessageStructure(bericht.getHl7Bericht());
+			logEvent.setLevel(Level.WARNING);
+			logEvent.setClient(client);
+
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
 		}
 	}
 
@@ -262,11 +274,11 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 					uploadBeeldenVerzoek.setStatus(MammaUploadBeeldenVerzoekStatus.VERWERKT);
 					logService.logGebeurtenis(LogGebeurtenis.MAMMA_UPLOAD_VERZOEK, uploadBeeldenVerzoek.getScreeningRonde().getDossier().getClient(),
 						"Beelden zijn succesvol verstuurd naar Sectra", Bevolkingsonderzoek.MAMMA);
-					berichtToBatchService.queueMammaHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.SCHEDULED,
+					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.SCHEDULED,
 						MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN);
-					berichtToBatchService.queueMammaHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.STARTED,
+					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.STARTED,
 						MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN);
-					berichtToBatchService.queueMammaHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.COMPLETED,
+					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.COMPLETED,
 						MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN);
 				}
 				uploadBeeldenVerzoek.setStatusDatum(dateSupplier.getDate());

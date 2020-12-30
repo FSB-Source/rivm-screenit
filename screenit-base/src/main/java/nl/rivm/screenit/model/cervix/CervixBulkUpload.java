@@ -43,7 +43,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class CervixBulkUpload extends AbstractHibernateObject
 {
-	
+
 	@OneToOne(optional = false)
 	private UploadDocument document;
 

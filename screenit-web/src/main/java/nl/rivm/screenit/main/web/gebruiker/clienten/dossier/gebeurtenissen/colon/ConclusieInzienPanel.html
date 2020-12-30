@@ -1,0 +1,79 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <fieldset class="form-horizontal">
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="control-group value">
+                    <label class="control-label">Conclusie</label>
+                    <div class="controls" wicket:id="afspraak.conclusie.type">
+                    </div>
+                </div>
+                <div class="intake-result" wicket:id="container"></div>
+            </div>
+        </div>
+
+        <hr/>
+        <div class="row-fluid">
+            <div class="span5">
+                <div class="control-group value">
+                    <label class="control-label">Zorgverlener intake</label>
+                    <div class="controls">
+                        <wicket:container wicket:id="afspraak.conclusie.instellingGebruiker.medewerker.naamVolledig"></wicket:container>
+                    </div>
+                </div>
+            </div>
+            <div class="span7">
+                <div class="control-group value">
+                    <label class="control-label">Datum/Tijd conclusie</label>
+                    <div class="controls" wicket:id="afspraak.conclusie.datum">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <wicket:enclosure child="afspraak.bezwaar">
+        <hr/>
+        <div class="control-group row-fluid value">
+            <label class="control-label span5">Bezwaar gegevensuitwisseling met SO</label>
+            <div wicket:id="afspraak.bezwaar" class="controls span7">Nee</div>
+        </div>
+        </wicket:enclosure>
+    </fieldset>
+    <wicket:fragment wicket:id="coloscopieFragement">
+        <div class="control-group value">
+            <label class="control-label">Datum coloscopie</label>
+            <div class="controls" wicket:id="afspraak.conclusie.datumColoscopie">
+            </div>
+        </div>
+    </wicket:fragment>
+    <wicket:fragment wicket:id="redenExclusieFragment">
+        <div class="control-group value">
+            <label class="control-label">Reden</label>
+            <div class="controls" wicket:id="afspraak.conclusie.geenOnderzoekReden">
+            </div>
+        </div>
+    </wicket:fragment>
+</wicket:panel>
+</body>
+</html>

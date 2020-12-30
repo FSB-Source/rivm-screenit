@@ -96,7 +96,7 @@ public class CervixBMHKLaboratoriumDaoImpl extends AbstractAutowiredDao implemen
 
 		hibernateService.saveOrUpdate(laboratorium);
 	}
-    
+
 	@Override
 	public CervixCytologieOrder getCytologieOrder(String monsterId)
 	{

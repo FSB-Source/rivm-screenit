@@ -42,7 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixHpvOruBerichtenListener extends CervixBaseLogListener
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(CervixHpvOruBerichtenListener.class);
 
 	@Autowired

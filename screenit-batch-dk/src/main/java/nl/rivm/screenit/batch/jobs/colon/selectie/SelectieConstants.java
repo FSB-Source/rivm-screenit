@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie;
 
 public class SelectieConstants
 {
-	
+
 	private SelectieConstants()
 	{
 	}

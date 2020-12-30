@@ -23,13 +23,11 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.Set;
 
 import javax.persistence.FlushModeType;
 
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.model.DossierStatus;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -46,7 +44,6 @@ import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
@@ -198,7 +195,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	@Transactional(propagation = Propagation.MANDATORY)
 	@Override
 	public MammaAfspraak maakAfspraak(MammaScreeningRonde screeningRonde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
-		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, Set<MammaScreeningsEenheid> genotificeerdeSes, boolean stuurBerichtNaarSectra,
+		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, boolean stuurBerichtNaarSectra,
 		boolean isGeforceerdeAfspraak)
 	{
 		hibernateService.getHibernateSession().setFlushMode(FlushModeType.COMMIT);
@@ -242,7 +239,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 
 		if (notificeerBetrokkenSe)
 		{
-			berichtToSeRestBkService.notificeerSesMetUitzonderingVan(genotificeerdeSes, screeningRonde.getDossier().getClient());
+			berichtToSeRestBkService.notificeerSes(screeningRonde.getDossier().getClient());
 		}
 
 		if (stuurBerichtNaarSectra)

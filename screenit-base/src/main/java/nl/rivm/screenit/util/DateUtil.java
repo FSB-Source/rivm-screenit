@@ -496,6 +496,11 @@ public final class DateUtil
 		return referentieDatum != null && vergelijkingsDatum.compareTo(referentieDatum) == 0;
 	}
 
+	public static boolean isBetween(LocalDateTime vanaf, LocalDateTime totEnMet, LocalDateTime vergelijkingsDatum)
+	{
+		return !vergelijkingsDatum.isBefore(vanaf) && !vergelijkingsDatum.isAfter(totEnMet);
+	}
+
 	public static boolean isBetween(LocalTime vanaf, LocalTime totEnMet, LocalTime vergelijkingVanaf, LocalTime vergelijkingTotEnMet)
 	{
 		return !vanaf.isBefore(vergelijkingVanaf) && !totEnMet.isAfter(vergelijkingTotEnMet);

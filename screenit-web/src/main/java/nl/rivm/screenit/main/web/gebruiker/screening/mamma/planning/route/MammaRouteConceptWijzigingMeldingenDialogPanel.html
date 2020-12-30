@@ -1,0 +1,65 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="modal-header">
+        <button data-dismiss="modal" class="close" type="button">x</button>
+        <h3>Concept opslaan</h3>
+    </div>
+    <div class="modal-body">
+		<h2 wicket:id="title">Deze wijzigingen (aangevuld met waarschuwingen en problemen) worden bij doorvoeren opgeslagen.</h2>
+		<h2 wicket:id="title.geen.wijzigingen">Er zijn geen wijzigingen om op te slaan</h2>
+		<div class="form-horizontal" wicket:id="listContainer">
+		<div class="accordion" wicket:id="container" data-chevron-direction="left">
+	        <div class="accordion-group" wicket:id="seMeldingen">
+	            <div class="accordion-heading">
+	                <a class="accordion-toggle" data-toggle="collapse" wicket:id="collapseLink">
+	                	<i wicket:id="niveauIcon" class="dashboard-status"></i>
+	                	<i class="icon-purple pull-right icon-chevron-left"></i>
+	                    <wicket:container wicket:id="collapseName"></wicket:container>
+	                </a>
+	            </div>
+	            <div class="accordion-body collapse" wicket:id="content">
+			        <table class="table table-bordered table-condensed">
+			            <thead>
+				            <tr>
+				                <th>Niveau</th>
+				                <th>Melding</th>
+				            </tr>
+			            </thead>
+			            <tbody>
+				            <tr wicket:id="meldingen">
+				                <td><label class="control-label" wicket:id="niveau">INFO</label></td>
+				                <td wicket:id="tekst"></td>
+				            </tr>
+			            </tbody>
+			        </table>
+	            </div>
+	        </div>
+	    </div>
+	    </div>
+    </div>
+
+    <div class="modal-footer">
+        <button class="btn btn-primary" wicket:id="doorvoeren">Doorvoeren</button>
+    </div>
+</wicket:panel>
+</html>

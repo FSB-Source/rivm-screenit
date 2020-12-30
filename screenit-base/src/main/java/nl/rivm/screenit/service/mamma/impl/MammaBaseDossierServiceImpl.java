@@ -286,7 +286,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 		MammaDossier dossier = client.getMammaDossier();
 		if (dossier != null)
 		{
-			mammaBaseScreeningrondeService.verwijderScreeningRondes(dossier);
+			mammaBaseScreeningrondeService.verwijderAlleScreeningRondes(dossier);
 			verwijderDefinitieveAfmeldingen(dossier);
 			dossier.setInactiefVanaf(null);
 			dossier.setInactiefTotMet(null);

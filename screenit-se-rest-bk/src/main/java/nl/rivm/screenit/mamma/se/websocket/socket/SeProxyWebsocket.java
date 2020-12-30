@@ -63,40 +63,58 @@ public class SeProxyWebsocket implements ApplicationContextAware
 
 	private static final String PONG = "PONG";
 
+	private SELogService logService;
+
+	private ICurrentDateSupplier dateSupplier;
+
+	private Boolean testModus;
+
 	@OnWebSocketMessage
 	public void receiveMessage(Session session, String webSocketMessage)
 	{
 		try
 		{
-			if (webSocketMessage.equals(PING))
+			synchronized (proxySessionMap)
 			{
-				String se = getSeCodeVanSession(session);
-				if (se.equals(SE_CODE_ONBEKEND))
+				if (webSocketMessage.equals(PING))
 				{
-					session.close();
-					LOG.info("PING ontvangen van SE met code die niet aanwezig is in de sessionMap, session gesloten.");
+					String se = getSeCodeVanSession(session);
+					if (SE_CODE_ONBEKEND.equals(se))
+					{
+						session.close();
+						session.disconnect();
+						LOG.info("PING ontvangen van SE met code die niet aanwezig is in de sessionMap, session gesloten. session: " + session.hashCode());
+					}
+					else
+					{
+						LOG.debug("PING ontvangen van SE met code: " + se + "; session: " + session.hashCode());
+						session.getRemote().sendString(PONG);
+					}
 				}
-				else
+				else if (webSocketMessage.startsWith(REGISTREER_SE))
 				{
-					LOG.debug("PING ontvangen van SE met code: " + se);
-					session.getRemote().sendString(PONG);
+					String seCode = webSocketMessage.replace(REGISTREER_SE, "");
+					Session oldSession = proxySessionMap.get(seCode);
+					if (oldSession != null)
+					{
+						oldSession.close();
+						oldSession.disconnect();
+					}
+					proxySessionMap.put(seCode, session);
+					logVerbindingStatus(LogGebeurtenis.MAMMA_SE_WEBSOCKET_VERBINDING_GEMAAKT, seCode);
 				}
-			}
-			else if (webSocketMessage.startsWith(REGISTREER_SE))
-			{
-				String seCode = webSocketMessage.replace(REGISTREER_SE, "");
-				proxySessionMap.put(seCode, session);
-				logVerbindingGemaaktOfVerbroken(true, seCode);
 			}
 		}
 		catch (IOException e)
 		{
-			LOG.info("Kon request van SE " + getSeCodeVanSession(session) + " niet beantwoorden.");
+			LOG.info("Kon request van SE " + getSeCodeVanSession(session) + " niet beantwoorden. session: " + session.hashCode());
 		}
 	}
 
-	public void sendDaglijstUpdate(String seCode)
+	public void sendDaglijstUpdate(String seCodeEnDatum)
 	{
+		String seCode = seCodeEnDatum.split(":")[0];
+
 		Session proxySession = proxySessionMap.get(seCode);
 		if (proxySession == null)
 		{
@@ -112,8 +130,8 @@ public class SeProxyWebsocket implements ApplicationContextAware
 					{
 						try
 						{
-							LOG.info("Daglijst update commando wordt verzonden naar SE met code " + seCode);
-							proxySession.getRemote().sendString("DAGLIJST_UPDATE");
+							LOG.info("Daglijst update commando wordt verzonden naar SE met code en datum " + seCodeEnDatum);
+							proxySession.getRemote().sendString("DAGLIJST_UPDATE:" + seCodeEnDatum);
 						}
 						catch (IOException e)
 						{
@@ -127,54 +145,90 @@ public class SeProxyWebsocket implements ApplicationContextAware
 
 	public void sendTijdUpdateNaarIedereSe(Duration offset)
 	{
-		new Timer().schedule(
-			new TimerTask()
-			{
-				@Override
-				public void run()
+		sendTestCommandoNaarSEs("TIJD_UPDATE:" + offset.toString());
+	}
+
+	public void sendDbCleanupNaarIedereSe()
+	{
+		sendTestCommandoNaarSEs("DB_CLEANUP");
+	}
+
+	private void sendTestCommandoNaarSEs(String commando)
+	{
+		if (inTestModus())
+		{
+			new Timer().schedule(
+				new TimerTask()
 				{
-					try
+					@Override
+					public void run()
 					{
-						LOG.info("Tijd update wordt verzonden naar de volgende SE's: " + proxySessionMap.keySet().toString());
-						for (String seCode : proxySessionMap.keySet())
+						try
 						{
-							Session proxySession = proxySessionMap.get(seCode);
-							if (proxySession == null)
+							synchronized (proxySessionMap)
 							{
-								LOG.info("Kon geen websocket vinden voor SE met code: " + seCode + ", tijd_update commando wordt niet verzonden.");
-							}
-							else
-							{
-								LOG.info("Tijd update commando wordt verzonden naar SE met code " + seCode);
-								proxySession.getRemote().sendString("TIJD_UPDATE:" + offset.toString());
+								LOG.info("Commando '" + commando + "' wordt verzonden naar de volgende SE's: " + proxySessionMap.keySet().toString());
+								for (String seCode : proxySessionMap.keySet())
+								{
+									Session proxySession = proxySessionMap.get(seCode);
+									if (proxySession == null)
+									{
+										LOG.info("Kon geen websocket vinden voor SE met code: " + seCode + ", commando '" + commando + "' wordt niet verzonden.");
+									}
+									else
+									{
+										LOG.info("Commando '" + commando + "' wordt verzonden naar " + seCode);
+										proxySession.getRemote().sendString(commando);
+									}
+								}
 							}
 						}
+						catch (IOException e)
+						{
+							LOG.error(e.getMessage());
+						}
+
 					}
-					catch (IOException e)
-					{
-						LOG.error(e.getMessage());
-					}
-				}
-			},
-			1500); 
+				},
+				1500); 
+		}
+	}
+
+	private boolean inTestModus()
+	{
+		if (testModus == null)
+		{
+			testModus = applicationContext.getBean("testModus", Boolean.class);
+		}
+		return Boolean.TRUE.equals(testModus);
 	}
 
 	@OnWebSocketError
 	public void handleTransportError(Session session, Throwable error)
 	{
-		String seCode = getSeCodeVanSession(session);
-		LOG.info("Websocket verbinding SE: " + seCode + " verbroken door: " + error.getMessage());
-		proxySessionMap.remove(seCode);
-		session.close();
+		synchronized (proxySessionMap)
+		{
+			String seCode = getSeCodeVanSession(session);
+			LOG.warn("Websocket verbinding SE '" + seCode + "' verbroken door: " + error.getMessage() + "; session: " + session.hashCode());
+			session.close();
+		}
 	}
 
 	@OnWebSocketClose
-	public void afterConnectionClosed(Session session, int status, String message)
+	public void afterConnectionClosed(Session session, int status, String message) throws IOException
 	{
-		String seCode = getSeCodeVanSession(session);
-		logVerbindingGemaaktOfVerbroken(false, seCode);
-		proxySessionMap.remove(seCode);
-		session.close();
+		synchronized (proxySessionMap)
+		{
+			String seCode = getSeCodeVanSession(session);
+			LOG.warn("afterConnectionClosed: status=" + status + ", message: " + message + ", seCode: " + seCode + ", session: " + session.hashCode());
+			if (!SE_CODE_ONBEKEND.equals(seCode))
+			{
+				logVerbindingStatus(LogGebeurtenis.MAMMA_SE_WEBSOCKET_VERBINDING_VERLOREN, seCode);
+			}
+			proxySessionMap.remove(seCode);
+			session.close();
+			session.disconnect();
+		}
 	}
 
 	private String getSeCodeVanSession(Session session)
@@ -190,18 +244,17 @@ public class SeProxyWebsocket implements ApplicationContextAware
 		return seCode;
 	}
 
-	private void logVerbindingGemaaktOfVerbroken(boolean verbindingGemaakt, String seCode)
+	private void logVerbindingStatus(LogGebeurtenis logGebeurtenis, String seCode)
 	{
-		if (verbindingGemaakt)
+		if (logService == null)
 		{
-			applicationContext.getBean(SELogService.class).logInfo(LogGebeurtenis.MAMMA_SE_WEBSOCKET_VERBINDING_GEMAAKT, null, seCode,
-				applicationContext.getBean(ICurrentDateSupplier.class).getLocalDateTime(), seCode);
+			logService = applicationContext.getBean(SELogService.class);
 		}
-		else
+		if (dateSupplier == null)
 		{
-			applicationContext.getBean(SELogService.class).logInfo(LogGebeurtenis.MAMMA_SE_WEBSOCKET_VERBINDING_VERLOREN, null, seCode,
-				applicationContext.getBean(ICurrentDateSupplier.class).getLocalDateTime(), seCode);
+			dateSupplier = applicationContext.getBean(ICurrentDateSupplier.class);
 		}
+		logService.logInfo(logGebeurtenis, null, seCode, dateSupplier.getLocalDateTime(), null);
 	}
 
 	@Override

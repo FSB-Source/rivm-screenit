@@ -41,7 +41,7 @@ import org.hibernate.annotations.CascadeType;
 @Table(schema = "colon", name = "koppelresultaat_kankerregistratie")
 public class ColonKoppelresultaatKankerregistratie extends AbstractKoppelresultaatKankerregistratie<ColonScreeningRonde>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Temporal(TemporalType.DATE)

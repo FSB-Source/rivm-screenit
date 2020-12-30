@@ -29,7 +29,7 @@ import nl.rivm.screenit.model.INaam;
 
 public enum CervixNietAnalyseerbaarReden implements INaam
 {
-	
+
 	ONBEKEND(new ArrayList<>(), "Onbekend"),
 
 	HOUDBAARHEID_VERLOPEN_OF_ONBEKEND(new ArrayList<>(), "Houdbaarheid verlopen of onbekend"),

@@ -22,6 +22,7 @@ import base
 import logging
 from util import classification, predict, preprocess, dao
 
+
 def predict_afspraken():
     logging.info("Eerste ronde")
 

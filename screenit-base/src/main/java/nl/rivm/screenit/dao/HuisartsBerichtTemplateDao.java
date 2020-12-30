@@ -26,7 +26,7 @@ import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 
 public interface HuisartsBerichtTemplateDao
 {
-	
+
 	HuisartsBerichtTemplate getTemplateByType(HuisartsBerichtType type);
 
 	void saveOrUpdate(HuisartsBerichtTemplate template);

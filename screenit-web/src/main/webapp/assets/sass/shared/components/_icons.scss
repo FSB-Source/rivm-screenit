@@ -1,0 +1,85 @@
+[class^="cp-icon-"],
+[class*="cp-icon-"] {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: transparent url(../images/icons/cp-icons.png) top left no-repeat;
+}
+
+.cp-icon-next {
+  width: 5px;
+  background-position: 0 0;
+}
+
+.cp-icon-cancel {
+  background-position: -9px 0;
+}
+
+a:hover [class^="cp-icon-"],
+a:hover [class*="cp-icon-"] {
+  background-position-y: -9px;
+}
+
+.form-validation-icon {
+  display: inline-block;
+  float: left;
+  margin-top: 8px;
+  width: 9px;
+  height: 9px;
+  background: transparent url(../images/icons/cp-icons.png) -18px 0 no-repeat;
+}
+
+.info-icon {
+  width: 14px;
+  display: inline-block;
+  background-color: #005fb3;
+  line-height: 14px;
+  color: white;
+  text-align: center;
+
+  @include border-radius(3px);
+
+  &:hover {
+    background-color: lighten(#005fb3, 15);
+  }
+
+  &:focus {
+    outline:none;
+  }
+
+  span {
+    margin: 3px;
+    display: block;
+    height: 9px;
+    width: 9px;
+    text-indent: -9999em;
+    background: transparent url(../images/icons/cp-icons.png) -27px 0 no-repeat;
+  }
+}
+
+.plus-icon,
+.min-icon {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  text-indent: -9999em;
+  vertical-align: middle;
+}
+
+.plus-icon {
+  background: transparent url(../images/icons/cp-icons.png) -47px -11px no-repeat;
+
+  &.font-disabled {
+    background-position: -47px 0;
+  }
+}
+
+.min-icon {
+  background: transparent url(../images/icons/cp-icons.png) -36px -11px no-repeat;
+
+  &.font-disabled {
+    background-position: -36px 0;
+  }
+}
+
+

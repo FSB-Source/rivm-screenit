@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.colon.intake;
 
 public class IntakeAfsprakenMakenConstants
 {
-	
+
 	private IntakeAfsprakenMakenConstants()
 	{
 	}

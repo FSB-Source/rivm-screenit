@@ -61,7 +61,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixHuisartsLocatie extends AbstractHibernateObject implements ICervixHuisartsportaalObject, IActief
 {
-	
+
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	private CervixHuisartsAdres locatieAdres;
 

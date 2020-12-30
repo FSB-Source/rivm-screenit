@@ -23,7 +23,7 @@ package nl.rivm.screenit.model.helper;
 
 public class HibernateMagicNumber
 {
-	
+
 	private HibernateMagicNumber()
 	{
 	}

@@ -1,0 +1,249 @@
+.beheer .canvas.topnav .nav {
+  margin-top: 5px;
+}
+
+.logo-row {
+  .span3 {
+    text-align: left;
+  }
+  a img {
+    margin: 10px 25px;
+    width: 100px;
+  }
+}
+
+.beheer .canvas.topnav {
+  height: 44px;
+  font-family: $fontFamily2;
+  font-size: $fontSize;
+  font-weight: normal;
+  background: $colorColonis-beheer1;
+
+  .logo {
+    padding: 0px;
+  }
+
+  .logo > a img {
+    padding: 13px 0 0 30px;
+  }
+
+  .topnav.divider {
+    margin-top: 10px;
+    width: 0px;
+    height: 25px;
+    border-left: solid 1px #4C2268;
+    border-right: solid 1px #4C2268;
+  }
+  .nav {
+    margin-top: 7px;
+    margin-bottom: 0px;
+    padding: 0 0 0 0;
+    > li {
+      float: left;
+      a {
+        color: $color5;
+        padding: 5px 10px 6px 10px;
+      }
+      > a:hover,
+      > a:focus {
+        background-color: $colorColonis-beheer3;
+      }
+
+      a .caret {
+        margin-top: 8px;
+      }
+    }
+    > li:first-child {
+      margin-left: 10px;
+    }
+    > li:hover,
+    li.open {
+      background-color: $colorColonis-beheer3;
+    }
+
+    span {
+      font-weight: bold;
+    }
+
+    .orgwissel {
+      width: auto;
+      min-width: 220px;
+      .select2-choice {
+        padding: 2px 10px 3px 10px;
+        margin-top: 0;
+        background: transparent;
+        border: none;
+        .select2-chosen {
+          margin-right: 0;
+        }
+        .select2-arrow {
+          display: none;
+        }
+      }
+    }
+
+    .orgwissel.select2-dropdown-open .select2-choice {
+      box-shadow: none;
+      background-color: $colorColonis-beheer3;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .dropdown {
+      .caret {
+        border-top: 4px solid $color5;
+        opacity: 1;
+        filter: alpha(opacity=100);
+      }
+      > a:hover .caret {
+        border-top-color: $color5;
+        border-bottom-color: $color5;
+      }
+      .dropdown-menu {
+        padding: 8px 0 8px 0;
+        border-top: none;
+        border-radius: 0 0 5px 5px;
+        li {
+          > a {
+            padding: 3px 10px 3px 10px;
+            color: $colorColonis-beheer1;
+          }
+          > a:hover {
+            background: $color3 none;
+            filter: none;
+          }
+        }
+        .dropdown-header {
+          padding: 0px 10px 3px 10px;
+          font-weight: normal;
+          font-size: 11px;
+          color: $color6;
+        }
+        .divider {
+          margin: 8px;
+        }
+      }
+    }
+  }
+}
+
+.subnav {
+  background-color: $colorColonis-beheer2;
+  color: $color2;
+  height: 47px;
+  .nav {
+    margin: 0;
+  }
+}
+
+.subnav .bk-concept-gewijzigd-door {
+  margin: 14px 10px 0 14px;
+  font-size: 12px;
+  font-weight: bold;
+  span {  
+  	padding: 7px 7px 7px 7px;
+  }
+  
+  span:hover {
+  	background-color: $colorColonis-beheer3;
+  }
+}
+
+.subnav .nav-tabs {
+  border: 0 none;
+  margin: 15px 0 0 7px;
+  padding: 0px;
+}
+
+.subnav .nav-tabs > li > a,
+.subnav .nav-tabs > li > span em {
+  color: $color5;
+  @include border-radius(0);
+  border-bottom: none;
+  height: 24px;
+  padding: 7px 10px 0px 10px;
+  margin: 0 2px 0 0;
+  border-radius: 5px 5px 0 0;
+  background-color: $colorColonis-beheer3;
+}
+
+.subnav .nav-tabs > li > a:hover,
+.subnav .nav-tabs > li.active > a,
+.subnav .nav-tabs > li.active > span em {
+  border-radius: 5px 5px 0 0;
+  background-color: $color5;
+  color: $color2;
+  i {
+    margin-right: 8px;
+  }
+}
+
+.subnav .nav-tabs > li > span em {
+  line-height: 22px;
+  display: block;
+  font-style: normal;
+  padding-bottom: 1px;
+}
+
+.subnav .nav-tabs > li.tab-search {
+  margin-right: 2px;
+  i {
+    margin-right: 8px;
+  }
+  a {
+    border-bottom: solid 1px transparent;
+    margin: -7px 5px 0 0;
+    line-height: 16px;
+    color: #FFF;
+    background-color: $colorColonis-beheer3;
+    border-radius: 5px;
+  }
+  a:hover,
+  &.active a {
+    color: #FFF;
+    border: solid 1px transparent;
+    background-color: $colorColonis-beheer1;
+  }
+}
+
+li.dashboard .dashboard-status {
+  height: 8px;
+  width: 8px;
+  top: 0;
+  margin: 0 0 0 5px;
+
+  &.red {
+    -webkit-animation: none;
+    -moz-animation: none;
+    -ms-animation: none;
+    animation: none;
+  }
+}
+
+.nav-tabs > .active > a,
+.nav-tabs > .active > a:hover {
+  background-color: $color5;
+  color: $color2;
+}
+
+.ingelogged-als {
+  text-align: right;
+  margin-right: 25px;
+  margin-top: 20px;
+  label {
+    display: inline;
+    color: $colorColonis2;
+    font-weight: bold;
+  }
+
+  a {
+    padding: 0 5px;
+    font-weight: bold;
+    color: white;
+  }
+
+  .divider {
+    border: 1px solid $colorColonis1;
+    border-width: 0 1px;
+  }
+}

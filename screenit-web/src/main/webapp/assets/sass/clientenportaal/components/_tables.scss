@@ -1,0 +1,38 @@
+table.cp-table {
+  border-collapse: collapse;
+  width: 100%;
+
+  th {
+    font-weight: normal;
+    text-align: left;
+    border-bottom: 1px solid #ccc;
+    color: #808080;
+    padding: 5px;
+  }
+
+  td {
+    padding: 10px 5px;
+    vertical-align: top;
+    border-bottom: 1px solid #ccc;
+  }
+
+  &.clickable {
+    td {
+      @include transition-property(background);
+      @include transition-duration(0.5s);
+      @include transition-timing-function(ease-out);
+
+      cursor: pointer;
+    }
+
+    tr:hover td {
+      background-color: $primary-color;
+      color: white;
+    }
+
+    tr:hover td.no-hover {
+      background-color: white;
+    }
+  }
+
+}

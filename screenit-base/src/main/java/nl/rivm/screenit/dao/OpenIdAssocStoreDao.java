@@ -27,7 +27,7 @@ import nl.rivm.screenit.model.OpenIdAssociation;
 
 public interface OpenIdAssocStoreDao
 {
-	
+
 	void saveAssoc(OpenIdAssociation assoc);
 
 	OpenIdAssociation loadByHandle(String handle);

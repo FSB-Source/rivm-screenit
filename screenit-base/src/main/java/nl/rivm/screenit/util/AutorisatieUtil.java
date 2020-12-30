@@ -25,7 +25,7 @@ import nl.rivm.screenit.model.enums.Actie;
 
 public class AutorisatieUtil
 {
-	
+
 	public static boolean isMinimumActie(Actie actie, Actie minimaal)
 	{
 		return Actie.INZIEN.equals(minimaal) && actie == null || actie != null && actie.getNiveau() >= minimaal.getNiveau();

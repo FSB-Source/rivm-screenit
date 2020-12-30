@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.exceptions;
 
 public class OngeldigCdaException extends Exception
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	public OngeldigCdaException(String message)

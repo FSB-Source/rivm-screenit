@@ -26,7 +26,7 @@ import java.util.Arrays;
 
 public enum MdlVervolgbeleid
 {
-	
+
 	FOLLOW_UP("183851006", "2.16.840.1.113883.6.96", ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_VERWIJZING_POLIKLINIEK),
 
 	POLIEPECTOMIE("311774002", "2.16.840.1.113883.6.96", ColonUitnodigingsintervalType.ENDOSCOPIEVERSLAG_SCOPIE_BEOORDELING_RADICALITEIT),

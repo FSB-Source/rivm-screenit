@@ -1,0 +1,120 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:extend>
+    <h1 class="pageTitle">
+        <wicket:message key="titel"/>
+    </h1>
+    <form class="form-horizontal" wicket:id="form">
+        <fieldset>
+            <div class="row-fluid">
+                <div class="control-group">
+                    <label class="control-label">
+                        Omschrijving
+                        <i class="icon-asterisk icon-purple"></i>
+                    </label>
+                    <div class="controls">
+                        <input type="text" wicket:id="omschrijving"/>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+        <fieldset wicket:id="labs">
+            <div class="row-fluid">
+                <legend wicket:id="naam"></legend>
+                <table class="table table-striped table-bordered table-condensed">
+                    <thead>
+                    <tr class="headers">
+                        <th style="width: 13%">Tenaamstelling</th>
+                        <th style="width: 13%">Rekeningnummer</th>
+                        <th style="width: 13%">Verrichting</th>
+                        <th style="width: 13%">Tarief</th>
+                        <th style="width: 12%">Aantal</th>
+                        <th style="width: 12%">Subtotaal (voor correctie)</th>
+                        <th style="width: 12%">Correctie</th>
+                        <th style="width: 12%">Subtotaal (na correctie)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr wicket:id="betaalopdrachtregels">
+                        <td wicket:id="tenaamstelling"></td>
+                        <td wicket:id="naarIban"></td>
+                        <td wicket:id="type"></td>
+                        <td wicket:id="tarief" style="text-align: right"></td>
+                        <td wicket:id="aantal" style="text-align: right"></td>
+                        <td wicket:id="subtotaalZonderDebets" style="text-align: right"></td>
+                        <td wicket:id="debets" style="text-align: right"></td>
+                        <td wicket:id="subtotaal" style="text-align: right"></td>
+                    </tr>
+                    </tbody>
+                    <tfoot>
+                    <tr class="footer">
+                        <td colspan="7" style="text-align: right">Totaal</td>
+                        <td wicket:id="totaal" style="text-align: right"></td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </fieldset>
+        <fieldset wicket:id="huisartsenContainer">
+            <div class="row-fluid">
+                <legend>Betalingen aan huisartsen</legend>
+                <table class="table table-striped table-bordered table-condensed">
+                    <thead>
+                    <tr class="headers">
+                        <th style="width: 13%">Tenaamstelling</th>
+                        <th style="width: 13%">Rekeningnummer</th>
+                        <th style="width: 13%">Verrichting</th>
+                        <th style="width: 13%">Tarief</th>
+                        <th style="width: 12%">Aantal</th>
+                        <th style="width: 12%">Subtotaal (voor correctie)</th>
+                        <th style="width: 12%">Correctie</th>
+                        <th style="width: 12%">Subtotaal (na correctie)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr wicket:id="ḧuisartsRegels">
+                        <td wicket:id="tenaamstelling"></td>
+                        <td wicket:id="naarIban"></td>
+                        <td wicket:id="type"></td>
+                        <td wicket:id="tarief" style="text-align: right"></td>
+                        <td wicket:id="aantal" style="text-align: right"></td>
+                        <td wicket:id="subtotaalZonderDebets" style="text-align: right"></td>
+                        <td wicket:id="debets" style="text-align: right"></td>
+                        <td wicket:id="subtotaal" style="text-align: right"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </fieldset>
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="form-actions clearfix">
+                    <button class="btn" wicket:id="terug">Terug</button>
+                    <button class="btn btn-primary" wicket:id="genereren"><i class=" icon-download-alt icon-white"></i>
+                        Genereren
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</wicket:extend>
+</html>

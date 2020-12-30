@@ -41,7 +41,7 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 @Table(schema = "cervix", name = "cis_historie")
 public class CervixCISHistorie extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(mappedBy = "cisHistorie", optional = false, fetch = FetchType.LAZY)

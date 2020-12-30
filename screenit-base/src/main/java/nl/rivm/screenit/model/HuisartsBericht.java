@@ -45,7 +45,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public abstract class HuisartsBericht extends TablePerClassHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)

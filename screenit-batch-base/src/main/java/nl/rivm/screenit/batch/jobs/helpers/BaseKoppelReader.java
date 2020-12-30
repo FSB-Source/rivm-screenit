@@ -24,7 +24,6 @@ package nl.rivm.screenit.batch.jobs.helpers;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -40,7 +39,6 @@ import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.algemeen.KoppelData;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -68,9 +66,6 @@ public abstract class BaseKoppelReader implements ItemStream
 
 	@Autowired
 	private BarcodeValiderenService validerenService;
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
 	private WebserviceInpakcentrumOpzettenService webserviceOpzettenService;
@@ -202,7 +197,6 @@ public abstract class BaseKoppelReader implements ItemStream
 
 	protected List<KOPPELDATA.VERZONDENUITNODIGING> getKoppeldataLijst() throws JAXBException
 	{
-		Long id = getStepExecution().getJobParameters().getLong(Constants.XML_PARAMETER_KOPPEL_JOB);
 		JAXBContext jaxbContext = JAXBContext.newInstance(KOPPELDATA.class);
 		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
@@ -211,9 +205,15 @@ public abstract class BaseKoppelReader implements ItemStream
 			TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(hibernateSession));
 			unbindSessionFromThread = true;
 		}
-		KoppelData koppelData = getHibernateSession().get(KoppelData.class, id);
+		KoppelData koppelData = getKoppelData();
 
 		return ((KOPPELDATA) unmarshaller.unmarshal(new StringReader(koppelData.getXmlBericht()))).getVERZONDENUITNODIGING();
+	}
+
+	private KoppelData getKoppelData()
+	{
+		Long id = getStepExecution().getJobParameters().getLong(Constants.XML_PARAMETER_KOPPEL_JOB);
+		return getHibernateSession().get(KoppelData.class, id);
 	}
 
 	protected boolean verstuurSemantischeFoutmeldingen(List<String> foutmeldingen) throws IOException
@@ -225,11 +225,10 @@ public abstract class BaseKoppelReader implements ItemStream
 		LOG.info("Start versturen, semantische foutmeldingen size: " + foutmeldingen.size());
 		boolean result;
 
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		UploadRequest uploadRequest = new UploadRequest();
 		uploadRequest.setStream(maakCsvStream(foutmeldingen).toByteArray());
 		result = upload
-			.upload(uploadRequest, "csv", getAfkortingBvo() + "_validatie" + dateFormat.format(currentDateSupplier.getDate()) + ".csv",
+			.upload(uploadRequest, "csv", getFileNaam() + ".csv",
 				foutmeldingen.size())
 			.isUploadSucceeded();
 
@@ -246,6 +245,14 @@ public abstract class BaseKoppelReader implements ItemStream
 
 		LOG.info("Alles verstuurd met resultaat: " + result);
 		return result;
+	}
+
+	private String getFileNaam()
+	{
+		KoppelData koppelData = getKoppelData();
+		String fileNaamVoorValidatie = koppelData.getFilename().replaceAll("mergedata", "validatie");
+		String[] filenameParts = fileNaamVoorValidatie.split("\\.");
+		return filenameParts[0];
 	}
 
 	private ByteArrayOutputStream maakCsvStream(List<String> foutmeldingen) throws IOException

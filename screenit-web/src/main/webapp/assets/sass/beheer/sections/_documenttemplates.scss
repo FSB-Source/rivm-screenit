@@ -1,0 +1,46 @@
+
+a:hover, a:active, a:focus {
+  outline: 0;
+}
+
+.beheer fieldset {
+
+  .clientFieldsContainer {
+    max-width: 600px;
+
+    .btn-toon-alle {
+      float: right;
+    }
+  }
+
+  .samenvoegvelden {
+    margin: 0 0 7px;
+
+    .header-samenvoegvelden {
+      background: #DCB0EB;
+      display: inline-block;
+      width: 100%;
+      border-radius: 4px;
+      margin: 0;
+      @include box-sizing(border-box);
+      color: #fff;
+      cursor: pointer;
+
+      h3 {
+        font-weight: normal;
+        padding: 6px 10px;
+        font-size: 12px;
+        margin: 0;
+      }
+
+      span {
+        margin-right: 10px;
+        font-weight: bold;
+        font-size: 16px;
+        float: right;
+      }
+
+    }
+
+  }
+} 

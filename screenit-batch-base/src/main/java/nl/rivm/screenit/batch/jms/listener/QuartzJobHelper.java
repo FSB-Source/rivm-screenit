@@ -29,7 +29,7 @@ import org.quartz.JobDetail;
 
 public class QuartzJobHelper
 {
-	
+
 	public static final String JOB_READY = "jobReady";
 
 	public static final String JOB_NAME = "jobName";

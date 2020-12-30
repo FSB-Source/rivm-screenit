@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-3.2.xsd">
+
+    <jee:jndi-lookup id="planAhead" jndi-name="planning/planAhead" expected-type="java.lang.Integer"
+                     default-value="#{new Integer(0)}"/>
+    <jee:jndi-lookup id="maxRoosterUitrolInMonths" jndi-name="planning/maxRoosterUitrolInMonths"
+                     expected-type="java.lang.Integer" default-value="#{new Integer(15)}"/>
+
+    <jee:jndi-lookup id="applicationEnvironment" jndi-name="applicationEnvironment"/>
+    <jee:jndi-lookup id="applicatieNaam" jndi-name="applicationName"/>
+    <jee:jndi-lookup id="applicatieInstantie" jndi-name="applicationInstance"/>
+    <jee:jndi-lookup id="applicationUrl" jndi-name="applicationUrl"/>
+    <jee:jndi-lookup id="testModus" jndi-name="testModus"/>
+    <jee:jndi-lookup id="jgroupsCommonBindPort" jndi-name="jgroupsCommonBindPort" expected-type="java.lang.Integer"
+                     default-value="#{new Integer(0)}"/>
+    <jee:jndi-lookup id="jgroupsCommonIPPorts" jndi-name="jgroupsCommonIPPorts" expected-type="java.lang.String"
+                     default-value="#{new String()}"/>
+    <jee:jndi-lookup id="jgroupsBindIP" jndi-name="jgroupsBindIP"/>
+    <jee:jndi-lookup id="ossAanmeldenAdres" jndi-name="edi/ossAanmeldenAdres" expected-type="java.lang.String"
+                     default-value="devnull@topicus.nl"/>
+    <jee:jndi-lookup id="ossAfleverAdres" jndi-name="edi/ossAfleverAdres" expected-type="java.lang.String"
+                     default-value="devnull@topicus.nl"/>
+    <jee:jndi-lookup id="versionMapping" jndi-name="hl7/versionMapping" expected-type="java.lang.String"
+                     default-value=" "/>
+    <jee:jndi-lookup id="asposeLicence" jndi-name="aspose/asposeLicence" expected-type="java.lang.String"
+                     default-value="./../screenit-base/src/test/resources/aspose/Aspose.Words.lic"/>
+    <jee:jndi-lookup id="vragenlijstTemplate" jndi-name="aspose/vragenlijstTemplate" expected-type="java.lang.String"
+                     default-value="./../screenit-base/src/test/resources/aspose/VragenlijstTemplate.docx"/>
+    <jee:jndi-lookup id="planningBkRestUrl" jndi-name="planningBK/restUrl" expected-type="java.lang.String" default-value="http://localhost:14830/"/>
+    <jee:jndi-lookup id="kansberekeningServiceUrl" jndi-name="kansberekeningServiceUrl" expected-type="java.lang.String" default-value="http://localhost:14832/"/>
+</beans>

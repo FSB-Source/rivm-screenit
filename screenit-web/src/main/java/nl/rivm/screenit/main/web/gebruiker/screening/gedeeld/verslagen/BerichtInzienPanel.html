@@ -1,0 +1,99 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+    <div class="modal hide fade in" id="modalOngeldigBericht"
+         role="dialog" style="display: block;">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">x</button>
+            <h3>Verwerken ongeldige berichten</h3>
+        </div>
+        <div class="modal-body">
+            <fieldset class="hero-unit">
+                <div class="row-fluid">
+                    <div class="span3">Datum ontvangst:</div>
+                    <div class="span9">
+                        <strong wicket:id="ontvangenCdaBericht.ontvangen">05-11-2012</strong>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span3">Type:</div>
+                    <div class="span9">
+                        <strong wicket:id="ontvangenCdaBericht.berichtType">MDL-berichten</strong>
+                    </div>
+                </div>
+                <div class="row-fluid">
+                    <div class="span3">Reden ongeldigheid:</div>
+                    <div class="span9">
+							<span class="badge badge-warning" wicket:id="melding">Coloscopie-uitslag
+								zonder lopende screening</span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div class="row-fluid">
+                    <wicket:enclosure child="uitvoerendeOrganisatie.organisatieType">
+                        <div class="span3">
+                            <span wicket:id="uitvoerendeOrganisatie.organisatieType">Coloscopiecentrum</span>:
+                        </div>
+                        <div class="span3" wicket:id="uitvoerendeOrganisatie.naam">
+                            <strong>Coloscopiecentrum 1 (A-202)</strong>
+                        </div>
+                    </wicket:enclosure>
+                    <wicket:enclosure>
+                        <div class="span3">Zorgverlener:</div>
+                        <div class="span3" wicket:id="uitvoerder.naamVolledig">
+                            <strong>Zorgverlener 3 (01-402-11)</strong>
+                        </div>
+                    </wicket:enclosure>
+                </div>
+                <div class="row-fluid">
+                    <div class="span3">BSN burger:</div>
+                    <div class="span3">
+                        <strong wicket:id="bsn">0123456789</strong>
+                    </div>
+                    <div class="span3">Geboortedatum:</div>
+                    <div class="span3">
+                        <strong wicket:id="geboortedatum">06-06-1944</strong>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <div wicket:id="content"></div>
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger pull-left" wicket:id="verwijderen">
+                <i class="icon-minus-sign icon-white"></i> Verwijderen
+            </button>
+            <button class="btn btn-warning pull-left" wicket:id="opnieuwAanbieden">
+                <i class="icon-refresh icon-white"></i> Bericht opnieuw aanbieden
+            </button>
+            <button class="btn btn-primary" data-dismiss="modal">Sluiten</button>
+        </div>
+    </div>
+    <div wicket:id="confirmDialog"></div>
+</wicket:panel>
+</body>
+</html>

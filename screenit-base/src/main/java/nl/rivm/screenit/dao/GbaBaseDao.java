@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.gba.GbaVraag;
 
 public interface GbaBaseDao
 {
-	
+
 	<T extends GbaStamtabel> T getStamtabelByCode(Class<T> clazz, String code);
 
 	GbaVraag getLaatsteGbaVraag(Client client, String bsn);

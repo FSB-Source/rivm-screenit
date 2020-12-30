@@ -53,7 +53,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class ColonBlokkade extends AbstractAppointment implements Comparable<ColonBlokkade>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(length = HibernateMagicNumber.L256)

@@ -54,7 +54,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class CervixHpvBericht extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false, unique = true)

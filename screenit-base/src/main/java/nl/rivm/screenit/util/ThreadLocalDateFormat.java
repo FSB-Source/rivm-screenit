@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat;
 
 public class ThreadLocalDateFormat extends ThreadLocal<SimpleDateFormat>
 {
-	
+
 	private final String pattern;
 
 	public ThreadLocalDateFormat(String pattern)

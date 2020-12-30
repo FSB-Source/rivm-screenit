@@ -38,7 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixHuisartsBepalenWriter extends BaseWriter<CervixHuisartsBericht>
 {
-	
+
 	@Autowired
 	private SimplePreferenceService preferenceService;
 

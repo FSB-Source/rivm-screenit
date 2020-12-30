@@ -1,0 +1,42 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <div class="welkoms-bericht">
+        <h2>Mijn Bevolkingsonderzoek darmkanker</h2>
+        <div class="welkomstekst">
+            Het bevolkingsonderzoek darmkanker is voor mannen en vrouwen van 55 t/m 75 jaar.  U ontvangt automatisch een uitnodiging.<br>
+            Informatie over het uitnodigingsschema vindt u op onze <a wicket:id="soWebsite">website</a>, op pagina: Bevolkingsonderzoek darmkanker – De uitnodiging.
+        </div>
+    </div>
+
+    <div class="column-clientgegevens">
+        <wicket:container wicket:id="persoonsgegegevens"></wicket:container>
+    </div>
+    <div class="column-widgets-1">
+        <wicket:container wicket:id="history"></wicket:container>
+    </div>
+    <div class="column-widgets-2">
+        <wicket:container wicket:id="afspraken"></wicket:container>
+        <wicket:container wicket:id="overige"></wicket:container>
+    </div>
+</wicket:extend>
+</html>

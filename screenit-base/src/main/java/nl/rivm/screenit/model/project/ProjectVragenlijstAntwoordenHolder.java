@@ -42,7 +42,7 @@ import org.hibernate.annotations.CascadeType;
 @Table(schema = "algemeen")
 public class ProjectVragenlijstAntwoordenHolder extends VragenlijstAntwoordenHolder<ProjectVragenlijst, ProjectVragenlijstAntwoordenHolder>
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY)

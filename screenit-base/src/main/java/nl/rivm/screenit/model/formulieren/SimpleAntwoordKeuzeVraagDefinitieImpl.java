@@ -34,7 +34,7 @@ import nl.topicuszorg.formulieren2.persistence.definitie.DefaultAntwoordKeuzeVra
 @Table(uniqueConstraints = @UniqueConstraint(name = "form_vraag_definite_id_domein_ukey", columnNames = { "identifier", "domein" }))
 public class SimpleAntwoordKeuzeVraagDefinitieImpl<T> extends DefaultAntwoordKeuzeVraagDefinitieImpl<T> implements IdentifierElement
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column

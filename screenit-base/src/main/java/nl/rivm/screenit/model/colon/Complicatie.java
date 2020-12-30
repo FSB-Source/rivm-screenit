@@ -51,7 +51,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class Complicatie extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Enumerated(EnumType.STRING)

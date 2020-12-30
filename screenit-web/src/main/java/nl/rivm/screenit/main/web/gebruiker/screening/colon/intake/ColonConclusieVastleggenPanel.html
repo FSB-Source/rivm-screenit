@@ -1,0 +1,170 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<body>
+<wicket:panel>
+	<div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">x</button>
+        <h3>Vastleggen resultaten intake (BSN: <wicket: wicket:id="client.persoon.bsn"></wicket:> / Geb.datum: <wicket: wicket:id="client.persoon.geboortedatum"></wicket:>)</h3>
+    </div>   
+    <form wicket:id="form">
+        <div class="modal-body">
+            <fieldset class="hero-unit">
+                <h2 class="form-title" style="margin: 0;" wicket:id="client.persoon.achternaam"></h2>
+            </fieldset>
+            <fieldset class="form-horizontal fieldset-last">            	
+            	<div wicket:id="eersteVraag"></div>
+            	<hr/>
+            	<div class="row-fluid">
+		           <div class="span12">
+		               <div class="control-group">
+		                   <label class="control-label">ASA-score</label>
+		                   <div class="controls">
+		                   		<div class="btn-group">
+			                   		<a href="javascript:void(0);" wicket:id="conclusie.asaScore" class="btn">
+		                                <wicket:container wicket:id="label"></wicket:container>
+		                            </a>
+		                         </div>
+		                   </div>
+		               </div>
+		           </div>
+		       	</div>
+                <hr/>
+                <div class="row-fluid">
+                    <div class="span5">
+                        <div class="control-group value">
+                            <label class="control-label">Zorgverlener intake</label>
+                            <div class="controls" wicket:id="conclusie.instellingGebruiker.medewerker.naamVolledig"></div>
+                        </div>
+                        <div class="control-group value">
+                            <label class="control-label">Datum uitslag ontlastingstest</label>
+                            <div class="controls" wicket:id="datumEerstOngunstigeUitslag"></div>
+                        </div>
+                    </div>
+                    <div class="span7">
+                        <div class="control-group value">
+                            <label class="control-label">Datum brief afspraak</label>
+                            <div class="controls" wicket:id="printDatum"></div>
+                        </div>
+                        <div class="control-group value">
+                            <label class="control-label">Datum/Tijd conclusie</label>
+                            <div class="controls" wicket:id="conclusie.datum"></div>
+                        </div>
+                    </div>
+                </div>
+
+				<wicket:enclosure child="bezwaar">				
+                <hr/>
+                <div class="control-groups row-fluid">
+                    <label class="control-label span5">Bezwaar gegevensuitwisseling met SO</label>
+                    <div class="controls span7">
+                        <div class="btn-group">
+                            <a href="javascript:void(0);" wicket:id="bezwaar" class="btn">
+                                <wicket:container wicket:id="label"></wicket:container>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                </wicket:enclosure>
+            </fieldset>
+        </div>
+        <div class="modal-footer">
+        	<div class="row-fluid">
+                <div class="span9 form-horizontal">
+                    <div class="control-group geselecteerde-organisatie value" wicket:id="tekstOntvangenMDLverslag">
+                        <strong>Vervolgbeleid is bekend, conclusie kan niet meer worden aangepast/ongedaan worden gemaakt.</strong>
+                    </div>
+                    <div class="control-group geselecteerde-organisatie value" wicket:id="tekstGeenLaatsteAfspraak">
+                        <strong>Er is een nieuwe intake gepland, conclusie kan niet meer worden aangepast/ongedaan worden gemaakt.</strong>
+                    </div>
+            		<button class="btn btn-danger pull-left" wicket:id="conclusieVerwijderen">Conclusie ongedaan maken</button>
+                </div>
+                <div class="span3">
+		            <a class="btn" data-dismiss="modal">Annuleren</a>
+		            <a class="btn btn-primary" wicket:id="conclusieOpslaan">Opslaan</a>
+                </div>
+            </div>
+        </div>
+        <div wicket:id="dialog"></div>
+    </form>
+    <wicket:fragment wicket:id="conclusieFragment">
+		<div class="row-fluid">
+           <div class="span12">
+               <div class="control-group">
+                   <label class="control-label"></label>
+                   <div class="controls">
+                       <div class="btn-group">
+                            <a href="javascript:void(0);" wicket:id="conclusie.type" class="btn">
+                                <wicket:container wicket:id="label"></wicket:container>
+                            </a>
+                        </div>
+                   </div>
+               </div>
+               <div class="intake-result" wicket:id="container"></div>
+           </div>
+       </div>
+    </wicket:fragment>   
+    <wicket:fragment wicket:id="vraagFragment">
+		<div class="row-fluid">
+           <div class="span12">
+               <div class="control-group">
+                   <label class="control-label" wicket:id="vraag">Vraag?</label>
+                   <div class="controls span4">
+                        <div class="btn-group">
+                            <a href="javascript:void(0);" wicket:id="antwoord" class="btn">
+                                <wicket:container wicket:id="label"></wicket:container>
+                            </a>
+                        </div>
+                    </div>
+               </div>
+           </div>
+       </div>      
+       <div wicket:id="vervolg"></div>
+    </wicket:fragment>
+    <wicket:fragment wicket:id="terugNaarScreeningFragment">
+		<div class="row-fluid">
+           <div class="span12">
+               <div class="control-group">
+                   <label class="control-label">Hoeveel jaar na uitslag ontlastingstest?</label>
+                   <div class="controls span4">
+                        <div class="btn-group">
+                            <a href="javascript:void(0);" wicket:id="jaar" class="btn">
+                                <wicket:container wicket:id="label"></wicket:container>
+                            </a>
+                        </div>
+                    </div>
+               </div>
+           </div>
+       </div>      
+    </wicket:fragment>
+    <wicket:fragment wicket:id="gevolgFragment">
+		<div class="row-fluid">
+           <div class="span12">
+               <div class="control-group">
+                   <label class="control-label">Gevolg</label>
+                   <div class="controls" wicket:id="gevolg"></div>
+               </div>
+           </div>
+       </div>      
+    </wicket:fragment>
+</wicket:panel>
+</body>
+</html>

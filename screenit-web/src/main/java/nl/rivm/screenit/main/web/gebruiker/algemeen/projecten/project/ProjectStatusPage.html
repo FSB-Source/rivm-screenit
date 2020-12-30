@@ -1,0 +1,158 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:extend>
+    <div class="btn-top dropdown pull-right">
+        <button class="btn btn-primary" data-toggle="dropdown"
+                wicket:id="projectbewerken"> Project bewerken
+        </button>
+    </div>
+    <h1 class="pageTitle">
+        Overzicht
+        <span class="divider">&gt;</span>
+        <span class="subpage" wicket:id="projectNaam">projectnaam</span>
+    </h1>
+
+    <div class="row-fluid">
+        <div class="span9 form-horizontal">
+            <fieldset>
+                <div class="span6">
+                    <h2>Projectgegevens</h2>
+
+                    <div class="control-group">
+                        <label class="control-label">Project code (<i>wordt gebruikt in de communicatie met
+                            inpakcentrum</i>)</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="id">1</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Naam</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="naam">Naam</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Bevolkingsonderzoek(en)</label>
+
+                        <div class="controls text">
+                            <label class="text" wicket:id="bevolkingsonderzoeken">Bevolkingsonderzoeken</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Screeningsorganisaties</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="screeningorganisaties">null</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Startdatum</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="startDatum">Startdatum</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Einddatum instroom</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="eindeInstroom">eindeInstroom</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Einddatum</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="eindDatum">eindDatum</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Anoniem</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="anoniem">Ja</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="span5">
+                    <h2>Uitvoerende organisatie</h2>
+
+                    <div class="control-group">
+                        <label class="control-label">Organisatie</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="organisatie.naam">Organisatie</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Contactpersoon</label>
+
+                        <div class="controls">
+                            <label class="text"
+                                   wicket:id="contactpersoon.medewerker.naamVolledig">Contactpersoon</label>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label">Medewerkers</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="medewerkers">Medewerkers</label>
+                        </div>
+                    </div>
+                    <h2 wicket:id="parametersTitel">Project parameters</h2>
+
+                    <div class="control-group" wicket:id="parameters">
+                        <label class="control-label" wicket:id="key">Parameter</label>
+
+                        <div class="controls">
+                            <label class="text">
+                                <wicket:container wicket:id="value">Waarde</wicket:container>
+                                <wicket:container wicket:id="enumValue">EnumWaarde</wicket:container>
+                                <wicket:container wicket:id="unit">Eenheid</wicket:container>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="control-group" wicket:id="geenParameters">
+                        <label class="text">De gekozen BVO heeft geen project parameters.</label>
+                    </div>
+                    <h2>Overige gegevens</h2>
+
+                    <div class="control-group">
+                        <label class="control-label">Opmerkingen</label>
+
+                        <div class="controls">
+                            <label class="text" wicket:id="opmerkingen">Opmerkingen</label>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="span3">
+            <div class="passpoort">
+                <wicket:container wicket:id="projectPasspoort"></wicket:container>
+            </div>
+        </div>
+    </div>
+</wicket:extend>
+</html>

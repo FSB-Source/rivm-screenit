@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.enums.JobType;
 
 public class BatchJob implements Serializable
 {
-	
+
 	private static final long serialVersionUID = -1615797420971302370L;
 
 	private JobType jobType;

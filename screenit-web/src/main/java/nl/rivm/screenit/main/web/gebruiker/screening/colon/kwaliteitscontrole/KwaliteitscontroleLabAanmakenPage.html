@@ -1,0 +1,59 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:extend>
+    <h1 class="pageTitle">
+        SKML kwaliteitscontrole
+    </h1>
+    <fieldset>
+        <div class="row-fluid form-horizontal">
+            <form wicket:id="selectieForm">
+                <div class="control-group">
+                    <label class="control-label">Controle</label>
+                    <div class="controls" wicket:id="type">
+                        <label class="radio">
+                            <input type="radio" name="controle">
+                            Intern
+                        </label>
+                        <label class="radio">
+                            <input type="radio" name="controle">
+                            Extern
+                        </label>
+                    </div>
+                </div>
+            </form>
+            <form wicket:id="aanmaakForm">
+                <div class="control-group">
+                    <label class="control-label">Barcode</label>
+                    <div class="controls">
+                        <input class="input-medium" type="text" wicket:id="barcode">
+                        <div class="barcode-controle" wicket:id="controle"><span wicket:id="controleTekst"></span></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="buttons">
+            <a href="javascript:void(0);" class="btn" wicket:id="annuleren">Wissen</a>
+            <a href="javascript:void(0);" class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
+        </div>
+    </fieldset>
+</wicket:extend>
+</html>

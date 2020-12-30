@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -39,6 +40,7 @@ import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.batch.BvoZoekCriteria;
@@ -60,6 +62,8 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.service.impl.IBrievenGeneratorHelper;
 
 import com.aspose.words.Document;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface BaseBriefService
 {
@@ -67,7 +71,7 @@ public interface BaseBriefService
 
 	BriefDefinitie getNieuwsteBriefDefinitie(BriefType briefType);
 
-	public List<BriefDefinitie> getBriefDefinities(BvoZoekCriteria briefType, Comparator<BriefType> comparator);
+	List<BriefDefinitie> getBriefDefinities(BvoZoekCriteria briefType, Comparator<BriefType> comparator);
 
 	void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename) throws IOException;
 
@@ -127,7 +131,11 @@ public interface BaseBriefService
 
 	<B extends Brief> void setBriefGegenereerd(B brief);
 
-	void setNietGegenereerdeBrievenOpTegenhouden(MammaScreeningRonde screeningRonde, BriefType briefType);
+	<B extends Brief> List<B> getNietGegenereerdeBrievenVanBriefTypes(List<B> brieven, List<BriefType> brieftypes);
+
+	void setNietGegenereerdeBrievenOpTegenhouden(ScreeningRonde<?, ?, ?, ?> screeningRonde, Collection<BriefType> brieftypes);
+
+	boolean briefTypeAlVerstuurdInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes);
 
 	List<ClientBrief> getClientBrieven(Client client);
 

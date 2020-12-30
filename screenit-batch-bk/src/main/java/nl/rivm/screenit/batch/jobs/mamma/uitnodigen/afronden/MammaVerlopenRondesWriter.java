@@ -22,10 +22,9 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
  */
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.rivm.screenit.service.BaseScreeningRondeService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,22 +32,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class MammaVerlopenRondesWriter extends BaseWriter<MammaScreeningRonde>
 {
 
-    private Logger LOG = LoggerFactory.getLogger(MammaVerlopenRondesWriter.class);
+	private Logger LOG = LoggerFactory.getLogger(MammaVerlopenRondesWriter.class);
 
-    @Autowired
-    private HibernateService hibernateService;
+	@Autowired
+	private BaseScreeningRondeService screeningRondeService;
 
-    @Autowired
-    private ICurrentDateSupplier currentDateSupplier;
+	@Override
+	protected void write(MammaScreeningRonde ronde)
+	{
+		LOG.info("gevonden ronde: {} wordt afgerond", ronde.getId());
 
-    @Override
-    protected void write(MammaScreeningRonde ronde)
-    {
-        LOG.info("gevonden ronde: {} wordt afgerond", ronde.getId());
-
-        ronde.setStatus(ScreeningRondeStatus.AFGEROND);
-        ronde.setStatusDatum(currentDateSupplier.getDate());
-
-        hibernateService.saveOrUpdate(ronde);
-    }
+		screeningRondeService.screeningRondeAfronden(ronde);
+	}
 }

@@ -23,9 +23,9 @@ package nl.rivm.screenit.model;
 
 public enum Aanhef implements INaam
 {
-	
+
 	DHR("Dhr."),
-	
+
 	MEVR("Mevr.");
 
 	private final String naam;

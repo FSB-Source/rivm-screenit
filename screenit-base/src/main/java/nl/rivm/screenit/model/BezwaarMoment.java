@@ -53,7 +53,7 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class BezwaarMoment extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)

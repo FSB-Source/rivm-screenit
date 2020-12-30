@@ -32,7 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class PostcodeCoordinatenClientKoppelReader extends BaseScrollableResultReader
 {
-	
+
 	@Autowired
 	private GbaService gbaService;
 

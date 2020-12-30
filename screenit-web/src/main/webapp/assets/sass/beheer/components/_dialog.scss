@@ -1,0 +1,153 @@
+.modal-backdrop, .modal-backdrop.fade.in {
+  opacity: 0.6;
+}
+
+.alert {
+  position: fixed;
+  top: 5px;
+  right: 5px;
+  z-index: 9999;
+}
+
+.modal-header {
+  background-color: $colorColonis-beheer3;
+  @include border-radius(3px 3px 0 0);
+
+  .close {
+    margin-top: 14px;
+  }
+  h3 {
+    margin: 0;
+    padding: 10px;
+    font-size: 16px;
+    color: #FFF;
+  }
+}
+
+.modal-footer {
+  border: none;
+  box-shadow: none;
+  background-color: #EEE;
+}
+
+.modal {
+  width: 780px;
+  margin-left: -380px;
+  border: none;
+  border-radius: 5px 5px 5px 5px;
+  .hero-unit {
+    margin: 0 0 15px 0;
+    padding: 10px;
+    line-height: 30px;
+
+    p {
+      line-height: 14px;
+    }
+
+    .control-group.form-inline {
+      margin-bottom: 0;
+    }
+  }
+  &.modal-large {
+    width: 840px;
+    bottom: 5vh;
+    top: 5vh !important;
+    .modal-header {
+      height: 5vh;
+    }
+    .modal-body {
+      max-height: 70vh;
+    }
+    .modal-footer {
+      height: 5vh;
+      bottom: 0;
+      position: absolute;
+      width: 810px;
+    }
+  }
+  legend {
+    margin-bottom: 10px;
+  }
+  fieldset {
+    border: 1px solid #DDDDDD;
+    border-radius: 5px 5px 5px 5px;
+    margin: 0 0 10px;
+    padding: 15px;
+  }
+
+  .btn-top {
+    margin-bottom: 15px;
+  }
+  .table-condensed {
+    td {
+      padding: 10px 10px 5px 10px;
+      cursor: pointer;
+      color: $colorColonis-beheer1;
+      vertical-align: middle;
+      a {
+        color: $colorColonis-beheer1;
+      }
+      a:hover {
+        text-decoration: none;
+      }
+    }
+    th {
+      padding: 10px;
+      vertical-align: middle;
+      background-color: #EEE;
+      font-size: 13px;
+    }
+    th.status-header {
+      margin-right: 5px;
+      width: 150px;
+    }
+    td.status, th.status-header {
+      padding: 8px 5px 8px 5px;
+      text-align: center;
+    }
+    .btn-success {
+      background-image: none;
+      background-color: $colorColonis3;
+    }
+    .btn-success.active {
+      box-shadow: none;
+      background-color: #E6E6E6;
+      i {
+        background-image: url("../images/icons/glyphicons-halflings.png");
+        background-position: -216px -96px;
+      }
+    }
+  }
+}
+
+.dialog-large {
+  width: 970px;
+  margin-left: -485px;
+}
+
+.dialog-medium {
+  width: 870px;
+  margin-left: -335px;
+}
+
+.modal-body.antwoordformulierontvangen {
+  max-height: 600px;
+}
+
+.modal-body.antwoordformulierontvangen embed {
+  width: 100%;
+  height: 500px;
+}
+
+.mammaStandplaatsPeriode .modal-body {
+  max-height: 700px;
+}
+
+.intakeconclusie-confirm-panel {
+  width: 840px;
+  top: 80vh !important;
+  bottom: 10vh;
+  .modal-footer {
+    text-align: center;
+  }
+}

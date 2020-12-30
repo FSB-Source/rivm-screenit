@@ -1,0 +1,45 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:panel>
+	<div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h3>Tehuis uitnodigingen aangemaakt</h3>
+    </div>
+    <div class="modal-body">
+        <wicket:enclosure child="aantalClientMetBrief">
+        	<p>Voor <wicket:container wicket:id="aantalClientMetBrief"></wicket:container> cliënt(en) is een uitnodiging aangemaakt (waarvan er <wicket:container wicket:id="aantalClientMetSuspectBrief"></wicket:container> suspectbrieven zijn). Hiervan is al een PDF gegenereerd welk m.b.v. de Documenten afdrukken-pagina gevonden (m.b.v. tehuisnaam), afgedrukt en gecontroleerd kan worden.</p>
+        </wicket:enclosure>
+        <wicket:enclosure child="aantalClientMetProjectBrief">
+        	<p>
+	        	Voor <wicket:container wicket:id="aantalClientMetProjectBrief"></wicket:container> cliënt(en) is een uitnodiging aangemaakt. Deze cliënt(en) behoren/behoort op dit moment bij een project, waardoor er vervangende brieven zijn/brief is aangemaakt. 
+	        	Deze worden uiterlijk de ochtend van de volgende werkdag in de projectbrieven genereren batch samengevoegd en klaargezet voor afgdrukken (regulier proces).
+        	</p>
+        </wicket:enclosure>
+       	<p>
+       		Zie ook de automatisch aangemaakte opmerking voor dit tehuis.
+       	</p>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-success" data-dismiss="modal" aria-hidden="true">Sluiten</button>
+    </div>
+</wicket:panel>
+</html>

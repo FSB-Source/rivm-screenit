@@ -90,7 +90,7 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 @Service
 public class AsposeServiceImpl implements AsposeService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(AsposeServiceImpl.class);
 
 	@Autowired
@@ -339,7 +339,7 @@ public class AsposeServiceImpl implements AsposeService
 
 	final private class MailMergeImageCallback implements IFieldMergingCallback
 	{
-		
+
 		private final MailMergeContext context;
 
 		private MailMergeImageCallback(MailMergeContext context)

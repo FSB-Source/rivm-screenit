@@ -1,0 +1,344 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:extend>
+    <div class="row-fluid">
+        <div class="span12">
+            <h1 class="pageTitle" wicket:id="label">Medewerkergegevens</h1>
+        </div>
+    </div>
+    <div class="row-fluid form-horizontal">
+        <div wicket:id="dialog"></div>
+        <fieldset>
+            <wicket:container wicket:id="paspoort"/>
+
+            <form wicket:id="medewerkerForm">
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>Naam</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Achternaam</label>
+                                <div class="controls">
+                                    <input class="input-large" type="text" wicket:id="achternaam">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Tussenvoegsel</label>
+                                <div class="controls">
+                                    <input class="input-mini" type="text" wicket:id="tussenvoegsel">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Voorletter(s)</label>
+                                <div class="controls">
+                                    <input class="input-mini" type="text" wicket:id="voorletters">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Voornaam</label>
+                                <div class="controls">
+                                    <input class="input-large" type="text" wicket:id="voornaam">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Geboortedatum</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input wicket:id="geboortedatum" type="text" maxlength="10"
+                                               class="input-small datum">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Aanhef</label>
+                                <div class="controls">
+                                    <select wicket:id="aanhef">
+                                        <option selected disabled>- Maak een keuze -</option>
+                                        <option>Dhr.</option>
+                                        <option>Mevr.</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Titel</label>
+                                <div class="controls">
+                                    <select wicket:id="titel">
+                                        <option selected disabled>- Maak een keuze -</option>
+                                        <option>Dr.</option>
+                                        <option>Drs.</option>
+                                        <option>Ing.</option>
+                                        <option>Ir.</option>
+                                        <option>Mr.</option>
+                                        <option>Prof.</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Functie</label>
+                                <div class="controls">
+                                    <select wicket:id="functie">
+                                        <option disabled>- Maak een keuze -</option>
+                                        <option>Endoscopist</option>
+                                        <option>Patholoog</option>
+                                        <option>Radioloog</option>
+                                        <option selected>MDL-arts</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                 <label class="control-label">Handtekening (Radioloog)</label>
+                                 <div class="controls">
+                                     <wicket:container wicket:id="handtekening"></wicket:container>
+                                 </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Ondertekenaar (Radioloog)</label>
+
+                                <div class="controls">
+                                    <textarea rows="3" style="width: 90%;" wicket:id="ondertekenaar"/>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label" wicket:id="bigNummerLabel">BIG
+                                    nr.</label>
+                                <div class="controls">
+                                    <input wicket:id="bignummer" class="input-small" type="text"/>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label for="zorgverlener" class="control-label">Medewerker
+                                    is zorgverlener</label>
+                                <div class="controls">
+                                    <input class="input-large" type="checkbox"
+                                           wicket:id="zorgverlener" id="zorgverlener">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>Contactgegevens</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Telefoonnummer werk</label>
+                                <div class="controls">
+                                    <input class="input-large" type="text"
+                                           wicket:id="telefoonnummerwerk">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Telefoonnummer priv&eacute;</label>
+                                <div class="controls">
+                                    <input class="input-large" type="text"
+                                           wicket:id="telefoonnummerprive">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Telefoonnummer extra</label>
+                                <div class="controls">
+                                    <input class="input-large" type="text"
+                                           wicket:id="telefoonnummerextra">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">E-mailadres</label>
+                                <div class="controls">
+                                    <input class="input-large" type="text" wicket:id="emailextra">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Woonplaats</label>
+                                <div class="controls">
+                                    <input class="input-large" type="text"
+                                           wicket:id="adressen[0].plaats">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>Aanmeldgegevens</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Inlog methode</label>
+                                <div class="controls" wicket:id="inlogMethodeContainer">
+                                    <select wicket:id="inlogMethode"></select>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Gebruikersnaam</label>
+                                <div class="controls">
+                                    <input wicket:id="gebruikersnaam" type="text" value="gebruikersnaam">
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Medewerkercode</label>
+                                <div class="controls">
+                                    <input wicket:id="medewerkercode" type="text" readonly="true">
+                                </div>
+                            </div>
+                            <wicket:enclosure child="blokkeerContainer">
+                                <div class="control-group" wicket:id="blokkeerContainer">
+                                    <label class="control-label">Blokkeer account</label>
+                                    <div class="controls">
+                                        <input wicket:id="disabledOfGeblokkeerd" type="checkbox">
+                                    </div>
+                                </div>
+                            </wicket:enclosure>
+                        </div>
+                        <div class="span6">
+                            <div class="control-group">
+                                <button wicket:id="resetWachtwoord" class="btn">Reset
+                                    wachtwoord
+                                </button>
+                            </div>
+                            <div class="control-group">
+                                <button wicket:id="changeWachtwoord" class="btn">Wachtwoord
+                                    wijzigen
+                                </button>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Actief vanaf</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input wicket:id="actiefVanaf" type="text" maxlength="10" class="input-small datum">
+                                        <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');">
+                                            <i class="icon-calendar"/>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">Actief tot en met</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                        <input wicket:id="actiefTotEnMet" type="text" maxlength="10" class="input-small datum">
+                                        <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');">
+                                            <i class="icon-calendar"/>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset wicket:id="uzi-container">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>UZI-pas</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">UZI-nummer</label>
+                                <div class="controls">
+                                    <input class="input-medium" type="text" wicket:id="uzinummer">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>Patholoog id</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Patholoog ID</label>
+                                <div class="controls">
+                                    <input class="input-mini" type="text" wicket:id="patholoogId">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset wicket:id="yubi-container">
+                    <div class="row-fluid">
+                        <div class="span12">
+                            <legend>Yubikey</legend>
+                        </div>
+                    </div>
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Private identity</label>
+                                <div class="controls">
+                                    <input class="input-medium" type="password"
+                                           wicket:id="privateYubiIdentity">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span6">
+                            <div class="control-group">
+                                <label class="control-label">Secret key</label>
+                                <div class="controls">
+                                    <input class="input-medium" type="text"
+                                           wicket:id="yubiKey.secretKey">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div class="form-actions btn-bottom">
+                            <button wicket:id="inActiveren" class="btn">
+                                <i class="icon-minus-sign"></i> <span
+                                    wicket:id="inActiverenTitle">Verwijderen</span>
+                            </button>
+                            <button wicket:id="annuleren" class="btn">Annuleren</button>
+                            <button wicket:id="opslaan" class="btn btn-primary">Opslaan</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </fieldset>
+    </div>
+</wicket:extend>
+</html>

@@ -24,7 +24,7 @@ package nl.rivm.screenit.hl7v3.cda.helper;
 
 public class CommonCdaConstants
 {
-	
+
 	public static final String URA = "2.16.528.1.1007.3.3";
 
 	public static final String UZINUMMER = "2.16.528.1.1007.3.1";

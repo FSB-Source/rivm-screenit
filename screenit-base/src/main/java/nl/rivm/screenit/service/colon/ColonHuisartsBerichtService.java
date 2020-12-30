@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 
 public interface ColonHuisartsBerichtService
 {
-	
+
 	long countBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject);
 
 	Iterator<? extends ColonHuisartsBericht> searchBerichten(ColonHuisartsBericht zoekObject, Instelling regioObject, String sortProperty, boolean ascending, int first, int count,

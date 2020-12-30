@@ -45,7 +45,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 
 public interface CervixFactory
 {
-	
+
 	CervixScreeningRonde maakRonde(CervixDossier dossier);
 
 	CervixScreeningRonde maakRonde(CervixDossier dossier, LocalDateTime creatieDatum);

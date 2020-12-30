@@ -27,7 +27,7 @@ import java.util.Date;
 
 public class RoosterListViewFilter implements Serializable, Cloneable
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	private RoosterItemStatus status;

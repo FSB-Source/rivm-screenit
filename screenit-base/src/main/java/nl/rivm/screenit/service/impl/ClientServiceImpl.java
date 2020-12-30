@@ -22,8 +22,6 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -100,6 +98,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaUitstelGeannuleerdReden;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -140,7 +139,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ClientServiceImpl implements ClientService
 {
-	
+
 	public static final Pattern POSTCODE_NL = Pattern.compile("[1-9][0-9]{3}?[\\s]?[a-zA-Z]{2}");
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientServiceImpl.class);
@@ -156,6 +155,9 @@ public class ClientServiceImpl implements ClientService
 
 	@Autowired
 	private OpenUitnodigingService openUitnodigingService;
+
+	@Autowired
+	private BaseScreeningRondeService screeningRondeService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -703,7 +705,7 @@ public class ClientServiceImpl implements ClientService
 						LOG.info("Eenmalig heraanmelden " + herAanTeMeldenAfmelding.getBevolkingsonderzoek().getAfkorting() + " voor client met id "
 							+ ronde.getDossier().getClient().getId());
 
-						eenmaligHeraanmelden(ronde);
+						screeningRondeService.heropenScreeningRonde(ronde);
 					}
 				}
 			}
@@ -742,7 +744,7 @@ public class ClientServiceImpl implements ClientService
 		LOG.info("Eenmalig heraanmelden " + herAanTeMeldenAfmelding.getBevolkingsonderzoek().getAfkorting() + " voor client met id "
 			+ herAanTeMeldenAfmelding.getScreeningRonde().getDossier().getClient().getId());
 
-		eenmaligHeraanmelden(herAanTeMeldenAfmelding.getScreeningRonde());
+		screeningRondeService.heropenScreeningRonde(herAanTeMeldenAfmelding.getScreeningRonde());
 
 		if (herAanTeMeldenAfmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT)
 		{
@@ -755,17 +757,6 @@ public class ClientServiceImpl implements ClientService
 
 			hibernateService.saveOrUpdate(herAanTeMeldenAfmelding);
 		}
-	}
-
-	private void eenmaligHeraanmelden(ScreeningRonde ronde)
-	{
-		ronde.setStatus(ScreeningRondeStatus.LOPEND);
-		DateTime nu = currentDateSupplier.getDateTime();
-		ronde.setStatusDatum(nu.plusMillis(200).toDate());
-		ronde.setAangemeld(true);
-		ronde.setAfgerondReden(null);
-
-		hibernateService.saveOrUpdate(ronde);
 	}
 
 	private void vervolgHeraanmelden(Afmelding herAanTeMeldenAfmelding, Account account)
@@ -1148,8 +1139,6 @@ public class ClientServiceImpl implements ClientService
 				pClient.setProjectInactiefReden(reden);
 				pClient.setProjectInactiefDatum(currentDateSupplier.getDate());
 				hibernateService.saveOrUpdate(pClient);
-
-				DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
 
 				String melding = String.format("Project: %s, groep: %s, reden: %s",
 					pClient.getProject().getNaam(),

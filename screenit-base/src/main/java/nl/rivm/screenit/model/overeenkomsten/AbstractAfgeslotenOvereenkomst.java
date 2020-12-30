@@ -53,7 +53,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "organisatie.cache")
 public abstract class AbstractAfgeslotenOvereenkomst implements HibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Id

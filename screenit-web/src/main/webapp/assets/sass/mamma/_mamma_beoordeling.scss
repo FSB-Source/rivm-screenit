@@ -1,0 +1,113 @@
+.biradskeuze {
+  border: 1px solid #CCC;
+  border-radius: 10px;
+  padding: 10px;
+
+  > label {
+    text-align: center;
+  }
+
+  .radio:nth-child(3) {
+    border-top: 1px solid #CCC;
+    padding-top: 10px;
+    margin-top: 10px;
+
+    .checkmark {
+      top: 10px;
+    }
+  }
+
+  .radio:first-child {
+    padding-top: 0;
+  }
+
+  .controls[disabled] * {
+    cursor: not-allowed;
+  }
+}
+
+.biradskeuze .radio,
+.laesie-specificaties .radio {
+  display: block;
+  position: relative;
+  padding-left: 25px;
+
+  input {
+    opacity: 0;
+  }
+
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 15px;
+    width: 15px;
+    background-color: #e5e5e5;
+    border-radius: 50%;
+  }
+
+  input:checked ~ .checkmark {
+    border: 5px solid #60347F;
+    width: 5px;
+    height: 5px;
+  }
+
+  input:disabled ~ .checkmark {
+    opacity: 0.4;
+  }
+}
+
+.biradskeuze.biradsverwijzen {
+  background-color: #a94747;
+}
+
+.biradskeuze .radio.onmogelijk {
+  visibility: hidden;
+}
+
+.lezing-form-container {
+  textarea[name="opschortenRedenTekst"], textarea[name="biradsOpmerking"] {
+    color: white;
+  }
+
+  .mammaBeoordelenDropdown .select2-container .select2-chosen {
+    color: white;
+  }
+}
+
+.beoordelingsafbeeldingContainerR {
+  text-align: left;
+}
+
+.beoordelingsafbeeldingContainerL {
+  text-align: right;
+}
+
+div.beoordelingsafbeelding {
+  position: relative;
+  display: inline-block;
+  zoom: 1;
+}
+
+img.beoordelingsafbeelding {
+  display: block;
+  pointer-events: none;
+}
+
+.beoordelingsafbeeldingRichtingaanduiding {
+  color: black;
+  font-size: large;
+  margin: 0px;
+}
+
+.font-weight-bolder {
+  font-weight: bolder;
+}
+
+.laesienummer {
+  color: black;
+}
+
+.waaromGeenBeoordelingMogelijk .icon-asterisk {
+  display: none;
+}

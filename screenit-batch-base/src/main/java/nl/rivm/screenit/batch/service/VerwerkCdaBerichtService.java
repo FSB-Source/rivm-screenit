@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.service;
 
 public interface VerwerkCdaBerichtService
 {
-	
+
 	void verwerkBericht(Long berichtID) throws Exception;
 
 	void verwerkError(Long berichtID, Exception e);

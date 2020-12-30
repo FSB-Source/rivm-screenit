@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class VragenlijstBaseServiceImpl implements VragenlijstBaseService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(VragenlijstBaseServiceImpl.class);
 
 	@Autowired

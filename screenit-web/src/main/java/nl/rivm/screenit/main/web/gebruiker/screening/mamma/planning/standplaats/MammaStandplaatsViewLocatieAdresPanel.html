@@ -1,0 +1,73 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <fieldset>
+        <h2>
+            <span wicket:id="titel">Locatie</span>
+            <button class="btn btn-primary" wicket:id="wijzigen">Wijzigen</button>
+            <wicket:enclosure child="startDatum">
+                <span wicket:id="startDatum"></span> t/m <span wicket:id="eindDatum"></span>
+            </wicket:enclosure>
+        </h2>
+        <div class="form-horizontal">
+            <wicket:enclosure child="plaats">
+                <div class="control-group">
+                    <span wicket:id="straat">Straatnaam</span>
+                    <span wicket:id="huisnummer">Huisnummer</span>
+                    <span wicket:id="huisnummerToevoeging">HuisnummerToevoeging</span>
+                </div>
+                <div class="control-group">
+                    <span wicket:id="postcode">Postcode</span>
+                    <span wicket:id="plaats">Plaats</span>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Locatiebeschrijving</label>
+                    <div class="controls">
+                        <textarea class="not-tracked-for-changes-on-page" style="width: 95%; resize: none;" wicket:id="locatieBeschrijving"></textarea>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Bijlage</label>
+                    <div class="controls">
+                        <wicket:enclosure child="download">
+                            <span wicket:id="standplaatsLocatieBijlage.naam"></span>
+                            <span wicket:id="download"></span>
+                        </wicket:enclosure>
+                    </div>
+                </div>
+                <div class="control-group">
+                    <label class="control-label">Brieven apart printen</label>
+                    <div class="controls">
+                        <input type="checkbox" id="brievenApartPrinten" wicket:id="brievenApartPrinten"/>
+                    </div>
+                </div>
+
+            </wicket:enclosure>
+            <wicket:enclosure child="geenGegevensIngevuld">
+                <div class="control-group">
+                    <span wicket:id="geenGegevensIngevuld">Er zijn (nog) geen locatie adres gegevens ingevuld</span>
+                </div>
+            </wicket:enclosure>
+        </div>
+    </fieldset>
+</wicket:panel>
+</html>

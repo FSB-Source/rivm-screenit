@@ -48,7 +48,7 @@ import org.hibernate.envers.Audited;
 @Audited
 public class CervixUitstel extends AbstractHibernateObject
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@OneToOne(mappedBy = "uitstel", fetch = FetchType.LAZY)

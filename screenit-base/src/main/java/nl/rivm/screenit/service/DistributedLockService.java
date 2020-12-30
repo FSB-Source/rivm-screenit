@@ -25,7 +25,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 
 public interface DistributedLockService
 {
-	
+
 	void lockAndWait(String locknaam);
 
 	void lockAndWait(String locknaam, InstellingGebruiker gebruiker);

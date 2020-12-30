@@ -58,7 +58,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, ItemStream
 {
-	
+
 	@Autowired
 	private IntakeAfpraakService intakeAfspraakService;
 

@@ -28,7 +28,7 @@ import javax.persistence.Embeddable;
 @Embeddable
 public class NullFlavourQuantity extends Quantity
 {
-	
+
 	@Column
 	private Boolean nullFlavour;
 

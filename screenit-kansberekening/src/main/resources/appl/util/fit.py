@@ -23,19 +23,26 @@ import logging
 from numpy import mean
 from pandas import DataFrame, Series
 
+
 def fit_dossier_classifier(classifier, _feature_columns, screening_ronde_samples: DataFrame) -> Series:
     _fit_classifier(classifier, _feature_columns, screening_ronde_samples, 'event_deelname')
+
 
 def fit_afspraak_classifier(classifier, _feature_columns, afspraak_samples) -> Series:
     _fit_classifier(classifier, _feature_columns, afspraak_samples, 'event_opkomst')
 
+
 def _fit_classifier(classifier, feature_columns, samples: DataFrame, target_column) -> Series:
     logging.info('fit classifier ' + target_column)
+
     for column in samples:
         if samples[column].isnull().any():
             raise Exception(column + ' has null values')
+
     target = samples[target_column]
     samples = samples[feature_columns]
+
     logging.info('samples ' + str(target.size) + ' gemiddelde target ' + str(mean(target)))
     logging.info('gebruikte feature kolommen ' + ', '.join(feature_columns))
+
     classifier.fit(samples, target)

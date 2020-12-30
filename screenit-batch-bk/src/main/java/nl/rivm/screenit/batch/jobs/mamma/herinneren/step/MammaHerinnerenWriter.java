@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class MammaHerinnerenWriter extends BaseWriter<MammaScreeningRonde>
 {
-	
+
 	@Autowired
 	private BaseBriefService briefService;
 

@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 
 public interface CervixLabformulierDao
 {
-	
+
 	List<CervixLabformulier> getLabformulieren(CervixLabformulierenFilter filter, long first, long count, String sortProperty, boolean asc);
 
 	int countLabformulieren(CervixLabformulierenFilter filter);

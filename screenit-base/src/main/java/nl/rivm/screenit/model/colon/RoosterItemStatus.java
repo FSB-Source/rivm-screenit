@@ -26,7 +26,7 @@ import nl.rivm.screenit.model.colon.planning.EventType;
 
 public enum RoosterItemStatus
 {
-	
+
 	BLOKKADE(EventType.PURPLE),
 
 	GEBRUIKT_VOOR_CAPACITEIT(EventType.ORANGE),

@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class RetourzendingWriter extends BaseRetourzendingWriter<Client, CervixUitnodiging, CervixScreeningRonde, CervixDossier>
 {
-	
+
 	@Autowired
 	private CervixBaseScreeningrondeService screeningrondeService;
 

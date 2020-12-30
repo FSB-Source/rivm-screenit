@@ -225,7 +225,7 @@ public abstract class BaseLogListener implements JobExecutionListener
 
 	protected abstract class AantalVerwerker<E extends Enum>
 	{
-		
+
 		protected abstract void verwerk(E enumConstant, long aantal);
 	}
 }

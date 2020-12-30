@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixRondeDaoImpl extends AbstractAutowiredDao implements CervixRondeDao
 {
-	
+
 	@Override
 	public List<CervixMonster> getOntvangenMonsters(CervixScreeningRonde ronde)
 	{

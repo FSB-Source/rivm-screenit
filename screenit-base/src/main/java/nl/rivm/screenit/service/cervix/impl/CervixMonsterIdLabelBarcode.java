@@ -23,7 +23,7 @@ package nl.rivm.screenit.service.cervix.impl;
 
 public class CervixMonsterIdLabelBarcode extends CervixMonsterIdBarcode
 {
-	
+
 	public CervixMonsterIdLabelBarcode()
 	{
 		setModuleWidth(0.228f);

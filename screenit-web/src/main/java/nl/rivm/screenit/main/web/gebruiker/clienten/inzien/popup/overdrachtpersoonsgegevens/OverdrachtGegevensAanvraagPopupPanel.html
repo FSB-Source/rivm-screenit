@@ -1,0 +1,92 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <form wicket:id="form">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h3>Verwerken inzage/overdracht persoonsgegevens</h3>
+        </div>
+        <div class="modal-body form-horizontal">
+            <fieldset class="hero-unit">
+                <p>Om aanvraag inzage/overdracht persoonsgegevens te kunnen verwerken moet eerst het antwoordformulier <strong>MET een handtekening van
+                    de cli&euml;nt</strong> worden geupload.</p>
+            </fieldset>
+            <div class="control-group span7">
+                <div class="row">
+                    <div class="control-group">
+                        <label class="control-label">Verstuurde brieven</label>
+                        <div class="controls">
+                            <ul class="lijst" wicket:id="brievenLijst">
+                                <li><label style="font-weight: bold;" wicket:id="brief"></label></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" wicket:id="uploadContainer">
+                    <div class="control-group">
+                        <label class="control-label">Bestand selecteren</label>
+                        <div class="controls">
+                            <input class="control-input" type="file" wicket:id="fileUpload">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="control-group">
+                        <label class="control-label">Keuzes <i class="icon-asterisk icon-purple"></i></label>
+                        <div class="controls">
+                            <div class="span 4">
+                                <label class="checkbox">
+                                    <input type="checkbox" wicket:id="bkGegevens">
+                                    Borstkanker (persoonsgegevens)
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" wicket:id="bkBeelden">
+                                    Borstkanker (beelden)
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" wicket:id="bmhkGegevens">
+                                    Baarmoederhalskanker
+                                </label>
+                                <label class="checkbox">
+                                    <input type="checkbox" wicket:id="dkGegevens">
+                                    Darmkanker
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div wicket:id="documentVervangen"/>
+        </div>
+        <div class="modal-footer">
+            <a href="javascript:void(0);" class="btn left" wicket:id="downloadFormulier"><i class="icon-download"></i>Aanvraagformulier</a>
+            <a class="btn left" wicket:id="geenHandtekening">Geen handtekening?</a>
+            <a class="btn left" wicket:id="vervangen">Vervangen document </a>
+            <a class="btn" wicket:id="afronden">Afronden</a>
+            <a href="javascript:void(0);" wicket:id="download" class="btn"><i class="icon-mimetype-csv"></i><span>Download</span></a>
+            <a class="btn" data-dismiss="modal">Annuleren</a>
+            <a href="javascript:void(0);" class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
+        </div>
+    </form>
+    <div wicket:id="dialog"></div>
+</wicket:panel>
+</html>

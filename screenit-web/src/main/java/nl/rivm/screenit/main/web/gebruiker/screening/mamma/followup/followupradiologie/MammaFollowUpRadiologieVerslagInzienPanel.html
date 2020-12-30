@@ -1,0 +1,60 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <h2>Radiologieverslag van <span wicket:id="aangemaaktIn.naam"/></h2>
+    <div wicket:id="informatie">
+        <div class="form-horizontal">
+            <div class="control-group value">
+                <label class="control-label">Ingevoerd op</label>
+                <div class="controls"><span wicket:id="ingevoerdOp">0</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Tumorgrootte</label>
+                <div class="controls"><span wicket:id="radioloogTumorGrootte">0</span><span wicket:id="toonCm"></span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Classificatie</label>
+                <div class="controls"><span wicket:id="radioloogTumorGrootteClassificatie"></span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Pathologie verwacht</label>
+                <div class="controls"><span wicket:id="pathologieUitgevoerd">Ja</span></div>
+            </div>
+            <div wicket:enclosure="paVerslagNietTeVerwachten" class="control-group value">
+                <label class="control-label">SO update</label>
+                <div class="controls">Pathologieverslag niet te verwachten (<span wicket:id="paVerslagNietTeVerwachten">Ja</span>)</div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Conclusie BI-RADS</label>
+                <div class="controls"><span wicket:id="conclusieBirads">1</span></div>
+            </div>
+        </div>
+        <div class="control-group value">
+            <label class="control-label">Conclusie eerste uitslag radiologie</label>
+            <div class="controls"><span wicket:id="conclusieEersteUitslagRadiologie" style="white-space: pre">Ja</span></div>
+        </div>
+    </div>
+    <div wicket:id="geenInformatie">
+        <label class="control-label">Geen informatie beschikbaar</label>
+    </div>
+</wicket:panel>
+</html>

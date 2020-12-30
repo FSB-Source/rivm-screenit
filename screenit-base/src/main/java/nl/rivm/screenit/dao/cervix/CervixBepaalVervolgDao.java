@@ -27,7 +27,7 @@ import nl.rivm.screenit.model.cervix.CervixZas;
 
 public interface CervixBepaalVervolgDao
 {
-	
+
 	boolean andereZasOngeldig(CervixZas zas);
 
 	boolean anderUitstrijkjeOnbeoordeelbaar(CervixUitstrijkje uitstrijkje);

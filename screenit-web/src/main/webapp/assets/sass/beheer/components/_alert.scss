@@ -1,0 +1,20 @@
+
+.alert {
+  position: fixed;
+  left: 50%;
+  margin-left: -200px;
+  width: 400px;
+  clear: both;
+}
+
+.alert.alert-inline {
+  position: relative;
+  left: auto;
+  margin-left: 0;
+  width: auto;
+  clear: none;
+}
+
+ul li span p {
+  display: inline;
+}

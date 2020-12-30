@@ -1,0 +1,69 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <fieldset>
+        <div class="control-group value">
+            <div class="controls"><span wicket:id="uploadBeeldenVerzoek.laatsteUploadPoging.ilmStatus">ILM status onbekend</span></div>
+        </div>
+    </fieldset>
+    <fieldset wicket:id="verzoek">
+        <h2>Uploadverzoek voor <span wicket:id="ziekenhuis.naam"/></h2>
+        <div class="span6">
+            <div class="control-group value">
+                <label class="control-label">Aangemaakt door</label>
+                <div class="controls"><span wicket:id="gemaaktDoor.organisatie.naam">0</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Aangemaakt op</label>
+                <div class="controls"><span wicket:id="creatieDatum">0</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Verzoek type</label>
+                <div class="controls"><span wicket:id="verzoekType">0</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Status</label>
+                <div class="controls"><span wicket:id="status">0</span></div>
+            </div>
+            <div wicket:id="accessionNumberContainer">
+                <div class="control-group value">
+                    <label class="control-label">Accessionnummer</label>
+                    <div class="controls"><span wicket:id="laatsteUploadPoging.accessionNumber">0</span></div>
+                </div>
+            </div>
+        </div>
+        <div wicket:id="ingevuldContainer" class="span6">
+            <div class="control-group value">
+                <label class="control-label">Conclusie BI-RADS</label>
+                <div class="controls"><span wicket:id="conclusieBirads">1</span></div>
+            </div>
+            <div class="control-group value">
+                <label class="control-label">Conclusie eerste uitslag radiologie</label>
+                <div class="controls"><span wicket:id="conclusieEersteUitslagRadiologie">Ja</span></div>
+            </div>
+        </div>
+    </fieldset>
+    <div class="buttons" wicket:id="verwijderenContainer">
+        <button class="btn left btn-danger" wicket:id="verwijderen">Beelden verwijderen</button>
+    </div>
+</wicket:panel>
+</html>

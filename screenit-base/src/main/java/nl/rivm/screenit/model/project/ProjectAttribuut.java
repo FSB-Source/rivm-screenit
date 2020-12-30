@@ -45,7 +45,7 @@ import org.hibernate.envers.Audited;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class ProjectAttribuut extends AbstractHibernateObject implements INaam, IActief
 {
-	
+
 	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)

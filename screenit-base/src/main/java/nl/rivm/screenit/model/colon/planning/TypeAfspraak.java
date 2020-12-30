@@ -24,7 +24,7 @@ package nl.rivm.screenit.model.colon.planning;
 
 public enum TypeAfspraak
 {
-	
+
 	AFSPRAAK("Afspraak");
 
 	private String type;

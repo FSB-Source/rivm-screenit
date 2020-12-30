@@ -22,6 +22,7 @@ import base
 import logging
 from util import fit, externals, classification, preprocess, dao
 
+
 def fit_afspraak_classifier():
     logging.info("Eerste ronde")
 
@@ -38,6 +39,8 @@ def fit_afspraak_classifier():
         fit.fit_afspraak_classifier(_classifier, _feature_columns, _afspraak_samples)
 
         externals.dump_afspraak_classification_eerste_ronde(_classifier)
+
+        del base.afspraak_classifier_eerste_ronde
 
         base.afspraak_classifier_eerste_ronde = _classifier
 
@@ -56,5 +59,7 @@ def fit_afspraak_classifier():
         fit.fit_afspraak_classifier(_classifier, _feature_columns, _afspraak_samples)
 
         externals.dump_afspraak_classification_vervolgronde(_classifier)
+
+        del base.afspraak_classifier_vervolgronde
 
         base.afspraak_classifier_vervolgronde = _classifier

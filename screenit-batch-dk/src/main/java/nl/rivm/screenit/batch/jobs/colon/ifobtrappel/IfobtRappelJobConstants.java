@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtrappel;
 
 public class IfobtRappelJobConstants
 {
-	
+
 	private IfobtRappelJobConstants()
 	{
 	}

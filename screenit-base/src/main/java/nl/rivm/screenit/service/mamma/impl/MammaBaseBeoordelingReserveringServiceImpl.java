@@ -130,7 +130,8 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 		}
 	}
 
-	private boolean gereserveerdDoorIemandAnders(InstellingGebruiker ingelogdeGebruiker, MammaBeoordeling beoordeling)
+	@Override
+	public boolean gereserveerdDoorIemandAnders(InstellingGebruiker ingelogdeGebruiker, MammaBeoordeling beoordeling)
 	{
 		return beoordeling.getReserveringhouder() != null && !ingelogdeGebruiker.equals(beoordeling.getReserveringhouder()) && !heeftVerlopenReservering(beoordeling);
 	}

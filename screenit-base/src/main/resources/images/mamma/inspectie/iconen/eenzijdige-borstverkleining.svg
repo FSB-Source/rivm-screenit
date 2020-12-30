@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-base
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
+<svg width="18px" height="26px" viewBox="0 0 18 26" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Eenzijdige-borstverkleining</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Icons/Eenzijdige-borstverkleining" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Oval" stroke="#D0021B" cx="9" cy="9" r="8"></circle>
+        <circle id="Oval-Copy" stroke="#D0021B" cx="9" cy="9" r="2"></circle>
+        <path d="M9,17 L9,23" id="Line" stroke="#D0021B" stroke-linecap="square"></path>
+        <path d="M7,19.5 L11,19.5" id="Line-Copy" stroke="#D0021B" stroke-width="0.5" stroke-linecap="square"></path>
+        <path d="M7,21.5 L11,21.5" id="Line-Copy-2" stroke="#D0021B" stroke-width="0.5" stroke-linecap="square"></path>
+        <path d="M1,23 C1,23 5,25 9,25 C13,25 17,23 17,23" id="Line" stroke="#D0021B" stroke-linecap="square"></path>
+    </g>
+</svg>

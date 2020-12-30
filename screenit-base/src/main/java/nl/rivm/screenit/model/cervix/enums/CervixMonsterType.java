@@ -28,7 +28,7 @@ import nl.rivm.screenit.model.enums.BriefType;
 
 public enum CervixMonsterType
 {
-	
+
 	UITSTRIJKJE(Arrays.asList(
 		BriefType.CERVIX_UITNODIGING,
 		BriefType.CERVIX_UITNODIGING_CONTROLEUITSTRIJKJE,

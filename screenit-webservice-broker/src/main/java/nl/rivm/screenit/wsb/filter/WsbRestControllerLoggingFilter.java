@@ -29,6 +29,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -51,6 +52,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
 import nl.rivm.screenit.service.TechnischeBerichtenLoggingSaverService;
+import nl.rivm.screenit.util.StringUtil;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.io.output.TeeOutputStream;
@@ -80,7 +82,7 @@ public class WsbRestControllerLoggingFilter implements Filter
 			HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
 			Map<String, String> requestMap = getTypesafeRequestMap(httpServletRequest);
-			BufferedRequestWrapper bufferedReqest = new BufferedRequestWrapper(httpServletRequest);
+			BufferedRequestWrapper bufferedRequest = new BufferedRequestWrapper(httpServletRequest);
 			BufferedResponseWrapper bufferedResponse = new BufferedResponseWrapper(httpServletResponse);
 
 			Long exchangeId = null;
@@ -88,9 +90,10 @@ public class WsbRestControllerLoggingFilter implements Filter
 			{
 				exchangeId = technischeBerichtenLoggingSaverService.logRequest("FHIR_REQ_IN",
 					"Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getPathInfo() + "/" + requestMap,
-					"Payload: " + bufferedReqest.getRequestBody() + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
-				chain.doFilter(bufferedReqest, bufferedResponse);
-				technischeBerichtenLoggingSaverService.logResponse("FHIR_RESP_OUT", exchangeId, "Payload: " + bufferedResponse.getContent() + "|Status:" + bufferedResponse.getStatus());
+						payloadText(bufferedRequest.getRequestBody()) + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
+				chain.doFilter(bufferedRequest, bufferedResponse);
+				technischeBerichtenLoggingSaverService.logResponse("FHIR_RESP_OUT", exchangeId,
+						payloadText(bufferedResponse.getContent()) + "|Status:" + bufferedResponse.getStatus());
 			}
 			catch (Exception e)
 			{
@@ -102,6 +105,22 @@ public class WsbRestControllerLoggingFilter implements Filter
 		else
 		{
 			chain.doFilter(request, response);
+		}
+	}
+
+	private String payloadText(String payload)
+	{
+		if (StringUtil.containsControlCharacter(payload))
+		{
+			return "Payload (Base64): " + Base64.getEncoder().encodeToString(payload.getBytes());
+		}
+		else if (payload != null)
+		{
+			return "Payload: " + payload;
+		}
+		else
+		{
+			return "";
 		}
 	}
 

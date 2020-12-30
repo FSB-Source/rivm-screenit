@@ -220,7 +220,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		},
 		MDL_TNUMMER("145162")
 		{
-			
+
 			@Override
 			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
 			{
@@ -230,7 +230,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		},
 		MDL_OPDRACHTNUMMER("145161")
 		{
-			
+
 			@Override
 			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
 			{

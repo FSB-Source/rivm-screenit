@@ -58,7 +58,7 @@ import com.google.common.primitives.Ints;
 @Repository
 public class GemeenteDaoImpl extends AbstractAutowiredDao implements GemeenteDao
 {
-	
+
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 

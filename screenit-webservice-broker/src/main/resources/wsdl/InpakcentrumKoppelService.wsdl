@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="InpakcentrumKoppelServiceService" targetNamespace="http://screenit.rivm.nl/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://screenit.rivm.nl/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <wsdl:types>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                   xmlns:tns="http://screenit.rivm.nl/"
+                   attributeFormDefault="unqualified"
+                   elementFormDefault="unqualified"
+                   targetNamespace="http://screenit.rivm.nl/">
+            <xs:element name="submitKoppelData" type="tns:submitKoppelData"/>
+            <xs:element name="submitKoppelDataResponse" type="tns:submitKoppelDataResponse"/>
+            <xs:complexType name="submitKoppelData">
+                <xs:sequence>
+                    <xs:element name="koppelData" type="tns:koppelData"/>
+                    <xs:element name="alleenValidatie" type="xsd:boolean"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="koppelData">
+                <xs:sequence>
+                    <xs:element name="data" type="xs:base64Binary"/>
+                    <xs:element name="filename" type="xsd:string"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="submitKoppelDataResponse">
+                <xs:sequence>
+                    <xs:element minOccurs="1" name="return" type="tns:koppelDataResponse"/>
+                </xs:sequence>
+            </xs:complexType>
+            <xs:complexType name="koppelDataResponse">
+                <xs:sequence>
+                    <xs:element name="succes" type="xsd:boolean"/>
+                    <xs:element name="aantalFouten" type="xsd:integer"/>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="foutmeldingen" type="xs:string"/>
+                </xs:sequence>
+            </xs:complexType>
+
+            <xs:element name="KoppelException" type="tns:KoppelException"/>
+            <xs:complexType name="KoppelException">
+                <xs:sequence/>
+            </xs:complexType>
+        </xs:schema>
+    </wsdl:types>
+    <wsdl:message name="submitKoppelDataResponse">
+        <wsdl:part name="parameters" element="tns:submitKoppelDataResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="KoppelException">
+        <wsdl:part name="KoppelException" element="tns:KoppelException">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="submitKoppelData">
+        <wsdl:part name="parameters" element="tns:submitKoppelData">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:portType name="InpakcentrumKoppelService">
+        <wsdl:operation name="submitKoppelData">
+            <wsdl:input name="submitKoppelData" message="tns:submitKoppelData">
+            </wsdl:input>
+            <wsdl:output name="submitKoppelDataResponse" message="tns:submitKoppelDataResponse">
+            </wsdl:output>
+            <wsdl:fault name="KoppelException" message="tns:KoppelException">
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:portType>
+    <wsdl:binding name="InpakcentrumKoppelServiceServiceSoapBinding" type="tns:InpakcentrumKoppelService">
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <wsdl:operation name="submitKoppelData">
+            <soap:operation soapAction="" style="document"/>
+            <wsdl:input name="submitKoppelData">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="submitKoppelDataResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+            <wsdl:fault name="KoppelException">
+                <soap:fault name="KoppelException" use="literal"/>
+            </wsdl:fault>
+        </wsdl:operation>
+    </wsdl:binding>
+    <wsdl:service name="InpakcentrumKoppelServiceService">
+        <wsdl:port name="InpakcentrumKoppelServicePort" binding="tns:InpakcentrumKoppelServiceServiceSoapBinding">
+            <soap:address location="http://localhost:9090/InpakcentrumKoppelServicePort"/>
+        </wsdl:port>
+    </wsdl:service>
+</wsdl:definitions>

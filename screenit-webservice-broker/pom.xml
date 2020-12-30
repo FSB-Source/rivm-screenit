@@ -63,14 +63,7 @@
                                         <bindingFile>${basedir}/src/main/resources/bindings/jaxb-bindings-labformulier.xml</bindingFile>
                                         <bindingFile>${basedir}/src/main/resources/bindings/jaxws-bindings-labformulier.xml</bindingFile>
                                     </bindingFiles>
-                                </wsdlOption>
-								<wsdlOption>
-                                    <wsdl>${basedir}/src/main/resources/wsdl/BkFollowUpVraagService.wsdl</wsdl>
-                                    <bindingFiles>
-                                        <bindingFile>${basedir}/src/main/resources/bindings/jaxb-bindings-mammaPaVerwacht.xml</bindingFile>
-                                        <bindingFile>${basedir}/src/main/resources/bindings/jaxws-bindings-mammaPaVerwacht.xml</bindingFile>
-                                    </bindingFiles>
-                                </wsdlOption>
+                                </wsdlOption>								
                             </wsdlOptions>
                             <encoding>UTF-8</encoding>
                         </configuration>
@@ -335,10 +328,6 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
         </dependency>
-        <dependency>
-		    <groupId>org.apache.cxf</groupId>
-		    <artifactId>cxf-rt-features-logging</artifactId>
-		</dependency>
 
         <dependency>
             <groupId>commons-codec</groupId>
@@ -448,9 +437,4 @@
 
     </dependencies>
 
-    <properties>
-        <fhir.version>4.1.0</fhir.version>
-        <javax-inject.version>1</javax-inject.version>
-        <jaxb.version>2.2.6</jaxb.version>
-    </properties>
 </project>

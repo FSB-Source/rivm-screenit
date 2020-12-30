@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppointmentCopierLocatorImpl implements AppointmentCopierLocator
 {
-	
+
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends AbstractAppointment> AppointmentCopier<T> getCopier(Class<? extends T> clazz)

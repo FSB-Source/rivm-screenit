@@ -1,0 +1,126 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket>
+<wicket:extend>
+    <h1 class="pageTitle" wicket:id="projecttitel">
+        Groep toevoegen
+    </h1>
+
+    <div class="row-fluid">
+        <div class="span9">
+            <div class="row-fluid form-horizontal">
+                <form wicket:id="form">
+                    <fieldset>
+                        <div class="control-group">
+                            <label class="control-label">
+                                Naam
+                                <i class="icon-asterisk icon-purple"></i>
+                            </label>
+
+                            <div class="control">
+                                <input wicket:id="naam" class="input-large" type="text" value="">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label">
+                                Invoer
+                                <i class="icon-asterisk icon-purple"></i>
+                            </label>
+
+                            <div class="control">
+                                <select wicket:id="groepInvoer">
+                                    <option>invoer1</option>
+                                </select>
+                            </div>
+                        </div>
+                        <wicket:enclosure child="uitnodigingenPushenNa">
+                            <div class="control-group">
+                                <label class="control-label">
+                                    Uitnodigingen pushen DK
+                                </label>
+                                <div class="control">
+                                    <input wicket:id="uitnodigingenPushenNa" type="text" placeholder="dd-mm-jaar"
+                                           size="16" id="appendedInputButton2"
+                                           class="input-small datum 3-maanden">
+                                    <a href="javascript:void();" class="btn"
+                                       onclick="$(this).prev().datepicker('show');return false;" title="Datum"
+                                       tabindex="-1"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                            </div>
+                        </wicket:enclosure>
+                        <wicket:enclosure child="uitnodigenVoorDKvoor">
+                            <div class="control-group">
+                                <label class="control-label">
+                                    Uitnodigen voor DK v&oacute;&oacute;r
+                                </label>
+                                <div class="control">
+                                    <input wicket:id="uitnodigenVoorDKvoor" type="text" placeholder="dd-mm-jaar"
+                                           size="16" id="appendedInputButton"
+                                           class="input-small datum 3-maanden">
+                                    <a href="javascript:void();" class="btn"
+                                       onclick="$(this).prev().datepicker('show');return false;" title="Datum"
+                                       tabindex="-1"><i
+                                            class="icon-calendar"></i></a>
+                                </div>
+                            </div>
+                        </wicket:enclosure>
+                    </fieldset>
+                    <wicket:enclosure child="skipFouten">
+                        <fieldset>
+                            <div class="control-group">
+                                <label class="control-label">
+                                    Fouten overslaan
+                                </label>
+
+                                <div class="control">
+                                    <input type="checkbox" wicket:id="skipFouten"/>
+                                </div>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">
+                                    Importeer bestand
+                                    <i class="icon-asterisk icon-purple"></i>
+                                </label>
+
+                                <div class="control">
+                                    <input type="file" wicket:id="clientenBestand">
+                                </div>
+                            </div>
+                            <div wicket:id="meldingen"></div>
+                        </fieldset>
+                    </wicket:enclosure>
+                </form>
+                <div class="buttons">
+                    <button class="btn" wicket:id="annuleren">Annuleren</button>
+                    <button class="btn btn-primary" wicket:id="opslaan">Opslaan</button>
+                </div>
+            </div>
+        </div>
+        <div class="span3">
+            <div class="passpoort">
+                <wicket:container wicket:id="projectPasspoort"></wicket:container>
+            </div>
+        </div>
+    </div>
+    <div wicket:id="dialog"></div>
+</wicket:extend>
+</html>

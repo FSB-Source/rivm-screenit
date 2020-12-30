@@ -1,0 +1,13 @@
+@import "../globals/be-variables";
+
+.pagination {
+  ul {
+    > .active {
+      > a {
+        font-weight: bold;
+        color: black;
+        background-color: $secondary-be-light-background-color;
+      }
+    }
+  }
+}

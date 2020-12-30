@@ -42,7 +42,7 @@ import com.google.common.base.Strings;
 
 public abstract class NaamUtil
 {
-	
+
 	public static String getNaamGebruiker(Gebruiker gebruiker)
 	{
 		if (gebruiker == null)

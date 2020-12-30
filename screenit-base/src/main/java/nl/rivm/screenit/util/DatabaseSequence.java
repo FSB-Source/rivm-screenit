@@ -21,8 +21,9 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
-import org.hibernate.Session;
+import lombok.Getter;
 
+@Getter
 public enum DatabaseSequence
 {
 	MEEKIJKVERZOEK_ID("mamma.meekijkverzoek_id_seq"),
@@ -52,21 +53,4 @@ public enum DatabaseSequence
 		this(databaseNaam, null);
 	}
 
-	public String getDatabaseNaam()
-	{
-		return databaseNaam;
-	}
-
-	public static void createAll(Session session)
-	{
-		for (DatabaseSequence sequence : values())
-		{
-			String queryString = "DROP SEQUENCE IF EXISTS " + sequence.databaseNaam + "; CREATE SEQUENCE " + sequence.databaseNaam + ";";
-			if (sequence.startAt != null)
-			{
-				queryString += "ALTER SEQUENCE " + sequence.databaseNaam + " RESTART WITH " + sequence.startAt + ";";
-			}
-			session.createSQLQuery(queryString).executeUpdate();
-		}
-	}
 }

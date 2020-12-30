@@ -1,0 +1,194 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org" xmlns="http://www.w3.org/1999/html">
+<wicket:extend>
+    <div class="row-fluid">
+        <div class="span12">
+            <h1 class="pageTitle">Betalingen huisarts</h1>
+        </div>
+    </div>
+    <fieldset>
+        <div class="row-fluid form-horizontal">
+
+            <wicket:container wicket:id="paspoort"></wicket:container>
+            <div class="row-fluid form-horizontal">
+                <div class="span9">
+                    <fieldset>
+                        <form wicket:id="verrichtingZoekenForm">
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <div class="control-group">
+                                        <label for="screeningOrganisatie" class="control-label">Screeningsorganisatie</label>
+                                        <div class="controls">
+                                            <select id="screeningOrganisatie" wicket:id="screeningOrganisatie" class="form-control"></select>
+                                            <span wicket:id="soLabel"></span>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label for="huisartsLocatie" class="control-label">Locatie:</label>
+
+                                        <div class="controls">
+                                            <select id="huisartsLocatie" wicket:id="huisartsLocatie" class="form-control"></select>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Monster-id</label>
+                                        <div class="controls">
+                                            <input wicket:id="monsterId" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Geboortedatum</label>
+                                        <div class="controls">
+                                            <div class="input-append">
+                                                <input wicket:id="geboorteDatum" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months">
+                                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="DatumGebdatum"><i class="icon-calendar"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">BSN</label>
+                                        <div class="controls">
+                                            <input wicket:id="bsn" type="text">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="span6">
+                                    <div class="control-group">
+                                        <label class="control-label">Verrichtingsdatum vanaf</label>
+                                        <div class="controls">
+                                            <div class="input-append">
+                                                <input wicket:id="verrichtingsDatumVanaf" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months">
+                                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="DatumVanaf"><i class="icon-calendar"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label">Verrichtingsdatum t/m </label>
+                                        <div class="controls">
+                                            <div class="input-append">
+                                                <input wicket:id="verrichtingsDatumTotenmet" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months">
+                                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="DatumTotenmet"><i class="icon-calendar"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="control-group">
+                                        <label class="control-label">Datum uitstrijkje </label>
+                                        <div class="controls">
+                                            <div class="input-append">
+                                                <input wicket:id="datumUitstrijkje" type="text" placeholder="dd-mm-jjjj" size="16" class="input-small three-months">
+                                                <a href="javascript:void(0);" class="btn" onclick="$(this).prev().datepicker('show');return false;" title="DatumUitstrijkje"><i class="icon-calendar"></i></a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="control-group">
+                                        <label class="control-label">Betalingskenmerk</label>
+                                        <div class="controls">
+                                            <input wicket:id="betalingskenmerk"
+                                                   class="BSNInput" type="text">
+                                        </div>
+                                    </div>
+                                    <div class="control-group">
+                                        <label class="control-label"> &nbsp;</label>
+                                        <div class="controls">
+                                            <label class="checkbox inline">
+                                                <input wicket:id="alleenZonderBetalingskenmerk" type="checkbox"> Alleen regels
+                                                zonder betalingskenmerk
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <button wicket:id="filteren" class="btn btn-primary right zoekBtn">Filteren</button>
+                                </div>
+                            </div>
+                        </form>
+                    </fieldset>
+                </div>
+                <div wicket:id="totalenContainer" class="span3">
+                    <fieldset class="hero-unit">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <legend>
+                                    <span class="clearfix"><strong>Totalen</strong></span>
+                                </legend>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            Aantal uitstrijkjes: <strong wicket:id="aantalUitstrijkjes">-</strong>
+                        </div>
+                        <div class="row-fluid">
+                            Totaal bedrag: <strong><span wicket:id="totaalBedrag">0,00</span></strong>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="row-fluid form-horizontal">
+                <div class="span12">
+                    <fieldset>
+                        <div wicket:id="verrichtingenTableContainer" class="row-fluid">
+                            <div class="span12">
+                                <div wicket:id="exporteren" class="dropdown right">
+                                    Exporteren
+                                </div>
+                                <br/><br/>
+                                <div wicket:id="huisartsVerrichtingenTabel" class="table table-bordered table-condensed">
+                                    <thead>
+                                    <tr>
+                                        <th><a href="javascript:;">Screeningsorganisatie</a></th>
+                                        <th><a href="javascript:;">Naam cliënt</a></th>
+                                        <th><a href="javascript:;">Geboortedatum</a></th>
+                                        <th><a href="javascript:;">BSN</a></th>
+                                        <th><a href="javascript:;">Monster-id</a></th>
+                                        <th><a href="javascript:;">Verrichtingsdatum</a></th>
+                                        <th><a href="javascript:;">Datum uitstrijkje</a></th>
+                                        <th><a href="javascript:;">Ontvangst formulier</a></th>
+                                        <th><a href="javascript:;">Bedrag</a></th>
+                                        <th><a href="javascript:;">Betalingskenmerk</a></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr>
+                                        <td>Bevolkingsonderzoek Noord</td>
+                                        <td>J. Doe</td>
+                                        <td>01-01-1985</td>
+                                        <td>111222333</td>
+                                        <td>951357852456</td>
+                                        <td>Primair uitstrijkje op HPV geanalyseerd</td>
+                                        <td>01-03-2015</td>
+                                        <td>01-03-2015</td>
+                                        <td>01-03-2015</td>
+                                        <td>€ 0,00</td>
+                                        <td>1234</td>
+                                    </tr>
+                                    </tbody>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+</wicket:extend>
+</html>

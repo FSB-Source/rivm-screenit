@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 @WebService(targetNamespace = "http://screenit.rivm.nl/", name = "OrganisatieBoomService")
 public class OrganisatieBoomServiceImpl implements OrganisatieBoomService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(OrganisatieBoomServiceImpl.class);
 
 	@Autowired

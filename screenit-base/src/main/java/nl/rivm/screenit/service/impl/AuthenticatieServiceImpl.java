@@ -53,7 +53,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class AuthenticatieServiceImpl implements AuthenticatieService
 {
-	
+
 	private static final Logger LOG = LoggerFactory.getLogger(AuthenticatieServiceImpl.class);
 
 	@Autowired

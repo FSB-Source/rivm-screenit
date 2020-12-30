@@ -1,0 +1,250 @@
+$dashboardGutter: 10px;
+div.column-clientgegevens,
+div.column-widgets-1,
+div.column-widgets-2 {
+  @include column(4, 12);
+  @include box-sizing('border-box');
+
+  @include respond-to('tablet-portrait') {
+    @include column(6, 12);
+  }
+}
+
+div.column-clientgegevens {
+  padding-right: $dashboardGutter;
+
+  div.buttons {
+    padding-top: 0;
+  }
+}
+
+div.column-widgets-1 {
+  padding: 0 $dashboardGutter;
+}
+
+div.column-widgets-2 {
+  padding-left: $dashboardGutter;
+}
+
+div.column-widgets-big {
+  padding-left: $dashboardGutter;
+  @include column(8, 12);
+  @include box-sizing('border-box');
+
+  @include respond-to('tablet-portrait') {
+    @include column(6, 12);
+  }
+}
+
+.welkoms-bericht {
+  position: relative;
+  padding: 10px 11px 0 11px;
+  margin-bottom: 20px;
+
+  &:after {
+    content: "";
+    position: absolute;
+    bottom: -21px;
+    height: 20px;
+    width: 100%;
+    background: transparent url(../images/clientenportaal/shadow-curved.png) top left no-repeat;
+
+  }
+
+  h2 {
+    padding: 0;
+    margin: 0 0 7px 0;
+    color: $primary-color;
+  }
+
+  .welkomstekst {
+    margin: 10px 0;
+  }
+
+}
+
+.clientgegevens {
+  @extend .box-bordered;
+  border: 1px solid $primary-color;
+
+  section {
+    margin-bottom: 15px;
+    @include clearfix();
+  }
+
+  h2 {
+    padding: 0;
+    margin: 0 0 7px 0;
+    color: $primary-color;
+  }
+
+  div.question.value {
+    > label {
+      width: 145px;
+    }
+    div.answer {
+      padding: 0 0 0 145px;
+    }
+  }
+
+  .info-icon {
+    position: relative;
+    left: 8px;
+  }
+}
+
+.basisgegevens {
+  h1 {
+    padding: 0;
+    margin: 0 0 10px 0;
+    color: $primary-color;
+  }
+}
+
+.adresgegevens .buttons .info-icon {
+  top: 3px;
+}
+
+.adresgegevens address {
+  margin-bottom: 0;
+}
+
+.afspraken-lijst {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: $primary-text-color;
+
+  > li {
+    border: 1px solid #d9d9d9;
+    background-color: #f7f7f7;
+    min-height: 110px;
+  }
+}
+
+.datum-tijd-container {
+  display: block;
+  float: left;
+  width: 25%;
+  height: 10%;
+  text-align: center;
+  color: $primary-color;
+  margin: 10px 0 10px 3px;
+
+  span {
+    display: block;
+  }
+}
+
+.datum-circle {
+  width: 60px;
+  height: 60px;
+  border: 1px solid #d9d9d9;
+  margin: 5px auto;
+  background-color: rgba(white, 0.4);
+
+  @include border-radius(30px);
+
+  .dag {
+    font-size: 26px;
+    padding-top: 12px;
+  }
+}
+
+.afspraak-gegevens {
+  display: block;
+  padding-left: 25%;
+
+  .inner {
+    display: block;
+    padding: 10px;
+  }
+
+  .afspraak-titel {
+    display: block;
+    margin-bottom: 5px;
+  }
+
+  address {
+    margin-bottom: 10px;
+  }
+
+  .afspraak-buttons {
+    text-align: right;
+  }
+}
+
+th.datum {
+  width: 80px;
+}
+
+.berichten-lijst {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+}
+
+.bericht {
+  padding: 0 5px 10px 5px;
+
+  .bericht-titel {
+    font-size: rs(14, $base-fs);
+    font-family: $fontFamily1;
+  }
+
+  .bericht-datum {
+    display: inline-block;
+    color: #808080;
+    font-size: rs(11, $base-fs);
+  }
+
+  .bericht-omschrijving {
+    margin: 5px 0;
+  }
+
+  .bericht-datum,
+  .bericht-omschrijving {
+    font-size: rs(13, $base-fs);
+    font-family: $fontFamily2;
+  }
+
+  .bericht-buttons {
+    display: inline-block;
+    float: right;
+    text-align: right;
+  }
+}
+
+ul.overige-links {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  li {
+    white-space: nowrap;
+    padding-bottom: 5px;
+
+    .info-icon {
+      position: relative;
+      top: 4px;
+    }
+  }
+}
+
+.column-widgets-big {
+  padding: 0 5px 10px 5px;
+  display: block;
+  float: left;
+  margin: 0 0;
+
+  h2 {
+    padding: 0;
+    margin: 0 0 7px 0;
+    color: $primary-color;
+  }
+
+  .algemene-informatie {
+    margin: 10px 0;
+  }
+}

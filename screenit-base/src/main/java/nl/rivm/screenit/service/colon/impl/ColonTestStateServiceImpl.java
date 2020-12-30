@@ -117,7 +117,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 	@Override
 	public String setClientInState(TestModel model)
 	{
-		
+
 		Client client = geefClient(model.getBsn(), model.getGeboortedatum(), model.getGbaStatus(), model.getDatumOverlijden(), model.getGeslacht());
 		geefAdres(client, model.getGemeente());
 		ColonDossier dossier = client.getColonDossier();
@@ -311,7 +311,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		if (u == null)
 		{
 			u = ColonUitnodigingCategorie.U1;
-			
+
 			IFOBTTest ifobt = new IFOBTTest();
 			ifobt.setBarcode(IFOBTTestUtil.getIfobtTestBarcode());
 			ifobt.setType(IFOBTType.GOLD);
@@ -347,7 +347,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
 		{
-			
+
 			IFOBTTest test = dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest();
 			test.setStatus(IFOBTTestStatus.UITGEVOERD);
 			test.setStatusDatum(nu.minusDays(8).toDate());
@@ -399,7 +399,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
 		{
-			
+
 			IFOBTTest test = dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest();
 			test.setStatus(IFOBTTestStatus.VERLOREN);
 			test.setStatusDatum(nu.toDate());
@@ -433,7 +433,7 @@ public class ColonTestStateServiceImpl implements ColonTestStateService
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest() != null
 			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)
 		{
-			
+
 			IFOBTTest test = dossier.getLaatsteScreeningRonde().getLaatsteIFOBTTest();
 			test.setStatus(IFOBTTestStatus.VERVALDATUMVERLOPEN);
 			test.setStatusDatum(nu.toDate());
