@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -317,7 +317,7 @@ public class AfspraakServiceImpl implements AfspraakService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean uitRooster)
+	public void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean binnenRooster)
 	{
 		ColonScreeningRonde colonScreeningRonde = nieuweAfspraak.getColonScreeningRonde();
 
@@ -338,7 +338,7 @@ public class AfspraakServiceImpl implements AfspraakService
 
 		colonScreeningRonde.setLaatsteAfspraak(nieuweAfspraak);
 		RoosterItem roosterItem = null;
-		if (uitRooster)
+		if (binnenRooster)
 		{
 			roosterItem = getRoosterBlokVoorAfspraak(nieuweAfspraak);
 			nieuweAfspraak.setRoosterItem(roosterItem);
@@ -417,7 +417,7 @@ public class AfspraakServiceImpl implements AfspraakService
 	}
 
 	@Override
-	public void maakNieuweAfspraak(Client client, NieuweIntakeAfspraakMakenReden reden, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean uitRooster,
+	public void maakNieuweAfspraak(Client client, NieuweIntakeAfspraakMakenReden reden, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean binnenRooster,
 		BriefType briefType, Account account)
 	{
 		OpenUitnodiging openUitnodiging = null;
@@ -429,7 +429,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		nieuweAfspraak.setDatumLaatsteWijziging(nu.plusMillis(100).toDate());
 		nieuweAfspraak.setNieuweAfspraakMakenReden(reden);
 		RoosterItem roosterItem = null;
-		if (uitRooster)
+		if (binnenRooster)
 		{
 			roosterItem = getRoosterBlokVoorAfspraak(nieuweAfspraak);
 			nieuweAfspraak.setRoosterItem(roosterItem);
@@ -579,6 +579,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		boolean isLaatsteRonde = false;
 		afspraak = (Afspraak) HibernateHelper.deproxy(afspraak);
 		boolean heeftVerslagenInLaatsteRonde = false;
+		boolean rondeAfspraakIsLopend = true;
 		if (afspraak instanceof ColonIntakeAfspraak)
 		{
 			ColonIntakeAfspraak colonIntakeAfspraak = (ColonIntakeAfspraak) afspraak;
@@ -593,10 +594,11 @@ public class AfspraakServiceImpl implements AfspraakService
 			{
 				colonConclusieType = conclusie.getType();
 			}
+			rondeAfspraakIsLopend = ScreeningRondeStatus.LOPEND.equals(ronde.getStatus());
 		}
 
 		AfspraakStatus status = afspraak.getStatus();
-		boolean magWijzigenAfzeggen = isLaatsteRonde && !heeftVerslagenInLaatsteRonde
+		boolean magWijzigenAfzeggen = isLaatsteRonde && !heeftVerslagenInLaatsteRonde && rondeAfspraakIsLopend
 			&& (AfspraakStatus.GEPLAND.equals(status) || AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(colonConclusieType));
 		return magWijzigenAfzeggen;
 	}

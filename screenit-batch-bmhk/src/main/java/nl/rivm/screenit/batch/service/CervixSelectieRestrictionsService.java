@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,5 +27,7 @@ public interface CervixSelectieRestrictionsService
 {
 
 	void addClientSelectieRestrictions(Criteria criteria);
+
+	void addClientSelectieRestrictions(Criteria criteria, int daysToAddToToday);
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.dtomapper;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.VorigOnderzoekDto;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaLezing;
+import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
@@ -58,22 +59,23 @@ public class VorigOnderzoekDtoMapper
 	{
 		VorigOnderzoekDto vorigOnderzoekDto = new VorigOnderzoekDto();
 
-		MammaOnderzoek onderzoek = ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek();
-		if (onderzoek != null && MammaOnderzoekStatus.isEindstatus(onderzoek.getStatus()))
+		MammaOnderzoek onderzoek = ronde.getLaatsteOnderzoek();
+		if (onderzoek != null && onderzoek.isDoorgevoerd())
 		{
+			MammaMammografie mammografie = onderzoek.getMammografie();
 			vorigOnderzoekDto.setUitnodigingsNr(ronde.getUitnodigingsNr());
 			vorigOnderzoekDto.setEersteBeeindigdeAfspraakOp(eersteBeeindigdeAfspraakOp(ronde));
 			vorigOnderzoekDto.setOnderzoekDatum(DateUtil.toLocalDateTime(onderzoek.getCreatieDatum()));
-			vorigOnderzoekDto.setUitvoerendMbber(NaamUtil.getNaamGebruiker(onderzoek.getMammografie().getAfgerondDoor().getMedewerker()));
+			vorigOnderzoekDto.setUitvoerendMbber(
+				NaamUtil.getNaamGebruiker(mammografie != null && mammografie.getAfgerondDoor() != null ? mammografie.getAfgerondDoor().getMedewerker() : null));
 			vorigOnderzoekDto.setExtraMedewerker(onderzoek.getExtraMedewerker() == null ? null : NaamUtil.getNaamGebruiker(onderzoek.getExtraMedewerker().getMedewerker()));
 			vorigOnderzoekDto.setMeerdereOnderzoekenInRondeOnderbrokenRedenen(geefRedenMeerdereRondeWanneerHetGeval(ronde));
 			vorigOnderzoekDto.setMeerdereOnderzoekenInRondeOpschortRedenen(geefOpschortRedenMeerdereRondeWanneerHetGeval(ronde));
 			vorigOnderzoekDto.setOnderzoek(onderzoekDtoMapper.createOnderzoekDto(onderzoek));
-			vorigOnderzoekDto
-				.setBeeldenBeschikbaar(MammaMammografieIlmStatus.beeldenBeschikbaar(onderzoek.getMammografie() != null ? onderzoek.getMammografie().getIlmStatus() : null));
+			vorigOnderzoekDto.setBeeldenBeschikbaar(MammaMammografieIlmStatus.beeldenBeschikbaar(mammografie != null ? mammografie.getIlmStatus() : null));
 			vorigOnderzoekDto.setVisueleInspectieAfbeelding(
-				afbeeldingDtoMapper.createAfbeeldingDto(ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek().getMammografie().getVisueleInspectieAfbeelding()));
-			vorigOnderzoekDto.setSignaleren(signalerenDtoMapper.createSignalerenDto(ronde.getLaatsteUitnodiging().getLaatsteAfspraak()));
+				afbeeldingDtoMapper.createAfbeeldingDto(mammografie != null ? mammografie.getVisueleInspectieAfbeelding() : null));
+			vorigOnderzoekDto.setSignaleren(signalerenDtoMapper.createSignalerenDto(onderzoek));
 			vorigOnderzoekDto.setTeksten(mammaBaseOnderzoekService.vorigeRondeTeksten(onderzoek, true));
 
 			mapVorigeBeoordelingMetUitslag(vorigOnderzoekDto, onderzoek, ronde, beoordelingService);

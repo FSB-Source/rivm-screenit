@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,9 +39,9 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 {
 	private final MammaCapaciteitBlokDto capaciteitBlokDto;
 
-	private final LocalTime capaciteitBlokVanaf;
+	private final LocalTime minimaleAfspraakVanaf;
 
-	private final LocalTime capaciteitBlokTot;
+	private final LocalTime maximaleAfspraakTot;
 
 	private final LocalDate datum;
 
@@ -61,21 +61,22 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 
 	private MammaScreeningsEenheidDto screeningsEenheid;
 
-	MammaKandidaatAfspraak(MammaCapaciteitBlokDto capaciteitBlok, LocalDate datum, LocalTime vanaf, LocalTime tot, BigDecimal benodigdeCapaciteit,
+	MammaKandidaatAfspraak(MammaCapaciteitBlokDto capaciteitBlok, LocalTime minimaleAfspraakVanaf, LocalTime maximaleAfspraakTot, LocalDate datum, LocalTime vanaf, LocalTime tot,
+		BigDecimal benodigdeCapaciteit,
 		MammaScreeningsEenheidDto screeningsEenheid, boolean minderValide)
 	{
 		this.capaciteitBlokDto = capaciteitBlok;
-		this.capaciteitBlokVanaf = capaciteitBlokDto.vanaf.toLocalTime();
-		this.capaciteitBlokTot = capaciteitBlokDto.tot;
+		this.minimaleAfspraakVanaf = minimaleAfspraakVanaf;
+		this.maximaleAfspraakTot = maximaleAfspraakTot;
 		this.datum = datum;
 		this.vanaf = vanaf;
-		this.tot = tot;
+		this.tot = tot.isAfter(this.maximaleAfspraakTot) ? this.maximaleAfspraakTot : tot;
 		this.minderValide = minderValide;
 		bepaalDuur();
 		this.benodigdeCapaciteit = benodigdeCapaciteit;
 		this.screeningsEenheid = screeningsEenheid;
 
-		valideAfspraak = !minderValide || voldoetAanMinderValideEisen(new TimeRange(vanaf, tot), screeningsEenheid);
+		valideAfspraak = !minderValide || voldoetAanMinderValideEisen(vanaf, tot, screeningsEenheid);
 	}
 
 	private void bepaalDuur()
@@ -98,17 +99,17 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 			this.duur = somDuur.multiply(vermenigvuldigingsFactor);
 			vanaf = this.vanaf.plusSeconds(this.duur.longValue());
 
-			LocalTime capaciteitBlokCeiling = capaciteitBlokTot.minusMinutes(MammaPlanningUtil.minimumTijdvak(factor));
-			if (capaciteitBlokCeiling.isBefore(capaciteitBlokVanaf))
+			LocalTime capaciteitBlokCeiling = maximaleAfspraakTot.minusMinutes(MammaPlanningUtil.minimumTijdvak(factor));
+			if (capaciteitBlokCeiling.isBefore(minimaleAfspraakVanaf))
 			{
-				capaciteitBlokCeiling = capaciteitBlokVanaf;
+				capaciteitBlokCeiling = minimaleAfspraakVanaf;
 			}
 			if (capaciteitBlokCeiling.isBefore(vanaf))
 			{
 				vanaf = capaciteitBlokCeiling;
 				if (this.minderValide && this.valideAfspraak)
 				{
-					isValideAfspraak = voldoetAanMinderValideEisen(new TimeRange(this.vanaf, vanaf), screeningsEenheid);
+					isValideAfspraak = voldoetAanMinderValideEisen(this.vanaf, vanaf, screeningsEenheid);
 					if (!isValideAfspraak)
 					{
 
@@ -117,7 +118,7 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 				}
 				if (minderValide)
 				{
-					isValideAfspraak &= voldoetAanMinderValideEisen(new TimeRange(vanaf, this.tot), screeningsEenheid) && vanaf.compareTo(this.vanaf) > 0;
+					isValideAfspraak &= voldoetAanMinderValideEisen(vanaf, this.tot, screeningsEenheid) && vanaf.isAfter(this.vanaf);
 				}
 				isValideAfspraak = !this.maaktParentAfspraakOngeldig && isValideAfspraak;
 			}
@@ -132,8 +133,8 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 				if (this.minderValide && this.valideAfspraak)
 				{
 
-					floorValide = voldoetAanMinderValideEisen(new TimeRange(this.vanaf, floor), screeningsEenheid);
-					ceilingValide = voldoetAanMinderValideEisen(new TimeRange(this.vanaf, ceiling), screeningsEenheid);
+					floorValide = voldoetAanMinderValideEisen(this.vanaf, floor, screeningsEenheid);
+					ceilingValide = voldoetAanMinderValideEisen(this.vanaf, ceiling, screeningsEenheid);
 					if (!floorValide && !ceilingValide)
 					{
 
@@ -143,8 +144,8 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 				if (minderValide)
 				{
 
-					floorValide &= voldoetAanMinderValideEisen(new TimeRange(floor, this.tot), screeningsEenheid);
-					ceilingValide &= voldoetAanMinderValideEisen(new TimeRange(ceiling, this.tot), screeningsEenheid);
+					floorValide &= voldoetAanMinderValideEisen(floor, this.tot, screeningsEenheid);
+					ceilingValide &= voldoetAanMinderValideEisen(ceiling, this.tot, screeningsEenheid);
 				}
 
 				if (floorValide && !ceilingValide)
@@ -161,7 +162,7 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 					vanaf = Duration.between(floor, vanaf).compareTo(Duration.between(vanaf, ceiling)) <= 0 ? floor : ceiling;
 				}
 
-				isValideAfspraak = !this.maaktParentAfspraakOngeldig && (floorValide || ceilingValide);
+				isValideAfspraak = !this.maaktParentAfspraakOngeldig && (floorValide || ceilingValide) && maximaleAfspraakTot.isAfter(vanaf);
 			}
 		}
 		else
@@ -178,7 +179,8 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 				isValideAfspraak = !this.maaktParentAfspraakOngeldig;
 			}
 		}
-		MammaKandidaatAfspraak kandidaatAfspraak = new MammaKandidaatAfspraak(capaciteitBlokDto, datum, vanaf, this.tot, benodigdeCapaciteit, screeningsEenheid, minderValide);
+		MammaKandidaatAfspraak kandidaatAfspraak = new MammaKandidaatAfspraak(capaciteitBlokDto, minimaleAfspraakVanaf, maximaleAfspraakTot, datum, vanaf, this.tot,
+			benodigdeCapaciteit, screeningsEenheid, minderValide);
 		kandidaatAfspraak.valideAfspraak = isValideAfspraak;
 		kandidaatAfspraak.maaktParentAfspraakOngeldig = maaktParentAfspraakOngeldig;
 
@@ -235,26 +237,17 @@ public class MammaKandidaatAfspraak extends MammaRationaal
 		return minderValide;
 	}
 
-	private static boolean voldoetAanMinderValideEisen(TimeRange afspraakTimeRange, MammaScreeningsEenheidDto screeningsEenheid)
+	private static boolean voldoetAanMinderValideEisen(LocalTime afspraakVanaf, LocalTime afspraakTot, MammaScreeningsEenheidDto screeningsEenheid)
 	{
-		TimeRange minderValidePeriode1 = maakTimeRange(screeningsEenheid.minderValidePeriode1Vanaf, screeningsEenheid.minderValidePeriode1TotEnMet);
-		TimeRange minderValidePeriode2 = maakTimeRange(screeningsEenheid.minderValidePeriode2Vanaf, screeningsEenheid.minderValidePeriode2TotEnMet);
+		TimeRange minderValidePeriode1 = TimeRange.of(screeningsEenheid.minderValidePeriode1Vanaf, screeningsEenheid.minderValidePeriode1TotEnMet);
+		TimeRange minderValidePeriode2 = TimeRange.of(screeningsEenheid.minderValidePeriode2Vanaf, screeningsEenheid.minderValidePeriode2TotEnMet);
 
 		boolean valideDuur = screeningsEenheid.meerdereMammografen
-			|| Duration.between(afspraakTimeRange.getVanaf(), afspraakTimeRange.getTotEnMet()).toMinutes() >= screeningsEenheid.duurMinderValideAfspraak.getMinuten();
-		LocalTime minimaleTotEnMet = afspraakTimeRange.getVanaf().plus(screeningsEenheid.duurMinderValideAfspraak.getMinuten(), ChronoUnit.MINUTES);
-		afspraakTimeRange.setTotEnMet(minimaleTotEnMet);
-		return valideDuur &&
-			((minderValidePeriode1 != null && afspraakTimeRange.valtBinnen(minderValidePeriode1))
-				|| (minderValidePeriode2 != null && afspraakTimeRange.valtBinnen(minderValidePeriode2)));
-	}
+			|| Duration.between(afspraakVanaf, afspraakTot).toMinutes() >= screeningsEenheid.duurMinderValideAfspraak.getMinuten();
+		LocalTime minimaleTotEnMet = afspraakVanaf.plus(screeningsEenheid.duurMinderValideAfspraak.getMinuten(), ChronoUnit.MINUTES);
 
-	private static TimeRange maakTimeRange(LocalTime vanaf, LocalTime totEnMet)
-	{
-		if (vanaf == null || totEnMet == null)
-		{
-			return null;
-		}
-		return new TimeRange(vanaf, totEnMet);
+		TimeRange afspraakTimeRange = TimeRange.of(afspraakVanaf, minimaleTotEnMet);
+		return valideDuur &&
+			(afspraakTimeRange.valtVolledigBinnen(minderValidePeriode1) || afspraakTimeRange.valtVolledigBinnen(minderValidePeriode2));
 	}
 }

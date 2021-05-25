@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -102,6 +103,7 @@ public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEen
 		{
 			return Collections.emptyList();
 		}
+		instelling = (Instelling) HibernateHelper.deproxy(instelling);
 		OrganisatieType organisatieType = instelling.getOrganisatieType();
 		switch (organisatieType)
 		{
@@ -125,6 +127,7 @@ public class MammaBeoordelingsEenheidServiceImpl implements MammaBeoordelingsEen
 			return Collections.emptyList();
 		}
 		OrganisatieType organisatieType = instelling.getOrganisatieType();
+		instelling = (Instelling) HibernateHelper.deproxy(instelling);
 		switch (organisatieType)
 		{
 		case RIVM:

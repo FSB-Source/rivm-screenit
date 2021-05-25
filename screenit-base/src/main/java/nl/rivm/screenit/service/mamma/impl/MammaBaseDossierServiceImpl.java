@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,7 +53,6 @@ import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
-import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
@@ -61,6 +60,7 @@ import nl.topicuszorg.util.collections.CollectionUtils;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -79,6 +79,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	private HibernateService hibernateService;
 
 	@Autowired
+	@Lazy
 	private ClientService clientService;
 
 	@Autowired
@@ -122,9 +123,9 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 			.sorted((r1, r2) -> r2.getStatusDatum().compareTo(r1.getStatusDatum())).limit(3);
 	}
 
-	private boolean heeftOnderzoek(MammaScreeningRonde r)
+	private boolean heeftOnderzoek(MammaScreeningRonde ronde)
 	{
-		return MammaScreeningRondeUtil.getLaatsteOnderzoek(r) != null;
+		return ronde.getLaatsteOnderzoek() != null;
 	}
 
 	@Override
@@ -262,11 +263,10 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	public boolean isAfspraakForcerenMogelijk(MammaDossier dossier)
 	{
 		boolean magAfspraakForceren = false;
-		if (dossier.getLaatsteScreeningRonde() != null
-			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
-			&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak() != null)
+		if (dossier.getLaatsteScreeningRonde() != null)
 		{
-			MammaOnderzoek onderzoek = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek();
+			MammaOnderzoek onderzoek = dossier.getLaatsteScreeningRonde().getLaatsteOnderzoek();
+
 			if (onderzoek != null && onderzoek.isDoorgevoerd() && onderzoek.getMammografie() != null)
 			{
 				int MAX_DAGEN_UITSTELLEN_FORCEREN = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_UITNODIGINGEN.name());

@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,42 +21,67 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import com.google.common.collect.Range;
+
+import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalTime;
 
 public class TimeRange
 {
-	private LocalTime vanaf;
+	private final Range<LocalTime> range;
 
-	private LocalTime totEnMet;
-
-	public TimeRange(LocalTime vanaf, LocalTime totEnMet)
+	private TimeRange(Range<LocalTime> range)
 	{
-		this.vanaf = vanaf;
-		this.totEnMet = totEnMet;
+		this.range = range;
 	}
 
-	public boolean valtBinnen(TimeRange timeRange)
+	private TimeRange(LocalTime vanaf, LocalTime tot)
 	{
-		return !this.vanaf.isBefore(timeRange.getVanaf()) && !this.totEnMet.isAfter(timeRange.getTotEnMet());
+		this.range = Range.closedOpen(vanaf, tot);
+	}
+
+	public boolean valtVolledigBinnen(TimeRange timeRange)
+	{
+		return timeRange != null && timeRange.range.encloses(this.range);
+	}
+
+	public boolean heeftOverlap(TimeRange timeRange)
+	{
+		return this.range.isConnected(timeRange.range);
+	}
+
+	public TimeRange overlappendePeriode(TimeRange timeRange)
+	{
+		return new TimeRange(this.range.intersection(timeRange.range));
+	}
+
+	public boolean bevat(LocalTime localTime)
+	{
+		return this.range.contains(localTime);
 	}
 
 	public LocalTime getVanaf()
 	{
-		return vanaf;
+		return range.lowerEndpoint();
 	}
 
-	public LocalTime getTotEnMet()
+	public LocalTime getTot()
 	{
-		return totEnMet;
+		return range.upperEndpoint();
 	}
 
-	public void setVanaf(LocalTime vanaf)
+	public static TimeRange of(LocalTime vanaf, LocalTime totEnMet)
 	{
-		this.vanaf = vanaf;
+		if (vanaf == null || totEnMet == null)
+		{
+			return null;
+		}
+		return new TimeRange(vanaf, totEnMet);
 	}
 
-	public void setTotEnMet(LocalTime totEnMet)
+	public BigDecimal getDurationInMinutes()
 	{
-		this.totEnMet = totEnMet;
+		return BigDecimal.valueOf(Duration.between(getVanaf(), getTot()).toMinutes());
 	}
 }

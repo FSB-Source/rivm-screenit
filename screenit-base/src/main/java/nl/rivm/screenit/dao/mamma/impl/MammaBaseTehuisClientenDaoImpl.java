@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.dao.mamma.impl;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
@@ -70,7 +71,11 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 		Integer maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
 		Integer minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
 
-		MammaStandplaatsRonde huidigeStandplaatsRonde = tehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats(), false);
+		MammaStandplaatsRonde huidigeStandplaatsRonde = tehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
+		if (huidigeStandplaatsRonde == null)
+		{
+			return null;
+		}
 		LocalDate standplaatsRondeVanaf = null;
 		LocalDate standplaatsRondeTotEnMet = null;
 		for (MammaStandplaatsPeriode standplaatsPeriode : huidigeStandplaatsRonde.getStandplaatsPerioden())
@@ -107,7 +112,7 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 		whereString.append(" and persoon.geboortedatum < :totGeboortedatum");
 
 		if (tehuisSelectie == UIT_TE_NODIGEN && vandaag.isBefore(standplaatsRondeVanaf.minusMonths(2))
-				|| tehuis.getAdressen().isEmpty())
+			|| tehuis.getAdressen().isEmpty())
 		{
 
 			whereString.append(" and client.id is null");
@@ -233,6 +238,10 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 	public long countClienten(MammaTehuis tehuis, MammaTehuisSelectie tehuisSelectie, Adres zoekAdres)
 	{
 		NativeQuery<BigInteger> query = createQuery(tehuis, tehuisSelectie, zoekAdres, true, null, null);
+		if (query == null)
+		{
+			return 0;
+		}
 		return query.getSingleResult().longValue();
 	}
 
@@ -240,6 +249,10 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 	public List<Client> getClienten(MammaTehuis tehuis, MammaTehuisSelectie tehuisSelectie, Adres zoekAdres)
 	{
 		NativeQuery query = createQuery(tehuis, tehuisSelectie, zoekAdres, false, null, null);
+		if (query == null)
+		{
+			return new ArrayList<>();
+		}
 		query.addEntity(Client.class);
 		return query.list();
 	}
@@ -248,6 +261,10 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 	public List<Client> getClienten(MammaTehuis tehuis, MammaTehuisSelectie tehuisSelectie, Adres zoekAdres, int first, int count, String sortProperty, boolean isAscending)
 	{
 		NativeQuery query = createQuery(tehuis, tehuisSelectie, zoekAdres, false, sortProperty, isAscending);
+		if (query == null)
+		{
+			return new ArrayList<>();
+		}
 		query.addEntity(Client.class);
 
 		query.setFirstResult(Math.max(first, 0));

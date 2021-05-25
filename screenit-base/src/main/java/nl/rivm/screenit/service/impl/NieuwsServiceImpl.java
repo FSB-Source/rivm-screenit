@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,14 +21,24 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.List;
+import static nl.rivm.screenit.repository.NieuwsRepository.baseSpecification;
+import static nl.rivm.screenit.repository.NieuwsRepository.isOngelezen;
+import static nl.rivm.screenit.repository.NieuwsRepository.publicerenTot;
+import static nl.rivm.screenit.repository.NieuwsRepository.publicerenVanaf;
 
-import nl.rivm.screenit.dao.NieuwsDao;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.nieuws.NieuwsItem;
+import nl.rivm.screenit.repository.NieuwsRepository;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.NieuwsService;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,18 +47,32 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class NieuwsServiceImpl implements NieuwsService
 {
+
 	@Autowired
-	private NieuwsDao nieuwsDao;
+	private NieuwsRepository nieuwsRepository;
+
+	@Autowired
+	ICurrentDateSupplier dateSupplier;
 
 	@Override
 	public List<NieuwsItem> getNieuwsItems(boolean inclusiefVerlopenNieuwsItems)
 	{
-		return nieuwsDao.getNieuwsItems(inclusiefVerlopenNieuwsItems);
+		Specification<NieuwsItem> specification = baseSpecification();
+		if (!inclusiefVerlopenNieuwsItems)
+		{
+			specification.and(publicerenTot(dateSupplier.getDate()));
+		}
+		return nieuwsRepository.findAll(specification, Sort.by(Sort.Order.desc("publicerenVanaf")));
 	}
 
 	@Override
 	public List<Long> getNieuwsItemIdsGebruiker(Gebruiker gebruiker)
 	{
-		return nieuwsDao.getNieuwsItemIdsGebruiker(gebruiker);
+		return nieuwsRepository.findAll(baseSpecification()
+			.and(isOngelezen(gebruiker))
+			.and(publicerenVanaf(dateSupplier.getDate())),
+			Sort.by(Sort.Order.desc("publicerenVanaf")))
+			.stream().map(AbstractHibernateObject::getId).collect(Collectors.toList());
 	}
+
 }

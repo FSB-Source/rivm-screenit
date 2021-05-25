@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -85,6 +85,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
+import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBlokkadeType;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
@@ -92,6 +93,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
@@ -99,7 +101,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
-
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
@@ -122,9 +123,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import static nl.rivm.screenit.mamma.planning.model.PlanningConstanten.plannenTotEnMetGeboortedatum;
-import static nl.rivm.screenit.mamma.planning.model.PlanningConstanten.plannenVanafGeboortedatum;
-
 @Repository
 @Transactional(propagation = Propagation.SUPPORTS)
 public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements PlanningReadModelDao, ApplicationListener<ContextRefreshedEvent>
@@ -145,6 +143,9 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 
 	@Autowired
 	private SimplePreferenceService simplePreferenceService;
+
+	@Autowired
+	private MammaBaseAfspraakService afspraakService;
 
 	private Map<Long, Set<Long>> teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap = new HashMap<>();
 
@@ -375,31 +376,32 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 	{
 		LOG.info("readScreeningsOrganisaties");
 
-		Criteria crit = getSession().createCriteria(ScreeningOrganisatie.class, "screeningsOrganisatie");
-		crit.add(Restrictions.eq("screeningsOrganisatie.actief", true));
+		Criteria criteria = getSession().createCriteria(ScreeningOrganisatie.class, "screeningsOrganisatie");
+		criteria.add(Restrictions.eq("screeningsOrganisatie.actief", true));
 
-		crit.setProjection(Projections.projectionList()
-			.add(Projections.property("screeningsOrganisatie.id"))
-			.add(Projections.property("screeningsOrganisatie.afspraakDrempelBk"))
-			.add(Projections.property("screeningsOrganisatie.factorEersteOnderzoekBk"))
-			.add(Projections.property("screeningsOrganisatie.factorDubbeleTijdBk"))
-			.add(Projections.property("screeningsOrganisatie.factorMinderValideBk"))
-			.add(Projections.property("screeningsOrganisatie.wekenVanTevorenUitnodigen")));
+		criteria.setProjection(Projections.projectionList()
+			.add(Projections.property("screeningsOrganisatie.id")) 
+			.add(Projections.property("screeningsOrganisatie.afspraakDrempelBk")) 
+			.add(Projections.property("screeningsOrganisatie.factorEersteOnderzoekBk")) 
+			.add(Projections.property("screeningsOrganisatie.factorDubbeleTijdBk")) 
+			.add(Projections.property("screeningsOrganisatie.factorMinderValideBk")) 
+			.add(Projections.property("screeningsOrganisatie.wekenVanTevorenUitnodigen")) 
+			.add(Projections.property("screeningsOrganisatie.vervallenCapaciteitsreserveringDagenBk"))); 
 
-		List<Object[]> list = crit.list();
+		List<Object[]> screeningOrganisaties = criteria.list();
 		teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap.clear();
 		teLezenStandplaatsRondeSetScreeningsOrganisatieMap.clear();
-		for (Object[] result : list)
+		for (Object[] so : screeningOrganisaties)
 		{
-			Long screeningsOrganisatieId = (Long) result[0];
-			PlanningScreeningsOrganisatieIndex.put(new PlanningScreeningsOrganisatie(screeningsOrganisatieId, (Integer) result[1], (BigDecimal) result[2], (BigDecimal) result[3],
-				(BigDecimal) result[4], (Integer) result[5]));
+			Long screeningsOrganisatieId = (Long) so[0];
+			PlanningScreeningsOrganisatieIndex.put(new PlanningScreeningsOrganisatie(screeningsOrganisatieId, (Integer) so[1], (BigDecimal) so[2], (BigDecimal) so[3],
+				(BigDecimal) so[4], (Integer) so[5], (Integer) so[6]));
 			teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap.put(screeningsOrganisatieId, new HashSet<>());
 			teLezenStandplaatsRondeSetScreeningsOrganisatieMap.put(screeningsOrganisatieId, new HashSet<>());
 
 		}
 
-		LOG.info(list.size() + " so's gelezen");
+		LOG.info(screeningOrganisaties.size() + " so's gelezen");
 	}
 
 	private void readScreeningsEenheden(PlanningScreeningsOrganisatie screeningsOrganisatie)
@@ -713,14 +715,11 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		crit.createAlias("persoon.tijdelijkGbaAdres", "tijdelijkGbaAdres", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("adres.gbaGemeente", "gemeente");
 		crit.createAlias("gemeente.screeningOrganisatie", "so");
-		crit.createAlias("dossier.laatsteScreeningRonde", "screeningRonde", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("screeningRonde.laatsteUitstel", "laatsteUitstel", JoinType.LEFT_OUTER_JOIN, Restrictions.isNull("laatsteUitstel.geannuleerdOp"));
-		crit.createAlias("screeningRonde.laatsteUitnodiging", "laatsteUitnodiging", JoinType.LEFT_OUTER_JOIN);
+		crit.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde", JoinType.LEFT_OUTER_JOIN);
+		crit.createAlias("laatsteScreeningRonde.laatsteUitstel", "laatsteUitstel", JoinType.LEFT_OUTER_JOIN, Restrictions.isNull("laatsteUitstel.geannuleerdOp"));
+		crit.createAlias("laatsteScreeningRonde.laatsteUitnodiging", "laatsteUitnodiging", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("laatsteUitnodiging.laatsteAfspraak", "laatsteAfspraak", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("laatsteAfspraak.standplaatsPeriode", "laatsteAfspraakStandplaatsPeriode", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("laatsteAfspraak.onderzoek", "laatsteOnderzoek", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("laatsteOnderzoek.laatsteBeoordeling", "laatsteBeoordeling", JoinType.LEFT_OUTER_JOIN);
-		crit.createAlias("laatsteUitnodiging.brief", "laatsteUitnodigingBrief", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("dossier.screeningRondeEvent", "screeningRondeEvent", JoinType.LEFT_OUTER_JOIN);
 
 		crit.add(Restrictions.eq("persoon.geslacht", Geslacht.VROUW));
@@ -744,9 +743,9 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			.add(Projections.property("dossier.eersteMammografieAfgerondStandplaatsRonde.id")) 
 			.add(Projections.property("dossier.laatsteMammografieAfgerond")) 
 			.add(Projections.property("deelnamekans.deelnamekans")) 
-			.add(Projections.property("screeningRonde.creatieDatum")) 
-			.add(Projections.property("screeningRonde.standplaatsRonde.id")) 
-			.add(Projections.property("screeningRonde.isGeforceerd")) 
+			.add(Projections.property("laatsteScreeningRonde.creatieDatum")) 
+			.add(Projections.property("laatsteScreeningRonde.standplaatsRonde.id")) 
+			.add(Projections.property("laatsteScreeningRonde.isGeforceerd")) 
 			.add(Projections.property("laatsteUitstel.standplaats.id")) 
 			.add(Projections.property("laatsteUitstel.streefDatum")) 
 			.add(Projections.property("laatsteUitstel.uitstelReden")) 
@@ -755,6 +754,9 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			.add(Projections.property("laatsteAfspraakStandplaatsPeriode.standplaatsRonde.id")) 
 			.add(Projections.property("laatsteAfspraak.afgezegdOp")) 
 			.add(Projections.property("screeningRondeEvent.voorgaandeScreeningRondes")) 
+			.add(Projections.property("laatsteUitnodiging.creatieDatum")) 
+			.add(Projections.property("laatsteAfspraak.status")) 
+			.add(Projections.property("laatsteAfspraak.vanaf")) 
 		);
 
 		List<Object[]> list = new ArrayList<>(crit.list());
@@ -782,10 +784,13 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			Long afspraakStandplaatsRondeId = (Long) result[19];
 			Date afspraakAfgezegdOp = (Date) result[20];
 			Integer voorgaandeScreeningRondes = (Integer) result[21];
+			LocalDate laatsteUitnodigingDatum = DateUtil.toLocalDate((Date) result[22]);
+			MammaAfspraakStatus afspraakStatus = (MammaAfspraakStatus) result[23];
+			LocalDateTime afspraakMoment = DateUtil.toLocalDateTime((Date) result[24]);
 
 			String postcode = null; 
 			PlanningPostcodeReeks postcodeReeks = null;
-			PlanningStandplaats standplaats = null;
+			PlanningStandplaats standplaatsVanPostcodeOfTehuis = null;
 			PlanningTehuis tehuis = null;
 			if (tehuisId == null)
 			{
@@ -793,14 +798,14 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 				postcodeReeks = PlanningPostcodeReeksIndex.get(postcode);
 				if (postcodeReeks != null)
 				{
-					standplaats = postcodeReeks.getStandplaats();
+					standplaatsVanPostcodeOfTehuis = postcodeReeks.getStandplaats();
 				}
 			}
 			else
 			{
 				tehuis = PlanningTehuisIndex.get(tehuisId);
-				standplaats = tehuis.getStandplaats();
-				standplaats.getTehuisSet().add(tehuis);
+				standplaatsVanPostcodeOfTehuis = tehuis.getStandplaats();
+				standplaatsVanPostcodeOfTehuis.getTehuisSet().add(tehuis);
 			}
 
 			PlanningStandplaatsRonde screeningRondeStandplaatsRonde = null;
@@ -853,7 +858,10 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 				tehuis,
 				screeningRondeCreatieDatum,
 				laatsteMammografieAfgerondDatum,
-				suspectDossierIdSet.contains(dossierId));
+				suspectDossierIdSet.contains(dossierId),
+				laatsteUitnodigingDatum);
+
+			client.setNoShow(afspraakService.isNoShow(afspraakStatus, afspraakMoment));
 
 			PlanningClientIndex.put(client);
 			PlanningWijzigingen.getClientSet().add(client);
@@ -865,14 +873,14 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 				PlanningWijzigingen.getPostcodeReeksRegioSet().add(postcodeReeksRegio);
 			}
 
-			if (standplaats != null)
+			if (standplaatsVanPostcodeOfTehuis != null)
 			{
-				standplaats.getScreeningsOrganisatie().getClientList().add(client);
+				standplaatsVanPostcodeOfTehuis.getScreeningsOrganisatie().getClientList().add(client);
 				PlanningClientFactorTypeIndex.put(client);
 
-				if (!standplaats.getStandplaatsRondeNavigableSet().isEmpty())
+				if (!standplaatsVanPostcodeOfTehuis.getStandplaatsRondeNavigableSet().isEmpty())
 				{
-					PlanningStandplaatsRonde volgendeStandplaatsRonde = standplaats.getStandplaatsRondeNavigableSet().first();
+					PlanningStandplaatsRonde volgendeStandplaatsRonde = standplaatsVanPostcodeOfTehuis.getStandplaatsRondeNavigableSet().first();
 					if (volgendeStandplaatsRonde.equals(screeningRondeStandplaatsRonde))
 					{
 
@@ -905,7 +913,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			{
 				afspraakStandplaats.getAfspraakSet().add(client);
 
-				if (!afspraakStandplaats.equals(standplaats))
+				if (!afspraakStandplaats.equals(standplaatsVanPostcodeOfTehuis))
 				{
 					transportStandplaats = afspraakStandplaats;
 				}
@@ -914,7 +922,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			{
 				uitstelStandplaats.getUitstelSet().add(client);
 
-				if (!uitstelStandplaats.equals(standplaats))
+				if (!uitstelStandplaats.equals(standplaatsVanPostcodeOfTehuis))
 				{
 					transportStandplaats = uitstelStandplaats;
 				}
@@ -922,7 +930,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			if (transportStandplaats == null && screeningRondeStandplaatsRonde != null)
 			{
 				PlanningStandplaats screeningRondeStandplaats = screeningRondeStandplaatsRonde.getStandplaats();
-				if (!screeningRondeStandplaats.equals(standplaats))
+				if (!screeningRondeStandplaats.equals(standplaatsVanPostcodeOfTehuis))
 				{
 					transportStandplaats = screeningRondeStandplaats;
 					screeningRondeStandplaatsRonde.getScreeningRondeTransportSet().add(client);
@@ -930,9 +938,9 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			}
 			if (transportStandplaats != null)
 			{
-				if (standplaats != null)
+				if (standplaatsVanPostcodeOfTehuis != null)
 				{
-					standplaats.getTransportVanSet().add(client);
+					standplaatsVanPostcodeOfTehuis.getTransportVanSet().add(client);
 				}
 				transportStandplaats.getTransportNaarSet().add(client);
 			}

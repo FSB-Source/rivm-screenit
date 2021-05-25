@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,7 +39,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
@@ -142,6 +141,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	@Autowired
 	private BaseScreeningRondeService screeningrondeService;
+
+	@Autowired
+	private BaseScreeningRondeService baseScreeningRondeService;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -576,8 +578,10 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 						throw new IllegalStateException("Beperkt beoordeelbaar reden: " + beperktBeoordeelbaarReden + " bestaat niet.");
 					}
 				}
-				ronde.setStatus(ScreeningRondeStatus.AFGEROND);
-				ronde.setStatusDatum(currentDateSupplier.getDate());
+				if (beoordeling.getStatus() != MammaBeoordelingStatus.ONBEOORDEELBAAR_TE_VERSTUREN)
+				{
+					baseScreeningRondeService.screeningRondeAfronden(ronde);
+				}
 				if (beoordeling.getStatus() == MammaBeoordelingStatus.UITSLAG_GUNSTIG)
 				{
 					verstuurXdsBericht(beoordeling);

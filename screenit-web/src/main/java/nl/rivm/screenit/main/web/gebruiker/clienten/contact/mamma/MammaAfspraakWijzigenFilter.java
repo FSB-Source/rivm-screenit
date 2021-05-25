@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,13 +40,9 @@ import org.apache.wicket.model.IModel;
 public class MammaAfspraakWijzigenFilter implements IMammaAfspraakWijzigenFilter, IDetachable
 {
 
-	private Date vanaf;
+	private LocalDate vanaf;
 
-	private LocalDate vanafLocalDate;
-
-	private Date totEnMet;
-
-	private LocalDate totEnMetLocalDate;
+	private LocalDate totEnMet;
 
 	private IModel<List<MammaStandplaats>> standplaatsenModel = ModelUtil.listRModel(new ArrayList<>());
 
@@ -64,7 +60,7 @@ public class MammaAfspraakWijzigenFilter implements IMammaAfspraakWijzigenFilter
 
 	private MammaVerzettenReden verzettenReden;
 
-	public MammaAfspraakWijzigenFilter(Date vanaf, Date totEnMet, MammaStandplaats standplaats, MammaScreeningsEenheid screeningsEenheid)
+	public MammaAfspraakWijzigenFilter(LocalDate vanaf, LocalDate totEnMet, MammaStandplaats standplaats, MammaScreeningsEenheid screeningsEenheid)
 	{
 		setVanaf(vanaf);
 		setTotEnMet(totEnMet);
@@ -79,33 +75,20 @@ public class MammaAfspraakWijzigenFilter implements IMammaAfspraakWijzigenFilter
 	}
 
 	@Override
-	public boolean getBuitenRegio()
+	public boolean isBuitenRegio()
 	{
 		return buitenRegio;
 	}
 
 	@Override
-	public Date getVanaf()
+	public LocalDate getVanaf()
 	{
 		return vanaf;
 	}
-
 	@Override
-	public LocalDate getVanafLocalDate()
-	{
-		return vanafLocalDate;
-	}
-
-	@Override
-	public Date getTotEnMet()
+	public LocalDate getTotEnMet()
 	{
 		return totEnMet;
-	}
-
-	@Override
-	public LocalDate getTotEnMetLocalDate()
-	{
-		return totEnMetLocalDate;
 	}
 
 	@Override
@@ -145,17 +128,15 @@ public class MammaAfspraakWijzigenFilter implements IMammaAfspraakWijzigenFilter
 	}
 
 	@Override
-	public void setVanaf(Date vanaf)
+	public void setVanaf(LocalDate vanaf)
 	{
 		this.vanaf = vanaf;
-		this.vanafLocalDate = DateUtil.toLocalDate(vanaf);
 	}
 
 	@Override
-	public void setTotEnMet(Date totEnMet)
+	public void setTotEnMet(LocalDate totEnMet)
 	{
 		this.totEnMet = totEnMet;
-		this.totEnMetLocalDate = DateUtil.toLocalDate(totEnMet);
 	}
 
 	@Override

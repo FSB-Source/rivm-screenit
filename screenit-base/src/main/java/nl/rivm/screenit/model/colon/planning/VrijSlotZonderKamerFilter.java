@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.colon.planning;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,13 +26,11 @@ import java.util.Date;
 
 public class VrijSlotZonderKamerFilter implements Serializable
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private Date vanaf;
 
 	private Date totEnMet;
-
 	private String naam;
 
 	private String plaats;

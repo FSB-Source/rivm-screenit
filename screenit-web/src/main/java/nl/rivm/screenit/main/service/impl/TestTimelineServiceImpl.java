@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -845,7 +845,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 		case DOORVERWIJZEN_NAAR_ANDER_CENTRUM:
 			keuzes.intakeConclusie = false;
 			keuzes.afspraakDirectMaken = true;
-			conclusie.setLocatieNieuweAfspraak(hibernateService.loadAll(Kamer.class).get(0));
+			conclusie.setLocatieNieuweAfspraak(hibernateService.loadAll(Kamer.class).stream().filter(k -> !k.equals(intakeAfspraak.getLocation())).findFirst().orElse(null));
 			conclusie.setDatumTijdNieuweAfspraak(DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().plusDays(2)));
 			break;
 		case CLIENT_WIL_ANDERE_INTAKELOKATIE:

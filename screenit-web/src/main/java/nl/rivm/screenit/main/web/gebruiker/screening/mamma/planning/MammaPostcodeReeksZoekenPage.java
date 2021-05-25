@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.form.PostcodeField;
@@ -66,7 +67,7 @@ public class MammaPostcodeReeksZoekenPage extends MammaPlanningBasePage
 	private Form<MammaPostcodeReeks> zoekForm;
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaBaseStandplaatsService standplaatsService;
 
 	@SpringBean
 	private InstellingService instellingService;
@@ -113,7 +114,7 @@ public class MammaPostcodeReeksZoekenPage extends MammaPlanningBasePage
 
 		zoekForm.add(new PostcodeField("vanPostcode").setAlleenCijfersToegestaan(true));
 		ScreenitDropdown<MammaStandplaats> standplaatsDropdown = new ScreenitDropdown<>("standplaats",
-			ModelUtil.listRModel(baseStandplaatsService.getActieveStandplaatsen(ingelogdNamensRegio), false), new ChoiceRenderer<MammaStandplaats>("naam"));
+			ModelUtil.listRModel(standplaatsService.getActieveStandplaatsen(ingelogdNamensRegio), false), new ChoiceRenderer<MammaStandplaats>("naam"));
 
 		standplaatsDropdown.setNullValid(true);
 		zoekForm.add(standplaatsDropdown);
@@ -153,7 +154,7 @@ public class MammaPostcodeReeksZoekenPage extends MammaPlanningBasePage
 					{
 						regio = standplaats.getRegio();
 					}
-					standplaatsDropdown.setChoices(ModelUtil.listRModel(baseStandplaatsService.getActieveStandplaatsen(regio), false));
+					standplaatsDropdown.setChoices(ModelUtil.listRModel(standplaatsService.getActieveStandplaatsen(regio), false));
 					target.add(zoekForm);
 				}
 			});

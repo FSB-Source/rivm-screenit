@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,8 +26,8 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
-import nl.rivm.screenit.main.util.EnumStringUtil;
+import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -58,7 +58,7 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 public abstract class CervixUitnodigingUitstrijkjePanel extends CervixUitnodigingPanel<CervixUitstrijkje>
 {
 	@SpringBean
-	private CervixUitnodigingService uitnodingingService;
+	private CervixBaseUitnodigingService uitnodingingService;
 
 	private ScreenitDropdown<CervixUitstrijkjeStatus> uitstrijkjeStatusDropdown = null;
 

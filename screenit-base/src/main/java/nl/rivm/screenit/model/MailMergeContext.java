@@ -5,7 +5,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,6 +49,8 @@ public class MailMergeContext
 	public static final String CONTEXT_BMHK_BETAALOPDRACHT = "BMHK_BETAALOPDRACHT";
 
 	public static final String CONTEXT_MAMMA_BEOORDELING = "BK_BEOORDELING";
+
+	public static final String CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST = "BK_TOON_LOCATIE_WIJZIGING_TEKST";
 
 	private Boolean useTestValue = Boolean.FALSE;
 

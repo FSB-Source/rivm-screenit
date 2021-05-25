@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.f
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -69,7 +69,7 @@ public abstract class MammaFotobesprekingOnderzoekToevoegenPopupPanel extends Ge
 			{
 				GbaPersoon zoekPersoon = (GbaPersoon) getForm().getModelObject();
 				Client client = clientService.getClientByBsn(zoekPersoon.getBsn());
-				if (client != null && DateUtil.geboortedatumEquals(client.getPersoon(), zoekPersoon))
+				if (client != null && DateUtil.isGeboortedatumGelijk(DateUtil.toLocalDate(zoekPersoon.getGeboortedatum()), client))
 				{
 					String melding = kwaliteitscontroleService.addFotobesprekingOnderzoek(getModelObject(), client);
 					if (StringUtils.isNotBlank(melding))

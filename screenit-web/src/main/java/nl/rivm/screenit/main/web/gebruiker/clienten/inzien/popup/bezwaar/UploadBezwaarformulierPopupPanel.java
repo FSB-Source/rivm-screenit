@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.bezwaar;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,6 +51,7 @@ import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BezwaarService;
+import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -94,6 +95,9 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 
 	@SpringBean
 	private BriefService briefService;
+
+	@SpringBean
+	private BriefHerdrukkenService briefHerdrukkenService;
 
 	@SpringBean
 	private BezwaarService bezwaarService;
@@ -182,7 +186,7 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 			public void onClick(AjaxRequestTarget target)
 			{
 				BezwaarBrief brief = getOrgineleLaatsteBrief();
-				briefService.opnieuwAanmaken(brief, ScreenitSession.get().getLoggedInAccount());
+				briefHerdrukkenService.opnieuwAanmaken(brief, ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.bezwaarnogmaalsverstuurd"));
 				close(target);
 			}

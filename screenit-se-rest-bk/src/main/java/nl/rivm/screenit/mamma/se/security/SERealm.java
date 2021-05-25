@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.security;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,7 +39,6 @@ import nl.rivm.screenit.security.ScreenitPrincipal;
 import nl.rivm.screenit.security.ScreenitRealm;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ScopeService;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -73,9 +72,6 @@ public class SERealm extends AuthorizingRealm implements IScreenitRealm
 
 	@Autowired
 	private GebruikersService gebruikersService;
-
-	@Autowired
-	private LogService logService;
 
 	@Autowired
 	private HibernateService hibernateService;

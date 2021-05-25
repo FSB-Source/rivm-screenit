@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import java.util.Set;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Instelling;
@@ -424,7 +424,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 
 			Set<Integer> alleGeboortejarenVanActiveCohorten = uitnodigingService.getAlleGeboortejarenTotMetHuidigJaar();
 
-			Criteria criteria = ColonClientSelectieHelper.getQueryVooraankondigen(hibernateService.getHibernateSession(), null, new ArrayList<>(alleGeboortejarenVanActiveCohorten),
+			Criteria criteria = ColonRestrictions.getQueryVooraankondigen(hibernateService.getHibernateSession(), null, new ArrayList<>(alleGeboortejarenVanActiveCohorten),
 				true, minimaleLeeftijd, maximaleLeeftijd, projectGroep.getId(), null);
 			criteria.setProjection(Projections.rowCount());
 			Long aantalNogTeGaan = (Long) criteria.uniqueResult();

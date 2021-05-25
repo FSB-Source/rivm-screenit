@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.client.dashboard.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,8 @@ package nl.rivm.screenit.main.web.client.dashboard.colon;
 
 import nl.rivm.screenit.main.model.BaseHuisartsModel;
 import nl.rivm.screenit.main.model.EnovationHuisartsModel;
-import nl.rivm.screenit.main.service.RondeNummerService;
-import nl.rivm.screenit.main.service.colon.ColonHuisartsService;
+import nl.rivm.screenit.service.RondeNummerService;
+import nl.rivm.screenit.service.colon.ColonHuisartsService;
 import nl.rivm.screenit.main.web.client.base.ClientBasePage;
 import nl.rivm.screenit.main.web.client.base.ClientHoofdMenuitem;
 import nl.rivm.screenit.main.web.client.dashboard.huisartswizard.ClientHuisartsBevestigenWizardPanel;

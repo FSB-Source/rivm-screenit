@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.client.dashboard.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,8 @@ package nl.rivm.screenit.main.web.client.dashboard.mamma;
 import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.main.service.ClientGebeurtenis;
-import nl.rivm.screenit.main.service.DossierService;
+import nl.rivm.screenit.service.BaseClientGebeurtenisService;
+import nl.rivm.screenit.model.ClientGebeurtenis;
 import nl.rivm.screenit.main.web.client.base.ClientBasePage;
 import nl.rivm.screenit.main.web.client.base.ClientHoofdMenuitem;
 import nl.rivm.screenit.main.web.client.dashboard.ClientDashboardPersoonsgegevensPanel;
@@ -64,7 +64,7 @@ public class ClientMammaDashboardPage extends ClientBasePage
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private DossierService dossierService;
+	private BaseClientGebeurtenisService clientGebeurtenisService;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -91,7 +91,7 @@ public class ClientMammaDashboardPage extends ClientBasePage
 			@Override
 			protected List<ClientGebeurtenis> getGebeurtenissen(IModel<Client> modelClient)
 			{
-				return dossierService.getClientMammaGebeurtenissen(ModelProxyHelper.deproxy(modelClient.getObject()));
+				return clientGebeurtenisService.getClientMammaGebeurtenissen(ModelProxyHelper.deproxy(modelClient.getObject()));
 			}
 
 		});

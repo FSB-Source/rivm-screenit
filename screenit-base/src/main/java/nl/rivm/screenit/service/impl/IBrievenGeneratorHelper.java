@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,26 +32,50 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.aspose.words.Document;
 
 public interface IBrievenGeneratorHelper<B extends Brief, MB extends MergedBrieven<?>>
 {
+	static final Logger LOG = LoggerFactory.getLogger(IBrievenGeneratorHelper.class);
 
-	BaseDocumentCreator getDocumentCreator(MailMergeContext context);
+	default BaseDocumentCreator getDocumentCreator(MailMergeContext context)
+	{
+		return null;
+	}
 
-	void additionalActiesWithDocument(MailMergeContext context, B brief, Document chunkDocument) throws Exception;
+	default void additionalActiesWithDocument(MailMergeContext context, B brief, Document chunkDocument) throws Exception
+	{
 
-	String getTechnischeLoggingMergedBriefAanmaken(MB mergedBrieven);
+	}
+
+	default String getTechnischeLoggingMergedBriefAanmaken(MB brieven)
+	{
+		String tekst = "Mergedocument(id = " + brieven.getId() + ") aangemaakt voor ScreeningOrganisatie " + brieven.getScreeningOrganisatie().getNaam()
+			+ ", brieftype " + brieven.getBriefType().name();
+		return tekst;
+	}
 
 	String getMergedBrievenNaam(MB mergedBrieven);
 
-	Long getFileStoreId();
+	default Long getFileStoreId()
+	{
+		return null;
+	}
 
-	void crashMelding(String melding, Exception e);
+	default void crashMelding(String melding, Exception e)
+	{
+		LOG.error(melding, e);
+	}
 
 	void verhoogAantalBrievenVanScreeningOrganisatie(MB mergedBrieven);
 
-	void additionalMergedContext(MailMergeContext context);
+	default void additionalMergedContext(MailMergeContext context)
+	{
+
+	}
 
 	Bevolkingsonderzoek[] getBevolkingsonderzoeken();
 
@@ -65,8 +89,13 @@ public interface IBrievenGeneratorHelper<B extends Brief, MB extends MergedBriev
 
 	MB getMergedBrieven();
 
-	MB createMergedBrieven(Date aangemaaktOp);
+	default MB createMergedBrieven(Date aangemaaktOp)
+	{
+		return null;
+	}
 
-	void increasePdfCounter();
+	default void increasePdfCounter()
+	{
+	}
 
 }

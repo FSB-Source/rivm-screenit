@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -141,19 +141,23 @@ public class DaglijstServiceImpl implements DaglijstService
 		AfspraakSeDto afspraakSeDto = afspraakDtoMapper.createAfspraakSeDto(afspraak);
 		updateAfspraakDtoBijzonderhedenZelfdeRonde(afspraak, afspraakSeDto);
 		updateAfspraakDtoMetOpkomstTellers(afspraak, afspraakSeDto);
-		updateClientDtoMetVorigeOnderzoeken(afspraak.getUitnodiging().getScreeningRonde().getDossier(), afspraakSeDto.getClient());
+		updateClientDtoMetVorigeOnderzoeken(afspraak, afspraakSeDto.getClient());
 		return afspraakSeDto;
 	}
 
-	private void updateClientDtoMetVorigeOnderzoeken(MammaDossier dossier, ClientSeDto afspraakSeDto)
+	private void updateClientDtoMetVorigeOnderzoeken(MammaAfspraak afspraak, ClientSeDto clientSeDto)
 	{
-		afspraakSeDto.setVorigeOnderzoeken(
-			baseDossierService.laatste3AfgerondeRondesMetOnderzoek(dossier).map(this::createVorigOnderzoekDto).filter(Objects::nonNull).collect(Collectors.toList()));
+		MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
+		MammaScreeningsEenheid daglijstSe = afspraak.getStandplaatsPeriode().getScreeningsEenheid();
+
+		clientSeDto.setVorigeOnderzoeken(
+			baseDossierService.laatste3AfgerondeRondesMetOnderzoek(dossier)
+				.map(ronde -> createVorigOnderzoekDto(ronde, daglijstSe))
+				.filter(Objects::nonNull).collect(Collectors.toList()));
 	}
 
-	private VorigOnderzoekDto createVorigOnderzoekDto(MammaScreeningRonde ronde)
+	private VorigOnderzoekDto createVorigOnderzoekDto(MammaScreeningRonde ronde, MammaScreeningsEenheid daglijstSe)
 	{
-
 		try
 		{
 			return vorigOnderzoekDtoMapper.createVorigOnderzoekDto(ronde, beoordelingService, mammaBaseOnderzoekService);
@@ -161,18 +165,16 @@ public class DaglijstServiceImpl implements DaglijstService
 		catch (Exception exception)
 		{
 			LOG.error(exception.getMessage(), exception);
-			foutTijdensVorigOnderzoekMappen(ronde);
+			foutTijdensVorigOnderzoekMappen(ronde, daglijstSe);
 			return null;
 		}
 	}
 
-	private void foutTijdensVorigOnderzoekMappen(MammaScreeningRonde ronde)
+	private void foutTijdensVorigOnderzoekMappen(MammaScreeningRonde ronde, MammaScreeningsEenheid daglijstSe)
 	{
-		MammaScreeningsEenheid se = null;
 		Client client = null;
 		try
 		{
-			se = ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getStandplaatsPeriode().getScreeningsEenheid();
 			client = ronde.getDossier().getClient();
 		}
 		catch (Exception exception)
@@ -181,10 +183,10 @@ public class DaglijstServiceImpl implements DaglijstService
 			LOG.error(exception.getMessage(), exception);
 		}
 		String clientId = client != null ? client.getId().toString() : "onbekende client";
-		String seCode = se != null ? se.getCode() : "onbekende SE";
+		String seCode = daglijstSe != null ? daglijstSe.getCode() : "onbekende SE";
 		LOG.error(String.format("Fout tijdens opbouwen vorig onderzoek (ronde %s) van client: %s in %s", ronde.getId(), clientId, seCode));
 		sendErrorEmail(seCode);
-		logService.logGebeurtenis(LogGebeurtenis.MAMMA_SE_DAGLIJST_OPBOUWEN_ERROR, se, null, client, "Neem contact op met Topicus", currentDateSupplier.getLocalDateTime());
+		logService.logGebeurtenis(LogGebeurtenis.MAMMA_SE_DAGLIJST_OPBOUWEN_ERROR, daglijstSe, null, client, "Neem contact op met Topicus", currentDateSupplier.getLocalDateTime());
 	}
 
 	private void sendErrorEmail(String se)

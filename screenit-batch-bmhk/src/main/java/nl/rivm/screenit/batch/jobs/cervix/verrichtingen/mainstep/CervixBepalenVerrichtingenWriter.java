@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.mainstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,46 +31,60 @@ import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CervixBepalenVerrichtingenWriter extends CervixAbstractVerrichtingenWriter<CervixMonster>
 {
+
+	private static final Logger LOG = LoggerFactory.getLogger(CervixBepalenVerrichtingenWriter.class);
 
 	@Override
 	protected void write(CervixMonster monster) throws Exception
 	{
-		Date hpvAnalyseDatum = null;
-		if (monster.getHpvBeoordelingen().size() > 0)
+		try
 		{
-			hpvAnalyseDatum = monster.getHpvBeoordelingen().get(monster.getHpvBeoordelingen().size() - 1).getAutorisatieDatum();
+			Date hpvAnalyseDatum = null;
+			if (monster.getHpvBeoordelingen().size() > 0)
+			{
+				hpvAnalyseDatum = monster.getHpvBeoordelingen().get(monster.getHpvBeoordelingen().size() - 1).getAutorisatieDatum();
+			}
+			if (CervixMonsterType.UITSTRIJKJE.equals(monster.getUitnodiging().getMonsterType()))
+			{
+				CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
+				if (!CervixHuisartsBerichtStatus.HUISARTS_ONBEKEND.equals(uitstrijkje.getHuisartsBericht().getStatus()))
+				{
+					verrichtingenFactory.maakHuisartsVerrichting(monster, CervixTariefType.HUISARTS_UITSTRIJKJE, uitstrijkje.getOntvangstdatum(),
+						uitstrijkje.getHuisartsBericht().getHuisartsLocatie());
+					aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_HUISARTS_UITSTRIJKJE_AANTAL_KEY);
+				}
+				if (hpvAnalyseDatum != null)
+				{
+
+					verrichtingenFactory.maakLabVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_UITSTRIJKJE, hpvAnalyseDatum);
+					aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_UITSTRIJKJE_AANTAL_KEY);
+				}
+
+				if (uitstrijkje.getCytologieVerslag() != null)
+				{
+					bepaalCytologieVerrichtingen(uitstrijkje);
+				}
+			}
+			else
+			{
+				if (hpvAnalyseDatum != null)
+				{
+
+					verrichtingenFactory.maakLabVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_ZAS, hpvAnalyseDatum);
+					aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_ZAS_AANTAL_KEY);
+				}
+			}
 		}
-		if (CervixMonsterType.UITSTRIJKJE.equals(monster.getUitnodiging().getMonsterType()))
+		catch (Exception e)
 		{
-			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
-			if (!CervixHuisartsBerichtStatus.HUISARTS_ONBEKEND.equals(uitstrijkje.getHuisartsBericht().getStatus()))
-			{
-				verrichtingenFactory.maakHuisartsVerrichting(monster, CervixTariefType.HUISARTS_UITSTRIJKJE, uitstrijkje.getOntvangstdatum(),
-					uitstrijkje.getHuisartsBericht().getHuisartsLocatie());
-				aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_HUISARTS_UITSTRIJKJE_AANTAL_KEY);
-			}
-			if (hpvAnalyseDatum != null)
-			{
-
-				verrichtingenFactory.maakLabVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_UITSTRIJKJE, hpvAnalyseDatum);
-				aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_UITSTRIJKJE_AANTAL_KEY);
-			}
-
-			if (uitstrijkje.getCytologieVerslag() != null)
-			{
-				bepaalCytologieVerrichtingen(uitstrijkje);
-			}
-		}
-		else
-		{
-			if (hpvAnalyseDatum != null)
-			{
-
-				verrichtingenFactory.maakLabVerrichting(monster, CervixTariefType.LAB_HPV_ANALYSE_ZAS, hpvAnalyseDatum);
-				aantalContextOphogen(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_ZAS_AANTAL_KEY);
-			}
+			LOG.error("Fout bij bepalen van verrichting, monsterId: " + monster.getMonsterId() + ", clientId "
+				+ monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId());
+			throw e;
 		}
 
 	}

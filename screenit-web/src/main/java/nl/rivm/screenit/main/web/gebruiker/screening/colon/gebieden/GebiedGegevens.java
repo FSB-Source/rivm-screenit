@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.gebieden;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -325,7 +325,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 						List<ColoscopieCentrum> locaties = intakelocatiesModel.getObject();
 						locaties.add(intakelocatie);
 						intakelocatiesModel.setObject(new ArrayList<>(locaties));
-						newAdherentiePercentages.remove(ColonClientSelectieHelper.getUniekIdOf(verdeling));
+						newAdherentiePercentages.remove(ColonRestrictions.getUniekIdOf(verdeling));
 						target.add(adherentieForm, intakelocaties, adherentieTabel);
 
 					}
@@ -390,7 +390,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 					if (verwijderdeItem != null)
 					{
 						ColoscopieCentrumColonCapaciteitVerdeling verdeling = ModelUtil.nullSafeGet(verwijderdeItem);
-						newAdherentiePercentages.put(ColonClientSelectieHelper.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
+						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
 						verwijderdeItemModels.remove(intakelocatie.getId());
 					}
 					else
@@ -406,7 +406,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 						nieuweVerdeling.setColoscopieCentrum(intakelocatie);
 						intakelocatie = nieuweVerdeling.getColoscopieCentrum(); 
 						intakelocatie.getCapaciteitVerdeling().add(nieuweVerdeling);
-						newAdherentiePercentages.put(ColonClientSelectieHelper.getUniekIdOf(nieuweVerdeling), 0);
+						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(nieuweVerdeling), 0);
 					}
 					setIntakelocatie(null);
 					target.add(adherentieTabel, intakelocaties);
@@ -522,7 +522,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		newAdherentiePercentages = new HashMap<>();
 		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : getPageModel().getObject().getVerdeling())
 		{
-			newAdherentiePercentages.put(ColonClientSelectieHelper.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
+			newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(verdeling), verdeling.getPercentageAdherentie());
 		}
 		verwijderdeItemModels.clear();
 	}
@@ -563,7 +563,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		{
 			super(id, "adherentieFragment", fragments, model);
 
-			add(new PercentageIntegerField("nieuweAdherentie", new MapModel<>(newAdherentiePercentages, ColonClientSelectieHelper.getUniekIdOf(model.getObject()))));
+			add(new PercentageIntegerField("nieuweAdherentie", new MapModel<>(newAdherentiePercentages, ColonRestrictions.getUniekIdOf(model.getObject()))));
 		}
 	}
 

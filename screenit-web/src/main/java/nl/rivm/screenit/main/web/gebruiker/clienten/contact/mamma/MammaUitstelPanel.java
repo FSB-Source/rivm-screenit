@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,31 +22,30 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * =========================LICENSE_END==================================
  */
 
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.main.service.ExtraOpslaanKey;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitstel;
-import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
+import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
@@ -59,11 +58,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUitstel>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private MammaBaseAfspraakService baseAfspraakService;
+	private MammaBaseUitstelService baseUitstelService;
 
 	private IModel<Boolean> briefAanmaken = Model.of(false);
 
@@ -151,7 +149,6 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 	public void validate()
 	{
 		super.validate();
-		MammaUitstel uitstel = getModelObject();
 		boolean vanuitPlanning = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY).bkVanuitPlanning;
 		if (vanuitPlanning && !Boolean.TRUE.equals(clientContact.getObject()))
 		{
@@ -159,22 +156,13 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 		}
 
 		MammaStandplaatsPeriode standplaatsPeriode = standplaatsPeriodeModel.getObject();
+		MammaUitstel uitstel = getModelObject();
 
-		if (!baseAfspraakService.valideUitstelStreefDatum(DateUtil.toLocalDate(uitstel.getStreefDatum()), standplaatsPeriode))
+		String validatieError = baseUitstelService.valideerStandplaatsPeriode(standplaatsPeriode, DateUtil.toLocalDate(uitstel.getStreefDatum()));
+
+		if (StringUtils.isNotBlank(validatieError))
 		{
-			Date vrijgegevenTotEnMet = standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet();
-			if (vrijgegevenTotEnMet == null)
-			{
-				error(getString("lege.vrijgegeven.tot.en.met"));
-			}
-			else
-			{
-				LocalDate minStreefDatum = Collections
-					.max(Arrays.asList(DateUtil.toLocalDate(vrijgegevenTotEnMet).plusDays(1), DateUtil.toLocalDate(standplaatsPeriode.getVanaf())));
-				String minStreefdatumText = DateUtil.LOCAL_DATE_FORMAT.format(minStreefDatum);
-				String maxStreefdatumText = DateUtil.LOCAL_DATE_FORMAT.format(DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet()));
-				error(MessageFormat.format(getString("streefdatum.moet.tussen"), minStreefdatumText, maxStreefdatumText));
-			}
+			error(validatieError);
 		}
 	}
 
@@ -185,7 +173,8 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 		SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd-MM-yyyy");
 		return Arrays
 			.asList(
-				String.format("De afspraak wordt uitgesteld naar de streefdatum %s in %s", dateFormat.format(uitstel.getStreefDatum()), uitstel.getStandplaats().getNaam()));
+				String.format("De afspraak wordt uitgesteld naar de streefdatum %s in %s", dateFormat.format(uitstel.getStreefDatum()),
+					uitstel.getStandplaats().getNaam()));
 	}
 
 	@Override

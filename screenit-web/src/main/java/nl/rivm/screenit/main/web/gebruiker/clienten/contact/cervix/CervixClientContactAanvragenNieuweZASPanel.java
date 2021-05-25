@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,9 +29,8 @@ import java.util.Map;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
-import nl.rivm.screenit.main.service.ExtraOpslaanKey;
-import nl.rivm.screenit.main.service.RondeNummerService;
-import nl.rivm.screenit.main.service.cervix.CervixScreeningrondeService;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
@@ -64,9 +63,6 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 
 	@SpringBean
 	private RondeNummerService rondeNummerService;
-
-	@SpringBean
-	private CervixScreeningrondeService screeningrondeService;
 
 	@SpringBean
 	private CervixBaseScreeningrondeService screeningrondeBaseService;
@@ -112,7 +108,7 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 		add(new Label("extraOmschrijving", extraOmschrijving).setVisible(extraOmschrijving != null));
 		add(new WebMarkupContainer("gbaMessageContainer").setVisible(!GbaStatus.INDICATIE_AANWEZIG.equals(client.getObject().getGbaStatus())));
 		add(new Label("maxZASOverschredenWaarschuwing", String.format(getString("message.maxZASOverschredenWaarschuwing"), maxZasAanvragenInfolijn()))
-			.setVisible(screeningrondeService.heeftMaxAantalZASsenBereikt(laatsteScreeningRonde, false)));
+			.setVisible(screeningrondeBaseService.heeftMaxAantalZASsenBereikt(laatsteScreeningRonde, false)));
 
 		RadioGroup<Boolean> uitstelPeriodeNemen = new RadioGroup<>("uitstelPeriodeNemen", new PropertyModel<>(this, "uitstelPeriodeNemen"));
 		Radio<Boolean> uitstelRadio = new Radio<>("uitstel", Model.of(Boolean.TRUE));
@@ -145,7 +141,7 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 
 	private Integer maxZasAanvragenInfolijn()
 	{
-		return screeningrondeService.getMaxAantalZASAanvragen(false);
+		return screeningrondeBaseService.getMaxAantalZASAanvragen(false);
 	}
 
 	@Override

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.handleidingen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,16 +42,11 @@ import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
-	checkScope = false,
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.HANDLEIDINGEN_DOWNLOADEN,
-	bevolkingsonderzoekScopes = {
-		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
+	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class HandleidingenDownloadPage extends AlgemeenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean(name = "handleidingenPath")
 	private String handleidingenPath;
 
@@ -62,9 +57,6 @@ public class HandleidingenDownloadPage extends AlgemeenPage
 
 		ListView<File> bestandsLijst = new ListView<File>("bestandsLijst", list)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<File> item)
 			{
@@ -77,7 +69,6 @@ public class HandleidingenDownloadPage extends AlgemeenPage
 		};
 		form.add(bestandsLijst);
 		add(form);
-
 	}
 
 	public List<File> getFiles()
@@ -85,7 +76,7 @@ public class HandleidingenDownloadPage extends AlgemeenPage
 		File path = new File(handleidingenPath);
 		File[] fileArray = path.listFiles();
 
-		List<File> fileList = new ArrayList<File>();
+		List<File> fileList = new ArrayList<>();
 		if (fileArray != null)
 		{
 			for (File file : fileArray)
@@ -98,25 +89,14 @@ public class HandleidingenDownloadPage extends AlgemeenPage
 
 		}
 		return fileList;
-
 	}
 
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("label.handleidigendownload", HandleidingenDownloadPage.class));
 		return contextMenuItems;
-	}
-
-	public String getHandleidingenPath()
-	{
-		return handleidingenPath;
-	}
-
-	public void setHandleidingenPath(String handleidingenPath)
-	{
-		this.handleidingenPath = handleidingenPath;
 	}
 
 }

@@ -19,7 +19,6 @@
                 <executions>
                     <execution>
                         <id>copy-resources</id>
-
                         <phase>validate</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -34,6 +33,22 @@
                             </resources>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>copy-test-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/src/test/resources/aspose</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/../screenit-base/src/test/resources/aspose</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -43,12 +58,12 @@
                         <id>set-build-time</id>
                         <phase>compile</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <tstamp>
                                     <format property="timestamp" pattern="dd-MM-yyyy HH:mm:ss" />
                                 </tstamp>
                                 <replace file="target/classes/nl/rivm/screenit/main/web/ScreenitApplication.properties" token="build.time=nu" value="build.time=${timestamp}" />
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
@@ -731,6 +746,12 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -822,6 +843,11 @@
             <groupId>nl.topicuszorg.cloud</groupId>
             <artifactId>distributedsessions</artifactId>
         </dependency>
+
+		<dependency>
+		    <groupId>io.jsonwebtoken</groupId>
+		    <artifactId>jjwt</artifactId>
+		</dependency>
 
     </dependencies>
 

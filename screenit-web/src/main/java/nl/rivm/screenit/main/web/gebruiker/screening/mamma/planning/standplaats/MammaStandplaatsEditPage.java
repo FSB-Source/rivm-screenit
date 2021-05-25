@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
  */
 
 import nl.rivm.screenit.main.service.mamma.MammaScreeningsEenheidService;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -43,7 +44,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.service.InstellingService;
-import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
@@ -79,7 +79,7 @@ public class MammaStandplaatsEditPage extends MammaPlanningBasePage
 	private static final Logger LOG = LoggerFactory.getLogger(MammaStandplaatsEditPage.class);
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaStandplaatsService standplaatsService;
 
 	@SpringBean
 	private MammaScreeningsEenheidService screeningsEenheidService;
@@ -177,15 +177,15 @@ public class MammaStandplaatsEditPage extends MammaPlanningBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				MammaStandplaats standplaats = (MammaStandplaats) mainForm.getModelObject();
+				MammaStandplaats standplaats = mainForm.getModelObject();
 
-				if (!standplaats.getRegio().equals(initieleScreeningOrganisatieModel.getObject()) && baseStandplaatsService.countActieveStandplaatsPeriodes(standplaats) > 0)
+				if (!standplaats.getRegio().equals(initieleScreeningOrganisatieModel.getObject()) && standplaatsService.countActieveStandplaatsPeriodes(standplaats) > 0)
 				{
 					error(getString("heeft.actieve.standplaatsperiodes"));
 					return;
 				}
 
-				boolean changed = baseStandplaatsService.saveOrUpdateStandplaats(standplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				boolean changed = standplaatsService.saveOrUpdateStandplaats(standplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
 				if (changed)
 				{
 					if (!persistentContainer.isVisible())
@@ -193,7 +193,7 @@ public class MammaStandplaatsEditPage extends MammaPlanningBasePage
 						persistentContainer.setVisible(true);
 						target.add(persistentContainer);
 						addOrReplaceMainForm(target);
-						persistentContainer.addOrReplace(new MammaStandplaatsOpmerkingenPanel("opmerkingen", (IModel<MammaStandplaats>) mainForm.getModel()));
+						persistentContainer.addOrReplace(new MammaStandplaatsOpmerkingenPanel("opmerkingen", mainForm.getModel()));
 						addLocaties();
 						addPostcodeReeksen();
 					}
@@ -224,7 +224,7 @@ public class MammaStandplaatsEditPage extends MammaPlanningBasePage
 				}
 
 				standplaats.setActief(activeren);
-				baseStandplaatsService.saveOrUpdateStandplaats(standplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				standplaatsService.saveOrUpdateStandplaats(standplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
 
 				setResponsePage(MammaStandplaatsZoekenPage.class);
 				if (standplaats.getActief())
@@ -250,10 +250,10 @@ public class MammaStandplaatsEditPage extends MammaPlanningBasePage
 		else
 		{
 			inActiveren.add(new Label("inActiverenTitle", "Inactiveren"));
-			String inactiverenProperty = baseStandplaatsService.magStandplaatsInactiveren(standplaats);
+			String inactiverenProperty = standplaatsService.magStandplaatsInactiveren(standplaats);
 			boolean heeftTehuizen = standplaats.getTehuizen().size() > 0;
 
-			if(heeftTehuizen)
+			if (heeftTehuizen)
 			{
 				inactiverenProperty = "inactiveren.title.heefttehuizen";
 			}

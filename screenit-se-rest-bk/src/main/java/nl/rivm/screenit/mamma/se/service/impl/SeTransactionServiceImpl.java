@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -156,12 +156,9 @@ public class SeTransactionServiceImpl implements SeTransactionService
 			{
 				logAlleLogActies(acties, transactieDatumTijd, transactieGebruiker, screeningsEenheid, client);
 			}
-			else if (transactionDto.getType().equals(SETransactieType.BEEINDIGDE_AFSPRAAK_DOORVOEREN))
+			else if (!transactionDto.getType().equals(SETransactieType.BEEINDIGDE_AFSPRAAK_DOORVOEREN))
 			{
-				logAlleOnderzoekDoorvoerenActies(acties, transactieGebruiker, screeningsEenheid, transactieDatumTijd, transactionDto);
-			}
-			else
-			{
+
 				MammaOnderzoek onderzoek = client == null ? null : client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek();
 				logTransaction(transactionDto, transactieDatumTijd, transactieGebruiker, screeningsEenheid, client, onderzoek);
 			}
@@ -177,26 +174,12 @@ public class SeTransactionServiceImpl implements SeTransactionService
 	}
 
 	private void logTransaction(TransactionDto transactionDto, LocalDateTime transactieDatumTijd, InstellingGebruiker transactieGebruiker,
-		MammaScreeningsEenheid screeningsEenheid, Client client, MammaOnderzoek onderzoek) throws IOException
+		MammaScreeningsEenheid screeningsEenheid, Client client, MammaOnderzoek onderzoek)
 	{
 		LogGebeurtenis logGebeurtenis = getLoggebeurtenis(transactionDto.getType(), onderzoek);
 		if (logGebeurtenis != null)
 		{
 			logService.logInfo(logGebeurtenis, transactieGebruiker, client, screeningsEenheid, transactieDatumTijd,
-				getLogMessage(transactionDto.getType(), onderzoek));
-		}
-	}
-
-	private void logAlleOnderzoekDoorvoerenActies(List<ActionDto> acties, InstellingGebruiker transactieGebruiker, MammaScreeningsEenheid screeningsEenheid,
-		LocalDateTime transactieDatumTijd, TransactionDto transactionDto) throws IOException
-	{
-		for (ActionDto actionDto : acties)
-		{
-			MammaAfspraak afspraak = afspraakService
-				.getOfMaakLaatsteAfspraakVanVandaag(objectMapper.readValue(actionDto.getNodeText(), OnderzoekDoorvoerenDto.class).getAfspraakId(), transactieGebruiker);
-			Client client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
-			MammaOnderzoek onderzoek = afspraak.getOnderzoek();
-			logService.logInfo(LogGebeurtenis.MAMMA_SE_ONDERZOEK_DOORGEVOERD, transactieGebruiker, client, screeningsEenheid, transactieDatumTijd,
 				getLogMessage(transactionDto.getType(), onderzoek));
 		}
 	}
@@ -281,13 +264,11 @@ public class SeTransactionServiceImpl implements SeTransactionService
 		case UITSCHRIJVEN_CLIENT:
 		case START_KWALITEITSOPNAME_TRANSACTION:
 		case BEEINDIG_KWALITEITSOPNAME_TRANSACTION:
+		case BEEINDIGDE_AFSPRAAK_DOORVOEREN:
+		case LOG_GEBEURTENIS_SE:
 			return "";
 		case SIGNALEREN_OPSLAAN:
 			return (onderzoek.getSignaleren() != null) ? onderzoek.getSignaleren().getHeeftAfwijkingen() ? "Er zijn afwijkingen gesignaleerd." : "" : "";
-		case BEEINDIGDE_AFSPRAAK_DOORVOEREN:
-			return "";
-		case LOG_GEBEURTENIS_SE:
-			return "";
 		default:
 			throw new IllegalStateException("Transactietype niet gevonden");
 		}
@@ -348,9 +329,7 @@ public class SeTransactionServiceImpl implements SeTransactionService
 		case LOG_GEBEURTENIS_GEFAALDE_TRANSACTIE:
 			break;
 		case AFSPRAAK_DOORVOEREN:
-			MammaAfspraak afspraak = afspraakService
-				.getOfMaakLaatsteAfspraakVanVandaag(objectMapper.readValue(actionDto.getNodeText(), OnderzoekDoorvoerenDto.class).getAfspraakId(), transactieGebruiker);
-			baseOnderzoekService.onderzoekDoorvoerenVanuitSe(afspraak.getOnderzoek());
+			afspraakDoorvoeren(actionDto, transactieDatumTijd, transactieGebruiker, screeningsEenheid);
 			break;
 		case AFSPRAAK_MAKEN_PASSANT:
 			afspraakService.afspraakMakenPassant(objectMapper.readValue(actionDto.getNodeText(), AfspraakMakenPassantDto.class), transactieGebruiker, screeningsEenheid);
@@ -374,6 +353,26 @@ public class SeTransactionServiceImpl implements SeTransactionService
 
 		default:
 			throw new IllegalArgumentException("Onbekende actie: " + actionDto.getType());
+		}
+	}
+
+	private void afspraakDoorvoeren(ActionDto actionDto, LocalDateTime transactieDatumTijd, InstellingGebruiker transactieGebruiker, MammaScreeningsEenheid screeningsEenheid)
+		throws IOException
+	{
+		MammaAfspraak afspraak = afspraakService
+			.getOfMaakLaatsteAfspraakVanVandaag(objectMapper.readValue(actionDto.getNodeText(), OnderzoekDoorvoerenDto.class).getAfspraakId(), transactieGebruiker);
+		MammaOnderzoek onderzoek = afspraak.getOnderzoek();
+		if (onderzoek.isDoorgevoerd())
+		{
+			LOG.info("Onderzoek {} met status {} is al doorgevoerd; negeer actie {}", onderzoek.getId(), onderzoek.getStatus(), actionDto.getType());
+		}
+		else
+		{
+			baseOnderzoekService.onderzoekDoorvoerenVanuitSe(onderzoek);
+			Client client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
+			logService.logInfo(LogGebeurtenis.MAMMA_SE_ONDERZOEK_DOORGEVOERD, transactieGebruiker, client, screeningsEenheid, transactieDatumTijd,
+				getLogMessage(SETransactieType.BEEINDIGDE_AFSPRAAK_DOORVOEREN, onderzoek));
+
 		}
 	}
 

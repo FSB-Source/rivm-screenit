@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag.gunstigestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag.gunstigestep;
  */
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.colon.ColonBrief;
@@ -72,7 +73,7 @@ public class GunstigeUitslagBriefReader extends BaseScrollableResultReader
 				Restrictions.or(
 					Restrictions.isNull("uitnodiging.uitgesteldeUitslagDatum"),
 					Restrictions.le("uitnodiging.uitgesteldeUitslagDatum", currentDateSupplier.getDate())));
-			criteria.add(ScreenitRestrictions.colonGunstig("ifobten."));
+			criteria.add(ColonRestrictions.critGunstig("ifobten."));
 
 			DetachedCriteria subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");
 			subquery.setProjection(Projections.id());

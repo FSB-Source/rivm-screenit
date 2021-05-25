@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,8 +25,12 @@ package nl.rivm.screenit.model.colon;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 
+@Getter
+@Setter
 public class WerklijstIntakeFilter implements Serializable
 {
 
@@ -40,65 +44,12 @@ public class WerklijstIntakeFilter implements Serializable
 
 	private String bsn;
 
+	private Date geboortedatum;
+
 	private Boolean eersteKeerZoeken = true;
 
-	public void setStatus(AfspraakStatus status)
-	{
-		this.status = status;
-	}
+	private Integer maxLeeftijd;
 
-	public AfspraakStatus getStatus()
-	{
-		return status;
-	}
+	private Integer interval;
 
-	public String getBsn()
-	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public Boolean getEersteKeerZoeken()
-	{
-		return eersteKeerZoeken;
-	}
-
-	public void setEersteKeerZoeken(Boolean eersteKeerZoeken)
-	{
-		this.eersteKeerZoeken = eersteKeerZoeken;
-	}
-
-	public Date getVanaf()
-	{
-		return vanaf;
-	}
-
-	public void setVanaf(Date vanaf)
-	{
-		this.vanaf = vanaf;
-	}
-
-	public Date getTotEnMet()
-	{
-		return totEnMet;
-	}
-
-	public void setTotEnMet(Date totEnMet)
-	{
-		this.totEnMet = totEnMet;
-	}
-
-	public ConclusieTypeFilter getConclusieTypeFilter()
-	{
-		return conclusieTypeFilter;
-	}
-
-	public void setConclusieTypeFilter(ConclusieTypeFilter conclusieTypeFilter)
-	{
-		this.conclusieTypeFilter = conclusieTypeFilter;
-	}
 }

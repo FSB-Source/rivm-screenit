@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -1301,16 +1301,7 @@ public enum MergeField
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getClient() != null && context.getClient().getPersoon().getGeboortedatum() != null)
-			{
-				String datePattern = "dd-MM-yyyy";
-				if (context.getClient().getPersoon().getGeboortedatumPrecisie() != null)
-				{
-					datePattern = context.getClient().getPersoon().getGeboortedatumPrecisie().getDatePattern();
-				}
-				return new SimpleDateFormat(datePattern).format(context.getClient().getPersoon().getGeboortedatum());
-			}
-			return null;
+			return DateUtil.getGeboortedatum(context.getClient());
 		}
 
 	},
@@ -3487,6 +3478,11 @@ public enum MergeField
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
+			boolean toonLocatieWijzigingTekst = Boolean.TRUE.equals(context.getValue(MailMergeContext.CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST));
+			if (toonLocatieWijzigingTekst)
+			{
+				return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST);
+			}
 			MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
 			if (laatsteAfspraak != null)
 			{

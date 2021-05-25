@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,8 @@ public enum OrganisatieParameterKey
 	CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS(OrganisatieType.RIVM, Integer.class, 1000, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE(OrganisatieType.RIVM, Integer.class, 15000, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_MAX_AANTAL_HEROVERWEGERS(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 52, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_MAX_AANTAL_ZAS_NAAR_INPAKCENTRUM(OrganisatieType.INPAKCENTRUM, Integer.class, 20000, Bevolkingsonderzoek.CERVIX),
 

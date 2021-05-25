@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,5 +33,5 @@ public interface MammaBaseTehuisDao
 
 	long countTehuizen(MammaTehuis tehuis, ScreeningOrganisatie screeningOrganisatie);
 
-	MammaStandplaatsRonde getHuidigeStandplaatsRonde(MammaStandplaats standplaats, boolean controlerenOpActief);
+	MammaStandplaatsRonde getHuidigeStandplaatsRonde(MammaStandplaats standplaats);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,10 +40,12 @@ public interface MammaBaseAfspraakDao
 
 	long countAfspraken(long standplaatsPeriodeId, MammaAfspraakStatus... afspraakStatussen);
 
-    Date[] getEersteEnLaatsteAfspraakDatum(long standplaatsPeriodeiId, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+	Date[] getEersteEnLaatsteAfspraakDatum(long standplaatsPeriodeiId, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 	long countAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 	long countAfspraken(MammaScreeningsEenheid screeningsEenheid, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
+
+	List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen);
 
 }

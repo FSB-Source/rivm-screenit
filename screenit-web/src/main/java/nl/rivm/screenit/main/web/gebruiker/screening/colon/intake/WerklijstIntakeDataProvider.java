@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -57,9 +57,8 @@ public class WerklijstIntakeDataProvider extends SortableDataProvider<ColonIntak
 	@Override
 	public Iterator<? extends ColonIntakeAfspraak> iterator(long first, long count)
 	{
-		Iterator<? extends ColonIntakeAfspraak> it = afspraakService.getAfsprakenVoorColoscopiecentrum(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(coloscopieCentrum),
+		return afspraakService.getAfsprakenVoorColoscopiecentrum(ModelUtil.nullSafeGet(zoekModel), ModelUtil.nullSafeGet(coloscopieCentrum),
 			first, count, getSort().getProperty(), getSort().isAscending()).iterator();
-		return it;
 	}
 
 	@Override

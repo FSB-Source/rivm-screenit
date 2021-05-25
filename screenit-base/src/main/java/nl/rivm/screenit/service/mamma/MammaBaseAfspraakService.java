@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.mamma;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -82,4 +83,6 @@ public interface MammaBaseAfspraakService
 	MammaUitnodiging getLaatsteUitnodigingVanScreeningRonde(MammaScreeningRonde ronde);
 
 	boolean isAfspraakBinnen180Dagen(MammaOnderzoek onderzoek);
+
+	boolean isNoShow(MammaAfspraakStatus afspraakStatus, LocalDateTime afspraakMoment);
 }

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.screeningorgani
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -71,7 +71,6 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.HiddenField;
 import org.apache.wicket.markup.html.form.NumberTextField;
@@ -184,6 +183,7 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 		bkGroep.add(new BigDecimalField("factorMinderValideBk", 2, BigDecimal.ZERO, new BigDecimal("4.0")).setRequired(true).setEnabled(!inzien));
 		bkGroep.add(new BigDecimalField("factorEersteOnderzoekBk", 2, BigDecimal.ZERO, new BigDecimal("4.0")).setRequired(true).setEnabled(!inzien));
 		bkGroep.add(new NumberTextField<Integer>("wekenVanTevorenUitnodigen").setRequired(true).setEnabled(!inzien));
+		bkGroep.add(new NumberTextField<Integer>("vervallenCapaciteitsreserveringDagenBk").setMinimum(0).setRequired(true).setEnabled(!inzien));
 		bkGroep.add(new NumberTextField<Integer>("minimaleDagCapaciteitMinderValideAfspraken").setRequired(true).setEnabled(!inzien));
 
 		bkGroep.add(new GekoppeldeCeBeSePanel("ceBeSeOverzicht", model));
@@ -260,6 +260,7 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 				screeningsOrganisatieDto.factorDubbeleTijdBk = screeningOrganisatie.getFactorDubbeleTijdBk();
 				screeningsOrganisatieDto.factorEersteOnderzoekBk = screeningOrganisatie.getFactorEersteOnderzoekBk();
 				screeningsOrganisatieDto.wekenVanTevorenUitnodigen = screeningOrganisatie.getWekenVanTevorenUitnodigen();
+				screeningsOrganisatieDto.vervallenCapaciteitsreserveringDagenBk = screeningOrganisatie.getVervallenCapaciteitsreserveringDagenBk();
 				screeningsOrganisatieDto.minimaleDagCapaciteitMinderValideAfspraken = screeningOrganisatie.getMinimaleDagCapaciteitMinderValideAfspraken();
 				baseConceptPlanningsApplicatie.updateScreeningsOrganisatie(screeningsOrganisatieDto);
 				BasePage.markeerFormulierenOpgeslagen(target);

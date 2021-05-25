@@ -5,7 +5,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,7 @@ import java.util.List;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonBrief;
@@ -224,9 +224,9 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 		Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
 		List<Client> clientenOpAdres = clientDao.getClientenOpAdres(client.getPersoon().getGbaAdres(), minimaleLeeftijd,
 			maximaleLeeftijd, uitnodigingsInterval);
-		Client andereClient = ColonClientSelectieHelper.getAndereClient(clientenOpAdres, client);
-		boolean andereClientMetZelfdeAdresHeeftActiveIfobt = clientenOpAdres.size() == 2 && ColonClientSelectieHelper.isIfobtActief(andereClient, new ArrayList<>())
-			&& !ColonClientSelectieHelper.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket);
+		Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
+		boolean andereClientMetZelfdeAdresHeeftActiveIfobt = clientenOpAdres.size() == 2 && ColonRestrictions.isIfobtActief(andereClient, new ArrayList<>())
+			&& !ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket);
 
 		if (andereClientMetZelfdeAdresHeeftActiveIfobt)
 		{
@@ -275,5 +275,13 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 		LocalDate geboortedatum = DateUtil.toLocalDate(ronde.getDossier().getClient().getPersoon().getGeboortedatum());
 
 		return creatieDatumRonde.plusDays(uitnodigingsinterval).isBefore(vandaag) && geboortedatum.plusYears(maxLeeftijd).plusYears(1).isBefore(vandaag);
+	}
+
+	@Override
+	public boolean heeftMaxAantalFitAanvragenBereikt(ColonScreeningRonde laatsteScreeningRonde)
+	{
+		Integer maxAantalFitAanvragenPerRonde = preferenceService.getInteger(PreferenceKey.MAXIMUMAANTALIFOBTS.name());
+
+		return laatsteScreeningRonde.getUitnodigingen().size() >= maxAantalFitAanvragenPerRonde;
 	}
 }

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,26 +29,21 @@ import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
-import nl.rivm.screenit.main.service.ExtraOpslaanKey;
-import nl.rivm.screenit.main.service.mamma.MammaTijdNietBeschikbaarException;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
-import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
-import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
-import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
@@ -76,9 +71,6 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
-
-	@SpringBean
-	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	public MammaAfspraakKiezenPanel(String id, IModel<Client> clientModel, boolean rondeForceren)
 	{
@@ -130,7 +122,7 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 					uitnodiging = getModelObject().getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
 				}
 				Date vanaf = DateUtil.toUtilDate(kandidaatAfspraakDto.getTijd(), kandidaatAfspraakDto.getDatum());
-				MammaAfspraak dummyAfspraak = maakDummyAfspraak(uitnodiging, vanaf, capaciteitBlok, standplaatsPeriode, verzettenReden);
+				MammaAfspraak dummyAfspraak = baseFactory.maakDummyAfspraak(uitnodiging, vanaf, capaciteitBlok, standplaatsPeriode, verzettenReden);
 
 				MammaAfspraakPanel afspraakPanel = new MammaAfspraakPanel("nieuweAfspraakPanel", dummyAfspraak, true, rondeForceren)
 				{
@@ -198,38 +190,6 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 	public MammaAfspraak getNieuweAfspraak()
 	{
 		return ((MammaAfspraakPanel) nieuweAfspraakPanel).getModelObject();
-	}
-
-	public MammaAfspraak maakDummyAfspraak(MammaUitnodiging uitnodiging, Date vanaf, MammaCapaciteitBlok capaciteitBlok, MammaStandplaatsPeriode standplaatsPeriode,
-		MammaVerzettenReden verzettenReden)
-	{
-		MammaAfspraak afspraak = new MammaAfspraak();
-		GbaPersoon persoon = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon();
-		String postcode = persoon.getTijdelijkGbaAdres() != null ? persoon.getTijdelijkGbaAdres().getPostcode() : persoon.getGbaAdres().getPostcode();
-
-		afspraak.setUitnodiging(uitnodiging);
-		afspraak.setVanaf(vanaf);
-		afspraak.setCapaciteitBlok(capaciteitBlok);
-		afspraak.setStandplaatsPeriode(standplaatsPeriode);
-		afspraak.setVerzettenReden(verzettenReden);
-		afspraak.setStatus(MammaAfspraakStatus.GEPLAND);
-		afspraak.setBezwaarAangevraagd(false);
-		afspraak.setPostcode(postcode);
-		afspraak.setCreatiedatum(currentDateSupplier.getDate());
-
-		MammaKansberekeningAfspraakEvent afspraakEvent = new MammaKansberekeningAfspraakEvent();
-		afspraakEvent.setAfspraak(afspraak);
-		afspraak.setAfspraakEvent(afspraakEvent);
-
-		MammaOpkomstkans opkomstkans = new MammaOpkomstkans();
-		opkomstkans.setAfspraak(afspraak);
-		afspraak.setOpkomstkans(opkomstkans);
-
-		baseKansberekeningService.resetPreferences();
-		baseKansberekeningService.updateAfspraakEvent(afspraak, false);
-		opkomstkans.setOpkomstkans(baseKansberekeningService.getOpkomstkans(afspraak));
-
-		return afspraak;
 	}
 
 	private boolean checkBestaatCapaciteitBlokNog(AjaxRequestTarget target, Long capaciteitBlokId)

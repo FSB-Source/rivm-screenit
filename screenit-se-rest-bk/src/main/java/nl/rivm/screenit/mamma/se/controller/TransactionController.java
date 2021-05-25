@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -95,9 +94,10 @@ public class TransactionController extends AuthorizedController
 			String uitnodigingsNr = transactionDto.getUitnodigingsNr();
 			SETransactieType type = transactionDto.getType();
 			List<ActionDto> acties = getActies(transactionString);
-			LOG.info(String.format("[%s] SE[%s] Transactie ontvangen die is uitgevoerd op [%s], met type: %s, instellingGebruikerId: %s, uitnodigingsNr: %s en acties: %s",
-				currentDateSupplier.getLocalDateTime().format(formatter), seCode, transactieDatumTijd.format(formatter), type.toString(), instellingGebruikerId, uitnodigingsNr,
-				acties.stream().map(ActionDto::getType).map(Objects::toString).collect(Collectors.joining(", "))));
+			LOG.info(
+				String.format("[%s] SE[%s] Transactie ontvangen die is uitgevoerd op [%s], met type: %s, instellingGebruikerId: %s, clientid: %s, uitnodigingsNr: %s en acties: %s",
+					currentDateSupplier.getLocalDateTime().format(formatter), seCode, transactieDatumTijd.format(formatter), type.toString(), instellingGebruikerId,
+					transactionDto.getClientId(), uitnodigingsNr, acties.stream().map(ActionDto::getType).map(Objects::toString).collect(Collectors.joining(", "))));
 			dubbeleTijdValidator.validate(acties);
 			return transactionService.executeAsTransactionIfAuthorised(acties, transactionDto, transactieDatumTijd,
 				hibernateService.get(InstellingGebruiker.class, instellingGebruikerId), se);

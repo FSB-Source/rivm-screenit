@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,16 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.rmi.NoSuchObjectException;
 import java.util.List;
 
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.Dossier;
+import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -124,5 +127,35 @@ public class AfmeldingUtil
 			afmelding = screeningRonde.getLaatsteAfmelding();
 		}
 		return afmelding;
+	}
+
+	public static <A extends Afmelding<?, ?, ?>,S extends ScreeningRonde<?, ?, A, ?>> A getVerwerkteAfmelding(Dossier<S, A> dossier)
+	{
+		if (DossierStatus.INACTIEF.equals(dossier.getStatus()))
+		{
+			List<A> dossierAfmeldingen = dossier.getAfmeldingen();
+			for (A afmelding : dossierAfmeldingen)
+			{
+				if (AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus()) && afmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT)
+				{
+					return afmelding;
+				}
+			}
+		}
+		else if (DossierStatus.ACTIEF.equals(dossier.getStatus()))
+		{
+			if (dossier.getLaatsteScreeningRonde() != null)
+			{
+				for (A afmelding : dossier.getLaatsteScreeningRonde().getAfmeldingen())
+				{
+					if (AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus()) && AfmeldingType.EENMALIG.equals(afmelding.getType())
+						&& !AanvraagBriefStatus.VERWERKT.equals(afmelding.getHeraanmeldStatus()))
+					{
+						return afmelding;
+					}
+				}
+			}
+		}
+		throw new IllegalStateException("DossierStatus is onbekend of een ongeldige status.");
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -181,7 +181,7 @@ public class ClientDaoImpl extends AbstractAutowiredDao implements ClientDao
 
 		List<Client> clienten = crit.list();
 
-		clienten.removeIf(client -> !DateUtil.geboortedatumEquals(client.getPersoon(), persoon));
+		clienten.removeIf(client -> !DateUtil.isGeboortedatumGelijk(DateUtil.toLocalDate(persoon.getGeboortedatum()), client));
 
 		return clienten;
 	}
@@ -204,7 +204,7 @@ public class ClientDaoImpl extends AbstractAutowiredDao implements ClientDao
 		crit.createAlias("persoon", "persoon");
 		crit.createAlias("persoon.gbaAdres", "adres");
 
-		ScreenitRestrictions.addLeeftijdsgrensRestrictions(crit, minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval, currentDateSupplier.getLocalDate());
+		crit.add(ScreenitRestrictions.getLeeftijdsgrensRestrictions(minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval, currentDateSupplier.getLocalDate()));
 
 		crit.add(Restrictions.isNull("persoon.overlijdensdatum"));
 

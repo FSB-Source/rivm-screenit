@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,31 +25,30 @@ package nl.rivm.screenit.main.service.impl;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.service.ProefBvoService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.DatumPrecisie;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.rivm.screenit.util.DateUtil;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,16 +62,12 @@ import au.com.bytecode.opencsv.CSVReader;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class ProefBvoServiceImpl implements ProefBvoService
 {
-
 	private static final String VOLDOET_NIET_AFGESPROKEN_FORMAT = "Voldoet niet aan het afgesproken formaat (&lt;anummer:{0-9}10&gt;;&lt;geboortedatum:{yyyyMMdd}&gt;).";
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProefBvoServiceImpl.class);
 
 	@Autowired
 	private ClientService clientService;
-
-	@Autowired
-	private HibernateService hibernateService;
 
 	@Autowired
 	private LogService logService;
@@ -91,9 +86,8 @@ public class ProefBvoServiceImpl implements ProefBvoService
 		int totaalAantal = 0;
 		long start = System.currentTimeMillis();
 
-		try (CSVReader csvReader = new CSVReader(new FileReader(fileClientenBestand), ';');)
+		try (CSVReader csvReader = new CSVReader(new FileReader(fileClientenBestand), ';'))
 		{
-
 			List<String[]> allLines = csvReader.readAll();
 			totaalAantal = allLines.size();
 			for (String[] line : allLines)
@@ -171,7 +165,7 @@ public class ProefBvoServiceImpl implements ProefBvoService
 		int regelNr = 0;
 		int totaalAantal = 0;
 		UploadDocument handtekeningDoc = null;
-		try (CSVReader csvReader = new CSVReader(new FileReader(fileClientenBestand), ';');)
+		try (CSVReader csvReader = new CSVReader(new FileReader(fileClientenBestand), ';'))
 		{
 
 			List<String[]> allLines = csvReader.readAll();
@@ -192,6 +186,7 @@ public class ProefBvoServiceImpl implements ProefBvoService
 
 							afmelding.setStatusHeraanmeldDatum(currentDateSupplier.getDate());
 							afmelding.setHeraanmeldStatus(AanvraagBriefStatus.BRIEF);
+							afmelding.setClientWilNieuweUitnodiging(false);
 							if (handtekeningDoc == null)
 							{
 								handtekeningDoc = new UploadDocument();
@@ -214,6 +209,7 @@ public class ProefBvoServiceImpl implements ProefBvoService
 				catch (Exception e)
 				{
 					meldingen.add(meldingPrefix + VOLDOET_NIET_AFGESPROKEN_FORMAT + " Onbekende fout: " + e.getMessage());
+					LOG.error("Proefbevolkings afmelden service heraanmelden zorgde voor exception", e);
 				}
 			}
 		}
@@ -232,18 +228,6 @@ public class ProefBvoServiceImpl implements ProefBvoService
 		logService.logGebeurtenis(LogGebeurtenis.PROOF_ONDERZOEK_HERAANMELDING_AFGEROND, ingelogdeGebruiker, melding, Bevolkingsonderzoek.COLON);
 
 		return meldingen;
-	}
-
-	private String getGeboorteDatumMetPrecisie(Client client)
-	{
-		GbaPersoon persoon = client.getPersoon();
-		DatumPrecisie precisie = persoon.getGeboortedatumPrecisie();
-		String datePattern = "dd-MM-yyyy";
-		if (precisie != null)
-		{
-			datePattern = precisie.getDatePattern();
-		}
-		return new SimpleDateFormat(datePattern).format(client.getPersoon().getGeboortedatum());
 	}
 
 	private String maakMeldingVoorLogEvent(List<String> meldingen)
@@ -266,14 +250,14 @@ public class ProefBvoServiceImpl implements ProefBvoService
 				{
 					if (StringUtils.isNotBlank(geboortedatum) && geboortedatum.trim().length() == 8)
 					{
-						if (checkGeboorteDatumMetPrecisie(client, geboortedatum))
+						if (DateUtil.isGeboortedatumGelijk(LocalDate.parse(geboortedatum, DateTimeFormatter.ofPattern(Constants.DATE_FORMAT_YYYYMMDD)), client))
 						{
 							result = client;
 						}
 						else
 						{
 							meldingen.add(meldingPrefix + "Geboortedatum in regel komt niet overeen met die van client met bsn " + client.getPersoon().getBsn() + ", geboortedatum "
-								+ getGeboorteDatumMetPrecisie(client));
+								+ DateUtil.getGeboortedatum(client));
 						}
 					}
 					else
@@ -293,28 +277,9 @@ public class ProefBvoServiceImpl implements ProefBvoService
 		}
 		catch (Exception e)
 		{
+			LOG.error(e.getMessage(), e);
 			meldingen.add(meldingPrefix + VOLDOET_NIET_AFGESPROKEN_FORMAT + " Onbekende fout: " + e.getMessage());
 		}
-		return result;
-	}
-
-	private boolean checkGeboorteDatumMetPrecisie(Client client, String gebdatum)
-	{
-		gebdatum = gebdatum.trim();
-		GbaPersoon persoon = client.getPersoon();
-		DatumPrecisie precisie = persoon.getGeboortedatumPrecisie();
-		DateTime geboortedatum = new DateTime(persoon.getGeboortedatum());
-
-		boolean result = Integer.valueOf(gebdatum.substring(0, 4)).equals(geboortedatum.getYear());
-		if (result && (DatumPrecisie.MAAND.equals(precisie) || DatumPrecisie.VOLLEDIG.equals(precisie)))
-		{
-			result = Integer.valueOf(gebdatum.substring(4, 6)).equals(geboortedatum.getMonthOfYear());
-		}
-		if (result && DatumPrecisie.VOLLEDIG.equals(precisie))
-		{
-			result = Integer.valueOf(gebdatum.substring(6, 8)).equals(geboortedatum.getDayOfMonth());
-		}
-
 		return result;
 	}
 }

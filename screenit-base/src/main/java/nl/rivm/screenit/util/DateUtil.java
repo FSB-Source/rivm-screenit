@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.util;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,12 +21,13 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.WeekFields;
@@ -38,18 +38,21 @@ import java.util.List;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.enums.DatumPrecisie;
 
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeConstants;
 import org.joda.time.Days;
 import org.joda.time.Interval;
 import org.joda.time.Months;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class DateUtil
 {
+	private static final Logger LOG = LoggerFactory.getLogger(DateUtil.class);
 
-	private static final ZoneId SCREENIT_DEFAULT = ZoneId.of("CET");
+	private static final ZoneId SCREENIT_DEFAULT = ZoneId.of("Europe/Amsterdam");
 
 	public static DateTimeFormatter LOCAL_DATE_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT);
 
@@ -64,6 +67,8 @@ public final class DateUtil
 	public static DateTimeFormatter LOCAL_DATE_UITEGEBREID_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Constants.LOCALE_NL);
 
 	public static DateTimeFormatter LOCAL_DATE_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("dd MMMM yyyy", Constants.LOCALE_NL);
+
+	public static DateTimeFormatter LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT = DateTimeFormatter.ofPattern("EEEE d MMMM HH:mm", Constants.LOCALE_NL);
 
 	private DateUtil()
 	{
@@ -321,7 +326,19 @@ public final class DateUtil
 		{
 			return null;
 		}
-		return Date.from(localDateTime.atZone(SCREENIT_DEFAULT).toInstant());
+		ZonedDateTime atZone = localDateTime.atZone(SCREENIT_DEFAULT);
+		Instant instant = atZone.toInstant();
+		Date date = Date.from(instant);
+		if (LOG.isTraceEnabled())
+		{
+			ZonedDateTime atZoneSD = localDateTime.atZone(ZoneId.systemDefault());
+			Instant instantSD = atZoneSD.toInstant();
+			Date dateSD = Date.from(instantSD);
+			LOG.trace("Input localDateTime: " + localDateTime + " ZonedDateTime: " + atZone + " Instant: " + instant + " Date: " + date + " ZonedDateTimeSD: " + atZoneSD
+				+ " InstantSD: " + instantSD + " DateSD: " + dateSD + " SD: " + ZoneId.systemDefault());
+		}
+
+		return date;
 	}
 
 	public static Date toUtilDate(LocalTime localTime, LocalDate localDate)
@@ -330,7 +347,7 @@ public final class DateUtil
 		{
 			return null;
 		}
-		return Date.from(localTime.atDate(localDate).atZone(SCREENIT_DEFAULT).toInstant());
+		return toUtilDate(localTime.atDate(localDate));
 	}
 
 	public static Date toUtilDate(LocalDate localDate)
@@ -339,7 +356,18 @@ public final class DateUtil
 		{
 			return null;
 		}
-		return Date.from(localDate.atStartOfDay(SCREENIT_DEFAULT).toInstant());
+		ZonedDateTime atStartOfDay = localDate.atStartOfDay(SCREENIT_DEFAULT);
+		Instant instant = atStartOfDay.toInstant();
+		Date date = Date.from(instant);
+		if (LOG.isTraceEnabled())
+		{
+			ZonedDateTime atStartOfDaySD = localDate.atStartOfDay(ZoneId.systemDefault());
+			Instant instantSD = atStartOfDaySD.toInstant();
+			Date dateSD = Date.from(instantSD);
+			LOG.trace("Input localDate: " + localDate + "ZonedDateTime: " + atStartOfDay + " Instant: " + instant + " Date: " + date + " ZonedDateTimeSD: " + atStartOfDaySD
+				+ " InstantSD: " + instantSD + " DateSD: " + dateSD + " SD: " + ZoneId.systemDefault());
+		}
+		return date;
 	}
 
 	public static Date toUtilDateMidnight(LocalDate localDate)
@@ -403,7 +431,7 @@ public final class DateUtil
 
 	public static boolean isZelfdeDag(LocalDate date1, Date date2)
 	{
-		return (DateUtil.toUtilDateMidnight(date1).compareTo(DateUtil.toUtilDateMidnight(date2)) == 0);
+		return DateUtil.toUtilDateMidnight(date1).compareTo(DateUtil.toUtilDateMidnight(date2)) == 0;
 	}
 
 	public static boolean isZelfdeDag(LocalDate date1, LocalDate date2)
@@ -413,8 +441,10 @@ public final class DateUtil
 
 	public static boolean isGeboortedatumGelijk(LocalDate geboortedatum, Client client)
 	{
-		DateFormat geboortedatumPrecisieFormat = client.getPersoon().getGeboortedatumPrecisie().getDateFormat();
-		return geboortedatumPrecisieFormat.format(client.getPersoon().getGeboortedatum()).equals(geboortedatumPrecisieFormat.format(DateUtil.toUtilDate(geboortedatum)));
+		GbaPersoon persoon = client.getPersoon();
+		String gebDatClient = getGeboortedatum(client);
+		String gebDatVergelijk = DateTimeFormatter.ofPattern(persoon.getGeboortedatumPrecisie().getDatePattern()).format(geboortedatum);
+		return gebDatClient.equals(gebDatVergelijk);
 	}
 
 	public static String formatForPattern(String pattern, Date date)
@@ -437,39 +467,17 @@ public final class DateUtil
 
 	public static String getGeboortedatum(GbaPersoon persoon)
 	{
-		String geboortedatum = null;
-		if (persoon.getGeboortedatum() != null)
+		String geboortedatumAlsTekst = null;
+		if (persoon != null && persoon.getGeboortedatum() != null)
 		{
-			String datePattern = "dd-MM-yyyy";
-			if (persoon != null && persoon.getGeboortedatumPrecisie() != null)
+			String geboortedatumPrecisieDatePattern = Constants.DEFAULT_DATE_FORMAT;
+			if (persoon.getGeboortedatumPrecisie() != null)
 			{
-				datePattern = persoon.getGeboortedatumPrecisie().getDatePattern();
+				geboortedatumPrecisieDatePattern = persoon.getGeboortedatumPrecisie().getDatePattern();
 			}
-			geboortedatum = new SimpleDateFormat(datePattern).format(persoon.getGeboortedatum());
+			geboortedatumAlsTekst = DateTimeFormatter.ofPattern(geboortedatumPrecisieDatePattern).format(toLocalDate(persoon.getGeboortedatum()));
 		}
-		return geboortedatum;
-	}
-
-	public static boolean geboortedatumEquals(GbaPersoon dbPersoon, GbaPersoon zoekPersoon)
-	{
-		if (dbPersoon != null && zoekPersoon != null)
-		{
-			DatumPrecisie precisie = dbPersoon.getGeboortedatumPrecisie();
-			DateTime geboortedatum = new DateTime(dbPersoon.getGeboortedatum());
-			DateTime invoer = new DateTime(zoekPersoon.getGeboortedatum());
-
-			boolean result = geboortedatum.getYear() == invoer.getYear();
-			if (result && (precisie == DatumPrecisie.MAAND || precisie == DatumPrecisie.VOLLEDIG))
-			{
-				result = geboortedatum.getMonthOfYear() == invoer.getMonthOfYear();
-			}
-			if (result && precisie == DatumPrecisie.VOLLEDIG)
-			{
-				result = geboortedatum.getDayOfMonth() == invoer.getDayOfMonth();
-			}
-			return result;
-		}
-		return false;
+		return geboortedatumAlsTekst;
 	}
 
 	public static String getGeboortedatum(Client client)
@@ -496,18 +504,14 @@ public final class DateUtil
 		return referentieDatum != null && vergelijkingsDatum.compareTo(referentieDatum) == 0;
 	}
 
-	public static boolean isBetween(LocalDateTime vanaf, LocalDateTime totEnMet, LocalDateTime vergelijkingsDatum)
-	{
-		return !vergelijkingsDatum.isBefore(vanaf) && !vergelijkingsDatum.isAfter(totEnMet);
-	}
-
-	public static boolean isBetween(LocalTime vanaf, LocalTime totEnMet, LocalTime vergelijkingVanaf, LocalTime vergelijkingTotEnMet)
-	{
-		return !vanaf.isBefore(vergelijkingVanaf) && !totEnMet.isAfter(vergelijkingTotEnMet);
-	}
-
 	public static Date zetSeconden(Date date, int seconden)
 	{
 		return toUtilDate(toLocalDateTime(date).withSecond(seconden));
+	}
+
+	public static String getWeergaveDatumClientportaal(LocalDateTime datum)
+	{
+		String weergaveDatum = datum.format(LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT);
+		return StringUtils.capitalize(weergaveDatum);
 	}
 }

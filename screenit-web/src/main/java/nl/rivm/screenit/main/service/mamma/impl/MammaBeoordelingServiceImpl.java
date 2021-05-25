@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,7 @@ import nl.rivm.screenit.main.model.mamma.beoordeling.BeoordelingenReserveringRes
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
-import nl.rivm.screenit.main.service.mamma.MammaHuisartsService;
+import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.EnovationHuisarts;
@@ -61,6 +61,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DistributedLockService;
@@ -143,6 +144,9 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 
 	@Autowired
 	private MammaBaseKansberekeningService kansberekeningService;
+
+	@Autowired
+	private BaseScreeningRondeService baseScreeningRondeService;
 
 	@Override
 	public List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetBeWerklijstBeoordeling(InstellingGebruiker loggedInInstellingGebruiker,
@@ -499,6 +503,8 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_CE_ONBEOORDEELBAAR_AFGEHANDELD, ingelogdeGebruiker, baseBeoordelingService.getClientVanBeoordeling(beoordeling), "",
 			Bevolkingsonderzoek.MAMMA);
 		kansberekeningService.dossierEventHerzien(baseBeoordelingService.getScreeningRonde(beoordeling).getDossier());
+		MammaScreeningRonde ronde = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde();
+		baseScreeningRondeService.screeningRondeAfronden(ronde);
 	}
 
 	private void verslagVerwerkenDoorCE(MammaBeoordeling beoordeling, InstellingGebruiker ingelogdeGebruiker, MammaBeoordelingStatus nieuweStatus, LogGebeurtenis logGebeurtenis,

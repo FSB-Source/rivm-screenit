@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.dtomapper;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,7 +72,7 @@ public class AfspraakDtoMapper
 		afspraakSeDto.setBezwaarAangevraagd(heeftEenNogNietVerwerkteBezwaarBrief(afspraak));
 		afspraakSeDto.setHuidigOnderzoek(createHuidigOnderzoekDto(afspraak));
 		afspraakSeDto.setMammografie(createMammografieDto(afspraak));
-		afspraakSeDto.setSignaleren(createSignalereDto(afspraak));
+		afspraakSeDto.setSignaleren(createSignalerenDto(afspraak));
 		final EnovationHuisarts huisarts = getHuisarts(afspraak);
 		afspraakSeDto.setHuisartsId(huisarts != null ? huisarts.getId() : null);
 		afspraakSeDto.setGeenHuisartsOptie(getGeenHuisartsOptie(afspraak));
@@ -270,9 +270,9 @@ public class AfspraakDtoMapper
 		return new MammografieDtoMapper().createMammografieDto(afspraak);
 	}
 
-	private SignalerenSeDto createSignalereDto(MammaAfspraak afspraak)
+	private SignalerenSeDto createSignalerenDto(MammaAfspraak afspraak)
 	{
-		return new SignalerenDtoMapper().createSignalerenDto(afspraak);
+		return new SignalerenDtoMapper().createSignalerenDto(afspraak.getOnderzoek());
 	}
 
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.client.dashboard.cervix;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,8 @@ package nl.rivm.screenit.main.web.client.dashboard.cervix;
 import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.main.service.ClientGebeurtenis;
-import nl.rivm.screenit.main.service.DossierService;
+import nl.rivm.screenit.service.BaseClientGebeurtenisService;
+import nl.rivm.screenit.model.ClientGebeurtenis;
 import nl.rivm.screenit.main.web.client.base.ClientBasePage;
 import nl.rivm.screenit.main.web.client.base.ClientHoofdMenuitem;
 import nl.rivm.screenit.main.web.client.dashboard.ClientDashboardPersoonsgegevensPanel;
@@ -63,7 +63,7 @@ public class ClientCervixDashboardPage extends ClientBasePage
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private DossierService dossierService;
+	private BaseClientGebeurtenisService clientGebeurtenisService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;
@@ -88,7 +88,7 @@ public class ClientCervixDashboardPage extends ClientBasePage
 			@Override
 			protected List<ClientGebeurtenis> getGebeurtenissen(IModel<Client> modelClient)
 			{
-				return dossierService.getClientCervixGebeurtenissen(ModelProxyHelper.deproxy(modelClient.getObject()));
+				return clientGebeurtenisService.getClientCervixGebeurtenissen(ModelProxyHelper.deproxy(modelClient.getObject()));
 			}
 
 		});

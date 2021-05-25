@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.algemeen.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ import java.util.Map;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixRondeDao;
-import nl.rivm.screenit.main.service.RondeNummerService;
+import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.main.service.algemeen.OverdrachtPersoonsgegevensService;
 import nl.rivm.screenit.main.util.CervixCisHistoryUtil;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
@@ -171,22 +171,6 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 
 	@Autowired
 	private MammaBaseBeoordelingService baseBeoordelingService;
-
-	@Override
-	public void maakOverdrachtVerzoek(Client client)
-	{
-		AlgemeneBrief brief = briefService.maakAlgemeneBrief(client, BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_AANVRAAG);
-		OverdrachtPersoonsgegevens overdracht = new OverdrachtPersoonsgegevens();
-		overdracht.setClient(client);
-		overdracht.setVerstuurdeAanvraagbrief(brief);
-		overdracht.setStatus(AanvraagBriefStatus.BRIEF);
-		overdracht.setStatusDatum(currentDateSupplier.getDate());
-		overdracht.setBkGegevens(false);
-		overdracht.setBkBeelden(false);
-		overdracht.setBmhkGegevens(false);
-		overdracht.setDkGegevens(false);
-		hibernateService.saveOrUpdate(overdracht);
-	}
 
 	@Override
 	public boolean heeftVerzoekZonderGegenereerdeBrief(Client client)

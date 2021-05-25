@@ -5,7 +5,7 @@ package nl.rivm.screenit.dao.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,6 +43,7 @@ import nl.rivm.screenit.model.colon.planning.AfspraakLocatieWrapper;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
@@ -195,7 +196,17 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 			criteria.addOrder(Order.asc("id"));
 		}
 
-		return (List<ColonIntakeAfspraak>) criteria.list(getSession(), new ListCriteria(Ints.checkedCast(first), Ints.checkedCast(count)));
+		List<ColonIntakeAfspraak> afspraken = (List<ColonIntakeAfspraak>) criteria.list(getSession(), new ListCriteria(Ints.checkedCast(first), Ints.checkedCast(count)));
+		if (moetNogOpGeboortedatumFilteren(zoekFilter))
+		{
+			filterGeboortedatum(zoekFilter.getGeboortedatum(), afspraken);
+		}
+		return afspraken;
+	}
+
+	private boolean moetNogOpGeboortedatumFilteren(WerklijstIntakeFilter zoekFilter)
+	{
+		return AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()) && zoekFilter.getGeboortedatum() != null;
 	}
 
 	private BaseCriteria<? extends ColonIntakeAfspraak> createCriteria(WerklijstIntakeFilter zoekFilter, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag)
@@ -211,17 +222,21 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		criteria.add(Restrictions.in("status", AfspraakStatus.VOOR_AGENDA));
 		criteria.add(Restrictions.eqProperty("dossier.laatsteScreeningRonde", "colonScreeningRonde"));
 
-		if (StringUtils.isNotBlank(zoekFilter.getBsn()))
+		if (StringUtils.isNotBlank(zoekFilter.getBsn()) && (!AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()) || zoekFilter.getGeboortedatum() != null))
 		{
 			criteria.add(Restrictions.eq("persoon.bsn", zoekFilter.getBsn()));
+		}
+		else if (AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
+		{
+
+			criteria.add(Restrictions.eq("persoon.bsn", "nobsn"));
 		}
 		DetachedCriteria verslagenCrit = DetachedCriteria.forClass(MdlVerslag.class);
 		verslagenCrit.add(Restrictions.eq("status", VerslagStatus.AFGEROND));
 		verslagenCrit.setProjection(Projections.distinct(Projections.property("screeningRonde.id")));
 
-		LocalDate vanaf = null;
+		LocalDate vanaf = DateUtil.toLocalDate(zoekFilter.getVanaf());
 		LocalDate totEnMet = null;
-		vanaf = DateUtil.toLocalDate(zoekFilter.getVanaf());
 		if (zoekFilter.getTotEnMet() != null)
 		{
 			totEnMet = DateUtil.toLocalDate(zoekFilter.getTotEnMet()).plusDays(1);
@@ -240,6 +255,7 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		}
 		else if (AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
 		{
+			criteria.alias("colonScreeningRonde.ifobtTesten", "testen");
 			criteria.add(
 				Restrictions.or(
 					Subqueries.propertyIn("colonScreeningRonde.id", verslagenCrit),
@@ -247,6 +263,14 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 						Restrictions.eq("status", AfspraakStatus.UITGEVOERD), 
 						Restrictions.isNotNull("conclusie.type"),
 						Restrictions.ne("conclusie.type", ColonConclusieType.ON_HOLD))));
+			criteria.add(Restrictions.isNull("persoon.overlijdensdatum"));
+			criteria.add(Restrictions.or(
+				ScreenitRestrictions.getLeeftijdsgrensRestrictions(null, zoekFilter.getMaxLeeftijd(), vandaag),
+				Restrictions.not(
+					ColonRestrictions.critRondeZonderVerslagNaVerlopenOngunstigeUitslag(DateUtil.toUtilDate(vandaag.minusDays(zoekFilter.getInterval())), "testen", "colonScreeningRonde")
+				)
+			));
+            criteria.add(Restrictions.isNull("nieuweAfspraak"));
 		}
 		else
 		{
@@ -262,16 +286,16 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 				critZonderConclusie.add(Restrictions.lt("startTime", DateUtil.toUtilDate(vandaag)));
 			}
 
-			Conjunction critOnHold = Restrictions.conjunction();
-			critOnHold.add(Restrictions.eq("conclusie.type", ColonConclusieType.ON_HOLD));
-			if (totEnMet != null)
-			{
-				critOnHold.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
-			}
-			criteria.alias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
-			criteria.createAlias("volgendeUitnodiging.interval", "interval");
-			criteria.add(Restrictions.gtProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum"));
-			criteria.add(Restrictions.or(critZonderConclusie, critOnHold));
+				Conjunction critOnHold = Restrictions.conjunction();
+				critOnHold.add(Restrictions.eq("conclusie.type", ColonConclusieType.ON_HOLD));
+				if (totEnMet != null)
+				{
+					critOnHold.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
+				}
+				criteria.alias("dossier.volgendeUitnodiging", "volgendeUitnodiging");
+				criteria.createAlias("volgendeUitnodiging.interval", "interval");
+				criteria.add(Restrictions.gtProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum"));
+				criteria.add(Restrictions.or(critZonderConclusie, critOnHold));
 		}
 
 		if (!AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
@@ -283,12 +307,9 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		{
 			criteria.add(Restrictions.gt("startTime", DateUtil.toUtilDate(vanaf)));
 		}
-		if (zoekFilter.getStatus() != null)
+		if (zoekFilter.getStatus() != null && totEnMet != null)
 		{
-			if (totEnMet != null)
-			{
-				criteria.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
-			}
+			criteria.add(Restrictions.lt("startTime", DateUtil.toUtilDate(totEnMet)));
 		}
 		if (zoekFilter.getConclusieTypeFilter() != null)
 		{
@@ -311,7 +332,22 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 	@Override
 	public long countAfsprakenVoorColoscopiecentrum(WerklijstIntakeFilter zoekFilter, ColoscopieCentrum coloscopieCentrum, LocalDate vandaag)
 	{
-		return createCriteria(zoekFilter, coloscopieCentrum, vandaag).countLong(getSession());
+		final BaseCriteria<? extends ColonIntakeAfspraak> criteria = createCriteria(zoekFilter, coloscopieCentrum, vandaag);
+		if (moetNogOpGeboortedatumFilteren(zoekFilter))
+		{
+			List<ColonIntakeAfspraak> afspraken =  (List<ColonIntakeAfspraak>) criteria.list(getSession());
+			filterGeboortedatum(zoekFilter.getGeboortedatum(), afspraken);
+			return afspraken.size();
+		}
+		else
+		{
+			return criteria.countLong(getSession());
+		}
+	}
+
+	private boolean filterGeboortedatum(Date geboortedatum, List<ColonIntakeAfspraak> afspraken)
+	{
+		return afspraken.removeIf(a -> !DateUtil.isGeboortedatumGelijk(DateUtil.toLocalDate(geboortedatum), a.getClient()));
 	}
 
 	@Override

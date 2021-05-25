@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.afmelding;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,13 +28,13 @@ import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.comparator.BriefCreatieDatumComparator;
-import nl.rivm.screenit.main.model.GebeurtenisBron;
 import nl.rivm.screenit.main.service.BriefService;
 import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.Afmelding;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
@@ -49,6 +49,7 @@ import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
+import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -98,6 +99,9 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 
 	@SpringBean
 	private BriefService briefService;
+
+	@SpringBean
+	private BriefHerdrukkenService briefHerdrukkenService;
 
 	public UploadAfmeldformulierPopupPanel(final String id, IModel<A> model)
 	{
@@ -174,7 +178,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			public void onClick(AjaxRequestTarget target)
 			{
 				ClientBrief brief = getOrgineleLaatsteBrief();
-				briefService.opnieuwAanmaken(brief, ScreenitSession.get().getLoggedInAccount());
+				briefHerdrukkenService.opnieuwAanmaken(brief, ScreenitSession.get().getLoggedInAccount());
 
 				info(getString("info.afmeldingnogmaalsverstuurd"));
 				close(target);

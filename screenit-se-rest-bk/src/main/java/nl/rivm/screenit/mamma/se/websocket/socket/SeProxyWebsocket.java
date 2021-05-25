@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.websocket.socket;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,8 @@ import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import nl.rivm.screenit.mamma.se.service.SELogService;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -55,7 +57,7 @@ public class SeProxyWebsocket implements ApplicationContextAware
 
 	private static ApplicationContext applicationContext;
 
-	private static Map<String, Session> proxySessionMap = new ConcurrentHashMap<>();
+	private static final Map<String, Session> proxySessionMap = new ConcurrentHashMap<>();
 
 	private static final String REGISTREER_SE = "REGISTREER_SE";
 
@@ -88,7 +90,7 @@ public class SeProxyWebsocket implements ApplicationContextAware
 					else
 					{
 						LOG.debug("PING ontvangen van SE met code: " + se + "; session: " + session.hashCode());
-						session.getRemote().sendString(PONG);
+						stuurCommandoNaarSe(session, PONG);
 					}
 				}
 				else if (webSocketMessage.startsWith(REGISTREER_SE))
@@ -105,7 +107,7 @@ public class SeProxyWebsocket implements ApplicationContextAware
 				}
 			}
 		}
-		catch (IOException e)
+		catch (Exception e)
 		{
 			LOG.info("Kon request van SE " + getSeCodeVanSession(session) + " niet beantwoorden. session: " + session.hashCode());
 		}
@@ -131,16 +133,24 @@ public class SeProxyWebsocket implements ApplicationContextAware
 						try
 						{
 							LOG.info("Daglijst update commando wordt verzonden naar SE met code en datum " + seCodeEnDatum);
-							proxySession.getRemote().sendString("DAGLIJST_UPDATE:" + seCodeEnDatum);
+							stuurCommandoNaarSe(proxySession, "DAGLIJST_UPDATE:" + seCodeEnDatum);
+
 						}
-						catch (IOException e)
+						catch (Exception ex)
 						{
-							LOG.error(e.getMessage());
+							LOG.error("Daglijst update {} versturen mislukt: ", seCodeEnDatum, ex);
 						}
 					}
 				},
 				5000); 
 		}
+	}
+
+	private void stuurCommandoNaarSe(Session session, String commando) throws Exception
+	{
+
+		Future<Void> sendStringFuture = session.getRemote().sendStringByFuture(commando);
+		sendStringFuture.get(10, TimeUnit.SECONDS);
 	}
 
 	public void sendTijdUpdateNaarIedereSe(Duration offset)
@@ -178,14 +188,14 @@ public class SeProxyWebsocket implements ApplicationContextAware
 									else
 									{
 										LOG.info("Commando '" + commando + "' wordt verzonden naar " + seCode);
-										proxySession.getRemote().sendString(commando);
+										stuurCommandoNaarSe(proxySession, commando);
 									}
 								}
 							}
 						}
-						catch (IOException e)
+						catch (Exception ex)
 						{
-							LOG.error(e.getMessage());
+							LOG.error("TestCommando {} naar SE's sturen mislukt: ", commando, ex);
 						}
 
 					}

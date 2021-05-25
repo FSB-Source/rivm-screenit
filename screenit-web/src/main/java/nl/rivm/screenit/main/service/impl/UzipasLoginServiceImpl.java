@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -96,19 +96,4 @@ public class UzipasLoginServiceImpl implements UzipasLoginService
 			throw new IllegalStateException("Ongeldige UZI login URL", e);
 		}
 	}
-
-	@Override
-	public String currentApplicationDomain(boolean fromUitwisselportaal)
-	{
-		try
-		{
-			URL url = new URL(applicationUrlWithFinalSlash(fromUitwisselportaal));
-			return url.getHost();
-		}
-		catch (MalformedURLException e)
-		{
-			throw new IllegalStateException("Ongeldige applicatie URL", e);
-		}
-	}
-
 }

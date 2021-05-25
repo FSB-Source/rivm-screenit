@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
  */
 
 import nl.rivm.screenit.main.service.mamma.MammaPostcodeReeksService;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -70,7 +71,7 @@ public class MammaPostcodeReeksEditPage extends MammaPlanningBasePage
 	private MammaPostcodeReeksService postcodeReeksService;
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaBaseStandplaatsService standplaatsService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -104,7 +105,7 @@ public class MammaPostcodeReeksEditPage extends MammaPlanningBasePage
 		ComponentHelper.newPostcodeTextField(mainForm, "totPostcode", true, !magAanpassen);
 
 		mainForm.add(new ScreenitDropdown<>("standplaats",
-			ModelUtil.listRModel(baseStandplaatsService.getActieveStandplaatsen(ScreenitSession.get().getScreeningOrganisatie()), false),
+			ModelUtil.listRModel(standplaatsService.getActieveStandplaatsen(ScreenitSession.get().getScreeningOrganisatie()), false),
 			new ChoiceRenderer<MammaStandplaats>("naam")).setRequired(true).setEnabled(magAanpassen));
 
 		addOpslaan(mainForm);

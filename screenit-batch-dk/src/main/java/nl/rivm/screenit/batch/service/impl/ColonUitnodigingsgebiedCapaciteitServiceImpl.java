@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,7 @@ import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback;
 import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback.DelegatedReadOnlyDBActions;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.UitnodigingsGebied;
@@ -403,7 +403,7 @@ public class ColonUitnodigingsgebiedCapaciteitServiceImpl implements ColonUitnod
 				+ projectGroep.getNaam());
 		}
 
-		Criteria queryVooraankondigen = ColonClientSelectieHelper.getQueryVooraankondigen(hibernateService.getHibernateSession(), uitnodigingsGebied, null, true, minimaleLeeftijd,
+		Criteria queryVooraankondigen = ColonRestrictions.getQueryVooraankondigen(hibernateService.getHibernateSession(), uitnodigingsGebied, null, true, minimaleLeeftijd,
 			maximaleLeeftijd, projectGroupId, null);
 		queryVooraankondigen.setProjection(Projections.projectionList().add(Projections.rowCount()));
 

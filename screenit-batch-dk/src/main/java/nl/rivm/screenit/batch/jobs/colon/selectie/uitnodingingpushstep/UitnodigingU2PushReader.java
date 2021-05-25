@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.uitnodingingpushstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.uitnodingingpushstep;
 
 import java.util.Date;
 
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -67,7 +67,7 @@ public class UitnodigingU2PushReader extends AbstractUitnodigingPushReader
 
 		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
 
-		crit.add(ColonClientSelectieHelper.getU2BaseCriteria(currentDateSupplier.getLocalDate()));
+		crit.add(ColonRestrictions.getU2BaseCriteria(currentDateSupplier.getLocalDate()));
 
 		crit.add(Restrictions.eq("isUitgenodigdInProjectPeriode", Boolean.FALSE));
 

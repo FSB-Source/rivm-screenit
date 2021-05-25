@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -110,6 +110,7 @@ import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.CervixTestTime
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.ColonTestProcesPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.ColonTestTimelinePage;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.MammaTestTimelinePage;
+import nl.rivm.screenit.main.web.gebruiker.testen.preferences.TestPreferencesPage;
 
 public enum GebruikerHoofdMenuItem
 {
@@ -268,7 +269,8 @@ public enum GebruikerHoofdMenuItem
 		public GebruikerMenuItem getMenuItem()
 		{
 			List<IMenuItem> contextMenuItems = new ArrayList<>();
-			contextMenuItems.add(new GebruikerMenuItem("menu.testen", ColonTestProcesPage.class));
+			contextMenuItems.add(new GebruikerMenuItem("menu.testen", TestPreferencesPage.class));
+			contextMenuItems.add(new GebruikerMenuItem("menu.testen.colon", ColonTestProcesPage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.testen.timeline.bmhk", CervixTestTimelinePage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.testen.timeline.bk", MammaTestTimelinePage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.testen.timeline.dk", ColonTestTimelinePage.class));

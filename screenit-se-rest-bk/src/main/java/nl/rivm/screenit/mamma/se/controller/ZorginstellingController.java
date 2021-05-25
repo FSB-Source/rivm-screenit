@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,16 +36,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/zorginstelling")
-public class ZorginstellingController extends AuthorizedController
+public class ZorginstellingController extends CachingController<List<ZorginstellingDto>>
 {
-
 	@Autowired
 	private OnderzoekService onderzoekService;
 
 	@RequestMapping(value = "/metMammapoliOfRadiologie", method = RequestMethod.GET)
 	public ResponseEntity getZorginstellingenBK(HttpServletRequest request)
 	{
-		List<ZorginstellingDto> zorginstellingen = onderzoekService.getBKZorginstellingen();
-		return ResponseEntity.ok(zorginstellingen);
+		try
+		{
+			refreshCacheWhenNeeded();
+			return ResponseEntity.ok(getCacheContents());
+		}
+		catch (Exception ex)
+		{
+			return createErrorResponse(ex);
+		}
+	}
+
+	@Override
+	protected List<ZorginstellingDto> getDataToPutInCache()
+	{
+		return onderzoekService.getBKZorginstellingen();
 	}
 }

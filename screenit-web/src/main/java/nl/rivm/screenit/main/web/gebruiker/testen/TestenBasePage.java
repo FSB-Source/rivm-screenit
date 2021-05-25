@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,18 @@ package nl.rivm.screenit.main.web.gebruiker.testen;
  * =========================LICENSE_END==================================
  */
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -38,8 +47,8 @@ import nl.rivm.screenit.main.web.gebruiker.testen.clienten.verwijderen.ClientenV
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.ColonTestPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.ColonTestProcesPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.ColonTestTimelinePage;
-import nl.rivm.screenit.main.web.gebruiker.testen.hpvbericht.TestHpvBerichtPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.hl7bericht.TestHL7BerichtPage;
+import nl.rivm.screenit.main.web.gebruiker.testen.hpvbericht.TestHpvBerichtPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.MammaTestTimelinePage;
 import nl.rivm.screenit.main.web.gebruiker.testen.postcode.TestPostcodePage;
 import nl.rivm.screenit.main.web.gebruiker.testen.preferences.TestPreferencesPage;
@@ -50,6 +59,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.util.TestBsnGenerator;
+import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 
 import org.apache.commons.lang.StringUtils;
@@ -62,20 +72,36 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestenBasePage extends GebruikerBasePage
 {
 
-	private static final long serialVersionUID = 1L;
+	private static final Logger LOG = LoggerFactory.getLogger(TestenBasePage.class);
+
+	private static final String TARGET_URI_PLACEHOLDER = "<target_uri>";
 
 	@SpringBean
 	private ClientService clientService;
+
+	@SpringBean(name = "portaalUrl")
+	private String clientportaalUrl;
+
+	@SpringBean(name = "clientportaalUrl")
+	private String newClientportaalUrl;
+
+	@SpringBean(name = "clientportaalUrlAutoLogin")
+	private String newClientportaalUrlAutoLogin;
+
+	@SpringBean(name = "clientportaalUrlAutoLoginSecret")
+	private String newClientportaalUrlAutoLoginSecret;
 
 	protected WebMarkupContainer gebeurtenissenContainer;
 
 	protected TextField<String> bsnField;
 
-	public TestenBasePage()
+	protected TestenBasePage()
 	{
 
 	}
@@ -137,6 +163,13 @@ public class TestenBasePage extends GebruikerBasePage
 		});
 	}
 
+	protected void addGaNaarButtons(WebMarkupContainer container, Form<TestTimelineModel> form, IModel<TestTimelineModel> model)
+	{
+		container.add(getClientDossierButton(form, model));
+		container.add(getClientPortaalButton(form, model));
+		container.add(getClientportaalButton(form, model));
+	}
+
 	protected TestTimelineModel refreshTimelineModel(TestTimelineModel timelineModel, List<Client> clienten)
 	{
 		Client client = clienten.get(0);
@@ -154,7 +187,7 @@ public class TestenBasePage extends GebruikerBasePage
 		return timelineModel;
 	}
 
-	protected WebMarkupContainer getClientDossierButton(Form form, IModel<TestTimelineModel> model)
+	private WebMarkupContainer getClientDossierButton(Form form, IModel<TestTimelineModel> model)
 	{
 		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_GEGEVENS, Actie.INZIEN))
 		{
@@ -183,9 +216,9 @@ public class TestenBasePage extends GebruikerBasePage
 		}
 	}
 
-	protected AjaxButton getClientPortaalButton(Form form, String clientportaalUrl, IModel<TestTimelineModel> model)
+	private AjaxButton getClientPortaalButton(Form form, IModel<TestTimelineModel> model)
 	{
-		return new AjaxButton("directNaarClientPortaal", form)
+		return new AjaxButton("directNaarOudeClientportaal", form)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -203,6 +236,79 @@ public class TestenBasePage extends GebruikerBasePage
 				{
 					error("Geen bsn gevonden.");
 				}
+			}
+		};
+	}
+
+	private IndicatingAjaxSubmitLink getClientportaalButton(Form form, IModel<TestTimelineModel> model)
+	{
+		return new IndicatingAjaxSubmitLink("directNaarClientportaal", form)
+		{
+			@Override public void onSubmit(AjaxRequestTarget target)
+			{
+				List<String> bsns = model.getObject().getBsns();
+				if (bsns.size() > 0)
+				{
+					try
+					{
+						String url = constructAutoInlogClientportaalUrl(bsns.get(0));
+						target.appendJavaScript(String.format("window.open('%s', '_blank')", url));
+					}
+					catch (RuntimeException e)
+					{
+						LOG.error("Fout bij maken van url", e);
+						error("Fout bij maken van link om automatisch ingelogd te raken in clientportaal");
+					}
+				}
+				else
+				{
+					error("Geen bsn gevonden.");
+				}
+			}
+
+			private String constructAutoInlogClientportaalUrl(String bsn)
+			{
+				String url = "";
+				try
+				{
+					url = String.format(newClientportaalUrlAutoLogin, bsn, TARGET_URI_PLACEHOLDER, DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
+					String urlPartToHash = url.substring(url.indexOf("bsn"));
+					String urlFirstPart = url.substring(0, url.indexOf("bsn"));
+					String clientportaalUrlAutoLogin = newClientportaalUrl;
+					if (!clientportaalUrlAutoLogin.endsWith("/"))
+					{
+						clientportaalUrlAutoLogin += "/";
+					}
+					clientportaalUrlAutoLogin += "autologin";
+					byte[] hashedUrlPart = calcHmacSha256(newClientportaalUrlAutoLoginSecret.getBytes(StandardCharsets.UTF_8),
+						urlPartToHash.replace(TARGET_URI_PLACEHOLDER, clientportaalUrlAutoLogin).getBytes(StandardCharsets.UTF_8));
+					String base64HashedUrlPart = URLEncoder.encode(Base64.getEncoder().encodeToString(hashedUrlPart), StandardCharsets.UTF_8.toString());
+					url = urlFirstPart
+						+ urlPartToHash.replace(TARGET_URI_PLACEHOLDER, URLEncoder.encode(clientportaalUrlAutoLogin, StandardCharsets.UTF_8.toString())) + "&hash="
+						+ base64HashedUrlPart;
+				}
+				catch (UnsupportedEncodingException e)
+				{
+					throw new RuntimeException("Failed to construct autocreate url: ", e);
+				}
+				return url;
+			}
+
+			private byte[] calcHmacSha256(byte[] secretKey, byte[] message)
+			{
+				byte[] hmacSha256 = null;
+				try
+				{
+					Mac mac = Mac.getInstance("HmacSHA256");
+					SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey, "HmacSHA256");
+					mac.init(secretKeySpec);
+					hmacSha256 = mac.doFinal(message);
+				}
+				catch (Exception e)
+				{
+					throw new RuntimeException("Failed to calculate hmac-sha256", e);
+				}
+				return hmacSha256;
 			}
 		};
 	}

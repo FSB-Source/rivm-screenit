@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,16 +36,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/huisarts")
-public class HuisartsController extends AuthorizedController
+public class HuisartsController extends CachingController<List<MammaHuisartsDto>>
 {
-
 	@Autowired
 	private InschrijvenService inschrijvenService;
 
 	@RequestMapping(value = "/all", method = RequestMethod.GET)
 	public ResponseEntity getAllHuisartsen(HttpServletRequest request)
 	{
-		List<MammaHuisartsDto> huisartsen = inschrijvenService.getAllHuisartsen();
-		return ResponseEntity.ok(huisartsen);
+		try
+		{
+			refreshCacheWhenNeeded();
+			return ResponseEntity.ok(getCacheContents());
+		}
+		catch (Exception ex)
+		{
+			return createErrorResponse(ex);
+		}
+	}
+
+	@Override
+	protected List<MammaHuisartsDto> getDataToPutInCache()
+	{
+		return inschrijvenService.getAllHuisartsen();
 	}
 }

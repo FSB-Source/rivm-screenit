@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,8 +27,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
 
+@Getter
+@Setter
 public class PlanningScreeningsOrganisatie extends PlanningEntiteit
 {
 	private final Set<PlanningScreeningsEenheid> screeningsEenheidSet = new HashSet<>();
@@ -51,8 +56,10 @@ public class PlanningScreeningsOrganisatie extends PlanningEntiteit
 
 	private int wekenVanTevorenUitnodigen;
 
+	private int vervallenCapaciteitsreserveringDagen;
+
 	public PlanningScreeningsOrganisatie(Long id, Integer afspraakDrempel, BigDecimal factorEersteOnderzoek, BigDecimal factorDubbeleTijd, BigDecimal factorMinderValide,
-		int wekenVanTevorenUitnodigen)
+		int wekenVanTevorenUitnodigen, int vervallenCapaciteitsreserveringDagen)
 	{
 		super(id);
 		this.afspraakDrempel = afspraakDrempel;
@@ -60,61 +67,7 @@ public class PlanningScreeningsOrganisatie extends PlanningEntiteit
 		this.factorDubbeleTijd = factorDubbeleTijd;
 		this.factorMinderValide = factorMinderValide;
 		this.wekenVanTevorenUitnodigen = wekenVanTevorenUitnodigen;
-	}
-
-	public List<PlanningClient> getClientList()
-	{
-		return clientList;
-	}
-
-	public Set<PlanningScreeningsEenheid> getScreeningsEenheidSet()
-	{
-		return screeningsEenheidSet;
-	}
-
-	public Set<PlanningStandplaats> getStandplaatsSet()
-	{
-		return standplaatsSet;
-	}
-
-	public Integer getAfspraakDrempel()
-	{
-		return afspraakDrempel;
-	}
-
-	public void setAfspraakDrempel(Integer afspraakDrempel)
-	{
-		this.afspraakDrempel = afspraakDrempel;
-	}
-
-	public BigDecimal getFactorEersteOnderzoek()
-	{
-		return factorEersteOnderzoek;
-	}
-
-	public void setFactorEersteOnderzoek(BigDecimal factorEersteOnderzoek)
-	{
-		this.factorEersteOnderzoek = factorEersteOnderzoek;
-	}
-
-	public BigDecimal getFactorDubbeleTijd()
-	{
-		return factorDubbeleTijd;
-	}
-
-	public void setFactorDubbeleTijd(BigDecimal factorDubbeleTijd)
-	{
-		this.factorDubbeleTijd = factorDubbeleTijd;
-	}
-
-	public BigDecimal getFactorMinderValide()
-	{
-		return factorMinderValide;
-	}
-
-	public void setFactorMinderValide(BigDecimal factorMinderValide)
-	{
-		this.factorMinderValide = factorMinderValide;
+		this.vervallenCapaciteitsreserveringDagen = vervallenCapaciteitsreserveringDagen;
 	}
 
 	public BigDecimal getFactor(MammaFactorType factorType)
@@ -134,16 +87,6 @@ public class PlanningScreeningsOrganisatie extends PlanningEntiteit
 		}
 	}
 
-	public int getWekenVanTevorenUitnodigen()
-	{
-		return wekenVanTevorenUitnodigen;
-	}
-
-	public void setWekenVanTevorenUitnodigen(int wekenVanTevorenUitnodigen)
-	{
-		this.wekenVanTevorenUitnodigen = wekenVanTevorenUitnodigen;
-	}
-
 	public void conceptGewijzigdDoor(Long instellingGebruikerId)
 	{
 		conceptGewijzigdDoor.add(instellingGebruikerId);
@@ -152,15 +95,5 @@ public class PlanningScreeningsOrganisatie extends PlanningEntiteit
 	public void restConceptGewijzigdDoor()
 	{
 		conceptGewijzigdDoor.clear();
-	}
-
-	public Set<Long> getConceptGewijzigdDoor()
-	{
-		return conceptGewijzigdDoor;
-	}
-
-	public Set<PlanningTehuis> getTehuisSet()
-	{
-		return tehuisSet;
 	}
 }

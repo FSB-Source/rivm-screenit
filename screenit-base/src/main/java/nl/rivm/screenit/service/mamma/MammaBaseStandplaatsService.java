@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,45 +27,33 @@ import java.util.List;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaStandplaatsPeriodeMetAfstandDto;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 
 public interface MammaBaseStandplaatsService
 {
-	boolean saveOrUpdateStandplaats(MammaStandplaats standplaats, InstellingGebruiker ingelogdeGebruiker);
-
-	List<MammaStandplaats> zoekStandplaatsen(MammaStandplaats zoekObject, int first, int count, String sortProperty, boolean asc);
-
-	long countStandplaatsen(MammaStandplaats zoekObject);
-
-	long countActieveStandplaatsPeriodes(MammaStandplaats standplaats);
-
-	boolean saveOrUpdateStandplaatsOpmerking(MammaStandplaatsOpmerking opmerking, MammaStandplaats standplaats, InstellingGebruiker loggedInInstellingGebruiker);
-
-	boolean saveOrUpdateStandplaatsLocatie(MammaStandplaatsLocatie locatie, UploadDocument documentFromSelectedFile, MammaStandplaats standplaats,
-		InstellingGebruiker ingelogdeGebruiker);
-
-	List<MammaStandplaats> getActieveStandplaatsen(ScreeningOrganisatie ingelogdNamensRegio);
-
-	String magStandplaatsInactiveren(MammaStandplaats standplaats);
 
 	List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter);
+
+	List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter,
+		boolean validatieUitvoeren);
+
+	List<String> getStandplaatsPlaatsenVanActivePeriodes(IMammaAfspraakWijzigenFilter filter, boolean verzetten);
+
+	List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(IMammaAfspraakWijzigenFilter filter, boolean verzetten);
 
 	MammaStandplaats getStandplaatsMetPostcode(Client client);
 
 	MammaStandplaatsPeriode getEerstvolgendeStandplaatsPeriode(MammaStandplaats standplaats);
 
-	String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum);
-
-	String controleerUitnodigingenNaVeranderingTijdelijkeLocatie(MammaStandplaats standplaats, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum);
-
 	Double bepaalAfstand(MammaStandplaats standplaats, Client client);
 
 	MammaStandplaatsLocatie getStandplaatsLocatie(MammaStandplaats standplaats, Date datum);
 
+	void zetBrievenKlaarVoorStandplaatsVoorAfdrukken(List<MammaBrief> brieven, MammaStandplaats standplaats);
+
+	List<MammaStandplaats> getActieveStandplaatsen(ScreeningOrganisatie voorRegio);
 }

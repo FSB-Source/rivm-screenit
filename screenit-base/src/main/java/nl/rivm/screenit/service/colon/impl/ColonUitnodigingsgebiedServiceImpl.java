@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,7 @@ import java.util.Set;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.PostcodeGebied;
 import nl.rivm.screenit.model.UitnodigingsGebied;
@@ -131,7 +131,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : uitnodigingsGebied.getVerdeling())
 		{
 			if (verwijderdeItems.contains(verdeling)
-				|| !verdeling.getPercentageAdherentie().equals(newAdherentiePercentages.get(ColonClientSelectieHelper.getUniekIdOf(verdeling))))
+				|| !verdeling.getPercentageAdherentie().equals(newAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(verdeling))))
 			{
 				ColoscopieCentrum intakelocatie = verdeling.getColoscopieCentrum();
 				berekenVerschil(newAdherentiePercentages, verwijderdeItems, capaciteitsWijzigingen, benodigdeIntakecapaciteiten, percLandelijkIfobtRetour,
@@ -273,7 +273,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 					}
 					melding += "<br>";
 				}
-				Integer percentageAdherentie = newAdherentiePercentages.get(ColonClientSelectieHelper.getUniekIdOf(verdelingToChange));
+				Integer percentageAdherentie = newAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(verdelingToChange));
 				if (percentageAdherentie != null)
 				{
 					adherentieMelding += verdelingToChange.getColoscopieCentrum().getNaam() + ": " + PercentageUtil.percentageToString(verdelingToChange.getPercentageAdherentie())
@@ -476,8 +476,8 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 						Integer huidigeAdherentiePercentage = getAdherentiePercentage(newAdherentiePercentages, verwijderdeItems, subSubverdeling);
 						BigDecimal newAdherentie = BigDecimal.valueOf(huidigeAdherentiePercentage).add(BigDecimal.valueOf(huidigeAdherentiePercentage)
 							.multiply(BigDecimal.valueOf(adherentieVerschil)).divide(BigDecimal.valueOf(totaalAdherentie), RoundingMode.HALF_UP));
-						newAdherentiePercentages.put(ColonClientSelectieHelper.getUniekIdOf(subSubverdeling), newAdherentie.intValue());
-						invisibleAdherentieChanges.add(ColonClientSelectieHelper.getUniekIdOf(subSubverdeling));
+						newAdherentiePercentages.put(ColonRestrictions.getUniekIdOf(subSubverdeling), newAdherentie.intValue());
+						invisibleAdherentieChanges.add(ColonRestrictions.getUniekIdOf(subSubverdeling));
 					}
 				}
 				for (ColoscopieCentrumColonCapaciteitVerdeling subVerdeling : uitnodigingsGebied.getVerdeling())
@@ -519,7 +519,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	private Integer getAdherentiePercentage(Map<String, Integer> newAdherentiePercentages, List<ColoscopieCentrumColonCapaciteitVerdeling> verwijderdeItems,
 		ColoscopieCentrumColonCapaciteitVerdeling verdelingIntakelocatie)
 	{
-		Integer adherentie = newAdherentiePercentages.get(ColonClientSelectieHelper.getUniekIdOf(verdelingIntakelocatie));
+		Integer adherentie = newAdherentiePercentages.get(ColonRestrictions.getUniekIdOf(verdelingIntakelocatie));
 		if (adherentie == null)
 		{
 			adherentie = verdelingIntakelocatie.getPercentageAdherentie();

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,12 +27,11 @@ import java.util.List;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
-import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
@@ -77,6 +76,16 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 
 	@Autowired
 	private BerichtToBatchService berichtToBatchService;
+
+	@Override
+	public boolean heeftGeprinteOfTegengehoudenUitslagBrief(MammaScreeningRonde screeningRonde)
+	{
+		return screeningRonde.getBrieven().stream().anyMatch(
+			brief -> BriefType.isMammaUitslagBrief(brief.getBriefType()) &&
+				(brief.getMergedBrieven() != null && brief.getMergedBrieven().getGeprint()
+					|| brief.getMergedBrieven() == null && brief.isGegenereerd()
+					|| brief.isTegenhouden()));
+	}
 
 	@Override
 	public void verwijderAlleScreeningRondes(MammaDossier dossier)
@@ -161,19 +170,10 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 
 	private boolean heeftIlmBeelden(MammaScreeningRonde ronde)
 	{
-		for (MammaUitnodiging uitnodiging : ronde.getUitnodigingen())
-		{
-			for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
-			{
-				MammaMammografie mammografie = afspraak.getOnderzoek() != null ? afspraak.getOnderzoek().getMammografie() : null;
-				if (mammografie != null
-					&& !(MammaMammografieIlmStatus.VERWIJDERD.equals(mammografie.getIlmStatus()) || MammaMammografieIlmStatus.NIET_BESCHIKBAAR.equals(mammografie.getIlmStatus())))
-				{
-					return true;
-				}
-			}
-		}
-		return false;
+		return ronde.getUitnodigingen().stream().flatMap(u -> u.getAfspraken().stream())
+			.anyMatch(a -> a.getOnderzoek() != null && a.getOnderzoek().getMammografie() != null
+				&& !(MammaMammografieIlmStatus.VERWIJDERD.equals(a.getOnderzoek().getMammografie().getIlmStatus())
+					|| MammaMammografieIlmStatus.NIET_BESCHIKBAAR.equals(a.getOnderzoek().getMammografie().getIlmStatus())));
 	}
 
 	private void verwijderAlleUitnodigingen(List<MammaUitnodiging> uitnodigingen)

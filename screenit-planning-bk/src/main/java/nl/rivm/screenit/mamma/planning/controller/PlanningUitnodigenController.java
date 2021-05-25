@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,11 +38,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
 import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
-import nl.rivm.screenit.mamma.planning.model.PlanningBeschikbaar;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
 import nl.rivm.screenit.mamma.planning.model.PlanningConstanten;
 import nl.rivm.screenit.mamma.planning.model.PlanningDag;
@@ -55,10 +54,12 @@ import nl.rivm.screenit.mamma.planning.model.PlanningStandplaats;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsRonde;
 import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
+import nl.rivm.screenit.mamma.planning.model.PopulatieMetStreefDatum;
 import nl.rivm.screenit.mamma.planning.model.rapportage.PlanningStandplaatsRondeUitnodigenRapportageDto;
 import nl.rivm.screenit.mamma.planning.model.rapportage.PlanningUitnodigenRapportageDto;
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigenService;
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigingContext;
+import nl.rivm.screenit.mamma.planning.service.impl.UitnodigenCapaciteitCalculator;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -68,7 +69,6 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
-import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage;
@@ -82,6 +82,7 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.hibernate.FlushMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,14 +116,11 @@ public class PlanningUitnodigenController
 	@Autowired
 	private InstellingService instellingService;
 
-	private static ThreadPoolExecutor executor = new ThreadPoolExecutor(0, 100, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+	private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(0, 100, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
-	private static final BigDecimal MINUS_HALF = new BigDecimal(-0.5);
+	private static final BigDecimal MINUS_HALF = BigDecimal.valueOf(-0.5);
 
 	private static Integer uitnodigenVanafJaar;
-
-	private static final Comparator<PlanningClient> clientComparator = Comparator.comparing(PlanningClient::getHuidigeStreefDatum, Comparator.nullsFirst(Comparator.naturalOrder()))
-		.thenComparing(PlanningClient::getGeboorteDatum).thenComparing(PlanningClient::getId);
 
 	@RequestMapping
 	public Long uitnodigen()
@@ -236,13 +234,12 @@ public class PlanningUitnodigenController
 		PlanningUitnodigingContext context)
 	{
 		executor.submit(() -> {
-
 			try
 			{
 				OpenHibernate5Session.withCommittedTransaction().run(() -> {
 					LOG.info("uitnodigen standplaatsRonde: " + standplaatsRonde.getId());
 					PlanningStandplaats standplaats = standplaatsRonde.getStandplaats();
-					PlanningScreeningsOrganisatie screeningsOrganisatie = standplaats.getScreeningsOrganisatie();
+					PlanningScreeningsOrganisatie screeningsOrganisatieStandplaats = standplaats.getScreeningsOrganisatie();
 					PlanningStandplaatsPeriode laatsteStandplaatsPeriode = standplaatsRonde.getStandplaatsPeriodeNavigableSet().stream()
 						.filter(standplaatsPeriode -> standplaatsPeriode.getScreeningsEenheid().getUitnodigenTotEnMet() != null)
 						.max(PlanningStandplaatsRonde.getStandplaatsPeriodeComparator()).orElse(null);
@@ -252,112 +249,36 @@ public class PlanningUitnodigenController
 
 					uitnodigenService.getStandplaatsPeriodeUitnodigenRapportage(rapportageDto, mammaStandplaatsPeriode);
 
-					boolean uitnodigen = !afsprakenVanafDatum.isAfter(laatsteStandplaatsPeriode.getTotEnMet());
 					boolean achtervang = !standplaatsRonde.getAchtervangToegepast() && !afsprakenVanafDatum.isBefore(laatsteStandplaatsPeriode.getTotEnMet());
-
-					PlanningBeschikbaar beschikbaar = new PlanningBeschikbaar();
-					NavigableSet<PlanningDag> dagNavigableSet = new TreeSet<>();
-					for (PlanningStandplaatsPeriode standplaatsPeriode : standplaatsRonde.getStandplaatsPeriodeNavigableSet())
-					{
-						PlanningScreeningsEenheid screeningsEenheid = standplaatsPeriode.getScreeningsEenheid();
-						LocalDate uitnodigenTotEnMet = screeningsEenheid.getUitnodigenTotEnMet();
-						if (uitnodigenTotEnMet != null && !standplaatsPeriode.getVanaf().isAfter(uitnodigenTotEnMet))
-						{
-							dagNavigableSet.addAll(screeningsEenheid.getDagNavigableMap()
-								.subMap(standplaatsPeriode.getVanaf(), true, Collections.min(Arrays.asList(standplaatsPeriode.getTotEnMet(), uitnodigenTotEnMet)), true).values());
-						}
-					}
-
-					for (PlanningDag dag : dagNavigableSet)
-					{
-						if (dag.getDatum().isBefore(PlanningConstanten.prognoseVanafDatum))
-						{
-
-							beschikbaar.add(dag.getBeschikbaar());
-						}
-						else if (dag.getBlokkadeSet().isEmpty())
-						{
-							beschikbaar.add(dag.getBeschikbaar());
-						}
-					}
-
-					beschikbaar.subtract(beschikbaar.getTotaalTehuis(), MammaCapaciteitBlokType.REGULIER);
 
 					final int uitnodigenTotEnMetJaar = laatsteStandplaatsPeriode.getTotEnMet().getYear();
 
-					Map<String, ClientSetStreefDatum> regioClientSetStreefDatumMap = new HashMap<>();
+					Map<String, PopulatieMetStreefDatum> populatiePerWijk = selecteerPopulatiePerWijk(standplaats, uitnodigenTotEnMetJaar, context);
 
-					for (PlanningPostcodeReeks postcodeReeks : standplaats.getPostcodeReeksSet())
-					{
-						for (PlanningPostcodeReeksRegio postcodeReeksRegio : postcodeReeks.getPostcodeReeksRegios())
-						{
-							String cijfer = postcodeReeksRegio.getCijfer();
-
-							ClientSetStreefDatum clientSetStreefDatum = regioClientSetStreefDatumMap.get(cijfer);
-							if (clientSetStreefDatum == null)
-							{
-								clientSetStreefDatum = new ClientSetStreefDatum();
-								regioClientSetStreefDatumMap.put(cijfer, clientSetStreefDatum);
-							}
-
-							for (PlanningClient client : postcodeReeksRegio.getClientSet())
-							{
-								if (teSelecteren(client, context, uitnodigenTotEnMetJaar, postcodeReeksRegio))
-								{
-
-									clientSetStreefDatum.clientNavigableSet.add(client);
-
-									if (client.getAfspraakStandplaats() == null && client.isUitgenodigdHuidigeStandplaatsRonde())
-									{
-
-										beschikbaar.subtract(client.getBenodigdeCapaciteit(screeningsOrganisatie), client.getBlokType());
-									}
-								}
-							}
-
-							if (clientSetStreefDatum.clientNavigableSet.isEmpty())
-							{
-
-								regioClientSetStreefDatumMap.remove(cijfer);
-							}
-						}
-					}
-
-					standplaatsRonde.getScreeningRondeTransportSet()
-						.forEach(client -> beschikbaar.subtract(client.getBenodigdeCapaciteit(screeningsOrganisatie), client.getBlokType()));
-
-					for (ClientSetStreefDatum clientSetStreefDatum : regioClientSetStreefDatumMap.values())
-					{
-						scaleHuidigeStreefDatumEersteRondeClienten(clientSetStreefDatum.clientNavigableSet);
-						OptionalDouble average = clientSetStreefDatum.clientNavigableSet.stream().mapToLong(client -> client.getHuidigeStreefDatum().toEpochDay()).average();
-						clientSetStreefDatum.uitnodigingStreefDatum = LocalDate.ofEpochDay(Math.round(average.getAsDouble()));
-					}
-					NavigableSet<ClientSetStreefDatum> clientSetStreefDatumNavigableSet = new TreeSet<>(regioClientSetStreefDatumMap.values());
+					NavigableSet<PopulatieMetStreefDatum> standplaatsPopulatie = bepaalStandplaatsPopulatieOpStreefDatum(populatiePerWijk);
 
 					for (PlanningClient client : standplaats.getUitstelSet())
 					{
 						client.setHuidigeStreefDatum(client.getUitstelStreefDatum());
 
-						clientSetStreefDatumNavigableSet.add(new ClientSetStreefDatum(client));
-
-						if (client.getUitgenodigdNaUitstel())
-						{
-							beschikbaar.subtract(client.getBenodigdeCapaciteit(screeningsOrganisatie), client.getBlokType());
-						}
+						standplaatsPopulatie.add(PopulatieMetStreefDatum.voorUitstelClient(client));
 					}
-
-					standplaats.getAfspraakSet().forEach(client -> beschikbaar.subtract(client.getBenodigdeCapaciteit(screeningsOrganisatie), client.getBlokType()));
 
 					Set<PlanningClient> achtervangUitstelSet = new HashSet<>();
 					Set<PlanningClient> minderValideUitwijkUitstelSet = new HashSet<>();
 					Set<PlanningClient> uitTeNodigenClientSet = new HashSet<>();
+					boolean uitnodigen = !afsprakenVanafDatum.isAfter(laatsteStandplaatsPeriode.getTotEnMet());
 					BigDecimal extraMindervalideCapaciteitUitgenodigd = mammaStandplaatsRonde.getExtraMinderValideCapaciteitUitgenodigd();
 
-					beschikbaar.add(extraMindervalideCapaciteitUitgenodigd, MammaCapaciteitBlokType.REGULIER);
+					NavigableSet<PlanningDag> uitTeNodigenDagen = bepaalUitTeNodigenDagen(standplaatsRonde);
 
-					for (ClientSetStreefDatum clientSetStreefDatum : clientSetStreefDatumNavigableSet)
+					UitnodigenCapaciteitCalculator capaciteitCalculator = new UitnodigenCapaciteitCalculator(uitTeNodigenDagen, standplaatsRonde, standplaatsPopulatie,
+						extraMindervalideCapaciteitUitgenodigd);
+					BigDecimal capaciteitVoorUitnodigen = capaciteitCalculator.berekenCapaciteitVoorUitnodigen();
+
+					for (PopulatieMetStreefDatum populatieMetStreefDatum : standplaatsPopulatie)
 					{
-						for (PlanningClient client : clientSetStreefDatum.clientNavigableSet)
+						for (PlanningClient client : populatieMetStreefDatum.getClienten())
 						{
 							if (uitTeNodigen(client))
 							{
@@ -367,22 +288,20 @@ public class PlanningUitnodigenController
 								}
 								else
 								{
-									BigDecimal deelnamekans = client.getDeelnamekans();
-									BigDecimal benodigdeCapaciteit = deelnamekans.multiply(screeningsOrganisatie.getFactor(client.getFactorType()));
-
 									if (alleMinderValideUitnodigen(standplaatsRonde, client))
 									{
 
 										uitTeNodigenClientSet.add(client);
-										extraMindervalideCapaciteitUitgenodigd = extraMindervalideCapaciteitUitgenodigd.add(benodigdeCapaciteit);
+										extraMindervalideCapaciteitUitgenodigd = extraMindervalideCapaciteitUitgenodigd
+											.add(client.getBenodigdeCapaciteit(screeningsOrganisatieStandplaats));
 									}
 									else if (achtervang)
 									{
 										achtervangUitstelSet.add(client);
 									}
-									else if (uitnodigen && beschikbaar.getTotaal().subtract(benodigdeCapaciteit).compareTo(MINUS_HALF.multiply(deelnamekans)) > 0)
+									else if (uitnodigen && isCapaciteitBeschikbaarVoor(client, capaciteitVoorUitnodigen, screeningsOrganisatieStandplaats))
 									{
-										beschikbaar.subtract(client.getBenodigdeCapaciteit(screeningsOrganisatie), client.getBlokType());
+										capaciteitVoorUitnodigen = capaciteitVoorUitnodigen.subtract(client.getBenodigdeCapaciteit(screeningsOrganisatieStandplaats));
 										uitTeNodigenClientSet.add(client);
 									}
 								}
@@ -391,7 +310,8 @@ public class PlanningUitnodigenController
 					}
 
 					BigDecimal afspraakDrempel = new BigDecimal(
-						standplaatsRonde.getAfspraakDrempel() != null ? standplaatsRonde.getAfspraakDrempel() : screeningsOrganisatie.getAfspraakDrempel()).movePointLeft(2);
+						standplaatsRonde.getAfspraakDrempel() != null ? standplaatsRonde.getAfspraakDrempel() : screeningsOrganisatieStandplaats.getAfspraakDrempel())
+							.movePointLeft(2);
 
 					Set<PlanningClient> openUitnodigingClientSet = new HashSet<>();
 					NavigableSet<PlanningClient> afspraakUitnodigingClientSet = new TreeSet<>((client1, client2) -> {
@@ -432,7 +352,7 @@ public class PlanningUitnodigenController
 						uitnodigenService.achtervangUitstel(standplaatsRonde, achtervangUitstelSet, rapportageDto);
 					}
 
-					rapportageBijwerken(rapportageDto, standplaatsRonde, clientSetStreefDatumNavigableSet, achtervangUitstelSet,
+					rapportageBijwerken(rapportageDto, standplaatsRonde, standplaatsPopulatie, achtervangUitstelSet,
 						minderValideUitwijkUitstelSet, context, uitnodigenTotEnMetJaar);
 
 					mammaStandplaatsRonde.setExtraMinderValideCapaciteitUitgenodigd(extraMindervalideCapaciteitUitgenodigd);
@@ -450,6 +370,72 @@ public class PlanningUitnodigenController
 				context.onderbrokenCountDownLatch.countDown();
 			}
 		});
+	}
+
+	private NavigableSet<PlanningDag> bepaalUitTeNodigenDagen(PlanningStandplaatsRonde standplaatsRonde)
+	{
+		NavigableSet<PlanningDag> uitTeNodigenDagen = new TreeSet<>();
+		for (PlanningStandplaatsPeriode standplaatsPeriode : standplaatsRonde.getStandplaatsPeriodeNavigableSet())
+		{
+			PlanningScreeningsEenheid screeningsEenheid = standplaatsPeriode.getScreeningsEenheid();
+			LocalDate uitnodigenTotEnMet = screeningsEenheid.getUitnodigenTotEnMet();
+			if (uitnodigenTotEnMet != null && !standplaatsPeriode.getVanaf().isAfter(uitnodigenTotEnMet))
+			{
+				uitTeNodigenDagen.addAll(screeningsEenheid.getDagNavigableMap()
+					.subMap(standplaatsPeriode.getVanaf(), true, Collections.min(Arrays.asList(standplaatsPeriode.getTotEnMet(), uitnodigenTotEnMet)), true).values());
+			}
+		}
+		return uitTeNodigenDagen;
+	}
+
+	private Map<String, PopulatieMetStreefDatum> selecteerPopulatiePerWijk(PlanningStandplaats standplaats, int uitnodigenTotEnMetJaar, PlanningUitnodigingContext context)
+	{
+		Map<String, PopulatieMetStreefDatum> populatiePerWijk = new HashMap<>();
+
+		for (PlanningPostcodeReeks postcodeReeks : standplaats.getPostcodeReeksSet())
+		{
+			for (PlanningPostcodeReeksRegio wijk : postcodeReeks.getPostcodeReeksRegios())
+			{
+				PopulatieMetStreefDatum wijkPopulatie = populatiePerWijk.get(wijk.getCijfer());
+				if (wijkPopulatie == null)
+				{
+					wijkPopulatie = new PopulatieMetStreefDatum();
+					populatiePerWijk.put(wijk.getCijfer(), wijkPopulatie);
+				}
+
+				for (PlanningClient client : wijk.getClientSet())
+				{
+					if (teSelecteren(client, context, uitnodigenTotEnMetJaar, wijk))
+					{
+						wijkPopulatie.getClienten().add(client); 
+					}
+				}
+
+				if (wijkPopulatie.getClienten().isEmpty())
+				{
+					populatiePerWijk.remove(wijk.getCijfer()); 
+				}
+			}
+		}
+
+		return populatiePerWijk;
+	}
+
+	private NavigableSet<PopulatieMetStreefDatum> bepaalStandplaatsPopulatieOpStreefDatum(Map<String, PopulatieMetStreefDatum> populatiePerWijk)
+	{
+		for (PopulatieMetStreefDatum wijkPopulatie : populatiePerWijk.values())
+		{
+			scaleHuidigeStreefDatumEersteRondeClienten(wijkPopulatie.getClienten());
+			OptionalDouble average = wijkPopulatie.getClienten().stream().mapToLong(client -> client.getHuidigeStreefDatum().toEpochDay()).average();
+			wijkPopulatie.setUitnodigingStreefDatum(LocalDate.ofEpochDay(Math.round(average.getAsDouble())));
+		}
+		return new TreeSet<>(populatiePerWijk.values());
+	}
+
+	public boolean isCapaciteitBeschikbaarVoor(PlanningClient client, BigDecimal capaciteitVoorUitnodigen, PlanningScreeningsOrganisatie screeningsOrganisatie)
+	{
+		BigDecimal benodigdeCapaciteit = client.getBenodigdeCapaciteit(screeningsOrganisatie);
+		return capaciteitVoorUitnodigen.subtract(benodigdeCapaciteit).compareTo(MINUS_HALF.multiply(client.getDeelnamekans())) > 0;
 	}
 
 	private boolean alleMinderValideUitnodigen(PlanningStandplaatsRonde standplaatsRonde, PlanningClient client)
@@ -566,57 +552,14 @@ public class PlanningUitnodigenController
 		});
 	}
 
-	private class ClientSetStreefDatum implements Comparable<ClientSetStreefDatum>
-	{
-		private final NavigableSet<PlanningClient> clientNavigableSet = new TreeSet<>(clientComparator);
-
-		private LocalDate uitnodigingStreefDatum;
-
-		private ClientSetStreefDatum()
-		{
-		}
-
-		private ClientSetStreefDatum(PlanningClient client)
-		{
-			clientNavigableSet.add(client);
-			uitnodigingStreefDatum = client.getUitstelStreefDatum();
-		}
-
-		@Override
-		public int compareTo(ClientSetStreefDatum clientSetStreefDatum)
-		{
-			int compareTo = clientSetStreefDatum.isUitgenodigd().compareTo(isUitgenodigd());
-			if (compareTo != 0)
-			{
-				return compareTo;
-			}
-
-			compareTo = uitnodigingStreefDatum.compareTo(clientSetStreefDatum.uitnodigingStreefDatum);
-			if (compareTo != 0)
-			{
-				return compareTo;
-			}
-			return Integer.compare(hashCode(), clientSetStreefDatum.hashCode());
-		}
-
-		private Boolean isUitgenodigd()
-		{
-			return clientNavigableSet.stream().anyMatch(
-				client -> client.getUitstelStandplaats() == null
-					&& client.isUitgenodigdHuidigeStandplaatsRonde()
-					&& !client.isUitgenodigdHuidigeStandplaatsRondeIsGeforceerd()
-					|| Boolean.TRUE.equals(client.getUitgenodigdNaUitstel()));
-		}
-	}
-
 	private void rapportageBijwerken(PlanningUitnodigenRapportageDto rapportageDto, PlanningStandplaatsRonde standplaatsRonde,
-		NavigableSet<ClientSetStreefDatum> clientSetStreefDatumNavigableSet, Set<PlanningClient> achtervangUitstelSet,
+		NavigableSet<PopulatieMetStreefDatum> clientSetStreefDatumNavigableSet, Set<PlanningClient> achtervangUitstelSet,
 		Set<PlanningClient> mindervalideUitwijkUitstelSet, PlanningUitnodigingContext context, int uitnodigenTotEnMetJaar)
 	{
 		Set<PlanningClient> clientSet = new HashSet<>();
-		for (ClientSetStreefDatum clientSetStreefDatum : clientSetStreefDatumNavigableSet)
+		for (PopulatieMetStreefDatum populatieMetStreefDatum : clientSetStreefDatumNavigableSet)
 		{
-			clientSet.addAll(clientSetStreefDatum.clientNavigableSet);
+			clientSet.addAll(populatieMetStreefDatum.getClienten());
 		}
 		for (PlanningTehuis tehuis : standplaatsRonde.getStandplaats().getTehuisSet())
 		{

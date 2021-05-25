@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service.cervix;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,15 +21,20 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.model.cervix.CervixUitstel;
 
 public interface CervixBaseScreeningrondeService
 {
 
 	void annuleerNietVerstuurdeZAS(CervixScreeningRonde ronde);
+
+	void uitstelAanvragen(Client client, CervixUitstel uitstel, Account account);
 
 	void annuleerUitstel(CervixScreeningRonde ronde);
 
@@ -52,4 +56,7 @@ public interface CervixBaseScreeningrondeService
 
 	CervixScreeningRonde getLaatsteScreeningRonde(String bsn);
 
+	boolean heeftMaxAantalZASsenBereikt(CervixScreeningRonde laatsteScreeningRonde, boolean aangevraagdDoorClient);
+
+	Integer getMaxAantalZASAanvragen(boolean aangevraagdDoorClient);
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -100,7 +100,7 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 				item.add(new Label("code", item.getModelObject().getCode()));
 				if (item.getModelObject().getGescandDocument() != null)
 				{
-					item.add(new UploadDocumentLink("download", new PropertyModel<UploadDocument>(item.getModel(), "gescandDocument"), false));
+					item.add(new UploadDocumentLink("download", new PropertyModel<UploadDocument>(item.getModel(), "gescandDocument"), true));
 				}
 				else
 				{
@@ -124,7 +124,7 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 								@Override
 								public void writeData(Attributes attributes)
 								{
-									try (OutputStream outputStream = attributes.getResponse().getOutputStream();)
+									try (OutputStream outputStream = attributes.getResponse().getOutputStream())
 									{
 										File file = fileService.load(item.getModelObject().getOvereenkomst().getDocument());
 										MailMergeContext mailMergeContext = new MailMergeContext();

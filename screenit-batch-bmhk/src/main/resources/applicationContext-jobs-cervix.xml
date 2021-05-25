@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-batch-bmhk
   %%
-  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -48,7 +48,7 @@
         <beans:property name="step" ref="cervix.clientselectie"/>
         <beans:property name="gridSize" value="10"/>
     </beans:bean>
-    <beans:bean id="cervixSelectiePartitioner" class="nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep.CervixSelectiePartitioner"/>
+    <beans:bean id="cervixSelectiePartitioner" class="nl.rivm.screenit.batch.jobs.cervix.CervixSelectiePartitioner"/>
     <beans:bean id="cervixSelectieReader" class="nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep.CervixSelectieReader">
         <beans:property name="fetchSize" value="50"/>
     </beans:bean>
@@ -565,6 +565,12 @@
 
 
     
+    <beans:bean id="cervixHeroverwegersPartitionHandler"
+                class="org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler">
+        <beans:property name="taskExecutor" ref="taskExecutor"/>
+        <beans:property name="step" ref="heroverwegers_step"/>
+        <beans:property name="gridSize" value="10"/>
+    </beans:bean>
     <beans:bean id="cervixHeroverwegersReader" class="nl.rivm.screenit.batch.jobs.cervix.heroverwegers.CervixHeroverwegersReader">
         <beans:property name="fetchSize" value="50"/>
     </beans:bean>
@@ -572,17 +578,22 @@
     <beans:bean id="cervixHeroverwegersListener" class="nl.rivm.screenit.batch.jobs.cervix.heroverwegers.CervixHeroverwegersListener"/>
 
     <job id="cervix_heroverwegers" restartable="true">
-        <step id="heroverwegers_step">
-            <tasklet transaction-manager="transactionManager">
-                <chunk reader="cervixHeroverwegersReader"
-                       writer="cervixHeroverwegersWriter" commit-interval="10">
-                </chunk>
-            </tasklet>
+        <step id="cervix.heroverwegers.master">
+            <partition partitioner="cervixSelectiePartitioner" handler="cervixHeroverwegersPartitionHandler"
+                       step="heroverwegers_step"/>
         </step>
         <listeners>
             <listener ref="cervixHeroverwegersListener"/>
         </listeners>
     </job>
+
+    <step id="heroverwegers_step">
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="cervixHeroverwegersReader"
+                   writer="cervixHeroverwegersWriter" commit-interval="10">
+            </chunk>
+        </tasklet>
+    </step>
 
     
     <beans:bean id="cervixCISMigrantenReader" class="nl.rivm.screenit.batch.jobs.cervix.cismigranten.CervixCISMigrantenReader"/>

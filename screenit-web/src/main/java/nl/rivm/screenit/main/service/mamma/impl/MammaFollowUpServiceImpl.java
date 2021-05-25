@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -170,7 +170,7 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 	{
 		return screeningRonde.getFollowUpVerslagen().stream()
 			.filter(v -> v.getStatus().equals(VerslagStatus.AFGEROND))
-			.sorted(Comparator.comparing(x -> x.getVerslagContent().getPathologieMedischeObservatie().getDatumAutorisatieUitslag(), Comparator.reverseOrder()))
+			.sorted(Comparator.comparing(x -> x.getDatumVerwerkt(), Comparator.reverseOrder()))
 			.collect(Collectors.toList());
 	}
 }

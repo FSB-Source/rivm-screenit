@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,10 +36,11 @@ import nl.rivm.screenit.mamma.se.dto.DagverslagDto;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.OnderzoekService;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,15 +68,14 @@ public class DagverslagController extends AuthorizedController
 	private HibernateService hibernateService;
 
 	@RequestMapping(value = "/{seCode}/{datum}", method = RequestMethod.GET)
-	public ResponseEntity getDagverslag(@PathVariable String seCode, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date datum)
+	public ResponseEntity getDagverslag(@PathVariable String seCode, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datum)
 	{
 		DagverslagOphaler dagverslagOphaler = new DagverslagOphaler(datum, seCode);
 		Future future = executorService.submit(dagverslagOphaler);
 		try
 		{
-			LOG.info("Dagverslag ophalen start (" + seCode + ") dag: " + datum);
-			future.get(ASYNC_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-			LOG.info("Dagverslag ophalen eind (" + seCode + ") dag: " + datum);
+			LOG.info("Dagverslag ophalen queued ({}) dag: {} ", seCode, datum);
+			future.get(asyncRequestTimeoutSeconds, TimeUnit.SECONDS);
 			return ResponseEntity.ok(dagverslagOphaler.getDagverslagDto());
 		}
 		catch (TimeoutException e)
@@ -158,16 +158,16 @@ public class DagverslagController extends AuthorizedController
 
 	private class DagverslagOphaler extends OpenHibernate5SessionInThread
 	{
-		private Date datum;
+		private final Date datum;
 
-		private String seCode;
+		private final String seCode;
 
 		private DagverslagDto dagverslagDto;
 
-		DagverslagOphaler(Date datum, String seCode)
+		DagverslagOphaler(LocalDate datum, String seCode)
 		{
 			super(true);
-			this.datum = datum;
+			this.datum = DateUtil.toUtilDate(datum);
 			this.seCode = seCode;
 		}
 

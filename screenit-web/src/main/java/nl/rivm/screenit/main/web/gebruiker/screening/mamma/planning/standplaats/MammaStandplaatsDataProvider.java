@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
 
 import java.util.Iterator;
 
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
-import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -42,7 +42,7 @@ public class MammaStandplaatsDataProvider extends SortableDataProvider<MammaStan
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaStandplaatsService standplaatsService;
 
 	private IModel<MammaStandplaats> criteria;
 
@@ -58,7 +58,7 @@ public class MammaStandplaatsDataProvider extends SortableDataProvider<MammaStan
 	{
 		MammaStandplaats zoekObject = getZoekObject();
 
-		return baseStandplaatsService.zoekStandplaatsen(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending()).iterator();
+		return standplaatsService.zoekStandplaatsen(zoekObject, Ints.checkedCast(first), Ints.checkedCast(count), getSort().getProperty(), getSort().isAscending()).iterator();
 	}
 
 	private MammaStandplaats getZoekObject()
@@ -70,7 +70,7 @@ public class MammaStandplaatsDataProvider extends SortableDataProvider<MammaStan
 	public long size()
 	{
 		MammaStandplaats zoekObject = getZoekObject();
-		return baseStandplaatsService.countStandplaatsen(zoekObject);
+		return standplaatsService.countStandplaatsen(zoekObject);
 	}
 
 	@Override

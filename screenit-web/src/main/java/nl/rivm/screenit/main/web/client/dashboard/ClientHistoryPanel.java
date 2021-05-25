@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.client.dashboard;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,10 +25,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.ClientGebeurtenis;
-import nl.rivm.screenit.main.util.EnumStringUtil;
+import nl.rivm.screenit.model.ClientGebeurtenis;
 import nl.rivm.screenit.model.Client;
 
+import nl.rivm.screenit.util.EnumStringUtil;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;

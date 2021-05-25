@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsPeriodeService;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -86,6 +87,9 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	@SpringBean
+	private MammaStandplaatsService standplaatsService;
 
 	@SpringBean
 	private MammaBaseStandplaatsService baseStandplaatsService;
@@ -210,7 +214,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 				filter.setVerzettenReden(MammaVerzettenReden.CLIENTEN_PORTAAL);
 				if (standplaats != null)
 				{
-					filter.setPlaats(baseStandplaatsService.getStandplaatsLocatie(standplaats.getObject(), DateUtil.toUtilDate(minimaleVanaf)).getPlaats());
+					filter.setPlaats(standplaatsService.getStandplaatsLocatie(standplaats.getObject(), DateUtil.toUtilDate(minimaleVanaf)).getPlaats());
 				}
 			}
 			else
@@ -307,7 +311,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 			int aantalWerkdagenVerzettenVanaf = simplePreferenceService
 				.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name());
 			LocalDate minDatumBriefVerplicht = DateUtil.toLocalDate(DateUtil.plusWerkdagen(dateSupplier.getDateTimeMidnight(), aantalWerkdagenVerzettenVanaf).toDate());
-			if (minDatumBriefVerplicht.isAfter(filter.getVanafLocalDate()))
+			if (minDatumBriefVerplicht.isAfter(filter.getVanaf()))
 			{
 				error("Bij de gekozen reden moet een brief gestuurd worden. Daarom moet de minimale 'Vanaf' datum op of na "
 					+ DateTimeFormatter.ofPattern("dd-MM-yyyy").format(minDatumBriefVerplicht) + " liggen");
@@ -336,7 +340,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 	{
 		ScreeningOrganisatie screeningOrganisatie = null;
 		MammaAfspraakWijzigenFilter filter = getModelObject();
-		boolean buitenRegio = filter.getBuitenRegio();
+		boolean buitenRegio = filter.isBuitenRegio();
 		if (!buitenRegio)
 		{
 			screeningOrganisatie = filter.getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie();
@@ -375,7 +379,7 @@ public abstract class MammaAfspraakWijzigenFilterPanel extends GenericPanel<Mamm
 		}
 		if (isClientportaal)
 		{
-			plaatsenModel.setObject(standplaatsPeriodeService.getStandplaatsPlaatsenVanActivePeriodes(filter, verzetten));
+			plaatsenModel.setObject(baseStandplaatsService.getStandplaatsPlaatsenVanActivePeriodes(filter, verzetten));
 			if (changedComponent != null)
 			{
 				if (changedComponent.getId().equals(ID_PLAATS))

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.util.EnumStringUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientContactActieTypeWrapper;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.MammaDoelgroepIndicatorPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.formatter.TelefoonnummersFormatter;
@@ -96,7 +96,7 @@ public class MammaAfsprakenBlokPanel extends GenericPanel<List<MammaAfspraak>>
 				item.add(DateLabel.forDatePattern("tijd", Model.of(afspraak.getVanaf()), "HH:mm"));
 				Client client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
 				item.add(new Label("client", NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client)));
-				String datePattern = "dd-MM-yyyy";
+				String datePattern = Constants.DEFAULT_DATE_FORMAT;
 				if (client.getPersoon().getGeboortedatumPrecisie() != null)
 				{
 					datePattern = client.getPersoon().getGeboortedatumPrecisie().getDatePattern();

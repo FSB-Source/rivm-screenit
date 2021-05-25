@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,7 @@ import nl.rivm.screenit.model.gba.GbaFoutRegel;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
@@ -131,9 +132,28 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 
 	private Session connect(JSch jsch) throws JSchException
 	{
-		jsch.setKnownHosts(knownHostPath);
+		String application_environment = System.getProperty("APPLICATION_ENVIRONMENT");
+		boolean checkHostKey = Boolean.parseBoolean(System.getProperty("SFTP_CHECK_HOST_KEY"));
+		if (checkHostKey)
+		{
+			jsch.setKnownHosts(knownHostPath);
+		}
 		Session session = jsch.getSession(username, host, port);
+		if (!checkHostKey)
+		{
+			java.util.Properties config = new java.util.Properties();
+			config.put("StrictHostKeyChecking", "no");
+			session.setConfig(config);
+		}
 
+		String server_host_key = System.getProperty("SERVER_HOST_KEY");
+		String keyfile = System.getProperty("PRIVATE_KEYFILE");
+		if (StringUtils.isNotBlank(server_host_key) && StringUtils.isNotBlank(keyfile))
+		{
+			LOG.info("SERVER_HOST_KEY is set to " + server_host_key);
+			session.setConfig("server_host_key", server_host_key);
+			jsch.addIdentity(keyfile);
+		}
 		session.setPassword(password);
 		session.connect();
 		return session;

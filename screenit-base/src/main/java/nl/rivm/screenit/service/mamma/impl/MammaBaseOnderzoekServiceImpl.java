@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -65,6 +65,7 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,6 +94,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	private MammaBaseOnderzoekDao baseOnderzoekDao;
 
 	@Autowired
+	@Lazy
 	private MammaBaseAfspraakService afspraakService;
 
 	@Override
@@ -107,38 +109,42 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		{
 			onderzoekDoorvoeren(onderzoek);
 			beeldenAlBeschikbaarControle(onderzoek);
-
-			boolean heeftEerdereBeeldenBinnenUitnodiging = heeftEerdereBeeldenBinnenUitnodiging(onderzoek);
-			boolean onderzoekOnvolledigZonderFotos = isOnderzoekOnvolledigZonderFotos(onderzoek);
-			if (onderzoekOnvolledigZonderFotos && !heeftEerdereBeeldenBinnenUitnodiging)
-			{
-				MammaScreeningRonde screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
-				briefService.maakMammaBrief(screeningRonde, BriefType.MAMMA_GEEN_ONDERZOEK);
-				setScreeningrondeStatus(screeningRonde, ScreeningRondeStatus.AFGEROND);
-				hibernateService.saveOrUpdate(screeningRonde);
-			}
-			else if (onderzoekOnvolledigZonderFotos)
-			{
-				onderzoekMetEerdereFotosDoorzetten(onderzoek);
-			}
-			else if (MammaOnderzoekStatus.AFGEROND.equals(onderzoekStatus) || isOnderzoekOnvolledigMetFotos(onderzoek))
-			{
-				voegInitieleBeoordelingToe(onderzoek);
-			}
+			vervolgDoorgevoerdOnderzoek(onderzoek);
 		}
 		else
 		{
-			String errorMessage = String.format("Onderzoek mag niet worden doorgevoerd, onderzoekstatus: %s; afspraakstatus: %s.", onderzoekStatus.name(),
+			String errorMessage = String.format("Onderzoek %s mag niet worden doorgevoerd, onderzoekstatus: %s; afspraakstatus: %s.", onderzoek.getId(), onderzoekStatus.name(),
 				afspraakStatus.name());
 			throw new IllegalStateException(errorMessage);
+		}
+	}
+
+	private void vervolgDoorgevoerdOnderzoek(MammaOnderzoek onderzoek)
+	{
+		boolean heeftEerdereBeeldenBinnenUitnodiging = heeftEerdereBeeldenBinnenUitnodiging(onderzoek);
+		boolean onderzoekOnvolledigZonderFotos = isOnderzoekOnvolledigZonderFotos(onderzoek);
+		if (onderzoekOnvolledigZonderFotos && !heeftEerdereBeeldenBinnenUitnodiging)
+		{
+			MammaScreeningRonde screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
+			briefService.maakMammaBrief(screeningRonde, BriefType.MAMMA_GEEN_ONDERZOEK);
+			setScreeningrondeStatus(screeningRonde, ScreeningRondeStatus.AFGEROND);
+			hibernateService.saveOrUpdate(screeningRonde);
+		}
+		else if (onderzoekOnvolledigZonderFotos)
+		{
+			onderzoekMetEerdereFotosDoorzetten(onderzoek);
+		}
+		else if (MammaOnderzoekStatus.AFGEROND.equals(onderzoek.getStatus()) || isOnderzoekOnvolledigMetFotos(onderzoek))
+		{
+			voegInitieleBeoordelingToe(onderzoek);
 		}
 	}
 
 	private void onderzoekMetEerdereFotosDoorzetten(MammaOnderzoek onderzoek)
 	{
 		MammaOnderzoek voorgaandeOnderzoek = onderzoek.getAfspraak().getUitnodiging().getAfspraken().stream()
-			.filter(a -> !a.getOnderzoek().getId().equals(onderzoek.getId()))
 			.map(MammaAfspraak::getOnderzoek)
+			.filter(aOnderzoek -> !aOnderzoek.getId().equals(onderzoek.getId()))
 			.max(Comparator.comparing(MammaOnderzoek::getCreatieDatum))
 			.orElseThrow(() -> new IllegalStateException("Geen eerder onderzoek kunnen vinden"));
 		MammaMammografie mammografie = voorgaandeOnderzoek.getMammografie();
@@ -150,7 +156,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		voegInitieleBeoordelingToe(onderzoek);
 	}
 
-	public boolean heeftEerdereBeeldenBinnenUitnodiging(MammaOnderzoek onderzoek)
+	private boolean heeftEerdereBeeldenBinnenUitnodiging(MammaOnderzoek onderzoek)
 	{
 
 		return onderzoek.getAfspraak().getUitnodiging().getScreeningRonde().getUitnodigingen().stream().flatMap(mammaUitnodiging -> mammaUitnodiging.getAfspraken().stream())
@@ -290,6 +296,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isOnderzoekOnvolledigZonderFotos(MammaOnderzoek onderzoek)
 	{
 		return MammaOnderzoekStatus.ONVOLLEDIG.equals(onderzoek.getStatus())
@@ -297,6 +304,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isOnderzoekOnvolledigMetFotos(MammaOnderzoek onderzoek)
 	{
 		return MammaOnderzoekStatus.ONVOLLEDIG.equals(onderzoek.getStatus()) &&
@@ -344,6 +352,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<KeyValue> vorigeRondeTeksten(MammaOnderzoek onderzoek, boolean opSE)
 	{
 		List<KeyValue> result = new ArrayList<>();
@@ -407,6 +416,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<MammaOnderzoek> getOnderzoekenMetBeelden(Client client)
 	{
 		if (client.getMammaDossier() != null)
@@ -421,7 +431,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		{
 			return new ArrayList<>();
 		}
-	};
+	}
 
 	private void updateDossierMammografieVelden(MammaMammografie mammografie)
 	{

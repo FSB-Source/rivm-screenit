@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
@@ -62,6 +63,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -74,6 +76,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Range;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -93,6 +97,9 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 	@Autowired
 	private PlanningReadModelDao readModelDao;
 
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
+
 	@Override
 	@Transactional(rollbackFor = { OpslaanVerwijderenTijdBlokException.class, DryRunException.class, OpslaanAfsprakenBuitenStandplaatsPeriodeException.class })
 	public PlanningConceptMeldingenDto opslaan(Long screeningOrganisatieId, boolean runDry)
@@ -106,86 +113,224 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 
 		Map<Long, Date[]> afsprakenBuitenStandplaatsPeriodeMap = new HashMap<>();
 
-		se: for (PlanningScreeningsEenheid screeningsEenheid : screeningsOrganisatie.getScreeningsEenheidSet())
+		for (PlanningScreeningsEenheid screeningsEenheid : screeningsOrganisatie.getScreeningsEenheidSet())
 		{
 			MammaScreeningsEenheid persistentScreeningsEenheid = hibernateService.get(MammaScreeningsEenheid.class, screeningsEenheid.getId());
 			LOG.info("Concept opslaan voor SE " + persistentScreeningsEenheid.getNaam());
 
-			PlanningStandplaatsPeriode eersteStandplaatsPeriodeMetPrognose = screeningsEenheid.getStandplaatsPeriodeNavigableSet().stream()
-				.filter(PlanningStandplaatsPeriode::getPrognose)
-				.findFirst().orElse(null);
+			controleerAfsprakenInGewijzigdePeriodeMetPrognose(afsprakenBuitenStandplaatsPeriodeMap, screeningsEenheid, persistentScreeningsEenheid);
 
-			if (eersteStandplaatsPeriodeMetPrognose != null && eersteStandplaatsPeriodeMetPrognose.getId() != null)
+			try
 			{
-				MammaStandplaatsPeriode persistentStandplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class, eersteStandplaatsPeriodeMetPrognose.getId());
-				Date conceptTotEnMet = DateUtil.toUtilDate(eersteStandplaatsPeriodeMetPrognose.getTotEnMet().plusDays(1));
-				Date persistentTotEnMet = DateUtil.toUtilDate(DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet()).plusDays(1));
-				if (conceptTotEnMet.compareTo(persistentTotEnMet) != 0)
+				if (afsprakenBuitenStandplaatsPeriodeMap.isEmpty())
 				{
-					List<Date> totEnMetDatumList = Arrays.asList(conceptTotEnMet, persistentTotEnMet);
-					Date[] eersteEnLaatsteAfspraakVanaf = baseAfspraakDao.getEersteEnLaatsteAfspraakDatum(persistentStandplaatsPeriode.getId(),
-						Collections.min(totEnMetDatumList), Collections.max(totEnMetDatumList), MammaAfspraakStatus.GEPLAND);
-
-					if (eersteEnLaatsteAfspraakVanaf[0] != null)
-					{
-						String melding = "Concept kan niet worden opgeslagen voor SE " + persistentScreeningsEenheid.getNaam() + ". Standplaatsperiode "
-							+ eersteStandplaatsPeriodeMetPrognose.getId() + " heeft afspraken op " + DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[0]);
-
-						if (eersteEnLaatsteAfspraakVanaf[1] != null)
-						{
-							melding += " t/m " + DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[1]);
-						}
-
-						LOG.warn(melding);
-						afsprakenBuitenStandplaatsPeriodeMap.put(persistentScreeningsEenheid.getId(), eersteEnLaatsteAfspraakVanaf);
-					}
+					verwijderCapaciteitblokken(runDry, meldingenDto, screeningsEenheid);
+					wijzigCapaciteitblokken(runDry, meldingenDto, screeningsEenheid, persistentScreeningsEenheid, nieuweBlokken);
+					wijzigStandplaatsPerioden(runDry, meldingenDto, screeningsEenheid, persistentScreeningsEenheid);
+					wijzigSceeningsEenheid(runDry, meldingenDto, screeningsEenheid, persistentScreeningsEenheid);
 				}
 			}
-
-			if (!afsprakenBuitenStandplaatsPeriodeMap.isEmpty())
+			catch (MaxMeldingenVoorSeBereiktException e)
 			{
-				continue se;
+
+			}
+		}
+		if (afsprakenBuitenStandplaatsPeriodeMap.size() > 0)
+		{
+			throw new OpslaanAfsprakenBuitenStandplaatsPeriodeException(afsprakenBuitenStandplaatsPeriodeMap);
+		}
+		if (!runDry && meldingenDto.niveau != MammaMeldingNiveau.PROBLEEM)
+		{
+			screeningsOrganisatie.restConceptGewijzigdDoor();
+			nieuweBlokken.forEach((k, v) -> v.setId(k));
+		}
+		else
+		{
+			throw new DryRunException(meldingenDto);
+		}
+		return meldingenDto;
+	}
+
+	private void wijzigSceeningsEenheid(boolean runDry, PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid screeningsEenheid,
+		MammaScreeningsEenheid persistentScreeningsEenheid)
+	{
+		persistentScreeningsEenheid.setInterval(screeningsEenheid.getInterval());
+		persistentScreeningsEenheid.setHerhalingsWeek(DateUtil.toUtilDate(screeningsEenheid.getHerhalingsWeek().getDatum()));
+		String diffScreeningsEenheidToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(persistentScreeningsEenheid, hibernateService.getHibernateSession());
+		if (diffScreeningsEenheidToLatestVersion.length() > 0)
+		{
+			String melding = "Gewijzigd: " + diffScreeningsEenheidToLatestVersion;
+			addMelding(meldingenDto, screeningsEenheid, melding, MammaMeldingNiveau.INFO, runDry);
+		}
+		if (!runDry)
+		{
+			PlanningBlokIndex.reset(screeningsEenheid);
+			screeningsEenheid.setInitieelInterval(screeningsEenheid.getInterval());
+			screeningsEenheid.setInitieelHerhalingsWeek(screeningsEenheid.getHerhalingsWeek());
+			hibernateService.saveOrUpdate(persistentScreeningsEenheid);
+		}
+	}
+
+	private void wijzigStandplaatsPerioden(boolean runDry, PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid screeningsEenheid,
+		MammaScreeningsEenheid persistentScreeningsEenheid)
+	{
+		List<MammaAfspraak> teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode = new ArrayList<>();
+		for (PlanningStandplaatsPeriode standplaatsPeriode : screeningsEenheid.getStandplaatsPeriodeNavigableSet())
+		{
+			String melding = "";
+			MammaStandplaatsPeriode persistentStandplaatsPeriode = null;
+			MammaStandplaatsRonde persistentStandplaatsRonde = null;
+			if (standplaatsPeriode.getId() != null)
+			{
+				persistentStandplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class, standplaatsPeriode.getId());
+				persistentStandplaatsRonde = persistentStandplaatsPeriode.getStandplaatsRonde();
+			}
+			PlanningStandplaatsRonde standplaatsRonde = standplaatsPeriode.getStandplaatsRonde();
+			if (persistentStandplaatsPeriode == null)
+			{
+				MammaStandplaats persistentStandplaats = hibernateService.get(MammaStandplaats.class, standplaatsRonde.getStandplaats().getId());
+				persistentStandplaatsPeriode = new MammaStandplaatsPeriode();
+				persistentStandplaatsPeriode.setScreeningsEenheid(persistentScreeningsEenheid);
+
+				persistentStandplaatsRonde = standplaatsRonde.getId() != null
+					? hibernateService.get(MammaStandplaatsRonde.class, standplaatsRonde.getId())
+					: null;
+
+				if (persistentStandplaatsRonde == null)
+				{
+					persistentStandplaatsRonde = new MammaStandplaatsRonde();
+					persistentStandplaatsRonde.setStandplaats(persistentStandplaats);
+					persistentStandplaats.getStandplaatsRonden().add(persistentStandplaatsRonde);
+
+				}
+				persistentStandplaatsPeriode.setStandplaatsRonde(persistentStandplaatsRonde);
+				persistentStandplaatsRonde.getStandplaatsPerioden().add(persistentStandplaatsPeriode);
+				melding = "Nieuw ";
 			}
 
-			for (PlanningBlok blokToRemove : PlanningBlokIndex.getBlokDeletedSet(screeningsEenheid))
-			{
-				if (blokToRemove.getId() != null)
-				{
-					LOG.info("Verwijder cap.blok " + blokToRemove.getCapaciteitBlokType() + " - " + blokToRemove.getVanaf());
-					MammaCapaciteitBlok persistentBlok = hibernateService.get(MammaCapaciteitBlok.class, blokToRemove.getId());
-					if (persistentBlok != null)
-					{
-						String melding = "Capaciteit verwijderd (" + Constants.getDateTimeFormat().format(blokToRemove.getDateVanaf()) + ").";
-						MammaMeldingNiveau niveau = MammaMeldingNiveau.INFO;
-						if (!persistentBlok.getAfspraken().isEmpty())
-						{
-							melding += ". Gekoppelde afspraken (#" + persistentBlok.getAfspraken().size() + ") worden losgemaakt van deze capaciteitsblok.";
-							niveau = MammaMeldingNiveau.WAARSCHUWING;
-						}
-						if (addMelding(meldingenDto, screeningsEenheid, melding, niveau) && runDry)
-						{
-							continue se;
-						}
+			corrigeerScreeningsEenheidAlsNodig(persistentScreeningsEenheid, persistentStandplaatsPeriode);
+			boolean verplaatsAfspraken = moetAfsprakenVerplaatsenVoorActieveStandplaats(runDry, meldingenDto, teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode,
+				standplaatsPeriode, persistentStandplaatsPeriode);
 
-						if (!runDry)
-						{
-							ontkoppelAfspraken(persistentBlok, true);
-							hibernateService.delete(persistentBlok);
-						}
-					}
-				}
-				if (!runDry)
+			String diffStandplaatsPeriodeToLatestVersion = wijzigStandplaatsPeriode(standplaatsPeriode, persistentStandplaatsPeriode);
+			String diffStandplaatsRondeToLatestVersion = wijzigStandplaatsRonde(standplaatsRonde, persistentStandplaatsRonde);
+
+			if (diffStandplaatsPeriodeToLatestVersion.length() > 0 || diffStandplaatsRondeToLatestVersion.length() > 0)
+			{
+				if (melding.isEmpty())
 				{
-					screeningsEenheid.getBlokSet().remove(blokToRemove);
+					melding = "Gewijzigd ";
+				}
+				melding += persistentStandplaatsPeriode.getStandplaatsRonde().getStandplaats().getNaam() + " / " + diffStandplaatsPeriodeToLatestVersion + " / "
+					+ diffStandplaatsRondeToLatestVersion;
+			}
+			addMelding(meldingenDto, screeningsEenheid, melding, MammaMeldingNiveau.INFO, runDry);
+
+			if (!runDry)
+			{
+				persistentStandplaatsRonde.setInterval(standplaatsRonde.getInterval());
+				standplaatsRonde.setIntieelInterval(standplaatsRonde.getInterval());
+				hibernateService.saveOrUpdateAll(persistentStandplaatsRonde, persistentStandplaatsRonde.getStandplaats());
+				hibernateService.saveOrUpdate(persistentStandplaatsPeriode);
+
+				PlanningStandplaatsRondeIndex.put(standplaatsRonde);
+				standplaatsRonde.setId(persistentStandplaatsRonde.getId());
+				standplaatsPeriode.setId(persistentStandplaatsPeriode.getId());
+				readModelDao.addStandplaatsPeriode(standplaatsPeriode);
+				if (verplaatsAfspraken)
+				{
+					meldingenDto.afsprakenTeVerplaatsen.put(persistentStandplaatsPeriode.getId(),
+						teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.stream().map(a -> a.getId()).collect(Collectors.toList()));
+					teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.clear();
 				}
 			}
+		}
+	}
 
-			boolean isMaxBereikt = false;
-			Set<MammaCapaciteitBlok> ontkoppelAfsprakenCapaciteitBlokken = new HashSet<>();
-			Set<MammaCapaciteitBlok> koppelAfsprakenCapaciteitBlokken = new HashSet<>();
-			Map<MammaCapaciteitBlok, PlanningMeldingDto> capaciteitBlokMeldingMap = new HashMap<>();
+	private boolean moetAfsprakenVerplaatsenVoorActieveStandplaats(boolean runDry, PlanningConceptMeldingenDto meldingenDto,
+		List<MammaAfspraak> teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode, PlanningStandplaatsPeriode standplaatsPeriode,
+		MammaStandplaatsPeriode persistentStandplaatsPeriode)
+	{
+		boolean verplaatsAfspraken = false;
 
-			changedBlokken: for (PlanningBlok blok : PlanningBlokIndex.getBlokChangedSet(screeningsEenheid))
+		if (teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.size() > 0)
+		{
+			verplaatsAfspraken = true;
+			addMelding(meldingenDto, standplaatsPeriode.getScreeningsEenheid(),
+				"Er worden afspraken (#" + teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.size() + ") verplaatst van standplaats "
+					+ teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.get(0).getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getNaam() + " naar standplaats "
+					+ persistentStandplaatsPeriode.getStandplaatsRonde().getStandplaats().getNaam()
+					+ ". Na 'Doorgaan' (opslaan van het concept) worden direct automatisch deze afspraken verzet en de brieven klaargezet klaargezet in 'Document afdrukken'. Dit kan echter nog een moment duren.",
+				MammaMeldingNiveau.INFO, runDry);
+		}
+
+		boolean isActieveStandplaatsPeriodeVerkort = persistentStandplaatsPeriode.getId() != null
+			&& standplaatsPeriode.getTotEnMet().isBefore(DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet())) && Range
+				.closed(DateUtil.toLocalDate(persistentStandplaatsPeriode.getVanaf()), DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet()))
+				.contains(currentDateSupplier.getLocalDate());
+		if (isActieveStandplaatsPeriodeVerkort)
+		{
+			teVerplaatsenAfsprakenVoorActieveStandplaatsPeriode.addAll(baseAfspraakService.getAfspraken(persistentStandplaatsPeriode.getScreeningsEenheid(),
+				DateUtil.toUtilDate(standplaatsPeriode.getTotEnMet().plusDays(1)),
+				persistentStandplaatsPeriode.getTotEnMet(), MammaAfspraakStatus.GEPLAND));
+		}
+		return verplaatsAfspraken;
+	}
+
+	private String wijzigStandplaatsRonde(PlanningStandplaatsRonde standplaatsRonde, MammaStandplaatsRonde persistentStandplaatsRonde)
+	{
+		persistentStandplaatsRonde.setAfspraakDrempel(standplaatsRonde.getAfspraakDrempel());
+		persistentStandplaatsRonde.setAchtervangToegepast(standplaatsRonde.getAchtervangToegepast());
+		persistentStandplaatsRonde.setMinderValideUitnodigenVanaf(DateUtil.toUtilDate(standplaatsRonde.getMinderValideUitnodigenVanaf()));
+
+		MammaStandplaats achtervangStandplaats = standplaatsRonde.getAchtervangStandplaats() != null
+			? hibernateService.get(MammaStandplaats.class, standplaatsRonde.getAchtervangStandplaats().getId())
+			: null;
+		persistentStandplaatsRonde.setAchtervangStandplaats(achtervangStandplaats);
+
+		MammaStandplaats minderValideUitwijkStandplaats = standplaatsRonde.getMinderValideUitwijkStandplaats() != null
+			? hibernateService.get(MammaStandplaats.class, standplaatsRonde.getMinderValideUitwijkStandplaats().getId())
+			: null;
+		persistentStandplaatsRonde.setMinderValideUitwijkStandplaats(minderValideUitwijkStandplaats);
+		wijzigAfspraakcapaciteitBeschikbaarVoor(persistentStandplaatsRonde, standplaatsRonde.getAfspraakcapaciteitBeschikbaarVoor());
+
+		return EntityAuditUtil.getDiffToLatestVersion(persistentStandplaatsRonde, hibernateService.getHibernateSession());
+	}
+
+	private String wijzigStandplaatsPeriode(PlanningStandplaatsPeriode standplaatsPeriode, MammaStandplaatsPeriode persistentStandplaatsPeriode)
+	{
+		persistentStandplaatsPeriode.setPrognose(standplaatsPeriode.getPrognose());
+		persistentStandplaatsPeriode.setTotEnMet(DateUtil.toUtilDate(standplaatsPeriode.getTotEnMet()));
+		persistentStandplaatsPeriode.setVanaf(DateUtil.toUtilDate(standplaatsPeriode.getVanaf()));
+		persistentStandplaatsPeriode.setScreeningsEenheidVolgNr(standplaatsPeriode.getScreeningsEenheidVolgNr());
+		persistentStandplaatsPeriode.setStandplaatsRondeVolgNr(standplaatsPeriode.getStandplaatsRondeVolgNr());
+
+		return EntityAuditUtil.getDiffToLatestVersion(persistentStandplaatsPeriode, hibernateService.getHibernateSession());
+	}
+
+	private void corrigeerScreeningsEenheidAlsNodig(MammaScreeningsEenheid persistentScreeningsEenheid, MammaStandplaatsPeriode persistentStandplaatsPeriode)
+	{
+		MammaScreeningsEenheid otherPersistentScreeningsEenheid = persistentStandplaatsPeriode.getScreeningsEenheid();
+		if (!otherPersistentScreeningsEenheid.equals(persistentScreeningsEenheid))
+		{
+			otherPersistentScreeningsEenheid.getStandplaatsPerioden().remove(persistentStandplaatsPeriode);
+			persistentStandplaatsPeriode.setScreeningsEenheid(persistentScreeningsEenheid);
+
+			persistentScreeningsEenheid.getStandplaatsPerioden().add(persistentStandplaatsPeriode);
+		}
+	}
+
+	private void wijzigCapaciteitblokken(boolean runDry, PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid screeningsEenheid,
+		MammaScreeningsEenheid persistentScreeningsEenheid,
+		Map<Long, PlanningBlok> nieuweBlokken)
+	{
+		Set<MammaCapaciteitBlok> ontkoppelAfsprakenCapaciteitBlokken = new HashSet<>();
+		Set<MammaCapaciteitBlok> koppelAfsprakenCapaciteitBlokken = new HashSet<>();
+		Map<MammaCapaciteitBlok, PlanningMeldingDto> capaciteitBlokMeldingMap = new HashMap<>();
+
+		try
+		{
+			for (PlanningBlok blok : PlanningBlokIndex.getBlokChangedSet(screeningsEenheid))
 			{
 				MammaCapaciteitBlok persistentBlok = null;
 				boolean isNieuw = blok.getId() == null;
@@ -205,7 +350,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 				int aantalAfsprakenTeVerwijderen = getAantalAfsprakenTeOntkoppelen(persistentBlok, blok.getDateVanaf(), blok.getDateTot(), blok.getCapaciteitBlokType());
 				if (aantalAfsprakenTeVerwijderen > 0)
 				{
-					waarschuwing = " Blok type of tijden zijn gewijzigd. Gekoppelde afspraken (#" + aantalAfsprakenTeVerwijderen + ") worden losgemaakt van deze capaciteitsblok. ";
+					waarschuwing = " Blok type of tijden zijn gewijzigd. Gekoppelde afspraken (#" + aantalAfsprakenTeVerwijderen + ") worden losgemaakt van deze capaciteitblok. ";
 					ontkoppelAfspraken = true;
 				}
 				persistentBlok.setAantalOnderzoeken(blok.getAantalOnderzoeken());
@@ -239,39 +384,34 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 							ontkoppelAfsprakenCapaciteitBlokken.add(persistentBlok);
 						}
 						hibernateService.saveOrUpdate(persistentBlok);
-						koppelAfsprakenCapaciteitBlokken.add(persistentBlok);
 						if (isNieuw)
 						{
 							nieuweBlokken.put(persistentBlok.getId(), blok);
 						}
 					}
-					else
-					{
-						koppelAfsprakenCapaciteitBlokken.add(persistentBlok);
-					}
+					koppelAfsprakenCapaciteitBlokken.add(persistentBlok);
 					MammaMeldingNiveau niveau = MammaMeldingNiveau.INFO;
 					if (waarschuwing.length() > 0)
 					{
 						niveau = MammaMeldingNiveau.WAARSCHUWING;
 					}
-					isMaxBereikt = addMelding(meldingenDto, screeningsEenheid, melding + waarschuwing, niveau);
+					addMelding(meldingenDto, screeningsEenheid, melding + waarschuwing, niveau, runDry);
 
-					if (isMaxBereikt && runDry)
-					{
+					List<PlanningMeldingDto> seMeldingenDtoList = getMeldingenPerSeDto(meldingenDto, screeningsEenheid).meldingen;
+					PlanningMeldingDto meldingDto = seMeldingenDtoList.get(seMeldingenDtoList.size() - 1);
+					capaciteitBlokMeldingMap.put(persistentBlok, meldingDto);
 
-						break changedBlokken;
-					}
-					else
-					{
-						List<PlanningMeldingDto> seMeldingenDtoList = getMeldingenPerSeDto(meldingenDto, screeningsEenheid).meldingen;
-						PlanningMeldingDto meldingDto = seMeldingenDtoList.get(seMeldingenDtoList.size() - 1);
-						capaciteitBlokMeldingMap.put(persistentBlok, meldingDto);
-					}
 				}
 			}
 
 			ontkoppelAfsprakenCapaciteitBlokken.forEach(ontkoppelAfsprakenCapaciteitBlok -> ontkoppelAfspraken(ontkoppelAfsprakenCapaciteitBlok, false));
-
+		}
+		catch (MaxMeldingenVoorSeBereiktException e)
+		{
+			throw e;
+		}
+		finally
+		{
 			koppelAfsprakenCapaciteitBlokken.forEach(teKoppelenBlok -> {
 				String waarschuwing = koppelNietGekoppeldeAfspraken(teKoppelenBlok, runDry);
 				if (capaciteitBlokMeldingMap.containsKey(teKoppelenBlok))
@@ -281,140 +421,79 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 				}
 
 			});
+		}
 
-			if (isMaxBereikt && runDry)
+	}
+
+	private void verwijderCapaciteitblokken(boolean runDry, PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid screeningsEenheid)
+	{
+		for (PlanningBlok blokToRemove : PlanningBlokIndex.getBlokDeletedSet(screeningsEenheid))
+		{
+			if (blokToRemove.getId() != null)
 			{
-				continue se;
-			}
-
-			for (PlanningStandplaatsPeriode standplaatsPeriode : screeningsEenheid.getStandplaatsPeriodeNavigableSet())
-			{
-				String melding = "";
-				MammaStandplaatsPeriode persistentStandplaatsPeriode = null;
-				MammaStandplaatsRonde persistentStandplaatsRonde = null;
-				if (standplaatsPeriode.getId() != null)
+				LOG.info("Verwijder cap.blok " + blokToRemove.getCapaciteitBlokType() + " - " + blokToRemove.getVanaf());
+				MammaCapaciteitBlok persistentBlok = hibernateService.get(MammaCapaciteitBlok.class, blokToRemove.getId());
+				if (persistentBlok != null)
 				{
-					persistentStandplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class, standplaatsPeriode.getId());
-					persistentStandplaatsRonde = persistentStandplaatsPeriode.getStandplaatsRonde();
-				}
-				PlanningStandplaatsRonde standplaatsRonde = standplaatsPeriode.getStandplaatsRonde();
-				if (persistentStandplaatsPeriode == null)
-				{
-					MammaStandplaats persistentStandplaats = hibernateService.get(MammaStandplaats.class, standplaatsRonde.getStandplaats().getId());
-					persistentStandplaatsPeriode = new MammaStandplaatsPeriode();
-					persistentStandplaatsPeriode.setScreeningsEenheid(persistentScreeningsEenheid);
-
-					persistentStandplaatsRonde = standplaatsRonde.getId() != null
-						? hibernateService.get(MammaStandplaatsRonde.class, standplaatsRonde.getId())
-						: null;
-
-					if (persistentStandplaatsRonde == null)
+					String melding = "Capaciteit verwijderd (" + Constants.getDateTimeFormat().format(blokToRemove.getDateVanaf()) + ").";
+					MammaMeldingNiveau niveau = MammaMeldingNiveau.INFO;
+					if (!persistentBlok.getAfspraken().isEmpty())
 					{
-						persistentStandplaatsRonde = new MammaStandplaatsRonde();
-						persistentStandplaatsRonde.setStandplaats(persistentStandplaats);
-						persistentStandplaats.getStandplaatsRonden().add(persistentStandplaatsRonde);
-
+						melding += ". Gekoppelde afspraken (#" + persistentBlok.getAfspraken().size() + ") worden losgemaakt van deze capaciteitblok.";
+						niveau = MammaMeldingNiveau.WAARSCHUWING;
 					}
-					persistentStandplaatsPeriode.setStandplaatsRonde(persistentStandplaatsRonde);
-					persistentStandplaatsRonde.getStandplaatsPerioden().add(persistentStandplaatsPeriode);
-					melding = "Nieuw ";
-				}
+					addMelding(meldingenDto, screeningsEenheid, melding, niveau, runDry);
 
-				MammaScreeningsEenheid otherPersistentScreeningsEenheid = persistentStandplaatsPeriode.getScreeningsEenheid();
-				if (!otherPersistentScreeningsEenheid.equals(persistentScreeningsEenheid))
-				{
-					otherPersistentScreeningsEenheid.getStandplaatsPerioden().remove(persistentStandplaatsPeriode);
-					persistentStandplaatsPeriode.setScreeningsEenheid(persistentScreeningsEenheid);
-
-					persistentScreeningsEenheid.getStandplaatsPerioden().add(persistentStandplaatsPeriode);
-				}
-				persistentStandplaatsPeriode.setPrognose(standplaatsPeriode.getPrognose());
-				persistentStandplaatsPeriode.setTotEnMet(DateUtil.toUtilDate(standplaatsPeriode.getTotEnMet()));
-				persistentStandplaatsPeriode.setVanaf(DateUtil.toUtilDate(standplaatsPeriode.getVanaf()));
-				persistentStandplaatsPeriode.setScreeningsEenheidVolgNr(standplaatsPeriode.getScreeningsEenheidVolgNr());
-				persistentStandplaatsPeriode.setStandplaatsRondeVolgNr(standplaatsPeriode.getStandplaatsRondeVolgNr());
-				String diffStandplaatsPeriodeToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(persistentStandplaatsPeriode, hibernateService.getHibernateSession());
-
-				persistentStandplaatsRonde.setAfspraakDrempel(standplaatsRonde.getAfspraakDrempel());
-				persistentStandplaatsRonde.setAchtervangToegepast(standplaatsRonde.getAchtervangToegepast());
-				persistentStandplaatsRonde.setMinderValideUitnodigenVanaf(DateUtil.toUtilDate(standplaatsRonde.getMinderValideUitnodigenVanaf()));
-
-				MammaStandplaats achtervangStandplaats = standplaatsRonde.getAchtervangStandplaats() != null
-					? hibernateService.get(MammaStandplaats.class, standplaatsRonde.getAchtervangStandplaats().getId())
-					: null;
-				persistentStandplaatsRonde.setAchtervangStandplaats(achtervangStandplaats);
-
-				MammaStandplaats minderValideUitwijkStandplaats = standplaatsRonde.getMinderValideUitwijkStandplaats() != null
-					? hibernateService.get(MammaStandplaats.class, standplaatsRonde.getMinderValideUitwijkStandplaats().getId())
-					: null;
-				persistentStandplaatsRonde.setMinderValideUitwijkStandplaats(minderValideUitwijkStandplaats);
-				changeAfspraakcapaciteitBeschikbaarVoor(persistentStandplaatsRonde, standplaatsRonde.getAfspraakcapaciteitBeschikbaarVoor());
-
-				String diffStandplaatsRondeToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(persistentStandplaatsRonde, hibernateService.getHibernateSession());
-
-				if (diffStandplaatsPeriodeToLatestVersion.length() > 0 || diffStandplaatsRondeToLatestVersion.length() > 0)
-				{
-					if (melding.isEmpty())
+					if (!runDry)
 					{
-						melding = "Gewijzigd ";
-					}
-					melding += persistentStandplaatsPeriode.getStandplaatsRonde().getStandplaats().getNaam() + " / " + diffStandplaatsPeriodeToLatestVersion + " / "
-						+ diffStandplaatsRondeToLatestVersion;
-				}
-				if (StringUtils.isNotBlank(melding))
-				{
-					if (addMelding(meldingenDto, screeningsEenheid, melding, MammaMeldingNiveau.INFO) && runDry)
-					{
-						continue se;
+						ontkoppelAfspraken(persistentBlok, true);
+						hibernateService.delete(persistentBlok);
 					}
 				}
-				if (!runDry)
-				{
-					persistentStandplaatsRonde.setInterval(standplaatsRonde.getInterval());
-					standplaatsRonde.setIntieelInterval(standplaatsRonde.getInterval());
-					hibernateService.saveOrUpdateAll(persistentStandplaatsRonde, persistentStandplaatsRonde.getStandplaats());
-					hibernateService.saveOrUpdate(persistentStandplaatsPeriode);
-
-					PlanningStandplaatsRondeIndex.put(standplaatsRonde);
-					standplaatsRonde.setId(persistentStandplaatsRonde.getId());
-					standplaatsPeriode.setId(persistentStandplaatsPeriode.getId());
-					readModelDao.addStandplaatsPeriode(standplaatsPeriode);
-				}
-			}
-
-			persistentScreeningsEenheid.setInterval(screeningsEenheid.getInterval());
-			persistentScreeningsEenheid.setHerhalingsWeek(DateUtil.toUtilDate(screeningsEenheid.getHerhalingsWeek().getDatum()));
-			String diffScreeningsEenheidToLatestVersion = EntityAuditUtil.getDiffToLatestVersion(persistentScreeningsEenheid, hibernateService.getHibernateSession());
-			if (diffScreeningsEenheidToLatestVersion.length() > 0)
-			{
-				String melding = "Gewijzigd: " + diffScreeningsEenheidToLatestVersion;
-				addMelding(meldingenDto, screeningsEenheid, melding, MammaMeldingNiveau.INFO);
 			}
 			if (!runDry)
 			{
-				PlanningBlokIndex.reset(screeningsEenheid);
-				screeningsEenheid.setInitieelInterval(screeningsEenheid.getInterval());
-				screeningsEenheid.setInitieelHerhalingsWeek(screeningsEenheid.getHerhalingsWeek());
-				hibernateService.saveOrUpdate(persistentScreeningsEenheid);
+				screeningsEenheid.getBlokSet().remove(blokToRemove);
 			}
 		}
-		if (afsprakenBuitenStandplaatsPeriodeMap.size() > 0)
-		{
-			throw new OpslaanAfsprakenBuitenStandplaatsPeriodeException(afsprakenBuitenStandplaatsPeriodeMap);
-		}
-		if (!runDry && meldingenDto.niveau != MammaMeldingNiveau.PROBLEEM)
-		{
-			screeningsOrganisatie.restConceptGewijzigdDoor();
-			nieuweBlokken.forEach((k, v) -> v.setId(k));
-		}
-		else
-		{
-			throw new DryRunException(meldingenDto);
-		}
-		return meldingenDto;
 	}
 
-	private void changeAfspraakcapaciteitBeschikbaarVoor(MammaStandplaatsRonde persistentStandplaatsRonde, List<PlanningScreeningsOrganisatie> afspraakcapaciteitBeschikbaarVoor)
+	private void controleerAfsprakenInGewijzigdePeriodeMetPrognose(Map<Long, Date[]> afsprakenBuitenStandplaatsPeriodeMap, PlanningScreeningsEenheid screeningsEenheid,
+		MammaScreeningsEenheid persistentScreeningsEenheid)
+	{
+		PlanningStandplaatsPeriode eersteStandplaatsPeriodeMetPrognose = screeningsEenheid.getStandplaatsPeriodeNavigableSet().stream()
+			.filter(PlanningStandplaatsPeriode::getPrognose)
+			.findFirst().orElse(null);
+
+		if (eersteStandplaatsPeriodeMetPrognose != null && eersteStandplaatsPeriodeMetPrognose.getId() != null)
+		{
+			MammaStandplaatsPeriode persistentStandplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class, eersteStandplaatsPeriodeMetPrognose.getId());
+			Date conceptTotEnMet = DateUtil.toUtilDate(eersteStandplaatsPeriodeMetPrognose.getTotEnMet().plusDays(1));
+			Date persistentTotEnMet = DateUtil.toUtilDate(DateUtil.toLocalDate(persistentStandplaatsPeriode.getTotEnMet()).plusDays(1));
+			if (conceptTotEnMet.compareTo(persistentTotEnMet) != 0)
+			{
+				List<Date> totEnMetDatumList = Arrays.asList(conceptTotEnMet, persistentTotEnMet);
+				Date[] eersteEnLaatsteAfspraakVanaf = baseAfspraakDao.getEersteEnLaatsteAfspraakDatum(persistentStandplaatsPeriode.getId(),
+					Collections.min(totEnMetDatumList), Collections.max(totEnMetDatumList), MammaAfspraakStatus.GEPLAND);
+
+				if (eersteEnLaatsteAfspraakVanaf[0] != null)
+				{
+					String melding = "Concept kan niet worden opgeslagen voor SE " + persistentScreeningsEenheid.getNaam() + ". Standplaatsperiode "
+						+ eersteStandplaatsPeriodeMetPrognose.getId() + " heeft afspraken op " + DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[0]);
+
+					if (eersteEnLaatsteAfspraakVanaf[1] != null)
+					{
+						melding += " t/m " + DateUtil.formatShortDate(eersteEnLaatsteAfspraakVanaf[1]);
+					}
+
+					LOG.warn(melding);
+					afsprakenBuitenStandplaatsPeriodeMap.put(persistentScreeningsEenheid.getId(), eersteEnLaatsteAfspraakVanaf);
+				}
+			}
+		}
+	}
+
+	private void wijzigAfspraakcapaciteitBeschikbaarVoor(MammaStandplaatsRonde persistentStandplaatsRonde, List<PlanningScreeningsOrganisatie> afspraakcapaciteitBeschikbaarVoor)
 	{
 		List<ScreeningOrganisatie> sosToDelete = new ArrayList<>();
 		List<ScreeningOrganisatie> persistentAfspraakcapaciteitBeschikbaarVoor = persistentStandplaatsRonde.getAfspraakcapaciteitBeschikbaarVoor();
@@ -488,7 +567,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		int aantalAfspraken = baseAfspraakService.koppelNietGekoppeldeAfspraken(persistentBlok, runDry);
 		if (aantalAfspraken > 0)
 		{
-			aanvullendeMelding += aantalAfspraken + " nog niet gekoppelde afspraken worden gekoppeld aan dit capaciteitsblok.";
+			aanvullendeMelding += aantalAfspraken + " nog niet gekoppelde afspraken worden gekoppeld aan dit capaciteitblok.";
 		}
 		return aanvullendeMelding;
 	}
@@ -508,8 +587,12 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		persistentBlok.getAfspraken().clear();
 	}
 
-	private boolean addMelding(PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid screeningsEenheid, String melding, MammaMeldingNiveau niveau)
+	private void addMelding(PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid screeningsEenheid, String melding, MammaMeldingNiveau niveau, boolean runDry)
 	{
+		if (StringUtils.isBlank(melding))
+		{
+			return;
+		}
 		boolean maxMeldingVoorSeBereikt = false;
 		PlanningMeldingDto meldingDto = new PlanningMeldingDto();
 		meldingDto.tekst = melding;
@@ -541,7 +624,10 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 			meldingenPerSeDto.niveau = niveau;
 		}
 		LOG.info(screeningsEenheidId + " " + niveau + ": " + melding);
-		return maxMeldingVoorSeBereikt;
+		if (maxMeldingVoorSeBereikt && runDry)
+		{
+			throw new MaxMeldingenVoorSeBereiktException();
+		}
 	}
 
 	private static PlanningMeldingenPerSeDto getMeldingenPerSeDto(PlanningConceptMeldingenDto meldingenDto, PlanningScreeningsEenheid planningScreeningsEenheid)
@@ -549,4 +635,5 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		Long screeningsEenheidId = planningScreeningsEenheid.getId();
 		return meldingenDto.seMeldingen.get(screeningsEenheidId);
 	}
+
 }

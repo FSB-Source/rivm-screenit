@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
-import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
@@ -257,8 +256,8 @@ public class MammaBaseStandplaatsDaoImpl extends AbstractAutowiredDao implements
 			criteria.add(Restrictions.in("screeningsEenheid", filter.getScreeningsEenheden()));
 		}
 
-		criteria.add(Restrictions.le("vanaf", DateUtil.toUtilDate(filter.getTotEnMetLocalDate())));
-		criteria.add(Restrictions.ge("totEnMet", DateUtil.toUtilDate(filter.getVanafLocalDate())));
+		criteria.add(Restrictions.le("vanaf", DateUtil.toUtilDate(filter.getTotEnMet())));
+		criteria.add(Restrictions.ge("totEnMet", DateUtil.toUtilDate(filter.getVanaf())));
 		criteria.add(Restrictions.eq("standplaats.actief", true));
 		criteria.add(Restrictions.eq("screeningsEenheid.actief", true));
 
@@ -270,7 +269,7 @@ public class MammaBaseStandplaatsDaoImpl extends AbstractAutowiredDao implements
 		{
 			criteria.add(Restrictions.in("standplaatsRonde.standplaats", filter.getStandplaatsen()));
 		}
-		else if (!filter.getBuitenRegio())
+		else if (!filter.isBuitenRegio())
 		{
 			criteria.createAlias("standplaatsRonde.afspraakcapaciteitBeschikbaarVoor", "afspraakcapaciteitBeschikbaarVoor", JoinType.LEFT_OUTER_JOIN);
 			ScreeningOrganisatie screeningOrganisatie = filter.getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie();

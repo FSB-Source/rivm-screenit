@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import javax.persistence.FlushModeType;
 
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.model.DossierStatus;
+import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -190,6 +191,39 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 			hibernateService.saveOrUpdateAll(brief, uitnodiging);
 		}
 		return uitnodiging;
+	}
+
+	@Override
+	public MammaAfspraak maakDummyAfspraak(MammaUitnodiging uitnodiging, Date vanaf, MammaCapaciteitBlok capaciteitBlok, MammaStandplaatsPeriode standplaatsPeriode,
+										   MammaVerzettenReden verzettenReden)
+	{
+		MammaAfspraak afspraak = new MammaAfspraak();
+		GbaPersoon persoon = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon();
+		String postcode = persoon.getTijdelijkGbaAdres() != null ? persoon.getTijdelijkGbaAdres().getPostcode() : persoon.getGbaAdres().getPostcode();
+
+		afspraak.setUitnodiging(uitnodiging);
+		afspraak.setVanaf(vanaf);
+		afspraak.setCapaciteitBlok(capaciteitBlok);
+		afspraak.setStandplaatsPeriode(standplaatsPeriode);
+		afspraak.setVerzettenReden(verzettenReden);
+		afspraak.setStatus(MammaAfspraakStatus.GEPLAND);
+		afspraak.setBezwaarAangevraagd(false);
+		afspraak.setPostcode(postcode);
+		afspraak.setCreatiedatum(dateSupplier.getDate());
+
+		MammaKansberekeningAfspraakEvent afspraakEvent = new MammaKansberekeningAfspraakEvent();
+		afspraakEvent.setAfspraak(afspraak);
+		afspraak.setAfspraakEvent(afspraakEvent);
+
+		MammaOpkomstkans opkomstkans = new MammaOpkomstkans();
+		opkomstkans.setAfspraak(afspraak);
+		afspraak.setOpkomstkans(opkomstkans);
+
+		kansberekeningService.resetPreferences();
+		kansberekeningService.updateAfspraakEvent(afspraak, false);
+		opkomstkans.setOpkomstkans(kansberekeningService.getOpkomstkans(afspraak));
+
+		return afspraak;
 	}
 
 	@Transactional(propagation = Propagation.MANDATORY)

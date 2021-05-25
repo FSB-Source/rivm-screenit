@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereinta
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
@@ -93,9 +93,9 @@ public class HerinneringClientWilAnderIntakeLocatieBriefReader extends BaseScrol
 		rondesMetHerinneringBrief.setProjection(Projections.id());
 
 		criteria.add(Subqueries.propertyNotIn("id", rondesMetHerinneringBrief));
-		criteria.add(Subqueries.propertyNotIn("id", ColonClientSelectieHelper.critAfsprakenZonderVervolg(uitnodigingsIntervalVerlopen)));
-		criteria.add(Subqueries.propertyNotIn("id", ColonClientSelectieHelper.critOpenUitnodigingNa2jaar(uitnodigingsIntervalVerlopen)));
-		ScreenitRestrictions.addHeeftGeenAfgerondeColonVerlagenRestrictions(criteria, "");
+		criteria.add(Subqueries.propertyNotIn("id", ColonRestrictions.critAfsprakenZonderVervolg(uitnodigingsIntervalVerlopen)));
+		criteria.add(Subqueries.propertyNotIn("id", ColonRestrictions.critOpenUitnodigingNa2jaar(uitnodigingsIntervalVerlopen)));
+		ColonRestrictions.addHeeftGeenAfgerondeVerlagenRestrictions(criteria, "");
 
 		return criteria;
 	}

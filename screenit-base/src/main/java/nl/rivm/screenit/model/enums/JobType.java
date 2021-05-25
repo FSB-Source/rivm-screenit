@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -116,7 +116,7 @@ public enum JobType
 
 	CERVIX_HPVMIN_VERWIJDEREN_UITSLAG(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
-	CERVIX_HEROVERWEGERS(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
+	CERVIX_HEROVERWEGERS(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }, new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS }),
 
 	CERVIX_CISMIGRANTEN_UITNODIGEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 

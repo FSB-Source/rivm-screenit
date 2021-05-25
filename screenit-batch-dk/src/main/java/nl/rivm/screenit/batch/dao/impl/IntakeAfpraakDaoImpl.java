@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.batch.dao.IntakeAfpraakDao;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -34,7 +34,6 @@ import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
@@ -76,10 +75,10 @@ public class IntakeAfpraakDaoImpl extends AbstractAutowiredDao implements Intake
 		criteria.add(Restrictions.ne("gbaStatus", GbaStatus.AFGEVOERD));
 		criteria.add(Restrictions.eq("laatsteScreeningRonde.status", ScreeningRondeStatus.LOPEND));
 		criteria.add(Restrictions.or(Restrictions.eq("testen.status", IFOBTTestStatus.UITGEVOERD), Restrictions.eq("testen.status", IFOBTTestStatus.DOETNIETMEE)));
-		criteria.add(ScreenitRestrictions.colonOngunstig("testen."));
-		ScreenitRestrictions.addNogGeenColonUitslagbriefOntvangenCriteria(criteria, "laatsteScreeningRonde");
+		criteria.add(ColonRestrictions.critOngunstig("testen."));
+		ColonRestrictions.addNogGeenUitslagbriefOntvangenCriteria(criteria, "laatsteScreeningRonde");
 
-		criteria.add(Subqueries.propertyNotIn("laatsteScreeningRonde.id", ColonClientSelectieHelper.critAfsprakenZonderVervolg(uitnodigingsIntervalVerlopen)));
+		criteria.add(Subqueries.propertyNotIn("laatsteScreeningRonde.id", ColonRestrictions.critAfsprakenZonderVervolg(uitnodigingsIntervalVerlopen)));
 
 		Disjunction disjunction = Restrictions.disjunction();
 

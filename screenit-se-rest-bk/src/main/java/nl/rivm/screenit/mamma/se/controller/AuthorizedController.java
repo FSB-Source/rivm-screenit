@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,9 @@ package nl.rivm.screenit.mamma.se.controller;
  * =========================LICENSE_END==================================
  */
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import javax.servlet.http.HttpServletRequest;
 
 import nl.rivm.screenit.mamma.se.SERequestHeader;
@@ -31,9 +34,10 @@ import nl.rivm.screenit.mamma.se.service.SeAutorisatieService;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
+import nl.rivm.screenit.util.EnvironmentUtil;
 import nl.rivm.screenit.util.FoutmeldingsCodeUtil;
-
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,16 +45,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 abstract class AuthorizedController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(AuthorizedController.class);
 
-	protected static ExecutorService executorService = Executors.newFixedThreadPool(50);
+	private static final int DEFAULT_THREAD_POOL_SIZE = 50;
 
-	protected static final int ASYNC_REQUEST_TIMEOUT_MS = 30000;
+	private static final int DEFAULT_ASYNC_REQUEST_TIMEOUT_SECONDS = 20;
+
+	protected static final ExecutorService executorService;
+
+	protected static final int asyncRequestTimeoutSeconds;
+
+	static
+	{
+		int threadPoolSize = EnvironmentUtil.getIntegerEnvironmentVariable("SE_LONG_REQUEST_THREAD_POOL_SIZE", DEFAULT_THREAD_POOL_SIZE);
+		executorService = Executors.newFixedThreadPool(threadPoolSize);
+		asyncRequestTimeoutSeconds = EnvironmentUtil.getIntegerEnvironmentVariable("SE_LONG_REQUEST_TIMEOUT_SECONDS", DEFAULT_ASYNC_REQUEST_TIMEOUT_SECONDS);
+		LOG.info("SE AuthorizedController executorService initialized: threadPoolSize: {}, requestTimeout: {} seconds", threadPoolSize, asyncRequestTimeoutSeconds);
+	}
 
 	@Autowired
 	private SeAutorisatieService seAutorisatieService;
@@ -61,12 +74,12 @@ abstract class AuthorizedController
 	@Autowired
 	private HibernateService hibernateService;
 
-	final protected static String getSeCode(HttpServletRequest request)
+	protected static String getSeCode(HttpServletRequest request)
 	{
 		return request.getHeader(SERequestHeader.SE_CODE);
 	}
 
-	final protected static String getAccountId(HttpServletRequest request)
+	protected static String getAccountId(HttpServletRequest request)
 	{
 		return request.getHeader(SERequestHeader.ACCOUNT_ID);
 	}

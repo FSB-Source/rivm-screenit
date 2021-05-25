@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -460,6 +460,8 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 		this.simplePreferenceService.putInteger(PreferenceKey.MAMMA_IMS_ORM_PORT.name(), configuratie.getOrmPort());
 		this.simplePreferenceService.putInteger(PreferenceKey.MAMMA_IMS_ADT_PORT.name(), configuratie.getAdtPort());
 		this.simplePreferenceService.putInteger(PreferenceKey.MAMMA_IMS_ORM_ILM_PORT.name(), configuratie.getIlmPort());
+
+		this.simplePreferenceService.putInteger(PreferenceKey.ILM_BEZWAARTERMIJN_BEELDEN_VERWIJDERD.name(), configuratie.getBezwaarTermijnVerwijderdeBeelden());
 
 		this.simplePreferenceService.putInteger(PreferenceKey.MAMMA_IMS_QUEUE_SIZE_WARNING_THRESHOLD.name(), configuratie.getImsQueueSizeWarningThreshold());
 

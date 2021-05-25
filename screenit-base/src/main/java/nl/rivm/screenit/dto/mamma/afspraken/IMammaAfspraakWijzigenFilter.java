@@ -4,7 +4,7 @@ package nl.rivm.screenit.dto.mamma.afspraken;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,15 +32,11 @@ import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 
 public interface IMammaAfspraakWijzigenFilter
 {
-	boolean getBuitenRegio();
+	boolean isBuitenRegio();
 
-	Date getVanaf();
+	LocalDate getVanaf();
 
-	LocalDate getVanafLocalDate();
-
-	Date getTotEnMet();
-
-	LocalDate getTotEnMetLocalDate();
+	LocalDate getTotEnMet();
 
 	List<MammaStandplaats> getStandplaatsen();
 
@@ -54,9 +50,9 @@ public interface IMammaAfspraakWijzigenFilter
 
 	void setBuitenRegio(boolean buitenRegio);
 
-	void setVanaf(Date vanaf);
+	void setVanaf(LocalDate vanaf);
 
-	void setTotEnMet(Date totEnMet);
+	void setTotEnMet(LocalDate totEnMet);
 
 	void setStandplaatsen(List<MammaStandplaats> standplaatsen);
 

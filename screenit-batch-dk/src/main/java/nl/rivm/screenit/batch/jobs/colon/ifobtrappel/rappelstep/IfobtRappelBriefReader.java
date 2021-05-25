@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtrappel.rappelstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import java.util.Date;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.ifobtrappel.IfobtRappelJobConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.IFOBTType;
@@ -78,14 +79,14 @@ public class IfobtRappelBriefReader extends BaseScrollableResultReader
 			.add(Subqueries.exists(getDetachedIFOBTVervaldatumCriteria()))
 			.setProjection(Projections.countDistinct("id"));
 
-		ScreenitRestrictions.addNogGeenColonUitslagbriefOntvangenCriteria(criteria, "laatsteScreeningRonde");
+		ColonRestrictions.addNogGeenUitslagbriefOntvangenCriteria(criteria, "laatsteScreeningRonde");
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "", "persoon");
 
 		Integer minimumLeeftijd = preferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
 		Integer maximumLeeftijd = preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
 		Integer interval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
 
-		ScreenitRestrictions.addLeeftijdsgrensRestrictions(criteria, minimumLeeftijd, maximumLeeftijd, interval, currentDateSupplier.getLocalDate());
+		criteria.add(ScreenitRestrictions.getLeeftijdsgrensRestrictions(minimumLeeftijd, maximumLeeftijd, interval, currentDateSupplier.getLocalDate()));
 
 		int uniqueResult = ((Number) criteria.uniqueResult()).intValue();
 		getExecutionContext().putInt(IfobtRappelJobConstants.GESELECTEERD, uniqueResult);

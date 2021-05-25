@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,7 +70,7 @@ public class ColonUitnodigingsgebiedDaoImpl extends AbstractAutowiredDao impleme
 	public long countPersonenInUitnodigingsGebied(UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, Integer uitnodigingsInterval,
 		LocalDate laatsteDagVanHuidigJaar, Set<Integer> geboortejaren)
 	{
-		Criteria crit = ColonClientSelectieHelper.getBaseCriteria(getSession(), uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, laatsteDagVanHuidigJaar);
+		Criteria crit = ColonRestrictions.getBaseCriteria(getSession(), uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, laatsteDagVanHuidigJaar);
 
 		if (laatsteDagVanHuidigJaar != null)
 		{
@@ -82,8 +82,8 @@ public class ColonUitnodigingsgebiedDaoImpl extends AbstractAutowiredDao impleme
 
 			crit.add( 
 				Restrictions.or(
-					ColonClientSelectieHelper.getU1BaseCriteria(laatsteDagVanHuidigJaar, new ArrayList<>(geboortejaren)), 
-					ColonClientSelectieHelper.getU2BaseCriteria(laatsteDagVanHuidigJaar)) 
+					ColonRestrictions.getU1BaseCriteria(laatsteDagVanHuidigJaar, new ArrayList<>(geboortejaren)), 
+					ColonRestrictions.getU2BaseCriteria(laatsteDagVanHuidigJaar)) 
 			);
 		}
 

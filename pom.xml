@@ -87,6 +87,11 @@
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
+                    <compilerArgs>
+                        <compilerArg>
+                            -Amapstruct.unmappedTargetPolicy=ERROR
+                        </compilerArg>
+                    </compilerArgs>
                 </configuration>
             </plugin>
             <plugin>
@@ -102,6 +107,7 @@
                             <name>build.time</name>
                             <pattern>dd-MM-yyyy HH:mm aa</pattern>
                             <timeZone>Europe/Amsterdam</timeZone>
+                            <locale>nl_NL</locale>
                         </configuration>
                     </execution>
                 </executions>

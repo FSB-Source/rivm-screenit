@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,7 @@ import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback;
 import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback.DelegatedReadOnlyDBActions;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
@@ -134,9 +134,9 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 				}
 
 				List<Client> clientenOpAdres = clientDao.getClientenOpAdres(adres, minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval);
-				Client andereClient = ColonClientSelectieHelper.getAndereClient(clientenOpAdres, client);
-				boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2 || !ColonClientSelectieHelper.isIfobtActief(andereClient, uitgenodigdeClientIds)
-					|| ColonClientSelectieHelper.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket);
+				Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
+				boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2 || !ColonRestrictions.isIfobtActief(andereClient, uitgenodigdeClientIds)
+					|| ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket);
 				if (geenAndereClientMetZelfdeAdresEnActieveIfobt)
 				{
 					cursorCount++;
@@ -215,13 +215,13 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 				switch (colonUitnodigingCategorie)
 				{
 				case U3:
-					crit = ColonClientSelectieHelper.getQueryU3(hibernateSession);
+					crit = ColonRestrictions.getQueryU3(hibernateSession);
 					break;
 				case U4:
-					crit = ColonClientSelectieHelper.getQueryU4(hibernateSession);
+					crit = ColonRestrictions.getQueryU4(hibernateSession);
 					break;
 				case U6:
-					crit = ColonClientSelectieHelper.getQueryU6(hibernateSession);
+					crit = ColonRestrictions.getQueryU6(hibernateSession);
 					break;
 				default:
 					throw new NotImplementedException("Niet bekende categorie");

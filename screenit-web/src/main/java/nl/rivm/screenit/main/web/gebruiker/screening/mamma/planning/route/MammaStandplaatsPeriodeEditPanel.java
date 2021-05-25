@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.route;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -86,6 +85,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
+
+import com.google.common.collect.Range;
 
 public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<PlanningStandplaatsPeriodeDto>
 {
@@ -557,11 +558,9 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 
 			if (initieleTotEnMet != null
 				&& (vrijgegevenTotEnMet != null
-					&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(vrijgegevenTotEnMet,
-						DateUtil.toLocalDate(DateUtil.toUtilDate(initieleTotEnMet)))
+					&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(vrijgegevenTotEnMet, initieleTotEnMet)
 					|| uitnodigenTotEnMet != null
-						&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(uitnodigenTotEnMet,
-							DateUtil.toLocalDate(DateUtil.toUtilDate(initieleTotEnMet)))))
+						&& !MammaPlanningUtil.datumIsMeerDanVijfWerkdagenVoorDatum(uitnodigenTotEnMet, initieleTotEnMet)))
 			{
 				standplaatsPeriodeDto.totEnMet = initieleTotEnMet;
 				error(
@@ -608,9 +607,18 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 			Date datumLaatsteAfspraak = afspraakService.getDatumLaatsteGeplandeAfspraak(standplaatsPeriodeDto.id);
 			if (datumLaatsteAfspraak != null && DateUtil.toLocalDate(datumLaatsteAfspraak).isAfter(standplaatsPeriodeDto.totEnMet))
 			{
-				String datumLaatsteAfspraakText = DateUtil.formatShortDate(datumLaatsteAfspraak);
-				error(MessageFormat.format(getString("Standplaatsperiode.einddatum.veranderen.overschrijdtAfspraak.na"), datumLaatsteAfspraakText));
-				return false;
+				boolean isLopendeStandplaatsPeriode = Range.closedOpen(standplaatsPeriodeDto.vanaf, standplaatsPeriodeDto.totEnMet)
+					.contains(dateSupplier.getLocalDate());
+				if (!isLopendeStandplaatsPeriode)
+				{
+					String datumLaatsteAfspraakText = DateUtil.formatShortDate(datumLaatsteAfspraak);
+					error(String.format(getString("Standplaatsperiode.einddatum.veranderen.overschrijdtAfspraak.na"), datumLaatsteAfspraakText));
+					return false;
+				}
+				else if (standplaatsPeriodeDto.totEnMet.isAfter(dateSupplier.getLocalDate()))
+				{
+					info(String.format(getString("Standplaatsperiode.einddatum.veranderen.afspraken.worden.verzet")));
+				}
 			}
 
 			if (volgendeStandplaatsPeriode != null)
@@ -625,24 +633,15 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 				if (datumEersteAfspraakVolgendePeriode != null && !standplaatsPeriodeDto.totEnMet.isBefore(DateUtil.toLocalDate(datumEersteAfspraakVolgendePeriode)))
 				{
 					String datumEersteAfspraakVolgendePeriodeText = DateUtil.formatShortDate(datumEersteAfspraakVolgendePeriode);
-					error(MessageFormat.format(getString("Standplaatsperiode.einddatum.veranderen.overschrijdtAfspraak.voor"), datumEersteAfspraakVolgendePeriodeText));
+					error(String.format(getString("Standplaatsperiode.einddatum.veranderen.overschrijdtAfspraak.voor"), datumEersteAfspraakVolgendePeriodeText));
 					return false;
 				}
 			}
 		}
-		else
+		else if (volgendeStandplaatsPeriode != null && !volgendeStandplaatsPeriode.prognose && standplaatsPeriodeDto.totEnMet == null)
 		{
-			if (volgendeStandplaatsPeriode != null)
-			{
-				if (!volgendeStandplaatsPeriode.prognose)
-				{
-					if (standplaatsPeriodeDto.totEnMet == null)
-					{
-						error(getString("Standplaatsperiode.einddatum.niet.wanneer.volgende.periode.ingevoerd"));
-						return false;
-					}
-				}
-			}
+			error(getString("Standplaatsperiode.einddatum.niet.wanneer.volgende.periode.ingevoerd"));
+			return false;
 		}
 
 		if (!standplaatsPeriodeDto.prognose && standplaatsPeriodeDto.totEnMet != null || standplaatsPeriodeDto.prognose && handmatigeDatum.getObject() != null)

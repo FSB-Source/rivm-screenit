@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,7 +46,6 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class ScreeningOrganisatie extends Instelling
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "screeningOrganisatie", cascade = CascadeType.ALL)
@@ -124,6 +122,9 @@ public class ScreeningOrganisatie extends Instelling
 
 	@Column(nullable = true)
 	private Integer wekenVanTevorenUitnodigen;
+
+	@Column(nullable = true)
+	private Integer vervallenCapaciteitsreserveringDagenBk;
 
 	@Column(nullable = true)
 	private Integer minimaleDagCapaciteitMinderValideAfspraken;
@@ -378,4 +379,13 @@ public class ScreeningOrganisatie extends Instelling
 		this.minimaleDagCapaciteitMinderValideAfspraken = minimaleDagCapaciteitMinderValideAfspraken;
 	}
 
+	public Integer getVervallenCapaciteitsreserveringDagenBk()
+	{
+		return vervallenCapaciteitsreserveringDagenBk;
+	}
+
+	public void setVervallenCapaciteitsreserveringDagenBk(Integer vervallenCapaciteitsreserveringDagen)
+	{
+		this.vervallenCapaciteitsreserveringDagenBk = vervallenCapaciteitsreserveringDagen;
+	}
 }

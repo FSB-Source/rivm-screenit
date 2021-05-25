@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -231,7 +231,12 @@ public class ScreenitApplication extends WebApplication
 			}
 		});
 
-		if (RuntimeConfigurationType.DEPLOYMENT != getConfigurationType())
+		if (RuntimeConfigurationType.DEPLOYMENT == getConfigurationType())
+		{
+			SessionCookieConfig cookieConfig = getServletContext().getSessionCookieConfig();
+			cookieConfig.setDomain("vervangen-in-reverse-proxy.landelijkescreening.nl");
+		}
+		else
 		{
 			getRequestCycleListeners().add(new EntityAndSerializableCheckerListener(new Class[] { ScreenitDigidLoginPage.class, OrganisatieSelectiePage.class }, true));
 			WicketSource.configure(this);
@@ -283,7 +288,7 @@ public class ScreenitApplication extends WebApplication
 	{
 		StringBuilder versieBuilder = new StringBuilder();
 		Properties applicationProperties = new Properties();
-		try (InputStream resourceAsStream = this.getClass().getResourceAsStream("/application.properties");)
+		try (InputStream resourceAsStream = this.getClass().getResourceAsStream("/application.properties"))
 		{
 			applicationProperties.load(resourceAsStream);
 			version = applicationProperties.getProperty("application.version");

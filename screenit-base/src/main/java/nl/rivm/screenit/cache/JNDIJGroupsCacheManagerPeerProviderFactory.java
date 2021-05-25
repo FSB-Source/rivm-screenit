@@ -4,7 +4,7 @@ package nl.rivm.screenit.cache;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,7 @@ import net.sf.ehcache.distribution.CacheManagerPeerProvider;
 import net.sf.ehcache.distribution.CacheManagerPeerProviderFactory;
 import net.sf.ehcache.distribution.jgroups.JGroupsCacheManagerPeerProvider;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jgroups.Global;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,44 +40,47 @@ public class JNDIJGroupsCacheManagerPeerProviderFactory extends CacheManagerPeer
 {
 	private static final Logger LOG = LoggerFactory.getLogger(JNDIJGroupsCacheManagerPeerProviderFactory.class);
 
+	public static String initialHosts;
+
+	public static String bindIp;
+
+	public static Integer bindPort;
+
+	public static String applicationInstance;
+
 	@Override
 	public CacheManagerPeerProvider createCachePeerProvider(CacheManager cacheManager, Properties properties)
 	{
-		String initialHosts = "";
-		String bindIp = "";
-		String bindPort = "";
-		String applicationInstance = "";
 		try
 		{
-			InitialContext initialContext = new InitialContext();
-			initialHosts = (String) initialContext.lookup("jgroupsEhcacheIPPorts");
-			bindIp = (String) initialContext.lookup("jgroupsBindIP");
-			bindPort = (String) initialContext.lookup("jgroupsEhcacheBindPort");
-			applicationInstance = (String) initialContext.lookup("applicationInstance");
-
-			if (initialHosts == null)
-			{
-				initialHosts = "127.0.0.1[7800]";
-			}
-			if (bindIp == null)
-			{
-				bindIp = "127.0.0.1"; 
-			}
-			if (bindPort == null)
-			{
-				bindPort = "7800";
-			}
+			InitialContext context = new InitialContext();
+			initialHosts = (String) context.lookup("jgroupsEhcacheIPPorts");
+			bindIp = (String) context.lookup("jgroupsBindIP");
+			bindPort = Integer.valueOf((String) context.lookup("jgroupsEhcacheBindPort"));
+			applicationInstance = (String) context.lookup("applicationInstance");
 		}
 		catch (NamingException e)
 		{
-			LOG.error(e.getMessage(), e);
-			throw new IllegalStateException(e.getMessage(), e);
+			LOG.warn(e.getMessage());
+		}
+
+		if (StringUtils.isBlank(initialHosts))
+		{
+			initialHosts = "127.0.0.1[7800]";
+		}
+		if (StringUtils.isBlank(bindIp))
+		{
+			bindIp = "127.0.0.1"; 
+		}
+		if (bindPort == null)
+		{
+			bindPort = 7800;
 		}
 		LOG.info("External bind IP: " + bindIp + "; bind port: " + bindPort + "; initialHosts: " + initialHosts);
 
 		if (System.getProperty(Global.BIND_PORT) == null)
 		{
-			System.getProperties().put(Global.BIND_PORT, bindPort);
+			System.getProperties().put(Global.BIND_PORT, bindPort.toString());
 		}
 		if (System.getProperty(Global.EXTERNAL_ADDR) == null && !bindIp.equals("127.0.0.1") && !bindIp.equals("localhost"))
 		{

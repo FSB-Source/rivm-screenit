@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,12 @@ package nl.rivm.screenit.mamma.planning.model;
  */
 
 import java.math.BigDecimal;
+
+import lombok.Getter;
+
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 
+@Getter
 public class PlanningBeschikbaar
 {
 	private BigDecimal totaal;
@@ -39,12 +43,6 @@ public class PlanningBeschikbaar
 	{
 		totaal = totaal.add(beschikbaar.totaal);
 		totaalTehuis = totaalTehuis.add(beschikbaar.totaalTehuis);
-	}
-
-	public void subtract(PlanningBeschikbaar beschikbaar)
-	{
-		totaal = totaal.subtract(beschikbaar.totaal);
-		totaalTehuis = totaalTehuis.subtract(beschikbaar.totaalTehuis);
 	}
 
 	public void add(BigDecimal totaal, MammaCapaciteitBlokType blokType)
@@ -64,31 +62,9 @@ public class PlanningBeschikbaar
 		}
 	}
 
-	public void subtract(BigDecimal totaal, MammaCapaciteitBlokType blokType)
+	public BigDecimal getTotaalRegulier()
 	{
-		switch (blokType)
-		{
-		case TEHUIS:
-			totaalTehuis = totaalTehuis.subtract(totaal);
-
-		case REGULIER:
-			this.totaal = this.totaal.subtract(totaal);
-			break;
-		case GEEN_SCREENING:
-			break;
-		default:
-			throw new IllegalArgumentException(blokType + " niet toegestaan.");
-		}
-	}
-
-	public BigDecimal getTotaal()
-	{
-		return totaal;
-	}
-
-	public BigDecimal getTotaalTehuis()
-	{
-		return totaalTehuis;
+		return getTotaal().subtract(getTotaalTehuis());
 	}
 
 	public void clear()

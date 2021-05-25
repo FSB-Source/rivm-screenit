@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.blokkade;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
@@ -73,7 +74,7 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 	private MammaScreeningsEenheidDao screeningsEenheidDao;
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaBaseStandplaatsService standplaatsService;
 
 	@SpringBean
 	private MammaBaseBlokkadeService baseBlokkadeService;
@@ -286,7 +287,7 @@ public abstract class MammaBlokkadeEditPanel extends GenericPanel<MammaBlokkade>
 			standplaatsContainer.setVisible(false).setOutputMarkupPlaceholderTag(true);
 			break;
 		case STANDPLAATS:
-			IModel<List<MammaStandplaats>> standplaatsenModel = ModelUtil.listRModel(baseStandplaatsService.getActieveStandplaatsen(sessionSO));
+			IModel<List<MammaStandplaats>> standplaatsenModel = ModelUtil.listRModel(standplaatsService.getActieveStandplaatsen(sessionSO));
 			standplaatsContainer.add(new ScreenitDropdown<>("standplaats", standplaatsenModel, new ChoiceRenderer<>("naam")).setRequired(true));
 
 			regioContainer.setVisible(false).setOutputMarkupPlaceholderTag(true);

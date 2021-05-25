@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.filter;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -63,7 +63,6 @@ public class SecurityHeadersFilter implements Filter
 		response.setHeader("Referrer-Policy", "same-origin");
 
 		filterChain.doFilter(servletRequest, servletResponse);
-
 	}
 
 	public static void allowExtraConnectSrcInContentSecurityPolicy(WebResponse response, String extraConnectSrc)

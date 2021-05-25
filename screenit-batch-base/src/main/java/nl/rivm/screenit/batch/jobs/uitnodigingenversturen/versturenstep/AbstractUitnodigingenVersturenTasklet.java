@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -460,7 +460,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			else
 			{
 				nl.rivm.screenit.model.Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
-				LOG.warn("Client overgeslagen door een exception", e);
+				LOG.warn("Client overgeslagen door een exception, clientId: " + client.getId(), e);
 				logMislukt(client);
 			}
 		}

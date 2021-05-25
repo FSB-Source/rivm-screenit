@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service.cervix.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,10 +21,14 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixScreeningrondeDao;
+import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixDossier;
@@ -47,7 +50,10 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecifi
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.model.cervix.verslag.CervixVerslag;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
@@ -63,11 +69,18 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningrondeService
 {
+
 	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private LogService logService;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -82,6 +95,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	private CervixScreeningrondeDao screeningrondeDao;
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void annuleerNietVerstuurdeZAS(CervixScreeningRonde ronde)
 	{
 		for (CervixUitnodiging anderUitnodiging : ronde.getUitnodigingen())
@@ -102,6 +116,40 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void uitstelAanvragen(Client client, CervixUitstel uitstel, Account account)
+	{
+		boolean wijziging = client.getCervixDossier().getLaatsteScreeningRonde().getUitstel() != null;
+
+		uitstel.setGeannuleerdDatum(null);
+		uitstel.setWijzigingsDatum(currentDateSupplier.getDate());
+
+		CervixScreeningRonde ronde = client.getCervixDossier().getLaatsteScreeningRonde();
+		ronde.setUitstel(uitstel);
+		hibernateService.saveOrUpdateAll(uitstel, client);
+
+		annuleerHerinnering(ronde);
+		annuleerNietVerstuurdeZAS(ronde);
+
+		logService.logGebeurtenis(wijziging ? LogGebeurtenis.UITSTEL_GEWIJZIGD : LogGebeurtenis.UITSTEL_AANGEVRAAGD, account, client,
+				maakCervixUitstelMelding(uitstel, wijziging), Bevolkingsonderzoek.CERVIX);
+
+	}
+
+	private String maakCervixUitstelMelding(CervixUitstel uitstel, boolean wijziging)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("Uitstel baarmoederhalskanker tot: ");
+		sb.append(new SimpleDateFormat("dd-MM-yyyy").format(uitstel.getUitstellenTotDatum()));
+		if (wijziging)
+		{
+			sb.append(" (wijziging)");
+		}
+		return sb.toString();
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void annuleerUitstel(CervixScreeningRonde ronde)
 	{
 		CervixUitstel uitstel = ronde.getUitstel();
@@ -116,6 +164,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void annuleerHerinnering(CervixScreeningRonde ronde)
 	{
 		List<CervixUitnodiging> uitnodigingen = screeningrondeDao.getTeHerinnerenUitnodigingen(ronde);
@@ -154,6 +203,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void verwijderCervixScreeningRonde(CervixScreeningRonde ronde)
 	{
 		List<CervixUitnodiging> uitnodigingen = ronde.getUitnodigingen();
@@ -314,6 +364,29 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	public CervixScreeningRonde getLaatsteScreeningRonde(String bsn)
 	{
 		return screeningrondeDao.getLaatsteScreeningRonde(bsn);
+	}
+
+	@Override
+	public boolean heeftMaxAantalZASsenBereikt(CervixScreeningRonde laatsteScreeningRonde, boolean aangevraagdDoorClient)
+	{
+		Integer maxAantalZASaanvragen = getMaxAantalZASAanvragen(aangevraagdDoorClient);
+
+		return screeningrondeDao.getAantalZASsenAangevraagd(laatsteScreeningRonde, aangevraagdDoorClient) >= maxAantalZASaanvragen;
+	}
+
+	@Override
+	public Integer getMaxAantalZASAanvragen(boolean aangevraagdDoorClient)
+	{
+		Integer maxAantalZASaanvragen = null;
+		if (aangevraagdDoorClient)
+		{
+			maxAantalZASaanvragen = preferenceService.getInteger(PreferenceKey.CERVIX_MAX_ZAS_AANVRAGEN_CLIENT.name());
+		}
+		else
+		{
+			maxAantalZASaanvragen = preferenceService.getInteger(PreferenceKey.CERVIX_MAX_ZAS_AANVRAGEN_INFOLIJN.name());
+		}
+		return maxAantalZASaanvragen;
 	}
 
 }

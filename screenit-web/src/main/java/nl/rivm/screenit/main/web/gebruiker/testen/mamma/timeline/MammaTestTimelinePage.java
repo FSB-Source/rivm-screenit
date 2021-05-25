@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,7 +30,6 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
-import nl.rivm.screenit.main.model.GebeurtenisBron;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
@@ -55,6 +54,7 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
@@ -130,9 +130,6 @@ public class MammaTestTimelinePage extends TestenBasePage
 
 	@SpringBean
 	private MammaScreeningsEenheidDao screeningsEenheidDao;
-
-	@SpringBean(name = "portaalUrl")
-	private String clientportaalUrl;
 
 	@SpringBean
 	private BerichtToBatchService berichtToBatchService;
@@ -624,8 +621,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 				return clientModel.getObject().get(0).getPersoon().getOverlijdensdatum() == null;
 			}
 		});
-		container.add(getClientDossierButton(form, model));
-		container.add(getClientPortaalButton(form, clientportaalUrl, model));
+		addGaNaarButtons(container, form, model);
 		final AjaxCheckBox verstuurHl7BerichtenCheckbox = new AjaxCheckBox("verstuurHl7Berichten", verstuurHl7Berichten)
 		{
 			@Override

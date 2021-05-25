@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
@@ -71,7 +72,7 @@ public class HuisartsNoShowReader extends BaseScrollableResultReader
 		criteria.add(Restrictions.eq("conclusie.type", ColonConclusieType.NO_SHOW));
 		criteria.add(Restrictions.le("conclusie.datum", conclusieMoetGegevenZijnOp));
 
-		ScreenitRestrictions.addHeeftGeenAfgerondeColonVerlagenRestrictions(criteria, "");
+		ColonRestrictions.addHeeftGeenAfgerondeVerlagenRestrictions(criteria, "");
 		criteria.add(Restrictions.isNull("conclusie.noShowBericht"));
 
 		return criteria;

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -163,8 +164,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 				LocalDate standplaatsPeriodeVanaf = DateUtil.toLocalDate(standplaatsPeriode.getVanaf());
 				LocalDate standplaatsPeriodeTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet());
 
-				LocalDate vanafDatum = Collections.max(Arrays.asList(new LocalDate[] { filter.getVanafLocalDate(), standplaatsPeriodeVanaf }));
-				LocalDate totEnMetDatum = Collections.min(Arrays.asList(new LocalDate[] { filter.getTotEnMetLocalDate(), vrijgegevenTotEnMetDatum, standplaatsPeriodeTotEnMet }));
+				LocalDate vanafDatum = Collections.max(Arrays.asList(new LocalDate[] { filter.getVanaf(), standplaatsPeriodeVanaf }));
+				LocalDate totEnMetDatum = Collections.min(Arrays.asList(new LocalDate[] { filter.getTotEnMet(), vrijgegevenTotEnMetDatum, standplaatsPeriodeTotEnMet }));
 
 				MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = SpringBeanProvider.getInstance()
 					.getBean(MammaBaseKandidaatAfsprakenDeterminatiePeriode.class);
@@ -477,5 +478,16 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		Integer minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
 		LocalDate minimaalIntervalOnderzoeken = DateUtil.toLocalDate(onderzoek.getMammografie().getAfgerondOp()).plusDays(minimaleIntervalMammografieOnderzoeken);
 		return minimaalIntervalOnderzoeken.isAfter(currentDateSupplier.getLocalDate());
+	}
+
+	@Override
+	public boolean isNoShow(MammaAfspraakStatus afspraakStatus, LocalDateTime afspraakMoment)
+	{
+		if (afspraakStatus == null || afspraakMoment == null)
+		{
+			return false;
+		}
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		return afspraakStatus == MammaAfspraakStatus.GEPLAND && nu.isAfter(afspraakMoment);
 	}
 }

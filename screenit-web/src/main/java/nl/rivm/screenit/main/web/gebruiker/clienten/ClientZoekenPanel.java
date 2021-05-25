@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
@@ -313,13 +314,7 @@ public class ClientZoekenPanel extends Panel
 
 					if (gevondenBriefkenmerkPersoon.getGeboortedatumPrecisie() != null)
 					{
-
-						SimpleDateFormat dateFormatter = new SimpleDateFormat(gevondenBriefkenmerkPersoon.getGeboortedatumPrecisie().getDatePattern());
-
-						String dbFormattedGeboortedatum = dateFormatter.format(gevondenBriefkenmerkPersoon.getGeboortedatum());
-						String formattedInvoerGeboortedatum = dateFormatter.format(zoekPersoon.getGeboortedatum());
-
-						if (!dbFormattedGeboortedatum.equals(formattedInvoerGeboortedatum))
+						if (!DateUtil.isGeboortedatumGelijk(DateUtil.toLocalDate(zoekPersoon.getGeboortedatum()), client))
 						{
 							return clienten;
 						}

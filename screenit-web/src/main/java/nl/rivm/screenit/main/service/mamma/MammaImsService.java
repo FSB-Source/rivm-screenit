@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,13 +27,14 @@ import java.util.List;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.enums.MammobridgeFocusMode;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 import nl.rivm.screenit.model.mamma.imsapi.FhirUserSession;
 import nl.rivm.screenit.util.functionalinterfaces.StringResolver;
 
 public interface MammaImsService
 {
-	String createAllImagesSeenMessage(Gebruiker gebruiker, MammobridgeRole mammobridgeRole, MammaOnderzoek onderzoek);
+	String createAllImagesSeenMessage(Gebruiker gebruiker, MammobridgeRole mammobridgeRole, MammaOnderzoek onderzoek, MammobridgeFocusMode mammobridgeFocusMode);
 
 	FhirUserSession parseFhirMessage(String json) throws IOException;
 
@@ -41,7 +42,7 @@ public interface MammaImsService
 
 	String createLogoffMessage(Gebruiker gebruiker, MammobridgeRole mammobridgeRole);
 
-	String createDesktopSyncMessage(Gebruiker gebruiker, MammobridgeRole mammobridgeRole, Long huidigeOnderzoekId, List<Long> komendeBeoordelingIds);
+	String createDesktopSyncMessage(Gebruiker gebruiker, MammobridgeRole mammobridgeRole, Long huidigeOnderzoekId, List<Long> komendeBeoordelingIds, MammobridgeFocusMode focusMode);
 
 	String createEmptyDesktopSyncMessage(Gebruiker gebruiker, MammobridgeRole mammobridgeRole);
 

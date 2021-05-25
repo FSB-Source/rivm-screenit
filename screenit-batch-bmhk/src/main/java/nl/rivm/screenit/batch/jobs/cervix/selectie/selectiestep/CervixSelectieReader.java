@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.batch.jobs.cervix.CervixSelectiePartitioner;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
 import nl.rivm.screenit.model.BMHKLaboratorium;

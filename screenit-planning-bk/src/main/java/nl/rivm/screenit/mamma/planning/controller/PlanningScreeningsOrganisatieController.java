@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -74,6 +74,11 @@ public class PlanningScreeningsOrganisatieController
 			bepaalWijzigingen(MammaFactorType.MINDER_VALIDE, screeningsOrganisatie);
 		}
 
+		if (screeningsOrganisatie.getVervallenCapaciteitsreserveringDagen() != screeningsOrganisatieDto.vervallenCapaciteitsreserveringDagenBk)
+		{
+			screeningsOrganisatie.setVervallenCapaciteitsreserveringDagen(screeningsOrganisatieDto.vervallenCapaciteitsreserveringDagenBk);
+		}
+
 		if (screeningsOrganisatie.getWekenVanTevorenUitnodigen() != screeningsOrganisatieDto.wekenVanTevorenUitnodigen)
 		{
 			screeningsOrganisatie.setWekenVanTevorenUitnodigen(screeningsOrganisatieDto.wekenVanTevorenUitnodigen);
@@ -108,8 +113,7 @@ public class PlanningScreeningsOrganisatieController
 
 	private void bepaalWijzigingen(PlanningScreeningsOrganisatie screeningsOrganisatie)
 	{
-		screeningsOrganisatie.getScreeningsEenheidSet().forEach(screeningsEenheid ->
-		{
+		screeningsOrganisatie.getScreeningsEenheidSet().forEach(screeningsEenheid -> {
 			NavigableSet<PlanningStandplaatsPeriode> standplaatsPeriodeNavigableSet = screeningsEenheid.getStandplaatsPeriodeNavigableSet();
 			if (!standplaatsPeriodeNavigableSet.isEmpty())
 			{

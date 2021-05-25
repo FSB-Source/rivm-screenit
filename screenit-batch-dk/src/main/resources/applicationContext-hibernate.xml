@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-batch-dk
   %%
-  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,8 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns="http://www.springframework.org/schema/beans"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns="http://www.springframework.org/schema/beans" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
     
     <bean id="dataSource" class="nl.rivm.screenit.datasource.DataSourceRouter">
@@ -35,5 +35,7 @@
         <property name="defaultTargetDataSource" value="jdbc/screenit"/>
     </bean>
     <alias name="dataSource" alias="hibernateDatasource"/>
+
+    <alias name="hibernateSessionFactory" alias="entityManagerFactory"/>
 
 </beans>

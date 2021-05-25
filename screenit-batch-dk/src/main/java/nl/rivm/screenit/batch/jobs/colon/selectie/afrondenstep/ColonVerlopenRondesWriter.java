@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,6 @@ public class ColonVerlopenRondesWriter extends BaseWriter<ColonScreeningRonde>
 	{
 		LOG.info("gevonden ronde: {} wordt afgerond", ronde.getId());
 
-		screeningRondeService.screeningRondeAfronden(ronde);
+		screeningRondeService.screeningRondeAfronden(ronde, "Cli\u00EBnt behoort niet meer tot de doelgroep");
 	}
 }

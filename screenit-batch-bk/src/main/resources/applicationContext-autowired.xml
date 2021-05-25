@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-batch-bk
   %%
-  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -49,20 +49,24 @@
     
     <context:component-scan base-package="nl.rivm.screenit.service.impl">
         <context:exclude-filter type="assignable" expression="nl.rivm.screenit.service.impl.ProjectUitslagVerwerkingServiceImpl"/>
+        <context:exclude-filter type="assignable" expression="nl.rivm.screenit.service.impl.ClientContactServiceImpl"/>
+        <context:exclude-filter type="assignable" expression="nl.rivm.screenit.service.impl.BriefHerdrukkenServiceImpl"/>
+        <context:exclude-filter type="assignable" expression="nl.rivm.screenit.service.impl.BaseClientGebeurtenisServiceImpl"/>
+        <context:exclude-filter type="assignable" expression="nl.rivm.screenit.service.impl.BaseDossierAuditServiceImpl"/>
     </context:component-scan>
     <context:component-scan base-package="nl.rivm.screenit.dao.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.factory.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.service.mamma.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl"/>
 
-        									  
+    
     <context:component-scan base-package="nl.rivm.screenit.batch.service.impl">
         <context:exclude-filter type="assignable" expression="nl.rivm.screenit.batch.service.impl.WebserviceInpakcentrumOpzettenServiceImpl"/>
     </context:component-scan>
     <context:component-scan base-package="nl.rivm.screenit.batch.service.xds.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.batch.dao.impl"/>
-    <context:component-scan base-package="nl.rivm.screenit.batch.jms.listener"/>    
-   
+    <context:component-scan base-package="nl.rivm.screenit.batch.jms.listener"/>
+
     
     <context:component-scan base-package="nl.topicuszorg.hibernate.schema.dao.impl"/>
 

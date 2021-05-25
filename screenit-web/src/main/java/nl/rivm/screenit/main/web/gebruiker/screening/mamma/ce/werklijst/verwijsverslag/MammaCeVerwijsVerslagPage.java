@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.verwijs
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.verwijs
 import java.io.File;
 
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
-import nl.rivm.screenit.main.service.mamma.MammaHuisartsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
@@ -45,6 +44,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
+import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -166,7 +166,7 @@ public class MammaCeVerwijsVerslagPage extends AbstractMammaCePage
 
 	private void maakAlternatiefHaButton(WebMarkupContainer container)
 	{
-		Component kiesAlternativeHa = null;
+		Component kiesAlternativeHa;
 		MammaScreeningRonde screeningRonde = baseBeoordelingService.getScreeningRonde(beoordelingModel.getObject());
 		if (screeningRonde.getGeenHuisartsOptie() != null)
 		{
@@ -260,7 +260,7 @@ public class MammaCeVerwijsVerslagPage extends AbstractMammaCePage
 					error(getString("geen.active.ha.geselecteerd"));
 					return;
 				}
-				File file = null;
+				File file;
 				try
 				{
 					file = beoordelingService.verslagGoedkeurenDoorCE(beoordeling, directPrinten.getObject(),
@@ -328,7 +328,7 @@ public class MammaCeVerwijsVerslagPage extends AbstractMammaCePage
 			@Override
 			protected EnovationHuisarts getHuisartsVorigeRonde()
 			{
-				return huisartsService.getHuisartsVanVorigeRonde(getModelObject());
+				return huisartsService.getActieveHuisartsVanVorigeRonde(getModelObject());
 			}
 
 		}.setOutputMarkupId(true);

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,8 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import nl.rivm.screenit.mamma.se.dto.AfspraakSeDto;
 import nl.rivm.screenit.mamma.se.service.DaglijstService;
-
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,11 +62,9 @@ public class DaglijstController extends AuthorizedController
 
 		try
 		{
-			LOG.info("Daglijst ophalen start (" + seCode + ") dag: " + datum);
-			future.get(ASYNC_REQUEST_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+			LOG.info("Daglijst ophalen queued ({}) dag: {} ", seCode, datum);
+			future.get(asyncRequestTimeoutSeconds, TimeUnit.SECONDS);
 			List<AfspraakSeDto> afspraken = daglijstOphaler.getAfspraken();
-			LOG.info("Daglijst ophalen eind (" + seCode + ") dag: " + datum);
-
 			return ResponseEntity.ok(afspraken);
 		}
 		catch (TimeoutException e)
@@ -82,9 +80,9 @@ public class DaglijstController extends AuthorizedController
 
 	private class DaglijstOphaler extends OpenHibernate5SessionInThread
 	{
-		private LocalDate datum;
+		private final LocalDate datum;
 
-		private String seCode;
+		private final String seCode;
 
 		private List<AfspraakSeDto> afspraken;
 

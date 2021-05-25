@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -257,7 +257,7 @@ public class BezwaarServiceImpl implements BezwaarService
 		else
 		{
 			groupWrapper.setBevolkingsonderzoek(onderzoek);
-			groupWrapper.setKey(onderzoek.toString());
+			groupWrapper.setKey(onderzoek.name());
 		}
 		return groupWrapper;
 	}
@@ -879,17 +879,13 @@ public class BezwaarServiceImpl implements BezwaarService
 	@Transactional(propagation = Propagation.NEVER, readOnly = true)
 	public boolean bezwarenGewijzigd(BezwaarMoment laatsteVoltooideBezwaarMoment, List<BezwaarGroupViewWrapper> wrappers, Bevolkingsonderzoek bvo)
 	{
-		List<String> nieuweBezwaarTypen = new ArrayList<>();
-		for (BezwaarGroupViewWrapper groupWrapper : wrappers)
-		{
-			for (BezwaarViewWrapper wrapper : groupWrapper.getBezwaren())
-			{
-				if (Boolean.TRUE.equals(wrapper.getActief()))
-				{
-					nieuweBezwaarTypen.add(groupWrapper.getBevolkingsonderzoek() + "_" + wrapper.getType());
-				}
-			}
-		}
+		List<String> nieuweBezwaarTypen = wrappers.stream()
+			.filter(b -> bvo == null ? true : b.getBevolkingsonderzoek() == null || b.getBevolkingsonderzoek().equals(bvo))
+			.flatMap(bm -> bm.getBezwaren().stream())
+			.filter(b -> Boolean.TRUE.equals(b.getActief()))
+			.map(bmm -> bvo + "_" + bmm.getType())
+			.collect(Collectors.toList());
+
 		if (laatsteVoltooideBezwaarMoment != null)
 		{
 			List<String> huidigeBezwaarTypen = laatsteVoltooideBezwaarMoment.getBezwaren().stream()
@@ -943,7 +939,7 @@ public class BezwaarServiceImpl implements BezwaarService
 	}
 
 	@Override
-	public boolean heeftBezwaarInAfgelopenAantalDagen(Client client, BezwaarType bezwaarType, Bevolkingsonderzoek bevolkingsonderzoek, int aantalDagen)
+	public boolean heeftBezwaarIngediendInAfgelopenAantalDagen(Client client, BezwaarType bezwaarType, Bevolkingsonderzoek bevolkingsonderzoek, int aantalDagen)
 	{
 		LocalDate bezwaarTermijn = currentDateSupplier.getLocalDate().minusDays(aantalDagen);
 		for (BezwaarMoment bezwaarMoment : client.getBezwaarMomenten())

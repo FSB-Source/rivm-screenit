@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,21 +21,18 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.Normalizer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisDao;
-import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.main.service.mamma.IMammaTehuisDto;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -87,8 +84,6 @@ import org.springframework.beans.support.PropertyComparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.aspose.words.Document;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -165,10 +160,10 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			{
 				IMammaTehuisDto tehuisDto = dtoFactory.call();
 				tehuisDto.setTehuis(tehuis);
-				MammaStandplaatsRonde huidigeStandplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats(), false);
-				Optional<MammaStandplaatsPeriode> eersteStandplaatsPeriode = huidigeStandplaatsRonde.getStandplaatsPerioden().stream()
-					.min((o1, o2) -> o1.getVanaf().compareTo(o2.getVanaf()));
-				tehuisDto.setStandplaatsPeriode(eersteStandplaatsPeriode.get());
+				MammaStandplaatsRonde huidigeStandplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
+				MammaStandplaatsPeriode eersteStandplaatsPeriode = huidigeStandplaatsRonde != null ? huidigeStandplaatsRonde.getStandplaatsPerioden().stream()
+					.min(Comparator.comparing(MammaStandplaatsPeriode::getVanaf)).orElse(null) : null;
+				tehuisDto.setStandplaatsPeriode(eersteStandplaatsPeriode);
 				tehuisDtos.add(tehuisDto);
 			}
 			catch (Exception e)
@@ -244,7 +239,7 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 	public void uitnodigen(MammaTehuis tehuis, AtomicInteger aantalClientenMetProjectBrief, AtomicInteger aantalClientenMetBrieven,
 		AtomicInteger aantalClientenMetSuspectBrieven, InstellingGebruiker ingelogdeInstellingGebruiker)
 	{
-		MammaStandplaatsRonde standplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats(), false);
+		MammaStandplaatsRonde standplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
 		List<MammaBrief> uitnodigingen = new ArrayList<>();
 		List<MammaBrief> suspectUitnodigingen = new ArrayList<>();
 
@@ -387,37 +382,16 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 		mergedBrieven.setVrijgegeven(true);
 		hibernateService.saveOrUpdate(mergedBrieven);
 
-		FileOutputStream outputStream = null;
 		try
 		{
 			briefService.createOrAddMergedBrieven(uitnodigingen, new TehuisBrievenGeneratorHelper(tehuis, mergedBrieven));
-			outputStream = briefService.completeEnGetPdf(mergedBrieven);
+			briefService.completePdf(mergedBrieven);
 			aantalClienten.set(uitnodigingen.size());
-		}
-		catch (IOException e)
-		{
-			LOG.error("Javascript kon niet aan de mergedbrieven worden toegevoegd", e);
-			throw new IllegalStateException();
 		}
 		catch (Exception e)
 		{
 			LOG.error("Onbekende fout bij mergen van tehuis brieven", e);
 			throw new IllegalStateException(e);
-		}
-		finally
-		{
-			if (outputStream != null)
-			{
-				try
-				{
-					outputStream.close();
-				}
-				catch (IOException e)
-				{
-					LOG.error("Outputstream kon niet worden afgesloten!", e);
-					throw new IllegalStateException();
-				}
-			}
 		}
 	}
 
@@ -432,26 +406,6 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			this.tehuis = tehuis;
 			this.mergedBrieven = mergedBrieven;
 
-		}
-
-		@Override
-		public BaseDocumentCreator getDocumentCreator(MailMergeContext context)
-		{
-			return null;
-		}
-
-		@Override
-		public void additionalActiesWithDocument(MailMergeContext context, MammaBrief brief, Document chunkDocument) throws Exception
-		{
-
-		}
-
-		@Override
-		public String getTechnischeLoggingMergedBriefAanmaken(MammaMergedBrieven brieven)
-		{
-			String tekst = "Mergedocument(id = " + brieven.getId() + ") aangemaakt voor ScreeningOrganisatie " + brieven.getScreeningOrganisatie().getNaam()
-				+ ", brieftype " + brieven.getBriefType().name();
-			return tekst;
 		}
 
 		@Override
@@ -478,18 +432,6 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			}
 			String naamPlusExtensie = naam += ".pdf";
 			return naamPlusExtensie;
-		}
-
-		@Override
-		public Long getFileStoreId()
-		{
-			return null;
-		}
-
-		@Override
-		public void crashMelding(String melding, Exception e)
-		{
-			LOG.error(melding, e);
 		}
 
 		@Override
@@ -540,16 +482,5 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			return mergedBrieven;
 		}
 
-		@Override
-		public MammaMergedBrieven createMergedBrieven(Date aangemaaktOp)
-		{
-			return null;
-		}
-
-		@Override
-		public void increasePdfCounter()
-		{
-
-		}
 	}
 }

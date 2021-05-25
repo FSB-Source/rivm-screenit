@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -97,6 +97,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelGeannuleerdReden;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
+import nl.rivm.screenit.repository.ClientRepository;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.ClientService;
@@ -134,6 +135,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @Component
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -143,6 +145,9 @@ public class ClientServiceImpl implements ClientService
 	public static final Pattern POSTCODE_NL = Pattern.compile("[1-9][0-9]{3}?[\\s]?[a-zA-Z]{2}");
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientServiceImpl.class);
+
+	@Autowired
+	private ClientRepository clientRepository;
 
 	@Autowired
 	private ClientDao clientDao;
@@ -198,19 +203,25 @@ public class ClientServiceImpl implements ClientService
 	@Override
 	public Client getClientByBsn(String bsn)
 	{
-		return clientDao.getClientByBsn(bsn);
+		return clientRepository.findOne(ClientRepository.bsnEquals(bsn)).orElse(null);
 	}
 
 	@Override
 	public Client getClientZonderBezwaar(String bsn)
 	{
-		return clientDao.getClientZonderBezwaar(bsn);
+		return clientRepository.findOne(ClientRepository.bsnEquals(bsn).and(ClientRepository.gbaStatusNotEquals(GbaStatus.BEZWAAR))).orElse(null);
 	}
 
 	@Override
 	public boolean heeftDossierMetRondeOfAfmelding(Client client)
 	{
 		return clientDao.heeftDossierMetRondeOfAfmelding(client);
+	}
+
+	@Override
+	public Client setTelefoonnummer(Client client)
+	{
+		return client;
 	}
 
 	@Override

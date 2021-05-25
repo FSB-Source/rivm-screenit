@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,16 +24,16 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.main.service.ExtraOpslaanKey;
-import nl.rivm.screenit.main.service.mamma.MammaHuisartsService;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma.huisarts.MammaHuisartsBeheerPanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.EnovationHuisarts;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
+import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -85,7 +85,7 @@ public class MammaHuisartsWijzigenPanel extends AbstractClientContactActiePanel<
 			@Override
 			protected EnovationHuisarts getHuisartsVorigeRonde()
 			{
-				return huisartsService.getHuisartsVanVorigeRonde(getModelObject());
+				return huisartsService.getActieveHuisartsVanVorigeRonde(getModelObject());
 			}
 
 		};

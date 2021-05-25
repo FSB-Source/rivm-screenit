@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.service.mamma.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,6 +32,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaBulkVerzettenFilter;
@@ -42,6 +43,7 @@ import nl.rivm.screenit.main.dao.mamma.MammaAfspraakDao;
 import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
 import nl.rivm.screenit.main.transformer.AfspraakDatumResultTransformer;
 import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.TijdelijkAdres;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -58,6 +60,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -71,6 +74,7 @@ import nl.rivm.screenit.service.mamma.impl.MammaKandidaatAfspraak;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
@@ -120,6 +124,8 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	private BaseBriefService baseBriefService;
 
 	private static final int STREEF_INTERVAL = 2;
+
+	private static final ExecutorService EXECUTOR_SERVICE = Executors.newSingleThreadExecutor();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	@Override
@@ -171,10 +177,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 		kansberekeningService.resetPreferences();
 
 		Set<LocalDate> afspraakDatums = new HashSet<>();
-		if (berichtToSeRestBkService.moetSeNotificerenVoorAfspraak(verzettenVanDatum.atStartOfDay()))
-		{
-			afspraakDatums.add(verzettenVanDatum);
-		}
+		afspraakDatums.add(verzettenVanDatum);
 
 		for (MammaAfspraak bestaandeAfspraak : afspraken)
 		{
@@ -199,11 +202,8 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 				DateUtil.toUtilDate(kandidaatAfspraak.getVanaf().atDate(kandidaatAfspraak.getDatum())), filter.getStandplaatsPeriode(), filter.getVerzettenReden(),
 				annuleerVorigeAfspraak, false, true, true, true, account, false);
 
-			LocalDateTime nieuweAfspraakDateTime = DateUtil.toLocalDateTime(nieuweAfspraak.getVanaf());
-			if (berichtToSeRestBkService.moetSeNotificerenVoorAfspraak(nieuweAfspraakDateTime))
-			{
-				afspraakDatums.add(nieuweAfspraakDateTime.toLocalDate());
-			}
+			LocalDate nieuweAfspraakDate = DateUtil.toLocalDate(nieuweAfspraak.getVanaf());
+			afspraakDatums.add(nieuweAfspraakDate);
 
 			verzetClientenDto.clientIdSet.add(dossier.getClient().getId());
 
@@ -212,7 +212,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 		baseConceptPlanningsApplicatie.verzetClienten(verzetClientenDto);
 
-		afspraakDatums.forEach(datum -> berichtToSeRestBkService.notificeerSe(standplaatsPeriode.getScreeningsEenheid(), datum));
+		berichtToSeRestBkService.notificeerSe(standplaatsPeriode.getScreeningsEenheid(), afspraakDatums);
 
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 		String melding = "Bulk verzetting: #" + afspraken.size() + " afspraken, reden: " + filter.getVerzettenReden() + ", vanaf: "
@@ -273,6 +273,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public String controleerAfspraakInAndereLocatie(MammaKandidaatAfspraakDto kandidaatAfspraakDto, MammaDossier dossier)
 	{
 		MammaStandplaatsPeriode standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class, kandidaatAfspraakDto.getStandplaatsPeriodeId());
@@ -325,6 +326,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean magBevestigingsbriefAanmaken(MammaAfspraak afspraak)
 	{
 		List<MammaBrief> brieven = afspraak.getUitnodiging().getScreeningRonde().getBrieven();
@@ -340,12 +342,14 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean magUitstellen(MammaDossier dossier)
 	{
 		return magUitstellen(dossier, false);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean magUitstellen(MammaDossier dossier, boolean bijAfspraakForceren)
 	{
 		MammaScreeningRonde laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
@@ -361,4 +365,59 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 		return heeftRondeGeenOnderzoek && isLaatsteAfspraakGeenGeforceerdeAfspraak && isGeenTehuisClient && !bijAfspraakForceren;
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public void verzetAfsprakenNaarStandplaatsPlusBrievenKlaarzettenVoorAfdrukken(Map<Long, List<Long>> afsprakenTeVerplatsen, Account account)
+	{
+		afsprakenTeVerplatsen.entrySet().forEach(e -> EXECUTOR_SERVICE.submit(new AfsprakenVerplaatsenThread(e.getKey(), e.getValue(), account.getId())));
+	}
+
+	private class AfsprakenVerplaatsenThread extends OpenHibernate5SessionInThread
+	{
+
+		private final Long standplaatsPeriodeId;
+
+		private final List<Long> afsprakenIds;
+
+		private final Long ingelogdeGebruikerId;
+
+		AfsprakenVerplaatsenThread(Long standplaatsPeriodeId, List<Long> afsprakenIds, Long ingelogdeGebruikerId)
+		{
+			super(true);
+			this.standplaatsPeriodeId = standplaatsPeriodeId;
+			this.afsprakenIds = afsprakenIds;
+			this.ingelogdeGebruikerId = ingelogdeGebruikerId;
+		}
+
+		@Override
+		protected void runInternal()
+		{
+			List<MammaBrief> brieven = new ArrayList<>();
+			MammaStandplaatsPeriode persistentStandplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class, standplaatsPeriodeId);
+			InstellingGebruiker ingelogedeInstellingGebruiker = hibernateService.get(InstellingGebruiker.class, ingelogdeGebruikerId);
+			PlanningVerzetClientenDto verzetClientenDto = new PlanningVerzetClientenDto();
+			verzetClientenDto.verzetStandplaatsPeriodeId = persistentStandplaatsPeriode.getId();
+			Set<LocalDate> afspraakDatums = new HashSet<>();
+			for (Long afspraakId : afsprakenIds)
+			{
+				MammaAfspraak afspraak = hibernateService.get(MammaAfspraak.class, afspraakId);
+
+				if (afspraak.equals(MammaScreeningRondeUtil.getLaatsteAfspraak(afspraak.getUitnodiging().getScreeningRonde())))
+				{
+					baseAfspraakService.maakAfspraak(afspraak.getUitnodiging().getScreeningRonde(), afspraak.getCapaciteitBlok(), afspraak.getVanaf(),
+						persistentStandplaatsPeriode, MammaVerzettenReden.ONVOORZIENE_OMSTANDIGHEDEN, true, false, false, true, true, ingelogedeInstellingGebruiker, false);
+					brieven.add(baseBriefService.maakMammaBrief(afspraak.getUitnodiging().getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET));
+					verzetClientenDto.clientIdSet.add(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getId());
+					afspraakDatums.add(DateUtil.toLocalDate(afspraak.getVanaf()));
+				}
+			}
+			if (brieven.size() > 0)
+			{
+				baseConceptPlanningsApplicatie.verzetClienten(verzetClientenDto);
+				berichtToSeRestBkService.notificeerSe(persistentStandplaatsPeriode.getScreeningsEenheid(), afspraakDatums);
+				baseStandplaatsService.zetBrievenKlaarVoorStandplaatsVoorAfdrukken(brieven, persistentStandplaatsPeriode.getStandplaatsRonde().getStandplaats());
+			}
+		}
+
+	}
 }

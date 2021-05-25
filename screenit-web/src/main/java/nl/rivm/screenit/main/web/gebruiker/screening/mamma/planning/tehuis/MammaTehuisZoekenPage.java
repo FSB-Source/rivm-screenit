@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.tehuis;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisDao;
 import nl.rivm.screenit.main.service.mamma.IMammaTehuisDto;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -79,7 +80,7 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 	private InstellingService instellingService;
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaBaseStandplaatsService standplaatsService;
 
 	@SpringBean
 	private MammaTehuisService tehuisService;
@@ -174,7 +175,7 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 			public void onClick(AjaxRequestTarget target, IModel<IMammaTehuisDto> model)
 			{
 				MammaTehuis tehuis = model.getObject().getTehuis();
-				MammaStandplaatsRonde standplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats(), true);
+				MammaStandplaatsRonde standplaatsRonde = baseTehuisDao.getHuidigeStandplaatsRonde(tehuis.getStandplaats());
 				if (standplaatsRonde != null)
 				{
 					setResponsePage(new MammaTehuisEditPage(ModelUtil.cModel(tehuis)));
@@ -251,12 +252,12 @@ public class MammaTehuisZoekenPage extends MammaPlanningBasePage
 		List<MammaStandplaats> mogelijkeStandplaatsen;
 		if (magSoAanpassen)
 		{
-			mogelijkeStandplaatsen = baseStandplaatsService.getActieveStandplaatsen(null);
+			mogelijkeStandplaatsen = standplaatsService.getActieveStandplaatsen(null);
 		}
 		else
 		{
 			ScreeningOrganisatie regio = ScreenitSession.get().getScreeningOrganisatie();
-			mogelijkeStandplaatsen = baseStandplaatsService.getActieveStandplaatsen(regio);
+			mogelijkeStandplaatsen = standplaatsService.getActieveStandplaatsen(regio);
 		}
 
 		return mogelijkeStandplaatsen;

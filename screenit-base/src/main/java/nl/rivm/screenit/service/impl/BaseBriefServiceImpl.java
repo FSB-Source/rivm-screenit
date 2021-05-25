@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -506,17 +506,26 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
-	public FileOutputStream completeEnGetPdf(MergedBrieven<?> mergedBrieven) throws IOException
+	public void completePdf(MergedBrieven<?> mergedBrieven)
 	{
-		File file = fileService.load(mergedBrieven.getMergedBrieven());
-		PDDocument pdfBoxDocument = PDDocument.load(file);
-		PDActionJavaScript javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());
-		pdfBoxDocument.getDocumentCatalog().setOpenAction(javaScript);
-		FileOutputStream outputStream = new FileOutputStream(file);
-		pdfBoxDocument.save(outputStream);
-		pdfBoxDocument.close();
-		LOG.info("Mergedocument(id = " + mergedBrieven.getId() + ") gegenereerd en klaar!");
-		return outputStream;
+		try
+		{
+			File file = fileService.load(mergedBrieven.getMergedBrieven());
+			PDDocument pdfBoxDocument = PDDocument.load(file);
+			PDActionJavaScript javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());
+			pdfBoxDocument.getDocumentCatalog().setOpenAction(javaScript);
+			try (FileOutputStream outputStream = new FileOutputStream(file))
+			{
+				pdfBoxDocument.save(outputStream);
+				pdfBoxDocument.close();
+				LOG.info("Mergedocument(id = " + mergedBrieven.getId() + ") gegenereerd en klaar!");
+			}
+		}
+		catch (IOException e)
+		{
+			LOG.error("Fout bij toevoegen van javascript in PDF (voor automatische printpopup)", e);
+			throw new IllegalStateException("Fout bij toevoegen van javascript in PDF (voor automatische printpopup)");
+		}
 	}
 
 	@Override
@@ -715,15 +724,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 			MB createdMergedBrieven = briefGenerator.createMergedBrieven(mergedBrieven.getCreatieDatum());
 			if (createdMergedBrieven != null)
 			{
-				try (FileOutputStream outputStream = completeEnGetPdf(mergedBrieven);)
-				{
-
-				}
-				catch (IOException e)
-				{
-					briefGenerator.crashMelding("Javascript kon niet aan de mergedbrieven worden toegevoegd", e);
-					throw e;
-				}
+				completePdf(mergedBrieven);
 				correctPdfFileNameIfNeeded(huidigePdfMetMergedBrievenContainer);
 				briefGenerator.increasePdfCounter();
 				setPdfInMergedBrievenEntiteit(createdMergedBrieven, nieuwPdfMetMergedBrieven, briefGenerator);
@@ -887,6 +888,18 @@ public class BaseBriefServiceImpl implements BaseBriefService
 				brief.setTegenhouden(true);
 				hibernateService.saveOrUpdate(brief);
 			});
+	}
+
+	@Override
+	public boolean briefTypeWachtOpKlaarzettenInDezeRonde(ClientBrief<?, ?, ?> brief)
+	{
+		return briefTypeWachtOpKlaarzettenInDezeRonde(brief.getScreeningRonde(), Collections.singletonList(brief.getBriefType()));
+	}
+
+	@Override
+	public boolean briefTypeWachtOpKlaarzettenInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes)
+	{
+		return ronde.getBrieven().stream().anyMatch(brief -> brieftypes.contains(brief.getBriefType()) && !brief.isGegenereerd());
 	}
 
 	@Override

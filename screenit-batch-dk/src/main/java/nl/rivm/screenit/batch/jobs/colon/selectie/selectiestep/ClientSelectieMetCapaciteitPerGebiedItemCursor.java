@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,7 @@ import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelect
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.ProjectGroupUitnodiging;
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.UitnodigingsTaak;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.UitnodigingsGebied;
@@ -216,10 +216,10 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 
 			List<Client> clientenOpAdres = selectieContext.clientDao.getClientenOpAdres(client.getPersoon().getGbaAdres(), selectieContext.minimaleLeeftijd,
 				selectieContext.maximaleLeeftijd, selectieContext.uitnodigingsInterval);
-			Client andereClient = ColonClientSelectieHelper.getAndereClient(clientenOpAdres, client);
+			Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
 			boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2
-				|| !ColonClientSelectieHelper.isIfobtActief(andereClient, selectieContext.uitgenodigdeClientIds)
-				|| ColonClientSelectieHelper.isWachttijdOpPakketVerstreken(andereClient, selectieContext.wachttijdVerzendenPakket);
+				|| !ColonRestrictions.isIfobtActief(andereClient, selectieContext.uitgenodigdeClientIds)
+				|| ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, selectieContext.wachttijdVerzendenPakket);
 			if (geenAndereClientMetZelfdeAdresEnActieveIfobt)
 			{
 				cursorCount++;
@@ -302,11 +302,11 @@ public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<
 				switch (uitnodigingscategorie)
 				{
 				case U1:
-					crit = ColonClientSelectieHelper.getQueryVooraankondigen(selectieContext.getHibernateSession(), uitnodigingsgebied, geboorteJaren, false,
+					crit = ColonRestrictions.getQueryVooraankondigen(selectieContext.getHibernateSession(), uitnodigingsgebied, geboorteJaren, false,
 						selectieContext.minimaleLeeftijd, selectieContext.maximaleLeeftijd, projectGroupId, exclusieGroepIds);
 					break;
 				case U2:
-					crit = ColonClientSelectieHelper.getQueryU2(selectieContext.getHibernateSession(), uitnodigingsgebied, selectieContext.minimaleLeeftijd,
+					crit = ColonRestrictions.getQueryU2(selectieContext.getHibernateSession(), uitnodigingsgebied, selectieContext.minimaleLeeftijd,
 						selectieContext.maximaleLeeftijd);
 					break;
 				default:

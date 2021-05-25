@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -194,7 +195,7 @@ public abstract class MammaUitstelZoekenPanel extends Panel
 			public void onClick(AjaxRequestTarget target, IModel<MammaStandplaatsPeriodeMetAfstandDto> model)
 			{
 				super.onClick(target, model);
-				nieuwUitstel(target, model, filterModel.getObject().getVanaf());
+				nieuwUitstel(target, model, DateUtil.toUtilDate(filterModel.getObject().getVanaf()));
 				this.setVisible(false);
 				target.add(this);
 			}

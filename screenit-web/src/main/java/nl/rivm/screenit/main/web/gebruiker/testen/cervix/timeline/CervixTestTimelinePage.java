@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.main.model.GebeurtenisBron;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
@@ -51,6 +50,7 @@ import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -113,9 +113,6 @@ public class CervixTestTimelinePage extends TestenBasePage
 
 	@SpringBean
 	private CervixTestService testService;
-
-	@SpringBean(name = "portaalUrl")
-	private String clientportaalUrl;
 
 	private IModel<TestTimelineModel> model;
 
@@ -502,8 +499,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 				return clientModel.getObject().get(0).getPersoon().getOverlijdensdatum() == null;
 			}
 		});
-		container.add(getClientDossierButton(form, model));
-		container.add(getClientPortaalButton(form, clientportaalUrl, model));
+		addGaNaarButtons(container, form, model);
 	}
 
 	@Override

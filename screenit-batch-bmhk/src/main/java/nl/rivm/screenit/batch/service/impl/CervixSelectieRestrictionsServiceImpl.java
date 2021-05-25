@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,6 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
@@ -33,7 +29,6 @@ import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
@@ -42,6 +37,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
@@ -57,6 +56,11 @@ public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRest
 	@Override
 	public void addClientSelectieRestrictions(Criteria criteria)
 	{
+		addClientSelectieRestrictions(criteria, 0);
+	}
+
+	public void addClientSelectieRestrictions(Criteria criteria, int daysToAddToToday)
+	{
 		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("ronde.monsterHpvUitslag", "monsterHpvUitslag", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("monsterHpvUitslag.laatsteHpvBeoordeling", "laatsteHpvBeoordeling", JoinType.LEFT_OUTER_JOIN);
@@ -66,6 +70,10 @@ public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRest
 		criteria.createAlias("uitstrijkjeVervolgonderzoekUitslag.cytologieVerslag", "vervolgonderzoekVerslag", JoinType.LEFT_OUTER_JOIN);
 
 		LocalDate vandaag = dateSupplier.getLocalDate();
+		if (daysToAddToToday > 0)
+		{
+			vandaag = vandaag.minusDays(daysToAddToToday);
+		}
 
 		LocalDate geboortedatumMinimaal = vandaag.minusYears(CervixLeeftijdcategorie._65.getLeeftijd());
 		LocalDate geboortedatumMinimaalVervolgonderzoekNegatief = vandaag.minusYears(CervixLeeftijdcategorie._70.getLeeftijd());

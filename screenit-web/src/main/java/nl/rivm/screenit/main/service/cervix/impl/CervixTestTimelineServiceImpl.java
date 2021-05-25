@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,6 @@ import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
 import nl.rivm.screenit.main.service.ClientDossierFilter;
 import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.service.TestTimelineService;
-import nl.rivm.screenit.main.service.cervix.CervixScreeningrondeService;
 import nl.rivm.screenit.main.service.cervix.CervixTestTimelineService;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
 import nl.rivm.screenit.model.Account;
@@ -60,6 +59,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
@@ -102,10 +102,7 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 	private DossierService dossierService;
 
 	@Autowired
-	private CervixBaseScreeningrondeService baseScreeningrondeService;
-
-	@Autowired
-	private CervixScreeningrondeService screeningrondeService;
+	private CervixBaseScreeningrondeService screeningrondeService;
 
 	@Autowired
 	private ClientService clientService;
@@ -130,6 +127,12 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 
 	@Autowired
 	private CervixAanvraagService aanvraagService;
+
+	@Autowired
+	private BriefHerdrukkenService briefHerdrukkenService;
+
+	@Autowired
+	private BaseBriefService baseBriefService;
 
 	@Override
 	public List<TestTimelineRonde> getTimelineRondes(Client client)
@@ -633,7 +636,7 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 		CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
 		if (laatsteUitnodiging != null)
 		{
-			return !screeningrondeService.isBriefMetZelfdeBriefTypeAangemaakt(laatsteUitnodiging.getBrief());
+			return !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(laatsteUitnodiging.getBrief());
 		}
 		return false;
 	}
@@ -645,7 +648,7 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 
 		CervixUitnodiging laatsteAfgedrukteUitstrijkjeUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
 		CervixBrief brief = laatsteAfgedrukteUitstrijkjeUitnodiging.getBrief();
-		screeningrondeService.maakHerdruk(brief, account);
+		briefHerdrukkenService.opnieuwAanmaken(brief, account);
 		verzendLaatsteBrief(ronde);
 	}
 }

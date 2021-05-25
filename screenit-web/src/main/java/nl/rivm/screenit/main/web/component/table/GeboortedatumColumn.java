@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.component.table;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ package nl.rivm.screenit.main.web.component.table;
 import java.text.SimpleDateFormat;
 
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -52,12 +53,7 @@ public class GeboortedatumColumn<T extends HibernateObject> extends PropertyColu
 		GbaPersoon persoon = (GbaPersoon) super.getDataModel(rowModel).getObject();
 		if (persoon != null)
 		{
-			String datePattern = "dd-MM-yyyy";
-			if (persoon.getGeboortedatumPrecisie() != null)
-			{
-				datePattern = persoon.getGeboortedatumPrecisie().getDatePattern();
-			}
-			return new Model(new SimpleDateFormat(datePattern).format(persoon.getGeboortedatum()));
+			return new Model(DateUtil.getGeboortedatum(persoon));
 		}
 		else
 		{

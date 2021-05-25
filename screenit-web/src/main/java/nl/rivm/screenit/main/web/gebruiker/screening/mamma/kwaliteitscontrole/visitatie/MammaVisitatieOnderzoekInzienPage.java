@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.v
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +36,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeoordelenHis
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
+import nl.rivm.screenit.model.mamma.enums.MammobridgeFocusMode;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -88,6 +89,12 @@ public class MammaVisitatieOnderzoekInzienPage extends AbstractMammaBeoordelenPa
 	protected MammaBeLezerSoort getLezerSoort()
 	{
 		return MammaBeLezerSoort.FOTOBESPREKING_VISITATIE;
+	}
+
+	@Override
+	protected MammobridgeFocusMode getMammobridgeFocusMode()
+	{
+		return MammobridgeFocusMode.INCLUSIEF_UPLOAD_BEELDEN;
 	}
 
 	@Override

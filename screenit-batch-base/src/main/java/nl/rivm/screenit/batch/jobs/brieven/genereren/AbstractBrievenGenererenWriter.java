@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.brieven.genereren;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,6 @@ package nl.rivm.screenit.batch.jobs.brieven.genereren;
  * =========================LICENSE_END==================================
  */
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -56,8 +54,6 @@ import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.NamedThreadLocal;
-
-import com.aspose.words.Document;
 
 public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends MergedBrieven<?>> implements ItemStreamWriter<T>, IBrievenGeneratorHelper<T, S>
 {
@@ -162,20 +158,8 @@ public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends 
 	}
 
 	@Override
-	public void additionalActiesWithDocument(MailMergeContext context, T brief, Document chunkDocument) throws Exception
-	{
-	}
-
-	@Override
-	public Long getFileStoreId()
-	{
-		return null;
-	}
-
-	@Override
 	public String getTechnischeLoggingMergedBriefAanmaken(S brieven)
 	{
-		;
 		String tekst = "Mergedocument(id = " + brieven.getId() + ") aangemaakt voor ScreeningOrganisatie " + brieven.getScreeningOrganisatie().getNaam() + ", brieftype "
 			+ brieven.getBriefType().name() + ", #" + getStepExecutionContext().getInt(KEY_PDF_COUNTER, 1);
 		return tekst;
@@ -240,11 +224,6 @@ public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends 
 	}
 
 	@Override
-	public void additionalMergedContext(MailMergeContext context)
-	{
-	}
-
-	@Override
 	public void update(ExecutionContext executionContext) throws ItemStreamException
 	{
 
@@ -254,7 +233,6 @@ public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends 
 	public void close() throws ItemStreamException
 	{
 		OpenHibernate5Session.withCommittedTransaction().run(() -> {
-			FileOutputStream outputStream = null;
 			try
 			{
 				Map<Object, Object> resourcesMap = resources.get();
@@ -268,29 +246,20 @@ public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends 
 				}
 				else
 				{
-					outputStream = briefService.completeEnGetPdf(mergedBrieven);
+					briefService.completePdf(mergedBrieven);
 				}
 			}
-			catch (IOException e)
+			catch (IllegalStateException e)
 			{
 				crashMelding("Javascript kon niet aan de mergedbrieven worden toegevoegd", e);
 				throw new ItemStreamException("Javascript kon niet aan de mergedbrieven worden toegevoegd");
 			}
-			finally
+			catch (Exception e)
 			{
-				if (outputStream != null)
-				{
-					try
-					{
-						outputStream.close();
-					}
-					catch (IOException e)
-					{
-						crashMelding("Outputstream kon niet worden afgesloten!", e);
-						throw new ItemStreamException("Outputstream kon niet worden afgesloten!");
-					}
-				}
+				crashMelding("Onbekende fout", e);
+				throw new ItemStreamException("Onbekende fout");
 			}
+
 			resources.remove();
 		});
 

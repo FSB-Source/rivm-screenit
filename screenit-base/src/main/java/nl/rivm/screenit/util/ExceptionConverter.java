@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.util;
  */
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.model.ExceptieOmschrijving;
 
 import org.hibernate.AssertionFailure;
 import org.hibernate.exception.GenericJDBCException;
@@ -29,9 +30,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.orm.hibernate5.HibernateJdbcException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public final class ExceptionConverter
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionConverter.class);
+
+	private static ObjectMapper OBJECTMAPPER = new ObjectMapper();
 
 	private ExceptionConverter()
 	{
@@ -66,7 +72,8 @@ public final class ExceptionConverter
 				int endTriggerMessage = message.indexOf(Constants.EXCEPTION_GEBRUIKERMELDING_MARKER + "]");
 				if (startTriggerMessage > 0 && endTriggerMessage > startTriggerMessage)
 				{
-					uiMessage = " " + message.substring(startTriggerMessage + Constants.EXCEPTION_GEBRUIKERMELDING_MARKER.length() + 1, endTriggerMessage).trim();
+					uiMessage = " "
+						+ message.substring(startTriggerMessage + Constants.EXCEPTION_GEBRUIKERMELDING_MARKER.length() + 1, endTriggerMessage).trim();
 				}
 			}
 		}
@@ -80,5 +87,18 @@ public final class ExceptionConverter
 			LOGGER.error("Onverwachte jdbc fout.", e);
 		}
 		return uiMessage;
+	}
+
+	public static String convertExceptionToJson(RuntimeException e, String keyValue)
+	{
+		ExceptieOmschrijving exceptieOmschrijving = new ExceptieOmschrijving(keyValue, ExceptionConverter.getGebruikerMeldingUitTriggerMessage(e));
+		try
+		{
+			return OBJECTMAPPER.writeValueAsString(exceptieOmschrijving);
+		}
+		catch (JsonProcessingException x)
+		{
+			throw new IllegalStateException("Cannot convert Dto to Json", x);
+		}
 	}
 }

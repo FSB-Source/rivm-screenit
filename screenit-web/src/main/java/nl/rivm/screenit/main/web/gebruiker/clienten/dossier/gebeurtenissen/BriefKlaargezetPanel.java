@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,9 +31,6 @@ import javax.annotation.CheckForNull;
 
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
-import nl.rivm.screenit.main.service.BriefService;
-import nl.rivm.screenit.main.service.cervix.CervixScreeningrondeService;
-import nl.rivm.screenit.main.service.mamma.MammaScreeningrondeService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.BriefTypeLabel;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -55,6 +52,7 @@ import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -88,16 +86,10 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 	private static final Logger LOG = LoggerFactory.getLogger(BriefKlaargezetPanel.class);
 
 	@SpringBean
-	private BriefService briefService;
+	private BriefHerdrukkenService briefHerdrukkenService;
 
 	@SpringBean
 	private BaseBriefService baseBriefService;
-
-	@SpringBean
-	private CervixScreeningrondeService screeningrondeService;
-
-	@SpringBean
-	private MammaScreeningrondeService mammaScreeningrondeService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -275,7 +267,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				briefService.opnieuwAanmaken(BriefKlaargezetPanel.this.getModelObject().getBrief(), ScreenitSession.get().getLoggedInAccount());
+				briefHerdrukkenService.opnieuwAanmaken(BriefKlaargezetPanel.this.getModelObject().getBrief(), ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.briefaangemaakt"));
 				opnieuwMogelijkContainer.setVisible(false);
 				nietOpnieuw.setVisible(true);
@@ -305,7 +297,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 			}
 			if (magHerdrukken)
 			{
-				magHerdrukken = !screeningrondeService.isBriefMetZelfdeBriefTypeAangemaakt(cervixBrief);
+				magHerdrukken = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(cervixBrief);
 			}
 		}
 		else if (brief instanceof MammaBrief)
@@ -318,7 +310,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 			}
 			if (magHerdrukken)
 			{
-				magHerdrukken = !this.mammaScreeningrondeService.isBriefMetZelfdeBriefTypeAangemaakt(mammaBrief);
+				magHerdrukken = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(mammaBrief);
 			}
 		}
 

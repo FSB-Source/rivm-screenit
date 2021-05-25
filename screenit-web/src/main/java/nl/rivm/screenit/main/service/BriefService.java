@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,8 +41,6 @@ public interface BriefService
 		String sortProperty, boolean ascending);
 
 	<MB extends MergedBrieven<?>> Long countMergedBrieven(ScreeningOrganisatie screeningOrganisatie, MergedBrievenFilter<MB> mergedBrievenFilter);
-
-	void opnieuwAanmaken(@Nonnull ClientBrief<?, ?, ?> brief, Account account);
 
 	List<? extends ClientBrief> getBrievenVanAfmelding(Afmelding afmelding, boolean heraanmelding);
 

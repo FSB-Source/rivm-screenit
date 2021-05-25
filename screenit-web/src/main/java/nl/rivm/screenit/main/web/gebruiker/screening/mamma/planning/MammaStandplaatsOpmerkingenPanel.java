@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -34,7 +35,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking;
-import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -56,7 +56,7 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 public class MammaStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandplaats>
 {
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaStandplaatsService standplaatsService;
 
 	private WebMarkupContainer editOpmerkingContainer;
 
@@ -154,7 +154,7 @@ public class MammaStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandpla
 						{
 							super.onAfterToggleActief(target, actiefObject);
 							target.add(opmerkingen);
-							baseStandplaatsService.saveOrUpdateStandplaatsOpmerking(actiefObject, null, ScreenitSession.get().getLoggedInInstellingGebruiker());
+							standplaatsService.saveOrUpdateStandplaatsOpmerking(actiefObject, null, ScreenitSession.get().getLoggedInInstellingGebruiker());
 						}
 
 						@Override
@@ -214,7 +214,7 @@ public class MammaStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandpla
 			{
 				MammaStandplaats standplaats = (MammaStandplaats) MammaStandplaatsOpmerkingenPanel.this.getDefaultModelObject();
 				MammaStandplaatsOpmerking opmerking = (MammaStandplaatsOpmerking) opmerkingForm.getModelObject();
-				boolean changed = baseStandplaatsService.saveOrUpdateStandplaatsOpmerking(opmerking, standplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				boolean changed = standplaatsService.saveOrUpdateStandplaatsOpmerking(opmerking, standplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
 				target.add(opmerkingen);
 				WebMarkupContainer invisibleopmerkingContainer = new WebMarkupContainer("editOpmerkingContainer");
 				invisibleopmerkingContainer.setOutputMarkupPlaceholderTag(true);

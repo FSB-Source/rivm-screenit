@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cerv
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
-import nl.rivm.screenit.main.service.cervix.CervixUitnodigingService;
+import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -77,7 +77,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class CervixHpvInzienPanel extends AbstractGebeurtenisDetailPanel
 {
 	@SpringBean
-	private CervixUitnodigingService cervixUitnodigingService;
+	private CervixBaseUitnodigingService cervixUitnodigingService;
 
 	private BootstrapDialog confirmDialog;
 

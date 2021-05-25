@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,6 +43,7 @@ import nl.rivm.screenit.main.service.ClientDossierFilter;
 import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.service.MedewerkerService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.ImportPocOpties;
@@ -148,6 +149,9 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	@Autowired
 	private MammaScreeningsEenheidDao screeningsEenheidDao;
+
+	@Autowired
+	private MammaStandplaatsService standplaatsService;
 
 	@Autowired
 	private MammaBaseStandplaatsService baseStandplaatsService;
@@ -769,7 +773,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 				MammaStandplaatsRonde standplaatsRonde = null;
 				if (klaarzettenPlanning)
 				{
-					MammaStandplaats standplaats = baseStandplaatsService.getStandplaatsMetPostcode(dossier.getClient());
+					MammaStandplaats standplaats = standplaatsService.getStandplaatsMetPostcode(dossier.getClient());
 					standplaatsRonde = hibernateService.loadAll(MammaStandplaatsRonde.class).stream().filter(sr -> !sr.getStandplaats().equals(standplaats))
 						.findFirst().orElse(hibernateService.loadAll(MammaStandplaatsRonde.class).get(0));
 				}

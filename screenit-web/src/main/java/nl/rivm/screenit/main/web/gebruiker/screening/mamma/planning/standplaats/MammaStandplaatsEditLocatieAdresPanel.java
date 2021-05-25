@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
 import java.util.Date;
 
 import nl.rivm.screenit.dao.CoordinatenDao;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -39,7 +40,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
-import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -58,7 +58,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel<MammaStandplaatsLocatie>
 {
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaStandplaatsService standplaatsService;
 
 	@SpringBean
 	private MammaBaseAfspraakService baseAfspraakService;
@@ -123,6 +123,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 						error(getString("max.regels.locatiebeschrijving.overschreden"));
 					}
 				}
+				MammaStandplaats standplaats = standplaatsModel.getObject();
 				if (locatie.getTijdelijk())
 				{
 					if (locatie.getStartDatum() == null || locatie.getEindDatum() == null)
@@ -135,7 +136,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 					}
 					else
 					{
-						waarschuwing = baseStandplaatsService.controleerUitnodigingenNaVeranderingTijdelijkeLocatie(standplaatsModel.getObject(), initieelAdres, initieelStartDatum,
+						waarschuwing = standplaatsService.controleerUitnodigingenNaVeranderingTijdelijkeLocatie(standplaats, initieelAdres, initieelStartDatum,
 							initieelEindDatum);
 					}
 				}
@@ -148,7 +149,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 						error(getString("geen.coordinaten"));
 					}
 
-					waarschuwing = baseStandplaatsService.controleerUitnodigingenNaVeranderingLocatie(standplaatsModel.getObject(), initieelAdres, initieelStartDatum,
+					waarschuwing = standplaatsService.controleerUitnodigingenNaVeranderingLocatie(standplaats, initieelAdres, initieelStartDatum,
 						initieelEindDatum);
 				}
 				if (!hasErrorMessage())
@@ -158,8 +159,9 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 					{
 						locatie.setBrievenApartPrinten(true);
 					}
-					boolean changed = baseStandplaatsService.saveOrUpdateStandplaatsLocatie(locatie, documentFromSelectedFile, standplaatsModel.getObject(),
-						ScreenitSession.get().getLoggedInInstellingGebruiker());
+					boolean changed = standplaatsService.saveOrUpdateStandplaatsLocatie(locatie, documentFromSelectedFile, standplaats,
+						ScreenitSession.get().getLoggedInInstellingGebruiker(), initieelAdres, initieelStartDatum,
+						initieelEindDatum);
 					if (changed)
 					{
 						if (StringUtils.isNotBlank(waarschuwing))

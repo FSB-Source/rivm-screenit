@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,11 +26,12 @@ import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.dao.colon.impl.ColonClientSelectieHelper;
+import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -41,7 +42,6 @@ import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -61,7 +61,7 @@ public class ColonVerlopenRondesReader extends BaseScrollableResultReader
 	{
 		LocalDate currentDate = currentDateSupplier.getLocalDate();
 
-		Date maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name())));
+		Date maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1));
 		Date maxLengteRonde = DateUtil.toUtilDate(currentDate.minusDays(preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name())));
 		Date wachttijdNaAfspraak = DateUtil.toUtilDate(currentDate.minusDays(DAGEN_WACHTTIJD_CONCLUSIE));
 
@@ -69,8 +69,9 @@ public class ColonVerlopenRondesReader extends BaseScrollableResultReader
 		criteria.createAlias("ronde.dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
-		criteria.createAlias("ifobtTesten", "testen");
+		criteria.createAlias("ifobtTesten", "testen", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("ronde.laatsteUitnodiging", "uitnodiging", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("ronde.laatsteBrief", "brief", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("ronde.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("uitnodiging.gekoppeldeTest", "ifobttest", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("afspraak.conclusie", "conclusie", JoinType.LEFT_OUTER_JOIN);
@@ -79,23 +80,14 @@ public class ColonVerlopenRondesReader extends BaseScrollableResultReader
 		criteria.add(Restrictions.lt("persoon.geboortedatum", maxLeeftijd));
 		criteria.add(Restrictions.lt("ronde.creatieDatum", maxLengteRonde));
 		criteria.add(Restrictions.or(
-			Restrictions.or(
-				Restrictions.isNull("uitnodiging.id"),
-				ifobtTestIsVerlopen(maxLengteRonde)),
-			Restrictions.or(
-				Restrictions.isNull("afspraak.id"),
-				Restrictions.or(
-					conclusieNietBinnenWachtperiodeVerwerkt(wachttijdNaAfspraak),
-					rondeZonderVerslagNaVerlopenOngunstigeUitslag(maxLengteRonde)))));
+			Restrictions.and(Restrictions.isEmpty("ifobtTesten"), Restrictions.eq("brief.briefType", BriefType.COLON_UITNODIGING_ZONDER_FIT)),
+			Restrictions.isNull("uitnodiging.id"),
+			ifobtTestIsVerlopen(maxLengteRonde),
+			Restrictions.isNull("afspraak.id"),
+			conclusieNietBinnenWachtperiodeVerwerkt(wachttijdNaAfspraak),
+			ColonRestrictions.critRondeZonderVerslagNaVerlopenOngunstigeUitslag(maxLengteRonde, null, null)));
 
 		return criteria;
-	}
-
-	private LogicalExpression rondeZonderVerslagNaVerlopenOngunstigeUitslag(Date maxLengteRonde)
-	{
-		return Restrictions.and(
-			Subqueries.propertiesIn(new String[] { "testen.statusDatum", "id" }, ColonClientSelectieHelper.critEersteOngunstigeUitslagUitLaatsteRonde()),
-			Restrictions.le("testen.statusDatum", maxLengteRonde));
 	}
 
 	private Conjunction conclusieNietBinnenWachtperiodeVerwerkt(Date wachttijdNaAfspraak)

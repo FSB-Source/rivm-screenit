@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -134,7 +134,7 @@ public abstract class MammaAfspraakZoekenPanel extends GenericPanel<Client>
 		{
 			standplaats = baseStandplaatsService.getStandplaatsMetPostcode(client);
 		}
-		filterModel = new CompoundPropertyModel<>(new MammaAfspraakWijzigenFilter(DateUtil.toUtilDate(vanaf), DateUtil.toUtilDate(totEnmet), standplaats, screeningsEenheid));
+		filterModel = new CompoundPropertyModel<>(new MammaAfspraakWijzigenFilter(vanaf, totEnmet, standplaats, screeningsEenheid));
 		filterModel.getObject().setClient(client);
 
 		List<IColumn<MammaKandidaatAfspraakDto, String>> columns = new ArrayList<>();

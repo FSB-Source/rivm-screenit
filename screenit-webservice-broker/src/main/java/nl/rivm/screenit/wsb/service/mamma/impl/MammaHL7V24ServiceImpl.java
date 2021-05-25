@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -181,7 +181,8 @@ public abstract class MammaHL7V24ServiceImpl extends BaseHL7v2Service<ORM_O01> i
 
 	private boolean isVerwijderdMetBezwaar(Client client, MammaHL7v24ORMBerichtStatus status)
 	{
-		return (status.equals(MammaHL7v24ORMBerichtStatus.DELETED) || status.equals(MammaHL7v24ORMBerichtStatus.ERROR)) && bezwaarService.heeftBezwaarInAfgelopenAantalDagen(
+		return (status.equals(MammaHL7v24ORMBerichtStatus.DELETED) || status.equals(MammaHL7v24ORMBerichtStatus.ERROR))
+			&& bezwaarService.heeftBezwaarIngediendInAfgelopenAantalDagen(
 			client,
 			BezwaarType.VERZOEK_TOT_VERWIJDERING_DOSSIER,
 			Bevolkingsonderzoek.MAMMA,

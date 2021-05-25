@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-base
   %%
-  Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,14 @@
                  xmlns="http://java.sun.com/xml/ns/persistence/orm"
                  xsi:schemaLocation="http://java.sun.com/xml/ns/persistence/orm orm_2_0.xsd"
                  version="2.0">
+
+    <mapped-superclass class="nl.topicuszorg.hibernate.object.model.AbstractHibernateObject" metadata-complete="false">
+        <attributes>
+            <id name="id" access="PROPERTY">
+                <generated-value strategy="AUTO"/>
+            </id>
+        </attributes>
+    </mapped-superclass>
 
     <entity class="nl.topicuszorg.patientregistratie.persoonsgegevens.model.Patient"
             metadata-complete="false">
@@ -208,8 +216,8 @@
         <attributes>
             <one-to-many name="xmlNodes">
                 <join-table schema="algemeen" name="form_formulier_resultaat_xml_nodes">
-                	<join-column name="form_formulier_resultaat"/>               	
-                </join-table>                
+                    <join-column name="form_formulier_resultaat"/>
+                </join-table>
             </one-to-many>
         </attributes>
     </entity>
@@ -220,6 +228,14 @@
             metadata-complete="false">
         <table schema="algemeen"/>
     </entity>
+    <entity class="nl.topicuszorg.formulieren2.persistence.resultaat.AbstractEnkelvoudigAntwoord"
+            metadata-complete="false"/>
+    <entity class="nl.topicuszorg.formulieren2.persistence.resultaat.AbstractMeervoudigAntwoord"
+            metadata-complete="false"/>
+    <entity class="nl.topicuszorg.formulieren2.persistence.instantie.SimpleLabelInstantieImpl"
+            metadata-complete="false"/>
+    <entity class="nl.topicuszorg.formulieren2.persistence.definitie.DefaultAntwoordKeuzeVraagDefinitieImpl"
+            metadata-complete="false"/>
 
     <entity class="nl.topicuszorg.wicket.planning.model.appointment.definition.ActionDefinition"
             metadata-complete="false">
@@ -256,7 +272,7 @@
         <attributes>
             <element-collection name="dagen">
                 <collection-table name="plan_recurrence_weekly_dagen" schema="colon">
-                	<join-column name="weekly_recurrence"/>
+                    <join-column name="weekly_recurrence"/>
                 </collection-table>
             </element-collection>
         </attributes>

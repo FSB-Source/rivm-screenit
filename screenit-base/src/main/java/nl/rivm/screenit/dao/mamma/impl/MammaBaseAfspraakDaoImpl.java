@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -93,6 +93,12 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 	public long countAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
 		return count(createAfsprakenCriteria(standplaats, vanaf, totEnMet, false, afspraakStatussen));
+	}
+
+	@Override
+	public List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
+	{
+		return createAfsprakenCriteria(standplaats, vanaf, totEnMet, false, afspraakStatussen).list();
 	}
 
 	@Override

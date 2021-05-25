@@ -5,7 +5,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,7 @@ package nl.rivm.screenit.service;
  */
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.util.Set;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
@@ -32,9 +32,10 @@ public interface BerichtToSeRestBkService
 {
 	void notificeerSes(Client client);
 
-	void notificeerSe(MammaScreeningsEenheid se, LocalDate daglijstDatum);
+	void notificeerSe(MammaScreeningsEenheid se, Set<LocalDate> updateDatums, LocalDate daglijstNotificerenTot);
+
+	void notificeerSe(MammaScreeningsEenheid se, Set<LocalDate> updateDatums);
 
 	void dbCleanupVoorIedereSe();
 
-	boolean moetSeNotificerenVoorAfspraak(LocalDateTime afspraakDatum);
 }

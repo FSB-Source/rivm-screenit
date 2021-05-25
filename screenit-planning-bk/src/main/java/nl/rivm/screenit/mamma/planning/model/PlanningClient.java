@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.model;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,17 +24,24 @@ package nl.rivm.screenit.mamma.planning.model;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.mamma.planning.index.PlanningPostcodeReeksIndex;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 
+@Getter
+@Setter
 public final class PlanningClient extends PlanningEntiteit
 {
 	private final LocalDate geboorteDatum;
 
 	private final int uitnodigenVanafJaar;
+
+	private final LocalDate laatsteUitnodigingDatum;
 
 	private final int uitnodigenTotEnMetJaar;
 
@@ -60,7 +67,7 @@ public final class PlanningClient extends PlanningEntiteit
 
 	private Boolean uitgenodigdNaUitstel;
 
-	private MammaUitstelReden uitstelReden;
+	private final MammaUitstelReden uitstelReden;
 
 	private PlanningStandplaats afspraakStandplaats;
 
@@ -76,18 +83,20 @@ public final class PlanningClient extends PlanningEntiteit
 
 	private LocalDate vorigeScreeningRondeCreatieDatum;
 
-	private boolean uitgenodigdHuidigeStandplaatsRonde = false;
+	private boolean uitgenodigdHuidigeStandplaatsRonde = false; 
 
 	private boolean uitgenodigdHuidigeStandplaatsRondeIsGeforceerd = false;
 
-	private boolean suspect;
+	private boolean isNoShow = false;
+
+	private final boolean suspect;
 
 	private LocalDate huidigeStreefDatum = null;
 
 	public PlanningClient(Long id, LocalDate geboorteDatum, String postcode, boolean eersteOnderzoek, MammaDoelgroep doelgroep, BigDecimal deelnamekans,
 		Boolean deelnamekansVervolgRonde, PlanningScreeningsOrganisatie screeningsOrganisatie, PlanningStandplaats uitstelStandplaats, LocalDate uitstelStreefDatum,
 		Boolean uitgenodigdNaUitstel, MammaUitstelReden uitstelReden, PlanningStandplaats afspraakStandplaats, PlanningTehuis tehuis, LocalDate laatsteScreeningRondeCreatieDatum,
-		LocalDate laatsteMammografieAfgerondDatum, boolean suspect)
+		LocalDate laatsteMammografieAfgerondDatum, boolean suspect, LocalDate laatsteUitnodigingDatum)
 	{
 		super(id);
 		this.geboorteDatum = geboorteDatum;
@@ -103,6 +112,7 @@ public final class PlanningClient extends PlanningEntiteit
 		this.tehuis = tehuis;
 		this.laatsteScreeningRondeCreatieDatum = laatsteScreeningRondeCreatieDatum;
 		this.laatsteMammografieAfgerondDatum = laatsteMammografieAfgerondDatum;
+		this.laatsteUitnodigingDatum = laatsteUitnodigingDatum;
 		this.suspect = suspect;
 		this.uitstelReden = uitstelReden;
 
@@ -166,96 +176,6 @@ public final class PlanningClient extends PlanningEntiteit
 		}
 	}
 
-	public LocalDate getHuidigeStreefDatum()
-	{
-		return huidigeStreefDatum;
-	}
-
-	public void setHuidigeStreefDatum(LocalDate huidigeStreefDatum)
-	{
-		this.huidigeStreefDatum = huidigeStreefDatum;
-	}
-
-	public LocalDate getGeboorteDatum()
-	{
-		return geboorteDatum;
-	}
-
-	public String getPostcode()
-	{
-		return postcode;
-	}
-
-	public MammaDoelgroep getDoelgroep()
-	{
-		return doelgroep;
-	}
-
-	public BigDecimal getDeelnamekans()
-	{
-		return deelnamekans;
-	}
-
-	public PlanningScreeningsOrganisatie getScreeningsOrganisatie()
-	{
-		return screeningsOrganisatie;
-	}
-
-	public PlanningBenodigd getBenodigd()
-	{
-		return benodigd;
-	}
-
-	public PlanningStandplaats getUitstelStandplaats()
-	{
-		return uitstelStandplaats;
-	}
-
-	public PlanningStandplaats getAfspraakStandplaats()
-	{
-		return afspraakStandplaats;
-	}
-
-	public void setAfspraakStandplaats(PlanningStandplaats afspraakStandplaats)
-	{
-		this.afspraakStandplaats = afspraakStandplaats;
-	}
-
-	public MammaFactorType getFactorType()
-	{
-		return factorType;
-	}
-
-	public int getUitnodigenVanafJaar()
-	{
-		return uitnodigenVanafJaar;
-	}
-
-	public int getUitnodigenTotEnMetJaar()
-	{
-		return uitnodigenTotEnMetJaar;
-	}
-
-	public int getVanafJaar()
-	{
-		return vanafJaar;
-	}
-
-	public int getTotEnMetJaar()
-	{
-		return totEnMetJaar;
-	}
-
-	public boolean isUitgenodigdHuidigeStandplaatsRonde()
-	{
-		return uitgenodigdHuidigeStandplaatsRonde;
-	}
-
-	public void setUitgenodigdHuidigeStandplaatsRonde(boolean uitgenodigdHuidigeStandplaatsRonde)
-	{
-		this.uitgenodigdHuidigeStandplaatsRonde = uitgenodigdHuidigeStandplaatsRonde;
-	}
-
 	public void setVorigeScreeningRondeCreatieDatum(LocalDate vorigeScreeningRondeCreatieDatum)
 	{
 		this.vorigeScreeningRondeCreatieDatum = vorigeScreeningRondeCreatieDatum;
@@ -269,68 +189,8 @@ public final class PlanningClient extends PlanningEntiteit
 		}
 	}
 
-	public LocalDate getVorigeScreeningRondeCreatieDatum()
+	public boolean inTehuis()
 	{
-		return vorigeScreeningRondeCreatieDatum;
-	}
-
-	public boolean isUitgenodigdHuidigeStandplaatsRondeIsGeforceerd()
-	{
-		return uitgenodigdHuidigeStandplaatsRondeIsGeforceerd;
-	}
-
-	public void setUitgenodigdHuidigeStandplaatsRondeIsGeforceerd(boolean uitgenodigdHuidigeStandplaatsRondeIsGeforceerd)
-	{
-		this.uitgenodigdHuidigeStandplaatsRondeIsGeforceerd = uitgenodigdHuidigeStandplaatsRondeIsGeforceerd;
-	}
-
-	public LocalDate getLaatsteScreeningRondeCreatieDatum()
-	{
-		return laatsteScreeningRondeCreatieDatum;
-	}
-
-	public LocalDate getLaatsteMammografieAfgerondDatum()
-	{
-		return laatsteMammografieAfgerondDatum;
-	}
-
-	public LocalDate getUitstelStreefDatum()
-	{
-		return uitstelStreefDatum;
-	}
-
-	public PlanningTehuis getTehuis()
-	{
-		return tehuis;
-	}
-
-	public MammaCapaciteitBlokType getBlokType()
-	{
-		return blokType;
-	}
-
-	public boolean isSuspect()
-	{
-		return suspect;
-	}
-
-	public Boolean getUitgenodigdNaUitstel()
-	{
-		return uitgenodigdNaUitstel;
-	}
-
-	public void setUitgenodigdNaUitstel(Boolean uitgenodigdNaUitstel)
-	{
-		this.uitgenodigdNaUitstel = uitgenodigdNaUitstel;
-	}
-
-	public Boolean getDeelnamekansVervolgRonde()
-	{
-		return deelnamekansVervolgRonde;
-	}
-
-	public MammaUitstelReden getUitstelReden()
-	{
-		return uitstelReden;
+		return tehuis != null;
 	}
 }

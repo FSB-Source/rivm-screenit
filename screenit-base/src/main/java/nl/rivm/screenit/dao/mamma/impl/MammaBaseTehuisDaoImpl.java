@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -118,20 +118,16 @@ public class MammaBaseTehuisDaoImpl extends AbstractAutowiredDao implements Mamm
 	}
 
 	@Override
-	public MammaStandplaatsRonde getHuidigeStandplaatsRonde(MammaStandplaats standplaats, boolean controlerenOpActief)
+	public MammaStandplaatsRonde getHuidigeStandplaatsRonde(MammaStandplaats standplaats)
 	{
 
 		Criteria crit = getSession().createCriteria(MammaStandplaatsPeriode.class, "standplaatsPeriode");
 		crit.createAlias("standplaatsPeriode.standplaatsRonde", "standplaatsRonde");
 		crit.createAlias("standplaatsRonde.standplaats", "standplaats");
 
-		if (controlerenOpActief)
-		{
-			Integer afspraakVanafAantalWerkdagen = preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_BIJ_UITNODIGEN_VANAF_AANTAL_WERKDAGEN.name());
-			LocalDate afsprakenVanafDatum = DateUtil.plusWerkdagen(dateSupplier.getLocalDate(), afspraakVanafAantalWerkdagen);
-
-			crit.add(Restrictions.ge("standplaatsPeriode.totEnMet", DateUtil.toUtilDate(afsprakenVanafDatum)));
-		}
+		Integer afspraakVanafAantalWerkdagen = preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_BIJ_UITNODIGEN_VANAF_AANTAL_WERKDAGEN.name());
+		LocalDate afsprakenVanafDatum = DateUtil.plusWerkdagen(dateSupplier.getLocalDate(), afspraakVanafAantalWerkdagen);
+		crit.add(Restrictions.ge("standplaatsPeriode.totEnMet", DateUtil.toUtilDate(afsprakenVanafDatum)));
 		crit.add(Restrictions.eq("standplaats.id", standplaats.getId()));
 
 		crit.addOrder(Order.asc("standplaatsPeriode.vanaf"));

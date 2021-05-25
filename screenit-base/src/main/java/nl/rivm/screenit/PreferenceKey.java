@@ -4,7 +4,7 @@ package nl.rivm.screenit;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -172,6 +172,8 @@ public enum PreferenceKey
 
 	COLON_CLIENTPORTAAL_VERVANGENDE_TEKST("DK clientportaal: Vervangende tekst", String.class),
 
+	COLON_CLIENTPORTAAL_TIJDELIJKE_MELDING("DK clientportaal: Tijdelijke melding", String.class),
+
 	CERVIX_WACHTTIJD_UITSTRIJKJE_ONTBREEKT_ANALOOG("Uitstrijkje ontbreekt (analoog labformulier)", Integer.class),
 
 	CERVIX_WACHTTIJD_WACHT_OP_UITSTRIJKJE_ONTVANGEN_ANALOOG("Wacht op uitstrijkje ontvangen (analoog labformulier)", Integer.class),
@@ -217,6 +219,8 @@ public enum PreferenceKey
 	CERVIX_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST("BMHK clientportaal: Toon vervangende tekst", Boolean.class),
 
 	CERVIX_CLIENTPORTAAL_VERVANGENDE_TEKST("BMHK clientportaal: Vervangende tekst", String.class),
+
+	CERVIX_CLIENTPORTAAL_TIJDELIJKE_MELDING("BMHK clientportaal: Tijdelijke melding", String.class),
 
 	MAMMA_MINIMALE_LEEFTIJD("Minimale leeftijd", Integer.class),
 
@@ -274,6 +278,8 @@ public enum PreferenceKey
 
 	MAMMA_CLIENTPORTAAL_VERVANGENDE_TEKST("BK clientportaal: Vervangende tekst", String.class),
 
+	MAMMA_CLIENTPORTAAL_TIJDELIJKE_MELDING("BK clientportaal: Tijdelijke melding", String.class),
+
 	CERVIX_UITSTEL_UITSLAGBRIEF_PAP3A2_OF_HOGER("Uitstel uitslagbrief na PAP3a2 of hoger", Integer.class),
 
 	INTERNAL_COLON_COMPLICATIE_VERWERKING_STOP("Stopdatum verwerking complicaties DK", Date.class),
@@ -322,6 +328,24 @@ public enum PreferenceKey
 
 	INTERNAL_CERVIX_LAB_FORMULIER_VALID_FQDNS("Valided FQDNs (BMHK)", String.class),
 
+	INTERNAL_UZI_LOGIN_URL_PREFIX("Prefix voor mTLS inlog UZI pas (zonder Zorg-ID)", String.class),
+
+	INTERNAL_MAMMA_SE_INFORMATIE_OPHALEN_CRON("SE informatie ophalen CRON", String.class),
+
+	INTERNAL_OPENID_CONNECT_IDP_KEYSTOREPASSWORD("OpenID Connect IPD keystore password", String.class),
+
+	INTERNAL_OPENID_CONNECT_IDP_KEYSTORE("OpenID Connect IPD keystore location", String.class),
+
+	INTERNAL_OPENID_CONNECT_IDP_ISSUER("OpenID Connect IPD issuer", String.class),
+
+	INTERNAL_OPENID_CONNECT_IDP_KEYCLOAK_ORIGIN("OpenID Connect IPD keykcloak origin", String.class),
+
+	INTERNAL_OPENID_CONNECT_IDP_CLIENT_ID("OpenID Connect IPD client ID", String.class),
+
+	INTERNAL_OPENID_CONNECT_IDP_FLOW_ALIAS("OpenID Connect IPD flow alias", String.class),
+
+	INTERNAL_OPENID_CONNECT_IDP_EXPIRATION("OpenID Connect IPD expiration time", Integer.class),
+
 	POSTCODE_NL_API_KEY("Postcode.nl API key", String.class),
 
 	POSTCODE_NL_API_SECRET("Postcode.nl API secret", String.class),
@@ -340,8 +364,6 @@ public enum PreferenceKey
 
 	MAMMA_PALGA_CSV_EXPORT_AANTAL("Aantal unieke cliënten per palga export csv file", Integer.class),
 
-	INTERNAL_UZI_LOGIN_URL_PREFIX("Prefix voor mTLS inlog UZI pas (zonder Zorg-ID)", String.class),
-
 	MAMMA_ONDERZOEKSCAPACITEIT_NIET_BESCHIKBAAR_BINNEN_WERKDAGEN("Onderzoekscapaciteit niet beschikbaar binnen werkdagen", Integer.class),
 
 	ILM_BEWAARTERMIJN("Bewaartermijn", Integer.class),
@@ -358,7 +380,7 @@ public enum PreferenceKey
 
 	MAMMA_SE_DAGLIJST_OPHALEN_DAGEN("SE daglijst ophalen dagen", Integer.class),
 
-	INTERNAL_MAMMA_SE_INFORMATIE_OPHALEN_CRON("SE informatie ophalen CRON", String.class);
+	;
 
 	private final String layoutName;
 

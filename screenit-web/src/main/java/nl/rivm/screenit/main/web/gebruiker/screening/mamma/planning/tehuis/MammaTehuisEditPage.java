@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.tehuis;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
+import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisAdresService;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -126,7 +127,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private MammaBaseStandplaatsService baseStandplaatsService;
+	private MammaBaseStandplaatsService standplaatsService;
 
 	private IModel<MammaStandplaats> standplaatsModel;
 
@@ -535,7 +536,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 	private List<MammaStandplaats> getMogelijkeStandplaatsen(MammaStandplaats huidigeStandplaats)
 	{
 		ScreeningOrganisatie regio = ScreenitSession.get().getScreeningOrganisatie();
-		List<MammaStandplaats> mogelijkeStandplaatsen = baseStandplaatsService.getActieveStandplaatsen(regio);
+		List<MammaStandplaats> mogelijkeStandplaatsen = standplaatsService.getActieveStandplaatsen(regio);
 
 		if (huidigeStandplaats != null && !mogelijkeStandplaatsen.contains(huidigeStandplaats))
 		{

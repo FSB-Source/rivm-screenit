@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -71,6 +71,12 @@ public class ClientportaalParametersPanel extends BasePrimaireParametersPanel
 				vervangendeTekst.setOutputMarkupId(true);
 				vervangendeTekst.add(new StringValidator(1, 3999));
 				item.add(vervangendeTekst);
+				TextArea<String> tijdelijkeMelding = new TextArea<>("tijdelijkeMelding",
+						new ParameterisatieClientportaalPropertyModel<Parameterisatie, String>(ClientportaalParametersPanel.this.getModelObject(),
+								bvoLowerCase + "ClientportaalTijdelijkeMelding"));
+				tijdelijkeMelding.setOutputMarkupId(true);
+				tijdelijkeMelding.add(new StringValidator(1, 3999));
+				item.add(tijdelijkeMelding);
 
 				item.add(new TextField<>("mammaOnderzoekscapaciteitNietBeschikbaarBinnenWerkdagen", Integer.class).add(RangeValidator.minimum(1))
 					.setVisible(item.getModelObject().equals(Bevolkingsonderzoek.MAMMA)));

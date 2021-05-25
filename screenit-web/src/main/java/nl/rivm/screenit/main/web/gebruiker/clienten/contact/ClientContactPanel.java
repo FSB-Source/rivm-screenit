@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import nl.rivm.screenit.main.service.ClientContactService;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.main.service.ClientDossierFilter;
-import nl.rivm.screenit.main.service.ExtraOpslaanKey;
-import nl.rivm.screenit.main.service.mamma.MammaTijdNietBeschikbaarException;
-import nl.rivm.screenit.main.util.EnumStringUtil;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxSubmitLink;
@@ -62,6 +62,7 @@ import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.util.ExceptionConverter;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -710,7 +711,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 				}
 				else
 				{
-					clientContactService.saveClientContact(contact, extraOpslaanObjecten, ScreenitSession.get().getLoggedInInstellingGebruiker());
+					clientContactService.saveClientContact(ModelProxyHelper.deproxy(contact), extraOpslaanObjecten, ScreenitSession.get().getLoggedInInstellingGebruiker());
 					BasePage.markeerFormulierenOpgeslagen(target);
 					contactAfgerond();
 				}

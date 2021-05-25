@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.MammaImsErrorType;
@@ -35,6 +36,10 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
+import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoekStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
+import nl.rivm.screenit.model.mamma.enums.MammobridgeFocusMode;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 import nl.rivm.screenit.model.mamma.imsapi.FhirCodableConcept;
 import nl.rivm.screenit.model.mamma.imsapi.FhirCoding;
@@ -65,21 +70,21 @@ public class MammaImsServiceImpl implements MammaImsService
 	@Autowired
 	private HibernateService hibernateService;
 
-	private static ObjectMapper mapper = new ObjectMapper();
+	private static final ObjectMapper mapper = new ObjectMapper();
 
 	@Autowired
 	private LogService logService;
 
 	@Override
-	public String createDesktopSyncMessage(Gebruiker gebruiker, MammobridgeRole role, Long huidigeOnderzoekId, List<Long> komendeBeoordelingIds)
+	public String createDesktopSyncMessage(Gebruiker gebruiker, MammobridgeRole role, Long huidigeOnderzoekId, List<Long> komendeBeoordelingIds, MammobridgeFocusMode focusMode)
 	{
 		FhirUserSession userSession = createUserSession(gebruiker, role);
 
 		MammaOnderzoek huidigeOnderzoek = hibernateService.get(MammaOnderzoek.class, huidigeOnderzoekId);
 
-		userSession.setFocus(createFocus(huidigeOnderzoek));
+		userSession.setFocus(createFocus(huidigeOnderzoek, focusMode));
 
-		List<FhirWorklistItem> worklist = createWorklist(komendeBeoordelingIds);
+		List<FhirWorklistItem> worklist = createWorklist(komendeBeoordelingIds, focusMode);
 
 		userSession.setContext(createUpcomingCasesContext(worklist));
 
@@ -96,10 +101,10 @@ public class MammaImsServiceImpl implements MammaImsService
 	}
 
 	@Override
-	public String createAllImagesSeenMessage(Gebruiker gebruiker, MammobridgeRole role, MammaOnderzoek onderzoek)
+	public String createAllImagesSeenMessage(Gebruiker gebruiker, MammobridgeRole role, MammaOnderzoek onderzoek, MammobridgeFocusMode focusMode)
 	{
 		FhirUserSession userSession = createUserSession(gebruiker, role);
-		FhirFocus focus = createFocus(onderzoek);
+		FhirFocus focus = createFocus(onderzoek, focusMode);
 		FhirContext context = createContext("layoutImages", "requestLayoutsImagesSeenCurrentFocus");
 		userSession.setFocus(focus);
 		userSession.setContext(context);
@@ -137,10 +142,10 @@ public class MammaImsServiceImpl implements MammaImsService
 		return userSession;
 	}
 
-	private FhirFocus createFocus(MammaOnderzoek onderzoek)
+	private FhirFocus createFocus(MammaOnderzoek onderzoek, MammobridgeFocusMode focusMode)
 	{
 		FhirFocus focus = new FhirFocus();
-		setPatientStudy(focus, onderzoek);
+		setPatientStudy(focus, onderzoek, focusMode);
 		return focus;
 	}
 
@@ -152,28 +157,28 @@ public class MammaImsServiceImpl implements MammaImsService
 		return focus;
 	}
 
-	private List<FhirWorklistItem> createWorklist(List<Long> komendeBeoordelingIds)
+	private List<FhirWorklistItem> createWorklist(List<Long> komendeBeoordelingIds, MammobridgeFocusMode focusMode)
 	{
 		List<FhirWorklistItem> worklist = new ArrayList<>();
 		for (Long beoordelingId : komendeBeoordelingIds)
 		{
-			worklist.add(createWorklistItem(beoordelingId));
+			worklist.add(createWorklistItem(beoordelingId, focusMode));
 		}
 		return worklist;
 	}
 
-	private FhirWorklistItem createWorklistItem(Long beoordelingId)
+	private FhirWorklistItem createWorklistItem(Long beoordelingId, MammobridgeFocusMode focusMode)
 	{
 		MammaBeoordeling beoordeling = hibernateService.get(MammaBeoordeling.class, beoordelingId);
 		FhirWorklistItem worklistItem = new FhirWorklistItem();
-		setPatientStudy(worklistItem, beoordeling.getOnderzoek());
+		setPatientStudy(worklistItem, beoordeling.getOnderzoek(), focusMode);
 		return worklistItem;
 	}
 
-	private void setPatientStudy(FhirPatientStudy patientStudy, MammaOnderzoek onderzoek)
+	private void setPatientStudy(FhirPatientStudy patientStudy, MammaOnderzoek onderzoek, MammobridgeFocusMode focusMode)
 	{
 		patientStudy.setPatient(createPatient(getBsn(onderzoek)));
-		patientStudy.setImagingStudy(createStudy(getAccessionNumber(onderzoek)));
+		patientStudy.setImagingStudy(createStudy(getAccessionNumber(onderzoek, focusMode)));
 	}
 
 	private String getBsn(MammaOnderzoek onderzoek)
@@ -191,9 +196,29 @@ public class MammaImsServiceImpl implements MammaImsService
 		return onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
 	}
 
-	private String getAccessionNumber(MammaOnderzoek onderzoek)
+	private String getAccessionNumber(MammaOnderzoek onderzoek, MammobridgeFocusMode focusMode)
 	{
-		return Long.toString(getScreeningRonde(onderzoek).getUitnodigingsNr());
+		MammaScreeningRonde screeningRonde = getScreeningRonde(onderzoek);
+		switch (focusMode)
+		{
+		case ALLEEN_BVO_BEELDEN:
+			return Long.toString(screeningRonde.getUitnodigingsNr());
+		case INCLUSIEF_UPLOAD_BEELDEN:
+			return Long.toString(bepaalAccNrInclusiefUploads(screeningRonde));
+		default:
+			throw new IllegalStateException("Unexpected value: " + focusMode);
+		}
+	}
+
+	private Long bepaalAccNrInclusiefUploads(MammaScreeningRonde screeningRonde)
+	{
+		return screeningRonde.getUploadBeeldenVerzoeken().stream()
+			.filter(uv -> uv.getStatus() == MammaUploadBeeldenVerzoekStatus.VERWERKT)
+			.flatMap(uv -> uv.getUploadPogingen().stream())
+			.filter(up -> up.getIlmStatus() == MammaMammografieIlmStatus.BESCHIKBAAR)
+			.max(Comparator.comparing(MammaUploadBeeldenPoging::getCreatieDatum))
+			.map(MammaUploadBeeldenPoging::getAccessionNumber)
+			.orElse(screeningRonde.getUitnodigingsNr());
 	}
 
 	private FhirIdentifiableEntity createUser(Gebruiker username, MammobridgeRole role)

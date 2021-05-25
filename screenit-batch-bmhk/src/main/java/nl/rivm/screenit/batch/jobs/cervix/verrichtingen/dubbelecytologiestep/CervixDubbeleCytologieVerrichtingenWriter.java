@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.dubbelecytologiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,12 +24,25 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.dubbelecytologiestep;
 import nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixAbstractVerrichtingenWriter;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class CervixDubbeleCytologieVerrichtingenWriter extends CervixAbstractVerrichtingenWriter<CervixUitstrijkje>
 {
+	private static final Logger LOG = LoggerFactory.getLogger(CervixDubbeleCytologieVerrichtingenWriter.class);
 
 	@Override
 	protected void write(CervixUitstrijkje uitstrijkje) throws Exception
 	{
-		bepaalCytologieVerrichtingen(uitstrijkje);
+		try
+		{
+			bepaalCytologieVerrichtingen(uitstrijkje);
+		}
+		catch (Exception e)
+		{
+			LOG.error("Fout bij bepalen van verrichting, monsterId: " + uitstrijkje.getMonsterId() + ", clientId "
+				+ uitstrijkje.getUitnodiging().getScreeningRonde().getDossier().getClient().getId());
+			throw e;
+		}
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,27 +21,12 @@ package nl.rivm.screenit.model.mamma.enums;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
-import java.util.List;
-
 public enum MammaOnderzoekStatus
 {
 	ACTIEF,
-
 	ONDERBROKEN,
-
 	ONDERBROKEN_ZONDER_VERVOLG,
-
 	ONVOLLEDIG,
-
 	AFGEROND,
-
 	;
-
-	private static final List<MammaOnderzoekStatus> EINDSTATUSSEN = Arrays.asList(AFGEROND, ONDERBROKEN_ZONDER_VERVOLG, ONVOLLEDIG);
-
-	public static boolean isEindstatus(MammaOnderzoekStatus status)
-	{
-		return EINDSTATUSSEN.contains(status);
-	}
 }

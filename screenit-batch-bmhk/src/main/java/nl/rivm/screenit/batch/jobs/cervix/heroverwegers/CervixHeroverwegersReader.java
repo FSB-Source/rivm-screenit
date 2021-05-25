@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2020 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,23 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.batch.jobs.cervix.CervixSelectiePartitioner;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
+import nl.rivm.screenit.model.BMHKLaboratorium;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
+import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixHeroverwegersReader extends BaseScrollableResultReader
@@ -40,17 +46,32 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 	@Autowired
 	private CervixSelectieRestrictionsService selectieRestrictionsService;
 
+	@Autowired
+	private InstellingService instellingService;
+
+	@Autowired
+	private HibernateService hibernateService;
+
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		Criteria criteria = session.createCriteria(CervixCISHistorie.class);
+
+		ExecutionContext stepContext = getStepExecutionContext();
+		Long bmhkLabId = (Long) stepContext.get(CervixSelectiePartitioner.KEY_BMHK_LAB);
+
 		criteria.createAlias("dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
+		criteria.createAlias("persoon.gbaAdres", "adres");
+		criteria.createAlias("adres.gbaGemeente", "gemeente");
 
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
 
-		selectieRestrictionsService.addClientSelectieRestrictions(criteria);
+		selectieRestrictionsService.addClientSelectieRestrictions(criteria, getMaxAantalWekenVertraging() * 7);
+
+		criteria.add(Restrictions.isNotNull("gemeente.screeningOrganisatie"));
+		criteria.add(Restrictions.eq("gemeente.bmhkLaboratorium.id", bmhkLabId));
 
 		criteria.createAlias("afmelding", "afmelding");
 
@@ -64,4 +85,12 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 
 		return criteria;
 	}
+
+	private Integer getMaxAantalWekenVertraging()
+	{
+		ExecutionContext stepContext = getStepExecutionContext();
+		BMHKLaboratorium bmhkLabId = hibernateService.get(BMHKLaboratorium.class, (Long) stepContext.get(CervixSelectiePartitioner.KEY_BMHK_LAB));
+		return instellingService.getOrganisatieParameter(bmhkLabId, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS, 0);
+	}
+
 }
