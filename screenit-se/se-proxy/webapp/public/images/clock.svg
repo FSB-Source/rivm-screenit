@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-proxy
+  %%
+  Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<svg width="18px" height="18px" viewBox="0 0 18 18" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>List / Dubbel</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="List-/-Dubbel" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M10.0000119,4.92855823 L10.0000119,9.92856419 C10.0000119,10.1294573 9.84376173,10.2857075 9.64286864,10.2857075 L6.07143581,10.2857075 C5.87054271,10.2857075 5.71429253,10.1294573 5.71429253,9.92856419 L5.71429253,9.21427763 C5.71429253,9.01338453 5.87054271,8.85713434 6.07143581,8.85713434 L8.57143879,8.85713434 L8.57143879,4.92855823 C8.57143879,4.72766513 8.72768898,4.57141495 8.92858207,4.57141495 L9.64286864,4.57141495 C9.84376173,4.57141495 10.0000119,4.72766513 10.0000119,4.92855823 Z M14.6428746,8.85713434 C14.6428746,5.50891607 11.9196571,2.78569853 8.57143879,2.78569853 C5.22322051,2.78569853 2.50000298,5.50891607 2.50000298,8.85713434 C2.50000298,12.2053526 5.22322051,14.9285702 8.57143879,14.9285702 C11.9196571,14.9285702 14.6428746,12.2053526 14.6428746,8.85713434 Z M17.1428776,8.85713434 C17.1428776,13.5892828 13.3035873,17.4285731 8.57143879,17.4285731 C3.83929029,17.4285731 0,13.5892828 0,8.85713434 C0,4.12498584 3.83929029,0.285695553 8.57143879,0.285695553 C13.3035873,0.285695553 17.1428776,4.12498584 17.1428776,8.85713434 Z"
+              id="" fill="#000000"></path>
+    </g>
+</svg>

@@ -229,6 +229,7 @@ public class OrganisatieZoeken extends OrganisatieBeheer
 		zoekForm.add(new PostcodeField("adressen[0].postcode").setAlleenCijfersToegestaan(true));
 		zoekForm.add(new TextField<>("organisatieMedewerkers[0].medewerker.uzinummer"));
 		zoekForm.add(new TextField<>("uziAbonneenummer"));
+		zoekForm.add(new TextField<>("email"));
 
 		zoekForm.add(new ListMultipleChoice<OrganisatieType>("selectedOrganisatieTypes", new PropertyModel<List<OrganisatieType>>(this, "selectedOrganisatieTypes"), choices,
 			new EnumChoiceRenderer<OrganisatieType>()));

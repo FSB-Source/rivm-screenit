@@ -22,7 +22,6 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -42,15 +41,16 @@ import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.service.DashboardService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.MailService.MailPriority;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +78,9 @@ public class DashboardServiceImpl implements DashboardService
 	private HibernateService hibernateService;
 
 	@Autowired
+	private ICurrentDateSupplier dateSupplier;
+
+	@Autowired
 	@Qualifier("applicationEnvironment")
 	private String applicationEnvironment;
 
@@ -102,7 +105,7 @@ public class DashboardServiceImpl implements DashboardService
 				{
 				case DAG:
 					Date dateTimeLastLogRegel = dashboardDao.getDateTimeLastLogRegel(dashboardType);
-					if (dateTimeLastLogRegel != null && new DateTime(dateTimeLastLogRegel).isBefore(DateTime.now().withTimeAtStartOfDay()))
+					if (dateTimeLastLogRegel != null && DateUtil.toLocalDate(dateTimeLastLogRegel).isBefore(dateSupplier.getLocalDate()))
 					{
 						dashboardDao.maakDashboardStatusLeeg(dashboardType);
 						resetDashboardLevel = true;
@@ -255,7 +258,7 @@ public class DashboardServiceImpl implements DashboardService
 		for (DashboardType type : DashboardType.values())
 		{
 			boolean heeftBVO = false;
-			for (Bevolkingsonderzoek bvo : Arrays.asList(type.getBevolkingsOnderzoek()))
+			for (Bevolkingsonderzoek bvo : type.getBevolkingsOnderzoek())
 			{
 				if (bevolkingsOnderzoeken.contains(bvo) || bevolkingsOnderzoeken.isEmpty())
 				{
@@ -288,7 +291,7 @@ public class DashboardServiceImpl implements DashboardService
 
 			}
 		}
-		Collections.sort(listOfDashboardStatussenPerBVO, new Comparator<DashboardStatus>()
+		Collections.sort(listOfDashboardStatussenPerBVO, new Comparator<>()
 		{
 
 			@Override

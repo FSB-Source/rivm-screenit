@@ -1,3 +1,4 @@
+@charset "utf-8";
 .biradskeuze {
   border: 1px solid #CCC;
   border-radius: 10px;
@@ -72,6 +73,10 @@
 
   .mammaBeoordelenDropdown .select2-container .select2-chosen {
     color: white;
+  }
+
+  label[name="redenenFotobesprekingMbberReview"] {
+    margin-top: 5px;
   }
 }
 

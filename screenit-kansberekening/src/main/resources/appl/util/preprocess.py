@@ -19,8 +19,8 @@
 # =========================LICENSE_END==================================
 ###
 import logging
-
 from datetime import date, datetime
+
 from pandas import DataFrame
 
 _na_value = 0.0
@@ -53,85 +53,29 @@ _uitnodiging_brief_typen_mapping = [
 ]
 
 _feature_columns = [
-    'landelijk_gem_deelname_afgelopen10jaar',
-    'landelijk_gem_deelname_afgelopen3jaar',
-    'landelijk_gem_deelname_afgelopen5jaar',
-    'landelijk_gem_deelname_eerste_ronde_afgelopen10jaar',
-    'landelijk_gem_deelname_eerste_ronde_afgelopen3jaar',
-    'landelijk_gem_deelname_eerste_ronde_afgelopen5jaar',
-    'landelijk_gem_opkomst_afgelopen10jaar',
-    'landelijk_gem_opkomst_afgelopen3jaar',
-    'landelijk_gem_opkomst_afgelopen5jaar',
-    'landelijk_gem_opkomst_eerste_ronde_afgelopen10jaar',
-    'landelijk_gem_opkomst_eerste_ronde_afgelopen3jaar',
-    'landelijk_gem_opkomst_eerste_ronde_afgelopen5jaar',
-    'postcode_cijfers_gem_deelname_afgelopen10jaar',
-    'postcode_cijfers_gem_deelname_afgelopen3jaar',
-    'postcode_cijfers_gem_deelname_afgelopen5jaar',
-    'postcode_cijfers_gem_deelname_eerste_ronde_afgelopen10jaar',
-    'postcode_cijfers_gem_deelname_eerste_ronde_afgelopen3jaar',
-    'postcode_cijfers_gem_deelname_eerste_ronde_afgelopen5jaar',
-    'postcode_cijfers_gem_opkomst_afgelopen10jaar',
-    'postcode_cijfers_gem_opkomst_afgelopen3jaar',
-    'postcode_cijfers_gem_opkomst_afgelopen5jaar',
-    'postcode_cijfers_gem_opkomst_eerste_ronde_afgelopen10jaar',
-    'postcode_cijfers_gem_opkomst_eerste_ronde_afgelopen3jaar',
-    'postcode_cijfers_gem_opkomst_eerste_ronde_afgelopen5jaar',
-    'postcode_gem_deelname_afgelopen10jaar',
-    'postcode_gem_deelname_afgelopen3jaar',
-    'postcode_gem_deelname_afgelopen5jaar',
-    'postcode_gem_deelname_eerste_ronde_afgelopen10jaar',
-    'postcode_gem_deelname_eerste_ronde_afgelopen3jaar',
-    'postcode_gem_deelname_eerste_ronde_afgelopen5jaar',
-    'postcode_gem_opkomst_afgelopen10jaar',
-    'postcode_gem_opkomst_afgelopen3jaar',
-    'postcode_gem_opkomst_afgelopen5jaar',
-    'postcode_gem_opkomst_eerste_ronde_afgelopen10jaar',
-    'postcode_gem_opkomst_eerste_ronde_afgelopen3jaar',
-    'postcode_gem_opkomst_eerste_ronde_afgelopen5jaar',
-    'huidige_standplaats_ronde_gem_deelname_eerste_ronde',
-    'huidige_standplaats_ronde_gem_deelname',
-    'huidige_standplaats_ronde_gem_opkomst_eerste_ronde',
-    'huidige_standplaats_ronde_gem_opkomst',
-    'vorige_standplaats_ronde_gem_deelname_eerste_ronde',
-    'vorige_standplaats_ronde_gem_deelname',
-    'vorige_standplaats_ronde_gem_opkomst_eerste_ronde',
-    'vorige_standplaats_ronde_gem_opkomst',
-    'event_peil_epoch_day',
     'event_afgemeld_vorige_screening_ronde',
-    'event_afspraak_status_vorige_afspraak',
     'event_beoordeling_status_vorige_beoordeling',
-    'event_deelname_vorige_screening_ronde',
-    'event_doelgroep',
-    'event_historie_score_afspraak10jaar',
-    'event_historie_score_afspraak3jaar',
-    'event_historie_score_afspraak5jaar',
-    'event_historie_score_screening_ronde10jaar',
-    'event_historie_score_screening_ronde3jaar',
     'event_historie_score_screening_ronde5jaar',
-    'event_leeftijd',
     'event_leeftijd_per5',
-    'event_opkomst_vorige_afspraak',
-    'event_tehuis',
-    'event_voorgaande_afspraken',
-    'event_voorgaande_mammogrammen',
+    'event_peil_epoch_day',
     'event_voorgaande_onderzoeken',
-    'event_voorgaande_screening_rondes',
-    'event_voorgaande_uitnodigingen'
+    'postcode_gem_deelname_afgelopen10jaar',
 ]
 
 _screening_ronde_feature_columns = _feature_columns + [
-    'event_is_suspect'
+    'event_is_suspect',
+    'postcode_gem_deelname_eerste_ronde_afgelopen3jaar'
 ]
 
 _afspraak_feature_columns = _feature_columns + [
+    'event_afspraak_status_vorige_afspraak',
     'event_brief_type_uitnodiging',
-    'event_maand',
-    'event_na_heraanmelding',
-    'event_na_herinnering',
-    'event_ronde_geforceerd',
-    'event_uur',
-    'event_verzetten_reden'
+    'event_historie_score_afspraak5jaar',
+    'event_verzetten_reden',
+    'postcode_gem_opkomst_afgelopen10jaar',
+    'postcode_gem_opkomst_eerste_ronde_afgelopen3jaar',
+    'event_doelgroep',
+    'event_voorgaande_screening_rondes',
 ]
 
 
@@ -158,12 +102,7 @@ def preprocess_afspraak_events(afspraak_events: DataFrame, ignore_column) -> Dat
 
     afspraak_events = _preprocess_events(afspraak_events)
 
-    _bool_to_numeric(afspraak_events, 'event_na_heraanmelding')
-    _bool_to_numeric(afspraak_events, 'event_na_herinnering')
-    _bool_to_numeric(afspraak_events, 'event_ronde_geforceerd')
-
-    _scale(afspraak_events, 'event_maand', 1, 12)
-    _scale(afspraak_events, 'event_uur', 7, 20)
+    _scale(afspraak_events, 'event_voorgaande_screening_rondes', 0, 15)
 
     _map_categories(afspraak_events, 'event_brief_type_uitnodiging', _uitnodiging_brief_typen_mapping, False, True)
     _map_categories(afspraak_events, 'event_verzetten_reden', _verzetten_redenen_mapping, True, True)
@@ -178,65 +117,25 @@ def _validate_columns(feature_columns, events: DataFrame, ignore_column):
     event_column_set = set(list(events))
     event_column_set.discard(ignore_column)
     if event_column_set != feature_column_set:
-        raise Exception('Onverwachte kolommen: ' + repr(event_column_set.difference(feature_column_set)))
+        raise Exception('Mismatch in kolommen: ' + repr(event_column_set.symmetric_difference(feature_column_set)))
 
 
 def _preprocess_events(events: DataFrame) -> DataFrame:
-    _fill_na(events, 'postcode_cijfers_gem_deelname_afgelopen10jaar')
-    _fill_na(events, 'postcode_cijfers_gem_deelname_afgelopen5jaar')
-    _fill_na(events, 'postcode_cijfers_gem_deelname_afgelopen3jaar')
-    _fill_na(events, 'postcode_cijfers_gem_deelname_eerste_ronde_afgelopen10jaar')
-    _fill_na(events, 'postcode_cijfers_gem_deelname_eerste_ronde_afgelopen5jaar')
-    _fill_na(events, 'postcode_cijfers_gem_deelname_eerste_ronde_afgelopen3jaar')
-    _fill_na(events, 'postcode_cijfers_gem_opkomst_afgelopen10jaar')
-    _fill_na(events, 'postcode_cijfers_gem_opkomst_afgelopen5jaar')
-    _fill_na(events, 'postcode_cijfers_gem_opkomst_afgelopen3jaar')
-    _fill_na(events, 'postcode_cijfers_gem_opkomst_eerste_ronde_afgelopen10jaar')
-    _fill_na(events, 'postcode_cijfers_gem_opkomst_eerste_ronde_afgelopen5jaar')
-    _fill_na(events, 'postcode_cijfers_gem_opkomst_eerste_ronde_afgelopen3jaar')
     _fill_na(events, 'postcode_gem_deelname_afgelopen10jaar')
-    _fill_na(events, 'postcode_gem_deelname_afgelopen5jaar')
-    _fill_na(events, 'postcode_gem_deelname_afgelopen3jaar')
-    _fill_na(events, 'postcode_gem_deelname_eerste_ronde_afgelopen10jaar')
-    _fill_na(events, 'postcode_gem_deelname_eerste_ronde_afgelopen5jaar')
     _fill_na(events, 'postcode_gem_deelname_eerste_ronde_afgelopen3jaar')
     _fill_na(events, 'postcode_gem_opkomst_afgelopen10jaar')
-    _fill_na(events, 'postcode_gem_opkomst_afgelopen5jaar')
-    _fill_na(events, 'postcode_gem_opkomst_afgelopen3jaar')
-    _fill_na(events, 'postcode_gem_opkomst_eerste_ronde_afgelopen10jaar')
-    _fill_na(events, 'postcode_gem_opkomst_eerste_ronde_afgelopen5jaar')
     _fill_na(events, 'postcode_gem_opkomst_eerste_ronde_afgelopen3jaar')
 
-    _fill_na(events, 'huidige_standplaats_ronde_gem_deelname_eerste_ronde')
-    _fill_na(events, 'huidige_standplaats_ronde_gem_deelname')
-    _fill_na(events, 'huidige_standplaats_ronde_gem_opkomst_eerste_ronde')
-    _fill_na(events, 'huidige_standplaats_ronde_gem_opkomst')
-    _fill_na(events, 'vorige_standplaats_ronde_gem_deelname_eerste_ronde')
-    _fill_na(events, 'vorige_standplaats_ronde_gem_deelname')
-    _fill_na(events, 'vorige_standplaats_ronde_gem_opkomst_eerste_ronde')
-    _fill_na(events, 'vorige_standplaats_ronde_gem_opkomst')
-    _fill_na(events, 'event_historie_score_afspraak10jaar')
     _fill_na(events, 'event_historie_score_afspraak5jaar')
-    _fill_na(events, 'event_historie_score_afspraak3jaar')
-    _fill_na(events, 'event_historie_score_screening_ronde10jaar')
     _fill_na(events, 'event_historie_score_screening_ronde5jaar')
-    _fill_na(events, 'event_historie_score_screening_ronde3jaar')
 
     _bool_to_numeric(events, 'event_afgemeld_vorige_screening_ronde')
-    _bool_to_numeric(events, 'event_deelname_vorige_screening_ronde')
-    _bool_to_numeric(events, 'event_opkomst_vorige_afspraak')
-    _bool_to_numeric(events, 'event_tehuis')
 
     _scale_peil_epoch_day(events)
 
-    _scale(events, 'event_leeftijd', 49, 76)
     _scale(events, 'event_leeftijd_per5', 45, 75)
 
-    _scale(events, 'event_voorgaande_afspraken', 0, 50)
-    _scale(events, 'event_voorgaande_mammogrammen', 0, 20)
     _scale(events, 'event_voorgaande_onderzoeken', 0, 20)
-    _scale(events, 'event_voorgaande_uitnodigingen', 0, 30)
-    _scale(events, 'event_voorgaande_screening_rondes', 0, 15)
 
     _map_categories(events, 'event_afspraak_status_vorige_afspraak', _niet_geannuleerde_afspraak_statussen_mapping, True, True)
     _map_categories(events, 'event_beoordeling_status_vorige_beoordeling', _uitkomst_beoordeling_statussen_mapping, True, False)
@@ -249,7 +148,8 @@ def _fill_na(events: DataFrame, column):
     """
     Werkt alleen voor numerieke waarden. (Meer is op dit moment niet nodig)
     """
-    events[column].fillna(_na_value, inplace=True)
+    if column in events.columns:
+        events[column].fillna(_na_value, inplace=True)
 
 
 def _bool_to_numeric(events: DataFrame, column):
@@ -262,10 +162,10 @@ def _map_categories(events: DataFrame, column, mapping, fill_na, exception_when_
     Converteer categorische waarden in indicatieve waarden
     LET OP: Waarden die niet gedefinieerd zijn in param. categories, krijgen voor alle dummie colommen een 0.
     """
-    if fill_na:
-        _fill_na(events, column)
-
-    events[column] = events[column].map(lambda value: _map(value, mapping, exception_when_no_mapping))
+    if column in events.columns:
+        if fill_na:
+            _fill_na(events, column)
+        events[column] = events[column].map(lambda value: _map(value, mapping, exception_when_no_mapping))
 
 
 def _map(value, categories, exception_when_no_mapping):

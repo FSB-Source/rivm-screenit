@@ -64,7 +64,7 @@ public abstract class MammaFotobesprekingOnderzoekVerwijderenPopupPanel extends 
 				{
 					try
 					{
-						kwaliteitscontroleService.deleteFotobesprekingOnderzoek(fotobesprekingOnderzoek);
+						kwaliteitscontroleService.deleteBesprokenFotobesprekingOnderzoek(fotobesprekingOnderzoek);
 						onOpslaanSuccesvol(target);
 					}
 					catch (Exception e)

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao.colon.impl;
 
 /*-
@@ -585,11 +584,16 @@ public abstract class ColonRestrictions
 
 	public static void addNogGeenUitslagbriefOntvangenCriteria(Criteria crit, String rondeAlias)
 	{
+		addNogGeenUitslagbriefOntvangenCriteria(crit, rondeAlias, BriefType.COLON_UITSLAG_BRIEVEN);
+	}
+
+	public static void addNogGeenUitslagbriefOntvangenCriteria(Criteria crit, String rondeAlias, List<BriefType> uitslagBriefTypes)
+	{
 		rondeAlias = ScreenitRestrictions.fixAlias(rondeAlias);
 		DetachedCriteria subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");
 		subquery.setProjection(Projections.id());
 		subquery.add(Restrictions.eqProperty("brief.screeningRonde", rondeAlias + "id"));
-		subquery.add(Restrictions.in("brief.briefType", BriefType.COLON_UITSLAG_BRIEVEN));
+		subquery.add(Restrictions.in("brief.briefType", uitslagBriefTypes));
 		crit.add(Subqueries.notExists(subquery));
 	}
 

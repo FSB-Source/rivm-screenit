@@ -48,7 +48,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 import com.aspose.words.Document;
 
 @SecurityConstraint(
-	actie = Actie.AANPASSEN,
+	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES,
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
@@ -98,7 +98,7 @@ public class BezwaarDocumentenTemplatesPage extends BaseDocumentTemplateTestenPa
 	@Override
 	protected List<Bevolkingsonderzoek> getBevolkingsonderzoeken()
 	{
-		return Arrays.asList(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA });
+		return Arrays.asList(Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA);
 	}
 
 	@Override

@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.util.EnumStringUtil;
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -51,6 +51,7 @@ import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -81,10 +82,13 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
+	private CervixVerrichtingService verrichtingService;
 
 	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixBetalingService betalingService;
+
+	@SpringBean
+	private CervixVerrichtingDao verrichtingDao;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -222,9 +226,7 @@ public class CervixLaboratoriumTarievenPage extends OrganisatieBeheer
 										@Override
 										public void onYesClick(AjaxRequestTarget target)
 										{
-											String verwijderdMelding = cervixVerrichtingService.getLogMeldingLabTariefVerwijderd(rowModel.getObject());
-											String melding = "Laboratorium: " + labModel.getObject().getNaam() + verwijderdMelding;
-											cervixVerrichtingService.verwijderCervixTarief(rowModel.getObject(), ScreenitSession.get().getLoggedInAccount(), melding);
+											betalingService.verwijderCervixTarief(rowModel.getObject(), ScreenitSession.get().getLoggedInAccount());
 											info("Laboratoriumtarief succesvol verwijderd.");
 											replaceContainer(target);
 

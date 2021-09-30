@@ -39,8 +39,13 @@ public class MammaHuisartsInzienPanel extends AbstractGebeurtenisDetailPanel
 	public MammaHuisartsInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
+	}
 
-		MammaScreeningRonde ronde = model.getObject().getScreeningsRonde();
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		MammaScreeningRonde ronde = getModelObject().getScreeningsRonde();
 		EnovationHuisarts enovationHuisarts = ronde.getHuisarts();
 		MammaGeenHuisartsOption geenHuisartsOptie = ronde.getGeenHuisartsOptie();
 

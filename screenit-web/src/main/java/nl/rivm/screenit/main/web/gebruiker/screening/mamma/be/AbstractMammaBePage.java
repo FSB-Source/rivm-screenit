@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
@@ -39,6 +40,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.popup.MammaLogoutC
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaArbitrageWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaBeoordelingenWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaDiscrepantieWerklijstPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review.MammaReviewWerklijstPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.MammaVerslagenWerklijstPage;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -90,6 +92,7 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 	{
 		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.mammascreening.beoordeling.dashboard", MammaRadioloogDashboardPage.class));
+		contextMenuItems.add(new GebruikerMenuItem("label.tab.mammascreening.beoordeling.review", MammaReviewWerklijstPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.mammascreening.beoordeling.beoordelen", MammaBeoordelingenWerklijstPage.class)
 		{
 			@Override
@@ -98,12 +101,13 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 				return getAantalPostfixLabel(id, Arrays.asList(MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN, MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN));
 			}
 		});
+
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.mammascreening.beoordeling.discrepantie", MammaDiscrepantieWerklijstPage.class)
 		{
 			@Override
 			public Component getPostfix(String id)
 			{
-				return getAantalPostfixLabel(id, Arrays.asList(MammaBeoordelingStatus.DISCREPANTIE));
+				return getAantalPostfixLabel(id, Collections.singletonList(MammaBeoordelingStatus.DISCREPANTIE));
 			}
 		});
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.mammascreening.beoordeling.arbitrage", MammaArbitrageWerklijstPage.class)
@@ -111,7 +115,7 @@ public abstract class AbstractMammaBePage extends MammaScreeningBasePage
 			@Override
 			public Component getPostfix(String id)
 			{
-				return getAantalPostfixLabel(id, Arrays.asList(MammaBeoordelingStatus.ARBITRAGE));
+				return getAantalPostfixLabel(id, Collections.singletonList(MammaBeoordelingStatus.ARBITRAGE));
 			}
 		});
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.mammascreening.beoordeling.verslagen", MammaVerslagenWerklijstPage.class)

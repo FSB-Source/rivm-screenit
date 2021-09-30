@@ -53,7 +53,6 @@ import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling;
 import nl.rivm.screenit.model.cervix.CervixHpvBericht;
-import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
@@ -75,7 +74,7 @@ import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieVerslagCon
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.AsposeService;
-import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
@@ -98,6 +97,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.aspose.words.Document;
+import com.google.common.collect.ImmutableMap;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -122,7 +122,7 @@ public class CervixTestServiceImpl implements CervixTestService
 	private CervixFactory factory;
 
 	@Autowired
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
 	@Autowired
 	private AsposeService asposeService;
@@ -659,6 +659,9 @@ public class CervixTestServiceImpl implements CervixTestService
 		hibernateService.delete(dossier);
 		hibernateService.saveOrUpdate(client);
 
+		List<CervixBrief> overgeblevenBrieven = hibernateService.getByParameters(CervixBrief.class, ImmutableMap.of("client", client));
+		hibernateService.deleteAll(overgeblevenBrieven);
+
 		dossierFactory.maakDossiers(client);
 
 		LOG.info("Client gereset met bsn: " + client.getPersoon().getBsn());
@@ -685,7 +688,7 @@ public class CervixTestServiceImpl implements CervixTestService
 			afmelding.setType(AfmeldingType.DEFINITIEF);
 			afmelding.setManier(ClientContactManier.DIRECT);
 			afmelding.setReden(afmeldingReden);
-			clientService.afmeldenZonderVervolg(client, afmelding, false, null);
+			baseAfmeldService.afmeldenZonderVervolg(client, afmelding, false, null);
 			if (cisHistorie != null)
 			{
 				cisHistorie.setAfmelding(afmelding);

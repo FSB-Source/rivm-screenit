@@ -61,7 +61,6 @@ import nl.topicuszorg.wicket.input.validator.DependantDateValidator.Operator;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -74,6 +73,7 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.DateValidator;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerzettenFilter>
 {
@@ -283,7 +283,7 @@ public abstract class MammaBulkVerzettenPopup extends GenericPanel<MammaBulkVerz
 		Date vanaf = DateUtil.toUtilDate(filter.getVanafLocalDate());
 		Date totEnMet = DateUtil.toUtilDate(filter.getTotEnMetLocalDate().plusDays(1));
 
-		Collection<MammaCapaciteitBlokDto> capaciteitsBlokken = baseCapaciteitsBlokService.getNietGeblokkerdeCapaciteitsBlokDtos(standplaatsPeriode, vanaf, totEnMet,
+		Collection<MammaCapaciteitBlokDto> capaciteitsBlokken = baseCapaciteitsBlokService.getNietGeblokkeerdeCapaciteitsBlokDtos(standplaatsPeriode, vanaf, totEnMet,
 			EnumSet.of(MammaCapaciteitBlokType.REGULIER));
 		capaciteit = baseCapaciteitsBlokService.getCapaciteit(capaciteitsBlokken);
 

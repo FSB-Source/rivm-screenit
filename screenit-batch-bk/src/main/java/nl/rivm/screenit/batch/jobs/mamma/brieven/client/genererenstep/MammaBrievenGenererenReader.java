@@ -25,11 +25,14 @@ import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenRea
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-
 import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
+
 import org.hibernate.Criteria;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,7 +169,29 @@ public class MammaBrievenGenererenReader extends AbstractBrievenGenererenReader<
 							Restrictions.isNull("uitnodigingLocatie.standplaatsLocatieBijlage"),
 							Restrictions.eq("uitnodigingLocatieBijlage.actief", false)))));
 			}
+			verifieerOfHetDeEersteBriefIs(crit, (Boolean) context.get(MammaBrievenGenererenPartitioner.KEY_EERSTE_RONDE));
+
 		}
 		return crit;
+	}
+
+	private void verifieerOfHetDeEersteBriefIs(Criteria criteria, Boolean eersteRonde)
+	{
+		if (eersteRonde != null)
+		{
+			DetachedCriteria subQuery = DetachedCriteria.forClass(MammaBrief.class);
+			subQuery.createAlias("client", "briefClient");
+			subQuery.add(Restrictions.eqProperty("briefClient.mammaDossier", "mammaDossier.id"));
+			subQuery.add(Restrictions.in("briefType", BriefType.getMammaEersteRondeBrieftype()));
+			subQuery.setProjection(Projections.count("id"));
+			if (eersteRonde)
+			{
+				criteria.add(Subqueries.eq(1L, subQuery));
+			}
+			else
+			{
+				criteria.add(Subqueries.gt(1L, subQuery));
+			}
+		}
 	}
 }

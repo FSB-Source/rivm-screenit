@@ -59,7 +59,7 @@ public class TestBewerkHuidigeUitnodigingPopUp extends AbstractTestBasePopupPane
 		dossierTijdStipModel = new CompoundPropertyModel<>(TestTimeLineDossierTijdstip.DAG_NA_UITNODIGING_KOPPELEN);
 
 		List<TestTimeLineDossierTijdstip> redenen = new ArrayList<TestTimeLineDossierTijdstip>();
-		if (!isColonUitnodigingAlVerstuurdNaarMiniGrip())
+		if (!isColonUitnodigingAlVerstuurdNaarInpakcentrum())
 		{
 			redenen.add(TestTimeLineDossierTijdstip.DAG_UITNODIGING_VERSTUREN);
 		}
@@ -73,7 +73,7 @@ public class TestBewerkHuidigeUitnodigingPopUp extends AbstractTestBasePopupPane
 		add(reden);
 	}
 
-	private boolean isColonUitnodigingAlVerstuurdNaarMiniGrip()
+	private boolean isColonUitnodigingAlVerstuurdNaarInpakcentrum()
 	{
 		ColonDossier dossier = getModelObject().get(0).getColonDossier();
 		if (dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null)

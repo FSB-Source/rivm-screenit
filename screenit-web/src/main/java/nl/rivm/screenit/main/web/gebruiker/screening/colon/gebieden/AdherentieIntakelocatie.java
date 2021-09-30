@@ -101,7 +101,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 import com.google.common.primitives.Ints;
 
 @SecurityConstraint(
-	actie = Actie.AANPASSEN,
+	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
 	checkScope = true,
 	level = ToegangLevel.REGIO,
@@ -142,6 +142,8 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 
 	private Form<ColoscopieCentrum> adherentieForm;
 
+	private final boolean magAdherentieAanpassen = magAdherentieAanpassen();
+
 	public AdherentieIntakelocatie(IModel<ColoscopieCentrum> model)
 	{
 		setDefaultModel(model);
@@ -173,6 +175,7 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 		final ScreenitDropdown<UitnodigingsGebied> uitnodigingsGebieden = ComponentHelper.newDropDownChoice("gebieden", gebiedenModel,
 			new ChoiceRenderer<UitnodigingsGebied>("naam"));
 		uitnodigingsGebieden.setModel(new CompoundPropertyModel<>(new PropertyModel<UitnodigingsGebied>(AdherentieIntakelocatie.this, "gebied")));
+		uitnodigingsGebieden.setVisible(magAdherentieAanpassen);
 		adherentieForm.add(uitnodigingsGebieden);
 
 		initAdherentiePercentages();
@@ -216,45 +219,44 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 			}
 
 		});
-		columns.add(new AbstractColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Verwijderen"))
+		if (magAdherentieAanpassen)
 		{
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<ColoscopieCentrumColonCapaciteitVerdeling>> cellItem, String componentId,
-				final IModel<ColoscopieCentrumColonCapaciteitVerdeling> rowModel)
+			columns.add(new AbstractColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Verwijderen"))
 			{
-				cellItem.add(new AjaxImageCellPanel<ColoscopieCentrumColonCapaciteitVerdeling>(componentId, rowModel, "icon-trash")
+
+				private static final long serialVersionUID = 1L;
+
+				@Override public void populateItem(Item<ICellPopulator<ColoscopieCentrumColonCapaciteitVerdeling>> cellItem, String componentId, final IModel<ColoscopieCentrumColonCapaciteitVerdeling> rowModel)
 				{
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected void onClick(AjaxRequestTarget target)
+					cellItem.add(new AjaxImageCellPanel<ColoscopieCentrumColonCapaciteitVerdeling>(componentId, rowModel, "icon-trash")
 					{
-						ColoscopieCentrumColonCapaciteitVerdeling verdeling = rowModel.getObject();
-						UitnodigingsGebied gebied = verdeling.getUitnodigingsGebied();
-						if (verdeling.getId() != null)
-						{
-							verwijderdeItemModels.put(gebied.getId(), ModelUtil.sModel(verdeling));
-						}
-						else
-						{
-							UitnodigingsGebied uitnodigingsgebied = verdeling.getUitnodigingsGebied();
-							uitnodigingsgebied.getVerdeling().remove(verdeling);
-							gebied.getVerdeling().remove(verdeling);
-						}
-						List<UitnodigingsGebied> gebieden = gebiedenModel.getObject();
-						gebieden.add(gebied);
-						gebiedenModel.setObject(new ArrayList<>(gebieden));
-						newAdherentiePercentages.remove(ColonRestrictions.getUniekIdOf(verdeling));
-						target.add(adherentieForm, uitnodigingsGebieden, adherentieTabel);
+						private static final long serialVersionUID = 1L;
 
-					}
-				});
-			}
-		});
+						@Override protected void onClick(AjaxRequestTarget target)
+						{
+							ColoscopieCentrumColonCapaciteitVerdeling verdeling = rowModel.getObject();
+							UitnodigingsGebied gebied = verdeling.getUitnodigingsGebied();
+							if (verdeling.getId() != null)
+							{
+								verwijderdeItemModels.put(gebied.getId(), ModelUtil.sModel(verdeling));
+							}
+							else
+							{
+								UitnodigingsGebied uitnodigingsgebied = verdeling.getUitnodigingsGebied();
+								uitnodigingsgebied.getVerdeling().remove(verdeling);
+								gebied.getVerdeling().remove(verdeling);
+							}
+							List<UitnodigingsGebied> gebieden = gebiedenModel.getObject();
+							gebieden.add(gebied);
+							gebiedenModel.setObject(new ArrayList<>(gebieden));
+							newAdherentiePercentages.remove(ColonRestrictions.getUniekIdOf(verdeling));
+							target.add(adherentieForm, uitnodigingsGebieden, adherentieTabel);
+
+						}
+					});
+				}
+			});
+		}
 
 		adherentieTabel = new ScreenitDataTable<ColoscopieCentrumColonCapaciteitVerdeling, String>("adherentie", columns,
 			new SortableDataProvider<ColoscopieCentrumColonCapaciteitVerdeling, String>()
@@ -294,7 +296,7 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 		adherentieTabel.setOutputMarkupId(true);
 		adherentieForm.add(adherentieTabel);
 
-		adherentieForm.add(new IndicatingAjaxButton("toevoegen")
+		IndicatingAjaxButton uitnodigingsgebiedKoppelenKnop = new IndicatingAjaxButton("toevoegen")
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -340,13 +342,15 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 				}
 			}
 
-		});
+		};
+		uitnodigingsgebiedKoppelenKnop.setVisible(magAdherentieAanpassen);
+		adherentieForm.add(uitnodigingsgebiedKoppelenKnop);
 
 		controleResultaatPanel = new EmptyPanel("controleResultaat");
 		controleResultaatPanel.setOutputMarkupId(true);
 		adherentieForm.add(controleResultaatPanel);
 
-		adherentieForm.add(new IndicatingAjaxButton("controleren", adherentieForm)
+		IndicatingAjaxButton controlerenKnop = new IndicatingAjaxButton("controleren", adherentieForm)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -387,7 +391,9 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 					target.appendJavaScript("initTooltip();");
 				}
 			}
-		});
+		};
+		controlerenKnop.setVisible(magAdherentieAanpassen);
+		adherentieForm.add(controlerenKnop);
 
 	}
 
@@ -462,13 +468,14 @@ public class AdherentieIntakelocatie extends GebiedenBeheerPage
 		{
 			super(id, "adherentieFragment", fragments, model);
 
-			add(new PercentageIntegerField("nieuweAdherentie", new MapModel<>(newAdherentiePercentages, ColonRestrictions.getUniekIdOf(model.getObject()))));
+			PercentageIntegerField adherentiePercentageInput = new PercentageIntegerField("nieuweAdherentie", new MapModel<>(newAdherentiePercentages, ColonRestrictions.getUniekIdOf(model.getObject())));
+			adherentiePercentageInput.setEnabled(magAdherentieAanpassen);
+			add(adherentiePercentageInput);
 		}
 	}
 
 	private class ControleResultaatFragment extends Fragment
 	{
-
 		private static final long serialVersionUID = 1L;
 
 		public ControleResultaatFragment(String id, final List<CapaciteitsPercWijziging> capaciteitsPercWijzigingen)

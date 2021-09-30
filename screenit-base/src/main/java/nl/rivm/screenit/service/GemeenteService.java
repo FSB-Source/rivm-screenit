@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service;
 
 /*-
@@ -59,4 +58,5 @@ public interface GemeenteService
 
 	List<Gemeente> getAllGekoppeldeGemeentes();
 
+	Gemeente getGemeenteByCode(String code);
 }

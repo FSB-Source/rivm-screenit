@@ -1,0 +1,30 @@
+@charset "utf-8";
+@import "../globals/support";
+
+$default-has-layout-approach: zoom !default;
+
+@mixin has-layout($approach: $default-has-layout-approach) {
+  @if $legacy-support-for-ie {
+    @if $approach == zoom {
+      @include has-layout-zoom;
+    } @else if $approach == block {
+      @include has-layout-block;
+    } @else {
+      @warn "Unknown has-layout approach: #{$approach}";
+      @include has-layout-zoom;
+    }
+  }
+}
+
+@mixin has-layout-zoom {
+  @if $legacy-support-for-ie6 or $legacy-support-for-ie7 {
+    *zoom: 1;
+  }
+}
+
+@mixin has-layout-block {
+  @if $legacy-support-for-ie {
+    display: inline-block;
+    & { display: block; }
+  }
+}

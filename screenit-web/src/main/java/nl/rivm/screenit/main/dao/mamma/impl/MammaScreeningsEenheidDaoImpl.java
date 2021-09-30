@@ -98,6 +98,7 @@ public class MammaScreeningsEenheidDaoImpl extends AbstractAutowiredDao implemen
 		criteria.createAlias("beoordelingsEenheid", "beoordelingsEenheid");
 		criteria.createAlias("beoordelingsEenheid.parent", "parent", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("parent.regio", "regio", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("status", "status", JoinType.LEFT_OUTER_JOIN);
 
 		if (StringUtils.isNotBlank(screeningsEenheid.getCode()))
 		{

@@ -52,8 +52,6 @@ public enum JobType
 
 	UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_JOB_DK(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
-	IFOBT_INLEZEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
-
 	IFOBT_VERWERKING(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	IFOBT_HERINNERING(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
@@ -65,6 +63,8 @@ public enum JobType
 	GUNSTIGE_UITSLAG(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	INTAKE_AFSPRAKEN_MAKEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
+
+	COLON_HUISARTSBERICHTEN_OPNIEUW_VERSTUREN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	VERVOLG_INTAKE_CONCLUSIE_BATCH(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
@@ -293,7 +293,7 @@ public enum JobType
 
 	public boolean hasJobFlag(JobFlag searchJobFlag)
 	{
-		return this.jobFlags != null && Arrays.stream(this.jobFlags).filter(f -> f.equals(searchJobFlag)).findFirst().isPresent();
+		return this.jobFlags != null && Arrays.stream(this.jobFlags).anyMatch(f -> f.equals(searchJobFlag));
 	}
 
 	public OrganisatieParameterKey[] getJobParameters()

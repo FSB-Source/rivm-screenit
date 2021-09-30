@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
 
 /*-
@@ -30,7 +29,6 @@ import java.util.List;
 
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
 import nl.rivm.screenit.main.service.colon.ColonVervolgonderzoekKeuzesDto;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.AjaxButtonGroup;
 import nl.rivm.screenit.main.web.component.BooleanChoiceRenderer;
@@ -56,6 +54,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -100,7 +99,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 	private ColonConclusieType origConclusie;
 	private Component conclusieContainer;
 
-	private IModel<List<Boolean>> booleanOptionsModel = new ListModel<Boolean>(Arrays.asList(new Boolean[] { Boolean.TRUE, Boolean.FALSE }));
+	private IModel<List<Boolean>> booleanOptionsModel = new ListModel<>(Arrays.asList(Boolean.TRUE, Boolean.FALSE));
 
 	private boolean mdlVerslagVerwerkt;
 
@@ -218,20 +217,20 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			add(new Label("client.persoon.achternaam", NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client)));
 			add(new Label("conclusie.instellingGebruiker.medewerker.naamVolledig"));
 
-			List<Integer> choices = new ArrayList<Integer>();
+			List<Integer> choices = new ArrayList<>();
 			choices.add(null);
 			for (int i = 1; i <= 5; i++)
 			{
-				choices.add(Integer.valueOf(i));
+				choices.add(i);
 			}
-			AjaxButtonGroup<Integer> asaScoreChoice = new AjaxButtonGroup<Integer>("conclusie.asaScore", new ListModel<>(choices), new IntegerChoiceRenderer());
+			AjaxButtonGroup<Integer> asaScoreChoice = new AjaxButtonGroup<>("conclusie.asaScore", new ListModel<>(choices), new IntegerChoiceRenderer());
 			asaScoreChoice.setEnabled(!mdlVerslagVerwerkt);
 			add(asaScoreChoice);
 
-			add(new AjaxButtonGroup<Boolean>("bezwaar", booleanOptionsModel, booleanChoiceRenderer).setEnabled(!mdlVerslagVerwerkt)
+			add(new AjaxButtonGroup<>("bezwaar", booleanOptionsModel, booleanChoiceRenderer).setEnabled(!mdlVerslagVerwerkt)
 				.setVisible(intakeAfspraak.getBezwaar()));
 
-			opslaan = new ConfirmingIndicatingAjaxSubmitLink<ColonIntakeAfspraak>("conclusieOpslaan", dialog, null)
+			opslaan = new ConfirmingIndicatingAjaxSubmitLink<>("conclusieOpslaan", dialog, null)
 			{
 				@Override
 				public void onYesClick(AjaxRequestTarget target)
@@ -276,7 +275,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 						interval);
 					if (theoretischeDatumVolgendeUitnodiging != null)
 					{
-						Integer jaar = theoretischeDatumVolgendeUitnodiging.getYear();
+						int jaar = theoretischeDatumVolgendeUitnodiging.getYear();
 						resourceModel.setParameters("" + jaar);
 					}
 					return resourceModel;
@@ -305,7 +304,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 			opslaan.setVisible(!AfspraakStatus.isGeannuleerd(intakeAfspraak.getStatus()) && !mdlVerslagVerwerkt);
 			opslaan.setEnabled(intakeAfspraak.getConclusie().getId() != null);
 			opslaan.setOutputMarkupId(true);
-			final ConfirmingIndicatingAjaxLink<ColonIntakeAfspraak> verwijderen = new ConfirmingIndicatingAjaxLink<ColonIntakeAfspraak>("conclusieVerwijderen", dialog,
+			final ConfirmingIndicatingAjaxLink<ColonIntakeAfspraak> verwijderen = new ConfirmingIndicatingAjaxLink<>("conclusieVerwijderen", dialog,
 				"conclusie.verwijderen")
 			{
 
@@ -424,8 +423,8 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		{
 			super(id, "conclusieFragment", ColonConclusieVastleggenPanel.this);
 
-			Component conclusieType = new AjaxButtonGroup<ColonConclusieType>("conclusie.type", new PropertyModel<>(vervolgonderzoekDto, "conclusie"),
-				new ListModel<ColonConclusieType>(conclusieMogelijkheden), new EnumChoiceRenderer<>(this))
+			Component conclusieType = new AjaxButtonGroup<>("conclusie.type", new PropertyModel<>(vervolgonderzoekDto, "conclusie"), new ListModel<>(conclusieMogelijkheden),
+				new EnumChoiceRenderer<>(this))
 			{
 				@Override
 				protected void onSelectionChanged(ColonConclusieType antwoord, AjaxRequestTarget target, String markupId)
@@ -541,6 +540,10 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 		private static final long serialVersionUID = 1L;
 
+		private String vraag;
+
+		private IChoiceRenderer<Boolean> renderer;
+
 		public VraagFragment(String id, String vraag)
 		{
 			this(id, vraag, booleanChoiceRenderer);
@@ -549,7 +552,14 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		public VraagFragment(String id, String vraag, IChoiceRenderer<Boolean> renderer)
 		{
 			super(id, "vraagFragment", ColonConclusieVastleggenPanel.this);
+			this.vraag = vraag;
+			this.renderer = renderer;
+		}
 
+		@Override
+		protected void onInitialize()
+		{
+			super.onInitialize();
 			add(new Label("vraag", getString(vraag)));
 			IModel<Boolean> antwoordModel = new PropertyModel<>(vervolgonderzoekDto, vraag);
 			setOutputMarkupId(true);
@@ -616,12 +626,12 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 			IModel<Integer> antwoordModel = new PropertyModel<>(vervolgonderzoekDto, "aantalJarenTerugNaarScreening");
 			setOutputMarkupId(true);
-			List<Integer> choices = new ArrayList<Integer>();
+			List<Integer> choices = new ArrayList<>();
 			for (int i = 2; i <= 10; i++)
 			{
-				choices.add(Integer.valueOf(i));
+				choices.add(i);
 			}
-			add(new AjaxButtonGroup<Integer>("jaar", antwoordModel, new ListModel<>(choices), new IntegerChoiceRenderer())
+			add(new AjaxButtonGroup<>("jaar", antwoordModel, new ListModel<>(choices), new IntegerChoiceRenderer())
 			{
 				@Override
 				protected void onSelectionChanged(Integer antwoord, AjaxRequestTarget target, String markupId)

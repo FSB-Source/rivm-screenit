@@ -22,56 +22,46 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  */
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.form.BigDecimalField;
 import nl.rivm.screenit.main.web.component.validator.BigDecimalPuntFormValidator;
-import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
+import nl.rivm.screenit.main.web.gebruiker.gedeeld.cervix.CervixHerindexeringWaarschuwingPanel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.cervix.CervixAsyncIndexatieService;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
-import nl.rivm.screenit.util.cervix.CervixTariefUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+import nl.topicuszorg.wicket.input.validator.DependantDateValidator;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<CervixHuisartsTarief>
 {
 	@SpringBean
-	private ICurrentDateSupplier currentDateSupplier;
+	private CervixVerrichtingDao verrichtingDao;
 
 	@SpringBean
-	private HibernateService hibernateService;
-
-	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
-
-	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
-
-	@SpringBean
-	private CervixAsyncIndexatieService asyncIndexatieService;
+	private CervixBetalingService betalingService;
 
 	public CervixHuisartsIndexerenPopupPanel(String id)
 	{
-		super(id, ModelUtil.cModel(new CervixHuisartsTarief()));
+		super(id, ModelUtil.ccModel(new CervixHuisartsTarief()));
 
 		CervixHuisartsTarief tarief = getModelObject();
-		CervixHuisartsTarief latest = cervixVerrichtingDao.getLatestCervixHuisartsTarief();
+		CervixHuisartsTarief latest = verrichtingDao.getLatestCervixHuisartsTarief();
 		if (latest != null)
 		{
 			tarief.setTarief(latest.getTarief());
@@ -83,6 +73,8 @@ public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<Cer
 
 		Form<CervixHuisartsTarief> form = new Form<>("form", getModel());
 
+		form.add(new CervixHerindexeringWaarschuwingPanel("waarschuwing"));
+
 		BigDecimalField tariefField = new BigDecimalField("tarief");
 		tariefField.setRequired(true);
 		form.add(tariefField);
@@ -90,36 +82,27 @@ public abstract class CervixHuisartsIndexerenPopupPanel extends GenericPanel<Cer
 
 		DatePicker<Date> startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
 		startDatumDatePicker.setRequired(true);
-		startDatumDatePicker.setLabel(Model.of("Geldig vanaf"));
+		startDatumDatePicker.setLabel(Model.of("Geldig van"));
 		form.add(startDatumDatePicker);
 
 		DatePicker<Date> eindDatumDatePicker = ComponentHelper.newDatePicker("geldigTotenmetDatum");
 		eindDatumDatePicker.setLabel(Model.of("Geldig t/m"));
 		form.add(eindDatumDatePicker);
 
-		form.add(new AjaxSubmitLink("opslaan", form)
+		form.add(new DependantDateValidator(startDatumDatePicker, eindDatumDatePicker, DependantDateValidator.Operator.AFTER));
+
+		form.add(new IndicatingAjaxSubmitLink("opslaan", form)
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				List<CervixTarief> oudeTarieven = new ArrayList<>();
-				CervixHuisartsTarief nieuweTarief = (CervixHuisartsTarief) form.getModelObject();
 				try
 				{
-					cervixVerrichtingService.toevoegenIndexatieTarief(nieuweTarief, oudeTarieven, ScreenitSession.get().getLoggedInAccount());
-					String melding = "";
-					for (CervixTarief oudeTarief : oudeTarieven)
-					{
-						if (!melding.isEmpty())
-						{
-							melding += "; ";
-						}
-						melding += CervixTariefUtil.getTariefString(oudeTarief);
-						asyncIndexatieService.indexeren(oudeTarief.getId(), nieuweTarief.getId(), CervixTariefType.isHuisartsTarief(nieuweTarief));
-					}
+					CervixTarief nieuweTarief = (CervixTarief) HibernateHelper.deproxy(ModelProxyHelper.deproxy(form.getModelObject()));
+					String melding = betalingService.toevoegenIndexatieTarief(nieuweTarief, ScreenitSession.get().getLoggedInAccount());
 					opslaan(target, melding);
 				}
-				catch (IllegalArgumentException e)
+				catch (IllegalArgumentException | JsonProcessingException e)
 				{
 					error(getString(e.getMessage()));
 				}

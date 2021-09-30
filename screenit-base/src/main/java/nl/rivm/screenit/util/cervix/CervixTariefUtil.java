@@ -22,6 +22,8 @@ package nl.rivm.screenit.util.cervix;
  */
 
 import java.math.BigDecimal;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
@@ -33,7 +35,6 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 public class CervixTariefUtil
 {
-
 	private CervixTariefUtil()
 	{
 	}
@@ -70,18 +71,17 @@ public class CervixTariefUtil
 
 	public static String getTariefString(CervixTarief tarief)
 	{
-		String tariefTekst = "";
+		String tariefTekst = "'";
 
 		if (CervixTariefType.isHuisartsTarief(tarief))
 		{
-			tariefTekst = " huisartstarief " + CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(tarief);
+			tariefTekst += "huisartstarief " + CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(tarief);
 		}
 		else
 		{
-			for (CervixTariefType labTariefType : CervixTariefType.getAlleLabTariefTypes())
-			{
-				tariefTekst += labTariefType.getNaam() + ": tarief " + labTariefType.getBedragStringVanTarief(tarief) + ", ";
-			}
+			tariefTekst += Arrays.asList(CervixTariefType.getAlleLabTariefTypes()).stream()
+				.map(t -> t.getNaam() + ": tarief " + t.getBedragStringVanTarief(tarief))
+				.collect(Collectors.joining(", "));
 		}
 		if (tarief.getActief())
 		{
@@ -89,19 +89,19 @@ public class CervixTariefUtil
 		}
 		else
 		{
-			tariefTekst += " is verwijderd.";
+			tariefTekst += " (verwijderd)";
 		}
-
+		tariefTekst += "'";
 		return tariefTekst;
 	}
 
 	public static String getGeldigheidMelding(CervixTarief tarief)
 	{
-		String logMelding = " geldig vanaf " + DateUtil.LOCAL_DATE_FORMAT.format(DateUtil.toLocalDate(tarief.getGeldigVanafDatum()));
+		String logMelding = " geldig vanaf " + DateUtil.formatShortDate(tarief.getGeldigVanafDatum());
 		if (tarief.getGeldigTotenmetDatum() != null)
 		{
 			logMelding += " t/m "
-				+ DateUtil.LOCAL_DATE_FORMAT.format(DateUtil.toLocalDate(tarief.getGeldigTotenmetDatum()));
+				+ DateUtil.formatShortDate(tarief.getGeldigTotenmetDatum());
 		}
 		return logMelding;
 	}

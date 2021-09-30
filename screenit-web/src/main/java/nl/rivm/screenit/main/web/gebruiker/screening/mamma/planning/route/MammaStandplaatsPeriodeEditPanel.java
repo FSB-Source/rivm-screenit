@@ -228,13 +228,13 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		configurationContainer.add(vanafDatum);
 
 		achtervangStandplaatsPeriodeDropdown = new ScreenitDropdown<>("achtervangStandplaatsId",
-			actieveStandplaatsen, new ChoiceRenderer<Long>()
+			actieveStandplaatsen, new ChoiceRenderer<>()
 			{
 				@Override
 				public Object getDisplayValue(Long object)
 				{
 					return hibernateService.load(MammaStandplaats.class, object).getNaam();
-				};
+				}
 			});
 		achtervangStandplaatsPeriodeDropdown.add(new OnChangeAjaxBehavior()
 		{
@@ -273,13 +273,13 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		}
 
 		minderValideUitwijkStandplaatsDropdown = new ScreenitDropdown<>("minderValideUitwijkStandplaatsId",
-			actieveStandplaatsen, new ChoiceRenderer<Long>()
+			actieveStandplaatsen, new ChoiceRenderer<>()
 			{
 				@Override
 				public Object getDisplayValue(Long object)
 				{
 					return hibernateService.load(MammaStandplaats.class, object).getNaam();
-				};
+				}
 			});
 
 		minderValideUitwijkStandplaatsDropdown.add(new OnChangeAjaxBehavior()
@@ -333,7 +333,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 			LocalDate totEnMet = Collections.min(Arrays.asList(vrijgegevenTotEnMet, standplaatsPeriodeDto.totEnMet));
 
 			MammaCapaciteit capaciteit = baseCapaciteitsBlokService.getCapaciteit(baseCapaciteitsBlokService
-				.getNietGeblokkerdeCapaciteitsBlokDtos(standplaatsPeriode, DateUtil.toUtilDate(vanaf.atStartOfDay()),
+				.getNietGeblokkeerdeCapaciteitsBlokDtos(standplaatsPeriode, DateUtil.toUtilDate(vanaf.atStartOfDay()),
 					DateUtil.toUtilDate(totEnMet.atTime(Constants.BK_EINDTIJD_DAG)),
 					EnumSet.of(MammaCapaciteitBlokType.REGULIER, MammaCapaciteitBlokType.TEHUIS)));
 
@@ -347,13 +347,13 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 			capaciteitOverzichtContainer.add(new Label("beschikbaarRegulier",
 				beschikbareCapaciteitRegulier.setScale(0, RoundingMode.HALF_UP).toString()));
 			capaciteitOverzichtContainer.add(new Label("beschikbaarTehuis",
-				beschikbareCapaciteitTehuis.divide(factorDubbeleTijd, 0, RoundingMode.HALF_UP).toString()
+				beschikbareCapaciteitTehuis.divide(factorDubbeleTijd, 0, RoundingMode.HALF_UP)
 					+ " (" + BigDecimalUtil.decimalToString(beschikbareCapaciteitTehuis, 1) + " regulier)"));
 			capaciteitOverzichtContainer.add(new Label("vrijRegulier",
 				vrijeCapaciteitRegulier.setScale(1, RoundingMode.HALF_UP).toString()));
 			capaciteitOverzichtContainer.add(new Label("vrijTehuis",
-				vrijeCapaciteitTehuis.divide(factorDubbeleTijd, 1, RoundingMode.HALF_UP).toString()
-					+ " (" + vrijeCapaciteitTehuis.setScale(1, RoundingMode.HALF_UP).toString() + " regulier)"));
+				vrijeCapaciteitTehuis.divide(factorDubbeleTijd, 1, RoundingMode.HALF_UP)
+					+ " (" + vrijeCapaciteitTehuis.setScale(1, RoundingMode.HALF_UP) + " regulier)"));
 		}
 		else
 		{
@@ -425,7 +425,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 		BootstrapDialog dialog = new BootstrapDialog("dialog");
 		add(dialog);
 
-		ConfirmingIndicatingAjaxSubmitLink<Void> opslaanKnop = new ConfirmingIndicatingAjaxSubmitLink<Void>("opslaan", dialog,
+		ConfirmingIndicatingAjaxSubmitLink<Void> opslaanKnop = new ConfirmingIndicatingAjaxSubmitLink<>("opslaan", dialog,
 			"Standplaatsperiode.opslaan.minder.valide.uitwijk.waarschuwing")
 		{
 			@Override
@@ -437,8 +437,8 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 					boolean isStandplaatsGewijzigd = opslaan();
 					if (isStandplaatsGewijzigd)
 					{
-						standplaatsPeriodeGewijzigd(target);
 						info(getString("message.gegevens.onthouden"));
+						standplaatsPeriodeGewijzigd(target);
 					}
 				}
 				else
@@ -507,7 +507,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 	{
 		List<Long> alleScreeningorganisatieIds = instellingService.getAllActiefScreeningOrganisaties().stream().map(ScreeningOrganisatie::getId).collect(Collectors.toList());
 		alleScreeningorganisatieIds.remove(standplaats.getRegio().getId());
-		configurationContainer.add(new ScreenitListMultipleChoice<Long>("afspraakcapaciteitBeschikbaarVoorIds", alleScreeningorganisatieIds, new ChoiceRenderer<Long>()
+		configurationContainer.add(new ScreenitListMultipleChoice<>("afspraakcapaciteitBeschikbaarVoorIds", alleScreeningorganisatieIds, new ChoiceRenderer<>()
 		{
 			@Override
 			public Object getDisplayValue(Long object)
@@ -617,7 +617,7 @@ public abstract class MammaStandplaatsPeriodeEditPanel extends GenericPanel<Plan
 				}
 				else if (standplaatsPeriodeDto.totEnMet.isAfter(dateSupplier.getLocalDate()))
 				{
-					info(String.format(getString("Standplaatsperiode.einddatum.veranderen.afspraken.worden.verzet")));
+					info(getString("Standplaatsperiode.einddatum.veranderen.afspraken.worden.verzet"));
 				}
 			}
 

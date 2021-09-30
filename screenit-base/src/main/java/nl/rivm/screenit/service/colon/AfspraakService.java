@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.colon;
 
 /*-
@@ -22,6 +21,7 @@ package nl.rivm.screenit.service.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -69,6 +69,8 @@ public interface AfspraakService extends AppointmentService
 
 	boolean magWijzigenAfzeggen(Afspraak afspraak);
 
+	boolean magNieuweAfspraakMaken(Client client);
+
 	List<Object> getAfsprakenKamersInIntervals(Kamer location, List<Interval> verwijderdeIntervals);
 
 	RoosterItem getRoosterBlokVoorAfspraak(ColonIntakeAfspraak newAfspraak);
@@ -79,7 +81,7 @@ public interface AfspraakService extends AppointmentService
 
 	Date getLaatsteWijzigingsdatumAfspraak(HibernateObject entity);
 
-	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, DateTime nu, boolean briefTegenhouden);
+	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean briefTegenhouden);
 
 	List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Interval currentViewInterval);
 

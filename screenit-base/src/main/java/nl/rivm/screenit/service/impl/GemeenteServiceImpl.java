@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -26,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import nl.rivm.screenit.dao.GbaBaseDao;
 import nl.rivm.screenit.dao.GemeenteDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Gemeente;
@@ -52,6 +52,9 @@ public class GemeenteServiceImpl implements GemeenteService
 
 	@Autowired
 	private GemeenteDao gemeenteDao;
+
+	@Autowired
+	private GbaBaseDao gbaBaseDao;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -197,5 +200,11 @@ public class GemeenteServiceImpl implements GemeenteService
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public Gemeente getGemeenteByCode(String code)
+	{
+		return gbaBaseDao.getStamtabelByCode(Gemeente.class, code);
 	}
 }

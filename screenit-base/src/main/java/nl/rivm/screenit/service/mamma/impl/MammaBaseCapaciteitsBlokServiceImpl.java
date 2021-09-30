@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.mamma.impl;
 
 /*-
@@ -78,11 +77,10 @@ public class MammaBaseCapaciteitsBlokServiceImpl implements MammaBaseCapaciteits
 		if (MammaCapaciteitBlokType.GEEN_SCREENING.equals(blok.blokType))
 		{
 			blok.aantalOnderzoeken = 0;
-            blok.minderValideAfspraakMogelijk = false;
-        }
+			blok.minderValideAfspraakMogelijk = false;
+		}
 
 		boolean isNieuw = blok.conceptId == null;
-
 		try
 		{
 			conceptPlanningsApplicatie.sendCapaciteitBlok(blok, isNieuw, ingelogdeGebruiker);
@@ -103,7 +101,6 @@ public class MammaBaseCapaciteitsBlokServiceImpl implements MammaBaseCapaciteits
 	@Override
 	public String delete(PlanningCapaciteitBlokDto blok, InstellingGebruiker loggedInInstellingGebruiker)
 	{
-
 		return conceptPlanningsApplicatie.deleteCapaciteitBlok(blok, loggedInInstellingGebruiker);
 	}
 
@@ -140,10 +137,10 @@ public class MammaBaseCapaciteitsBlokServiceImpl implements MammaBaseCapaciteits
 	}
 
 	@Override
-	public Collection<MammaCapaciteitBlokDto> getNietGeblokkerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date vanaf, Date totEnMet,
+	public Collection<MammaCapaciteitBlokDto> getNietGeblokkeerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date vanaf, Date totEnMet,
 		Collection<MammaCapaciteitBlokType> blokTypes)
 	{
-		return capaciteitsBlokDao.getNietGeblokkerdeCapaciteitsBlokDtos(standplaatsPeriode, vanaf, totEnMet, blokTypes);
+		return capaciteitsBlokDao.getNietGeblokkeerdeCapaciteitsBlokDtos(standplaatsPeriode, vanaf, totEnMet, blokTypes);
 	}
 
 	@Override

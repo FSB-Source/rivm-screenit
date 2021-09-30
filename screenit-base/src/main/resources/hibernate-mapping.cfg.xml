@@ -86,6 +86,8 @@
         <mapping class="nl.rivm.screenit.model.BezwaarMoment"/>
         <mapping class="nl.rivm.screenit.model.ScreenitPreferenceItem"/>
 
+        <mapping class="nl.rivm.screenit.model.messagequeue.Message"/>
+
         <mapping class="nl.rivm.screenit.model.logging.LogRegel"/>
         <mapping class="nl.rivm.screenit.model.logging.LogEvent"/>
         <mapping class="nl.rivm.screenit.model.logging.TechnischeBerichtenLogRegel"/>
@@ -249,9 +251,6 @@
         <mapping class="nl.rivm.screenit.model.dashboard.DashboardLogRegel"/>
 
         
-        <mapping class="nl.rivm.screenit.model.OpenIdAssociation"/>
-
-        
         <mapping class="nl.rivm.screenit.model.project.Project"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectClient"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectClientAttribuut"/>
@@ -300,6 +299,7 @@
         
         <mapping class="nl.rivm.screenit.model.mamma.MammaStandplaats"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaScreeningsEenheid"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaScreeningsEenheidStatus"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaCapaciteitBlok"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaPostcodeReeks"/>
@@ -367,6 +367,7 @@
         <mapping class="nl.rivm.screenit.model.mamma.MammaFollowUpVerslag"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaConclusieReview"/>
 
         <mapping class="nl.rivm.screenit.model.CentraleEenheid"/>
         <mapping class="nl.rivm.screenit.model.BeoordelingsEenheid"/>

@@ -124,6 +124,7 @@ public class MammaBaseBeoordelingReserveringServiceImpl implements MammaBaseBeoo
 		case VERSLAG_MAKER:
 			return Arrays.asList(MammaBeoordelingStatus.VERSLAG_MAKEN, MammaBeoordelingStatus.VERSLAG_GEREED, MammaBeoordelingStatus.VERSLAG_AFGEKEURD);
 		case FOTOBESPREKING_VISITATIE:
+		case CONCLUSIE_REVIEW:
 			return MammaBeoordelingStatus.eindStatussen();
 		default:
 			throw new IllegalArgumentException("Onbekende lezersoort: " + lezerSoort);

@@ -90,7 +90,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController("/" + PlanningRestConstants.C_UITNODIGEN)
+@RestController
+@RequestMapping("/" + PlanningRestConstants.C_UITNODIGEN)
 public class PlanningUitnodigenController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(PlanningUitnodigenController.class);

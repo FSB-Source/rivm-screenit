@@ -121,6 +121,10 @@ public class MedewerkerDaoImpl extends AbstractAutowiredDao implements Medewerke
 		{
 			criteria.add(Restrictions.eq("getActiefTotEnMet", zoekObject.getActiefTotEnMet()));
 		}
+		if (StringUtils.isNotBlank(zoekObject.getEmailextra()))
+		{
+			criteria.add(Restrictions.ilike("emailextra", zoekObject.getEmailextra(), MatchMode.EXACT));
+		}
 		if (CollectionUtils.isNotEmpty(zoekObject.getOrganisatieMedewerkers()))
 		{
 			Instelling organisatie = zoekObject.getOrganisatieMedewerkers().get(0).getOrganisatie();

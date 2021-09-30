@@ -130,6 +130,8 @@ public enum PreferenceKey
 
 	KANSBEREKENING_BK("Kansberekening BK", Enum.class),
 
+	KANSBEREKENING_BK_TEST_DEFAULT_OPKOMSTKANS("Opkomstkans voor testen indien BK kansberekening uit staat", Integer.class),
+
 	STARTDATUM_BMHK("Startdatum BMHK", Date.class),
 
 	UITSTEL_BIJ_ZWANGERSCHAP_CERVIX("Uitstel bij zwangerschap", Integer.class),
@@ -245,6 +247,10 @@ public enum PreferenceKey
 	MAMMA_FOLLOW_UP_PATHOLOGIE_WERKLIJST_NA_RADIOLOGIEVERSLAG("Op follow-up pathologie werklijst na radiologieverslag", Integer.class),
 
 	MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST("Tekst bij locatiewijziging afspraak", String.class),
+
+	MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST("Tekst bij bevestiging afspraak bevolkingsonderzoek borstkanker", String.class),
+
+	MAMMA_AFSPRAAK_BETREFT_WIJZIGING_TEKST("Tekst bij gewijzigde afspraak bevolkingsonderzoek borstkanker", String.class),
 
 	MAMMA_HERINNERINGS_PERIODE_GEEN_AFSPRAAK("Herinneringsperiode geen afspraak", Integer.class),
 
@@ -368,8 +374,6 @@ public enum PreferenceKey
 
 	ILM_BEWAARTERMIJN("Bewaartermijn", Integer.class),
 
-	ILM_BEWAARTERMIJN_BEELDEN_UITSLAG_GUNSTIG("Bewaartermijn beelden uitslag gunstig", Integer.class),
-
 	ILM_BEWAARTERMIJN_NIET_MEDISCH("Bewaartermijn niet medisch", Integer.class),
 
 	ILM_SIGNALEERTERMIJN_BEELDEN_STATUS("Signaleertermijn beelden status", Integer.class),
@@ -379,6 +383,10 @@ public enum PreferenceKey
 	MAMMA_SE_MAX_OFFLINE_INLOGPERIODE("SE offline inloggen", Integer.class),
 
 	MAMMA_SE_DAGLIJST_OPHALEN_DAGEN("SE daglijst ophalen dagen", Integer.class),
+
+	MAMMA_ANNOTEER_EERSTE_RONDE("Eerste ronde uitnodiging apart afdrukken", Boolean.class),
+
+	BMHK_LABEL_PRINTEN_ZONDER_PDF("BMHK label printen zonder PDF", Boolean.class),
 
 	;
 

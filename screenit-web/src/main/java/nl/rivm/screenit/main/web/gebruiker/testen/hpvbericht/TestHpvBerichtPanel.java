@@ -53,7 +53,6 @@ import ca.uhn.hl7v2.util.StringUtil;
 
 public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorWrapper>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
@@ -62,27 +61,26 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 	@SpringBean
 	private HpvSendingMessageService hpvSendingMessageService;
 
-	WebMarkupContainer uitslagenContainer = null;
+	WebMarkupContainer uitslagenContainer;
 
 	public TestHpvBerichtPanel(String id)
 	{
-		super(id, new CompoundPropertyModel<CervixHpvBerichtGeneratorWrapper>(new CervixHpvBerichtGeneratorWrapper()));
+		super(id, new CompoundPropertyModel<>(new CervixHpvBerichtGeneratorWrapper()));
 		CervixHpvBerichtGeneratorWrapper wrapper = getModelObject();
 		wrapper.getMonsterWrappers().add(new CervixHpvBerichtGeneratorMonsterWrapper());
 
-		Form<CervixHpvBerichtGeneratorWrapper> form = new Form<CervixHpvBerichtGeneratorWrapper>("form", getModel());
+		Form<CervixHpvBerichtGeneratorWrapper> form = new Form<>("form", getModel());
 		add(form);
 
 		ComponentHelper.addTextField(form, "messageId", true, 100, false);
 		ComponentHelper.addTextField(form, "instrumentId", true, 100, false);
 		ComponentHelper.addTextField(form, "labNaam", true, 100, false);
 
-		uitslagenContainer = getUitslagenContainer(wrapper);
+		uitslagenContainer = getUitslagenContainer();
 		form.add(uitslagenContainer);
 
 		form.add(new IndicatingAjaxSubmitLink("verstuurHl7Bericht", form)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -123,28 +121,28 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 			}
 		});
 
-		form.add(new IndicatingAjaxLink<CervixHpvBerichtGeneratorWrapper>("uitslagToevoegen")
+		form.add(new IndicatingAjaxSubmitLink("uitslagToevoegen", form)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void onClick(AjaxRequestTarget target)
+			protected void onSubmit(AjaxRequestTarget target)
 			{
+				super.onSubmit(target);
 				CervixHpvBerichtGeneratorMonsterWrapper monsterWrapper = new CervixHpvBerichtGeneratorMonsterWrapper();
-				TestHpvBerichtPanel.this.getModelObject().getMonsterWrappers().add(monsterWrapper);
+				getModelObject().getMonsterWrappers().add(monsterWrapper);
 				target.add(uitslagenContainer);
 			}
 		});
 	}
 
-	private WebMarkupContainer getUitslagenContainer(CervixHpvBerichtGeneratorWrapper wrapper)
+	private WebMarkupContainer getUitslagenContainer()
 	{
 		WebMarkupContainer container = new WebMarkupContainer("uitslagenContainer");
 		container.setOutputMarkupId(true);
 
-		PropertyListView<CervixHpvBerichtGeneratorMonsterWrapper> list = new PropertyListView<CervixHpvBerichtGeneratorMonsterWrapper>("monsterWrappers",
-			new PropertyModel<List<CervixHpvBerichtGeneratorMonsterWrapper>>(getModel(), "monsterWrappers"))
+		PropertyListView<CervixHpvBerichtGeneratorMonsterWrapper> list = new PropertyListView<>("monsterWrappers",
+			new PropertyModel<>(getModel(), "monsterWrappers"))
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -153,8 +151,8 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 			protected void populateItem(final ListItem<CervixHpvBerichtGeneratorMonsterWrapper> item)
 			{
 				item.add(ComponentHelper.addTextField(this, "barcode", true, 100, false));
-				ListModel<CervixHpvBerichtWaarde> uitslagen = new ListModel<CervixHpvBerichtWaarde>(Arrays.asList(CervixHpvBerichtWaarde.values()));
-				item.add(new DropDownChoice<CervixHpvBerichtWaarde>("uitslag", uitslagen, new EnumChoiceRenderer<CervixHpvBerichtWaarde>()));
+				ListModel<CervixHpvBerichtWaarde> uitslagen = new ListModel<>(Arrays.asList(CervixHpvBerichtWaarde.values()));
+				item.add(new DropDownChoice<>("uitslag", uitslagen, new EnumChoiceRenderer<>()));
 
 				item.add(ComponentHelper.monthYearDatePicker("autorisatieDatum").setRequired(true));
 				item.add(ComponentHelper.monthYearDatePicker("analyseDatum").setRequired(true));
@@ -170,10 +168,7 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 						CervixHpvBerichtGeneratorMonsterWrapper monsterWrapper = item.getModelObject();
 
 						List<CervixHpvBerichtGeneratorMonsterWrapper> wrappers = TestHpvBerichtPanel.this.getModelObject().getMonsterWrappers();
-						if (wrappers.contains(monsterWrapper))
-						{
-							wrappers.remove(monsterWrapper);
-						}
+						wrappers.remove(monsterWrapper);
 						target.add(uitslagenContainer);
 					}
 				});

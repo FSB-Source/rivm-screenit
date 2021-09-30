@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.dao.ClientDao;
+import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
@@ -47,7 +48,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
-import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
@@ -70,6 +71,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.ImmutableMap;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -97,7 +100,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	private DossierFactory dossierFactory;
 
 	@Autowired
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
 	@Autowired
 	private MammaBaseScreeningrondeService screeningrondeService;
@@ -110,6 +113,9 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 
 	@Autowired
 	private MammaBaseKansberekeningService baseKansberekeningService;
+
+	@Autowired
+	private MammaBaseHL7v24Dao baseHL7v24Dao;
 
 	@Override
 	public MammaDossier geefDossier(GbaPersoon gbaPersoon)
@@ -234,10 +240,15 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 		hibernateService.delete(dossier);
 		hibernateService.saveOrUpdate(client);
 
+		List<MammaBrief> overgeblevenBrieven = hibernateService.getByParameters(MammaBrief.class, ImmutableMap.of("client", client));
+		hibernateService.deleteAll(overgeblevenBrieven);
+
 		if (client.getMammaDossier() == null)
 		{
 			dossierFactory.maakDossiers(client);
 		}
+
+		baseHL7v24Dao.deleteMessagesForClient(client);
 
 		LOG.info("Client gereset met bsn: " + client.getPersoon().getBsn());
 	}
@@ -253,7 +264,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 			afmelding.setType(AfmeldingType.DEFINITIEF);
 			afmelding.setManier(ClientContactManier.DIRECT);
 			afmelding.setReden(afmeldingReden);
-			clientService.afmeldenZonderVervolg(client, afmelding, false, null);
+			baseAfmeldService.afmeldenZonderVervolg(client, afmelding, false, null);
 
 			aantalAfgemeld++;
 		}

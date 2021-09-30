@@ -1,6 +1,4 @@
-@import "compass/utilities";
-@import "compass/typography";
-@import "compass/css3";
+@charset "utf-8";
 @import "shared/plugins/reset";
 @import "shared/plugins/grid";
 @import "shared/globals/mixins";
@@ -512,6 +510,16 @@ textarea:disabled ~ i.icon-asterisk.icon-purple {
   .huidigeRondevisueleInspectieAfbeelding {
     img {
       margin-top: -80px;
+      margin-bottom: -60px;
+    }
+  }
+}
+
+.span6 {
+  .huidigeRondevisueleInspectieAfbeelding {
+    img {
+      margin-top: -60px;
+      margin-bottom: -45px;
     }
   }
 }
@@ -519,7 +527,22 @@ textarea:disabled ~ i.icon-asterisk.icon-purple {
 .span4 {
   .huidigeRondevisueleInspectieAfbeelding {
     img {
-      margin-top: 0;
+      margin-top: -40px;
+      margin-bottom: -30px;
     }
   }
+}
+
+.conclusie-gereviewd-filter {
+  display: flex;
+  margin-bottom: 5px;
+
+  input {
+    margin-right: 5px;
+  }
+}
+
+.fotobespreking-multiselect-label {
+  text-align: left;
+  min-height: initial;
 }

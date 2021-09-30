@@ -24,16 +24,12 @@ package nl.rivm.screenit.main.service.mamma;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
-import nl.rivm.screenit.dto.mamma.afspraken.MammaStandplaatsPeriodeMetAfstandDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 
 public interface MammaStandplaatsService
 {
@@ -52,11 +48,7 @@ public interface MammaStandplaatsService
 
 	String magStandplaatsInactiveren(MammaStandplaats standplaats);
 
-	List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter);
-
 	MammaStandplaats getStandplaatsMetPostcode(Client client);
-
-	MammaStandplaatsPeriode getEerstvolgendeStandplaatsPeriode(MammaStandplaats standplaats);
 
 	String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum);
 

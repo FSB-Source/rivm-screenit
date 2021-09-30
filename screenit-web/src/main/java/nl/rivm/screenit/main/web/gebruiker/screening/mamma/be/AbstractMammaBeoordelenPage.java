@@ -77,10 +77,10 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 	protected MammaBeoordelingService beoordelingService;
 
 	@SpringBean
-	private MammaBaseBeoordelingService baseBeoordelingService;
+	protected MammaBaseBeoordelingService baseBeoordelingService;
 
 	@SpringBean
-	private MammaImsService imsService;
+	protected MammaImsService imsService;
 
 	@SpringBean
 	private LogService logService;
@@ -173,6 +173,17 @@ public abstract class AbstractMammaBeoordelenPage extends AbstractMammaBePage
 	}
 
 	protected abstract void maakRondesContainer(IModel<MammaBeoordeling> beoordelingModel);
+
+	protected void addRondeHistorie(List<AbstractMammaRondePanel> rondePanels)
+	{
+		List<MammaBeoordeling> historischeBeoordelingen = beoordelingService.getVorigeTweeTeTonenBeoordelingen(beoordelingModel.getObject());
+		for (MammaBeoordeling beoordeling : historischeBeoordelingen)
+		{
+			MammaBeoordelenHistorischeRondePanel readOnlyRondePanel = new MammaBeoordelenHistorischeRondePanel("rondeItem", ModelUtil.sModel(beoordeling));
+			rondePanels.add(readOnlyRondePanel);
+		}
+		fillRondesInContainer(rondePanels);
+	}
 
 	protected void fillRondesInContainer(List<? extends AbstractBEAccordionPanel<?>> rondePanels)
 	{

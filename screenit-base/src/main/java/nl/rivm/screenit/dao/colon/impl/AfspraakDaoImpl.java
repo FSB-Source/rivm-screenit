@@ -255,7 +255,8 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		}
 		else if (AfspraakStatus.UITGEVOERD.equals(zoekFilter.getStatus()))
 		{
-			criteria.alias("colonScreeningRonde.ifobtTesten", "testen");
+			criteria.alias("colonScreeningRonde.ifobtTesten", "testen", JoinType.LEFT_OUTER_JOIN);
+			criteria.alias("colonScreeningRonde.openUitnodiging", "openUitnodiging", JoinType.LEFT_OUTER_JOIN);
 			criteria.add(
 				Restrictions.or(
 					Subqueries.propertyIn("colonScreeningRonde.id", verslagenCrit),
@@ -268,9 +269,10 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 				ScreenitRestrictions.getLeeftijdsgrensRestrictions(null, zoekFilter.getMaxLeeftijd(), vandaag),
 				Restrictions.not(
 					ColonRestrictions.critRondeZonderVerslagNaVerlopenOngunstigeUitslag(DateUtil.toUtilDate(vandaag.minusDays(zoekFilter.getInterval())), "testen", "colonScreeningRonde")
-				)
+				),
+				Restrictions.isNotNull("openUitnodiging.id")
 			));
-            criteria.add(Restrictions.isNull("nieuweAfspraak"));
+			criteria.add(Restrictions.isNull("nieuweAfspraak"));
 		}
 		else
 		{

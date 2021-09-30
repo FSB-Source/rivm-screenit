@@ -42,7 +42,7 @@ public interface MammaBaseDossierService
 
 	Stream<MammaScreeningRonde> laatste3AfgerondeRondesMetOnderzoek(MammaDossier dossier);
 
-	boolean isAfspraakMakenMogelijk(MammaDossier dossier, boolean viaClientportaal);
+	boolean isAfspraakMakenMogelijk(MammaDossier dossier, boolean viaClientportaal, boolean viaSe);
 
 	boolean isVerzettenMogelijk(MammaDossier dossier);
 
@@ -53,6 +53,8 @@ public interface MammaBaseDossierService
 	boolean isSuspect(MammaKansberekeningScreeningRondeContext kansberekeningScreeningRondeContext);
 
 	boolean isAfspraakForcerenMogelijk(MammaDossier dossier);
+
+	boolean isRondeForcerenMogelijk(MammaDossier dossier);
 
 	void verwijderMammaDossier(Client client);
 }

@@ -67,8 +67,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 public class SERealm extends AuthorizingRealm implements IScreenitRealm
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(ScreenitRealm.class);
+
+	private static final int YUBIKEY_SESSION_COUNTER_WRAP_AROUND_ALLOWED_RANGE = 100; 
+
+	private static final int YUBIKEY_MAX_SESSION_COUNTER_INCREASE = 500; 
 
 	@Autowired
 	private GebruikersService gebruikersService;
@@ -88,7 +91,8 @@ public class SERealm extends AuthorizingRealm implements IScreenitRealm
 
 	public void initRealm()
 	{
-		setCredentialsMatcher(new MultipleAuthenticationSourceCredentialsMatcher(hibernateService));
+		setCredentialsMatcher(new MultipleAuthenticationSourceCredentialsMatcher(
+			hibernateService, YUBIKEY_SESSION_COUNTER_WRAP_AROUND_ALLOWED_RANGE, YUBIKEY_MAX_SESSION_COUNTER_INCREASE));
 		setAuthenticationTokenClass(AuthenticationToken.class);
 		AccountResolver.registerDelegate(new SEAccountResolverDelegate());
 	}

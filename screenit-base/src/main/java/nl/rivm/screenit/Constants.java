@@ -56,6 +56,8 @@ public class Constants
 
 	public static final String DEFAULT_DATE_TIME_FORMAT = "dd-MM-yyyy HH:mm";
 
+	public static final String DEFAULT_TIME_FORMAT = "HH:mm";
+
 	public static final String DATE_FORMAT_YYYYMMDDHHMMSS = "yyyyMMddHHmmss";
 
 	public static final String DATE_FORMAT_YYYYMMDDHHMM = "yyyyMMddHHmm";
@@ -106,7 +108,7 @@ public class Constants
 
 	private static final ThreadLocalDateFormat DATE_FORMAT = new ThreadLocalDateFormat(DEFAULT_DATE_FORMAT);
 
-	private static final ThreadLocalDateFormat TIME_FORMAT = new ThreadLocalDateFormat("HH:mm");
+	private static final ThreadLocalDateFormat TIME_FORMAT = new ThreadLocalDateFormat(DEFAULT_TIME_FORMAT);
 
 	private static final ThreadLocalDateFormat DATE_TIME_FORMAT = new ThreadLocalDateFormat(DEFAULT_DATE_TIME_FORMAT);
 
@@ -126,6 +128,8 @@ public class Constants
 
 	public static final BigDecimal BK_TIJDVAK_SEC = new BigDecimal(BK_TIJDVAK_MIN * 60);
 
+	public static final int BK_GELDIGHEID_RONDE_MAANDEN = 24;
+
 	public static final int DEELNAMEKANSBEREKENING_NA_WEKEN = 15;
 
 	public static final String EXCEPTION_GEBRUIKERMELDING_MARKER = "GEBRUIKERMELDING";
@@ -140,6 +144,8 @@ public class Constants
 
 	public static final String BASE_SUBDOMEIN_MEDEWERKERPORTAAL = "applicatie";
 
+	public static final String XML_FAULT_PREFIX = "Screenit: ";
+
 	private static Map<Boolean, String> booleanWeergave;
 
 	public static final BigDecimal BK_MAXIMALE_TUMOR_GROOTTE = BigDecimal.valueOf(99.9);
@@ -151,6 +157,8 @@ public class Constants
 	public static final String HTTP_HEADER_SSL_CLIENT_CERT = "SSL_CLIENT_CERT";
 
 	public static final String BK_TNUMMER_ELEKTRONISCH = "T8888888";
+
+	public static final String RONDE_AFROND_REDEN_BUITEN_DOELGROEP = "Cli\u00EBnt behoort niet meer tot de doelgroep";
 
 	private Constants()
 	{

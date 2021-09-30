@@ -216,7 +216,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void deleteFotobesprekingOnderzoek(MammaFotobesprekingOnderzoek fotobesprekingOnderzoek)
+	public void deleteBesprokenFotobesprekingOnderzoek(MammaFotobesprekingOnderzoek fotobesprekingOnderzoek)
 	{
 		if (fotobesprekingOnderzoek.getStatus() == MammaFotobesprekingOnderzoekStatus.NIET_BESPROKEN)
 		{
@@ -229,6 +229,13 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 		{
 			throw new IllegalStateException("Onderzoek is al besproken");
 		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void deleteFotobespreking(MammaFotobespreking fotobespreking)
+	{
+		hibernateService.delete(fotobespreking);
 	}
 
 	@Override

@@ -1,7 +1,6 @@
-@import "compass/utilities";
-@import "compass/typography";
-@import "compass/css3";
+@charset "utf-8";
 @import "globals/base";
+@import "../shared/globals/mixins";
 
 .canvas.topnav-home,
 .canvas.topnav {
@@ -64,5 +63,6 @@
 
 .select2-drop-mask {
   @include opacity(0);
+
   background-color: black;
 }

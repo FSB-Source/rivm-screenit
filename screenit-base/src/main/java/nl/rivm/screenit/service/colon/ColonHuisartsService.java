@@ -24,13 +24,12 @@ package nl.rivm.screenit.service.colon;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 
 public interface ColonHuisartsService
 {
 
-	boolean koppelHuisarts(EnovationHuisarts huisarts, OnbekendeHuisarts onbekendeHuisarts, ColonScreeningRonde ronde, Account account);
+	boolean koppelHuisarts(EnovationHuisarts huisarts, ColonScreeningRonde ronde, Account account);
 
 	boolean ontkoppelHuisarts(ColonScreeningRonde screeningRonde, Account account);
 

@@ -189,6 +189,40 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
+	public void verwijderUploadVerzoeken(MammaScreeningRonde ronde)
+	{
+		List<MammaUploadBeeldenVerzoek> verzoeken = ronde.getUploadBeeldenVerzoeken();
+		for (MammaUploadBeeldenVerzoek verzoek : verzoeken)
+		{
+			for (MammaUploadBeeldenPoging uploadPoging : verzoek.getUploadPogingen())
+			{
+				verwijderBeeldenUploadPoging(uploadPoging);
+			}
+			hibernateService.delete(verzoek);
+		}
+		ronde.getUploadBeeldenVerzoeken().clear();
+	}
+
+	private void verwijderBeeldenUploadPoging(MammaUploadBeeldenPoging uploadBeeldenPoging)
+	{
+		for (UploadDocument bestand : uploadBeeldenPoging.getBestanden())
+		{
+			fileService.delete(bestand, true);
+		}
+		uploadBeeldenPoging.getBestanden().clear();
+		if (MammaMammografieIlmStatus.beeldenMogelijkAanwezig(uploadBeeldenPoging.getIlmStatus()))
+		{
+			berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.GOINGTODELETE,
+				MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
+			berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.DELETE,
+				MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
+			uploadBeeldenPoging.setIlmStatus(MammaMammografieIlmStatus.TE_VERWIJDEREN);
+			uploadBeeldenPoging.setIlmStatusDatum(dateSupplier.getDate());
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void verwijderBeelden(MammaUploadBeeldenPoging uploadBeeldenPoging)
 	{
 		MammaUploadBeeldenVerzoek uploadBeeldenVerzoek = uploadBeeldenPoging.getUploadBeeldenVerzoek();

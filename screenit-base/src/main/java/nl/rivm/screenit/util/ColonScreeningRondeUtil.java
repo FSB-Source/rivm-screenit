@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -141,4 +143,14 @@ public class ColonScreeningRondeUtil
 		return true;
 	}
 
+	public static boolean isLaatsteScreeningRondeNietVerlopen(ColonScreeningRonde laatsteScreeningRonde)
+	{
+		return laatsteScreeningRonde != null && !(ScreeningRondeStatus.AFGEROND.equals(laatsteScreeningRonde.getStatus())
+			&& Constants.RONDE_AFROND_REDEN_BUITEN_DOELGROEP.equals(laatsteScreeningRonde.getAfgerondReden()));
+	}
+
+	public static boolean isLaatsteScreeningRondGeldigEnAangemeld(ColonScreeningRonde laatsteScreeningRonde)
+	{
+		return isLaatsteScreeningRondeNietVerlopen(laatsteScreeningRonde) && Boolean.TRUE.equals(laatsteScreeningRonde.getAangemeld());
+	}
 }

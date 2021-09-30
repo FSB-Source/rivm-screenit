@@ -21,19 +21,16 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
-import java.rmi.NoSuchObjectException;
 import java.util.List;
 
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
-import nl.rivm.screenit.model.colon.ColonDossier;
 
 public class AfmeldingUtil
 {
@@ -68,24 +65,6 @@ public class AfmeldingUtil
 	public static boolean isActieveEenmaligeAfmelding(Afmelding afmelding)
 	{
 		return afmelding != null && afmelding.getHeraanmeldDatum() == null && afmelding.getHeraanmeldStatus() == null && afmelding.getType() == AfmeldingType.EENMALIG;
-	}
-
-	public static ColonAfmelding getOpEenNaLaatsteAfmeldingVanType(ColonDossier dossier, ColonAfmelding withoutAfmelding)
-	{
-		AfmeldingType type = null;
-		if (withoutAfmelding != null)
-		{
-			type = withoutAfmelding.getType();
-		}
-		if (AfmeldingType.DEFINITIEF.equals(type))
-		{
-			return getOpEenNaLaatsteAfmelding(dossier.getAfmeldingen(), withoutAfmelding);
-		}
-		else if (AfmeldingType.EENMALIG.equals(type) && dossier.getLaatsteScreeningRonde() != null)
-		{
-			return getOpEenNaLaatsteAfmelding(dossier.getLaatsteScreeningRonde().getAfmeldingen(), withoutAfmelding);
-		}
-		return null;
 	}
 
 	public static ColonAfmelding getOpEenNaLaatsteAfmelding(List<ColonAfmelding> afmeldingen, ColonAfmelding withoutAfmelding)

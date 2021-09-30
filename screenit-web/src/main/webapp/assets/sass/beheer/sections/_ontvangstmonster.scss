@@ -1,3 +1,4 @@
+@charset "utf-8";
 .vervolgstap-reeds-ingeboekt {
   border-color: rgb(25, 52, 174) !important;
   background: rgb(239, 243, 255);
@@ -58,5 +59,16 @@
 
   .vervolgstap {
     color: rgb(34, 156, 156);
+  }
+}
+
+.printen-via-pdf-container {
+  hr {
+    margin: 5px 0;
+  }
+  
+  label {
+    width: 220px;
+    display: inline-block;
   }
 }

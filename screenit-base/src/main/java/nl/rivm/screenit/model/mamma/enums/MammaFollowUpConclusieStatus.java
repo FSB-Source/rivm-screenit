@@ -21,7 +21,9 @@ package nl.rivm.screenit.model.mamma.enums;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.List;
 
 public enum MammaFollowUpConclusieStatus
 {
@@ -41,5 +43,10 @@ public enum MammaFollowUpConclusieStatus
 	public static boolean sluitSuspectUit(MammaFollowUpConclusieStatus status)
 	{
 		return SLUIT_SUSPECT_UIT.contains(status);
+	}
+
+	public static List<MammaFollowUpConclusieStatus> conclusieReviewStatussen()
+	{
+		return Arrays.asList(FALSE_NEGATIVE, FALSE_POSITIVE, TRUE_POSITIVE);
 	}
 }

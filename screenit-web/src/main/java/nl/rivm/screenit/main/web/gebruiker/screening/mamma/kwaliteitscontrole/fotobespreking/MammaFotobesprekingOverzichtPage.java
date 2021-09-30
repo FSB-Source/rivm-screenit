@@ -29,9 +29,11 @@ import nl.rivm.screenit.main.model.mamma.beoordeling.MammaFotobesprekingOnderzoe
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaFotobesprekingWerklijstZoekObject;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
+import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
 import nl.rivm.screenit.main.web.component.table.AjaxLinkTableCellPanel;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.GebruikerColumn;
+import nl.rivm.screenit.main.web.component.table.NotClickableAbstractColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -159,6 +161,11 @@ public class MammaFotobesprekingOverzichtPage extends MammaFotobesprekingBasePag
 				}
 			});
 		}
+		if (!ScreenitSession.get().getInstelling().getOrganisatieType().equals(OrganisatieType.BEOORDELINGSEENHEID)
+			&& ScreenitSession.get().checkPermission(Recht.GEBRUIKER_FOTOBESPREKING, Actie.VERWIJDEREN))
+		{
+			columns.add(getFotobesprekingVerwijderenColumn());
+		}
 		MammaFotobesprekingProvider dataProvider = new MammaFotobesprekingProvider(zoekModel);
 		overzicht = new ScreenitDataTable<MammaFotobespreking, String>("werklijst", columns, dataProvider,
 			Model.of("fotobespreking(en)"))
@@ -177,6 +184,35 @@ public class MammaFotobesprekingOverzichtPage extends MammaFotobesprekingBasePag
 		overzicht.setOutputMarkupId(true);
 		add(overzicht);
 
+	}
+
+	private IColumn<MammaFotobespreking, String> getFotobesprekingVerwijderenColumn()
+	{
+		return new NotClickableAbstractColumn<MammaFotobespreking, String>(Model.of(""))
+		{
+			@Override
+			public void populateItem(Item<ICellPopulator<MammaFotobespreking>> cellItem, String componentId, IModel<MammaFotobespreking> rowModel)
+			{
+				cellItem.add(new AjaxImageCellPanel<MammaFotobespreking>(componentId, rowModel, "icon-trash")
+				{
+
+					@Override
+					protected void onClick(AjaxRequestTarget target)
+					{
+						MammaFotobespreking fotobespreking = getModelObject();
+						dialog.openWith(target, new MammaFotobesprekingVerwijderenPopupPanel(BootstrapDialog.CONTENT_ID, ModelUtil.csModel(fotobespreking))
+						{
+							@Override
+							protected void onOpslaanSuccesvol(AjaxRequestTarget target)
+							{
+								dialog.close(target);
+								target.add(overzicht);
+							}
+						});
+					}
+				});
+			}
+		};
 	}
 
 	private void openEditPopupPanel(AjaxRequestTarget target, IModel<MammaFotobespreking> model)

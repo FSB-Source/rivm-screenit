@@ -27,10 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,14 +36,10 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
-import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
-import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
-import nl.rivm.screenit.dto.mamma.afspraken.MammaStandplaatsPeriodeMetAfstandDto;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -56,7 +50,6 @@ import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.BaseBriefService;
@@ -375,45 +368,6 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<MammaStandplaatsPeriodeMetAfstandDto> getStandplaatsPeriodeMetAfstandDtos(Client client, IMammaAfspraakWijzigenFilter filter)
-	{
-		List<MammaStandplaatsPeriodeMetAfstandDto> standplaatsPeriodeMetAfstandDtos = new ArrayList<>();
-
-		if (filter.getTotEnMet() != null)
-		{
-			Map<Long, Double> afstandenPerStandplaats = new HashMap<>();
-			List<MammaStandplaatsPeriode> standplaatsPerioden = standplaatsDao.getStandplaatsPerioden(filter);
-			for (MammaStandplaatsPeriode standplaatsPeriode : standplaatsPerioden)
-			{
-				Long standplaatsId = standplaatsPeriode.getStandplaatsRonde().getStandplaats().getId();
-				Double afstand = afstandenPerStandplaats.get(standplaatsId);
-				if (!afstandenPerStandplaats.containsKey(standplaatsId))
-				{
-					afstand = bepaalAfstand(standplaatsPeriode.getStandplaatsRonde().getStandplaats(), filter.getClient());
-					if (afstand != null)
-					{
-						if (filter.getAfstand() != null && afstand > filter.getAfstand())
-						{
-							afstand = null;
-						}
-					}
-					else
-					{
-						afstand = MammaKandidaatAfspraakDto.ONBEKENDE_AFSTAND;
-					}
-					afstandenPerStandplaats.put(standplaatsId, afstand);
-				}
-				if (afstand != null)
-				{
-					standplaatsPeriodeMetAfstandDtos.add(new MammaStandplaatsPeriodeMetAfstandDto(standplaatsPeriode.getId(), afstand));
-				}
-			}
-		}
-		return standplaatsPeriodeMetAfstandDtos;
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaats getStandplaatsMetPostcode(Client client)
 	{
 		String postcode = SpringBeanProvider.getInstance().getBean(ClientService.class).getGbaPostcode(client);
@@ -422,29 +376,6 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 			return standplaatsDao.getStandplaatsMetPostcode(postcode);
 		}
 		return null;
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public MammaStandplaatsPeriode getEerstvolgendeStandplaatsPeriode(MammaStandplaats standplaats)
-	{
-		Date vandaag = dateSupplier.getDateMidnight();
-		MammaStandplaatsPeriode eerstVolgendeStandplaatsPeriode = null;
-		if (standplaats != null)
-		{
-			for (MammaStandplaatsRonde ronde : standplaats.getStandplaatsRonden())
-			{
-				for (MammaStandplaatsPeriode periode : ronde.getStandplaatsPerioden())
-				{
-					if (!periode.getTotEnMet().before(vandaag)
-						&& (eerstVolgendeStandplaatsPeriode == null || eerstVolgendeStandplaatsPeriode.getVanaf().after(periode.getVanaf())))
-					{
-						eerstVolgendeStandplaatsPeriode = periode;
-					}
-				}
-			}
-		}
-		return eerstVolgendeStandplaatsPeriode;
 	}
 
 	@Override

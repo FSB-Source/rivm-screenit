@@ -24,6 +24,7 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
 import java.time.LocalDate;
 import java.util.Date;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -42,9 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class MammaVerlopenRondesReader extends BaseScrollableResultReader
 {
-
-	private static final int MAX_LENGTE_RONDE = 24;
-
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -57,7 +55,7 @@ public class MammaVerlopenRondesReader extends BaseScrollableResultReader
 		LocalDate currentDate = currentDateSupplier.getLocalDate();
 
 		Date maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name())));
-		Date maxLengteRonde = DateUtil.toUtilDate(currentDate.minusMonths(MAX_LENGTE_RONDE));
+		Date maxLengteRonde = DateUtil.toUtilDate(currentDate.minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN));
 
 		Criteria criteria = session.createCriteria(MammaScreeningRonde.class, "ronde");
 		criteria.createAlias("ronde.dossier", "dossier");

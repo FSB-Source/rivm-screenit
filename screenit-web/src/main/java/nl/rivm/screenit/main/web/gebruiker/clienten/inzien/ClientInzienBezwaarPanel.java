@@ -44,7 +44,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -56,16 +55,14 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private BootstrapDialog dialog;
-
 	@SpringBean
 	private DossierService dossierService;
+
+	private final BootstrapDialog dialog;
 
 	private WebMarkupContainer meldingingenContainer;
 
@@ -77,9 +74,14 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 		Client client = model.getObject(); 
 
 		this.dialog = dialog;
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		addOrReplaceMeldingContainer();
 		addOrReplaceActueleBezwarenContainer();
-
 	}
 
 	private WebMarkupContainer addOrReplaceActueleBezwarenContainer()
@@ -116,7 +118,7 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 		container.setOutputMarkupPlaceholderTag(true);
 
 		Client client = getModelObject();
-		ArrayList<BezwaarDossierGebeurtenis> listMeldingen = new ArrayList<BezwaarDossierGebeurtenis>();
+		ArrayList<BezwaarDossierGebeurtenis> listMeldingen = new ArrayList<>();
 
 		for (BezwaarMoment bezwaar : client.getBezwaarMomenten())
 		{
@@ -127,11 +129,8 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 			listMeldingen.add(c);
 		}
 
-		container.add(new ListView<BezwaarDossierGebeurtenis>("meldingen", listMeldingen)
+		container.add(new ListView<>("meldingen", listMeldingen)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<BezwaarDossierGebeurtenis> item)
 			{
@@ -143,9 +142,6 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 
 				meldingContainer.add(new AjaxEventBehavior("click")
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void onEvent(AjaxRequestTarget target)
 					{
@@ -168,8 +164,6 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 						{
 							dialog.openWith(target, new UploadBezwaarformulierPopupPanel(IDialog.CONTENT_ID, clientMelding.getBezwaarModel(), ClientInzienBezwaarPanel.this, dialog)
 							{
-
-								private static final long serialVersionUID = 1L;
 
 								@Override
 								public void close(AjaxRequestTarget target)
@@ -222,7 +216,7 @@ public class ClientInzienBezwaarPanel extends GenericPanel<Client>
 		}
 		else if (AanvraagBriefStatus.VERWERKT == bezwaar.getStatus() && bezwaar.getBezwaarBrief() != null)
 		{
-			omschrijving.append(" (" + getString("label.formulier.getekendbezwaar") + ")");
+			omschrijving.append(" (").append(getString("label.formulier.getekendbezwaar")).append(")");
 		}
 		return omschrijving.toString();
 	}

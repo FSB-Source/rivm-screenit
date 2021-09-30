@@ -44,8 +44,8 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
+import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -186,6 +186,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 	private Criteria getLabVerrichtingenCriteria(CervixVerrichtingenZoekObject verrichtingenCriteria, ScreeningOrganisatie screeningOrganisatie, BMHKLaboratorium bmhkLaboratorium)
 	{
 		Criteria criteria = getBaseVerrichtingenCriteria(verrichtingenCriteria, screeningOrganisatie);
+		criteria.createAlias("tarief", "tarief");
 		criteria.createAlias("tarief.bmhkLaboratorium", "bmhkLaboratorium");
 
 		criteria.add(Restrictions.eq("tarief.bmhkLaboratorium", bmhkLaboratorium));
@@ -212,7 +213,6 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 		criteria.createAlias("specificatie", "specificatie", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("specificatie.betaalopdrachtRegel", "betaalopdrachtRegel", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("betaalopdrachtRegel.betaalopdracht", "betaalopdracht", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("tarief", "tarief");
 		criteria.createAlias("verrichting.regio", "regio");
 
 		if (screeningOrganisatie != null)
@@ -550,6 +550,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 		CervixHuisartsLocatie huisartsLocatie)
 	{
 		Criteria criteria = getHuisartsVerrichtingenCriteria(verrichtingenCriteria, screeningOrganisatie, huisarts, huisartsLocatie);
+		criteria.createAlias("tarief", "tarief");
 		criteria.setProjection(Projections.sum("tarief.tarief"));
 		return (BigDecimal) criteria.uniqueResult();
 	}
@@ -566,6 +567,7 @@ public class CervixVerrichtingDaoImpl extends AbstractAutowiredDao implements Ce
 			criteria.add(Restrictions.lt("verrichtingsDatum", DateUtil.toUtilDate(DateUtil.toLocalDate(nieuweTarief.getGeldigTotenmetDatum()).plusDays(1))));
 		}
 		criteria.add(Restrictions.eq("type", tariefType));
+		criteria.setMaxResults(Integer.getInteger("BMHK_VERRICHTINGEN_HERINDEXEREN_CHUNK_SIZE", 500));
 		return criteria.list();
 	}
 

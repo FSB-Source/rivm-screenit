@@ -40,6 +40,12 @@ public class MammaFollowUpPathologieVerslagInzienPanel extends GenericPanel<Mamm
 	public MammaFollowUpPathologieVerslagInzienPanel(String id, IModel<MammaFollowUpVerslag> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		add(DateLabel.forDatePattern("verslagContent.pathologieMedischeObservatie.datumOntvangstMateriaal", Constants.DEFAULT_DATE_FORMAT));
 		add(new Label("verslagContent.pathologieMedischeObservatie.tnummerLaboratorium"));
 		add(DateLabel.forDatePattern("verslagContent.pathologieMedischeObservatie.datumAutorisatieUitslag", Constants.DEFAULT_DATE_FORMAT));
@@ -48,7 +54,7 @@ public class MammaFollowUpPathologieVerslagInzienPanel extends GenericPanel<Mamm
 
 		add(DateLabel.forDatePattern("verslagContent.verrichting.eindeVerrichting", Constants.DEFAULT_DATE_FORMAT));
 
-		ListView<MammaFollowUpFollowupPa> followUpPa = new ListView<MammaFollowUpFollowupPa>("verslagContent.followupPa")
+		ListView<MammaFollowUpFollowupPa> followUpPa = new ListView<>("verslagContent.followupPa")
 		{
 			@Override
 			protected void populateItem(ListItem<MammaFollowUpFollowupPa> followUpPaListItem)

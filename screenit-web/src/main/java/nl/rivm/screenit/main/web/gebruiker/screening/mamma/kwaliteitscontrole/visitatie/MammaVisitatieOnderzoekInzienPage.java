@@ -32,7 +32,6 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaClientPaspoortPa
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaScreeningBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaRondePanel;
-import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeoordelenHistorischeRondePanel;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaVisitatieOnderzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
@@ -76,13 +75,7 @@ public class MammaVisitatieOnderzoekInzienPage extends AbstractMammaBeoordelenPa
 			ModelUtil.sModel(visitatieOnderzoek));
 		rondePanels.add(huidigeRondePanel);
 
-		List<MammaBeoordeling> historischeBeoordelingen = beoordelingService.getVorigeTweeTeTonenBeoordelingen(beoordelingModel.getObject());
-		for (MammaBeoordeling beoordeling : historischeBeoordelingen)
-		{
-			MammaBeoordelenHistorischeRondePanel readOnlyRondePanel = new MammaBeoordelenHistorischeRondePanel("rondeItem", ModelUtil.sModel(beoordeling));
-			rondePanels.add(readOnlyRondePanel);
-		}
-		fillRondesInContainer(rondePanels);
+		addRondeHistorie(rondePanels);
 	}
 
 	@Override

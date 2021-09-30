@@ -22,13 +22,18 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.io.File;
+import java.util.Comparator;
 
 import nl.rivm.screenit.model.BriefDefinitie;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.MammaBrief;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaGeenBeoordelingMogelijkBriefCreator;
@@ -55,7 +60,12 @@ public class MammaGeenBeoordelingMogelijkBriefServiceImpl implements MammaGeenBe
 	private AsposeService asposeService;
 
 	@Autowired
+	private ClientService clientService;
+
+	@Autowired
 	private MammaBaseBeoordelingService beoordelingService;
+
+	private final BriefType briefType = BriefType.MAMMA_GEEN_BEOORDELING_MOGELIJK;
 
 	@Override
 	public File maakFileVoorPdfViewer(MammaBeoordeling beoordeling) throws Exception
@@ -77,14 +87,21 @@ public class MammaGeenBeoordelingMogelijkBriefServiceImpl implements MammaGeenBe
 	{
 		MailMergeContext context = new MailMergeContext();
 
-		context.setClient(beoordelingService.getClientVanBeoordeling(beoordeling));
+		Client client = beoordelingService.getClientVanBeoordeling(beoordeling);
+		context.setClient(client);
+		MammaScreeningRonde screeningRonde = beoordelingService.getScreeningRonde(beoordeling);
+		MammaBrief brief = screeningRonde.getBrieven().stream()
+			.filter(mammaBrief -> briefType.equals(mammaBrief.getBriefType()))
+			.max(Comparator.comparing(MammaBrief::getCreatieDatum))
+			.orElseThrow(() -> new IllegalStateException("Geen brief gevonden van type MAMMA_GEEN_BEOORDELING_MOGELIJK"));
+		context.setBrief(brief);
+		context.putValue(MailMergeContext.CONTEXT_MAMMA_CE, clientService.bepaalCe(client));
 
 		return context;
 	}
 
 	private File haalBriefTemplateOp()
 	{
-		BriefType briefType = BriefType.MAMMA_GEEN_BEOORDELING_MOGELIJK;
 		BriefDefinitie definitie = briefService.getNieuwsteBriefDefinitie(briefType);
 
 		return fileService.load(definitie.getDocument());

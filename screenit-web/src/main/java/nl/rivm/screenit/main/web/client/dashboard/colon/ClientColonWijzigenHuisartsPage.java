@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.client.dashboard.colon;
 
 /*-
@@ -90,8 +89,7 @@ public class ClientColonWijzigenHuisartsPage extends ClientBasePage
 	private ColonScreeningRonde getLaatsteRonde()
 	{
 		Client client = getIngelogdeClient();
-		ColonScreeningRonde ronde = client.getColonDossier().getLaatsteScreeningRonde();
-		return ronde;
+		return client.getColonDossier().getLaatsteScreeningRonde();
 	}
 
 	private void toonZoeken(WebMarkupContainer huisartsContainer, ColonScreeningRonde laatsteRonde, boolean toonDirectZoekresultaten)
@@ -177,7 +175,7 @@ public class ClientColonWijzigenHuisartsPage extends ClientBasePage
 	{
 		ColonScreeningRonde ronde = getLaatsteRonde();
 		ronde.setColonHuisarts(huisarts);
-		huisartsService.koppelHuisarts(huisarts, null, ronde, getIngelogdeClient());
+		huisartsService.koppelHuisarts(huisarts, ronde, getIngelogdeClient());
 		onStop(target);
 	}
 

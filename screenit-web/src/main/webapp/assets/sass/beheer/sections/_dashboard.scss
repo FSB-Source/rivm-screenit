@@ -1,3 +1,4 @@
+@charset "utf-8";
 @include keyframes(blink) {
   0% {
     background-color: rgba(255, 0, 0, 1);
@@ -46,7 +47,7 @@
 
 .table-striped tbody > tr:nth-child(even) {
   &.log-error td {
-    color: #b94a48;
+    color: $colorError;
     background-color: tint(#f2dede, 50);
   }
 
@@ -61,7 +62,7 @@
 
 .table-striped tbody > tr:nth-child(odd) {
   &.log-error td {
-    color: #b94a48;
+    color: $colorError;
     background-color: tint(#f2dede, 30);
   }
 

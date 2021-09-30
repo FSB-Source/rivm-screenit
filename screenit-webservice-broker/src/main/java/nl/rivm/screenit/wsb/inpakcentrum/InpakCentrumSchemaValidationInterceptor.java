@@ -32,6 +32,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.ws.inpakcentrum.KoppelData;
 
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -53,7 +54,7 @@ public class InpakCentrumSchemaValidationInterceptor extends AbstractSoapInterce
 
 	public InpakCentrumSchemaValidationInterceptor()
 	{
-		super(Phase.POST_LOGICAL);
+		super(Phase.INVOKE);
 	}
 
 	@Override
@@ -69,7 +70,7 @@ public class InpakCentrumSchemaValidationInterceptor extends AbstractSoapInterce
 		catch (SAXException e)
 		{
 			LOG.error("Error loading schema", e);
-			throw new XMLFault("Schema file for validation not found");
+			throw new XMLFault(Constants.XML_FAULT_PREFIX + "Schema file for validation not found");
 		}
 		Validator validator = schema.newValidator();
 		String xml = null;
@@ -92,7 +93,7 @@ public class InpakCentrumSchemaValidationInterceptor extends AbstractSoapInterce
 			if (xml == null)
 			{
 				LOG.error("Schema validation failed: kan geen XML document in SOAP vinden.");
-				throw new XMLFault("Schema validation failed: kan geen XML document in SOAP vinden.");
+				throw new XMLFault(Constants.XML_FAULT_PREFIX + "Schema validation failed: kan geen XML document in SOAP vinden.");
 			}
 
 			validator.validate(new StreamSource(new StringReader(xml)));
@@ -100,12 +101,12 @@ public class InpakCentrumSchemaValidationInterceptor extends AbstractSoapInterce
 		catch (SAXParseException e)
 		{
 			LOG.error("Schema validation failed", e);
-			throw new XMLFault("Schema validation failed " + e.getMessage());
+			throw new XMLFault(Constants.XML_FAULT_PREFIX + "Schema validation failed " + e.getMessage());
 		}
 		catch (SAXException | IOException e)
 		{
 			LOG.error("Schema validation failed", e);
-			throw new XMLFault("Schema validation failed");
+			throw new XMLFault(Constants.XML_FAULT_PREFIX + "Schema validation failed");
 		}
 	}
 

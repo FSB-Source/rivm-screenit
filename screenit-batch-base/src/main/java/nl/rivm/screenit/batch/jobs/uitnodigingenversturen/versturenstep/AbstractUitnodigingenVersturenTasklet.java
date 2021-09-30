@@ -149,7 +149,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 	@Autowired
 	private AsposeService asposeService;
 
-	private ConcurrentLinkedQueue<UploadDocument> minigripBrieven;
+	private ConcurrentLinkedQueue<UploadDocument> inpakcentrumBrieven;
 
 	private ConcurrentLinkedQueue<Long> gegenereerdeuitnodigingIds;
 
@@ -199,7 +199,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		if (uitnodigingIds.size() > 0)
 		{
 			gegenereerdeuitnodigingIds = new ConcurrentLinkedQueue<>();
-			minigripBrieven = new ConcurrentLinkedQueue<>();
+			inpakcentrumBrieven = new ConcurrentLinkedQueue<>();
 			volgnummer = new AtomicInteger(0);
 			mergedata = new MERGEDATA();
 			bvoAfkorting = getBvoAfkorting();
@@ -298,15 +298,15 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			List<String> emailadressen = new ArrayList<>();
 			for (Instelling inpakcentrum : inpakcentra)
 			{
-				if (StringUtils.containsIgnoreCase(inpakcentrum.getNaam(), "minigrip") && StringUtils.isNotBlank(inpakcentrum.getEmail()))
+				if (StringUtils.isNotBlank(inpakcentrum.getEmail()))
 				{
 					emailadressen.add(inpakcentrum.getEmail());
 				}
 			}
 			emailadressen.addAll(getEmails(preferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name())));
 
-			message.insert(0, "Na " + NR_OF_TRIES + " pogingen in het afgelopen uur is de MiniGrip WSDL " + url + " niet bereikbaar geweest. ");
-			mailService.sendEmail(emailadressen.toArray(new String[] {}), "MiniGrip WSDL niet bereikbaar", message.toString(), MailPriority.HIGH);
+			message.insert(0, "Na " + NR_OF_TRIES + " pogingen in het afgelopen uur is de Inpakcentrum WSDL " + url + " niet bereikbaar geweest. ");
+			mailService.sendEmail(emailadressen.toArray(new String[] {}), "Inpakcentrum WSDL niet bereikbaar", message.toString(), MailPriority.HIGH);
 			throw new IllegalStateException(message.toString());
 		}
 	}
@@ -329,9 +329,9 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			if (geenUitzonderingGevonden(uitnodiging))
 			{
 				LOG.trace("Geneer uitnodiging voor uitnodigingId: " + uitnodigingId);
-				UITNODIGING minigripUitnodiging = new UITNODIGING();
-				minigripUitnodiging.setID(uitnodiging.getUitnodigingsId());
-				minigripUitnodiging.setMERGEFIELDS(new MERGEFIELDS());
+				UITNODIGING inpakcentrumUitnodiging = new UITNODIGING();
+				inpakcentrumUitnodiging.setID(uitnodiging.getUitnodigingsId());
+				inpakcentrumUitnodiging.setMERGEFIELDS(new MERGEFIELDS());
 
 				BriefDefinitie briefDefinitie = getBriefDefinitie(uitnodiging);
 				nl.rivm.screenit.model.Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
@@ -340,15 +340,15 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				File briefTemplate;
 				if (briefActie != null)
 				{
-					String minigripTemplateNaam = maakMinigripTemplateNaam(briefActie);
-					minigripUitnodiging.setTEMPLATE(minigripTemplateNaam);
+					String inpakcentrumTemplateNaam = maakInpakcentrumTemplateNaam(briefActie);
+					inpakcentrumUitnodiging.setTEMPLATE(inpakcentrumTemplateNaam);
 					uitnodiging.setTemplateNaam(briefActie.getProject().getNaam() + ": " + briefActie.getDocument().getNaam());
 					briefTemplate = fileService.load(briefActie.getDocument());
 				}
 				else
 				{
-					String minigripTemplateNaam = maakMinigripTemplateNaam(briefDefinitie);
-					minigripUitnodiging.setTEMPLATE(minigripTemplateNaam);
+					String inpakcentrumTemplateNaam = maakInpakcentrumTemplateNaam(briefDefinitie);
+					inpakcentrumUitnodiging.setTEMPLATE(inpakcentrumTemplateNaam);
 					UploadDocument document = briefDefinitie.getDocument();
 					uitnodiging.setTemplateNaam(document.getNaam());
 					briefTemplate = fileService.load(document);
@@ -385,19 +385,19 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				Long timestamp = currentDateSupplier.getDate().getTime();
 				fileService.saveOrUpdateUploadDocument(uploadDocument, getFileStoreLocation(), timestamp, true);
 
-				minigripBrieven.add(uploadDocument);
+				inpakcentrumBrieven.add(uploadDocument);
 
 				setMergedBrieven(uitnodiging, uploadDocument, briefDefinitie);
 
 				setGegenereerd(uitnodiging);
 
-				List<MERGEFIELD> mergefieldContainer = minigripUitnodiging.getMERGEFIELDS().getMERGEFIELD();
+				List<MERGEFIELD> mergefieldContainer = inpakcentrumUitnodiging.getMERGEFIELDS().getMERGEFIELD();
 				List<MergeField> teSturenMergefields = Arrays.asList(MergeField.SO_ID, MergeField.CLIENT_NAAM, MergeField.CLIENT_ADRES, MergeField.CLIENT_POSTCODE,
 					MergeField.CLIENT_WOONPLAATS, MergeField.KIX_CLIENT);
 
 				for (MergeField mergeField : teSturenMergefields)
 				{
-					if (mergeField.naarMinigrip())
+					if (mergeField.naarInpakcentrum())
 					{
 						Object value = mergeField.getValue(mailMergeContext);
 						MERGEFIELD xmlMergefield = new MERGEFIELD();
@@ -442,7 +442,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				pdfNaamMergeField.setNAME("_PDF");
 				pdfNaamMergeField.setVALUE(uploadDocument.getNaam());
 				mergefieldContainer.add(pdfNaamMergeField);
-				updateMergeData(minigripUitnodiging);
+				updateMergeData(inpakcentrumUitnodiging);
 
 				updateCounts(uitnodiging);
 				uitnodiging.setVerstuurd(true);
@@ -491,7 +491,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 					uitnodigingIds.size())
 				.isUploadSucceeded();
 
-			Set<File> zips = zipMinigripBrieven(bvoAfkorting);
+			Set<File> zips = zipInpakcentrumBrieven(bvoAfkorting);
 
 			result = verstuurZips(upload, result, zips);
 
@@ -526,7 +526,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		return result;
 	}
 
-	private Set<File> zipMinigripBrieven(String bvoAfkorting) throws IOException
+	private Set<File> zipInpakcentrumBrieven(String bvoAfkorting) throws IOException
 	{
 		LocalDateTime dateTime = LocalDateTime.now();
 		String datumTijd = DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(dateTime);
@@ -534,7 +534,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 
 		int maxBestandsGrootte = preferenceService.getInteger(PreferenceKey.INTERNAL_MAX_GROOTTE_ZIP.name());
 
-		return ZipUtil.maakZips(Lists.newArrayList(minigripBrieven), baseZipNaam, maxBestandsGrootte);
+		return ZipUtil.maakZips(Lists.newArrayList(inpakcentrumBrieven), baseZipNaam, maxBestandsGrootte);
 	}
 
 	protected abstract boolean geenUitzonderingGevonden(U uitnodiging);
@@ -545,14 +545,14 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		return String.format("%s_%s_%s.pdf", dateFormat.format(currentDateSupplier.getDate()), volgnummer, uitnodiging.getUitnodigingsId());
 	}
 
-	private String maakMinigripTemplateNaam(BriefDefinitie briefDefinitie)
+	private String maakInpakcentrumTemplateNaam(BriefDefinitie briefDefinitie)
 	{
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		String templateNaam = briefDefinitie.getBriefType().name() + "_" + dateFormat.format(briefDefinitie.getLaatstGewijzigd());
 		return templateNaam;
 	}
 
-	private String maakMinigripTemplateNaam(ProjectBriefActie briefActie)
+	private String maakInpakcentrumTemplateNaam(ProjectBriefActie briefActie)
 	{
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 		String templateNaam = briefActie.getBriefType().name();
@@ -569,7 +569,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		if (file == null)
 		{
 
-			LOG.warn("UploadDocument was null wordt niet verstuurd naar minigrip! fileName: " + fileName);
+			LOG.warn("UploadDocument was null wordt niet verstuurd naar inpakcentrum! fileName: " + fileName);
 			return true;
 		}
 		String extensie = FilenameUtils.getExtension(fileName);
@@ -632,9 +632,9 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		return true;
 	}
 
-	private synchronized void updateMergeData(UITNODIGING minigripUitnodiging)
+	private synchronized void updateMergeData(UITNODIGING inpakcentrumUitnodiging)
 	{
-		mergedata.getUITNODIGING().add(minigripUitnodiging);
+		mergedata.getUITNODIGING().add(inpakcentrumUitnodiging);
 	}
 
 	private void crashMelding(String melding, Exception e)

@@ -24,7 +24,6 @@ package nl.rivm.screenit.service.colon.impl;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -65,7 +64,7 @@ public class ColonHuisartsServiceImpl implements ColonHuisartsService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public boolean koppelHuisarts(EnovationHuisarts huisarts, OnbekendeHuisarts onbekendeHuisarts, ColonScreeningRonde ronde, Account account)
+	public boolean koppelHuisarts(EnovationHuisarts huisarts, ColonScreeningRonde ronde, Account account)
 	{
 		if (ronde != null)
 		{
@@ -75,32 +74,20 @@ public class ColonHuisartsServiceImpl implements ColonHuisartsService
 			{
 				melding = "Huisarts: " + NaamUtil.getNaamHuisarts(huisarts);
 			}
-			else if (onbekendeHuisarts != null)
-			{
-				hibernateService.saveOrUpdate(onbekendeHuisarts);
-				melding = "Onbekende Huisarts: " + NaamUtil.getNaamOnbekendeHuisarts(onbekendeHuisarts);
-			}
 			else
 			{
 				melding = "Huisarts verwijderd";
 			}
 
 			ronde.setColonHuisarts(huisarts);
-			ronde.setOnbekendeHuisarts(onbekendeHuisarts);
+			boolean diffColonHuisarts = StringUtils
+				.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(ronde, "colonHuisarts", hibernateService.getHibernateSession()));
 
-			boolean diffColonHuisarts = StringUtils.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(ronde, "colonHuisarts", hibernateService.getHibernateSession()));
-			boolean diffOnbekendeHuisarts = StringUtils.isNotBlank(EntityAuditUtil.getDiffFieldToLatestVersion(ronde, "onbekendeHuisarts", hibernateService.getHibernateSession()));
-
-			if (onbekendeHuisarts != null && diffOnbekendeHuisarts)
-			{
-				huisartsBerichtService.verzendOnbekendeHuisartsAanmeldenMail(onbekendeHuisarts, client);
-			}
-			if (diffColonHuisarts || diffOnbekendeHuisarts)
+			if (diffColonHuisarts)
 			{
 				ronde.setDatumVastleggenHuisarts(currentDateSupplier.getDate());
 				hibernateService.saveOrUpdate(ronde);
-				logService.logGebeurtenis(LogGebeurtenis.HUISARTS_GEWIJZIGD, account, client, melding,
-					Bevolkingsonderzoek.COLON);
+				logService.logGebeurtenis(LogGebeurtenis.HUISARTS_GEWIJZIGD, account, client, melding, Bevolkingsonderzoek.COLON);
 				return true;
 			}
 		}
@@ -113,7 +100,7 @@ public class ColonHuisartsServiceImpl implements ColonHuisartsService
 	{
 		if (ronde != null)
 		{
-			return koppelHuisarts(null, null, ronde, account);
+			return koppelHuisarts(null, ronde, account);
 		}
 		return false;
 	}
@@ -149,6 +136,7 @@ public class ColonHuisartsServiceImpl implements ColonHuisartsService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public boolean bevestigVorigeColonHuisarts(Client client, ColonScreeningRonde ronde)
 	{
 		if (ronde != null)
@@ -156,7 +144,7 @@ public class ColonHuisartsServiceImpl implements ColonHuisartsService
 			EnovationHuisarts vorigeHuisarts = getActieveHuisartsVanVorigeRonde(ronde);
 			if (vorigeHuisarts != null)
 			{
-				return koppelHuisarts(vorigeHuisarts, null, ronde, client);
+				return koppelHuisarts(vorigeHuisarts, ronde, client);
 			}
 		}
 		return false;

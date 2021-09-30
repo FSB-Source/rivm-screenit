@@ -57,7 +57,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Audited
 public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief, ColonAfmelding, ColonUitnodiging>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@OneToMany(mappedBy = "colonScreeningRonde", cascade = CascadeType.ALL)
@@ -76,6 +75,7 @@ public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief
 	@Cascade(org.hibernate.annotations.CascadeType.SAVE_UPDATE)
 	private EnovationHuisarts colonHuisarts;
 
+	@Deprecated
 	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
 	@Audited(targetAuditMode = NOT_AUDITED)
 	private OnbekendeHuisarts onbekendeHuisarts;
@@ -330,11 +330,13 @@ public class ColonScreeningRonde extends ScreeningRonde<ColonDossier, ColonBrief
 		this.koppelresultatenKankerregistratie = koppelresultatenKankerregistratie;
 	}
 
+	@Deprecated
 	public OnbekendeHuisarts getOnbekendeHuisarts()
 	{
 		return onbekendeHuisarts;
 	}
 
+	@Deprecated
 	public void setOnbekendeHuisarts(OnbekendeHuisarts onbekendeHuisarts)
 	{
 		this.onbekendeHuisarts = onbekendeHuisarts;

@@ -39,11 +39,14 @@ import java.util.concurrent.Executors;
 
 import javax.xml.bind.JAXBException;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.document.sepa.CervixBetaalOpdrachtSpecificatieDocumentCreator;
 import nl.rivm.screenit.main.model.cervix.sepa.SEPACreditTransfer;
 import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
@@ -54,26 +57,33 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecificatie;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
+import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.messagequeue.MessageType;
+import nl.rivm.screenit.model.messagequeue.dto.CervixHerindexatieDto;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.MessageService;
+import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
+import nl.rivm.screenit.util.cervix.CervixTariefUtil;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.IBANValidator;
 import org.hibernate.HibernateException;
-import org.joda.time.DateTime;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,15 +92,13 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.aspose.words.Document;
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixBetalingServiceImpl implements CervixBetalingService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(CervixBetalingServiceImpl.class);
-
-	private DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyyMMdd");
 
 	private File template = null;
 
@@ -100,7 +108,10 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixVerrichtingDao verrichtingDao;
+
+	@Autowired
+	private CervixVerrichtingService verrichtingService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -117,6 +128,9 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	@Autowired
 	private HuisartsenportaalSyncService huisartsenportaalSyncService;
 
+	@Autowired
+	private MessageService messageService;
+
 	public CervixBetalingServiceImpl()
 	{
 		executorService = Executors.newSingleThreadExecutor();
@@ -125,11 +139,10 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 	private String getBetalingsKenmerk(Date date)
 	{
-		List<CervixBetaalopdracht> opdrachten = cervixVerrichtingDao.getVandaagGemaakteBetaalOpdrachten();
+		List<CervixBetaalopdracht> opdrachten = verrichtingDao.getVandaagGemaakteBetaalOpdrachten();
 		int huidigeOpdrachtNummerVanVandaag = opdrachten.size() + 1;
 		String kenmerknummer = StringUtils.leftPad(String.valueOf(huidigeOpdrachtNummerVanVandaag), 3, "0");
-		return dateTimeFormatter.print(new DateTime(date)) + kenmerknummer;
-
+		return DateUtil.formatForPattern(Constants.DATE_FORMAT_YYYYMMDD, date) + kenmerknummer;
 	}
 
 	@Override
@@ -346,7 +359,6 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			{
 				md.update(dataBytes, 0, nread);
 			}
-			;
 			byte[] mdbytes = md.digest();
 			for (byte mdbyte : mdbytes)
 			{
@@ -421,4 +433,255 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 		}
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void toevoegenTarief(CervixTarief tarief, Account account)
+	{
+		hibernateService.saveOrUpdate(tarief);
+		toevoegenTariefAfronden(tarief, "", account);
+	}
+
+	private void berekenEinddatumCervixHuisartsTarief()
+	{
+		List<CervixHuisartsTarief> tarieven = verrichtingDao.getCervixHuisartsTarievenZonderEinddatum();
+		berekenEinddatum(tarieven);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void berekenEinddatumCervixLaboratoriumTarief(BMHKLaboratorium laboratorium)
+	{
+		List<CervixLabTarief> tarieven = verrichtingDao.getCervixLabTarievenZonderEinddatum(laboratorium);
+		berekenEinddatum(tarieven);
+	}
+
+	private void berekenEinddatum(List<? extends CervixTarief> tarieven)
+	{
+		for (int i = 0; i < tarieven.size(); i++)
+		{
+			CervixTarief oldTarief = tarieven.get(i);
+			if (i + 1 != tarieven.size())
+			{
+				CervixTarief newTarief = tarieven.get(i + 1);
+				oldTarief.setGeldigTotenmetDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(newTarief.getGeldigVanafDatum()).minusDays(1)));
+			}
+			else if (oldTarief.getGeldigTotenmetDatum() != null)
+			{
+				oldTarief.setGeldigTotenmetDatum(null);
+			}
+			hibernateService.saveOrUpdate(oldTarief);
+		}
+	}
+
+	@Override
+	public void verwijderCervixTarief(CervixTarief tarief, Account account)
+	{
+		tarief.setActief(Boolean.FALSE);
+		hibernateService.saveOrUpdate(tarief);
+		if (CervixTariefType.isHuisartsTarief(tarief))
+		{
+			String melding = getLogMeldingHuisartsTariefVerwijderd((CervixHuisartsTarief) HibernateHelper.deproxy(tarief));
+			berekenEinddatumCervixHuisartsTarief();
+			logService.logGebeurtenis(LogGebeurtenis.CERVIX_HUISARTS_TARIEF_VERWIJDERD, account, melding, Bevolkingsonderzoek.CERVIX);
+		}
+		else
+		{
+			CervixLabTarief labTarief = (CervixLabTarief) HibernateHelper.deproxy(tarief);
+			String verwijderdMelding = getLogMeldingLabTariefVerwijderd(labTarief);
+			String melding = "Laboratorium: " + labTarief.getBmhkLaboratorium().getNaam() + verwijderdMelding;
+			berekenEinddatumCervixLaboratoriumTarief(CervixTariefType.getLabTarief(tarief).getBmhkLaboratorium());
+			logService.logGebeurtenis(LogGebeurtenis.CERVIX_LAB_TARIEF_VERWIJDERD, account, melding, Bevolkingsonderzoek.CERVIX);
+		}
+	}
+
+	private String getLogMeldingHuisartsTariefVerwijderd(CervixHuisartsTarief huisartsTarief)
+	{
+		String logMelding = "Huisartstarief met bedrag: " + CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(huisartsTarief) + " verwijderd. ";
+		logMelding += "Tarief was" + CervixTariefUtil.getGeldigheidMelding(huisartsTarief);
+		return logMelding;
+	}
+
+	private String getLogMeldingLabTariefVerwijderd(CervixLabTarief labTarief)
+	{
+		String logMelding = "Labtarief verwijderd met de bedragen: ";
+		for (CervixTariefType labTariefType : CervixTariefType.getAlleLabTariefTypes())
+		{
+			logMelding += String.format("%s:  %s; ", labTariefType.getNaam(), labTariefType.getBedragStringVanTarief(labTarief));
+		}
+		logMelding += "Tarief was" + CervixTariefUtil.getGeldigheidMelding(labTarief);
+		return logMelding;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = IllegalArgumentException.class)
+	public String toevoegenIndexatieTarief(CervixTarief nieuweTarief, Account account) throws JsonProcessingException
+	{
+		List<CervixTarief> oudeTarieven = new ArrayList<>();
+		oudeTarieven.addAll(getOudeTarieven(nieuweTarief));
+		checkVoorGesplitsteOudeTarieven(oudeTarieven, nieuweTarief);
+		hibernateService.saveOrUpdate(nieuweTarief);
+		String corrigeerOudeTarievenMelding = corrigeerOudeTarieven(oudeTarieven, nieuweTarief);
+
+		toevoegenTariefAfronden(nieuweTarief, corrigeerOudeTarievenMelding, account);
+		return queueHerindexeringVanVerrichtingen(nieuweTarief, oudeTarieven);
+	}
+
+	private String queueHerindexeringVanVerrichtingen(CervixTarief nieuweTarief, List<CervixTarief> oudeTarieven) throws JsonProcessingException
+	{
+		String melding = "";
+		for (CervixTarief oudeTarief : oudeTarieven)
+		{
+			if (!melding.isEmpty())
+			{
+				melding += "; ";
+			}
+			melding += CervixTariefUtil.getTariefString(oudeTarief);
+			messageService.queueMessage(MessageType.HERINDEXATIE,
+				new CervixHerindexatieDto(oudeTarief.getId(), nieuweTarief.getId(), CervixTariefType.isHuisartsTarief(nieuweTarief)));
+		}
+		return melding;
+	}
+
+	private String getLogMeldingHuisartsTarief(CervixHuisartsTarief nieuwTarief, String corrigeerOudeTarievenMelding)
+	{
+		String logMelding = "";
+		if (corrigeerOudeTarievenMelding.isEmpty())
+		{
+			CervixTarief previousTarief = verrichtingService.getTariefVoorDatum(CervixTariefType.HUISARTS_UITSTRIJKJE,
+				DateUtil.toUtilDate(DateUtil.toLocalDate(nieuwTarief.getGeldigVanafDatum()).minusDays(1)), null);
+			logMelding = String.format("Van oud bedrag (%s) naar nieuw bedrag (%s); ", CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(previousTarief),
+				CervixTariefType.HUISARTS_UITSTRIJKJE.getBedragStringVanTarief(nieuwTarief));
+			if (previousTarief != null)
+			{
+				logMelding += "Het oude tarief was" + CervixTariefUtil.getGeldigheidMelding(previousTarief) + ". ";
+			}
+			logMelding += "Het nieuwe tarief is" + CervixTariefUtil.getGeldigheidMelding(nieuwTarief);
+		}
+		else
+		{
+			logMelding = "Herindexering: " + corrigeerOudeTarievenMelding + ". Bedrag nieuw " + CervixTariefUtil.getTariefString(nieuwTarief);
+		}
+		return logMelding;
+	}
+
+	private void checkVoorGesplitsteOudeTarieven(List<CervixTarief> oudeTarieven, CervixTarief nieuweTarief)
+	{
+		for (CervixTarief tarief : oudeTarieven)
+		{
+			if (tarief.getGeldigVanafDatum().before(nieuweTarief.getGeldigVanafDatum()) && tarief.getGeldigTotenmetDatum() != null && nieuweTarief.getGeldigTotenmetDatum() != null
+				&& tarief.getGeldigTotenmetDatum().after(nieuweTarief.getGeldigTotenmetDatum()))
+			{
+				throw new IllegalArgumentException("splitsen.niet.toegestaan");
+			}
+		}
+	}
+
+	private List<CervixTarief> getOudeTarieven(CervixTarief nieuweTarief)
+	{
+		boolean isHuisartsTarief = CervixTariefType.isHuisartsTarief(nieuweTarief);
+		if (isHuisartsTarief)
+		{
+			return verrichtingDao.getHuisartsTarievenTussen(nieuweTarief.getGeldigVanafDatum(), nieuweTarief.getGeldigTotenmetDatum());
+		}
+		else
+		{
+			return verrichtingDao.getLabTarievenTussen(((CervixLabTarief) nieuweTarief).getBmhkLaboratorium(), nieuweTarief.getGeldigVanafDatum(),
+				nieuweTarief.getGeldigTotenmetDatum());
+		}
+	}
+
+	private String corrigeerOudeTarieven(List<CervixTarief> tarieven, CervixTarief nieuweTarief)
+	{
+		String melding = "";
+		for (CervixTarief oudeTarief : tarieven)
+		{
+			if (!melding.isEmpty())
+			{
+				melding += "; ";
+			}
+			if (oudeTarief.getGeldigVanafDatum().before(nieuweTarief.getGeldigVanafDatum()))
+			{
+				melding += "Oud " + CervixTariefUtil.getTariefString(oudeTarief);
+				oudeTarief.setGeldigTotenmetDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(nieuweTarief.getGeldigVanafDatum()).minusDays(1)));
+				melding += " is aangepast naar " + CervixTariefUtil.getGeldigheidMelding(oudeTarief);
+			}
+			else if (nieuweTarief.getGeldigTotenmetDatum() != null
+				&& (oudeTarief.getGeldigTotenmetDatum() == null || (oudeTarief.getGeldigVanafDatum().before(nieuweTarief.getGeldigTotenmetDatum())
+					&& oudeTarief.getGeldigTotenmetDatum().after(nieuweTarief.getGeldigTotenmetDatum()))))
+			{
+				melding += "Oud " + CervixTariefUtil.getTariefString(oudeTarief);
+				oudeTarief.setGeldigVanafDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(nieuweTarief.getGeldigTotenmetDatum()).plusDays(1)));
+				melding += " is aangepast naar " + CervixTariefUtil.getGeldigheidMelding(oudeTarief);
+			}
+			else
+			{
+				CervixTarief deproxiedTarief = (CervixTarief) HibernateHelper.deproxy(oudeTarief);
+				if (CervixTariefType.isHuisartsTarief(oudeTarief))
+				{
+					melding += getLogMeldingHuisartsTariefVerwijderd((CervixHuisartsTarief) deproxiedTarief);
+				}
+				else
+				{
+					melding += getLogMeldingLabTariefVerwijderd((CervixLabTarief) deproxiedTarief);
+				}
+				oudeTarief.setActief(false);
+			}
+
+			hibernateService.saveOrUpdate(oudeTarief);
+		}
+		return melding;
+	}
+
+	private void toevoegenTariefAfronden(CervixTarief tarief, String corrigeerOudeTarievenMelding, Account account)
+	{
+		String melding = "";
+		if (CervixTariefType.isHuisartsTarief(tarief))
+		{
+			berekenEinddatumCervixHuisartsTarief();
+			melding = getLogMeldingHuisartsTarief((CervixHuisartsTarief) tarief, corrigeerOudeTarievenMelding);
+			logService.logGebeurtenis(LogGebeurtenis.CERVIX_HUISARTS_TARIEF_AANGEMAAKT, account, melding, Bevolkingsonderzoek.CERVIX);
+		}
+		else
+		{
+			CervixLabTarief labTarief = (CervixLabTarief) tarief;
+			BMHKLaboratorium laboratorium = labTarief.getBmhkLaboratorium();
+			berekenEinddatumCervixLaboratoriumTarief(laboratorium);
+			melding = getLogMeldingLabTarief(labTarief, corrigeerOudeTarievenMelding);
+			logService.logGebeurtenis(LogGebeurtenis.CERVIX_LAB_TARIEF_AANGEMAAKT, account, melding, Bevolkingsonderzoek.CERVIX);
+		}
+	}
+
+	private String getLogMeldingLabTarief(CervixLabTarief nieuwTarief, String corrigeerOudeTarievenMelding)
+	{
+		StringBuilder logMeldingBuilder = new StringBuilder();
+		logMeldingBuilder.append("Laboratorium: ").append(nieuwTarief.getBmhkLaboratorium().getNaam());
+		if (corrigeerOudeTarievenMelding.isEmpty())
+		{
+			CervixTarief previousTarief = verrichtingService.getTariefVoorDatum(CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE,
+				DateUtil.toUtilDate(DateUtil.toLocalDate(nieuwTarief.getGeldigVanafDatum()).minusDays(1)),
+				nieuwTarief.getBmhkLaboratorium());
+			for (CervixTariefType labTariefType : CervixTariefType.getAlleLabTariefTypes())
+			{
+				String logMelding = String.format("; %s: Van oud bedrag (%s) naar nieuw bedrag %s", labTariefType.getNaam(),
+					labTariefType.getBedragStringVanTarief(previousTarief),
+					labTariefType.getBedragStringVanTarief(nieuwTarief));
+				logMeldingBuilder.append(logMelding);
+			}
+			if (previousTarief != null)
+			{
+				logMeldingBuilder.append(". Het oude tarief was");
+				logMeldingBuilder.append(CervixTariefUtil.getGeldigheidMelding(previousTarief));
+			}
+			logMeldingBuilder.append(". Het nieuwe tarief is");
+			logMeldingBuilder.append(CervixTariefUtil.getGeldigheidMelding(nieuwTarief));
+		}
+		else
+		{
+			logMeldingBuilder.insert(0, "Indexering: ");
+			logMeldingBuilder.append(corrigeerOudeTarievenMelding).append(" nieuwe bedragen ").append(CervixTariefUtil.getTariefString(nieuwTarief));
+		}
+
+		return logMeldingBuilder.toString();
+
+	}
 }

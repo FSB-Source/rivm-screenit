@@ -81,24 +81,18 @@ public class MammaStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandpla
 		final IModel<MammaStandplaatsOpmerking> searchObjectModel = Model.of(searchObject);
 		opmerkingen.add(new ActiefHeaderPanel<>("actiefHeader", opmerkingen, searchObjectModel));
 
-		IModel<List<MammaStandplaatsOpmerking>> listModel = new IModel<List<MammaStandplaatsOpmerking>>()
+		IModel<List<MammaStandplaatsOpmerking>> listModel = new IModel<>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public List<MammaStandplaatsOpmerking> getObject()
 			{
-				List<MammaStandplaatsOpmerking> list = new ArrayList<MammaStandplaatsOpmerking>(getModelObject().getStandplaatsOpmerkingen());
+				List<MammaStandplaatsOpmerking> list = new ArrayList<>(getModelObject().getStandplaatsOpmerkingen());
 				Collections.sort(list, new PropertyComparator<>("creatieDatum", false, false));
 				return list;
 			}
 		};
-		ListView<MammaStandplaatsOpmerking> list = new ListView<MammaStandplaatsOpmerking>("list", listModel)
+		ListView<MammaStandplaatsOpmerking> list = new ListView<>("list", listModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<MammaStandplaatsOpmerking> item)
 			{
@@ -124,60 +118,51 @@ public class MammaStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandpla
 				{
 					item.add(new AjaxEventBehavior("click")
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void onEvent(AjaxRequestTarget target)
 						{
-							editOpmerking(target, ModelUtil.cModel(item.getModelObject()));
+							editOpmerking(target, ModelUtil.ccModel(item.getModelObject()));
 						}
 					});
 				}
 				item.add(DateLabel.forDatePattern("creatieDatum", Model.of(opmerking.getCreatieDatum()), "dd-MM-yyyy HH:mm"));
 				item.add(new Label("opmerking", opmerking.getOpmerking()));
 
-				item.add(
-					new ActiefCellPanel<MammaStandplaatsOpmerking>("actiefToggle", item.getModel(), ingelogdNamensRegio && magAanpassen, null, null)
+				item.add(new ActiefCellPanel<>("actiefToggle", item.getModel(), ingelogdNamensRegio && magAanpassen, null, null)
+				{
+					@Override
+					protected boolean isActief(IModel<MammaStandplaatsOpmerking> rowModel)
 					{
+						return !Boolean.FALSE.equals(rowModel.getObject().getActief());
+					}
 
-						private static final long serialVersionUID = 1L;
+					@Override
+					protected void onAfterToggleActief(AjaxRequestTarget target, MammaStandplaatsOpmerking actiefObject)
+					{
+						super.onAfterToggleActief(target, actiefObject);
+						target.add(opmerkingen);
+						standplaatsService.saveOrUpdateStandplaatsOpmerking(actiefObject, null, ScreenitSession.get().getLoggedInInstellingGebruiker());
+					}
 
-						@Override
-						protected boolean isActief(IModel<MammaStandplaatsOpmerking> rowModel)
-						{
-							return !Boolean.FALSE.equals(rowModel.getObject().getActief());
-						}
-
-						@Override
-						protected void onAfterToggleActief(AjaxRequestTarget target, MammaStandplaatsOpmerking actiefObject)
-						{
-							super.onAfterToggleActief(target, actiefObject);
-							target.add(opmerkingen);
-							standplaatsService.saveOrUpdateStandplaatsOpmerking(actiefObject, null, ScreenitSession.get().getLoggedInInstellingGebruiker());
-						}
-
-						@Override
-						protected boolean skipConfirmation()
-						{
-							return true;
-						}
-					});
+					@Override
+					protected boolean skipConfirmation()
+					{
+						return true;
+					}
+				});
 			}
 
 		};
 		opmerkingen.add(list);
 		add(opmerkingen);
 
-		IndicatingAjaxLink<Void> nieuweOpmerking = new IndicatingAjaxLink<Void>("nieuw")
+		IndicatingAjaxLink<Void> nieuweOpmerking = new IndicatingAjaxLink<>("nieuw")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				IModel<MammaStandplaatsOpmerking> nieuweOpmerking = ModelUtil.cRModel(new MammaStandplaatsOpmerking());
+				IModel<MammaStandplaatsOpmerking> nieuweOpmerking = ModelUtil.csModel(new MammaStandplaatsOpmerking());
 				nieuweOpmerking.getObject().setActief(true);
 				editOpmerking(target, nieuweOpmerking);
 			}
@@ -215,6 +200,10 @@ public class MammaStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandpla
 				MammaStandplaats standplaats = (MammaStandplaats) MammaStandplaatsOpmerkingenPanel.this.getDefaultModelObject();
 				MammaStandplaatsOpmerking opmerking = (MammaStandplaatsOpmerking) opmerkingForm.getModelObject();
 				boolean changed = standplaatsService.saveOrUpdateStandplaatsOpmerking(opmerking, standplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				if (changed)
+				{
+					success(getString("message.gegevensopgeslagen"));
+				}
 				target.add(opmerkingen);
 				WebMarkupContainer invisibleopmerkingContainer = new WebMarkupContainer("editOpmerkingContainer");
 				invisibleopmerkingContainer.setOutputMarkupPlaceholderTag(true);
@@ -222,10 +211,6 @@ public class MammaStandplaatsOpmerkingenPanel extends GenericPanel<MammaStandpla
 				editOpmerkingContainer.replaceWith(invisibleopmerkingContainer);
 				editOpmerkingContainer = invisibleopmerkingContainer;
 				target.add(invisibleopmerkingContainer);
-				if (changed)
-				{
-					success(getString("message.gegevensopgeslagen"));
-				}
 				BasePage.markeerFormulierenOpgeslagen(target);
 			}
 		});

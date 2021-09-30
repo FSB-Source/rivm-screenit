@@ -42,9 +42,7 @@
     <jee:jndi-lookup id="jgroupsCommonIPPorts" jndi-name="jgroupsCommonIPPorts" expected-type="java.lang.String"
                      default-value="#{new String()}"/>
     <jee:jndi-lookup id="jgroupsBindIP" jndi-name="jgroupsBindIP"/>
-    <jee:jndi-lookup id="ossAanmeldenAdres" jndi-name="edi/ossAanmeldenAdres" expected-type="java.lang.String"
-                     default-value="devnull@topicus.nl"/>
-    <jee:jndi-lookup id="ossAfleverAdres" jndi-name="edi/ossAfleverAdres" expected-type="java.lang.String"
+    <jee:jndi-lookup id="ediAfleverAdres" jndi-name="edi/AfleverAdres" expected-type="java.lang.String"
                      default-value="devnull@topicus.nl"/>
     <jee:jndi-lookup id="versionMapping" jndi-name="hl7/versionMapping" expected-type="java.lang.String"
                      default-value=" "/>

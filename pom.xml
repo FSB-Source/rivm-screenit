@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.rivm.screenit</groupId>
     <artifactId>screenit-parent</artifactId>
@@ -18,6 +19,15 @@
     <inceptionYear>2012</inceptionYear>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>nl.geodienstencentrum.maven</groupId>
+                    <artifactId>sass-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <resources>
             <resource>
                 <directory>${basedir}/src/main/java</directory>
@@ -71,12 +81,17 @@
                 </excludes>
             </testResource>
         </testResources>
+
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+
+                    <release>${java.version}</release>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.mapstruct</groupId>
@@ -84,13 +99,17 @@
                         </path>
                         <path>
                             <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
                     <compilerArgs>
-                        <compilerArg>
+                        <arg>
                             -Amapstruct.unmappedTargetPolicy=ERROR
-                        </compilerArg>
+                        </arg>
                     </compilerArgs>
                 </configuration>
             </plugin>
@@ -218,20 +237,6 @@
                     <author>false</author>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.zeroturnaround</groupId>
-                <artifactId>jrebel-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>generate-rebel-xml</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
         </plugins>
         <extensions>
             <extension>

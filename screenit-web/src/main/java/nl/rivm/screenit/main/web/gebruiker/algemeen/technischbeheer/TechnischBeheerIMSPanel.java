@@ -56,16 +56,16 @@ public class TechnischBeheerIMSPanel extends GenericPanel<IMSConfiguratie>
 	private void createIMSConfigForm()
 	{
 		Form<IMSConfiguratie> imsConfigForm = new Form<>("imsConfigForm");
-		imsConfigForm.add(new TextField<>("hostName").setRequired(true));
-		imsConfigForm.add(new NumberTextField<>("ormPort").setRequired(true).setEnabled(magInzien()));
-		imsConfigForm.add(new NumberTextField<>("adtPort").setRequired(true).setEnabled(magInzien()));
-		imsConfigForm.add(new NumberTextField<>("ilmPort").setRequired(true).setEnabled(magInzien()));
+		imsConfigForm.add(new TextField<>("hostName").setRequired(true).setEnabled(magAanpassen()));
+		imsConfigForm.add(new NumberTextField<>("ormPort").setRequired(true).setEnabled(magAanpassen()));
+		imsConfigForm.add(new NumberTextField<>("adtPort").setRequired(true).setEnabled(magAanpassen()));
+		imsConfigForm.add(new NumberTextField<>("ilmPort").setRequired(true).setEnabled(magAanpassen()));
 
-		imsConfigForm.add(new NumberTextField<>("bezwaarTermijnVerwijderdeBeelden").setRequired(true).setEnabled(magInzien()));
-		imsConfigForm.add(new NumberTextField<>("imsQueueSizeWarningThreshold").setRequired(true).setEnabled(magInzien()));
+		imsConfigForm.add(new NumberTextField<>("bezwaarTermijnVerwijderdeBeelden").setRequired(true).setEnabled(magAanpassen()));
+		imsConfigForm.add(new NumberTextField<>("imsQueueSizeWarningThreshold").setRequired(true).setEnabled(magAanpassen()));
 
 		Component opslaanButton = createAndGetOpslaanButton();
-		opslaanButton.setVisible(magInzien());
+		opslaanButton.setVisible(magAanpassen());
 		imsConfigForm.add(opslaanButton);
 
 		add(imsConfigForm);
@@ -91,7 +91,7 @@ public class TechnischBeheerIMSPanel extends GenericPanel<IMSConfiguratie>
 			getModelObject());
 	}
 
-	private boolean magInzien()
+	private boolean magAanpassen()
 	{
 		return ScreenitSession.get().checkPermission(Recht.TECHNISCH_BEHEER, Actie.AANPASSEN);
 	}

@@ -44,6 +44,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.util.collections.CollectionUtils;
 
@@ -119,6 +120,11 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 				return false;
 			}
 		}
+		if (forceerBeeldenVerwijderen)
+		{
+
+			baseUitwisselportaalService.verwijderUploadVerzoeken(screeningRonde);
+		}
 		baseUitwisselportaalService.verwijderDownloadVerzoeken(screeningRonde);
 		baseKwaliteitscontroleService.verwijderKwaliteitscontroleOnderzoeken(screeningRonde);
 
@@ -172,8 +178,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	{
 		return ronde.getUitnodigingen().stream().flatMap(u -> u.getAfspraken().stream())
 			.anyMatch(a -> a.getOnderzoek() != null && a.getOnderzoek().getMammografie() != null
-				&& !(MammaMammografieIlmStatus.VERWIJDERD.equals(a.getOnderzoek().getMammografie().getIlmStatus())
-					|| MammaMammografieIlmStatus.NIET_BESCHIKBAAR.equals(a.getOnderzoek().getMammografie().getIlmStatus())));
+				&& MammaMammografieIlmStatus.beeldenMogelijkAanwezig(a.getOnderzoek().getMammografie().getIlmStatus()));
 	}
 
 	private void verwijderAlleUitnodigingen(List<MammaUitnodiging> uitnodigingen)
@@ -239,6 +244,15 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	public MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client)
 	{
 		return baseScreeningrondeDao.getLaatsteScreeningRondeMetPositieveUitslag(client, null);
+	}
+
+	@Override
+	public Integer getJaarLaatsteVerwijzing(Client client)
+	{
+		MammaScreeningRonde laatsteScreeningRondeMetPositieveUitslag = getLaatsteScreeningRondeMetPositieveUitslag(client);
+		return laatsteScreeningRondeMetPositieveUitslag != null
+			? DateUtil.toLocalDate(laatsteScreeningRondeMetPositieveUitslag.getLaatsteOnderzoek().getCreatieDatum()).getYear()
+			: null;
 	}
 
 	@Override

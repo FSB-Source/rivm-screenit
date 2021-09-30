@@ -18,22 +18,6 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${basedir}/src/main/resources/liquibase</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/../screenit-base/etc/liquibase</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>copy-test-resources</id>
                         <phase>validate</phase>
                         <goals>
@@ -71,8 +55,9 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
-                <groupId>org.jasig.maven</groupId>
+                <groupId>nl.geodienstencentrum.maven</groupId>
                 <artifactId>sass-maven-plugin</artifactId>
                 <configuration>
                     <resources>
@@ -90,7 +75,6 @@
                             <destination>${project.build.directory}/sass/assets/css</destination>
                         </resource>
                     </resources>
-                    <useCompass>true</useCompass>
                     <sassOptions>
                         <always_update>true</always_update>
                     </sassOptions>
@@ -104,8 +88,8 @@
                         <phase>generate-sources</phase>
                     </execution>
                 </executions>
-
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
@@ -144,22 +128,18 @@
                     <sources>
                         <source>${basedir}/src/main/resources/sepa/pain.001.001.03.xsd</source>
                     </sources>
-
                     <packageName>nl.rivm.screenit.generated.sepa</packageName>
                     <encoding>UTF-8</encoding>
                     <extension>true</extension>
                 </configuration>
                 <dependencies>
                     <dependency>
-                        <groupId>com.sun.xml.bind</groupId>
-                        <artifactId>jaxb-xjc</artifactId>
-                    </dependency>
-                    <dependency>
-                        <groupId>com.sun.xml.bind</groupId>
-                        <artifactId>jaxb-impl</artifactId>
+                        <groupId>xerces</groupId>
+                        <artifactId>xercesImpl</artifactId>
                     </dependency>
                 </dependencies>
             </plugin>
+
         </plugins>
     </build>
 
@@ -168,10 +148,10 @@
             <groupId>nl.rivm.screenit</groupId>
             <artifactId>screenit-base</artifactId>
             <exclusions>
-            	<exclusion>
-            		 <groupId>org.apache.cxf</groupId>
-		    		 <artifactId>cxf-rt-features-logging</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-rt-features-logging</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -180,31 +160,16 @@
             <classifier>tests</classifier>
             <scope>test</scope>
             <exclusions>
-            	<exclusion>
-            		 <groupId>org.apache.cxf</groupId>
-		    		 <artifactId>cxf-rt-features-logging</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>org.apache.cxf</groupId>
+                    <artifactId>cxf-rt-features-logging</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-tiff</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -305,24 +270,6 @@
 
         <dependency>
             <groupId>org.wicketstuff.wiquery</groupId>
-            <artifactId>wiquery-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.wicket</groupId>
-                    <artifactId>wicket-util</artifactId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>jackson-databind</artifactId>
-                    <groupId>com.fasterxml.jackson.core</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.wicketstuff.wiquery</groupId>
             <artifactId>wiquery-jquery-ui</artifactId>
             <exclusions>
                 <exclusion>
@@ -350,10 +297,10 @@
             <groupId>nl.topicuszorg.formulieren2</groupId>
             <artifactId>formulieren-excel-import</artifactId>
             <exclusions>
-            	<exclusion>
-            		<groupId>dom4j</groupId>
-        			<artifactId>dom4j</artifactId>
-            	</exclusion>
+                <exclusion>
+                    <groupId>dom4j</groupId>
+                    <artifactId>dom4j</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -449,9 +396,9 @@
                 <exclusion>
                     <groupId>xerces</groupId>
                     <artifactId>xercesImpl</artifactId>
-                </exclusion> 
+                </exclusion>
             </exclusions>
-        </dependency>        
+        </dependency>
 
         <dependency>
             <groupId>nl.topicuszorg.crypto-util</groupId>
@@ -459,25 +406,10 @@
             <scope>compile</scope>
         </dependency>
 
-		<dependency>
-			<groupId>nl.topicuszorg</groupId>
-			<artifactId>zorgid</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore</artifactId>
-		</dependency>
-
         <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
+            <groupId>nl.topicuszorg</groupId>
+            <artifactId>zorgid</artifactId>
         </dependency>
-
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpasyncclient</artifactId>
-		</dependency>
 
         <dependency>
             <groupId>nl.topicuszorg.wicket-extensions</groupId>
@@ -524,122 +456,25 @@
 
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-start</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-jndi</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-xml</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-deploy</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-plus</artifactId>
-            <scope>runtime</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.eclipse.jetty.orbit</groupId>
-                    <artifactId>javax.transaction</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-util</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-io</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-client</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-http</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-test</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-            <scope>compile</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-logging</artifactId>
-                    <groupId>commons-logging</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-expression</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-orm</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-jdbc</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -673,40 +508,13 @@
             <artifactId>jaxb-impl</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
+            <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-core</artifactId>
         </dependency>
 
         <dependency>
             <groupId>nl.topicuszorg</groupId>
             <artifactId>fill-db</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <artifactId>spring</artifactId>
-                    <groupId>org.springframework</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>hibernate</artifactId>
-                    <groupId>org.hibernate</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>commons-logging</artifactId>
-                    <groupId>commons-logging</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>log4j</artifactId>
-                    <groupId>log4j</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xercesImpl</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>com.ibm.icu</groupId>
-                    <artifactId>icu4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -714,6 +522,12 @@
             <artifactId>hibernate-extension-spring</artifactId>
             <classifier>tests</classifier>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.aspectj</groupId>
+                    <artifactId>aspectjweaver</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
@@ -722,60 +536,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.dcm4che</groupId>
-            <artifactId>dcm4che-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.dcm4che</groupId>
-            <artifactId>dcm4che-net</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <groupId>org.slf4j</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.pdfbox</groupId>
-            <artifactId>pdfbox</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openid4java</groupId>
-            <artifactId>openid4java-topicus</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>commons-codec</artifactId>
-                    <groupId>commons-codec</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xmlsec</artifactId>
-                    <groupId>xml-security</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>icu4j</artifactId>
-                    <groupId>com.ibm.icu</groupId>
-                </exclusion>
-                <exclusion>
-                    <groupId>xerces</groupId>
-                    <artifactId>xercesImpl</artifactId>
-                </exclusion> 
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>net.ftlines.wicket-source</groupId>
             <artifactId>wicket-source</artifactId>
@@ -791,7 +551,6 @@
             <artifactId>diffutils</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
@@ -825,10 +584,6 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
@@ -840,14 +595,24 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>nl.topicuszorg.util</groupId>
+            <artifactId>naming-stub</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>nl.topicuszorg.cloud</groupId>
             <artifactId>distributedsessions</artifactId>
         </dependency>
 
-		<dependency>
-		    <groupId>io.jsonwebtoken</groupId>
-		    <artifactId>jjwt</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+        </dependency>
 
     </dependencies>
 

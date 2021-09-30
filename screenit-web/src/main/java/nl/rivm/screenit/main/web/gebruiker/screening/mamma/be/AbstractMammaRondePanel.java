@@ -33,13 +33,17 @@ import org.apache.wicket.model.Model;
 
 public abstract class AbstractMammaRondePanel extends AbstractBEAccordionPanel<MammaBeoordeling>
 {
-
 	public AbstractMammaRondePanel(String id, IModel<MammaBeoordeling> model, IModel<String> title)
 	{
 		super(id, model, title, 12);
 	}
 
 	public AbstractMammaRondePanel(String id, IModel<MammaBeoordeling> model)
+	{
+		this(id, model, (Integer) null);
+	}
+
+	public AbstractMammaRondePanel(String id, IModel<MammaBeoordeling> model, Integer jaarLaatsteVerwijzing)
 	{
 		super(id, model, 12);
 		MammaBeoordeling beoordeling = getModelObject();
@@ -50,11 +54,15 @@ public abstract class AbstractMammaRondePanel extends AbstractBEAccordionPanel<M
 		{
 			title += " (HERBEOORDELING)";
 		}
-		super.setTitle(Model.of(title));
-		if (beoordeling.getStatus() == MammaBeoordelingStatus.UITSLAG_ONGUNSTIG)
+		if (beoordeling.getStatus() == MammaBeoordelingStatus.UITSLAG_ONGUNSTIG || jaarLaatsteVerwijzing != null)
 		{
 			super.setNamePostfixCssClass("fa fa-exclamation-triangle");
 		}
+		if (jaarLaatsteVerwijzing != null)
+		{
+			title += String.format(" laatst verwezen in %s", jaarLaatsteVerwijzing);
+		}
+		super.setTitle(Model.of(title));
 	}
 
 	@Override

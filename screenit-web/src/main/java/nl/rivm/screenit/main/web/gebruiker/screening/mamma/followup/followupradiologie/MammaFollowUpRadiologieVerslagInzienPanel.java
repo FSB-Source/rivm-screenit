@@ -39,7 +39,12 @@ public class MammaFollowUpRadiologieVerslagInzienPanel extends GenericPanel<Mamm
 	public MammaFollowUpRadiologieVerslagInzienPanel(String id, IModel<MammaFollowUpRadiologieVerslag> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
+	}
 
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		add(new Label("aangemaaktIn.naam"));
 
 		WebMarkupContainer informatieContainer = new WebMarkupContainer("informatie");

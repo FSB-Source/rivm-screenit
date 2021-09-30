@@ -20,20 +20,17 @@
   -->
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:cxf="http://cxf.apache.org/core"
-       xmlns:jee="http://www.springframework.org/schema/jee"
        xmlns:soap="http://cxf.apache.org/bindings/soap"
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
          http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
-
-         http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
-         http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.0.xsd
-         http://cxf.apache.org/bindings/soap http://cxf.apache.org/schemas/configuration/soap.xsd">
+         http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd">
 
     <import resource="classpath:META-INF/cxf/cxf.xml"/>
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
     
+
     <jaxws:endpoint id="provideDocumentService"
                     implementor="#ProvideDocument_PortType"
                     address="/verslagen">
@@ -51,7 +48,7 @@
             <ref bean="locationUriInterceptorVerslagen"/>
         </jaxws:inInterceptors>
     </jaxws:endpoint>
-    
+
     <bean id="certificaatInterceptor" class="nl.rivm.screenit.wsb.interceptors.CertificaatInterceptor">
         <property name="fqdncontrole" ref="fqdncontrole"/>
     </bean>
@@ -65,10 +62,6 @@
     <bean id="securityInterceptor" class="nl.rivm.screenit.wsb.interceptors.BasicAuthAuthorizationInterceptor">
         <property name="username" ref="scanInlognaam"/>
         <property name="password" ref="scanWachtwoord"/>
-    </bean>
-
-    <bean id="locationUriInterceptorPaVerwacht" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
-        <property name="wsContext" value="mammaPaVerwacht"/>
     </bean>
 
     
@@ -124,26 +117,6 @@
         <property name="password" ref="inpakCentrumWachtwoord"/>
     </bean>
 
-
-    
-    <jaxws:endpoint id="organisatieBoomService"
-                    implementor="#OrganisatieBoomService_PortType"
-                    address="/organisatieboomservice">
-        <jaxws:inInterceptors>
-            <ref bean="boomSecurityInterceptor"/>
-            <ref bean="locationUriInterceptorBoomservice"/>
-        </jaxws:inInterceptors>
-    </jaxws:endpoint>
-
-    <bean id="boomSecurityInterceptor" class="nl.rivm.screenit.wsb.interceptors.BasicAuthAuthorizationInterceptor">
-        <property name="username" ref="ultimviewInlognaam"/>
-        <property name="password" ref="ultimviewWachtwoord"/>
-    </bean>
-
-    <bean id="locationUriInterceptorBoomservice" class="nl.rivm.screenit.wsb.interceptors.LocationUriInterceptor">
-        <property name="wsContext" value="organisatieboomservice"/>
-    </bean>
-
     
     <jaxws:endpoint id="labformulierService"
                     implementor="#LabformulierService_PortType"
@@ -180,5 +153,10 @@
         <cxf:inFaultInterceptors>
             <ref bean="logInbound"/>
         </cxf:inFaultInterceptors>
+        <cxf:properties>
+            <entry key="org.apache.cxf.logging.FaultListener">
+                <bean class="nl.rivm.screenit.wsb.pd.interceptor.ScreenITFaultListener"/>
+            </entry>
+        </cxf:properties>
     </cxf:bus>
 </beans>

@@ -112,22 +112,6 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 						}
 					});
 				}
-				else if (vorigeRonde != null && vorigeRonde.getOnbekendeHuisarts() != null)
-				{
-					getDialog().openWith(target,
-						new OnbekendeHuisartsVorigeRondeDialogPanel(IDialog.CONTENT_ID, getModel(), ModelUtil.cModel(vorigeRonde.getOnbekendeHuisarts()),
-							getHuisartsWijzigenPanel(), getDialog())
-						{
-
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							protected void close(AjaxRequestTarget target)
-							{
-								getDialog().close(target);
-							}
-						});
-				}
 				else
 				{
 					getDialog().openWith(target,
@@ -153,7 +137,7 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 		EnovationHuisarts enovationHuisarts = laatsteScreeningronde.getColonHuisarts();
 		OnbekendeHuisarts onbekendeHuisarts = laatsteScreeningronde.getOnbekendeHuisarts();
 
-		boolean verzendHaBerichtenVisible = magVerzenden && vorigeBerichtenBeschikbaar && (enovationHuisarts != null || onbekendeHuisarts != null);
+		boolean verzendHaBerichtenVisible = magVerzenden && vorigeBerichtenBeschikbaar && enovationHuisarts != null;
 		final WebMarkupContainer verzendHaBerichtenOpnieuwContainer = new WebMarkupContainer("verzendHaBerichtenOpnieuwContainer");
 		verzendHaBerichtenOpnieuwContainer.setVisible(verzendHaBerichtenVisible);
 		verzendHaBerichtenOpnieuwContainer.setOutputMarkupId(true);

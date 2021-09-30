@@ -56,7 +56,9 @@ import nl.rivm.screenit.model.gba.Nationaliteit;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
+import nl.rivm.screenit.model.project.ProjectInactiveerDocument;
 import nl.rivm.screenit.service.DossierFactory;
+import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.util.DateUtil;
@@ -105,6 +107,9 @@ public class TestServiceImpl implements TestService
 
 	@Autowired
 	private DossierFactory dossierFactory;
+
+	@Autowired
+	private FileService fileService;
 
 	private static String getValue2(String value)
 	{
@@ -334,8 +339,7 @@ public class TestServiceImpl implements TestService
 			hibernateService.saveOrUpdate(gbaAdres);
 			if (gemeente == null)
 			{
-				gemeente = (Gemeente) hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie"))
-					.addOrder(Order.asc("naam")).list().get(0);
+				gemeente = getGemeenteMetScreeningOrganisatie();
 			}
 			gbaAdres.setGbaGemeente(gemeente);
 			gbaAdres.setPlaats(gemeente.getNaam());
@@ -356,6 +360,13 @@ public class TestServiceImpl implements TestService
 			hibernateService.saveOrUpdate(gbaAdres);
 		}
 		return gbaAdres;
+	}
+
+	@Override
+	public Gemeente getGemeenteMetScreeningOrganisatie()
+	{
+		return (Gemeente) hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie"))
+			.addOrder(Order.asc("naam")).list().get(0);
 	}
 
 	@Override
@@ -620,6 +631,22 @@ public class TestServiceImpl implements TestService
 				}
 			});
 
+			ProjectInactiveerDocument projectInactiveerDocument = pclient.getProjectInactiveerDocument();
+			if (projectInactiveerDocument != null)
+			{
+				List<ProjectClient> projectClienten = projectInactiveerDocument.getProjectClienten();
+				pclient.setProjectInactiveerDocument(null);
+				if (projectClienten.isEmpty())
+				{
+					hibernateService.delete(projectInactiveerDocument);
+					fileService.delete(projectInactiveerDocument.getUploadDocument());
+				}
+				else
+				{
+					projectClienten.remove(pclient);
+					hibernateService.saveOrUpdate(projectInactiveerDocument);
+				}
+			}
 			hibernateService.deleteAll(projectBrieven);
 			ProjectGroep groep = pclient.getGroep();
 			groep.setPopulatie(groep.getPopulatie() - 1);

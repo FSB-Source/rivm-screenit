@@ -30,7 +30,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -48,6 +47,7 @@ import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseClientContactService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.mamma.MammaAfmeldService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
@@ -55,8 +55,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
-import nl.topicuszorg.util.collections.CollectionUtils;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,10 +84,14 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	private BaseClientContactService baseClientContactService;
 
 	@Autowired
+	@Lazy
 	private MammaBaseScreeningrondeService mammaBaseScreeningrondeService;
 
 	@Autowired
 	private MammaBaseFollowUpService followUpService;
+
+	@Autowired(required = false)
+	private MammaAfmeldService afmeldService;
 
 	@Override
 	public MammaFactorType getFactorType(MammaDossier dossier)
@@ -129,13 +131,13 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	}
 
 	@Override
-	public boolean isAfspraakMakenMogelijk(MammaDossier dossier, boolean viaClientportaal)
+	public boolean isAfspraakMakenMogelijk(MammaDossier dossier, boolean viaClientportaal, boolean viaSePassant)
 	{
-
-		if (StringUtils.isNotBlank(SpringBeanProvider.getInstance().getBean(ClientService.class).getGbaPostcode(dossier.getClient())))
+		if (heeftGbaPostcode(dossier))
 		{
 			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-			if (ronde != null && !ronde.getMinderValideOnderzoekZiekenhuis() && ronde.getStatus() == ScreeningRondeStatus.LOPEND)
+			if (ronde != null && !ronde.getMinderValideOnderzoekZiekenhuis()
+				&& (ronde.getStatus() == ScreeningRondeStatus.LOPEND || viaSePassant && afmeldService.magEenmaligHeraanmelden(dossier.getClient())))
 			{
 				MammaUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
 				if (laatsteUitnodiging != null)
@@ -173,8 +175,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Override
 	public boolean isVerzettenMogelijk(MammaDossier dossier)
 	{
-
-		if (StringUtils.isNotBlank(SpringBeanProvider.getInstance().getBean(ClientService.class).getGbaPostcode(dossier.getClient())))
+		if (heeftGbaPostcode(dossier))
 		{
 			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			if (ronde != null)
@@ -185,7 +186,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 					if (laatsteUitnodiging != null)
 					{
 						MammaAfspraak laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
-						if (laatsteAfspraak != null && !isAfspraakMakenMogelijk(dossier, false))
+						if (laatsteAfspraak != null && !isAfspraakMakenMogelijk(dossier, false, false))
 						{
 							return laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND && !isOnvolledigOnderzoek(ronde.getLaatsteOnderzoek());
 						}
@@ -218,11 +219,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 		if (laatsteScreeningRondeMetAfspraak != null)
 		{
 			MammaAfspraak laatsteAfspraak = laatsteScreeningRondeMetAfspraak.getLaatsteUitnodiging().getLaatsteAfspraak();
-			Boolean followUpConclusieStatus = isSuspect(laatsteScreeningRondeMetAfspraak, laatsteAfspraak);
-			if (followUpConclusieStatus != null)
-			{
-				return followUpConclusieStatus;
-			}
+			return isSuspect(laatsteScreeningRondeMetAfspraak, laatsteAfspraak);
 		}
 
 		return false;
@@ -278,6 +275,28 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	}
 
 	@Override
+	public boolean isRondeForcerenMogelijk(MammaDossier dossier)
+	{
+		if (dossier.getStatus() != DossierStatus.ACTIEF || dossier.getTehuis() != null || !heeftGbaPostcode(dossier))
+		{
+			return false;
+		}
+
+		MammaScreeningRonde laatsteRonde = dossier.getLaatsteScreeningRonde();
+		if (laatsteRonde == null)
+		{
+			return true;
+		}
+		return laatsteRonde.getStatus() == ScreeningRondeStatus.AFGEROND || laatsteRonde.getLaatsteUitnodiging() == null;
+
+	}
+
+	private boolean heeftGbaPostcode(MammaDossier dossier)
+	{
+		return StringUtils.isNotBlank(clientService.getGbaPostcode(dossier.getClient()));
+	}
+
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void verwijderMammaDossier(Client client)
 	{
@@ -287,7 +306,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 		if (dossier != null)
 		{
 			mammaBaseScreeningrondeService.verwijderAlleScreeningRondes(dossier);
-			verwijderDefinitieveAfmeldingen(dossier);
+
 			dossier.setInactiefVanaf(null);
 			dossier.setInactiefTotMet(null);
 
@@ -315,20 +334,4 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 			clientService.projectClientInactiveren(projectClient, ProjectInactiefReden.VERWIJDERING_VAN_DOSSIER, null);
 		}
 	}
-
-	private void verwijderDefinitieveAfmeldingen(MammaDossier dossier)
-	{
-		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))
-		{
-			for (MammaAfmelding afmelding : dossier.getAfmeldingen())
-			{
-
-				if (!afmelding.equals(dossier.getLaatsteAfmelding()) && afmelding.getHeraanmeldDatum() != null)
-				{
-					hibernateService.delete(afmelding);
-				}
-			}
-		}
-	}
-
 }

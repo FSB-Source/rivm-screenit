@@ -25,6 +25,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import nl.rivm.screenit.dto.mamma.planning.PlanningCapaciteitBlokDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningMeldingenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
@@ -52,6 +53,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaPlanningUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -150,10 +152,12 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 		config.getHeader().setCenter("title");
 		config.getHeader().setRight("huidigeWeek, uitgenodigdTotEnMet,vrijgegevenTotEnMet, herhalingsWeek");
 
-		DateShortcut toUitgenodigdTmButton = new DateShortcut("Uitgenodigd tot en met", DateUtil.toLocalDate(model.getObject().getUitgenodigdTotEnMet()));
+		var uitgenodigdTmButtonText = String.format("Uitgenodigd tot en met <br> %s", DateUtil.formatShortDate(getModelObject().getUitgenodigdTotEnMet()));
+		var toUitgenodigdTmButton = new DateShortcut(uitgenodigdTmButtonText, DateUtil.toLocalDate(getModelObject().getUitgenodigdTotEnMet()));
 		config.getDateShortcuts().put("uitgenodigdTotEnMet", toUitgenodigdTmButton);
 
-		DateShortcut toVrijgegevenTmButton = new DateShortcut("Vrijgegeven tot en met", DateUtil.toLocalDate(model.getObject().getVrijgegevenTotEnMet()));
+		var vrijgevenTmButtonText = String.format("Vrijgegeven tot en met <br> %s", DateUtil.formatShortDate(getModelObject().getVrijgegevenTotEnMet()));
+		var toVrijgegevenTmButton = new DateShortcut(vrijgevenTmButtonText, DateUtil.toLocalDate(getModelObject().getVrijgegevenTotEnMet()));
 		config.getDateShortcuts().put("vrijgegevenTotEnMet", toVrijgegevenTmButton);
 
 		DateShortcut toHerhalingsWeekButton = new DateShortcut("Herhalingsweek", baseConceptPlanningsApplicatie.getScreeningsEenheidMetaData(model.getObject()).herhalingsWeek);

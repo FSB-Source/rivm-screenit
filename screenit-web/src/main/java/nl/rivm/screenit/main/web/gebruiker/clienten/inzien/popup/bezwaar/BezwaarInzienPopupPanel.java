@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.bezwaar;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.comparator.BriefCreatieDatumComparator;
@@ -78,44 +77,42 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 	@SpringBean
 	private BriefHerdrukkenService briefHerdrukkenService;
 
-	private IModel<BezwaarMoment> bezwaarModel;
-
 	private IModel<UploadDocument> upload;
 
 	private WebMarkupContainer uploadForm;
 
-	private IModel<List<FileUpload>> files;
+	private IModel<List<FileUpload>> files = new ListModel<>();
 
 	public BezwaarInzienPopupPanel(String id, IModel<BezwaarMoment> model)
 	{
 		super(id, model);
-		this.bezwaarModel = model;
-		files = new ListModel<>();
+	}
 
-		add(new Label("wijzeAfmelding", model.getObject().getBezwaarBrief() == null ? "Clientportaal" : "Infolijn"));
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		add(new Label("wijzeAfmelding", getModelObject().getBezwaarBrief() == null ? "Clientportaal" : "Infolijn"));
 		WebMarkupContainer verstuurdFormulierContainer = new WebMarkupContainer("formulierVerstuurdContainer");
 		add(verstuurdFormulierContainer);
 		verstuurdFormulierContainer.add(
-			new ListView<String>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(briefService.getBrievenVanBezwaar(model.getObject()), this::getString))
+			new ListView<>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(briefService.getBrievenVanBezwaar(getModelObject()), this::getString))
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void populateItem(ListItem<String> item)
 				{
 					String tekst = item.getModelObject();
-					item.add(new Label("brief", Model.<String> of(tekst)));
+					item.add(new Label("brief", Model.of(tekst)));
 				}
 			});
 
-		add(DateLabel.forDatePattern("bezwaarDatum", new PropertyModel<Date>(model, "bezwaarDatum"), "dd-MM-yyyy"));
+		add(DateLabel.forDatePattern("bezwaarDatum", new PropertyModel<>(getModel(), "bezwaarDatum"), "dd-MM-yyyy"));
 
 		addVervangenPanel();
 
 		addButtons();
 
-		add(new BezwaarTekstPanel("bezwaarTekstPanel", model));
+		add(new BezwaarTekstPanel("bezwaarTekstPanel", getModel()));
 	}
 
 	private void addButtons()
@@ -124,11 +121,8 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 		upload = ModelUtil.sModel(getModelObject().getBezwaarBrief());
 		if (upload != null)
 		{
-			add(new DownloadLink("bezwaarformulierHandImg", new LoadableDetachableModel<File>()
+			add(new DownloadLink("bezwaarformulierHandImg", new LoadableDetachableModel<>()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected File load()
 				{
@@ -147,9 +141,6 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 		BezwaarBrief laatsteBrief = getLaatsteBrief();
 		add(new AjaxLink<Void>("tegenhouden")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -210,7 +201,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 			@Override
 			protected void vervangDocument(UploadDocument uploadDocument, AjaxRequestTarget target)
 			{
-				if (bezwaarService.bezwaarDocumentenVervangen(uploadDocument, bezwaarModel.getObject(), upload.getObject(), ScreenitSession.get().getLoggedInAccount()))
+				if (bezwaarService.bezwaarDocumentenVervangen(uploadDocument, getModelObject(), upload.getObject(), ScreenitSession.get().getLoggedInAccount()))
 				{
 					info(getString("info.vervangendocument"));
 					close(target);
@@ -244,7 +235,6 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 	protected void onDetach()
 	{
 		super.onDetach();
-		ModelUtil.nullSafeDetach(bezwaarModel);
 		ModelUtil.nullSafeDetach(upload);
 		ModelUtil.nullSafeDetach(files);
 	}

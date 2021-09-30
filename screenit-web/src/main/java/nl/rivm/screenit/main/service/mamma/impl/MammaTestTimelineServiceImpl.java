@@ -117,7 +117,6 @@ import ca.uhn.hl7v2.HL7Exception;
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(MammaTestTimelineServiceImpl.class);
 
 	@Autowired
@@ -226,21 +225,20 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Override
 	public List<TestTimelineRonde> getTimelineRondes(Client client)
 	{
-		List<Bevolkingsonderzoek> onderzoeken = new ArrayList<Bevolkingsonderzoek>();
+		List<Bevolkingsonderzoek> onderzoeken = new ArrayList<>();
 		onderzoeken.add(Bevolkingsonderzoek.MAMMA);
 		List<ScreeningRondeGebeurtenissen> rondes = dossierService.getScreeningRondeGebeurtenissen(client, new ClientDossierFilter(onderzoeken, false));
 
-		List<TestTimelineRonde> timeLineRondes = convertToTimeLineRondes(rondes);
-		return timeLineRondes;
+		return convertToTimeLineRondes(rondes);
 	}
 
 	private List<TestTimelineRonde> convertToTimeLineRondes(List<ScreeningRondeGebeurtenissen> rondeDossier)
 	{
-		Map<Integer, TestTimelineRonde> rondes = new HashMap<Integer, TestTimelineRonde>();
+		Map<Integer, TestTimelineRonde> rondes = new HashMap<>();
 		Integer index = 0;
 		for (ScreeningRondeGebeurtenissen ronde : rondeDossier)
 		{
-			TestTimelineRonde testTimeLineRonde = null;
+			TestTimelineRonde testTimeLineRonde;
 			if (!rondes.containsKey(index))
 			{
 				testTimeLineRonde = new TestTimelineRonde();
@@ -259,7 +257,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	private List<TestTimelineRonde> convertHashMapToList(Map<Integer, TestTimelineRonde> map)
 	{
-		List<TestTimelineRonde> rondes = new ArrayList<TestTimelineRonde>();
+		List<TestTimelineRonde> rondes = new ArrayList<>();
 		for (Map.Entry<Integer, TestTimelineRonde> ronde : map.entrySet())
 		{
 			rondes.add(ronde.getKey(), ronde.getValue());
@@ -448,7 +446,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		mammografie.setIlmStatus(MammaMammografieIlmStatus.BESCHIKBAAR);
 		mammografie.setIlmStatusDatum(currentDateSupplier.getDate());
 		MammaBeoordeling beoordeling = onderzoekService.voegInitieleBeoordelingToe(onderzoek);
-		setSignalerenVoorOnderzoek(mbber, onderzoek);
+		setSignalerenVoorOnderzoek(mbber, onderzoek, false);
 
 		if (afspraak.getStatus() != MammaAfspraakStatus.BEEINDIGD)
 		{
@@ -466,7 +464,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	@Override
 	public void rondOnderzoekAf(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, boolean verstuurHl7Berichten, OnvolledigOnderzoekOption onvolledigOnderzoekOption,
-		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption)
+		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, boolean afwijkingGesignaleerd)
 	{
 		MammaOnderzoek onderzoek = afspraak.getOnderzoek();
 		Client client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
@@ -493,7 +491,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			onderzoek.setOnderbrokenOnderzoek(onderbrokenOnderzoekOption);
 			onderzoek.setStatus(MammaOnderzoekStatus.ONDERBROKEN);
 		}
-		setSignalerenVoorOnderzoek(instellingGebruiker, onderzoek);
+		setSignalerenVoorOnderzoek(instellingGebruiker, onderzoek, afwijkingGesignaleerd);
 
 		if (afspraak.getStatus() != MammaAfspraakStatus.BEEINDIGD)
 		{
@@ -524,12 +522,12 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		return onderzoek;
 	}
 
-	private void setSignalerenVoorOnderzoek(InstellingGebruiker mbber, MammaOnderzoek onderzoek)
+	private void setSignalerenVoorOnderzoek(InstellingGebruiker mbber, MammaOnderzoek onderzoek, boolean afwijking)
 	{
 		if (onderzoek.getSignaleren() == null)
 		{
 			MammaSignaleren signaleren = new MammaSignaleren();
-			signaleren.setHeeftAfwijkingen(false);
+			signaleren.setHeeftAfwijkingen(afwijking);
 			signaleren.setOnderzoek(onderzoek);
 			signaleren.setAfgerondDoor(mbber);
 			signaleren.setAfgerondOp(currentDateSupplier.getDate());
@@ -964,7 +962,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			&& MammaOnderzoekStatus.ONVOLLEDIG.equals(onderzoek.getStatus()) && OnvolledigOnderzoekOption.ZONDER_FOTOS.equals(onderzoek.getOnvolledigOnderzoek())
 			&& ronde.getDossier().getLaatsteScreeningRonde().equals(ronde);
 		boolean isLopend = ScreeningRondeStatus.LOPEND.equals(ronde.getStatus());
-		boolean isAangemeld = ronde.getAangemeld().booleanValue();
+		boolean isAangemeld = ronde.getAangemeld();
 		return !isOverleden && (isLopend || !isAangemeld && !isLopend || onderbrokenZonderFotosSitautie);
 	}
 }

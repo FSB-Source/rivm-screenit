@@ -239,9 +239,9 @@ public class RetourzendingHandmatigVerwerkenPage extends RetourzendingBasePage
 			});
 
 			List<RetourredenAfhandeling> retourRedenAfhandelingen = hibernateService.loadAll(RetourredenAfhandeling.class);
-			List<String> retourRedenen = retourRedenAfhandelingen.stream().map(r -> r.getRetourReden()).collect(Collectors.toList());
+			List<String> retourRedenen = retourRedenAfhandelingen.stream().map(RetourredenAfhandeling::getRetourReden).collect(Collectors.toList());
 
-			statusForm.add(new ScreenitDropdown<String>("retourzendingReden", retourRedenen, new ChoiceRenderer<String>())
+			statusForm.add(new ScreenitDropdown<>("retourzendingReden", retourRedenen, new ChoiceRenderer<>())
 				.setNullValid(false).setRequired(true));
 
 			statusForm.add(new IndicatingAjaxSubmitLink("opslaan")
@@ -255,8 +255,8 @@ public class RetourzendingHandmatigVerwerkenPage extends RetourzendingBasePage
 					U uitnodiging = uitnodingModel.getObject();
 					retourzendingService.verwerkRetourzendingHandmatig(ScreenitSession.get().getLoggedInInstellingGebruiker(), uitnodiging, uitnodiging.getRetourzendingReden());
 
-					reset(target);
 					info(getString("message.gegevensopgeslagen"));
+					reset(target);
 				}
 			});
 

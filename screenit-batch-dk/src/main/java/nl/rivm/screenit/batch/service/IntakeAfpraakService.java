@@ -23,11 +23,10 @@ package nl.rivm.screenit.batch.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.model.colon.planning.VrijSlot;
-
-import org.omg.CORBA.IntHolder;
 
 public interface IntakeAfpraakService
 {
@@ -36,7 +35,7 @@ public interface IntakeAfpraakService
 
 	List<ClientAfspraak> getClientenVoorIntakeAfspraakMaken(Integer afstandFactor, Integer tijdFactor, StringBuilder foutTekst);
 
-	List<VrijSlot> getAllVrijeSlotenIntakeafspraakperiode(int aantalGeselecteerdeClienten, Date begintijd, Date eindtijd, IntHolder aantalExtraDagen);
+	List<VrijSlot> getAllVrijeSlotenIntakeafspraakperiode(int aantalGeselecteerdeClienten, Date begintijd, Date eindtijd, AtomicInteger aantalExtraDagen);
 
 	double getWachttijdNormering(Integer intakeAfspraakPeriode, Integer tijdfactor);
 

@@ -22,41 +22,23 @@
 <wicket:extend>
     <h1 class="pageTitle">Rapportage</h1>
     <div class="form-horizontal">
-    	<wicket:enclosure child="openSso">
-        <fieldset>
-            <div class="row-fluid">
-                <div class="span12">
-                    <p>
-                        Met de knop
-                        hieronder kunt u een verbinding openen naar de ScreenBI
-                        rapportage omgeving.
-                    </p>
+        <wicket:enclosure child="openSsoWebFocus">
+            <fieldset>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <p>
+                            Met de knop
+                            hieronder kunt u een verbinding openen naar de WebFocus
+                            rapportage omgeving.
+                        </p>
+                    </div>
                 </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span12">
-                    <a class="btn btn-primary left" wicket:id="openSso" target="_blank">Open ScreenBI</a>
+                <div class="row-fluid">
+                    <div class="span12">
+                        <button class="btn btn-primary left" wicket:id="openSsoWebFocus" target="_blank">Open WebFocus</button>
+                    </div>
                 </div>
-            </div>
-        </fieldset>
-        </wicket:enclosure>
-    	<wicket:enclosure child="openSsoWebFocus">
-        <fieldset>
-            <div class="row-fluid">
-                <div class="span12">
-                    <p>
-                        Met de knop
-                        hieronder kunt u een verbinding openen naar de WebFocus
-                        rapportage omgeving.
-                    </p>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span12">
-                    <button class="btn btn-primary left" wicket:id="openSsoWebFocus" target="_blank">Open WebFocus</button>
-                </div>
-            </div>
-        </fieldset>
+            </fieldset>
         </wicket:enclosure>
     </div>
 </wicket:extend>

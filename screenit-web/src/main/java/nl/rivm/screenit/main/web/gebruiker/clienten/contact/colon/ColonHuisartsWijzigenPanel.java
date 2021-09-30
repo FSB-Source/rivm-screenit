@@ -103,7 +103,7 @@ public class ColonHuisartsWijzigenPanel extends AbstractClientContactActiePanel<
 		ColonScreeningRonde screeningRonde = colonScreeningRonde.getObject();
 		if (Boolean.TRUE.equals(huisartsBerichtenVerzenden.getObject())
 			&& BezwaarUtil.isBezwaarActiefVoor(screeningRonde.getDossier().getClient(), BezwaarType.GEEN_UITWISSELING_MET_DE_HUISARTS, Bevolkingsonderzoek.COLON)
-			&& (screeningRonde.getColonHuisarts() != null || screeningRonde.getOnbekendeHuisarts() != null))
+			&& screeningRonde.getColonHuisarts() != null)
 		{
 			opslaanMeldingen.add("Er is nog een bezwaar voor uitwisseling met de huisarts voor deze client actief. Huisartsbericht wordt niet verstuurd.");
 		}

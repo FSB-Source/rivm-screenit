@@ -66,7 +66,7 @@ public class ScreeningOrganisatie extends Instelling
 	private String rechtbank;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "so_logo_minigrip")
+	@JoinColumn(name = "so_logo_inpakcentrum")
 	private UploadDocument logo;
 
 	@ManyToOne(fetch = FetchType.LAZY)

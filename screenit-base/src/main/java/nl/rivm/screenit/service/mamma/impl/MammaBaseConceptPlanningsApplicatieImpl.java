@@ -50,10 +50,13 @@ import nl.rivm.screenit.dto.mamma.planning.PlanningVerzetClientenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningWeekDto;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.rest.RestApiFactory;
 
@@ -149,6 +152,9 @@ public class MammaBaseConceptPlanningsApplicatieImpl implements MammaBaseConcept
 	}
 
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseConceptPlanningsApplicatieImpl.class);
+
+	@Autowired
+	private LogService logService;
 
 	@Autowired
 	@Qualifier("planningBkRestUrl")
@@ -408,6 +414,10 @@ public class MammaBaseConceptPlanningsApplicatieImpl implements MammaBaseConcept
 		ResponseEntity<PlanningConceptMeldingenDto> result = restApi.getForEntity(
 			planningBkRestUrl + PlanningRestConstants.C_ACTIE + "/conceptOpslaan/" + ingelogdeInstellingGebruiker.getOrganisatie().getId() + "/" + runDry,
 			PlanningConceptMeldingenDto.class);
+		if (!runDry)
+		{
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_PLANNING_CONCEPT_OPGESLAGEN, ingelogdeInstellingGebruiker, Bevolkingsonderzoek.MAMMA);
+		}
 		return result.getBody();
 	}
 

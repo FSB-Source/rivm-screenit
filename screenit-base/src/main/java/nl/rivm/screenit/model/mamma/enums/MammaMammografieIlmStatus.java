@@ -46,8 +46,8 @@ public enum MammaMammografieIlmStatus
 		return Arrays.asList(BESCHIKBAAR, TE_VERWIJDEREN, VERWIJDEREN_MISLUKT, VERWIJDERD).contains(status);
 	}
 
-	public static boolean beeldenVerwijderd(MammaMammografieIlmStatus status)
+	public static boolean beeldenMogelijkAanwezig(MammaMammografieIlmStatus status)
 	{
-		return Arrays.asList(TE_VERWIJDEREN, VERWIJDEREN_MISLUKT, VERWIJDERD).contains(status);
+		return Arrays.asList(BESCHIKBAAR, TE_VERWIJDEREN, VERWIJDEREN_MISLUKT).contains(status);
 	}
 }

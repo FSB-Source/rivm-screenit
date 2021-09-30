@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -45,7 +44,6 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieBoomWrapper;
 import nl.rivm.screenit.model.OrganisatieParameter;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -94,7 +92,6 @@ import ca.uhn.hl7v2.util.StringUtil;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class InstellingServiceImpl implements InstellingService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(InstellingServiceImpl.class);
 
 	@Autowired
@@ -379,12 +376,6 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
-	public List<OrganisatieBoomWrapper> getCompleteOrganisatieBoom()
-	{
-		return instellingDao.getCompleteOrganisatieBoom();
-	}
-
-	@Override
 	public Criteria getAllILAdressenZonderCoordinanten()
 	{
 		return instellingDao.getAllILAdressenZonderCoordinanten();
@@ -425,7 +416,7 @@ public class InstellingServiceImpl implements InstellingService
 		}
 		if (organisatie != null)
 		{
-			queryParams.put("organisatie.id", organisatie.getId());
+			queryParams.put("organisatie", organisatie.getId());
 		}
 
 		OrganisatieParameter orgParam = hibernateService.getUniqueByParameters(OrganisatieParameter.class, queryParams);

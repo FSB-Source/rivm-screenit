@@ -22,6 +22,8 @@ package nl.rivm.screenit.service.colon.impl;
  */
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -47,9 +49,9 @@ import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.ProjectClient;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
@@ -64,11 +66,9 @@ import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,11 +95,9 @@ public class IFobtServiceImpl implements IFobtService
 	private HibernateService hibernateService;
 
 	@Autowired
-	@Lazy
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
 	@Autowired
-	@Lazy
 	private ColonScreeningsrondeService screeningsrondeService;
 
 	@Autowired
@@ -120,7 +118,7 @@ public class IFobtServiceImpl implements IFobtService
 		return iFobtDao.getIfobtTest(barcode);
 	}
 
-	private void rondeSluitenIndienMogelijk(DateTime nu, ColonScreeningRonde ronde)
+	private void rondeSluitenIndienMogelijk(LocalDateTime nu, ColonScreeningRonde ronde)
 	{
 		boolean allesAfgerondEnGunstig = true;
 		boolean isUitslagBriefVerstuurd = false;
@@ -138,7 +136,7 @@ public class IFobtServiceImpl implements IFobtService
 		if (allesAfgerondEnGunstig && isUitslagBriefVerstuurd)
 		{
 			ronde.setStatus(ScreeningRondeStatus.AFGEROND);
-			ronde.setStatusDatum(nu.plusMillis(150).toDate());
+			ronde.setStatusDatum(DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
 		}
 		ColonUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
 		if (laatsteUitnodiging != null && !laatsteUitnodiging.isVerstuurd())
@@ -185,7 +183,7 @@ public class IFobtServiceImpl implements IFobtService
 		uitnodigingService.berekenEnSetUitgesteldeUitslagDatum(uitnodiging);
 
 		ColonScreeningRonde screeningRonde = uitslagNaarJuisteRonde(fitMetUitslag);
-		DateTime nu = currentDateSupplier.getDateTime();
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 		setNormWaarde(fitMetUitslag, normWaardeGold);
 		bepaalEnSetHeraanmeldenTekstKey(fitMetUitslag);
 		heraanmelden(screeningRonde, nu);
@@ -444,7 +442,7 @@ public class IFobtServiceImpl implements IFobtService
 	}
 
 	@Override
-	public void heraanmelden(ColonScreeningRonde screeningRonde, DateTime nu)
+	public void heraanmelden(ColonScreeningRonde screeningRonde, LocalDateTime nu)
 	{
 
 		ColonDossier dossier = screeningRonde.getDossier();
@@ -455,12 +453,12 @@ public class IFobtServiceImpl implements IFobtService
 			afmelding.setHeraanmeldingBevestigingsBriefTegenhouden(true);
 			afmelding.setHeraanmeldingAfspraakUitRooster(true);
 			afmelding.setClientWilNieuweUitnodiging(false);
-			clientService.heraanmelden(afmelding, null);
+			baseAfmeldService.heraanmelden(afmelding, null);
 		}
 		if (ScreeningRondeStatus.AFGEROND.equals(screeningRonde.getStatus()))
 		{
 			screeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
-			screeningRonde.setStatusDatum(nu.toDate());
+			screeningRonde.setStatusDatum(DateUtil.toUtilDate(nu));
 			screeningRonde.setAfgerondReden(null);
 			hibernateService.saveOrUpdate(screeningRonde);
 		}
@@ -587,7 +585,7 @@ public class IFobtServiceImpl implements IFobtService
 		bepaalEnSetHeraanmeldenTekstKey(ifobtTest);
 		if (ifobtTest.getHeraanmeldenTekstKey() != null)
 		{
-			heraanmelden(screeningRonde, currentDateSupplier.getDateTime());
+			heraanmelden(screeningRonde, currentDateSupplier.getLocalDateTime());
 		}
 		setStatusEnDatum(ifobtTest, IFOBTTestStatus.NIETTEBEOORDELEN, currentDateSupplier.getDate());
 

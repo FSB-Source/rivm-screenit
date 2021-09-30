@@ -43,8 +43,8 @@ import nl.topicuszorg.gba.model.Land;
 import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.CharUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

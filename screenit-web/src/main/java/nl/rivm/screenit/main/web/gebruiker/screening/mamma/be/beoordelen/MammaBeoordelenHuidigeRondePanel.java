@@ -24,7 +24,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.beoordelen;
 import java.util.List;
 
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaRondePanel;
@@ -43,6 +42,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaAmputatie;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,9 +68,9 @@ public class MammaBeoordelenHuidigeRondePanel extends AbstractMammaRondePanel
 
 	private MammaVisueleInspectiePanel visueleInspectiePanel;
 
-	public MammaBeoordelenHuidigeRondePanel(String id, IModel<MammaBeoordeling> beoordelingModel)
+	public MammaBeoordelenHuidigeRondePanel(String id, IModel<MammaBeoordeling> beoordelingModel, Integer jaarLaatsteVerwijzing)
 	{
-		super(id, beoordelingModel);
+		super(id, beoordelingModel, jaarLaatsteVerwijzing);
 	}
 
 	@Override
@@ -200,6 +200,6 @@ public class MammaBeoordelenHuidigeRondePanel extends AbstractMammaRondePanel
 	private int getVisueleInspectiePanelSize()
 	{
 		MammaAnnotatieAfbeelding visueleInspectieAfbeelding = getModelObject().getOnderzoek().getMammografie().getVisueleInspectieAfbeelding();
-		return toonMBBSignaleren() || visueleInspectieAfbeelding == null || visueleInspectieAfbeelding.getIconen().isEmpty() ? 4 : 8;
+		return toonMBBSignaleren() || visueleInspectieAfbeelding == null || visueleInspectieAfbeelding.getIconen().isEmpty() ? 4 : 6;
 	}
 }

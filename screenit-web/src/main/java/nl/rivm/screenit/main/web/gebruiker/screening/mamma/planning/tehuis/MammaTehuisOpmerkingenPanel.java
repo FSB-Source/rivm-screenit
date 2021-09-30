@@ -81,24 +81,18 @@ public class MammaTehuisOpmerkingenPanel extends GenericPanel<MammaTehuis>
 		final IModel<MammaTehuisOpmerking> searchObjectModel = Model.of(searchObject);
 		opmerkingen.add(new ActiefHeaderPanel<>("actiefHeader", opmerkingen, searchObjectModel));
 
-		IModel<List<MammaTehuisOpmerking>> listModel = new IModel<List<MammaTehuisOpmerking>>()
+		IModel<List<MammaTehuisOpmerking>> listModel = new IModel<>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public List<MammaTehuisOpmerking> getObject()
 			{
-				List<MammaTehuisOpmerking> list = new ArrayList<MammaTehuisOpmerking>(getModelObject().getOpmerkingen());
+				List<MammaTehuisOpmerking> list = new ArrayList<>(getModelObject().getOpmerkingen());
 				Collections.sort(list, new PropertyComparator<>("creatieDatum", false, false));
 				return list;
 			}
 		};
-		ListView<MammaTehuisOpmerking> list = new ListView<MammaTehuisOpmerking>("list", listModel)
+		ListView<MammaTehuisOpmerking> list = new ListView<>("list", listModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<MammaTehuisOpmerking> item)
 			{
@@ -125,59 +119,51 @@ public class MammaTehuisOpmerkingenPanel extends GenericPanel<MammaTehuis>
 					item.add(new AjaxEventBehavior("click")
 					{
 
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void onEvent(AjaxRequestTarget target)
 						{
-							editOpmerking(target, ModelUtil.cModel(item.getModelObject()));
+							editOpmerking(target, ModelUtil.ccModel(item.getModelObject()));
 						}
 					});
 				}
 				item.add(DateLabel.forDatePattern("creatieDatum", Model.of(opmerking.getCreatieDatum()), "dd-MM-yyyy HH:mm"));
 				item.add(new Label("opmerking", opmerking.getOpmerking()));
 
-				item.add(
-					new ActiefCellPanel<MammaTehuisOpmerking>("actiefToggle", item.getModel(), ingelogdNamensRegio && magAanpassen, null, null)
+				item.add(new ActiefCellPanel<>("actiefToggle", item.getModel(), ingelogdNamensRegio && magAanpassen, null, null)
+				{
+					@Override
+					protected boolean isActief(IModel<MammaTehuisOpmerking> rowModel)
 					{
+						return !Boolean.FALSE.equals(rowModel.getObject().getActief());
+					}
 
-						private static final long serialVersionUID = 1L;
+					@Override
+					protected void onAfterToggleActief(AjaxRequestTarget target, MammaTehuisOpmerking actiefObject)
+					{
+						super.onAfterToggleActief(target, actiefObject);
+						target.add(opmerkingen);
+						tehuisService.saveOrUpdateTehuisOpmerking(actiefObject, null, ScreenitSession.get().getLoggedInInstellingGebruiker());
+					}
 
-						@Override
-						protected boolean isActief(IModel<MammaTehuisOpmerking> rowModel)
-						{
-							return !Boolean.FALSE.equals(rowModel.getObject().getActief());
-						}
-
-						@Override
-						protected void onAfterToggleActief(AjaxRequestTarget target, MammaTehuisOpmerking actiefObject)
-						{
-							super.onAfterToggleActief(target, actiefObject);
-							target.add(opmerkingen);
-							tehuisService.saveOrUpdateTehuisOpmerking(actiefObject, null, ScreenitSession.get().getLoggedInInstellingGebruiker());
-						}
-
-						@Override
-						protected boolean skipConfirmation()
-						{
-							return true;
-						}
-					});
+					@Override
+					protected boolean skipConfirmation()
+					{
+						return true;
+					}
+				});
 			}
 
 		};
 		opmerkingen.add(list);
 		add(opmerkingen);
 
-		IndicatingAjaxLink<Void> nieuweOpmerking = new IndicatingAjaxLink<Void>("nieuw")
+		IndicatingAjaxLink<Void> nieuweOpmerking = new IndicatingAjaxLink<>("nieuw")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				IModel<MammaTehuisOpmerking> nieuweOpmerking = ModelUtil.cRModel(new MammaTehuisOpmerking());
+				IModel<MammaTehuisOpmerking> nieuweOpmerking = ModelUtil.csModel(new MammaTehuisOpmerking());
 				nieuweOpmerking.getObject().setActief(true);
 				editOpmerking(target, nieuweOpmerking);
 			}
@@ -215,6 +201,10 @@ public class MammaTehuisOpmerkingenPanel extends GenericPanel<MammaTehuis>
 				MammaTehuis Tehuis = (MammaTehuis) MammaTehuisOpmerkingenPanel.this.getDefaultModelObject();
 				MammaTehuisOpmerking opmerking = (MammaTehuisOpmerking) opmerkingForm.getModelObject();
 				boolean changed = tehuisService.saveOrUpdateTehuisOpmerking(opmerking, Tehuis, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				if (changed)
+				{
+					success(getString("message.gegevensopgeslagen"));
+				}
 				target.add(opmerkingen);
 				WebMarkupContainer invisibleopmerkingContainer = new WebMarkupContainer("editOpmerkingContainer");
 				invisibleopmerkingContainer.setOutputMarkupPlaceholderTag(true);
@@ -222,10 +212,6 @@ public class MammaTehuisOpmerkingenPanel extends GenericPanel<MammaTehuis>
 				editOpmerkingContainer.replaceWith(invisibleopmerkingContainer);
 				editOpmerkingContainer = invisibleopmerkingContainer;
 				target.add(invisibleopmerkingContainer);
-				if (changed)
-				{
-					success(getString("message.gegevensopgeslagen"));
-				}
 				BasePage.markeerFormulierenOpgeslagen(target);
 			}
 		});

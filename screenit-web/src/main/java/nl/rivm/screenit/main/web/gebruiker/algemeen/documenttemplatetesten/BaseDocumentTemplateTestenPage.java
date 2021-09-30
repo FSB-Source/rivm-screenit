@@ -145,7 +145,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 			wrapper.cloneIntakeLocatie(actieveIntakelocaties.get(0));
 		}
 
-		ToegangLevel level = ScreenitSession.get().getToegangsLevel(Actie.AANPASSEN, Recht.GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES);
+		ToegangLevel level = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES);
 
 		List<ScreeningOrganisatie> screeningOrganisatieLijst = instellingService.getAllActiefScreeningOrganisaties();
 		selectedType = Model.of();
@@ -258,7 +258,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 
 	private IndicatingAjaxSubmitLink getPrintButton()
 	{
-		IndicatingAjaxSubmitLink link = new IndicatingAjaxSubmitLink("printen")
+		return new IndicatingAjaxSubmitLink("printen")
 		{
 
 			@Override
@@ -412,7 +412,6 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 				}
 			}
 		};
-		return link;
 	}
 
 	public BriefType getSelectedType()

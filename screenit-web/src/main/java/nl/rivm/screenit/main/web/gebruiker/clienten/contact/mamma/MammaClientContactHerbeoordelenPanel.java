@@ -48,15 +48,22 @@ public class MammaClientContactHerbeoordelenPanel extends AbstractClientContactA
 	@SpringBean
 	private MammaBaseBeoordelingReserveringService beoordelingReserveringService;
 
+	private final IModel<MammaBeoordeling> beoordelingModel;
+
 	public MammaClientContactHerbeoordelenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
 	{
 		super(id, model);
 
 		MammaBeoordeling beoordeling = MammaScreeningRondeUtil.getLaatsteBeoordelingVanLaatsteOnderzoek(client.getObject());
+		beoordelingModel = ModelUtil.ccModel(beoordeling);
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		InstellingGebruiker ingelogdeGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
-
-		IModel<MammaBeoordeling> beoordelingModel = ModelUtil.ccModel(beoordeling);
-
+		MammaBeoordeling beoordeling = ModelUtil.nullSafeGet(beoordelingModel);
 		WebMarkupContainer redenOpgevenContainer = new WebMarkupContainer("redenOpgevenContainer", beoordelingModel);
 		redenOpgevenContainer.setVisible(
 			!beoordelingService.beoordelingZitInActieveFotobespreking(beoordeling) && !beoordelingReserveringService.gereserveerdDoorIemandAnders(ingelogdeGebruiker, beoordeling));
@@ -72,5 +79,12 @@ public class MammaClientContactHerbeoordelenPanel extends AbstractClientContactA
 		foutmeldingBeoordelingGeopendContainer.setVisible(beoordelingReserveringService.gereserveerdDoorIemandAnders(ingelogdeGebruiker, beoordeling));
 		add(foutmeldingBeoordelingGeopendContainer);
 		foutmeldingBeoordelingGeopendContainer.add(new Label("foutmeldingBezet", getString("geopend.in.be")));
+	}
+
+	@Override
+	public void detachModels()
+	{
+		super.detachModels();
+		ModelUtil.nullSafeDetach(beoordelingModel);
 	}
 }

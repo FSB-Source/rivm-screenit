@@ -22,6 +22,7 @@ package nl.rivm.screenit.model.enums;
  */
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.model.INaam;
@@ -121,12 +122,14 @@ public enum Recht implements INaam
 		"Beheer rollen",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.VERWIJDEREN),
 
 	GEBRUIKER_BEHEER_BRIEVEN(
 		"Brieven beheer",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN),
@@ -135,6 +138,7 @@ public enum Recht implements INaam
 		"Beheer gebieden",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN)
@@ -152,6 +156,7 @@ public enum Recht implements INaam
 		"Beheer gebieden FIT retourpercentage",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN),
@@ -160,6 +165,7 @@ public enum Recht implements INaam
 		"Beheer gebieden FIT ongunstigepercentage",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN),
@@ -168,6 +174,7 @@ public enum Recht implements INaam
 		"Beheer adherentie",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.INZIEN,
 		Actie.AANPASSEN),
 
 	GEBRUIKER_LOCATIE_ROOSTER("Beheer rooster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON })
@@ -176,7 +183,7 @@ public enum Recht implements INaam
 		@Override
 		public List<OrganisatieType> getOrganisatieTypes()
 		{
-			return Arrays.asList(OrganisatieType.COLOSCOPIECENTRUM);
+			return Collections.singletonList(OrganisatieType.COLOSCOPIECENTRUM);
 		}
 	},
 
@@ -216,7 +223,7 @@ public enum Recht implements INaam
 		"Documenttemplates testen",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
-		Actie.AANPASSEN),
+		Actie.INZIEN),
 
 	VERVANGEN_DOCUMENTEN(
 		"Documenten kunnen vervangen",
@@ -515,12 +522,6 @@ public enum Recht implements INaam
 		"Beheer Client Tooltip",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK }),
-
-	GEBRUIKER_RAPPORTAGE(
-		"Rapportage",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
-		new ToegangLevel[] { ToegangLevel.INSTELLING, ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
-		Actie.INZIEN),
 
 	GEBRUIKER_RAPPORTAGE_WEBFOCUS(
 		"Rapportage - WebFocus",
@@ -847,6 +848,12 @@ public enum Recht implements INaam
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.INSTELLING }),
 
+	GEBRUIKER_SCREENING_MAMMA_REVIEW_WERKLIJST(
+		"Review werklijst",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.INSTELLING },
+		Actie.AANPASSEN),
+
 	GEBRUIKER_SCREENING_MAMMA_DOSSIERGEGEVENS(
 		"Dossiergegevens",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
@@ -1061,7 +1068,12 @@ public enum Recht implements INaam
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
 		Actie.VERWIJDEREN),
-		;
+
+	GEBRUIKER_MAMMA_SE_STATUS_INZIEN(
+		"SE statuspagina",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.INZIEN);
 
 	private final String omschrijving;
 

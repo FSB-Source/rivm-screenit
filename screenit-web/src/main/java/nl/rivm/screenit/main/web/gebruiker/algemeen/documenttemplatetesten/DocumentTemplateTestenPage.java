@@ -50,7 +50,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 import com.aspose.words.Document;
 
 @SecurityConstraint(
-	actie = Actie.AANPASSEN,
+	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES,
 	bevolkingsonderzoekScopes = {

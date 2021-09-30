@@ -25,10 +25,13 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.gebieden;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.screening.colon.ColonScreeningBasePage;
 import nl.rivm.screenit.model.Gemeente;
 
+import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.Recht;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.model.IModel;
@@ -64,4 +67,10 @@ public class GebiedenBeheerPage extends ColonScreeningBasePage
 
 		return contextMenuItems;
 	}
+
+	protected boolean magAdherentieAanpassen()
+	{
+		return ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN_ADHERENTIE_AANPASSEN, Actie.AANPASSEN);
+	}
+
 }

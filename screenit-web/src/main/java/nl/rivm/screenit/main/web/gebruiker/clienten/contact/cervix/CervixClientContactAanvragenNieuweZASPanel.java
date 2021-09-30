@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix;
 
 /*-
@@ -29,8 +28,6 @@ import java.util.Map;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
-import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
@@ -39,13 +36,14 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -55,11 +53,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientContactActiePanel<ClientContactActie>
 {
-
-	private final IModel<Client> clientModel;
 
 	@SpringBean
 	private RondeNummerService rondeNummerService;
@@ -70,20 +67,27 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
-	private Date zasUitnodigingsDatum;
+	private final IModel<Client> clientModel;
 
 	private Date uitstellenTotDatum;
 
 	private Boolean uitstelPeriodeNemen = false;
 
-	public CervixClientContactAanvragenNieuweZASPanel(String id, IModel<ClientContactActie> model, IModel<Client> client, List<Object> extraPanelParams)
+	public CervixClientContactAanvragenNieuweZASPanel(String id, IModel<ClientContactActie> model, IModel<Client> clientModel, List<Object> extraPanelParams)
 	{
 		super(id, model);
-		this.clientModel = client;
+		this.clientModel = clientModel;
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+
 		Date verstuurd = null;
 
 		String extraOmschrijving = null;
-		CervixDossier cervixDossier = client.getObject().getCervixDossier();
+		CervixDossier cervixDossier = clientModel.getObject().getCervixDossier();
 		CervixScreeningRonde laatsteScreeningRonde = cervixDossier.getLaatsteScreeningRonde();
 		CervixUitnodiging laatsteUitnodiging = laatsteScreeningRonde.getLaatsteUitnodiging();
 
@@ -106,7 +110,7 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 		add(DateLabel.forDatePattern("datum", Model.of(verstuurd), "dd-MM-yyyy HH:mm:ss"));
 		add(new EnumLabel<>("gebeurtenis", TypeGebeurtenis.BMHK_ZAS_SAMENGESTELD));
 		add(new Label("extraOmschrijving", extraOmschrijving).setVisible(extraOmschrijving != null));
-		add(new WebMarkupContainer("gbaMessageContainer").setVisible(!GbaStatus.INDICATIE_AANWEZIG.equals(client.getObject().getGbaStatus())));
+		add(new WebMarkupContainer("gbaMessageContainer").setVisible(!GbaStatus.INDICATIE_AANWEZIG.equals(clientModel.getObject().getGbaStatus())));
 		add(new Label("maxZASOverschredenWaarschuwing", String.format(getString("message.maxZASOverschredenWaarschuwing"), maxZasAanvragenInfolijn()))
 			.setVisible(screeningrondeBaseService.heeftMaxAantalZASsenBereikt(laatsteScreeningRonde, false)));
 
@@ -118,7 +122,7 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 		uitstelPeriodeNemen.setOutputMarkupId(true);
 		uitstelPeriodeNemen.setRequired(true);
 
-		zasUitnodigingsDatum = currentDateSupplier.getDate();
+		Date zasUitnodigingsDatum = currentDateSupplier.getDate();
 		CervixUitstel uitstel = laatsteScreeningRonde.getUitstel();
 		add(uitstelPeriodeNemen);
 		if (uitstel != null && uitstel.getGeannuleerdDatum() == null)

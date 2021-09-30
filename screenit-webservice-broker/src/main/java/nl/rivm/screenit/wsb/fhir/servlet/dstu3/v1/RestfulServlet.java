@@ -27,6 +27,7 @@ import java.util.List;
 import javax.inject.Singleton;
 
 import nl.rivm.screenit.wsb.fhir.interceptor.FhirCertificaatInterceptor;
+import nl.rivm.screenit.wsb.fhir.interceptor.ProcessingCompletedInterceptor;
 import nl.rivm.screenit.wsb.fhir.provider.dstu3.v1.BundleProvider;
 import nl.rivm.screenit.wsb.fhir.provider.dstu3.v1.TaskProvider;
 
@@ -53,6 +54,7 @@ public class RestfulServlet extends RestfulServer
 
 		registerInterceptor(new ResponseHighlighterInterceptor());
 		registerInterceptor(new FhirCertificaatInterceptor());
+		registerInterceptor(new ProcessingCompletedInterceptor());
 
 	}
 

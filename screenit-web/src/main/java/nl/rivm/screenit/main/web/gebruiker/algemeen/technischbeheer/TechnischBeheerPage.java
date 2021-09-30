@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -54,8 +55,11 @@ public class TechnischBeheerPage extends AlgemeenPage
 	private List<GebruikerMenuItem> createContextMenu()
 	{
 		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
-		contextMenuItems.add(new GebruikerMenuItem("menu.technischbeheer.correcties", CorrectiesPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.technischbeheer.parameters", TechnischeParametersPage.class));
+		if (ScreenitSession.get().checkPermission(Recht.TECHNISCH_BEHEER, Actie.AANPASSEN))
+		{
+			contextMenuItems.add(new GebruikerMenuItem("menu.technischbeheer.correcties", CorrectiesPage.class));
+		}
 		return contextMenuItems;
 	}
 }

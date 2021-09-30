@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
 
 import java.util.List;
 
+import nl.rivm.screenit.dao.cervix.CervixBaseTestTimelineDao;
 import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Client;
@@ -31,7 +32,6 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.dao.cervix.CervixBaseTestTimelineDao;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -118,36 +118,38 @@ public class TestCervixHuisartsKoppelenPopup extends TestCervixUitnodigingenPopu
 	@Override
 	protected void opslaan()
 	{
-		CervixUitnodiging uitnodiging = getUitnodiging();
-		CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) uitnodiging.getMonster();
-		CervixLabformulier formulier = uitstrijkje.getLabformulier();
-		if (eersteHuisartsCheckModel.getObject())
+		for (CervixUitnodiging uitnodiging : getCurrentUitnodigingen())
 		{
-			List<CervixHuisartsLocatie> locaties = cervixBaseTestTimelineDao.getFirstCervixHuisartsLocatie();
-			if (CollectionUtils.isEmpty(locaties))
+			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) uitnodiging.getMonster();
+			CervixLabformulier formulier = uitstrijkje.getLabformulier();
+			if (eersteHuisartsCheckModel.getObject())
 			{
-				error("Er zit op dit moment geen actieve huisarts met locatie in de database, maak er een aan.");
-				return;
-			}
-			formulier.setHuisartsLocatie(locaties.get(0));
+				List<CervixHuisartsLocatie> locaties = cervixBaseTestTimelineDao.getFirstCervixHuisartsLocatie();
+				if (CollectionUtils.isEmpty(locaties))
+				{
+					error("Er zit op dit moment geen actieve huisarts met locatie in de database, maak er een aan.");
+					return;
+				}
+				formulier.setHuisartsLocatie(locaties.get(0));
 
-		}
-		else
-		{
-			CervixHuisarts huisarts = cervixHuisartsBaseDao.getHuisarts(agbCodeModel.getObject());
-			if (huisarts == null)
-			{
-				error("Geen huisarts gevonden met deze agbcode.");
-				return;
 			}
-			if (CollectionUtils.isEmpty(huisarts.getHuisartsLocaties()))
+			else
 			{
-				error("Er zijn nog geen locaties aan deze huisarts gekoppeld, voeg deze toe.");
-				return;
+				CervixHuisarts huisarts = cervixHuisartsBaseDao.getHuisarts(agbCodeModel.getObject());
+				if (huisarts == null)
+				{
+					error("Geen huisarts gevonden met deze agbcode.");
+					return;
+				}
+				if (CollectionUtils.isEmpty(huisarts.getHuisartsLocaties()))
+				{
+					error("Er zijn nog geen locaties aan deze huisarts gekoppeld, voeg deze toe.");
+					return;
+				}
+				formulier.setHuisartsLocatie(huisarts.getHuisartsLocaties().get(0));
 			}
-			formulier.setHuisartsLocatie(huisarts.getHuisartsLocaties().get(0));
+			hiberateService.saveOrUpdate(uitstrijkje.getLabformulier());
 		}
-		hiberateService.saveOrUpdate(uitstrijkje.getLabformulier());
 		info("Huisarts opgeslagen bij de uitnodiging;");
 	}
 

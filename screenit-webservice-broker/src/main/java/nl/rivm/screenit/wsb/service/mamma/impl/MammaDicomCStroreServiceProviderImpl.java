@@ -129,7 +129,7 @@ public class MammaDicomCStroreServiceProviderImpl
 	private void configureAndStartServer(Connection server, ApplicationEntity ae, DicomSCPConfig storeSCPConfig) throws IOException, GeneralSecurityException
 	{
 		server.setPort(storeSCPConfig.getPoort());
-		server.setHostname(storeSCPConfig.getHost());
+		server.setHostname("0.0.0.0");
 
 		server.setReceivePDULength(Connection.DEF_MAX_PDU_LENGTH);
 		server.setSendPDULength(Connection.DEF_MAX_PDU_LENGTH);
@@ -182,7 +182,7 @@ public class MammaDicomCStroreServiceProviderImpl
 					String accessionNumber = null;
 					String seriesNumber = null;
 					String instanceNumber = null;
-					try (DicomInputStream din = new DicomInputStream(file);)
+					try (DicomInputStream din = new DicomInputStream(file))
 					{
 						Attributes attribs = din.readDataset(-1, Tag.PatientOrientation);
 						accessionNumber = attribs.getString(Tag.AccessionNumber);

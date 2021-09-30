@@ -22,13 +22,10 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -60,10 +57,7 @@ import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.model.project.ProjectImport;
 import nl.rivm.screenit.model.project.ProjectImportMelding;
-import nl.rivm.screenit.model.project.ProjectInactiefReden;
-import nl.rivm.screenit.model.project.ProjectInactiveerDocument;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.model.project.ProjectVragenlijst;
 import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder;
@@ -72,6 +66,7 @@ import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.AutorisatieService;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -96,8 +91,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 
-import au.com.bytecode.opencsv.CSVReader;
-
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class ProjectServiceImpl implements ProjectService
@@ -116,6 +109,9 @@ public class ProjectServiceImpl implements ProjectService
 
 	@Autowired
 	private ClientService clientService;
+
+	@Autowired
+	private ClientDoelgroepService doelgroepService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -211,282 +207,6 @@ public class ProjectServiceImpl implements ProjectService
 		return projectDao.getCountClientProjecten(client);
 	}
 
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
-	public Map<ProjectImportMelding, List<String>> verwerkXLSNaarProjectClienten(ProjectGroep groep, InstellingGebruiker ingelogdeGebruiker, UploadDocument upload,
-		Boolean skipFouten)
-	{
-
-		boolean error = false;
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-		List<ProjectClient> projectClienten = new ArrayList<>();
-		List<Client> clienten = new ArrayList<>();
-		Map<ProjectImportMelding, List<String>> meldingen = new HashMap<>();
-
-		int regelnummer = 0;
-		int populatie = 0;
-		int foutClienten = 0;
-		CSVReader csvReader = null;
-		try
-		{
-			fileService.saveOrUpdateUploadDocument(upload, FileStoreLocation.PROJECT_IMPORT, groep.getProject().getId());
-
-			csvReader = new CSVReader(new FileReader(fileService.load(upload)), ';');
-
-			for (String[] line : csvReader.readAll())
-			{
-				regelnummer++;
-
-				if (line.length < 2)
-				{
-					error = true;
-					putMeldingInHash(meldingen, ProjectImportMelding.ERROR,
-						"Bsn en geboortedatum is verplicht. Wanneer deze aanwezig zijn controleer op scheidingsteken tussen velden op een ;");
-					return meldingen;
-				}
-
-				String bsn = line[0];
-				if (!StringUtils.isNotBlank(bsn) || !StringUtils.isNumeric(bsn))
-				{
-
-					continue;
-				}
-
-				if (bsn.length() < 9)
-				{
-					bsn = StringUtils.leftPad(bsn, 9, '0');
-				}
-
-				String datum = line[1];
-				Date geboortedatum = null;
-				try
-				{
-					geboortedatum = format.parse(datum);
-				}
-				catch (ParseException e)
-				{
-					String melding = "Regel " + regelnummer + ": Verkeerde formaat datum aangeleverder, verwacht: dag-maand-jaar. (Voorbeeld. 12-01-1950)";
-					LOG.error(melding);
-					putMeldingInHash(meldingen, ProjectImportMelding.ERROR, melding);
-					error = true;
-					continue;
-				}
-
-				Client client = clientService.getClientByBsn(bsn);
-				List<String> nieuweMeldingen = valideerImportOpFoutenClient(groep, client, geboortedatum, regelnummer);
-
-				if (nieuweMeldingen.isEmpty())
-				{
-					putMeldingInHash(meldingen, ProjectImportMelding.SUCCES,
-						"Regel " + regelnummer + ": Cliënt met BSN " + bsn + " is succesvol toegevoegd aan de project populatie.");
-					ProjectClient projectClient = new ProjectClient(client, groep);
-					projectClient.setToegevoegd(currentDateSupplier.getDate());
-					projectClienten.add(projectClient);
-					client.getProjecten().add(projectClient);
-					clienten.add(client);
-					populatie++;
-				}
-				else
-				{
-					error = true;
-					putAllMeldingInHash(meldingen, nieuweMeldingen);
-					foutClienten++;
-				}
-
-			}
-
-			if (!error || skipFouten)
-			{
-				ProjectImport projectImport = new ProjectImport();
-				projectImport.setUploadDocument(upload);
-				projectImport.setGroep(groep);
-				projectImport.setSkipFouten(skipFouten);
-
-				groep.setPopulatie(populatie);
-				groep.setProjectImport(projectImport);
-				groep.setClienten(projectClienten);
-				hibernateService.saveOrUpdate(groep);
-				hibernateService.saveOrUpdateAll(projectClienten);
-				hibernateService.saveOrUpdate(projectImport);
-				hibernateService.saveOrUpdateAll(clienten);
-
-				putMeldingInHash(meldingen, ProjectImportMelding.MELDING,
-					"Groep " + groep.getNaam() + "  toegevoegd: " + projectClienten.size() + " geselecteerd, aantal overgeslagen: " + foutClienten + ".");
-			}
-
-			if (groep.getProject().getType().equals(ProjectType.BRIEFPROJECT))
-			{
-				logService.logGebeurtenis(LogGebeurtenis.BRIEFPROJECT_GROEP_TOEGEVOEGD, ingelogdeGebruiker,
-					"Briefproject: " + groep.getProject().getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie());
-			}
-			else
-			{
-				logService.logGebeurtenis(LogGebeurtenis.PROJECT_GROEP_TOEGEVOEGD, ingelogdeGebruiker,
-					"Project: " + groep.getProject().getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie());
-			}
-
-		}
-		catch (Exception e)
-		{
-			LOG.error("Er is een fout opgetreden bestand is niet geimporteerd", e);
-			putMeldingInHash(meldingen, ProjectImportMelding.ERROR, "Er is een fout opgetreden bestand is niet geimporteerd");
-		}
-		finally
-		{
-			try
-			{
-				if (csvReader != null)
-				{
-					csvReader.close();
-				}
-			}
-			catch (IOException e)
-			{
-				LOG.error(e.getMessage(), e);
-			}
-		}
-		if (!skipFouten && error)
-		{
-			putMeldingInHash(meldingen, ProjectImportMelding.INFO,
-				"Er zouden met het vinkje skip fouten " + projectClienten.size() + " clienten worden geselecteerd en " + foutClienten + " overgeslagen.");
-		}
-		return meldingen;
-	}
-
-	@Override
-	public Map<ProjectImportMelding, List<String>> inactiveerProjectClienten(ProjectInactiveerDocument projectInactiveerDocument)
-	{
-		boolean error = false;
-		boolean andereClientenGeimporteerd = false;
-		Project project = projectInactiveerDocument.getProject();
-		UploadDocument upload = projectInactiveerDocument.getUploadDocument();
-		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-		Date nu = currentDateSupplier.getDate();
-		List<ProjectClient> projectClienten = new ArrayList<>();
-		Map<ProjectImportMelding, List<String>> meldingen = new HashMap<>();
-
-		int regelnummer = 0;
-
-		CSVReader csvReader = null;
-		try
-		{
-			csvReader = new CSVReader(new FileReader(fileService.load(upload)), ';');
-
-			for (String[] line : csvReader.readAll())
-			{
-				regelnummer++;
-
-				if (line.length < 2)
-				{
-					error = true;
-					putMeldingInHash(meldingen, ProjectImportMelding.ERROR,
-						"Bsn en geboortedatum is verplicht. Wanneer deze aanwezig zijn controleer op scheidingsteken tussen velden op een ;");
-					return meldingen;
-				}
-
-				String bsn = line[0];
-				if (!StringUtils.isNotBlank(bsn) || !StringUtils.isNumeric(bsn))
-				{
-
-					continue;
-				}
-
-				if (bsn.length() < 9)
-				{
-					bsn = StringUtils.leftPad(bsn, 9, '0');
-				}
-
-				String datum = line[1];
-				Date geboortedatum = null;
-				try
-				{
-					geboortedatum = format.parse(datum);
-				}
-				catch (ParseException e)
-				{
-					String melding = "Regel " + regelnummer + ": Verkeerde formaat datum aangeleverder, verwacht: dag-maand-jaar. (Voorbeeld. 12-01-1950)";
-					LOG.error(melding);
-					putMeldingInHash(meldingen, ProjectImportMelding.ERROR, melding);
-					error = true;
-					continue;
-				}
-
-				Client client = clientService.getClientByBsn(bsn);
-				if (client != null && format.format(client.getPersoon().getGeboortedatum()).equals(format.format(geboortedatum)))
-				{
-					ProjectClient pClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
-					ProjectClient pClientInactief = ProjectUtil.getProjectClientVanProject(client, project);
-					if (pClient != null && pClient.getProject().equals(project) && pClient.getActief())
-					{
-						pClient.setActief(false);
-						pClient.setProjectInactiefReden(ProjectInactiefReden.INACTIVATIE_DOOR_UPLOAD);
-						pClient.setProjectInactiefDatum(nu);
-						pClient.setProjectInactiveerDocument(projectInactiveerDocument);
-						projectClienten.add(pClient);
-						hibernateService.saveOrUpdate(pClient);
-						andereClientenGeimporteerd = true;
-						putMeldingInHash(meldingen, ProjectImportMelding.SUCCES,
-							"Regel " + regelnummer + ": Cliënt met BSN " + bsn + " is succesvol geinactiveerd voor het project.");
-					}
-					else if (pClient == null && pClientInactief != null && !pClientInactief.getActief())
-					{
-						putMeldingInHash(meldingen, ProjectImportMelding.ERROR, "Regel " + regelnummer + ": Cliënt met BSN " + bsn + " is al inactief voor het project.");
-						error = true;
-					}
-					else
-					{
-						putMeldingInHash(meldingen, ProjectImportMelding.ERROR,
-							"Regel " + regelnummer + ": Cliënt met BSN " + bsn + " valt niet onder dit project en wordt daarom niet geinactiveerd");
-						error = true;
-					}
-				}
-				else
-				{
-					putMeldingInHash(meldingen, ProjectImportMelding.ERROR, "Regel " + regelnummer + ": Er is geen cliënt gevonden met dit BSN en geboortedatum.");
-					error = true;
-				}
-
-			}
-			if (!error)
-			{
-				putMeldingInHash(meldingen, ProjectImportMelding.MELDING,
-					"Bestand is verwerkt, " + projectClienten.size() + " clienten van het project zijn succesvol geinactiveerd.");
-			}
-			else
-			{
-				putMeldingInHash(meldingen, ProjectImportMelding.MELDING, "Bestand is deels of niet verwerkt, Er zijn " + projectClienten.size() + " clienten geinactiveerd.");
-			}
-			if (andereClientenGeimporteerd)
-			{
-				String melding = projectClienten.size() + " clienten geinactiveerd voor project " + projectInactiveerDocument.getProject().getNaam() + " door file "
-					+ upload.getNaam();
-				logService.logGebeurtenis(LogGebeurtenis.PROJECT_INACTIVEREN_UPLOAD, projectInactiveerDocument.getGeuploadDoor(), melding);
-			}
-
-		}
-		catch (Exception e)
-		{
-			LOG.error("Er is een fout opgetreden bestand is niet geimporteerd", e);
-			putMeldingInHash(meldingen, ProjectImportMelding.ERROR, "Er is een fout opgetreden bestand is niet geimporteerd");
-		}
-		finally
-		{
-			if (csvReader != null)
-			{
-				try
-				{
-					csvReader.close();
-				}
-				catch (IOException e)
-				{
-					LOG.error(e.getMessage(), e);
-				}
-			}
-		}
-
-		return meldingen;
-	}
-
 	private Map<ProjectImportMelding, List<String>> putMeldingInHash(Map<ProjectImportMelding, List<String>> meldingen, ProjectImportMelding key, String value)
 	{
 		if (!meldingen.containsKey(key))
@@ -537,7 +257,7 @@ public class ProjectServiceImpl implements ProjectService
 
 		Project project = groep.getProject();
 		List<Bevolkingsonderzoek> excludeerAfmeldingOnderzoeken = project.getExcludeerAfmelding();
-		List<Bevolkingsonderzoek> clientOnderzoeken = clientService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
+		List<Bevolkingsonderzoek> clientOnderzoeken = doelgroepService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
 		if (excludeerAfmeldingOnderzoeken.size() > 0 && clientOnderzoeken.size() > 0)
 		{
 

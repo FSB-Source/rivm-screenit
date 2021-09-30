@@ -264,6 +264,7 @@ public class MedewerkerZoeken extends MedewerkerBeheer
 		zoekForm.add(new TextField<>("organisatieMedewerkers[0].organisatie.naam"));
 		zoekForm.add(new TextField<>("organisatieMedewerkers[0].organisatie.adressen[0].plaats"));
 		zoekForm.add(new TextField<>("uzinummer"));
+		zoekForm.add(new TextField<>("emailextra"));
 		zoekForm.add(new TextField<>("organisatieMedewerkers[0].organisatie.uziAbonneenummer"));
 		zoekForm.add(new ListMultipleChoice<Functie>("functies", new PropertyModel<List<Functie>>(this, "selectedFuncties"),
 			ModelUtil.listRModel(stamtabellenService.getFuncties(null), false), new NaamChoiceRenderer<>()));

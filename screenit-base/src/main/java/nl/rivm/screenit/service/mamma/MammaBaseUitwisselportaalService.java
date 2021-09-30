@@ -45,5 +45,7 @@ public interface MammaBaseUitwisselportaalService
 
 	void verwijderDownloadVerzoeken(MammaScreeningRonde screeningRonde);
 
+	void verwijderUploadVerzoeken(MammaScreeningRonde screeningRonde);
+
 	void verwijderBeelden(MammaUploadBeeldenPoging uploadBeeldenPoging);
 }

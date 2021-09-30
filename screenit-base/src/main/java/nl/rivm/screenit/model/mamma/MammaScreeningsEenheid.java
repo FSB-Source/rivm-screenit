@@ -33,10 +33,14 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsEenheidMetaDataDto;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
@@ -44,11 +48,13 @@ import nl.rivm.screenit.model.IActief;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.mamma.enums.MammaDuurMinderValideAfspraak;
 import nl.rivm.screenit.util.DiffSpecs;
+import nl.rivm.screenit.util.SkipFieldForDiff;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 @Entity
 @Table(schema = "mamma", name = "screenings_eenheid")
@@ -140,6 +146,13 @@ public class MammaScreeningsEenheid extends AbstractHibernateObject implements I
 	@Column
 	@Temporal(TemporalType.TIME)
 	private Date minderValidePeriode2TotEnMet;
+
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "screeningsEenheid")
+	@Getter
+	@Setter
+	@NotAudited
+	@SkipFieldForDiff
+	private MammaScreeningsEenheidStatus status;
 
 	public String getNaam()
 	{

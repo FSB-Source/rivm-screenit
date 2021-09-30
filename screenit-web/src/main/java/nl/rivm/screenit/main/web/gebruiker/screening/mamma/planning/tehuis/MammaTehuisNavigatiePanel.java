@@ -63,7 +63,7 @@ public class MammaTehuisNavigatiePanel extends GenericPanel<Client>
 			public boolean isVisible()
 			{
 				MammaDossier dossier = model.getObject().getMammaDossier();
-				return baseDossierService.isAfspraakMakenMogelijk(dossier, false) || baseDossierService.isVerzettenMogelijk(dossier);
+				return baseDossierService.isAfspraakMakenMogelijk(dossier, false, false) || baseDossierService.isVerzettenMogelijk(dossier);
 			}
 		});
 	}

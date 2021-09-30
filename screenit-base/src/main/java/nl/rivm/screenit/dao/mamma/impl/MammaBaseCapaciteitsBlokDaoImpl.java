@@ -128,7 +128,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 	}
 
 	@Override
-	public Collection<MammaCapaciteitBlokDto> getNietGeblokkerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date start, Date end,
+	public Collection<MammaCapaciteitBlokDto> getNietGeblokkeerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date start, Date end,
 		Collection<MammaCapaciteitBlokType> blokTypes)
 	{
 		MammaScreeningsEenheid screeningsEenheid = standplaatsPeriode.getScreeningsEenheid();

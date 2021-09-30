@@ -50,7 +50,7 @@ import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

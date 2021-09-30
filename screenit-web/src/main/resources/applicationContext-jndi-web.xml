@@ -34,25 +34,10 @@
     <jee:jndi-lookup id="voFileStorePath" jndi-name="gba/voFileStorePath"/>
     <jee:jndi-lookup id="handleidingenPath" jndi-name="handleidingenPath"/>
 
-    <jee:jndi-lookup id="mailRelayIp" jndi-name="edi/ediMailRelayIP" default-value="" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="mailRelayPort" jndi-name="edi/ediMailRelayPort" default-value="#{new Integer(0)}" expected-type="java.lang.Integer"/>
-    <jee:jndi-lookup id="smtpIP" jndi-name="edi/smtpIP" default-value="" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="jndiSmtpBindIP" jndi-name="edi/smtpBindIP" default-value="" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="smtpPort" jndi-name="edi/smtpPort" default-value="#{new Integer(0)}" expected-type="java.lang.Integer"/>
-    <jee:jndi-lookup id="fromAddress" jndi-name="edi/fromAddress" default-value="devnull@topicus.nl" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="applicationId" jndi-name="edi/applicationId" default-value="Colonis" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="smtpAuthPassword" jndi-name="edi/smtpAuthPassword" default-value="" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="smtpAuthUsername" jndi-name="edi/smtpAuthUsername" default-value="" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="smtpOverSsl" jndi-name="edi/smtpOverSsl" default-value="false" expected-type="java.lang.Boolean"/>
     <jee:jndi-lookup id="portaalUrl" jndi-name="portaalUrl" default-value="" expected-type="java.lang.String"/>
     <jee:jndi-lookup id="clientportaalUrl" jndi-name="clientportaalUrl" default-value="http://localhost:3000/" expected-type="java.lang.String"/>
     <jee:jndi-lookup id="clientportaalUrlAutoLogin" jndi-name="clientportaalUrlAutoLogin" default-value="https://idp-acc.topicuszorg.nl/auth/realms/ScreenIT/sso/flows/sso-screenit-autocreate?bsn=%s&amp;client_id=screenit-frontend-local&amp;iss=screenit-local&amp;target_uri=%s&amp;ts=%s" expected-type="java.lang.String"/>
     <jee:jndi-lookup id="clientportaalUrlAutoLoginSecret" jndi-name="clientportaalUrlAutoLoginSecret" default-value="1234" expected-type="java.lang.String"/>
-
-    <jee:jndi-lookup id="ossAanmeldenAdres" jndi-name="edi/ossAanmeldenAdres" default-value="devnull@topicus.nl" expected-type="java.lang.String"/>
-    <jee:jndi-lookup id="ossAfleverAdres" jndi-name="edi/ossAfleverAdres" default-value="devnull@topicus.nl" expected-type="java.lang.String"/>
-
-    <jee:jndi-lookup id="ultimviewSsoUrl" jndi-name="openid/ultimviewUrl" default-value="http://www.topicus.nl/" expected-type="java.lang.String"/>
 
     <jee:jndi-lookup id="spherionUrl" jndi-name="spherionUrl" expected-type="java.lang.String"/>
     <jee:jndi-lookup id="spherionUsername" jndi-name="spherionUsername" default-value="#{new String()}" expected-type="java.lang.String"/>

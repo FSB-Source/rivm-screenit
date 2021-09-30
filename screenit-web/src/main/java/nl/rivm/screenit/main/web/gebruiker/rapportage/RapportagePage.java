@@ -21,7 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.rapportage;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.service.OpenIDConncetIdpService;
+import nl.rivm.screenit.main.service.OpenIDConnectIdpService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
@@ -31,10 +31,8 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
-import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
@@ -42,36 +40,24 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
 	level = ToegangLevel.EIGEN,
-	recht = { Recht.GEBRUIKER_RAPPORTAGE, Recht.GEBRUIKER_RAPPORTAGE_WEBFOCUS },
+	recht = { Recht.GEBRUIKER_RAPPORTAGE_WEBFOCUS },
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class RapportagePage extends GebruikerBasePage
 {
-
-	@SpringBean(name = "ultimviewSsoUrl")
-	private String ultimviewSsoUrl;
-
 	@SpringBean
-	private OpenIDConncetIdpService openIDConncetIdpService;
+	private OpenIDConnectIdpService openIDConnectIdpService;
 
 	public RapportagePage()
 	{
-		ExternalLink ssoLink = new ExternalLink("openSso", ultimviewSsoUrl);
-		ssoLink.setEnabled(StringUtils.isNotBlank(ultimviewSsoUrl));
-		ssoLink.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_RAPPORTAGE, Actie.INZIEN));
-		add(ssoLink);
-
-		IndicatingAjaxLink<Void> webFocusLink = new IndicatingAjaxLink<Void>("openSsoWebFocus")
+		IndicatingAjaxLink<Void> webFocusLink = new IndicatingAjaxLink<>("openSsoWebFocus")
 		{
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				final String ssoUrl = openIDConncetIdpService
-					.createWebFocusSsoUrl(ScreenitSession.get().getLoggedInInstellingGebruiker());
+				final String ssoUrl = openIDConnectIdpService.createWebFocusSsoUrl(ScreenitSession.get().getLoggedInInstellingGebruiker());
 				final String javaScriptString = String.format("window.open('%s', '_blank')", ssoUrl);
 				target.appendJavaScript(javaScriptString);
 			}
-
 		};
 		webFocusLink.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_RAPPORTAGE_WEBFOCUS, Actie.INZIEN));
 

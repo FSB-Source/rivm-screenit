@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.dao.ClientDao;
@@ -31,6 +32,8 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
+import nl.rivm.screenit.model.algemeen.OverdrachtPersoonsgegevens;
 import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
 import nl.rivm.screenit.model.gba.GbaVraag;
 import nl.rivm.screenit.model.logging.LogRegel;
@@ -163,6 +166,14 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 						hibernateService.delete(deelnamekans);
 					}
 				}
+
+				List<OverdrachtPersoonsgegevens> overdrachtPersoonsgegevensLijst = new ArrayList<>(client.getOverdrachtPersoonsgegevensLijst());
+				hibernateService.deleteAll(overdrachtPersoonsgegevensLijst);
+				client.getOverdrachtPersoonsgegevensLijst().clear();
+
+				List<AlgemeneBrief> overgeblevenBrieven = hibernateService.getByParameters(AlgemeneBrief.class, ImmutableMap.of("client", client));
+				hibernateService.deleteAll(overgeblevenBrieven);
+
 				hibernateService.delete(client);
 
 				verwijderdeClienten++;

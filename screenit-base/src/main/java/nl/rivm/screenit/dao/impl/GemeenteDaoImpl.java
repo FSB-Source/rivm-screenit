@@ -33,14 +33,13 @@ import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.UitnodigingsGebied;
-import nl.rivm.screenit.model.Woonplaats;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.criteria.ListCriteria;
-import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
+import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
@@ -182,4 +181,5 @@ public class GemeenteDaoImpl extends AbstractAutowiredDao implements GemeenteDao
 
 		return criteria.list(getSession());
 	}
+
 }

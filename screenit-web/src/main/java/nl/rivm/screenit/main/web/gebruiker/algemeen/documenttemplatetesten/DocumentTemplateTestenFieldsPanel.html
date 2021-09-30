@@ -23,33 +23,33 @@
 	<fieldset>
 		<div class="row-fluid">
 			<div class="span12">
-				<h2>(Samenvoeg)velden</h2>							
+				<h2>(Samenvoeg)velden</h2>
 				<div class="accordion" wicket:id="container" data-chevron-direction="left">
 					<div class="accordion-group samenvoegvelden" wicket:id="mergeTypes">
 						<div class="accordion-heading header-samenvoegvelden">
-							 <a class="accordion-toggle" data-toggle="collapse" wicket:id="collapseLink"><i class="icon-purple pull-right icon-chevron-left"></i>
-			                    <wicket:container wicket:id="mergeTypeLabel">Landelijke parameters</wicket:container>
-			                </a>										
+							<a class="accordion-toggle" data-toggle="collapse" wicket:id="collapseLink"><i class="icon-purple pull-right icon-chevron-left"></i>
+								<wicket:container wicket:id="mergeTypeLabel">Landelijke parameters</wicket:container>
+							</a>
 						</div>
 						<div class="accordion-body collapse" wicket:id="content">
-						<div class="accordion-inner">
-							<wicket:enclosure child="fromDB">
-							<div class="row-fluid">
-								<div class="span6">
-									<div class="control-group">
-										<label wicket:id="fromDBLabel" class="control-label">Gegevens uit
-											database?:</label>
-										<input wicket:id="fromDB" type="checkbox" class="fromDB">
-									</div>
-								</div>
-								<div class="span6">
-									<wicket:enclosure child="extraField">
-									<div class="control-group">
-										<label class="control-label">Ondertekenaar:</label>
-										<div class="controls" wicket:id="extraField"></div>
-									</div>					
-									</wicket:enclosure>				
-								</div>
+							<div class="accordion-inner">
+								<wicket:enclosure child="fromDB">
+									<div class="row-fluid">
+										<div class="span6">
+											<div class="control-group">
+												<label wicket:id="fromDBLabel" class="control-label">Gegevens uit
+													database?:</label>
+												<input wicket:id="fromDB" type="checkbox" class="fromDB">
+											</div>
+										</div>
+										<div class="span6">
+											<wicket:enclosure child="extraField">
+												<div class="control-group">
+													<label class="control-label">Ondertekenaar:</label>
+													<div class="controls" wicket:id="extraField"></div>
+												</div>
+											</wicket:enclosure>
+										</div>
 							</div>
 							<hr>
 							</wicket:enclosure>
@@ -77,7 +77,7 @@
 					<label class="control-label">Bsn </label>
 					<div class="controls">
 						<input class="form-control input-small" type="text" placeholder="123456789" wicket:id="bsn">
-                           <span class="add-on" wicket:id="bsnGenereren"><i class="icon-refresh"></i></span>
+						<span class="add-on" wicket:id="bsnGenereren"><i class="icon-refresh"></i></span>
 					</div>
 				</div>
 
@@ -106,7 +106,7 @@
 					<label class="control-label">Tussenvoegsel</label>
 					<div class="controls">
 						<input class="input-large" type="text"
-							wicket:id="tussenvoegsel">
+							   wicket:id="tussenvoegsel">
 					</div>
 				</div>
 				<div class="control-group">
@@ -312,7 +312,7 @@
 				<div class="control-group">
 					<label class="control-label">Tijdsduur intake</label>
 					<div class="controls">
-						<select wicket:id="duurAfspraakInMinuten"></select> 
+						<select wicket:id="duurAfspraakInMinuten"></select>
 					</div>
 				</div>
 			</div>
@@ -335,13 +335,19 @@
 		<div class="controls" wicket:id="formComponent" style="margin-left: 355px">
 		</div>
 	</wicket:fragment>
-    <wicket:fragment wicket:id="fragmentEnum">
-        <div class="controls">
+	<wicket:fragment wicket:id="fragmentEnum">
+		<div class="controls">
            	<span wicket:id="formContainer"> <select wicket:id="formComponent" style="margin-left: 165px">
 		   	</select></span>
-        </div>
-    </wicket:fragment>
+		</div>
+	</wicket:fragment>
 	<wicket:fragment wicket:id="fragmentMammaAfspraakRedenVerzet">
+		<div class="controls">
+			<span wicket:id="formContainer"><select wicket:id="formComponent" style="margin-left: 165px">
+			</select></span>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="fragmentMammaAfspraakBetreft">
 		<div class="controls">
 			<span wicket:id="formContainer"><select wicket:id="formComponent" style="margin-left: 165px">
 			</select></span>

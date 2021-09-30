@@ -22,9 +22,8 @@ package nl.rivm.screenit.service.colon;
  */
 
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.EnovationHuisarts;
+import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonHuisartsBerichtStatus;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
@@ -34,6 +33,6 @@ public interface ColonEdiService
 
 	void verstuurMedVry(ColonHuisartsBericht bericht);
 
-	ColonHuisartsBericht maakHuisartsBericht(HuisartsBerichtType berichtType, ColonHuisartsBerichtStatus status, Client client, EnovationHuisarts huisarts,
-		OnbekendeHuisarts onbekendeHuisarts, MailMergeContext context, boolean opnieuwVerzonden);
+	ColonHuisartsBericht maakHuisartsBericht(HuisartsBerichtType berichtType, ColonHuisartsBerichtStatus status, Client client,
+		EnovationHuisarts huisarts, MailMergeContext context, boolean opnieuwVerzonden);
 }

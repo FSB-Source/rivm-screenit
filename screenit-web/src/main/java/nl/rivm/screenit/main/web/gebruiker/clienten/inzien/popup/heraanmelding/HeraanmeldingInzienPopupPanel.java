@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.heraanmelding;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.comparator.BriefCreatieDatumComparator;
@@ -33,18 +32,18 @@ import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.DocumentVervangenPanel;
 import nl.rivm.screenit.model.Afmelding;
-import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
 import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -56,7 +55,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -71,13 +69,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>, B extends ClientBrief<?, ?, ?>> extends GenericPanel<A>
 {
-	private static final long serialVersionUID = 1L;
-
-	private IModel<UploadDocument> uploadDocumentModel;
-
 	@SpringBean
 	private FileService fileService;
 
@@ -100,49 +95,50 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 	private AutorisatieService autorisatieService;
 
 	@SpringBean
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
-	private Actie actie;
+	private IModel<UploadDocument> uploadDocumentModel;
+
+	private final Actie actie;
 
 	private WebMarkupContainer uploadForm;
 
-	private IModel<List<FileUpload>> files;
+	private IModel<List<FileUpload>> files = new ListModel<>();
 
 	protected HeraanmeldingInzienPopupPanel(String id, IModel<A> model)
 	{
 		super(id, model);
-		files = new ListModel<>();
-
 		actie = autorisatieService.getActieVoorMedewerker(ScreenitSession.get().getLoggedInInstellingGebruiker(), ScreenitSession.get().getCurrentSelectedMedewerker(),
 			Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN);
+	}
 
-		add(new Label("wijzeHeraanmelding", getWijzeVanHeraanmeldenTekst(model.getObject())));
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+
+		add(new Label("wijzeHeraanmelding", getWijzeVanHeraanmeldenTekst()));
 
 		WebMarkupContainer verstuurdFormulierContainer = new WebMarkupContainer("formulierVerstuurdContainer");
 		add(verstuurdFormulierContainer);
-		verstuurdFormulierContainer.add(new ListView<String>("brievenLijst", creatieDatumCreaterHeraanmelding(model.getObject()))
+		verstuurdFormulierContainer.add(new ListView<>("brievenLijst", creatieDatumCreaterHeraanmelding())
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<String> item)
 			{
 				String tekst = item.getModelObject();
-				item.add(new Label("brief", Model.<String> of(tekst)));
+				item.add(new Label("brief", Model.of(tekst)));
 			}
 
 		});
 
-		add(DateLabel.forDatePattern("heraanmeldDatum", new PropertyModel<Date>(model, "heraanmeldDatum"), "dd-MM-yyyy"));
+		add(DateLabel.forDatePattern("heraanmeldDatum", new PropertyModel<>(getModel(), "heraanmeldDatum"), "dd-MM-yyyy"));
 
 		uploadDocumentModel = ModelUtil.sModel(getModelObject().getHandtekeningDocumentHeraanmelding());
 		if (uploadDocumentModel != null && uploadDocumentModel.getObject() != null)
 		{
-			add(new DownloadLink("heraanmeldformulierHandImg", new LoadableDetachableModel<File>()
+			add(new DownloadLink("heraanmeldformulierHandImg", new LoadableDetachableModel<>()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected File load()
 				{
@@ -158,7 +154,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 			add(empty);
 		}
 
-		addVervangenPanel(model);
+		addVervangenPanel();
 		addButtons();
 	}
 
@@ -225,14 +221,14 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 		}.setVisible(ScreenitSession.get().checkPermission(Recht.VERVANGEN_DOCUMENTEN, Actie.AANPASSEN) && getModelObject().getHandtekeningDocumentHeraanmelding() != null));
 	}
 
-	private void addVervangenPanel(IModel<A> model)
+	private void addVervangenPanel()
 	{
 		uploadForm = new DocumentVervangenPanel("documentVervangen")
 		{
 			@Override
 			protected void vervangDocument(UploadDocument uploadDocument, AjaxRequestTarget target)
 			{
-				if (clientService.vervangHeraanmeldingDocument(uploadDocument, model.getObject(), uploadDocumentModel.getObject(), getLaatsteBrief(),
+				if (baseAfmeldService.vervangHeraanmeldingDocument(uploadDocument, getModelObject(), uploadDocumentModel.getObject(), getLaatsteBrief(),
 					ScreenitSession.get().getLoggedInAccount()))
 				{
 					info(getString("info.vervangendocument"));
@@ -261,16 +257,17 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 		return null;
 	}
 
-	private List<String> creatieDatumCreaterHeraanmelding(A afmelding)
+	private List<String> creatieDatumCreaterHeraanmelding()
 	{
+		A afmelding = getModelObject();
 		List<? extends ClientBrief> brieven = briefService.getBrievenVanAfmelding(afmelding, true);
 		return BriefOmschrijvingUtil.getBrievenOmschrijvingen(brieven, this::getString);
 	}
 
-	private String getWijzeVanHeraanmeldenTekst(A afmelding)
+	private String getWijzeVanHeraanmeldenTekst()
 	{
 		String wijzeHeraanmelding = null;
-
+		A afmelding = getModelObject();
 		GebeurtenisBron bron = dossierService.bepaalGebeurtenisBron(afmelding);
 
 		switch (afmelding.getBevolkingsonderzoek())
@@ -307,7 +304,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 					wijzeHeraanmelding = "";
 				}
 			}
-			else if (bron == null && ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden()))
+			else if (ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden()))
 			{
 				wijzeHeraanmelding = "proefbevolkingsonderzoek";
 			}

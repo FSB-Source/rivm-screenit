@@ -49,6 +49,7 @@ import javax.xml.transform.stream.StreamSource;
 
 import net.sf.saxon.TransformerFactoryImpl;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.berichten.enums.BerichtType;
 import nl.rivm.screenit.ws.providedocument.ProvideDocument;
@@ -99,7 +100,7 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 
 	public SchematronInterceptor()
 	{
-		super(Phase.POST_LOGICAL);
+		super(Phase.INVOKE);
 		transformers.add(mdlTransformers);
 		transformers.add(paTransformers);
 		transformers.add(cervixCytologieTransformers);
@@ -110,7 +111,6 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 	@Override
 	public void handleMessage(SoapMessage message) throws Fault
 	{
-
 		List<?> messageContentsList = message.getContent(List.class);
 		DocumentMetaData metaData = null;
 		String cda = null;
@@ -140,11 +140,11 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 		}
 		if (metaData == null)
 		{
-			throw new XMLFault("Schematron validation failed: kan geen meta data in SOAP vinden.");
+			throw new XMLFault(Constants.XML_FAULT_PREFIX + "Schematron validation failed: kan geen meta data in SOAP vinden.");
 		}
 		if (cda == null)
 		{
-			throw new XMLFault("Schematron validation failed: kan geen cda document in SOAP vinden.");
+			throw new XMLFault(Constants.XML_FAULT_PREFIX + "Schematron validation failed: kan geen cda document in SOAP vinden.");
 		}
 
 		Project project = metaData.getProject();
@@ -154,7 +154,7 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 		}
 		if (StringUtils.isBlank(projectVersion))
 		{
-			throw new XMLFault("No projectversion found in meta data in SOAP.");
+			throw new XMLFault(Constants.XML_FAULT_PREFIX + "No projectversion found in meta data in SOAP.");
 		}
 		try
 		{
@@ -179,7 +179,7 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 
 		if (StringUtils.isNotBlank(stringResult))
 		{
-			throw new XMLFault("Schematron validation failed:" + stringResult);
+			throw new XMLFault(Constants.XML_FAULT_PREFIX + "Schematron validation failed:" + stringResult);
 		}
 	}
 

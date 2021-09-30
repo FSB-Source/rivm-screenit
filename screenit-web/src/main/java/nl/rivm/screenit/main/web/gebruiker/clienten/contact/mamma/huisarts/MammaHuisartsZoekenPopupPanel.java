@@ -50,7 +50,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
@@ -64,11 +63,22 @@ public abstract class MammaHuisartsZoekenPopupPanel extends GenericPanel<Enovati
 
 	private WebMarkupContainer zoekResultatenContainer;
 
+	private boolean terugNaarZoeken;
+
+	private boolean geenHuisartsOptiesBeschikbaar;
+
 	public MammaHuisartsZoekenPopupPanel(String id, boolean terugNaarZoeken, boolean geenHuisartsOptiesBeschikbaar)
 	{
-		super(id, ModelUtil.cModel(new EnovationHuisarts()));
+		super(id, ModelUtil.ccModel(new EnovationHuisarts()));
+		this.terugNaarZoeken = terugNaarZoeken;
+		this.geenHuisartsOptiesBeschikbaar = geenHuisartsOptiesBeschikbaar;
+	}
 
-		ScreenitForm<EnovationHuisarts> screenitForm = new ScreenitForm<EnovationHuisarts>("zoekForm", getModel())
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		ScreenitForm<EnovationHuisarts> screenitForm = new ScreenitForm<>("zoekForm", getModel())
 		{
 			@Override
 			public boolean isRootForm()
@@ -141,13 +151,13 @@ public abstract class MammaHuisartsZoekenPopupPanel extends GenericPanel<Enovati
 	private Label aantalResultaten()
 	{
 		long aantal = enovationHuisartsService.telHuisartsen(getModelObject());
-		return new Label("aantalResultaten", String.format(getString("label.aantal.gevonden.huisartsen", null), Long.toString(aantal)));
+		return new Label("aantalResultaten", String.format(getString("label.aantal.gevonden.huisartsen"), Long.toString(aantal)));
 	}
 
 	private ScreenitDataTable<EnovationHuisarts, String> vervangResultaten()
 	{
 		List<IColumn<EnovationHuisarts, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Naam"), "achternaam", "achternaam")
+		columns.add(new PropertyColumn<>(Model.of("Naam"), "achternaam", "achternaam")
 		{
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
@@ -158,7 +168,7 @@ public abstract class MammaHuisartsZoekenPopupPanel extends GenericPanel<Enovati
 				return new Model(naam);
 			}
 		});
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Type"), "geslacht", "geslacht")
+		columns.add(new PropertyColumn<>(Model.of("Type"), "geslacht", "geslacht")
 		{
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
@@ -173,7 +183,7 @@ public abstract class MammaHuisartsZoekenPopupPanel extends GenericPanel<Enovati
 				return new Model(type);
 			}
 		});
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Adres"), "adres.plaats", "adres.plaats")
+		columns.add(new PropertyColumn<>(Model.of("Adres"), "adres.plaats", "adres.plaats")
 		{
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
@@ -188,35 +198,33 @@ public abstract class MammaHuisartsZoekenPopupPanel extends GenericPanel<Enovati
 				return new Model(adres);
 			}
 		});
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Praktijknaam"), "praktijknaam", "praktijknaam"));
+		columns.add(new PropertyColumn<>(Model.of("Praktijknaam"), "praktijknaam", "praktijknaam"));
 
-		ScreenitDataTable<EnovationHuisarts, String> tabel = new ScreenitDataTable<EnovationHuisarts, String>("zoekResultaten", columns,
-			new SortableDataProvider<EnovationHuisarts, String>()
+		ScreenitDataTable<EnovationHuisarts, String> tabel = new ScreenitDataTable<>("zoekResultaten", columns, new SortableDataProvider<EnovationHuisarts, String>()
+		{
+			@Override
+			public Iterator<? extends EnovationHuisarts> iterator(long first, long count)
 			{
-				@Override
-				public Iterator<? extends EnovationHuisarts> iterator(long first, long count)
+				if (getSort() == null)
 				{
-					if (getSort() == null)
-					{
-						setSort("achternaam", SortOrder.ASCENDING);
-					}
-
-					return enovationHuisartsService.zoekHuisartsen(getModelObject(), getSort().getProperty(), getSort().isAscending(), (int) first, (int) count)
-						.iterator();
+					setSort("achternaam", SortOrder.ASCENDING);
 				}
 
-				@Override
-				public long size()
-				{
-					return enovationHuisartsService.telHuisartsen(getModelObject());
-				}
+				return enovationHuisartsService.zoekHuisartsen(getModelObject(), getSort().getProperty(), getSort().isAscending(), (int) first, (int) count).iterator();
+			}
 
-				@Override
-				public IModel<EnovationHuisarts> model(EnovationHuisarts object)
-				{
-					return ModelUtil.sModel(object);
-				}
-			}, Model.of("huisarts(en)"))
+			@Override
+			public long size()
+			{
+				return enovationHuisartsService.telHuisartsen(getModelObject());
+			}
+
+			@Override
+			public IModel<EnovationHuisarts> model(EnovationHuisarts object)
+			{
+				return ModelUtil.sModel(object);
+			}
+		}, Model.of("huisarts(en)"))
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<EnovationHuisarts> huisartsModel)

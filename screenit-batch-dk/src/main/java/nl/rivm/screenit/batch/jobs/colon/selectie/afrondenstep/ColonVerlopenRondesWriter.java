@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.service.BaseScreeningRondeService;
@@ -42,6 +43,6 @@ public class ColonVerlopenRondesWriter extends BaseWriter<ColonScreeningRonde>
 	{
 		LOG.info("gevonden ronde: {} wordt afgerond", ronde.getId());
 
-		screeningRondeService.screeningRondeAfronden(ronde, "Cli\u00EBnt behoort niet meer tot de doelgroep");
+		screeningRondeService.screeningRondeAfronden(ronde, Constants.RONDE_AFROND_REDEN_BUITEN_DOELGROEP);
 	}
 }

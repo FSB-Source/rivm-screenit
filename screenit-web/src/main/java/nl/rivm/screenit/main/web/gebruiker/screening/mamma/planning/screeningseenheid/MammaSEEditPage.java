@@ -50,8 +50,8 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.markup.form.validation.UniqueFieldValidator;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
-
 import nl.topicuszorg.wicket.input.timefield.TimeField;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -174,10 +174,10 @@ public class MammaSEEditPage extends MammaPlanningBasePage
 				boolean succes = screeningsEenheidService.saveOrUpdateSE(getScreeningsEenheid(), ScreenitSession.get().getLoggedInInstellingGebruiker());
 				if (succes)
 				{
+					success(getString("message.gegevensopgeslagen"));
 					createOrReplaceCodeComponent(seWijzigenForm, target);
 					createOrReplaceNaamComponent(seWijzigenForm, target);
 					createOrReplaceIpAdresComponent(seWijzigenForm, null);
-					success(getString("message.gegevensopgeslagen"));
 					BasePage.markeerFormulierenOpgeslagen(target);
 					mammografentabel.setVisible(true);
 					target.add(mammografentabel);
@@ -198,7 +198,7 @@ public class MammaSEEditPage extends MammaPlanningBasePage
 			}
 		});
 
-		mammografentabel = new MammaMammografenPanel("mammografenPanel", ModelUtil.cRModel(screeningsEenheid), magAanpassen);
+		mammografentabel = new MammaMammografenPanel("mammografenPanel", ModelUtil.csModel(screeningsEenheid), magAanpassen);
 		mammografentabel.setOutputMarkupId(true);
 		mammografentabel.setOutputMarkupPlaceholderTag(true);
 		mammografentabel.setVisible(screeningsEenheid.getId() != null); 
@@ -318,7 +318,7 @@ public class MammaSEEditPage extends MammaPlanningBasePage
 
 	private void addInActiverenButton(Form<MammaScreeningsEenheid> seWijzigenForm)
 	{
-		AjaxLink<Gebruiker> inActiveren = new ConfirmingIndicatingAjaxLink<Gebruiker>("inActiveren", dialog, "question.remove.se")
+		AjaxLink<Gebruiker> inActiveren = new ConfirmingIndicatingAjaxLink<>("inActiveren", dialog, "question.remove.se")
 		{
 
 			@Override

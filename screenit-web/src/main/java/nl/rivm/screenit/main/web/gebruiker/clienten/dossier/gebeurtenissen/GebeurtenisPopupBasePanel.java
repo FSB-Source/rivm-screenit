@@ -30,7 +30,6 @@ import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.util.EnumStringUtil;
 
 import org.apache.commons.lang.reflect.ConstructorUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
@@ -53,9 +52,14 @@ public class GebeurtenisPopupBasePanel extends GenericPanel<ScreeningRondeGebeur
 	public GebeurtenisPopupBasePanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
+	}
 
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		WebMarkupContainer gebeurtenisBody = new WebMarkupContainer("gebeurtenisBody");
-		gebeurtenisBody.add(new AttributeAppender("class", Model.of(model.getObject().getGebeurtenis().name().toLowerCase()), " "));
+		gebeurtenisBody.add(new AttributeAppender("class", Model.of(getModelObject().getGebeurtenis().name().toLowerCase()), " "));
 		add(gebeurtenisBody);
 		ScreeningRondeGebeurtenis screeningRondeGebeurtenis = getModelObject();
 		add(new EnumLabel<TypeGebeurtenis>("gebeurtenis"));
@@ -76,37 +80,29 @@ public class GebeurtenisPopupBasePanel extends GenericPanel<ScreeningRondeGebeur
 		}
 
 		gebeurtenisBody.add(new Label("type", type));
-		gebeurtenisBody.add(getGebeurtenisDetailPanel("details"));
+		getGebeurtenisDetailPanel(gebeurtenisBody, "details");
 	}
 
-	@Override
-	protected void onInitialize()
-	{
-		super.onInitialize();
-	}
-
-	private Component getGebeurtenisDetailPanel(String id)
+	private void getGebeurtenisDetailPanel(WebMarkupContainer gebeurtenisBody, String id)
 	{
 		List<Object> params = new ArrayList<>();
 		params.add(id);
 		params.add(getModel());
 
-		Component comp = new EmptyPanel(id);
 		try
 		{
 			Class<? extends AbstractGebeurtenisDetailPanel> detailPanelClass = getModelObject().getGebeurtenis().getDetailPanelClass();
 			AbstractGebeurtenisDetailPanel detailPanel = (AbstractGebeurtenisDetailPanel) ConstructorUtils.invokeConstructor(detailPanelClass, params.toArray());
+			gebeurtenisBody.add(detailPanel);
 			detailPanel.addButton("button", this);
 			detailPanel.addExtraButton("extraButton", this);
 			detailPanel.addDocumentVervangenButton("documentVervangenBtn", this);
 			detailPanel.addDocumentDownloadenButton("documentDownloadBtn", this);
-			comp = detailPanel;
 		}
 		catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e)
 		{
 			LOGGER.error("Fout bij maken van gebeurtenis detailpanel", e);
+			gebeurtenisBody.add(new EmptyPanel(id));
 		}
-
-		return comp;
 	}
 }

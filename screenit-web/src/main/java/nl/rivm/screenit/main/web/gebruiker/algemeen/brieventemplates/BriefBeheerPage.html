@@ -30,11 +30,11 @@
                 <th>Type</th>
                 <th>Naam</th>
                 <th>Volgnr</th>
-                <th title="Alleen van toepassing voor minigrip brieven">FORMNR</th>
+                <th title="Alleen van toepassing voor inpakcentrum brieven">FORMNR</th>
                 <th class="dateTimeColumn">Geldig van</th>
                 <th class="dateTimeColumn">Geldig tot</th>
                 <th>Uploader</th>
-                <th class="status-upload">Uploaden</th>
+                <th wicket:id="uploadHeader" class="status-upload">Uploaden</th>
                 <th class="status-download">Downloaden</th>
             </tr>
             </thead>
@@ -49,11 +49,11 @@
                 <td><img wicket:id="uitklapknop" src="../../assets/images/icons/arrow.gif" style="float:left; cursor: pointer; padding: 6px 0"/>
                     <div wicket:id="volgnummer" style="float:right"></div>
                 </td>
-                <td title="Alleen van toepassing voor minigrip brieven"><span wicket:id="formulierNummer"></span></td>
+                <td title="Alleen van toepassing voor inpakcentrum brieven"><span wicket:id="formulierNummer"></span></td>
                 <td wicket:id="geldigVanaf" class="dateTimeColumn">dd-mm-jaar</td>
                 <td wicket:id="geldigTot" class="dateTimeColumn"></td>
                 <td wicket:id="geuploadDoor">Medewerker</td>
-                <td class="status-upload">
+                <td wicket:id="uploadColumn" class="status-upload">
                     <form wicket:id="uploadForm" class="form-inline">
                         <input type="file" wicket:id="fileUpload" accept=".docx">
                         <a href="javascript:void(0);" wicket:id="uploaden" class="btn upload" title="Uploaden"><i class="icon-upload"></i></a>

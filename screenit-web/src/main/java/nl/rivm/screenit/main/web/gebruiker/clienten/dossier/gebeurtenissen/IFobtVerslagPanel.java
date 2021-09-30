@@ -79,13 +79,15 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 {
 
-	private BootstrapDialog confirmDialog;
+	private static final Logger LOG = LoggerFactory.getLogger(IFobtVerslagPanel.class);
 
 	@SpringBean
 	private ColonDossierService colonDossierService;
 
 	@SpringBean
 	private FileService fileService;
+
+	private BootstrapDialog confirmDialog;
 
 	private IModel<List<FileUpload>> file = new ListModel<>();
 
@@ -99,12 +101,16 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 
 	private Form uploadForm;
 
-	private static final Logger LOG = LoggerFactory.getLogger(IFobtVerslagPanel.class);
-
 	public IFobtVerslagPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
-		uploadForm = new Form<>("uploadForm", model);
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		uploadForm = new Form<>("uploadForm", getModel());
 		uploadForm.setOutputMarkupId(true);
 		uploadForm.setOutputMarkupPlaceholderTag(true);
 		add(uploadForm);
@@ -207,7 +213,7 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 	@Override
 	protected void addButton(String id, GebeurtenisPopupBasePanel parent)
 	{
-		ConfirmingIndicatingAjaxSubmitLink<Void> button = new ConfirmingIndicatingAjaxSubmitLink<Void>(id, uploadForm, confirmDialog, "label.ifobtuitslag.verwijderen")
+		ConfirmingIndicatingAjaxSubmitLink<Void> button = new ConfirmingIndicatingAjaxSubmitLink<>(id, uploadForm, confirmDialog, "label.ifobtuitslag.verwijderen")
 		{
 			@Override
 			protected boolean skipConfirmation()
@@ -348,7 +354,7 @@ public class IFobtVerslagPanel extends AbstractGebeurtenisDetailPanel
 	@Override
 	protected void addDocumentVervangenButton(String id, GebeurtenisPopupBasePanel parent)
 	{
-		IndicatingAjaxLink btn = new IndicatingAjaxLink<Void>(id)
+		IndicatingAjaxLink<Void> btn = new IndicatingAjaxLink<>(id)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)

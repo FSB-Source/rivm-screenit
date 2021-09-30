@@ -41,6 +41,7 @@ import javax.xml.transform.sax.SAXSource;
 import nl.rivm.screenit.hl7v3.cda.ClinicalDocument;
 
 import org.apache.xalan.processor.TransformerFactoryImpl;
+import org.apache.xerces.jaxp.SAXParserFactoryImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.ErrorHandler;
@@ -49,9 +50,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXParseException;
 import org.xml.sax.XMLReader;
-
-import com.sun.org.apache.xerces.internal.impl.Constants;
-import com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl;
 
 public class ExtractCDA
 {
@@ -179,8 +177,6 @@ public class ExtractCDA
 			xmlReader.setFeature("http://xml.org/sax/features/external-general-entities", false);
 
 			xmlReader.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
-
-			xmlReader.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, Constants.ACCESS_EXTERNAL_ALL);
 
 			xmlReader.setErrorHandler(new ErrorHandler()
 			{

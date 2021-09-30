@@ -36,15 +36,15 @@ public enum DashboardType
 
 	UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM("Uitnodiging versturen naar inpakcentrum", JobType.UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_JOB_DK, Bevolkingsonderzoek.COLON),
 
-	CONTROLE_TERUGKOPPELING_CLIENT_SELECTIE("Controle terugkoppeling van MiniGrip", Bevolkingsonderzoek.COLON),
+	CONTROLE_TERUGKOPPELING_CLIENT_SELECTIE("Controle terugkoppeling van Inpakcentrum", Bevolkingsonderzoek.COLON),
 
-	TERUGKOPPELING_CLIENT_SELECTIE("Terugkoppeling van MiniGrip", JobType.KOPPELDATA_VERWERKING, Bevolkingsonderzoek.COLON),
+	TERUGKOPPELING_CLIENT_SELECTIE("Terugkoppeling van Inpakcentrum", JobType.KOPPELDATA_VERWERKING, Bevolkingsonderzoek.COLON),
 
 	RETOURZENDINGEN("Retourzendingen", Bevolkingsonderzoek.COLON),
 
-	IFOBT_VERWERKING("FIT verwerking", JobType.IFOBT_VERWERKING, Bevolkingsonderzoek.COLON),
+	IFOBT_INLEZEN("FIT uitslagen ontvangen", Bevolkingsonderzoek.COLON),
 
-	IFOBT_INLEZEN("FIT inlezen", JobType.IFOBT_INLEZEN, Bevolkingsonderzoek.COLON),
+	IFOBT_VERWERKING("FIT verwerking", JobType.IFOBT_VERWERKING, Bevolkingsonderzoek.COLON),
 
 	IFOBT_HERINNERING("FIT herinnering", JobType.IFOBT_HERINNERING, Bevolkingsonderzoek.COLON),
 
@@ -68,7 +68,7 @@ public enum DashboardType
 
 	CERVIX_ZAS_CONTROLE_TERUGKOPPELING("Controle zas terugkoppeling van inpakcentrum", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_ZAS_TERUGKOPPELING("Terugkoppeling zas van MiniGrip", JobType.CERVIX_KOPPELDATA_VERWERKING, Bevolkingsonderzoek.CERVIX),
+	CERVIX_ZAS_TERUGKOPPELING("Terugkoppeling zas van Inpakcentrum", JobType.CERVIX_KOPPELDATA_VERWERKING, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_VERVOLGONDERZOEK("Controle-uitstrijkje", JobType.CERVIX_VERVOLGONDERZOEK, Bevolkingsonderzoek.CERVIX),
 
@@ -116,6 +116,12 @@ public enum DashboardType
 	COLON_IFOBT_KOPPELING("FIT-berichten koppeling", Arrays.asList(OrganisatieType.RIVM, OrganisatieType.LABORATORIUM), Bevolkingsonderzoek.COLON),
 
 	COLON_BATCH_NA_GBA_VERWERKING("Darmkanker specifieke verwerking nav. GBA", JobType.COLON_NA_GBA, Bevolkingsonderzoek.COLON),
+
+	COLON_HUISARTSBERICHTEN(
+		"Huisartsberichten",
+		JobType.COLON_HUISARTSBERICHTEN_OPNIEUW_VERSTUREN,
+		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
+		Bevolkingsonderzoek.COLON),
 
 	CERVIX_BATCH_NA_GBA_VERWERKING("Baarmoederhalskanker specifieke verwerking nav. GBA", JobType.CERVIX_NA_GBA, Bevolkingsonderzoek.CERVIX),
 
@@ -223,11 +229,6 @@ public enum DashboardType
 		this.type = type;
 		this.organisatieTypes = organisatieTypes;
 		this.bevolkingsOnderzoek = bevolkingsOnderzoek;
-	}
-
-	public JobType getType()
-	{
-		return type;
 	}
 
 	public String getNaam()

@@ -50,7 +50,7 @@ public interface MammaTestTimelineService
 	MammaOnderzoek maakOnderzoekVoorBe(MammaAfspraak afspraak, InstellingGebruiker mbber, MammaScreeningsEenheid se);
 
 	void rondOnderzoekAf(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker, boolean verstuurHl7Berichten, OnvolledigOnderzoekOption onvolledigOnderzoekOption,
-		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption);
+		OnderbrokenOnderzoekOption onderbrokenOnderzoekOption, boolean afwijkingGesignaleerd);
 
 	void voegLezingToe(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker gebruiker);
 

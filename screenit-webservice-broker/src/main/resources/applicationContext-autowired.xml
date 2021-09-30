@@ -36,8 +36,6 @@
     <context:component-scan base-package="nl.rivm.screenit.wsb.pd.service.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.wsb.inpakcentrum"/>
     <context:component-scan base-package="nl.rivm.screenit.wsb.pd.interceptor"/>
-    <context:component-scan base-package="nl.rivm.screenit.wsb.organisatieboom"/>
-    <context:component-scan base-package="nl.rivm.screenit.wsb.mammaPaVerwacht"/>
     <context:component-scan base-package="nl.rivm.screenit.wsb.vrla"/>
     <context:component-scan base-package="nl.rivm.screenit.wsb.vrld"/>
     <context:component-scan base-package="nl.rivm.screenit.wsb.labformulier"/>

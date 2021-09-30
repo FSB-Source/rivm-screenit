@@ -37,4 +37,6 @@ public interface CervixLabformulierService
 	void valideerLabformulier(CervixLabformulier labformulier);
 
 	String koppelEnBewaarLabformulier(CervixLabformulier labformulier);
+
+	void koppelDigitaalLabformulier(CervixLabformulier labformulier);
 }

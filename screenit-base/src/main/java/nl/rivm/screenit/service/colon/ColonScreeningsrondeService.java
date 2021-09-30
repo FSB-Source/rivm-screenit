@@ -36,5 +36,5 @@ public interface ColonScreeningsrondeService
 
 	boolean isRondeStatusBuitenDoelgroep(ColonScreeningRonde ronde);
 
-    boolean heeftMaxAantalFitAanvragenBereikt(ColonScreeningRonde laatsteScreeningRonde);
+	boolean heeftMaxAantalFitAanvragenBereikt(ColonScreeningRonde laatsteScreeningRonde);
 }

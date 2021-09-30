@@ -36,7 +36,7 @@ import org.apache.wicket.model.util.ListModel;
 public enum UploadInstellingImageType implements UploadImageType<Instelling>
 {
 
-	DK_SO_LOGO_MINIGRIP("logo.naam")
+	DK_SO_LOGO_INPAKCENTRUM("logo.naam")
 	{
 
 		@Override
@@ -56,7 +56,7 @@ public enum UploadInstellingImageType implements UploadImageType<Instelling>
 		@Override
 		public FileValidator getValidator()
 		{
-			return DK_SO_LOGO_MINIGRIP_FILE_VALIDATOR;
+			return DK_SO_LOGO_INPAKCENTRUM_FILE_VALIDATOR;
 		}
 
 		@Override
@@ -242,7 +242,7 @@ public enum UploadInstellingImageType implements UploadImageType<Instelling>
 		}
 	};
 
-	private static final FileValidator DK_SO_LOGO_MINIGRIP_FILE_VALIDATOR = new FileValidator(FileType.EPS);
+	private static final FileValidator DK_SO_LOGO_INPAKCENTRUM_FILE_VALIDATOR = new FileValidator(FileType.EPS);
 
 	private static final FileValidator LOGO_BRIEF_FILE_VALIDATOR = new FileValidator(FileType.JPG);
 

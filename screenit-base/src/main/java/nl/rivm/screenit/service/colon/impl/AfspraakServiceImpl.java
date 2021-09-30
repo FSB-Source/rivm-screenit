@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.colon.impl;
 
 /*-
@@ -23,7 +22,10 @@ package nl.rivm.screenit.service.colon.impl;
  */
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -41,16 +43,19 @@ import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
+import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.OpenUitnodiging;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
+import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.OpenUitnodigingUitslag;
@@ -61,6 +66,8 @@ import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.IFOBTTestUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -69,11 +76,11 @@ import nl.topicuszorg.planning.model.IParticipant;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
 
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.support.PropertyComparator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,7 +123,7 @@ public class AfspraakServiceImpl implements AfspraakService
 			filter.setClient(client);
 			filter.setStatus(AfspraakStatus.GEPLAND);
 
-			return new ArrayList<IAppointment>(afspraakDao.getAfspraken(start, end, filter, null, AfspraakStatus.VOOR_AGENDA));
+			return new ArrayList<>(afspraakDao.getAfspraken(start, end, filter, null, AfspraakStatus.VOOR_AGENDA));
 		}
 
 		return null;
@@ -144,7 +151,7 @@ public class AfspraakServiceImpl implements AfspraakService
 	@Override
 	public List<IAppointment> getAppointments(Location locatie, Date start, Date end, boolean showSchedule)
 	{
-		List<Location> locaties = new ArrayList<Location>();
+		List<Location> locaties = new ArrayList<>();
 		locaties.add(locatie);
 
 		return getAppointments(locaties, start, end, showSchedule);
@@ -156,7 +163,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		Afspraak filter = new Afspraak();
 
 		filter.setStatus(AfspraakStatus.GEPLAND);
-		List<IAppointment> returnValues = new ArrayList<IAppointment>(afspraakDao.getAfspraken(start, end, filter, locaties, AfspraakStatus.VOOR_AGENDA));
+		List<IAppointment> returnValues = new ArrayList<>(afspraakDao.getAfspraken(start, end, filter, locaties, AfspraakStatus.VOOR_AGENDA));
 
 		if (showSchedule)
 		{
@@ -192,7 +199,7 @@ public class AfspraakServiceImpl implements AfspraakService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void annuleerAfspraak(Afspraak afspraak, Account account, AfspraakStatus status, boolean briefTegenhouden)
 	{
-		DateTime nu = currentDateSupplier.getDateTime();
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 		Client client = afspraak.getClient();
 		String afzegReden = "";
 		if (afspraak instanceof ColonIntakeAfspraak)
@@ -206,7 +213,7 @@ public class AfspraakServiceImpl implements AfspraakService
 			{
 				colonScreeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);
 				colonScreeningRonde.setAfgerondReden(colonIntakeAfspraak.getRedenAfzeggen().toString());
-				colonScreeningRonde.setStatusDatum(nu.toDate());
+				colonScreeningRonde.setStatusDatum(DateUtil.toUtilDate(nu));
 			}
 			else
 			{
@@ -232,10 +239,10 @@ public class AfspraakServiceImpl implements AfspraakService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, DateTime nu, boolean briefTegenhouden)
+	public void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean briefTegenhouden)
 	{
 		setAfspraakStatus(afspraak, status);
-		afspraak.setAfzegDatum(nu.plusMillis(100).toDate());
+		afspraak.setAfzegDatum(DateUtil.toUtilDate(nu.plus(100, ChronoUnit.MILLIS)));
 		hibernateService.saveOrUpdate(afspraak);
 
 		ColonScreeningRonde screeningRonde = afspraak.getColonScreeningRonde();
@@ -246,7 +253,7 @@ public class AfspraakServiceImpl implements AfspraakService
 			Client client = afspraak.getClient();
 			if (!client.getPersoon().getGbaAdres().getGbaGemeente().getCode().equals(Gemeente.RNI_CODE))
 			{
-				ColonBrief colonBrief = briefService.maakColonBrief(screeningRonde, BriefType.COLON_INTAKE_AFMELDING, nu.plusMillis(150).toDate());
+				ColonBrief colonBrief = briefService.maakColonBrief(screeningRonde, BriefType.COLON_INTAKE_AFMELDING, DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
 				colonBrief.setTegenhouden(briefTegenhouden);
 				hibernateService.saveOrUpdate(colonBrief);
 
@@ -267,7 +274,7 @@ public class AfspraakServiceImpl implements AfspraakService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void setAfspraakStatus(Afspraak afspraak, AfspraakStatus status)
 	{
 		afspraak.setStatus(status);
@@ -417,18 +424,19 @@ public class AfspraakServiceImpl implements AfspraakService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void maakNieuweAfspraak(Client client, NieuweIntakeAfspraakMakenReden reden, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean binnenRooster,
 		BriefType briefType, Account account)
 	{
-		OpenUitnodiging openUitnodiging = null;
+		OpenUitnodiging openUitnodiging;
 		ColonDossier colonDossier = client.getColonDossier();
-		DateTime nu = currentDateSupplier.getDateTime();
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 		ColonScreeningRonde laatsteScreeningRonde = colonDossier.getLaatsteScreeningRonde();
 		nieuweAfspraak.setColonScreeningRonde(laatsteScreeningRonde);
 		nieuweAfspraak.setClient(client);
-		nieuweAfspraak.setDatumLaatsteWijziging(nu.plusMillis(100).toDate());
+		nieuweAfspraak.setDatumLaatsteWijziging(DateUtil.toUtilDate(nu.plus(100, ChronoUnit.MILLIS)));
 		nieuweAfspraak.setNieuweAfspraakMakenReden(reden);
-		RoosterItem roosterItem = null;
+		RoosterItem roosterItem;
 		if (binnenRooster)
 		{
 			roosterItem = getRoosterBlokVoorAfspraak(nieuweAfspraak);
@@ -474,17 +482,18 @@ public class AfspraakServiceImpl implements AfspraakService
 		laatsteScreeningRonde.setLaatsteAfspraak(nieuweAfspraak);
 		client.getAfspraken().add(nieuweAfspraak);
 		hibernateService.saveOrUpdate(client);
-		ColonBrief brief = null;
+		ColonBrief brief;
+		Date creatieDatumColonBrief = DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS));
 		if (openUitnodiging != null && !heefAlOpenUitnodigingsBriefGehad)
 		{
-			brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_BEVESTIGING_INTAKE_AFSRPAAK_NA_OPEN_UITNODIGING, nu.plusMillis(150).toDate());
+			brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_BEVESTIGING_INTAKE_AFSRPAAK_NA_OPEN_UITNODIGING, creatieDatumColonBrief);
 			brief.setIntakeAfspraak(nieuweAfspraak);
 		}
 		else if (NieuweIntakeAfspraakMakenReden.HANDMATIG_INPLANNEN.equals(reden))
 		{
 			if (briefType != null)
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, briefType, nu.plusMillis(150).toDate());
+				brief = briefService.maakColonBrief(laatsteScreeningRonde, briefType, creatieDatumColonBrief);
 
 				if (BriefType.COLON_UITNODIGING_INTAKE.equals(briefType))
 				{
@@ -493,7 +502,7 @@ public class AfspraakServiceImpl implements AfspraakService
 			}
 			else
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_UITNODIGING_INTAKE, nu.plusMillis(150).toDate());
+				brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_UITNODIGING_INTAKE, creatieDatumColonBrief);
 				brief.setIfobtTest(ColonScreeningRondeUtil.getEersteOngunstigeTest(laatsteScreeningRonde));
 			}
 			brief.setIntakeAfspraak(nieuweAfspraak);
@@ -503,12 +512,12 @@ public class AfspraakServiceImpl implements AfspraakService
 		{
 			if (briefType != null)
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, briefType, nu.plusMillis(150).toDate());
+				brief = briefService.maakColonBrief(laatsteScreeningRonde, briefType, creatieDatumColonBrief);
 				brief.setIntakeAfspraak(nieuweAfspraak);
 			}
 			else
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_INTAKE_GEWIJZIGD, nu.plusMillis(150).toDate());
+				brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_INTAKE_GEWIJZIGD, creatieDatumColonBrief);
 				brief.setIntakeAfspraak(nieuweAfspraak);
 
 			}
@@ -520,7 +529,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		hibernateService.saveOrUpdate(brief);
 
 		laatsteScreeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
-		laatsteScreeningRonde.setStatusDatum(nu.plusMillis(200).toDate());
+		laatsteScreeningRonde.setStatusDatum(DateUtil.toUtilDate(nu.plus(200, ChronoUnit.MILLIS)));
 		laatsteScreeningRonde.setAfgerondReden(null);
 		hibernateService.saveOrUpdate(laatsteScreeningRonde);
 
@@ -543,10 +552,6 @@ public class AfspraakServiceImpl implements AfspraakService
 			if (colonIntakeAfspraak.getConclusie() != null && ColonConclusieType.NO_SHOW.equals(colonIntakeAfspraak.getConclusie().getType()))
 			{
 				berichtType = HuisartsBerichtType.NO_SHOW_INTAKE;
-			}
-			else
-			{
-				berichtType = HuisartsBerichtType.ONGUNSTIGE_UITSLAG;
 			}
 			break;
 		case GEANNULEERD_AFMELDEN:
@@ -598,9 +603,87 @@ public class AfspraakServiceImpl implements AfspraakService
 		}
 
 		AfspraakStatus status = afspraak.getStatus();
-		boolean magWijzigenAfzeggen = isLaatsteRonde && !heeftVerslagenInLaatsteRonde && rondeAfspraakIsLopend
+		return isLaatsteRonde && !heeftVerslagenInLaatsteRonde && rondeAfspraakIsLopend
 			&& (AfspraakStatus.GEPLAND.equals(status) || AfspraakStatus.UITGEVOERD.equals(status) && ColonConclusieType.NO_SHOW.equals(colonConclusieType));
-		return magWijzigenAfzeggen;
+	}
+
+	@Override
+	public boolean magNieuweAfspraakMaken(Client client)
+	{
+		ColonDossier colonDossier = client.getColonDossier();
+		boolean isDossierAangemeld = colonDossier.getAangemeld();
+
+		ColonScreeningRonde laatsteScreeningRonde = colonDossier.getLaatsteScreeningRonde();
+		boolean isLaatsteRondeGeldigEnAangemeld = ColonScreeningRondeUtil.isLaatsteScreeningRondGeldigEnAangemeld(laatsteScreeningRonde);
+
+		if (isDossierAangemeld && isLaatsteRondeGeldigEnAangemeld && !ColonScreeningRondeUtil.heeftBuitenDoelgroepBrief(laatsteScreeningRonde)
+			&& !ColonScreeningRondeUtil.heeftAfgerondeVerslag(laatsteScreeningRonde))
+		{
+			ColonIntakeAfspraak laatsteAfspraak = laatsteScreeningRonde.getLaatsteAfspraak();
+			boolean isErEenOpenUitnodiging = laatsteScreeningRonde.getOpenUitnodiging() != null;
+			boolean isErEenOpenUitnodigingReactie = isErEenOpenUitnodiging && laatsteScreeningRonde.getOpenUitnodiging().getUitslag() != null;
+			if (laatsteAfspraak != null)
+			{
+				ColonConclusie conclusie = laatsteAfspraak.getConclusie();
+				boolean clientWilAndereIntakeLocatie = AfspraakStatus.UITGEVOERD.equals(laatsteAfspraak.getStatus()) && conclusie != null
+					&& ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE.equals(conclusie.getType());
+
+				return clientWilAndereIntakeLocatie || AfspraakStatus.isGeannuleerd(laatsteAfspraak.getStatus()) && !isErEenOpenUitnodigingReactie;
+			}
+
+			else if (!isErEenOpenUitnodigingReactie)
+			{
+				if (GbaStatus.AFGEVOERD.equals(client.getGbaStatus()))
+				{
+					return false;
+				}
+				if (isErEenOpenUitnodiging)
+				{
+					return true;
+				}
+				IFOBTTest ifobtTest = laatsteScreeningRonde.getLaatsteIFOBTTest();
+				boolean isIfobtUitslagOngunstig = IFOBTTestUtil.isOngunstig(ifobtTest);
+
+				if (!isIfobtUitslagOngunstig && !IFOBTTestUtil.isGunstig(ifobtTest))
+				{
+
+					ifobtTest = null;
+					List<ColonScreeningRonde> rondes = new ArrayList<>(colonDossier.getScreeningRondes());
+					Collections.sort(rondes, new PropertyComparator<>("id", false, true));
+					for (ColonScreeningRonde ronde : rondes)
+					{
+						if (!ronde.equals(laatsteScreeningRonde))
+						{
+							Date vroegsteAnalyseDatum = null;
+							for (IFOBTTest test : ronde.getIfobtTesten())
+							{
+								if (IFOBTTestUtil.isOngunstig(test) && (vroegsteAnalyseDatum == null || vroegsteAnalyseDatum.after(test.getAnalyseDatum())))
+								{
+									ifobtTest = test;
+									isIfobtUitslagOngunstig = true;
+									vroegsteAnalyseDatum = test.getAnalyseDatum();
+								}
+							}
+						}
+					}
+
+					if (isIfobtUitslagOngunstig)
+					{
+						for (Afspraak afspraak : colonDossier.getClient().getAfspraken())
+						{
+							if (afspraak.getIngevoerd() != null && ifobtTest.getAnalyseDatum() != null && afspraak.getIngevoerd().after(ifobtTest.getAnalyseDatum()))
+							{
+
+								isIfobtUitslagOngunstig = false;
+								break;
+							}
+						}
+					}
+				}
+				return isIfobtUitslagOngunstig && (IFOBTTestStatus.UITGEVOERD.equals(ifobtTest.getStatus()) || IFOBTTestStatus.DOETNIETMEE.equals(ifobtTest.getStatus()));
+			}
+		}
+		return false;
 	}
 
 	@Override

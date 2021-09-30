@@ -24,7 +24,7 @@ package nl.rivm.screenit.service.mamma.impl;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -120,7 +120,9 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 		{
 			Map<Long, Double> afstandenPerStandplaats = new HashMap<>();
 			List<MammaStandplaatsPeriode> standplaatsPerioden = standplaatsDao.getStandplaatsPerioden(filter);
-			List<MammaStandplaatsPeriode> gefilterdeStandplaatsPerioden = standplaatsPerioden.stream().filter(standplaats -> !validatieUitvoeren || uitstelService.valideerStandplaatsPeriode(standplaats, filter.getVanaf()) == null).collect(Collectors.toList());
+			List<MammaStandplaatsPeriode> gefilterdeStandplaatsPerioden = standplaatsPerioden.stream()
+				.filter(standplaats -> !validatieUitvoeren || uitstelService.valideerStandplaatsPeriode(standplaats, filter.getVanaf()) == null)
+				.collect(Collectors.toList());
 			for (MammaStandplaatsPeriode standplaatsPeriode : gefilterdeStandplaatsPerioden)
 			{
 				Long standplaatsId = standplaatsPeriode.getStandplaatsRonde().getStandplaats().getId();
@@ -162,15 +164,13 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 				standplaatsPeriodeMetAfstandDto.getStandplaatsPeriodeId());
 
 			LocalDate vrijgegevenTotEnMetDatum = DateUtil.toLocalDate(standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet());
-			if (vrijgegevenTotEnMetDatum != null || !verzetten)
+			if ((vrijgegevenTotEnMetDatum != null && !DateUtil.toLocalDate(standplaatsPeriode.getVanaf()).isAfter(vrijgegevenTotEnMetDatum)) || !verzetten)
 			{
 				MammaStandplaats standplaats = standplaatsPeriode.getStandplaatsRonde().getStandplaats();
 				plaatsen.add(standplaats.getLocatie().getPlaats());
 			}
 		}
-		List<String> plaatsenList = plaatsen.stream().filter(plaatsnaam -> StringUtils.isNotBlank(plaatsnaam)).collect(Collectors.toList());
-		Collections.sort(plaatsenList);
-		return plaatsenList;
+		return plaatsen.stream().filter(StringUtils::isNotBlank).sorted().collect(Collectors.toList());
 	}
 
 	@Override
@@ -389,4 +389,14 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 		return standplaatsDao.getActieveStandplaatsen(voorRegio);
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Date getMaximaleVrijgegevenTotEnMetDatum(List<MammaStandplaatsPeriode> standplaatsPerioden)
+	{
+		return standplaatsPerioden.stream()
+			.filter(standplaatsPeriode -> standplaatsPeriode != null && standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet() != null)
+			.max(Comparator.comparing(standplaatsPeriode -> standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet()))
+			.map(standplaatsPeriode -> standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet())
+			.orElse(null);
+	}
 }

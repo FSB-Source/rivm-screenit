@@ -26,11 +26,10 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
+import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixBarcodeAfdrukkenBasePage;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
@@ -44,6 +43,8 @@ import nl.rivm.screenit.model.cervix.enums.signaleringen.CervixMonsterSignalerin
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.wicket.input.BooleanLabel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,9 +65,9 @@ public abstract class CervixUitnodigingUitstrijkjePanel extends CervixUitnodigin
 
 	private Date verzenddatumUitnodiging;
 
-	public CervixUitnodigingUitstrijkjePanel(String id, CervixUitstrijkje uitstrijkje)
+	public CervixUitnodigingUitstrijkjePanel(CervixBarcodeAfdrukkenBasePage parentPage, String id, CervixUitstrijkje uitstrijkje)
 	{
-		super(id, uitstrijkje);
+		super(parentPage, id, uitstrijkje);
 		CervixMergedBrieven mergedBrieven = uitstrijkje.getUitnodiging().getBrief().getMergedBrieven();
 		if (mergedBrieven != null)
 		{

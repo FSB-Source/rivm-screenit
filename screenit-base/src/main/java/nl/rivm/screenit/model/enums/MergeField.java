@@ -21,6 +21,11 @@ package nl.rivm.screenit.model.enums;
  * =========================LICENSE_END==================================
  */
 
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_IN_HUISARTSBERICHT;
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_NAAR_INPAKCENTRUM;
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.QR_CODE;
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.WAARDE_NIET_TRIMMEN;
+
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -130,17 +135,11 @@ import org.springframework.beans.support.PropertyComparator;
 
 import com.google.common.base.Strings;
 
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_IN_HUISARTSBERICHT;
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_NAAR_INPAKCENTRUM;
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.QR_CODE;
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.WAARDE_NIET_TRIMMEN;
-
 public enum MergeField
 {
 
 	UNIEK_BRIEF_KENMERK("_UNIEK_BRIEF_KENMERK", MergeFieldTestType.OVERIGE, String.class, "K6BD83FL", NIET_NAAR_INPAKCENTRUM)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -159,7 +158,6 @@ public enum MergeField
 	},
 	SO_ID("_SO_ID")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -174,7 +172,6 @@ public enum MergeField
 
 	SO_NAAM("_SO_NAAM")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -189,7 +186,6 @@ public enum MergeField
 
 	SO_LOGO("_SO_LOGO", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -246,7 +242,6 @@ public enum MergeField
 
 	SO_POSTADRES("_SO_POSTADRES")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -256,7 +251,6 @@ public enum MergeField
 
 	SO_STRAATNAAM("_SO_STRAATNAAM")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -272,7 +266,6 @@ public enum MergeField
 
 	SO_HUISNUMMER_TOEV("_SO_HUISNUMMER_TOEV")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -313,7 +306,6 @@ public enum MergeField
 
 	SO_POSTCODE("_SO_POSTCODE")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -329,7 +321,6 @@ public enum MergeField
 
 	SO_PLAATS("_SO_PLAATS")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -345,7 +336,6 @@ public enum MergeField
 
 	SO_POSTBUSNR("_SO_POSTBUSNR")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -418,7 +408,6 @@ public enum MergeField
 
 	SO_POSTBUSPOSTCODE("_SO_POSTBUSPOSTCODE")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -491,7 +480,6 @@ public enum MergeField
 
 	SO_POSTBUSPLAATS("_SO_POSTBUSPLAATS")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -833,7 +821,6 @@ public enum MergeField
 
 	SO_TEL("_SO_TEL")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -953,7 +940,6 @@ public enum MergeField
 
 	SO_FAX("_SO_FAX")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -968,7 +954,6 @@ public enum MergeField
 
 	SO_EMAILDRES("_SO_EMAILADRES")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1075,7 +1060,6 @@ public enum MergeField
 
 	SO_WEBSITE("_SO_WEBSITEADRES")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1090,7 +1074,6 @@ public enum MergeField
 
 	SO_RCMDL("_SO_RCMDL")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1212,7 +1195,6 @@ public enum MergeField
 
 	CLIENT_BSN("_CLIENT_BSN", NIET_NAAR_INPAKCENTRUM)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1226,7 +1208,6 @@ public enum MergeField
 
 	CLIENT_NAAM("_CLIENT_NAAM")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1240,7 +1221,6 @@ public enum MergeField
 
 	CLIENT_ADRES("_CLIENT_ADRES")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1254,7 +1234,6 @@ public enum MergeField
 
 	CLIENT_POSTCODE("_CLIENT_POSTCODE")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1268,7 +1247,6 @@ public enum MergeField
 
 	CLIENT_WOONPLAATS("_CLIENT_WOONPLAATS")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1282,7 +1260,6 @@ public enum MergeField
 
 	KIX_CLIENT("_CLIENT_KIX", RoyalMailCBCBean.class, null)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1297,7 +1274,6 @@ public enum MergeField
 
 	CLIENT_GEBOORTEDATUM("_CLIENT_GEBOORTEDATUM")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1308,7 +1284,6 @@ public enum MergeField
 
 	CLIENT_AANHEF("_CLIENT_AANHEF")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1358,7 +1333,6 @@ public enum MergeField
 
 	IL_NAAM("_IL_NAAM")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1372,7 +1346,6 @@ public enum MergeField
 
 	IL_ADRES("_IL_ADRES")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1386,7 +1359,6 @@ public enum MergeField
 
 	IL_STRAATNAAM("_IL_STRAATNAAM")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1710,7 +1682,6 @@ public enum MergeField
 
 	ZI_NAAM("_ZI_NAAM", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.naam", String.class)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1725,7 +1696,6 @@ public enum MergeField
 
 	ZI_STRAATNAAM("_ZI_STRAATNAAM", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].straat", String.class)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1740,7 +1710,6 @@ public enum MergeField
 
 	ZI_HUISNUMMER_TOEV("_ZI_HUISNUMMER_TOEVOEGING")
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1755,7 +1724,6 @@ public enum MergeField
 
 	ZI_POSTCODE("_ZI_POSTCODE", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].postcode", String.class)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -1770,7 +1738,6 @@ public enum MergeField
 
 	ZI_PLAATS("_ZI_PLAATS", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].plaats", String.class)
 	{
-
 		@Override
 		public Object getFieldValue(MailMergeContext context)
 		{
@@ -3502,6 +3469,36 @@ public enum MergeField
 		}
 	},
 
+	MAMMA_AFSPRAAK_BETREFT(
+		"_BK_AFSPRAAK_BETREFT",
+		MergeFieldTestType.BKAFSPRAAK,
+		null,
+		getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST),
+		NIET_NAAR_INPAKCENTRUM)
+	{
+		@Override
+		public Object getFieldValue(MailMergeContext context)
+		{
+			MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
+			if (laatsteAfspraak != null)
+			{
+				List<MammaAfspraak> afspraken = new ArrayList<>(laatsteAfspraak.getUitnodiging().getAfspraken());
+				afspraken.sort(Comparator.comparing(MammaAfspraak::getCreatiedatum));
+
+				if (afspraken.size() > 1 && MammaAfspraakStatus.VERPLAATST.equals(afspraken.get(afspraken.size() - 2).getStatus()))
+				{
+					return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_WIJZIGING_TEKST);
+				}
+				else
+				{
+					return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST);
+				}
+
+			}
+			return null;
+		}
+	},
+
 	MAMMA_SP_STRAATNAAM(
 		"_BK_SP_STRAATNAAM",
 		MergeFieldTestType.BKSTANDPLAATS,
@@ -3893,7 +3890,7 @@ public enum MergeField
 
 	private Double barcodeHeight;
 
-	private boolean naarMinigrip = true;
+	private boolean naarInpakcentrum = true;
 
 	private boolean inHuisartsenbericht = true;
 
@@ -3910,7 +3907,7 @@ public enum MergeField
 	{
 		this(fieldName);
 		List<MergeFieldFlag> flagList = Arrays.asList(flags);
-		this.naarMinigrip = !flagList.contains(NIET_NAAR_INPAKCENTRUM);
+		this.naarInpakcentrum = !flagList.contains(NIET_NAAR_INPAKCENTRUM);
 		this.inHuisartsenbericht = !flagList.contains(MergeFieldFlag.NIET_IN_HUISARTSBERICHT);
 		this.qrCode = flagList.contains(MergeFieldFlag.QR_CODE);
 		this.barcode &= !flagList.contains(MergeFieldFlag.QR_CODE);
@@ -4030,9 +4027,9 @@ public enum MergeField
 		return waardeTrimmen;
 	}
 
-	public boolean naarMinigrip()
+	public boolean naarInpakcentrum()
 	{
-		return naarMinigrip;
+		return naarInpakcentrum;
 	}
 
 	public Double getBarcodeHeight()
@@ -4257,7 +4254,7 @@ public enum MergeField
 	{
 		if (date != null)
 		{
-			return DateUtil.toLocalDate(date).format(DateUtil.LOCAL_DATE_UITEGEBREID_DAG_UITEGEBREID_MAAND_FORMAT);
+			return DateUtil.toLocalDate(date).format(DateUtil.LOCAL_DATE_UITGEBREID_DAG_UITEGEBREID_MAAND_FORMAT);
 		}
 		else
 		{
@@ -4269,7 +4266,7 @@ public enum MergeField
 	{
 		if (date != null)
 		{
-			return DateUtil.toLocalDate(date).format(DateUtil.LOCAL_DATE_DAG_UITEGEBREID_MAAND_FORMAT);
+			return DateUtil.toLocalDate(date).format(DateUtil.LOCAL_DATE_DAG_UITGEBREID_MAAND_FORMAT);
 		}
 		else
 		{

@@ -102,15 +102,20 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 
 	private WebMarkupContainer documentVervangenPanel;
 
-	private final BootstrapDialog dialog;
+	private BootstrapDialog dialog;
 
 	protected OverdrachtGegevensAanvraagPopupPanel(String id, IModel<OverdrachtPersoonsgegevens> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
+	}
 
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
-		form = new ScreenitForm<>("form", model);
+		form = new ScreenitForm<>("form", getModel());
 		form.setMultiPart(true);
 		add(form);
 
@@ -124,7 +129,7 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 	private void addVerstuurdeBrieven()
 	{
 		List<AlgemeneBrief> verstuurdeBrieven = getVerstuurdeBrieven();
-		form.add(new ListView<String>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(verstuurdeBrieven, this::getString))
+		form.add(new ListView<>("brievenLijst", BriefOmschrijvingUtil.getBrievenOmschrijvingen(verstuurdeBrieven, this::getString))
 		{
 			@Override
 			protected void populateItem(ListItem<String> item)
@@ -232,7 +237,7 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 		if (briefOntvangen())
 		{
 			IModel<UploadDocument> upload = ModelUtil.sModel(getModelObject().getOntvangenAanvraagbrief());
-			form.add(new DownloadLink("downloadFormulier", new LoadableDetachableModel<File>()
+			form.add(new DownloadLink("downloadFormulier", new LoadableDetachableModel<>()
 			{
 				@Override
 				protected File load()
@@ -282,7 +287,7 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 				super.onConfigure();
 				setVisible(OverdrachtGegevensAanvraagPopupPanel.this.getModelObject().getOntvangenAanvraagbrief() != null
 					&& ScreenitSession.get().checkPermission(Recht.VERVANGEN_DOCUMENTEN, Actie.AANPASSEN));
-			};
+			}
 		});
 	}
 
@@ -392,7 +397,7 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 				{
 
 					@Override
-					public void write(OutputStream output) throws IOException
+					public void write(OutputStream output)
 					{
 						ByteArrayOutputStream outputStream = null;
 						InputStream inputStream = null;

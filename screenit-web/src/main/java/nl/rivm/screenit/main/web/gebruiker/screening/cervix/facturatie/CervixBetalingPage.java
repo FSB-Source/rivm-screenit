@@ -30,6 +30,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
+import nl.rivm.screenit.main.web.gebruiker.gedeeld.cervix.CervixHerindexeringWaarschuwingPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixScreeningBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -61,7 +62,7 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 {
 
 	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixVerrichtingDao verrichtingDao;
 
 	private IModel<CervixBetalingsZoekObject> zoekObjectModel;
 
@@ -80,6 +81,8 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 	private ScreenitForm<CervixBetalingsZoekObject> getFilterForm()
 	{
 		ScreenitForm<CervixBetalingsZoekObject> form = new ScreenitForm<>("form", zoekObjectModel);
+
+		form.add(new CervixHerindexeringWaarschuwingPanel("waarschuwing"));
 
 		form.add(ComponentHelper.newDatePicker("verrichtingsdatumTotEnMet"));
 
@@ -113,7 +116,7 @@ public class CervixBetalingPage extends CervixScreeningBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				List<CervixBoekRegel> boekregels = cervixVerrichtingDao.getVerrichtingenVoorBetaling(zoekObjectModel.getObject(), null, -1, -1);
+				List<CervixBoekRegel> boekregels = verrichtingDao.getVerrichtingenVoorBetaling(zoekObjectModel.getObject(), null, -1, -1);
 				if (boekregels.size() == 0)
 				{
 					info("Er zijn op dit moment geen verrichtingen meer die uitbetaald moeten worden.");

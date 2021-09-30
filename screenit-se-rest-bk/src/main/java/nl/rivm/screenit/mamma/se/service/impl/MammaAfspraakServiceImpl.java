@@ -45,6 +45,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -55,8 +56,8 @@ import nl.rivm.screenit.service.mamma.MammaBaseCapaciteitsBlokService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,6 +83,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	@Autowired
 	private ClientService clientService;
+
+	@Autowired
+	private BaseAfmeldService baseAfmeldService;
 
 	@Autowired
 	private MammaBaseCapaciteitsBlokService baseCapaciteitsBlokService;
@@ -238,7 +242,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	{
 		if (!client.getMammaDossier().getLaatsteScreeningRonde().getAangemeld())
 		{
-			clientService.heraanmelden(client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteAfmelding(), gebruiker);
+			baseAfmeldService.heraanmelden(client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteAfmelding(), gebruiker);
 		}
 	}
 

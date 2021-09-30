@@ -1,0 +1,615 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-huisartsenportaal
+  %%
+  Copyright (C) 2016 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<div class="col-md-12">
+    <div class="content">
+        <form class="form-horizontal" ng-submit="reg.controle(registerform, reg.huisarts)" name="registerform">
+            <div class="row">
+                <h1>Registratie</h1>
+                <p>Welkom in het huisartsenportaal van Bevolkingsonderzoek. Hier kunt u zich registreren als huisarts in
+                    het kader van het Bevolkingsonderzoek
+                    baarmoederhalskanker.</p>
+                <p>Wij vragen u de ingevulde gegevens te controleren en de ontbrekende gegevens in te vullen. Na
+                    acceptatie van de zakelijke voorwaarden kunt u de gegevens
+                    controleren en de registratie voltooien.</p>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <h3>1. AGB-code en NAW gegevens</h3>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group required">
+                            <label class="col-sm-5 control-label">AGB-code</label>
+                            <div class="col-sm-7">
+                                <label class="form-control">{{ reg.huisarts.agbcode }}</label>
+                            </div>
+                        </div>
+                        <div class="form-group required" show-errors>
+                            <label for="inputEmail3" class="col-sm-5 control-label">E-mail</label>
+                            <div class="col-sm-7">
+                                <input type="email" class="form-control" ng-model="reg.huisarts.email" id="inputEmail3"
+                                       placeholder="Email" required name="email"
+                                       pattern="^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*((\.[A-Za-z]{2,}){1}$)">
+                            </div>
+                            <div ng-messages="registerform.email.$error" ng-if="registerform.email.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <p class="help-block" ng-message="pattern">Dit veld moet minimaal een @ en een punt bevatten.</p>
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group" show-errors>
+                            <label for="inputExtraEmail3" class="col-sm-5 control-label">E-mails (extra)</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" id="inputExtraEmail3"
+                                       ng-model="reg.huisarts.extraEmails"
+                                       placeholder="Emails (extra)" name="extraEmails"
+                                       pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*(;|,)\s*|\s*$))*$">
+
+                            </div>
+                            <div ng-messages="registerform.extraEmails.$error" class="col-sm-7 col-sm-offset-5">
+                                <p class="help-block" ng-message="pattern">Dit veld moet minimaal een @ en een punt bevatten.</p>
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group required" show-errors>
+                            <label for="inputUsername3" class="col-sm-5 control-label">Gebruikersnaam</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" ng-model="reg.huisarts.username"
+                                       id="inputUsername3" ng-minlength="6"
+                                       placeholder="Gebruikersnaam" name="gebruikersnaam" required>
+                            </div>
+                            <div ng-messages="registerform.gebruikersnaam.$error"
+                                 ng-if="registerform.gebruikersnaam.$dirty" class="col-sm-7 col-sm-offset-5">
+                                <p class="help-block" ng-message="minlength">Gebruikersnaam moet minstens 6 tekens
+                                    bevatten</p>
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group required" show-errors>
+                            <label for="inputWachtwoord3" class="col-sm-5 control-label">Wachtwoord</label>
+                            <div class="col-sm-7">
+                                <input type="password" class="form-control" ng-model="reg.huisarts.wachtwoord"
+                                       id="inputWachtwoord3" placeholder="Wachtwoord" name="wachtwoord" ng-minlength="8"
+                                       ng-pattern="/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/"
+                                       required>
+                            </div>
+                            <div ng-messages="registerform.wachtwoord.$error" ng-if="registerform.wachtwoord.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <p class="help-block" ng-message="pattern">Zorg dat het wachtwoord minimaal 1
+                                    hoofdletter, 1 kleine letter, 1 nummer en 1 speciaal teken bevatten. </p>
+                                <p class="help-block" ng-message="minlength">Wachtwoord moet minstens 8 tekens
+                                    bevatten</p>
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group required" show-errors>
+                            <label for="inputWachtwoordControle3"
+                                   class="col-sm-5 control-label">Wachtwoord
+                                controle</label>
+                            <div class="col-sm-7">
+                                <input type="password" class="form-control" ng-model="reg.huisarts.wachtwoordcontrole"
+                                       id="inputWachtwoordControle3" name="wachtwoordcontrole" required
+                                       placeholder="Controle" compareto="reg.huisarts.wachtwoord">
+                            </div>
+                            <div ng-messages="registerform.wachtwoordcontrole.$error"
+                                 ng-if="registerform.wachtwoordcontrole.$dirty" class="col-sm-7 col-sm-offset-5">
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <hr/>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="inputAahef3" class="col-sm-5 control-label">Aanhef</label>
+                            <div class="col-sm-7" id="inputAahef3">
+                                <select class="form-control" ng-model="reg.huisarts.aanhef">
+                                    <option></option>
+                                    <option>Dhr.</option>
+                                    <option>Mevr.</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group required" show-errors>
+                            <label for="inputAchternaam3" class="col-sm-5 control-label">Achternaam</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" ng-model="reg.huisarts.achternaam"
+                                       id="inputAchternaam3" placeholder="Achternaam" name="achternaam" maxlength="100"
+                                       ng-pattern="/^[a-zA-Z\u00C0-\u024F\-\'\s]*$/" required>
+                            </div>
+                            <div ng-messages="registerform.achternaam.$error" ng-if="registerform.achternaam.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <p class="help-block" ng-message="pattern">Achternaam mag alleen letters, spaties en koppeltekens bevatten.</p>
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group" show-errors>
+                            <label for="inputTussenvoegsel3" class="col-sm-5 control-label">Tussenvoegsel</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" ng-model="reg.huisarts.tussenvoegsel"
+                                       id="inputTussenvoegsel3" placeholder="Tussenvoegsel" name="tussenvoegsel" maxlength="20"
+                                       ng-pattern="/^[a-zA-Z\u00C0-\u024F\'\s]*$/">
+                            </div>
+                            <div ng-messages="registerform.tussenvoegsel.$error"
+                                 ng-if="registerform.tussenvoegsel.$dirty" class="col-sm-7 col-sm-offset-5">
+                                <p class="help-block" ng-message="pattern">Tussenvoegsel mag alleen letters en spaties bevatten.</p>
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group" show-errors>
+                            <label for="inputVoorletters3" class="col-sm-5 control-label">Voorletters</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" ng-model="reg.huisarts.voorletters"
+                                       id="inputVoorletters3" placeholder="A" name="voorletters" maxlength="20"
+                                       ng-pattern="/^[a-zA-Z\u00C0-\u024F\.]*$/">
+                            </div>
+                            <div ng-messages="registerform.voorletters.$error"
+                                 ng-if="registerform.voorletters.$dirty" class="col-sm-7 col-sm-offset-5">
+                                <p class="help-block" ng-message="pattern">'Voorletters' mag alleen letters en punten bevatten.</p>
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group" show-errors>
+                            <label for="inputTelefoonnummer3" class="col-sm-5 control-label">Telefoonnummer</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" ng-model="reg.huisarts.telefoon"
+                                       id="inputTelefoonnummer3" placeholder="Telefoonnummer" name="telefoon" maxlength="25">
+                            </div>
+                            <div ng-messages="registerform.telefoon.$error" ng-if="registerform.telefoon.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group required" show-errors>
+                            <label for="inputStraat3" class="col-sm-5 control-label">Straat</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" ng-model="reg.huisarts.postadres.straat"
+                                       id="inputStraat3" placeholder="Straatnaam" name="straat" required>
+                            </div>
+                            <div ng-messages="registerform.straat.$error" ng-if="registerform.straat.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group required" show-errors>
+                            <label for="inputHuisnummer3" class="col-sm-5 control-label">Huisnummer + toevoeging</label>
+                            <div class="col-sm-7 ">
+                                <div class="row">
+                                    <div class="col-sm-7">
+                                        <input type="number" class="form-control"
+                                               ng-model="reg.huisarts.postadres.huisnummer"
+                                               id="inputHuisnummer3" placeholder="Huisnummer" name="huisnummer" min="0"
+                                               required>
+                                    </div>
+                                    <div class="col-sm-5">
+                                        <input type="text" class="form-control"
+                                               ng-model="reg.huisarts.postadres.huisnummertoevoeging"
+                                               placeholder="Toevoeging">
+                                    </div>
+                                </div>
+                            </div>
+                            <div ng-messages="registerform.huisnummer.$error" ng-if="registerform.huisnummer.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group required" show-errors>
+                            <label for="inputPostcode3" class="col-sm-5 control-label">Postcode</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" ng-model="reg.huisarts.postadres.postcode"
+                                       id="inputPostcode3" maxlength="6" placeholder="Postcode" name="postcode"
+                                       required>
+                            </div>
+                            <div ng-messages="registerform.postcode.$error" ng-if="registerform.postcode.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                        <div class="form-group required" show-errors>
+                            <label for="inputPlaats3" class="col-sm-5 control-label">Plaats</label>
+                            <div class="col-sm-7">
+                                <ui-select name="plaats" ng-model="reg.huisarts.postadres.woonplaats"
+                                           id="inputPlaats3" theme="bootstrap" ng-disabled="reg.locatie.check" required>
+                                    <ui-select-match placeholder="Voer de eerste 3 tekens in...">
+                                        <div>
+                                            {{ $select.selected.naam }}
+                                            <small>
+                                                (Gemeente: {{ $select.selected.gemeente }})
+                                            </small>
+                                        </div>
+                                    </ui-select-match>
+                                    <ui-select-choices
+                                            repeat="item in reg.woonplaatsen | filter: $select.search"
+                                            refresh="reg.getWoonplaatsen($select.search)"
+                                            minimum-input-length="2" refresh-delay="0">
+                                        <div ng-bind-html="item.naam | highlight: $select.search"></div>
+                                        <small>
+                                            Gemeente: {{ item.gemeente }}
+                                        </small>
+                                    </ui-select-choices>
+                                </ui-select>
+                            </div>
+                            <div ng-messages="registerform.plaats.$error"
+                                 ng-if="registerform.plaats.$dirty"
+                                 class="col-sm-7 col-sm-offset-5">
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>2. Locaties</h3>
+                    <div class="col-md-12">
+                        <div class="col-md-offset-7 col-sm-3 text-right">
+                            <small>Uw locaties zijn gefilterd op:</small>
+                        </div>
+                        <div class="col-sm-2" style="margin-bottom: 10px">
+                            <ui-select theme="bootstrapcustom" ng-model="reg.locatieZoekObject.status"
+                                       ng-change="reg.tableParams.reload()"
+                                       class="ui-select-btn"
+                                       search-enabled="false">
+                                <ui-select-match class="">
+                                    <span class="label"
+                                          ng-class="reg.getLocatieStatusLabelClass(reg.locatieZoekObject.status)" ng-bind="reg.getLocatieStatusText(reg.locatieZoekObject.status)"></span>
+                                </ui-select-match>
+                                <ui-select-choices
+                                        repeat="filter in reg.optionsLocatieStatus">
+                                    <span class="label center-block"
+                                          ng-class="reg.getLocatieChoiceStatusLabelClass(filter)" ng-bind="reg.getLocatieChoiceStatusText(filter)"></span>
+                                </ui-select-choices>
+                            </ui-select>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 scroll-x">
+                        <table ng-table="reg.tableParams"
+                               class="table table-striped table-hover scroll-x">
+                            <tr ng-repeat="row in $data track by row.huisartsportaalId"
+                                ng-click="reg.openEditLocatie(row)">
+                                <td data-title="'Locatienaam'" sortable="'naam'">{{row.naam}}</td>
+                                <td data-title="'Adres'" sortable="'locatieAdres.straat'">{{row.locatieAdres.straat}}
+                                    {{row.locatieAdres.huisnummer}}{{row.locatieAdres.huisnummertoevoeging}}
+                                </td>
+                                <td data-title="'Postcode'" sortable="'locatieAdres.postcode'">
+                                    {{row.locatieAdres.postcode.toUpperCase()}}
+                                </td>
+                                <td data-title="'Plaats'" sortable="'locatieAdres.woonplaats.naam'">
+                                    {{row.locatieAdres.woonplaats.naam}}
+                                </td>
+                                <td data-title="'Status'" sortable="'status'">
+                                    <span ng-if="row.status === 'ACTIEF'" class="label label-success">actief</span>
+                                    <span ng-if="row.status === 'KLANTNUMMER_NIET_GEVERIFIEERD'" class="label label-warning">verifi&euml;ren</span>
+                                    <span ng-if="row.status === 'INACTIEF'" class="label label-danger">verwijderd</span>
+                                </td>
+                                <td data-title="'Wijzig'" ng-if="row.actief" class=" text-center">
+                                    <a ng-if="row.status !== 'INACTIEF'"><img src="assets/images/icons/icon_pencil.png"></a>
+                                    <a ng-if="row.status === 'INACTIEF'" ng-click="$event.stopPropagation();reg.confirmActiverenLocatie(row)"
+                                       style="text-decoration: none; color: #000" data-toggle="tooltip"
+                                       data-placement="right" title="Activeren" data-delay="0">
+                                        <img alt="activeren" src="assets/images/icons/icon_reload.png">
+                                    </a>
+                                </td>
+                                <td data-title="'Verwijder'" class="text-center"
+                                    ng-click="$event.stopPropagation()">
+                                    <a ng-if="row.status !== 'INACTIEF'" ng-click="reg.confirmVerwijderenLocatie(row)"
+                                       style="text-decoration: none; color: #000" data-placement="right"
+                                       title="Verwijderen" data-delay="0">
+                                        <img alt="verwijderen" src="assets/images/icons/icon_trash.png">
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-2 col-md-offset-10 text-right">
+                            <button type="button" class="btn btn-default btn-locatie" data-toggle="modal"
+                                    data-target="#locatieToevoegen" ng-click="reg.addLocatie(locatieform)">
+                                Locatie
+                                toevoegen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h3>3. Zakelijke voorwaarden</h3>
+                    <div class="row">
+                        <div class="col-md-5 form-group">
+                            <label for="inputUsername3" class="control-label">
+                                <input type="checkbox" name="overeenkomst" ng-model="reg.huisarts.overeenkomst"
+                                       required>
+                                Ik ga akkoord met de <a ng-click="reg.getOvereenkomst()">zakelijke voorwaarden</a>
+                            </label>
+                            <div ng-messages="registerform.overeenkomst.$error"
+                                 ng-if="registerform.overeenkomst.$dirty">
+                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                            </div>
+                            <br> <br> <br>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <div class=" col-md-12">
+                            <button type="submit" class="btn btn-primary btn-block">
+                                Registratie controleren
+                            </button>
+                            <br><br> <br><br>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="locatieToevoegen" role="dialog" aria-labelledby="locatieToevoegenLabel">
+    <form class="form-horizontal" ng-submit="reg.saveLocatie(locatieform, reg.locatie)"
+          ng-init="reg.backupLocatieForm = locatieform"
+          name="locatieform">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header purple">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title modal-title-spacing" id="locatieToevoegenLabel">Locatie toevoegen</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group required" show-errors>
+                                <label for="inputLocatienaam3"
+                                       class="col-sm-6 control-label">Locatienaam:</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" ng-model="reg.locatie.naam"
+                                           id="inputLocatienaam3" name="locatie" required
+                                           placeholder="Naam van de locatie" maxlength="70">
+                                </div>
+                                <div ng-messages="locatieform.locatie.$error"
+                                     ng-if="locatieform.locatie.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                            <div class="form-group required" show-errors>
+                                <label for="inputKlantnummer3" class="col-sm-6 control-label">Zorgmail
+                                    klantnummer</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control"
+                                           ng-model="reg.locatie.zorgmailklantnummer" required
+                                           id="inputKlantnummer3" name="klantnummer" ng-minlength="9" ng-maxlength="9"
+                                           ng-pattern="/^[0-9]*$/" placeholder="bijv. 500010007">
+                                </div>
+                                <div ng-messages="locatieform.klantnummer.$error"
+                                     ng-if="locatieform.klantnummer.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <p class="help-block" ng-message="pattern">Het zorgmail klantnummer mag alleen uit
+                                        cijfers bestaan.</p>
+                                    <p class="help-block" ng-message="minlength">Het zorgmail klantnummer mag niet
+                                        minder dan 9 cijfers bevatten.</p>
+                                    <p class="help-block" ng-message="maxlength">Het zorgmail klantnummer mag niet meer
+                                        dan 9 cijfers bevatten.</p>
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                            <div class="form-group required" show-errors>
+                                <label for="inputIban3" class="col-sm-6 control-label">IBAN:</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" ng-model="reg.locatie.iban"
+                                           required
+                                           id="inputIban3" name="iban" placeholder="bijv. NL12ABNA12345678">
+                                </div>
+                                <div ng-messages="locatieform.iban.$error"
+                                     ng-if="locatieform.iban.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                            <div class="form-group required" show-errors>
+                                <label for="inputTenaamstelling3"
+                                       class="col-sm-6 control-label">Tenaamstelling:</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control" required
+                                           ng-model="reg.locatie.ibanTenaamstelling"
+                                           id="inputTenaamstelling3" placeholder="tenaamstelling"
+                                           name="tenaamstelling">
+                                </div>
+                                <div ng-messages="locatieform.tenaamstelling.$error"
+                                     ng-if="locatieform.tenaamstelling.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="form-group">
+                                <label for="inputStraat4" class="col-sm-6 control-label">Gelijk aan
+                                    NAW gegevens</label>
+                                <div class="checkbox col-sm-6">
+                                    <input type="checkbox" style="margin-left: 5px;"
+                                           ng-model="reg.locatie.check"
+                                           ng-click="reg.gelijkCheck()">
+                                </div>
+                            </div>
+                            <div class="form-group required" show-errors>
+                                <label for="inputStraat4" class="col-sm-6 control-label">Straat</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control"
+                                           ng-model="reg.locatie.locatieAdres.straat" required
+                                           id="inputStraat4" placeholder="Straat"
+                                           ng-disabled="reg.locatie.check" name="locatieAdresStraat">
+                                </div>
+                                <div ng-messages="locatieform.locatieAdresStraat.$error"
+                                     ng-if="locatieform.locatieAdresStraat.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                            <div class="form-group required" show-errors>
+                                <label for="inputHuisnummer3" class="col-sm-6 control-label">Huisnummer +
+                                    toevoeging</label>
+                                <div class="col-sm-6 ">
+                                    <div class="row">
+                                        <div class="col-sm-7">
+                                            <input type="number" class="form-control"
+                                                   ng-model="reg.locatie.locatieAdres.huisnummer"
+                                                   id="inputHuisnummer3" placeholder="Huisnummer" ng-disabled="reg.locatie.check"
+                                                   name="locatieAdresHuisnummer" min="0" required>
+                                        </div>
+                                        <div class="col-sm-5">
+                                            <input type="text" class="form-control"
+                                                   ng-model="reg.locatie.locatieAdres.huisnummertoevoeging"
+                                                   id="inputHuisnummer3" placeholder="Toevoeging"
+                                                   ng-disabled="reg.locatie.check"
+                                                   name="locatieAdresHuisnummertoevoeging">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-messages="locatieform.locatieAdresHuisnummer.$error"
+                                     ng-if="locatieform.locatieAdresHuisnummer.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                            <div class="form-group required" show-errors>
+                                <label for="inputPostcode4" class="col-sm-6 control-label">Postcode</label>
+                                <div class="col-sm-6">
+                                    <input type="text" class="form-control"
+                                           ng-model="reg.locatie.locatieAdres.postcode" required
+                                           id="inputPostcode4" placeholder="Postcode"
+                                           ng-disabled="reg.locatie.check" maxlength="6" name="locatieAdresPostcode">
+                                </div>
+                                <div ng-messages="locatieform.locatieAdresPostcode.$error"
+                                     ng-if="locatieform.locatieAdresPostcode.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group required" show-errors>
+                                <label for="inputPlaats4" class="col-sm-6 control-label">Plaats</label>
+                                <div class="col-sm-6">
+                                    <ui-select name="locatieAdresPlaats" ng-model="reg.locatie.locatieAdres.woonplaats"
+                                               id="inputPlaats4" theme="bootstrap" ng-disabled="reg.locatie.check" required>
+                                        <ui-select-match placeholder="Voer de eerste 3 tekens in...">
+                                            <div>
+                                                {{ $select.selected.naam }}
+                                                <small>
+                                                    (Gemeente: {{ $select.selected.gemeente }})
+                                                </small>
+                                            </div>
+                                        </ui-select-match>
+                                        <ui-select-choices
+                                                repeat="item in reg.locatieWoonplaatsen | filter: $select.search"
+                                                refresh="reg.getLocatieWoonplaatsen($select.search)"
+                                                minimum-input-length="2" refresh-delay="0">
+                                            <div ng-bind-html="item.naam | highlight: $select.search"></div>
+                                            <small>
+                                                Gemeente: {{ item.gemeente }}
+                                            </small>
+                                        </ui-select-choices>
+                                    </ui-select>
+                                </div>
+                                <div ng-messages="locatieform.locatieAdresPlaats.$error"
+                                     ng-if="locatieform.locatieAdresPlaats.$dirty"
+                                     class="col-sm-6 col-sm-offset-6">
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Sluiten
+                    </button>
+                    <button type="submit" class="btn btn-primary">Locatie opslaan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" tabindex="-1" id="confirmVerwijderen" role="dialog" aria-labelledby="confirmVerwijderenLabel">
+    <form class="form-horizontal" ng-submit="reg.deleteLocatie(reg.locatie)"
+          ng-init="reg.backupLocatieForm = locatieform"
+          name="locatieform">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header purple">
+                    <h4 class="modal-title modal-title-spacing" id="confirmVerwijderenLabel">Locatie verwijderen</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Weet u zeker dat u deze locatie wilt verwijderen?</p>
+                    <ul ng-if="reg.locatieVerwijderenAanvragen || reg.locatieVerwijderenVerzonden">
+                        <li ng-if="reg.locatieVerwijderenAanvragen">U verwijdert een locatie waarvoor u al
+                            laboratoriumformulieren heeft aangevraagd. Deze laboratoriumformulieren zullen niet meer aan
+                            u verzonden worden.
+                        </li>
+                        <li ng-if="reg.locatieVerwijderenVerzonden">U verwijdert een locatie waarvoor u mogelijk nog
+                            laboratoriumformulieren op voorraad heeft. Deze laboratoriumformulieren kunt u niet meer
+                            gebruiken en dient u te vernietigen.
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
+                    <button type="submit" class="btn btn-danger">Locatie
+                        verwijderen
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" tabindex="-1" id="confirmActiveren" role="dialog" aria-labelledby="confirmActiverenLabel">
+    <form class="form-horizontal" ng-submit="reg.activeerLocatie(reg.locatie)"
+          ng-init="reg.backupLocatieForm = locatieform"
+          name="locatieform">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header purple">
+                    <h4 class="modal-title modal-title-spacing" id="confirmActiverenLabel">Locatie activeren</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Weet u zeker dat u deze locatie weer wilt activeren?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
+                    <button type="submit" class="btn btn-success">Locatie
+                        activeren
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

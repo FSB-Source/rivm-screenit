@@ -25,9 +25,9 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
-
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
-import org.joda.time.DateTime;
+
+import java.time.LocalDateTime;
 
 public interface IFobtService
 {
@@ -37,7 +37,7 @@ public interface IFobtService
 
 	void setStatus(IFOBTTest buis, IFOBTTestStatus nieuweStatus);
 
-	void heraanmelden(ColonScreeningRonde screeningRonde, DateTime nu);
+	void heraanmelden(ColonScreeningRonde screeningRonde, LocalDateTime nu);
 
 	void verwijderScannedAntwoordFormulier(ColonUitnodiging uitnodiging);
 

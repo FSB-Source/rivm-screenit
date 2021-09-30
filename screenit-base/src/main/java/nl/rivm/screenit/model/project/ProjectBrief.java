@@ -39,9 +39,11 @@ import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
-@Table(schema = "gedeeld", indexes = { @Index(name = "idx_project_brief_gegenereerd", columnList = "gegenereerd"),
-	@Index(name = "idx_project_brief_vervangendeprojectbrief", columnList = "vervangendeprojectbrief"),
-	@Index(name = "idx_project_brief_vragenlijst_antwoorden_holder", columnList = "vragenlijst_antwoorden_holder") })
+@Table(
+	schema = "gedeeld",
+	indexes = { @Index(name = "idx_project_brief_gegenereerd", columnList = "gegenereerd"),
+		@Index(name = "idx_project_brief_vervangendeprojectbrief", columnList = "vervangendeprojectbrief"),
+	})
 @Audited
 public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, ProjectBrief>
 {

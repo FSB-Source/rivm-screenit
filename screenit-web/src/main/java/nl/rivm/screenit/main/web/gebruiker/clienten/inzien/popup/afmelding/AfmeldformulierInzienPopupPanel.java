@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.afmelding;
 
 /*-
@@ -34,7 +33,6 @@ import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.DocumentVervangenPanel;
 import nl.rivm.screenit.model.Afmelding;
-import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.UploadDocument;
@@ -45,12 +43,13 @@ import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.BriefUtil;
@@ -62,7 +61,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.shiro.util.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -81,12 +79,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.envers.query.AuditEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> extends GenericPanel<A>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(AfmeldformulierInzienPopupPanel.class);
 
 	@SpringBean
@@ -108,53 +104,55 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
 	private IModel<UploadDocument> document;
 
 	private WebMarkupContainer uploadForm;
 
-	private IModel<List<FileUpload>> files;
+	private IModel<List<FileUpload>> files = new ListModel<>();
 
 	public AfmeldformulierInzienPopupPanel(String id, IModel<A> model)
 	{
 		super(id, model);
-		files = new ListModel<>();
+	}
 
-		add(new Label("wijzeAfmelding", Model.of(getWijzeVanAfmeldingTekst(model.getObject()))));
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+
+		add(new Label("wijzeAfmelding", Model.of(getWijzeVanAfmeldingTekst(getModelObject()))));
 
 		WebMarkupContainer verstuurdFormulierContainer = new WebMarkupContainer("formulierVerstuurdContainer");
 		add(verstuurdFormulierContainer);
 
-		verstuurdFormulierContainer.add(new ListView<String>("brievenLijst", creatieDatumCreaterAfmelding(model.getObject()))
+		verstuurdFormulierContainer.add(new ListView<>("brievenLijst", creatieDatumCreaterAfmelding(getModelObject()))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<String> item)
 			{
 				String tekst = item.getModelObject();
-				item.add(new Label("brief", Model.<String> of(tekst)));
+				item.add(new Label("brief", Model.of(tekst)));
 			}
 
 		});
 
-		add(DateLabel.forDatePattern("afmeldDatum", new PropertyModel<Date>(model, "afmeldDatum"), "dd-MM-yyyy"));
+		add(DateLabel.forDatePattern("afmeldDatum", new PropertyModel<>(getModel(), "afmeldDatum"), "dd-MM-yyyy"));
 
 		switch (getModelObject().getBevolkingsonderzoek())
 		{
 		case COLON:
 			ColonAfmeldingReden colonAfmeldingReden = ((ColonAfmelding) getModelObject()).getReden();
-			add(new EnumLabel<ColonAfmeldingReden>("reden", colonAfmeldingReden));
+			add(new EnumLabel<>("reden", colonAfmeldingReden));
 			break;
 		case CERVIX:
 			CervixAfmeldingReden cervixAfmeldingReden = ((CervixAfmelding) getModelObject()).getReden();
-			add(new EnumLabel<CervixAfmeldingReden>("reden", cervixAfmeldingReden));
+			add(new EnumLabel<>("reden", cervixAfmeldingReden));
 			break;
 		case MAMMA:
 			MammaAfmeldingReden mammaAfmeldingReden = ((MammaAfmelding) getModelObject()).getReden();
-			add(new EnumLabel<MammaAfmeldingReden>("reden", mammaAfmeldingReden));
+			add(new EnumLabel<>("reden", mammaAfmeldingReden));
 			break;
 		}
 
@@ -167,10 +165,8 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 		document = ModelUtil.sModel(getModelObject().getHandtekeningDocumentAfmelding());
 		if (isDocumentBeschikbaar(document))
 		{
-			DownloadLink downloadLink = new DownloadLink("afmeldformulierHandImg", new LoadableDetachableModel<File>()
+			DownloadLink downloadLink = new DownloadLink("afmeldformulierHandImg", new LoadableDetachableModel<>()
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected File load()
@@ -188,7 +184,7 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 			add(downloadLink);
 		}
 
-		addVervangenPanel(model);
+		addVervangenPanel();
 
 		addButtons();
 	}
@@ -244,9 +240,6 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 		boolean magTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
 		add(new AjaxLink<Void>("tegenhouden")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -263,9 +256,6 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 			magTegenhouden && getLaatsteBrief() != null && !getLaatsteBrief().isTegenhouden() && getLaatsteBrief().getMergedBrieven() == null));
 		add(new AjaxLink<Void>("doorvoeren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -282,9 +272,6 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 		document = ModelUtil.sModel(getModelObject().getHandtekeningDocumentAfmelding());
 		add(new AjaxLink<Void>("vervangen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -299,14 +286,15 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 		return document != null && document.getObject() != null;
 	}
 
-	private void addVervangenPanel(IModel<A> model)
+	private void addVervangenPanel()
 	{
 		uploadForm = new DocumentVervangenPanel("documentVervangen")
 		{
 			@Override
 			protected void vervangDocument(UploadDocument uploadDocument, AjaxRequestTarget target)
 			{
-				if (clientService.vervangAfmeldingDocument(uploadDocument, model.getObject(), document.getObject(), getLaatsteBrief(), ScreenitSession.get().getLoggedInAccount()))
+				if (baseAfmeldService.vervangAfmeldingDocument(uploadDocument, getModelObject(), document.getObject(), getLaatsteBrief(),
+					ScreenitSession.get().getLoggedInAccount()))
 				{
 					info(getString("info.vervangendocument"));
 					close(target);

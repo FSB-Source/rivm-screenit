@@ -272,7 +272,7 @@ public class ScreenitApplication extends WebApplication
 
 	private void allowUnsecureCookies()
 	{
-		SessionCookieConfig cookieConfig = getServletContext().getSessionCookieConfig();
+		var cookieConfig = getServletContext().getSessionCookieConfig();
 		if (cookieConfig != null)
 		{
 			cookieConfig.setSecure(false);

@@ -49,6 +49,7 @@ import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.ProjectBestandVerwerkingService;
@@ -88,6 +89,9 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 
 	@Autowired
 	private ProjectDao projectDao;
+
+	@Autowired
+	private ClientDoelgroepService doelgroepService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -411,7 +415,7 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 
 		Project project = groep.getProject();
 		List<Bevolkingsonderzoek> excludeerAfmeldingOnderzoeken = project.getExcludeerAfmelding();
-		List<Bevolkingsonderzoek> clientOnderzoeken = clientService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
+		List<Bevolkingsonderzoek> clientOnderzoeken = doelgroepService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
 		if (excludeerAfmeldingOnderzoeken.size() > 0 && clientOnderzoeken.size() > 0)
 		{
 

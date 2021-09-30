@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.ConfirmPanel;
@@ -63,6 +64,9 @@ public class CervixHuisartsTarievenPanel extends GenericPanel<CervixHuisartsTari
 
 	@SpringBean
 	private CervixVerrichtingService cervixVerrichtingService;
+
+	@SpringBean
+	private CervixBetalingService betalingService;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -177,18 +181,13 @@ public class CervixHuisartsTarievenPanel extends GenericPanel<CervixHuisartsTari
 								dialog.openWith(target,
 									new ConfirmPanel(dialog.CONTENT_ID, Model.of("Weet u zeker dat u dit tarief wilt verwijderen?"), null, new DefaultConfirmCallback()
 									{
-
-										private static final long serialVersionUID = 1L;
-
 										@Override
 										public void onYesClick(AjaxRequestTarget target)
 										{
-											String verwijderdMelding = cervixVerrichtingService.getLogMeldingHuisartsTariefVerwijderd(rowModel.getObject());
-											cervixVerrichtingService.verwijderCervixTarief(rowModel.getObject(), ScreenitSession.get().getLoggedInAccount(), verwijderdMelding);
+											betalingService.verwijderCervixTarief(rowModel.getObject(), ScreenitSession.get().getLoggedInAccount());
 
 											info("Huisartstarief succesvol verwijderd.");
 											replaceContainer(target);
-
 										}
 
 										@Override

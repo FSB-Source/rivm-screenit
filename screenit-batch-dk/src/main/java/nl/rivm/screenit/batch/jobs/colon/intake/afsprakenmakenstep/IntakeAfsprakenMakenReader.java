@@ -25,6 +25,7 @@ package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback;
@@ -43,7 +44,6 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.joda.time.DateTime;
-import org.omg.CORBA.IntHolder;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
@@ -146,7 +146,7 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 						intakeMelding.setAantalClienten(String.format("%s,%s", intakeMelding.getAantalClienten(), clientAfspraken.size()));
 					}
 
-					IntHolder aantalExtraDagen = new IntHolder();
+					AtomicInteger aantalExtraDagen = new AtomicInteger();
 					List<VrijSlot> vrijeSloten = getVrijeSloten(clientAfspraken.size(), aantalExtraDagen, intakeMelding);
 
 					if (intakeMelding.getAantalVrijesloten() == null)
@@ -157,9 +157,9 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 					{
 						intakeMelding.setAantalVrijesloten(String.format("%s,%s", intakeMelding.getAantalVrijesloten(), vrijeSloten.size()));
 					}
-					intakeMelding.setAantalExtraDagen(intakeMelding.getAantalExtraDagen() + aantalExtraDagen.value);
+					intakeMelding.setAantalExtraDagen(intakeMelding.getAantalExtraDagen() + aantalExtraDagen.get());
 
-					if (aantalExtraDagen.value > 0)
+					if (aantalExtraDagen.get() > 0)
 					{
 						intakeMelding.setLevel(Level.WARNING);
 					}
@@ -195,7 +195,7 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 		});
 	}
 
-	private List<VrijSlot> getVrijeSloten(int aantalGeselecteerdeClienten, IntHolder aantalExtraDagen, IntakeMakenLogEvent intakeMelding)
+	private List<VrijSlot> getVrijeSloten(int aantalGeselecteerdeClienten, AtomicInteger aantalExtraDagen, IntakeMakenLogEvent intakeMelding)
 	{
 		Date laatsteEindDatum = (Date) stepExecution.getJobExecution().getExecutionContext().get(IntakeAfsprakenMakenConstants.LAATSTE_EIND_DATUM);
 		Date begintijd;
@@ -231,7 +231,7 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 
 		List<VrijSlot> vrijeSloten = intakeAfspraakService.getAllVrijeSlotenIntakeafspraakperiode(aantalGeselecteerdeClienten, begintijd, eindtijd, aantalExtraDagen);
 
-		Date newLaatsteEindDatum = new DateTime(eindtijd).plusDays(aantalExtraDagen.value).withTimeAtStartOfDay().toDate();
+		Date newLaatsteEindDatum = new DateTime(eindtijd).plusDays(aantalExtraDagen.get()).withTimeAtStartOfDay().toDate();
 		intakeMelding.setEindTijd(newLaatsteEindDatum);
 
 		stepExecution.getJobExecution().getExecutionContext().put(IntakeAfsprakenMakenConstants.LAATSTE_EIND_DATUM, newLaatsteEindDatum);

@@ -24,10 +24,8 @@ package nl.rivm.screenit.service;
 import java.util.List;
 
 import nl.rivm.screenit.model.Account;
-import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Instelling;
@@ -38,7 +36,6 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.gba.GbaVraag;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 
@@ -50,7 +47,7 @@ public interface ClientService
 
 	Client getLaatstAfgevoerdeClient(String bsn);
 
-    Client setTelefoonnummer(Client client);
+	Client setTelefoonnummer(Client client);
 
 	Client getClientByBsnFromNg01Bericht(String bsn, String anummer);
 
@@ -63,16 +60,6 @@ public interface ClientService
 	void saveOrUpdateClient(Client client);
 
 	Dossier getDossier(Client client, Bevolkingsonderzoek bevolkingsonderzoek);
-
-	void definitieveAfmeldingAanvragen(Client client, Afmelding afmelding, boolean rappelBrief, Account account);
-
-	void afmelden(Client client, Afmelding afmelding, Account account);
-
-	void afmeldenZonderVervolg(Client client, Afmelding afmelding, boolean handtekeningDocumentVerplicht, Account account);
-
-	void heraanmelden(Afmelding herAanTeMeldenAfmelding, Account account);
-
-	void heraanmeldenZonderVervolg(Afmelding herAanTeMeldenAfmelding);
 
 	boolean isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(UploadDocument handtekeningBrief, String handtekeningProperty);
 
@@ -94,11 +81,9 @@ public interface ClientService
 
 	String projectClientActiveren(ProjectClient projectClient);
 
-	List<Bevolkingsonderzoek> totWelkeBevolkingsonderzoekenHoortDezeClient(Client client);
-
-	boolean behoortTotDoelgroep(Client client, Bevolkingsonderzoek bevolkingsonderzoek);
-
 	boolean isClientOverleden(Client client);
+
+	boolean clientInBuitenland(Client client);
 
 	GbaVraag vraagGbaGegevensOpnieuwAan(Client client, Account account, RedenOpnieuwAanvragenClientgegevens reden);
 
@@ -120,11 +105,5 @@ public interface ClientService
 
 	CentraleEenheid bepaalCe(Client client);
 
-	boolean vervangAfmeldingDocument(UploadDocument nieuwDocument, Afmelding afmelding, UploadDocument huidigDocument, ClientBrief brief, Account account);
-
-	boolean vervangHeraanmeldingDocument(UploadDocument nieuwDocument, Afmelding afmelding, UploadDocument huidigDocument, ClientBrief brief, Account account);
-
 	String getGbaPostcode(Client client);
-
-	void heraanmeldenAlsClientAfgemeldIs(MammaDossier dossier);
 }

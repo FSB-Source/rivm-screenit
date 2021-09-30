@@ -39,7 +39,7 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.RegioBvoContactGegevens;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -66,7 +66,7 @@ public class CervixOverigeDashboardActiesPanel extends GenericPanel<Client>
 	private SimplePreferenceService preferenceService;
 
 	@SpringBean
-	private ClientService clientService;
+	private ClientDoelgroepService doelgroepService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -93,7 +93,7 @@ public class CervixOverigeDashboardActiesPanel extends GenericPanel<Client>
 						extraPanelParams));
 			}
 		};
-		boolean magBezwaarMaken = clientService.behoortTotDoelgroep(client, Bevolkingsonderzoek.CERVIX);
+		boolean magBezwaarMaken = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.CERVIX);
 
 		if (client.getBezwaarMomenten().size() > 0)
 		{

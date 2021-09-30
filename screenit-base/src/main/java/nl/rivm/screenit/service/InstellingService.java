@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service;
 
 /*-
@@ -32,7 +31,6 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieBoomWrapper;
 import nl.rivm.screenit.model.OrganisatieParameter;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -85,8 +83,6 @@ public interface InstellingService
 
 	IFobtLaboratorium getIfobtLabByLabID(String labID);
 
-	List<OrganisatieBoomWrapper> getCompleteOrganisatieBoom();
-
 	Criteria getAllILAdressenZonderCoordinanten();
 
 	ScreeningOrganisatie getScreeningOrganisatie(String regioCode);
@@ -98,5 +94,4 @@ public interface InstellingService
 	<T> T getOrganisatieParameter(Instelling organisatie, OrganisatieParameterKey parameterKey, T defaultValue);
 
 	void saveOrUpdateOrganisatieParameters(List<OrganisatieParameter> parameters, InstellingGebruiker loggedInInstellingGebruiker);
-
 }

@@ -59,23 +59,14 @@ public class PassantInschrijvenValidatorServiceImpl implements PassantInschrijve
 			{
 				return false;
 			}
-			if (heeftEenmaligeAfmelding(laatsteScreeningRonde))
-			{
-				return true;
-			}
 		}
-		return baseDossierService.isAfspraakMakenMogelijk(client.getMammaDossier(), false) || baseDossierService.isVerzettenMogelijk(client.getMammaDossier());
+		return baseDossierService.isAfspraakMakenMogelijk(client.getMammaDossier(), false, true) || baseDossierService.isVerzettenMogelijk(client.getMammaDossier());
 	}
 
 	private boolean heeftAfspraakOpHuidigeDagOpSe(LocalDate currentDate, MammaScreeningsEenheid se, MammaAfspraak laatsteAfspraak)
 	{
 		return laatsteAfspraak != null && DateUtil.isZelfdeDag(currentDate, laatsteAfspraak.getVanaf())
 			&& laatsteAfspraak.getStandplaatsPeriode().getScreeningsEenheid().equals(se) && MammaAfspraakStatus.NIET_GEANNULEERD.contains(laatsteAfspraak.getStatus());
-	}
-
-	private boolean heeftEenmaligeAfmelding(MammaScreeningRonde laatsteScreeningRonde)
-	{
-		return !laatsteScreeningRonde.getAangemeld() && laatsteScreeningRonde.getDossier().getAangemeld();
 	}
 
 	private boolean heeftOnderzoekInLaatsteRonde(MammaScreeningRonde laatsteScreeningRonde)

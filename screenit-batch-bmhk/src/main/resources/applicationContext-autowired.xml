@@ -40,9 +40,6 @@
     <tx:annotation-driven/>
 
     
-    <aop:aspectj-autoproxy proxy-target-class="true"/>
-
-    
     <task:annotation-driven scheduler="scheduler"/>
     <task:scheduler id="scheduler" pool-size="10"/>
 

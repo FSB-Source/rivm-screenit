@@ -134,7 +134,7 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 			verslagEntry.setBestandsNaam(bericht.getMessageId());
 			verslagEntry.setRapportage(rapportage);
 
-			String berichtVerwerkenMelding = "Start met verwerken uitslagen in FIT HL7 bericht: " + bericht.getMessageId();
+			String berichtVerwerkenMelding = "Start met ontvangen van uitslagen in FIT HL7 bericht: " + bericht.getMessageId();
 			LOG.info(berichtVerwerkenMelding);
 			logService.logGebeurtenis(LogGebeurtenis.IFOBT_INLEZEN_GESTART, (Account) null, null, berichtVerwerkenMelding, Bevolkingsonderzoek.COLON);
 			for (IFOBTResult ifobtResult : wrapper.getResults())

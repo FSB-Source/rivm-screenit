@@ -39,6 +39,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.BerichtToSeRestBkService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.websocket.WebsocketBerichtType;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,8 +105,14 @@ public class BerichtToSeRestBkServiceImpl implements BerichtToSeRestBkService
 	{
 		if (Boolean.TRUE.equals(testModus))
 		{
-			queueBericht(mammaSeRestDestination, "DB_CLEANUP");
+			queueBericht(mammaSeRestDestination, WebsocketBerichtType.DB_CLEANUP.name());
 		}
+	}
+
+	@Override
+	public void statusAanvragenVoorIedereSe()
+	{
+		queueBericht(mammaSeRestDestination, WebsocketBerichtType.VERSTUUR_STATUS.name());
 	}
 
 	private LocalDate getDaglijstNotificerenTotEnMet()

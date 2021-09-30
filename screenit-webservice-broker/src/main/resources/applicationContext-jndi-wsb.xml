@@ -31,8 +31,6 @@
     <jee:jndi-lookup id="scanInlognaam" jndi-name="scanInlognaam"/>
     <jee:jndi-lookup id="scanWachtwoord" jndi-name="scanWachtwoord"/>
     <jee:jndi-lookup id="schematronLocation" jndi-name="schematron/location"/>
-    <jee:jndi-lookup id="ultimviewInlognaam" jndi-name="ultimviewInlognaam"/>
-    <jee:jndi-lookup id="ultimviewWachtwoord" jndi-name="ultimviewWachtwoord"/>
     <jee:jndi-lookup id="fqdncontrole" jndi-name="fqdncontrole"/>
     <jee:jndi-lookup id="labformulierInlognaam" jndi-name="labformulierInlognaam"/>
     <jee:jndi-lookup id="labformulierWachtwoord" jndi-name="labformulierWachtwoord"/>

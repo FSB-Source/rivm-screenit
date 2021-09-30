@@ -21,17 +21,21 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.kwaliteitsborging;
  * =========================LICENSE_END==================================
  */
 
-import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.dao.cervix.CervixKwaliteitsborgingDao;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
+import nl.rivm.screenit.main.web.filter.SecurityHeadersFilter;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfViewerPanel;
-import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
+import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixBarcodeAfdrukkenBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
@@ -44,14 +48,20 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,10 +75,8 @@ import com.aspose.words.ImportFormatMode;
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_CERVIX_BARCODES_AFDRUKKEN,
 	bevolkingsonderzoekScopes = Bevolkingsonderzoek.CERVIX)
-public class CervixBarcodesAfdrukkenPage extends GebruikerBasePage
+public class CervixBarcodesAfdrukkenPage extends CervixBarcodeAfdrukkenBasePage
 {
-
-	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(CervixBarcodesAfdrukkenPage.class);
 
@@ -82,7 +90,7 @@ public class CervixBarcodesAfdrukkenPage extends GebruikerBasePage
 	private AsposeService asposeService;
 
 	@SpringBean
-	private BaseBriefService briefSerivice;
+	private BaseBriefService briefService;
 
 	@SpringBean
 	private UitnodigingsDao uitnodigingsDao;
@@ -90,80 +98,137 @@ public class CervixBarcodesAfdrukkenPage extends GebruikerBasePage
 	@SpringBean
 	private CervixKwaliteitsborgingDao cervixKwaliteitsborgingDao;
 
+	@SpringBean
+	private SimplePreferenceService preferenceService;
+
+	private Form form;
+
+	private WebMarkupContainer backupAfdrukkenContainer;
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		if (preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
+		{
+			initialiseerZebraPrinterLibrary(response);
+		}
+	}
+
+	@Override
+	protected void setHeaders(WebResponse response)
+	{
+		SecurityHeadersFilter.allowExtraConnectSrcInContentSecurityPolicy(response, "https://localhost:9101");
+		super.setHeaders(response);
+	}
+
 	public CervixBarcodesAfdrukkenPage()
 	{
 		add(printDialog);
-		Form form = new Form<>("form");
+		form = new Form<>("form");
 		add(form);
-		ScreenitDropdown aantalDropdown = new ScreenitDropdown<>("aantal", aantal, Arrays.asList(1, 5, 10, 50));
+		ScreenitDropdown<Integer> aantalDropdown = new ScreenitDropdown<>("aantal", aantal, Arrays.asList(1, 5, 10, 50));
 		aantalDropdown.setRequired(true);
 		form.add(aantalDropdown);
 
 		form.add(new IndicatingAjaxSubmitLink("afdrukken")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				boolean fout = false;
-				Document gecombineerdDocument = null;
-				int teller = 0;
-				while (teller < aantal.getObject())
+				if (preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
 				{
-					++teller;
-					Document document = genereerBarcodeDocumenten();
-					try
+					List<String> controleMonsterIds = IntStream.range(0, aantal.getObject()).mapToObj(e -> genereerUniekControleMonsterId()).collect(Collectors.toList());
+					target.prependJavaScript(
+						"printControleMonsterBarcodes([\"" + String.join("\",\"", controleMonsterIds) + "\"])");
+					if (backupAfdrukkenContainer instanceof EmptyPanel)
 					{
-						if (gecombineerdDocument == null)
-						{
-							gecombineerdDocument = document;
-						}
-						else
-						{
-							gecombineerdDocument.appendDocument(document, ImportFormatMode.KEEP_SOURCE_FORMATTING);
-						}
-					}
-					catch (Exception e)
-					{
-						LOG.error(e.getMessage());
-						fout = true;
+						showBackupAfdrukkenContainer(target);
 					}
 				}
-
-				if (!fout)
+				else
 				{
-					fout = saveAndShowPdf(target, gecombineerdDocument);
-				}
-
-				if (fout)
-				{
-					form.error("Er is iets mis gegaan tijdens het genereren van de barcodes.");
+					printBarcodesMetPdf(target);
 				}
 			}
 		});
+
+		backupAfdrukkenContainer = maakEmptyPanel("backupAfdrukkenContainer");
+		form.add(backupAfdrukkenContainer);
+		maakErrorCallbackBehavior();
 	}
 
-	private boolean saveAndShowPdf(AjaxRequestTarget target, Document gecombineerdDocument)
+	private void printBarcodesMetPdf(AjaxRequestTarget target)
+	{
+		Document gecombineerdDocument = null;
+		for (int i = 0; i < aantal.getObject(); i++)
+		{
+			Document document = genereerControleMonsterBarcodeDocument();
+			try
+			{
+				if (gecombineerdDocument == null)
+				{
+					gecombineerdDocument = document;
+				}
+				else
+				{
+					gecombineerdDocument.appendDocument(document, ImportFormatMode.KEEP_SOURCE_FORMATTING);
+				}
+			}
+			catch (Exception e)
+			{
+				LOG.error(e.getMessage());
+				break;
+			}
+
+			if (i == (aantal.getObject() - 1) && !genereerEnToonPdf(target, gecombineerdDocument))
+			{
+				form.error("Er is iets mis gegaan tijdens het genereren van de barcodes.");
+			}
+		}
+	}
+
+	private void showBackupAfdrukkenContainer(AjaxRequestTarget target)
+	{
+		WebMarkupContainer container = new WebMarkupContainer("backupAfdrukkenContainer");
+		container.setOutputMarkupId(true);
+		container.add(new IndicatingAjaxLink<Void>("backupAfdrukken")
+		{
+			@Override
+			public void onClick(AjaxRequestTarget target)
+			{
+				printBarcodesMetPdf(target);
+			}
+		});
+
+		this.backupAfdrukkenContainer.replaceWith(container);
+		this.backupAfdrukkenContainer = container;
+		target.add(this.backupAfdrukkenContainer);
+	}
+
+	private boolean genereerEnToonPdf(AjaxRequestTarget target, Document gecombineerdDocument)
 	{
 		try
 		{
-			printDialog.openWith(target, new PdfViewerPanel(IDialog.CONTENT_ID, briefSerivice.genereerPdf(gecombineerdDocument, "barcodes_controlemonsters", false)));
+			printDialog.openWith(target, new PdfViewerPanel(IDialog.CONTENT_ID, briefService.genereerPdf(gecombineerdDocument, "barcodes_controlemonsters", false)));
 		}
 		catch (Exception e)
 		{
 			LOG.error(e.getMessage());
-			return true;
+			return false;
 		}
-		return false;
+		return true;
 	}
 
-	private Document genereerBarcodeDocumenten()
+	private String genereerUniekControleMonsterId()
 	{
-		String uniekId = "Q" + StringUtils.leftPad(String.valueOf(cervixKwaliteitsborgingDao.getNextKwaliteitsborgingBarcode()), 8, '0');
+		return "Q" + StringUtils.leftPad(String.valueOf(cervixKwaliteitsborgingDao.getNextKwaliteitsborgingBarcode()), 8, '0');
+	}
+
+	private Document genereerControleMonsterBarcodeDocument()
+	{
 		CervixUitstrijkje uitstrijkje = new CervixUitstrijkje();
-		uitstrijkje.setMonsterId(uniekId);
+		uitstrijkje.setMonsterId(genereerUniekControleMonsterId());
 		CervixUitnodiging uitnodiging = new CervixUitnodiging();
 		uitnodiging.setUitnodigingsId(uitnodigingsDao.getNextUitnodigingsId());
 		uitnodiging.setMonster(uitstrijkje);
@@ -180,10 +245,6 @@ public class CervixBarcodesAfdrukkenPage extends GebruikerBasePage
 		{
 			byte[] briefTemplateBytes = IOUtils.toByteArray(CervixBarcodesAfdrukkenPage.class.getResourceAsStream("/CervixUitnodigingsSticker.doc"));
 			document = asposeService.processDocument(briefTemplateBytes, context);
-		}
-		catch (IOException e)
-		{
-			LOG.error(e.getMessage());
 		}
 		catch (Exception e)
 		{

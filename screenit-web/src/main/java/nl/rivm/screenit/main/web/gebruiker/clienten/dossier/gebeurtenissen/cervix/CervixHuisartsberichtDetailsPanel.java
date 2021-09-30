@@ -68,7 +68,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 		Normaal,
 		KoppelHuisarts,
 		ExtraHuisarts
-	};
+	}
 
 	private static final long serialVersionUID = 1L;
 
@@ -99,7 +99,12 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 	public CervixHuisartsberichtDetailsPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
+	}
 
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		panelState = getInitialPanelState();
 
 		add(zorgmailLabel = maakZorgmailLabel());
@@ -177,7 +182,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 				}
 				else
 				{
-					selectedHuisartsLocatie = ModelUtil.cModel(huisartsLocatie);
+					selectedHuisartsLocatie = ModelUtil.ccModel(huisartsLocatie);
 				}
 				CervixHuisartsberichtDetailsPanel.this.refreshLocatiePanel(target);
 			}

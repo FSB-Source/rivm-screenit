@@ -18,16 +18,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =========================LICENSE_END==================================
 ###
-import base
 import logging
+
+import base
 from util import fit, externals, classification, preprocess, dao
 
 
 def fit_dossier_classifier():
-    logging.info("Eerste ronde")
+    logging.info("Start fit dossier eerste ronde")
+    _fit_dossier_eerste_ronde()
+    logging.info("Eind fit dossier eerste ronde")
 
+    logging.info("Start fit dossier vervolgronde")
+    _fit_dossier_vervolgronde()
+    logging.info("Eind fit dossier vervolgronde")
+
+
+def _fit_dossier_eerste_ronde():
     _screening_ronde_samples = dao.get_screening_ronde_samples_eerste_ronde()
-
     if _screening_ronde_samples.empty:
         raise Exception('Geen screening ronde samples')
     else:
@@ -44,10 +52,9 @@ def fit_dossier_classifier():
 
         base.dossier_classifier_eerste_ronde = _classifier
 
-    logging.info("Vervolgronde")
 
+def _fit_dossier_vervolgronde():
     _screening_ronde_samples = dao.get_screening_ronde_samples_vervolgronde()
-
     if _screening_ronde_samples.empty:
         raise Exception('Geen screening ronde samples')
     else:

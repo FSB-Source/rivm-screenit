@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-proxy
+  %%
+  Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<svg width="26px" height="26px" viewBox="0 0 26 26" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Architectuurverst calc</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Icons/Architectuurverst-calc" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <polygon id="Path-2" stroke="#D0021B" points="2.63381351 13.6448311 7.61600669 22.7700297 19.0875436 22.7700297 24.1685474 13.6448311 19.0875436 3.14879536 7.61600669 3.14879536"></polygon>
+        <ellipse id="Oval-3" fill="#D0021B" cx="13.1419359" cy="7.44523841" rx="2.04506003" ry="2.3166158"></ellipse>
+        <ellipse id="Oval-3" fill="#D0021B" cx="13.1419359" cy="13.3867233" rx="2.04506003" ry="2.3166158"></ellipse>
+        <ellipse id="Oval-3" fill="#D0021B" cx="7.64787891" cy="11.6891562" rx="2.04506003" ry="2.3166158"></ellipse>
+        <ellipse id="Oval-3" fill="#D0021B" cx="10.0024748" cy="18.4794246" rx="2.04506003" ry="2.3166158"></ellipse>
+        <ellipse id="Oval-3" fill="#D0021B" cx="16.281397" cy="18.4794246" rx="2.04506003" ry="2.3166158"></ellipse>
+        <ellipse id="Oval-3" fill="#D0021B" cx="18.6359929" cy="11.6891562" rx="2.04506003" ry="2.3166158"></ellipse>
+    </g>
+</svg>

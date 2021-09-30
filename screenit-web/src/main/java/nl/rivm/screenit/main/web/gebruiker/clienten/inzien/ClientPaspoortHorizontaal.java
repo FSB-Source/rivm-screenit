@@ -43,21 +43,26 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 {
-	private boolean metTelefoonnummer = false;
-
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	private final boolean metTelefoonnummer;
 
 	public ClientPaspoortHorizontaal(String id, IModel<Client> clientModel, boolean metTelefoonnummer)
 	{
 		super(id, clientModel);
 		this.metTelefoonnummer = metTelefoonnummer;
-		vulPersoonsGegevens();
 	}
 
 	public ClientPaspoortHorizontaal(String id, IModel<Client> clientModel)
 	{
-		super(id, clientModel);
+		this(id, clientModel, false);
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		vulPersoonsGegevens();
 	}
 
@@ -86,7 +91,7 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 
 		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(getModelObject())));
 
-		add(new Label("gbaLocatiebeschrijving", new IModel<String>()
+		add(new Label("gbaLocatiebeschrijving", new IModel<>()
 		{
 			@Override
 			public String getObject()
@@ -99,7 +104,7 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 				return locatiebeschrijving;
 			}
 		}));
-		add(new PostcodeLabel("gbaPostcode", true, new IModel<String>()
+		add(new PostcodeLabel("gbaPostcode", true, new IModel<>()
 		{
 			@Override
 			public String getObject()
@@ -109,7 +114,7 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 					: "";
 			}
 		}));
-		add(new Label("gbaWoonplaats", new IModel<String>()
+		add(new Label("gbaWoonplaats", new IModel<>()
 		{
 			@Override
 			public String getObject()

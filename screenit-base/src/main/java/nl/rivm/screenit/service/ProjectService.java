@@ -45,7 +45,6 @@ import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectImportMelding;
-import nl.rivm.screenit.model.project.ProjectInactiveerDocument;
 import nl.rivm.screenit.model.project.ProjectType;
 
 import com.aspose.words.Document;
@@ -67,8 +66,6 @@ public interface ProjectService
 
 	long getCountClientProjecten(ProjectClient client);
 
-	Map<ProjectImportMelding, List<String>> verwerkXLSNaarProjectClienten(ProjectGroep groep, InstellingGebruiker ingelogdeGebruiker, UploadDocument upload, Boolean skipFouten);
-
 	void queueProjectBestandVoorAttributen(Project project, ProjectGroep groep, ProjectBestand projectBestand, String contentType, String filenaam, File file,
 		Account loggedInAccount) throws IOException;
 
@@ -79,8 +76,6 @@ public interface ProjectService
 		Account loggedInAccount) throws IOException;
 
 	void queueProjectBestandVoorPopulatie(ProjectGroep groep, String contentType, String filenaam, File file, Account loggedInAccount) throws IOException;
-
-	Map<ProjectImportMelding, List<String>> inactiveerProjectClienten(ProjectInactiveerDocument projectInactiveerDocument);
 
 	boolean verwerkGroepClienten(List<Client> clienten, ProjectGroep groep);
 

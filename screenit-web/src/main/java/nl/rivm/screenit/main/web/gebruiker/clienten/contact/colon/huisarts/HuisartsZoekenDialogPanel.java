@@ -28,7 +28,6 @@ import java.util.List;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.form.PostcodeField;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
-import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonHuisartsWijzigenPanel;
 import nl.rivm.screenit.model.EnovationHuisarts;
@@ -37,7 +36,6 @@ import nl.rivm.screenit.model.enums.HuisartsGeslacht;
 import nl.rivm.screenit.service.EnovationHuisartsService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.NaamUtil;
-import nl.topicuszorg.hibernate.object.annot.objects.Transient;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -50,7 +48,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
@@ -59,31 +56,35 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class HuisartsZoekenDialogPanel extends GenericPanel<ColonScreeningRonde>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private WebMarkupContainer zoekResultatenContainer;
-
 	@SpringBean
 	private EnovationHuisartsService enovationHuisartsService;
 
+	private WebMarkupContainer zoekResultatenContainer;
+
 	private ColonHuisartsWijzigenPanel huisartsWijzigenPanel;
 
-	@Transient
 	private IModel<EnovationHuisarts> zoekModel;
 
 	private BootstrapDialog dialog;
+
+	private final boolean terugNaarZoeken;
 
 	public HuisartsZoekenDialogPanel(String id, IModel<ColonScreeningRonde> colonScreeningRonde, IModel<EnovationHuisarts> zoekModel, BootstrapDialog dialog,
 		boolean terugNaarZoeken, ColonHuisartsWijzigenPanel huisartsWijzigenPanel)
 	{
 		super(id, colonScreeningRonde);
+		this.terugNaarZoeken = terugNaarZoeken;
 		setZoekModel(zoekModel);
 
 		setDialog(dialog);
 		setHuisartsWijzigenPanel(huisartsWijzigenPanel);
+	}
 
-		ScreenitForm<EnovationHuisarts> screenitForm = new ScreenitForm<EnovationHuisarts>("zoekForm", getZoekModel())
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		ScreenitForm<EnovationHuisarts> screenitForm = new ScreenitForm<>("zoekForm", getZoekModel())
 		{
 			@Override
 			public boolean isRootForm()
@@ -99,9 +100,6 @@ public abstract class HuisartsZoekenDialogPanel extends GenericPanel<ColonScreen
 
 		AjaxSubmitLink zoekenBtn = new IndicatingAjaxSubmitLink("zoeken")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -130,29 +128,6 @@ public abstract class HuisartsZoekenDialogPanel extends GenericPanel<ColonScreen
 		add(zoekResultatenContainer);
 		add(screenitForm);
 
-		add(new AjaxLink<ColonScreeningRonde>("huisartsOnbekend", getModel())
-		{
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void onClick(AjaxRequestTarget target)
-			{
-				close(target);
-
-				getDialog().openWith(target, new OnbekendeHuisartsMakenDialogPanel(IDialog.CONTENT_ID, getModel(), getHuisartsWijzigenPanel(), getDialog())
-				{
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected void close(AjaxRequestTarget target)
-					{
-						getDialog().close(target);
-					}
-				});
-			}
-		});
 		add(new AjaxLink<Void>("annuleren")
 		{
 
@@ -176,15 +151,14 @@ public abstract class HuisartsZoekenDialogPanel extends GenericPanel<ColonScreen
 	private Label aantalResultaten()
 	{
 		long aantal = enovationHuisartsService.telHuisartsen(getZoekModel().getObject());
-		return new Label("aantalResultaten", String.format(getString("label.aantal.gevonden.huisartsen", null), Long.toString(aantal)));
+		return new Label("aantalResultaten", String.format(getString("label.aantal.gevonden.huisartsen"), Long.toString(aantal)));
 	}
 
 	private ScreenitDataTable<EnovationHuisarts, String> vervangResultaten()
 	{
 		List<IColumn<EnovationHuisarts, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Naam"), "achternaam", "achternaam")
+		columns.add(new PropertyColumn<>(Model.of("Naam"), "achternaam", "achternaam")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -196,9 +170,8 @@ public abstract class HuisartsZoekenDialogPanel extends GenericPanel<ColonScreen
 				return new Model(naam);
 			}
 		});
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Type"), "geslacht", "geslacht")
+		columns.add(new PropertyColumn<>(Model.of("Type"), "geslacht", "geslacht")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -214,9 +187,8 @@ public abstract class HuisartsZoekenDialogPanel extends GenericPanel<ColonScreen
 				return new Model(type);
 			}
 		});
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Adres"), "adres.plaats", "adres.plaats")
+		columns.add(new PropertyColumn<>(Model.of("Adres"), "adres.plaats", "adres.plaats")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -232,40 +204,36 @@ public abstract class HuisartsZoekenDialogPanel extends GenericPanel<ColonScreen
 				return new Model(adres);
 			}
 		});
-		columns.add(new PropertyColumn<EnovationHuisarts, String>(Model.of("Praktijknaam"), "praktijknaam", "praktijknaam"));
+		columns.add(new PropertyColumn<>(Model.of("Praktijknaam"), "praktijknaam", "praktijknaam"));
 
-		ScreenitDataTable<EnovationHuisarts, String> tabel = new ScreenitDataTable<EnovationHuisarts, String>("zoekResultaten", columns,
-			new SortableDataProvider<EnovationHuisarts, String>()
-			{
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public Iterator<? extends EnovationHuisarts> iterator(long first, long count)
-				{
-					if (getSort() == null)
-					{
-						setSort("achternaam", SortOrder.ASCENDING);
-					}
-
-					return enovationHuisartsService.zoekHuisartsen(getZoekModel().getObject(), getSort().getProperty(), getSort().isAscending(), (int) first, (int) count)
-						.iterator();
-				}
-
-				@Override
-				public long size()
-				{
-					return enovationHuisartsService.telHuisartsen(getZoekModel().getObject());
-				}
-
-				@Override
-				public IModel<EnovationHuisarts> model(EnovationHuisarts object)
-				{
-					return ModelUtil.sModel(object);
-				}
-			}, Model.of("huisarts(en)"))
+		ScreenitDataTable<EnovationHuisarts, String> tabel = new ScreenitDataTable<>("zoekResultaten", columns, new SortableDataProvider<EnovationHuisarts, String>()
 		{
+			private static final long serialVersionUID = 1L;
 
+			@Override
+			public Iterator<? extends EnovationHuisarts> iterator(long first, long count)
+			{
+				if (getSort() == null)
+				{
+					setSort("achternaam", SortOrder.ASCENDING);
+				}
+
+				return enovationHuisartsService.zoekHuisartsen(getZoekModel().getObject(), getSort().getProperty(), getSort().isAscending(), (int) first, (int) count).iterator();
+			}
+
+			@Override
+			public long size()
+			{
+				return enovationHuisartsService.telHuisartsen(getZoekModel().getObject());
+			}
+
+			@Override
+			public IModel<EnovationHuisarts> model(EnovationHuisarts object)
+			{
+				return ModelUtil.sModel(object);
+			}
+		}, Model.of("huisarts(en)"))
+		{
 			private static final long serialVersionUID = 1L;
 
 			@Override

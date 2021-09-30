@@ -37,11 +37,18 @@
                 </div>
             </div>
             <div class="control-group">
-                <label class="control-label">Kansberekening BK</label>
+                <label class="control-label">Kansberekening BK gebruiken</label>
 
                 <div class="controls">
-                    <input type="checkbox" wicket:id="kansberekening"/>
+                    <input type="checkbox" wicket:id="kansberekeningEnabled"/>
                 </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label">Standaard opkomstkans indien kansberekening BK niet gebruikt wordt</label>
+                <div class="controls">
+                    <input type="number" class="form-control input-small" wicket:id="defaultOpkomstkans"/>%
+                </div>
+
             </div>
             <a class="btn btn-primary" wicket:id="opslaan">Opslaan</a>
         </div>

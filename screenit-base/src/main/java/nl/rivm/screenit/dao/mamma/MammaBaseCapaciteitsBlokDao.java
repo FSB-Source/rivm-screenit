@@ -46,7 +46,7 @@ public interface MammaBaseCapaciteitsBlokDao
 
 	Long countCapaciteitsBlokken(MammaScreeningsEenheid screeningEenheid, Date start, Date end, Collection<MammaCapaciteitBlokType> blokTypes);
 
-	Collection<MammaCapaciteitBlokDto> getNietGeblokkerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date start, Date end,
+	Collection<MammaCapaciteitBlokDto> getNietGeblokkeerdeCapaciteitsBlokDtos(MammaStandplaatsPeriode standplaatsPeriode, Date start, Date end,
 		Collection<MammaCapaciteitBlokType> blokTypes);
 
 }

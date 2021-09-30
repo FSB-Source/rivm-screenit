@@ -33,13 +33,13 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaBeTabelCounterPanel;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -50,9 +50,6 @@ public class MiniWerklijstPanel extends Panel
 
 	@SpringBean
 	protected MammaBeoordelingService beoordelingService;
-
-	@SpringBean
-	private MammaBaseBeoordelingService baseBeoordelingService;
 
 	private IModel<MammaBeoordeling> clickedBeoordeling;
 
@@ -67,7 +64,7 @@ public class MiniWerklijstPanel extends Panel
 		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "onderzoek.creatieDatum", Constants.getDateTimeFormat()));
 		columns.add(new ClientColumn<>("onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
 		columns.add(new GeboortedatumColumn<>("onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Status"), "status"));
+		columns.add(maakStatusKolom());
 
 		addOrReplace(new ScreenitDataTable<MammaBeoordeling, String>("miniwerklijst", columns, miniWerklijstDataProvider, 5, Model.of("beoordeling(en)"), false)
 		{
@@ -125,6 +122,11 @@ public class MiniWerklijstPanel extends Panel
 			}
 		});
 
+	}
+
+	protected PropertyColumn<MammaBeoordeling, String> maakStatusKolom()
+	{
+		return new EnumPropertyColumn<>(Model.of("Status"), "status");
 	}
 
 	@Override

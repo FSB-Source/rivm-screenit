@@ -61,13 +61,13 @@ import ca.uhn.fhir.model.api.annotation.ResourceDef;
 @ResourceDef()
 public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 {
-    private final String OBJ_ID = "D" + UUID.randomUUID().toString();
+	private final String OBJ_ID = "D" + UUID.randomUUID().toString();
 
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	private CervixHuisartsBaseDao huisartsBaseDao;
+	private final CervixHuisartsBaseDao huisartsBaseDao;
 
-	private CervixMonsterService monsterService;
+	private final CervixMonsterService monsterService;
 
 	public LabaanvraagBundle()
 	{
@@ -83,7 +83,7 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 
 	public String getObjid()
 	{
-        return OBJ_ID;
+		return OBJ_ID;
 	}
 
 	public BMHKLaboratorium getLaboratorium()
@@ -139,7 +139,7 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 
 	public CervixLabformulierStatus getStatus()
 	{
-		return CervixLabformulierStatus.GESCAND;
+		return CervixLabformulierStatus.GECONTROLEERD;
 	}
 
 	public Date getStatusDatum()
@@ -152,6 +152,7 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 		return currentDateSupplier.getDate();
 	}
 
+	@Override
 	public String getClientBsn()
 	{
 		return getFromSystem(getResourceStream()
@@ -159,6 +160,7 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 			.map(resource -> ((Patient) resource).getIdentifier()), CodeSystem.BSN);
 	}
 
+	@Override
 	public String getPraktijkAgb()
 	{
 		return getFromSystem(getResourceStream()
@@ -166,6 +168,7 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 			.map(resource -> ((Organization) resource).getIdentifier()), CodeSystem.AGB);
 	}
 
+	@Override
 	public String getIndividueleAgb()
 	{
 		return getFromSystem(getResourceStream()
@@ -173,11 +176,13 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 			.map(resource -> ((Practitioner) resource).getIdentifier()), CodeSystem.AGB);
 	}
 
+	@Override
 	public String getMonsterId()
 	{
 		return extractStringElementByCode(CodeSystem.MONSTER_ID);
 	}
 
+	@Override
 	public String getControleLetters()
 	{
 		return extractStringElementByCode(CodeSystem.CONTROLELETTERS);

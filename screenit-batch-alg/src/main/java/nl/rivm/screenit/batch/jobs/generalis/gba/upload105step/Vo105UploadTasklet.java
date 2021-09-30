@@ -185,7 +185,6 @@ public class Vo105UploadTasklet implements Tasklet, StepExecutionListener
 
 	private Session connect(JSch jsch, Session gateway) throws JSchException
 	{
-		String application_environment = System.getProperty("APPLICATION_ENVIRONMENT");
 		boolean checkHostKey = Boolean.parseBoolean(System.getProperty("SFTP_CHECK_HOST_KEY"));
 		if (checkHostKey)
 		{

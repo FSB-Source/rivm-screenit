@@ -23,9 +23,7 @@ package nl.rivm.screenit.service.mamma;
 
 import java.util.Date;
 
-import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
@@ -44,6 +42,8 @@ public interface MammaBaseScreeningrondeService
     MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client, Date voorDatum);
 
 	MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client);
+
+	Integer getJaarLaatsteVerwijzing(Client client);
 
 	MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client, Date voorDatum);
 }

@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
+
 import nl.rivm.screenit.model.gba.GbaFoutCategorie;
 import nl.rivm.screenit.model.gba.GbaFoutRegel;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
@@ -132,7 +133,6 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 
 	private Session connect(JSch jsch) throws JSchException
 	{
-		String application_environment = System.getProperty("APPLICATION_ENVIRONMENT");
 		boolean checkHostKey = Boolean.parseBoolean(System.getProperty("SFTP_CHECK_HOST_KEY"));
 		if (checkHostKey)
 		{
@@ -190,7 +190,7 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 				{
 					c.cd(downloadPath);
 
-					try (InputStream fileInputStream = c.get(filename); FileOutputStream fileOutputStream = new FileOutputStream(targetFile);)
+					try (InputStream fileInputStream = c.get(filename); FileOutputStream fileOutputStream = new FileOutputStream(targetFile))
 					{
 						IOUtils.copyLarge(fileInputStream, fileOutputStream);
 					}

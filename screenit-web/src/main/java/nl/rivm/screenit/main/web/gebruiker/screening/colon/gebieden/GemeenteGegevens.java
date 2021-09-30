@@ -62,7 +62,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
-	actie = Actie.AANPASSEN,
+	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
 	checkScope = true,
 	level = ToegangLevel.REGIO,
@@ -205,7 +205,6 @@ public class GemeenteGegevens extends GebiedenBeheerPage
 		ScreenitDataTable<UitnodigingsGebied, String> dataTabel = new ScreenitDataTable<UitnodigingsGebied, String>("gebieden", columns,
 			new HibernateListDataProvider<UitnodigingsGebied, String>(((Gemeente) getDefaultModelObject()).getUitnodigingsGebieden()), new Model<>("gebieden"))
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

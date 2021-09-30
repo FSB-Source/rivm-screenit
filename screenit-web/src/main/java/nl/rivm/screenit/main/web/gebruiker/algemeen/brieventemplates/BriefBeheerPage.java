@@ -81,7 +81,7 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
-	actie = Actie.AANPASSEN,
+	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
 	checkScope = false,
 	level = ToegangLevel.LANDELIJK,
@@ -111,6 +111,8 @@ public class BriefBeheerPage extends AlgemeenPage
 
 	private IModel<List<BriefDefinitie>> briefDefinities = null;
 
+	private final boolean magAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_BRIEVEN, Actie.AANPASSEN);
+
 	public BriefBeheerPage()
 	{
 		dialog = new BootstrapDialog("dialog");
@@ -121,6 +123,9 @@ public class BriefBeheerPage extends AlgemeenPage
 		final WebMarkupContainer brievenContainer = new WebMarkupContainer("brievenContainer");
 		brievenContainer.setOutputMarkupId(true);
 		add(brievenContainer);
+		final WebMarkupContainer uploadHeaderContainer = new WebMarkupContainer("uploadHeader");
+		uploadHeaderContainer.setVisible(magAanpassen);
+		add(uploadHeaderContainer);
 		add(new FilterBvoFormPanel<BvoZoekCriteria>("bvoFilter", zoekCriteria, true, true)
 		{
 
@@ -156,7 +161,6 @@ public class BriefBeheerPage extends AlgemeenPage
 			protected void populateItem(final ListItem<BriefDefinitie> item)
 			{
 				BriefDefinitie briefDefinitie = item.getModelObject();
-
 				if (briefDefinitie.getGeldigTot() != null)
 				{
 					item.add(new AttributeModifier("class", "subrow " + subrowClass(briefDefinitie)));
@@ -236,9 +240,7 @@ public class BriefBeheerPage extends AlgemeenPage
 
 				Form<Void> uploadForm = new Form<>("uploadForm");
 				uploadForm.setFileMaxSize(Bytes.kilobytes(700));
-				uploadForm.add(new FileUploadField("fileUpload", files)
-					.add(new FileValidator(FileType.WORD_NIEUW))
-					.setRequired(true));
+				uploadForm.add(new FileUploadField("fileUpload", files).add(new FileValidator(FileType.WORD_NIEUW)).setRequired(true));
 				uploadForm.add(new AjaxSubmitLink("uploaden")
 				{
 					private static final long serialVersionUID = 1L;
@@ -255,21 +257,20 @@ public class BriefBeheerPage extends AlgemeenPage
 							if (projecten.size() > 0)
 							{
 
-								dialog.openWith(target,
-									new ConfirmPanel(IDialog.CONTENT_ID, Model.of("Weet u zeker dat u de brief template wilt aanpassen?"),
-										Model
-											.of("De volgende actieve en toekomstige projecten hebben aangepaste brieven op deze brief template: " + namenVanDeProjecten(projecten)),
-										new DefaultConfirmCallback()
+								dialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, Model.of("Weet u zeker dat u de brief template wilt aanpassen?"),
+									Model
+										.of("De volgende actieve en toekomstige projecten hebben aangepaste brieven op deze brief template: " + namenVanDeProjecten(projecten)),
+									new DefaultConfirmCallback()
+									{
+										private static final long serialVersionUID = 1L;
+
+										@Override
+										public void onYesClick(AjaxRequestTarget target)
 										{
-											private static final long serialVersionUID = 1L;
+											saveBriefDefinitie(item.getModelObject(), fileUpload, target, brievenContainer);
+										}
 
-											@Override
-											public void onYesClick(AjaxRequestTarget target)
-											{
-												saveBriefDefinitie(item.getModelObject(), fileUpload, target, brievenContainer);
-											}
-
-										}, dialog));
+									}, dialog));
 							}
 							else
 							{
@@ -282,8 +283,12 @@ public class BriefBeheerPage extends AlgemeenPage
 						}
 					}
 				});
-				item.add(uploadForm);
-				if (briefDefinitie.getGeldigTot() != null)
+				final WebMarkupContainer uploadColumnContainer = new WebMarkupContainer("uploadColumn");
+				uploadColumnContainer.setVisible(magAanpassen);
+				uploadColumnContainer.add(uploadForm);
+				item.add(uploadColumnContainer);
+
+				if (briefDefinitie.getGeldigTot() != null || !magAanpassen)
 				{
 					uploadForm.setVisible(false);
 				}

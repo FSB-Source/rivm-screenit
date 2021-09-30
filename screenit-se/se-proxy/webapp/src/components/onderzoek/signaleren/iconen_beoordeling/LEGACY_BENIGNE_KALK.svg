@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-proxy
+  %%
+  Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<svg width="26px" height="26px" viewBox="0 0 26 26" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generator: Sketch 49.3 (51167) - http://www.bohemiancoding.com/sketch -->
+    <title>Icons/Calcificaties</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Icons/Calcificaties" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle id="Oval-2" fill="#D0021B" cx="6.58198522" cy="17.5819852" r="4.58198522"></circle>
+        <circle id="Oval-2" fill="#D0021B" cx="13.5819852" cy="7.58198522" r="4.58198522"></circle>
+        <circle id="Oval-2" fill="#D0021B" cx="19.5819852" cy="17.5819852" r="4.58198522"></circle>
+    </g>
+</svg>

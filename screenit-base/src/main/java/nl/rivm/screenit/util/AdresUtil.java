@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.util;
 
 /*-
@@ -214,15 +213,7 @@ public final class AdresUtil
 		StringBuilder adresString = new StringBuilder();
 		if (adres != null)
 		{
-			if (StringUtils.isNotBlank(adres.getStraat()))
-			{
-				adresString.append(adres.getStraat());
-				if (huisnummerTonenVerplicht || Boolean.TRUE.equals(adres.getToonHuisnummerInBrieven()))
-				{
-					adresString.append(" ");
-					adresString.append(getHuisnummerVolledig(adres));
-				}
-			}
+			adresString.append(getStraatMetHuisnummerVoorStandplaatsLocatie(adres, huisnummerTonenVerplicht));
 
 			String postcode = adres.getPostcode();
 			String plaats = getTeGebruikenWoonplaats(adres);
@@ -251,6 +242,24 @@ public final class AdresUtil
 		return adresString.toString();
 	}
 
+	public static String getStraatMetHuisnummerVoorStandplaatsLocatie(MammaStandplaatsLocatie adres, boolean huisnummerTonenVerplicht)
+	{
+		StringBuilder straatString = new StringBuilder();
+		if (adres != null)
+		{
+			if (StringUtils.isNotBlank(adres.getStraat()))
+			{
+				straatString.append(adres.getStraat());
+				if (huisnummerTonenVerplicht || Boolean.TRUE.equals(adres.getToonHuisnummerInBrieven()))
+				{
+					straatString.append(" ");
+					straatString.append(getHuisnummerVolledig(adres));
+				}
+			}
+		}
+		return straatString.toString();
+	}
+
 	public static boolean isTijdelijkAdres(GbaPersoon persoon, DateTime date)
 	{
 		return getAdres(persoon, date) instanceof TijdelijkAdres;
@@ -258,7 +267,7 @@ public final class AdresUtil
 
 	public static Adres getAdres(GbaPersoon persoon, DateTime date)
 	{
-		Adres adres = null;
+		Adres adres;
 		TijdelijkAdres tijdelijkAdres = persoon.getTijdelijkAdres();
 		if (tijdelijkAdres == null)
 		{

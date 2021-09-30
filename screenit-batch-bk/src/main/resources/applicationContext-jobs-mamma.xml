@@ -430,8 +430,9 @@
     <beans:bean id="mammaScreeningRondesVerwijderenReader" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaScreeningRondesVerwijderenReader"/>
     <beans:bean id="mammaScreeningRondesVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaScreeningRondesVerwijderenWriter"/>
     <beans:bean id="mammaGunstigeBeeldenVerwijderenReader" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaGunstigeBeeldenVerwijderenReader"/>
+    <beans:bean id="mammaGunstigeBeeldenVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaGunstigeBeeldenVerwijderenWriter"/>
     <beans:bean id="mammaOverigeBeeldenVerwijderenReader" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaOverigeBeeldenVerwijderenReader"/>
-    <beans:bean id="mammaBeeldenVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBeeldenVerwijderenWriter"/>
+    <beans:bean id="mammaOverigeBeeldenVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaOverigeBeeldenVerwijderenWriter"/>
     <beans:bean id="ilmApplicatieLoggingVerwijderenReader" class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenReader">
         <beans:property name="bvo" value="MAMMA"/>
     </beans:bean>
@@ -451,7 +452,7 @@
         <step id="gunstige_beelden_verwijderen">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="mammaGunstigeBeeldenVerwijderenReader"
-                       writer="mammaBeeldenVerwijderenWriter" commit-interval="250">
+                       writer="mammaGunstigeBeeldenVerwijderenWriter" commit-interval="250">
                 </chunk>
             </tasklet>
             <next on="*" to="overige_beelden_verwijderen"/>
@@ -460,7 +461,7 @@
         <step id="overige_beelden_verwijderen">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="mammaOverigeBeeldenVerwijderenReader"
-                       writer="mammaBeeldenVerwijderenWriter" commit-interval="250">
+                       writer="mammaOverigeBeeldenVerwijderenWriter" commit-interval="250">
                 </chunk>
             </tasklet>
             <next on="*" to="rondes_verwijderen"/>

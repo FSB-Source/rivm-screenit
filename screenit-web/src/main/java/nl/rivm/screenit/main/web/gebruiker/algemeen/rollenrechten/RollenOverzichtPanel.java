@@ -43,14 +43,13 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
-	actie = Actie.AANPASSEN,
+	actie = Actie.INZIEN,
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
 	recht = Recht.GEBRUIKER_ROLLEN_BEHEREN,
@@ -64,6 +63,8 @@ public class RollenOverzichtPanel extends GenericPanel<Rol>
 	private WebMarkupContainer refreshContainer;
 
 	private IModel<Rol> rolModel;
+
+	private final boolean magVerwijderen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_ROLLEN_BEHEREN, Actie.VERWIJDEREN);
 
 	public RollenOverzichtPanel(String id)
 	{
@@ -90,9 +91,8 @@ public class RollenOverzichtPanel extends GenericPanel<Rol>
 
 		getRollenListView(this.rolModel);
 
-		add(new AjaxLink<Void>("rolToevoegen")
+		AjaxLink<Void> rolToevoegenKnop = new AjaxLink<>("rolToevoegen")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -103,7 +103,9 @@ public class RollenOverzichtPanel extends GenericPanel<Rol>
 				rol.getPermissies().add(rolRecht);
 				((RollenBeheer) getPage()).addOrReplaceContentWith(new RolEditPanel(RollenBeheer.CONTENT_ID, ModelUtil.cModel(rol)));
 			}
-		});
+		};
+		rolToevoegenKnop.setVisible(magVerwijderen);
+		add(rolToevoegenKnop);
 	}
 
 	private IModel<Rol> getZoekRolModel()
@@ -126,7 +128,6 @@ public class RollenOverzichtPanel extends GenericPanel<Rol>
 		ScreenitDataTable<Rol, String> linkDataTable = new ScreenitDataTable<Rol, String>("rollen", columns,
 			new HibernateDataProvider<>(zoekRol, "naam"), Model.of("rollen"))
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

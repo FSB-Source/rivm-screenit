@@ -89,6 +89,8 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 		Long standplaatsId = (Long) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
 		Boolean tijdelijk = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
 
+		Boolean eersteRonde = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_EERSTE_RONDE);
+
 		String naam = "";
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
 		if (brieven.getCreatieDatum() != null)
@@ -114,6 +116,12 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 		{
 			naam += brieven.getBriefType().name().toLowerCase();
 		}
+
+		if (Boolean.TRUE.equals(eersteRonde))
+		{
+			naam += MammaBrievenGenererenPartitioner.KEY_EERSTE_RONDE;
+		}
+
 		naam = addPdfCounter(naam);
 
 		return naam + ".pdf";
@@ -130,7 +138,7 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 		Boolean briefTypeApart = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPEAPART);
 		Long standplaatsId = (Long) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
 
-		if (briefTypeApart && standplaatsId != null)
+		if (Boolean.TRUE.equals(briefTypeApart) && standplaatsId != null)
 		{
 			Boolean tijdelijk = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
 			MammaStandplaats standplaats = getHibernateService().load(MammaStandplaats.class, standplaatsId);

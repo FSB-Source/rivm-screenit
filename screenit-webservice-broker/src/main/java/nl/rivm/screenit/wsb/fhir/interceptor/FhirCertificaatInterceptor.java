@@ -32,7 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 import net.sourceforge.jcetaglib.lib.CertTools;
 
 import nl.rivm.screenit.Constants;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -44,18 +43,17 @@ import ca.uhn.fhir.interceptor.api.Pointcut;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 
 @Interceptor
-public class FhirCertificaatInterceptor
+public class FhirCertificaatInterceptor extends FQDNAwareInterceptor
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(FhirCertificaatInterceptor.class);
-
-	private FQDNProvider fqdnStore;
 
 	@Hook(Pointcut.SERVER_INCOMING_REQUEST_PRE_PROCESSED)
 	public boolean incomingRequestPreProcessed(HttpServletRequest theRequest, HttpServletResponse theResponse)
 	{
 		if (!getFqdnStore().isFQDNCheckNeeded())
 		{
+			getFqdnStore().registerFQDN("Niet bepaald");
 			return true;
 		}
 
@@ -80,6 +78,7 @@ public class FhirCertificaatInterceptor
 			{
 				throw new AuthenticationException("No valid FQDN found in certificate.");
 			}
+			getFqdnStore().registerFQDN(fqdn);
 		}
 		catch (CertificateException | IOException e)
 		{
@@ -113,14 +112,4 @@ public class FhirCertificaatInterceptor
 		LOG.debug("Client certificate: " + clientPemCert);
 		return clientPemCert;
 	}
-
-	private FQDNProvider getFqdnStore()
-	{
-		if (fqdnStore == null)
-		{
-			fqdnStore = SpringBeanProvider.getInstance().getBean(FQDNProvider.class);
-		}
-		return fqdnStore;
-	}
-
 }

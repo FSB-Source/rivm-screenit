@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.service.cervix.CervixBarcodeAfdrukService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -33,6 +34,7 @@ import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfViewer;
+import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixBarcodeAfdrukkenBasePage;
 import nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster.popup.CervixMonsterBezwaarDialog;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
@@ -53,6 +55,7 @@ import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -62,6 +65,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -75,15 +79,11 @@ import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.datetime.PatternDateConverter;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends GenericPanel<M>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixUitnodigingPanel.class);
-
 	@SpringBean
 	private CervixVervolgService vervolgService;
 
@@ -99,6 +99,11 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 	@SpringBean
 	private HibernateService hibernateService;
 
+	@SpringBean
+	private SimplePreferenceService preferenceService;
+
+	private CervixBarcodeAfdrukkenBasePage parentPage;
+
 	protected RadioChoice<CervixNietAnalyseerbaarReden> nietAnalyseerbaarReden;
 
 	protected CheckBoxMultipleChoice<CervixMonsterSignalering> monsterSignaleringen;
@@ -109,6 +114,8 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 
 	private WebMarkupContainer barcode;
 
+	private WebMarkupContainer backupPrintMonsterIdContainer;
+
 	protected WebMarkupContainer monsterSignaleringenContainer;
 
 	private Label reedsIngeboektLabel;
@@ -117,9 +124,20 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 
 	private List<CervixMonsterSignalering> oudeSignaleringen = new ArrayList<>();
 
-	public CervixUitnodigingPanel(String id, M monster)
+	public CervixUitnodigingPanel(CervixBarcodeAfdrukkenBasePage parentPage, String id, M monster)
 	{
-		super(id, ModelUtil.cModel(monster));
+		super(id, ModelUtil.ccModel(monster));
+		this.parentPage = parentPage;
+	}
+
+	@Override
+	public void renderHead(IHeaderResponse response)
+	{
+		super.renderHead(response);
+		if (preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
+		{
+			parentPage.initialiseerZebraPrinterLibrary(response);
+		}
 	}
 
 	@Override
@@ -257,14 +275,27 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				showBarcode(target);
+				if (preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
+				{
+					target.prependJavaScript(
+						"printBarcode(" + CervixUitnodigingPanel.this.getModelObject().getUitnodiging().getBrief().getClient().getPersoon().getBsn() + ", "
+							+ (CervixUitnodigingPanel.this.getModelObject().getMonsterId() + ");"));
+					showBackupPrintMonsterIdContainer(target);
+				}
+				else
+				{
+					showBarcode(target);
+				}
 			}
 		});
 
-		barcode = getEmptyBarcodePanel();
+		barcode = parentPage.maakEmptyPanel("barcode");
 		form.add(barcode);
 
 		bezwaarDialog();
+		backupPrintMonsterIdContainer = parentPage.maakEmptyPanel("backupPrintMonsterIdContainer");
+		form.add(backupPrintMonsterIdContainer);
+		parentPage.maakErrorCallbackBehavior();
 	}
 
 	private boolean moetPrintenSignaleringen()
@@ -309,7 +340,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 		}
 	}
 
-	void showBarcode(AjaxRequestTarget target)
+	protected void showBarcode(AjaxRequestTarget target)
 	{
 		File barcodeFile = barcodeAfdrukService.saveBarcodeDocument(getModelObject().getUitnodiging());
 		ScreenitSession.get().addTempFile(barcodeFile);
@@ -329,7 +360,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 
 	private void hideBarcode(AjaxRequestTarget target)
 	{
-		EmptyPanel newBarcode = getEmptyBarcodePanel();
+		EmptyPanel newBarcode = parentPage.maakEmptyPanel("barcode");
 
 		this.barcode.replaceWith(newBarcode);
 		this.barcode = newBarcode;
@@ -337,13 +368,22 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 		target.add(this.barcode);
 	}
 
-	private EmptyPanel getEmptyBarcodePanel()
+	private void showBackupPrintMonsterIdContainer(AjaxRequestTarget target)
 	{
-		EmptyPanel barcode = new EmptyPanel("barcode");
-		barcode.setVisible(false);
-		barcode.setOutputMarkupPlaceholderTag(true);
-		barcode.setOutputMarkupId(true);
-		return barcode;
+		WebMarkupContainer container = new WebMarkupContainer("backupPrintMonsterIdContainer");
+		container.setOutputMarkupId(true);
+		container.add(new IndicatingAjaxLink<Void>("backupPrintMonsterId")
+		{
+			@Override
+			public void onClick(AjaxRequestTarget target)
+			{
+				CervixUitnodigingPanel.this.showBarcode(target);
+			}
+		});
+
+		this.backupPrintMonsterIdContainer.replaceWith(container);
+		this.backupPrintMonsterIdContainer = container;
+		target.add(this.backupPrintMonsterIdContainer);
 	}
 
 	protected String getSignaleringen()

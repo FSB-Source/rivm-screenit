@@ -53,31 +53,19 @@ public class MedVryOntvanger implements IMedVryOntvanger
 
 	private String telefoonnummer;
 
-	public MedVryOntvanger(ColonHuisartsBericht huisartsBericht, String ossAfleverAdres)
+	public MedVryOntvanger(ColonHuisartsBericht huisartsBericht)
 	{
 		if (huisartsBericht.getHuisarts() != null)
 		{
-			setVoorHuisarts(huisartsBericht.getHuisarts(), ossAfleverAdres);
-		}
-		else if (huisartsBericht.getOnbekendeHuisarts() != null)
-		{
-			setVoorOnbekendeHuisarts(huisartsBericht.getOnbekendeHuisarts(), ossAfleverAdres);
+			setVoorHuisarts(huisartsBericht.getHuisarts());
 		}
 	}
 
-	public MedVryOntvanger(CervixHuisartsLocatie huisartsLocatie, String ossAfleverAdres)
+	public MedVryOntvanger(CervixHuisartsLocatie huisartsLocatie, String ediAfleverAdres)
 	{
 		if (huisartsLocatie != null)
 		{
-			setVoorHuisarts(huisartsLocatie, ossAfleverAdres);
-		}
-	}
-
-	public MedVryOntvanger(Huisarts huisarts, String ossAfleverAdres)
-	{
-		if (huisarts != null)
-		{
-			setVoorHuisarts(huisarts, ossAfleverAdres);
+			setVoorHuisarts(huisartsLocatie, ediAfleverAdres);
 		}
 	}
 
@@ -91,19 +79,10 @@ public class MedVryOntvanger implements IMedVryOntvanger
 
 	private void setVoorHuisarts(Huisarts huisarts)
 	{
-		setVoorHuisarts(huisarts, null);
-	}
-
-	private void setVoorHuisarts(Huisarts huisarts, String ossAfleverAdres)
-	{
 		this.volledigeOntvangerNaam = NaamUtil.getNaamHuisarts(huisarts);
 		if (StringUtils.isNotBlank(huisarts.getEdiadres()))
 		{
 			this.ediMailAdres = huisarts.getEdiadres();
-		}
-		else if (ossAfleverAdres != null)
-		{
-			this.ediMailAdres = ossAfleverAdres;
 		}
 		this.agbcode = huisarts.getHuisartsAgb();
 		this.telefoonnummer = huisarts.getTelefoonnummer();
@@ -125,75 +104,16 @@ public class MedVryOntvanger implements IMedVryOntvanger
 		this.postcode = adres.getPostcode();
 	}
 
-	private void setVoorHuisarts(CervixHuisartsLocatie huisartsLocatie, String ossAfleverAdres)
+	private void setVoorHuisarts(CervixHuisartsLocatie huisartsLocatie, String ediAfleverAdres)
 	{
 		CervixHuisarts huisarts = huisartsLocatie.getHuisarts();
 		this.volledigeOntvangerNaam = NaamUtil.getNaamHuisarts(huisarts);
 
-		this.ediMailAdres = ossAfleverAdres;
+		this.ediMailAdres = ediAfleverAdres;
 
 		this.agbcode = huisarts.getAgbcode();
 		this.telefoonnummer = huisarts.getTelefoon();
 		setOntvangerAdres(huisartsLocatie.getLocatieAdres());
-	}
-
-	private void setVoorOnbekendeHuisarts(OnbekendeHuisarts onbekendeHuisarts, String ossAfleverAdres)
-	{
-		this.volledigeOntvangerNaam = NaamUtil.getNaamOnbekendeHuisarts(onbekendeHuisarts);
-		this.ediMailAdres = ossAfleverAdres;
-		this.telefoonnummer = onbekendeHuisarts.getTelefoonnummer();
-		this.faxnummer = onbekendeHuisarts.getFaxnummer();
-		this.huisnummer = new String();
-		this.straat = new String();
-		this.huisnummerToevoeging = new String();
-		if (StringUtils.isNotBlank(onbekendeHuisarts.getPraktijkAdres()))
-		{
-			char[] adresArray = onbekendeHuisarts.getPraktijkAdres().toCharArray();
-
-			for (char stukje : adresArray)
-			{
-				if (!Character.isDigit(stukje))
-				{
-					this.straat += stukje;
-				}
-				else
-				{
-					break;
-				}
-			}
-
-			boolean huisnummerGevonden = false;
-			for (char stukje : adresArray)
-			{
-				if (Character.isDigit(stukje))
-				{
-					this.huisnummer += stukje;
-					huisnummerGevonden = true;
-				}
-				else if (huisnummerGevonden)
-				{
-					break;
-				}
-			}
-
-			boolean getalGevonden = false;
-			for (char stukje : adresArray)
-			{
-				if (Character.isDigit(stukje) && !getalGevonden)
-				{
-					getalGevonden = true;
-				}
-				else if (getalGevonden)
-				{
-					this.huisnummerToevoeging += stukje;
-				}
-			}
-		}
-		this.plaats = onbekendeHuisarts.getPraktijkPlaats();
-		this.postcode = onbekendeHuisarts.getPraktijkPostcode();
-		this.straat = StringUtils.trim(straat);
-		this.huisnummer = StringUtils.trim(huisnummer);
-		this.huisnummerToevoeging = StringUtils.trim(huisnummerToevoeging);
 	}
 
 	@Override
@@ -262,5 +182,4 @@ public class MedVryOntvanger implements IMedVryOntvanger
 	{
 		return this.postcode;
 	}
-
 }

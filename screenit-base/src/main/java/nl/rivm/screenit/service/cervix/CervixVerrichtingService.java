@@ -26,7 +26,6 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.dto.cervix.facturatie.CervixVerrichtingenZoekObject;
-import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
@@ -35,8 +34,6 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBoekRegel;
-import nl.rivm.screenit.model.cervix.facturatie.CervixHuisartsTarief;
-import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
 
 public interface CervixVerrichtingService
@@ -61,20 +58,8 @@ public interface CervixVerrichtingService
 	long countHuisartsVerrichtingen(CervixVerrichtingenZoekObject verrichtingenCriteria, ScreeningOrganisatie screeningOrganisatie, CervixHuisarts huisarts,
 		CervixHuisartsLocatie huisartsLocatie);
 
-	void verwijderCervixTarief(CervixTarief tarief, Account account, String melding);
-
-	void toevoegenIndexatieTarief(CervixTarief tarief, List<CervixTarief> oudeTarieven, Account account);
-
-	void toevoegenTarief(CervixTarief tarief, Account account);
-
 	CervixTarief getTariefVoorDatum(CervixTariefType tariefType, Date verrichtingsDatum, BMHKLaboratorium bmhkLaboratorium);
 
-	void berekenEinddatumCervixLaboratoriumTarief(BMHKLaboratorium laboratorium);
-
 	CervixBetaalopdracht createBetaalOpdracht(ScreeningOrganisatie screeningOrganisatie, List<CervixBoekRegel> boekregels);
-
-	String getLogMeldingLabTariefVerwijderd(CervixLabTarief labTarief);
-
-	String getLogMeldingHuisartsTariefVerwijderd(CervixHuisartsTarief huisartsTarief);
 
 }

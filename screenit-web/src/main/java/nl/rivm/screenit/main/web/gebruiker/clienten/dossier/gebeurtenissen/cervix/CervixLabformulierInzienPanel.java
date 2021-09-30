@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervix;
 
 /*-
@@ -32,11 +31,11 @@ import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -52,19 +51,23 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class CervixLabformulierInzienPanel extends AbstractGebeurtenisDetailPanel
 {
 
-	private static final long serialVersionUID = 1L;
-
 	public CervixLabformulierInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
-		CervixUitnodiging uitnodiging = (CervixUitnodiging) model.getObject().getUitnodiging();
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		CervixUitnodiging uitnodiging = (CervixUitnodiging) HibernateHelper.deproxy(getModelObject().getUitnodiging());
 
 		CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
 		CervixLabformulier labformulier = uitstrijkje.getLabformulier();
 		String objid = labformulier.getObjid();
 		add(new Label("monsterId", uitstrijkje.getMonsterId() + ""));
 		add(new Label("huisarts", getHuisartsInfo(labformulier)));
-		add(new EnumLabel<CervixLabformulierStatus>("status", labformulier.getStatus()));
+		add(new EnumLabel<>("status", labformulier.getStatus()));
 
 		boolean magHpvMinInzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_INZIEN_FORMULIER_NA_HPVMIN, Actie.INZIEN);
 

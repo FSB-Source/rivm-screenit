@@ -34,7 +34,6 @@ import nl.rivm.screenit.main.model.mamma.beoordeling.BeoordelingenReserveringRes
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeWerklijstZoekObject;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaCeWerklijstZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
-import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dto.LaesieDto;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.EnovationHuisarts;
@@ -73,6 +72,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsBerichtService;
+import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.rivm.screenit.service.mamma.be.verslag.MammaVerslagDocumentCreator;
 import nl.rivm.screenit.service.mamma.impl.MammaBaseBeoordelingServiceImpl;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -343,21 +343,26 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 		{
 			return new BeoordelingenReserveringResult();
 		}
-
-		List<Long> komendeGereserveerdeBeoordelingen = reserveerBeoordelingenBinnenLock(startBeoordelingId, beoordelingenIds, ingelogdeGebruiker, lezerSoort);
-
-		BeoordelingenReserveringResult reserveringResult = new BeoordelingenReserveringResult(komendeGereserveerdeBeoordelingen);
-
-		if (reserveringResult.getEersteGereserveerdeBeoordelingId() == null)
+		else if (MammaBeLezerSoort.CONCLUSIE_REVIEW.equals(lezerSoort))
 		{
-			reserveringResult.setInfoMessage("Het beoordelen is afgerond, de laatste niet beoordeelde beoordeling is momenteel gereserveerd voor een collega.");
+			return new BeoordelingenReserveringResult(List.of(startBeoordelingId));
 		}
-		else if (!reserveringResult.getEersteGereserveerdeBeoordelingId().equals(startBeoordelingId))
+		else
 		{
-			reserveringResult.setInfoMessage("Er is een beoordeling overgeslagen die gereserveerd is voor een collega.");
-		}
+			List<Long> komendeGereserveerdeBeoordelingen = reserveerBeoordelingenBinnenLock(startBeoordelingId, beoordelingenIds, ingelogdeGebruiker, lezerSoort);
 
-		return reserveringResult;
+			BeoordelingenReserveringResult reserveringResult = new BeoordelingenReserveringResult(komendeGereserveerdeBeoordelingen);
+
+			if (reserveringResult.getEersteGereserveerdeBeoordelingId() == null)
+			{
+				reserveringResult.setInfoMessage("Het beoordelen is afgerond, de laatste niet beoordeelde beoordeling is momenteel gereserveerd voor een collega.");
+			}
+			else if (!reserveringResult.getEersteGereserveerdeBeoordelingId().equals(startBeoordelingId))
+			{
+				reserveringResult.setInfoMessage("Er is een beoordeling overgeslagen die gereserveerd is voor een collega.");
+			}
+			return reserveringResult;
+		}
 	}
 
 	private List<Long> reserveerBeoordelingenBinnenLock(Long startBeoordelingId, List<Long> beoordelingenIds, InstellingGebruiker ingelogdeGebruiker, MammaBeLezerSoort lezerSoort)

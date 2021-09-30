@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -62,7 +61,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 {
-
 	@Autowired
 	private OrganisatieZoekDao organisatieZoekDao;
 
@@ -306,16 +304,6 @@ public class OrganisatieZoekServiceImpl implements OrganisatieZoekService
 	public List<Instelling> getAllActieveOrganisatiesWithType(Class<? extends Instelling> instelling)
 	{
 		return (List<Instelling>) instellingDao.getActieveInstellingen(instelling);
-	}
-
-	@Override
-	public List<Long> getZichtbareUltimviewInstellingIds(Instelling instelling, ToegangLevel level)
-	{
-		List<OrganisatieType> types = new ArrayList<OrganisatieType>();
-
-		types.add(instelling.getOrganisatieType());
-
-		return getZichtbareInstellingen(instelling, level, types);
 	}
 
 	@Override

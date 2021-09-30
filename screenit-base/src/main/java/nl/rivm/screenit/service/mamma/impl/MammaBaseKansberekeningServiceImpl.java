@@ -90,6 +90,8 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 
 	private static final BigDecimal MINIMUM_OPKOMSTKANS = new BigDecimal(0.01);
 
+	private static final int KANSBEREKENING_TIMEOUT_MS = 5000;
+
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
@@ -113,6 +115,8 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	private Integer minimaleLeeftijd;
 
 	private Boolean useKansbereking;
+
+	private Integer defaultOpkomstkansZonderKansberekening;
 
 	@PostConstruct
 	private void init()
@@ -296,14 +300,23 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	{
 		if (mayUseKansberekening())
 		{
-			RestTemplate restTemplate = RestApiFactory.create();
-			BigDecimal opkomstkans = new BigDecimal(
-				restTemplate.postForObject(kansberekeningServiceUrl + "predict_afspraak", "[" + new AfspraakEventDto(afspraak).toString() + "]", String.class));
-			return opkomstkans.compareTo(MINIMUM_OPKOMSTKANS) >= 0 ? opkomstkans : MINIMUM_OPKOMSTKANS;
+			RestTemplate restTemplate = RestApiFactory.create(KANSBEREKENING_TIMEOUT_MS);
+
+			try
+			{
+				BigDecimal opkomstkans = new BigDecimal(
+					restTemplate.postForObject(kansberekeningServiceUrl + "predict_afspraak", "[" + new AfspraakEventDto(afspraak).toString() + "]", String.class));
+				return opkomstkans.compareTo(MINIMUM_OPKOMSTKANS) >= 0 ? opkomstkans : MINIMUM_OPKOMSTKANS;
+			}
+			catch (RuntimeException ex)
+			{
+				LOG.error("Kon geen kans berekenen voor afspraakID: '{}'", afspraak.getId(), ex);
+				return BigDecimal.ONE;
+			}
 		}
 		else
 		{
-			return new BigDecimal(0.5);
+			return BigDecimal.valueOf(getDefaultOpkomstkansZonderKansberekening()).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
 		}
 	}
 
@@ -314,6 +327,15 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 			resetPreferences();
 		}
 		return useKansbereking;
+	}
+
+	private Integer getDefaultOpkomstkansZonderKansberekening()
+	{
+		if (defaultOpkomstkansZonderKansberekening == null)
+		{
+			resetPreferences();
+		}
+		return defaultOpkomstkansZonderKansberekening;
 	}
 
 	public Integer getMinimaleLeeftijd()
@@ -731,5 +753,6 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	{
 		minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
 		useKansbereking = preferenceService.getBoolean(PreferenceKey.KANSBEREKENING_BK.toString());
+		defaultOpkomstkansZonderKansberekening = preferenceService.getInteger(PreferenceKey.KANSBEREKENING_BK_TEST_DEFAULT_OPKOMSTKANS.name(), 50);
 	}
 }

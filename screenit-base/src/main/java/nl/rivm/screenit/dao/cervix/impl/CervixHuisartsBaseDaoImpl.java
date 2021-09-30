@@ -43,11 +43,13 @@ import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
+import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +75,17 @@ public class CervixHuisartsBaseDaoImpl extends AbstractAutowiredDao implements C
 	@Override
 	public CervixHuisarts getActieveHuisarts(String agb)
 	{
-		BaseCriteria<CervixHuisarts> baseCriteria = new BaseCriteria<>(CervixHuisarts.class);
-		baseCriteria.add(Restrictions.eq("agbcode", agb.trim()));
-		baseCriteria.add(Restrictions.eq("actief", Boolean.TRUE));
+		BaseCriteria<CervixHuisarts> baseCriteria = new BaseCriteria<>(CervixHuisarts.class, "ha");
+		baseCriteria.add(Restrictions.eq("ha.agbcode", agb.trim()));
+		baseCriteria.add(Restrictions.eq("ha.actief", Boolean.TRUE));
+
+		DetachedCriteria subcriteria = DetachedCriteria.forClass(CervixHuisartsLocatie.class, "locatie");
+		subcriteria.add(Restrictions.eq("locatie.status", CervixLocatieStatus.ACTIEF));
+		subcriteria.add(Restrictions.eqProperty("locatie.huisarts", "ha.id"));
+		subcriteria.setProjection(Projections.rowCount());
+
+		baseCriteria.add(Subqueries.eq(1L, subcriteria));
+
 		return baseCriteria.uniqueResult(getSession());
 	}
 

@@ -164,7 +164,7 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 		ComponentHelper.addTextField(form, "rechtbank", false, 255, String.class, inzien);
 		ComponentHelper.addTextField(form, "rcmdl", false, 255, String.class, inzien);
 		form.add(new TextArea<String>("vertegenwoordiger").add(StringValidator.maximumLength(512)).setEnabled(!inzien));
-		form.add(new UploadInstellingImageFormComponent("logo", model, UploadInstellingImageType.DK_SO_LOGO_MINIGRIP).setEnabled(!inzien));
+		form.add(new UploadInstellingImageFormComponent("logo", model, UploadInstellingImageType.DK_SO_LOGO_INPAKCENTRUM).setEnabled(!inzien));
 		form.add(new UploadInstellingImageFormComponent("logoBrief", model, UploadInstellingImageType.DK_SO_LOGO_BRIEF).setEnabled(!inzien));
 		form.add(new UploadInstellingImageFormComponent("besturderSign", model, UploadInstellingImageType.DK_SO_BESTUUR).setEnabled(!inzien));
 		form.add(new UploadInstellingImageFormComponent("rcmdlSign", model, UploadInstellingImageType.DK_SO_RCMDL).setEnabled(!inzien));

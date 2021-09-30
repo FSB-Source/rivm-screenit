@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
-import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisAdresService;
 import nl.rivm.screenit.main.service.mamma.MammaTehuisService;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -207,8 +206,8 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				boolean succes = baseTehuisService.saveOrUpdateTehuis(tehuis, origineleStandplaats, ScreenitSession.get().getLoggedInInstellingGebruiker());
 				if (succes)
 				{
-					createOrReplaceNaamComponent(tehuisWijzigenForm, target);
 					success(getString("message.gegevensopgeslagen"));
+					createOrReplaceNaamComponent(tehuisWijzigenForm, target);
 					BasePage.markeerFormulierenOpgeslagen(target);
 					target.add(persistentContainer);
 					target.add(opmerkingenPanel);
@@ -255,7 +254,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 		columns.add(new PropertyColumn<>(Model.of("Huisnummer"), "huisnummer", "huisnummer"));
 		columns.add(new PropertyColumn<>(Model.of("Huisnummertoevoeging"), "huisnummerToevoeging", "huisnummerToevoeging"));
 		columns.add(new PropertyColumn<>(Model.of("Huisletter"), "huisletter", "huisletter"));
-		columns.add(new PropertyColumn<MammaTehuisAdres, String>(Model.of("Locatie van tehuis"), "locatieVanTehuis", "locatieVanTehuis")
+		columns.add(new PropertyColumn<>(Model.of("Locatie van tehuis"), "locatieVanTehuis", "locatieVanTehuis")
 		{
 			@Override
 			public IModel<String> getDataModel(IModel<MammaTehuisAdres> rowModel)
@@ -288,8 +287,8 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 			});
 		}
 
-		ScreenitDataTable tehuisAdressenTabel = new ScreenitDataTable<MammaTehuisAdres, String>("tehuisAdressenTabel", columns,
-			new MammaTehuisAdressenDataProvider("plaats", getTehuisModel()), 10, Model.of("adres(sen)"))
+		ScreenitDataTable tehuisAdressenTabel = new ScreenitDataTable<>("tehuisAdressenTabel", columns, new MammaTehuisAdressenDataProvider("plaats", getTehuisModel()), 10,
+			Model.of("adres(sen)"))
 		{
 			@Override
 			protected boolean isRowClickable(IModel<MammaTehuisAdres> rowModel)
@@ -299,7 +298,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 		};
 		tehuisAdressenContainer.add(tehuisAdressenTabel);
 
-		adresToevoegenBtn = new IndicatingAjaxLink<Void>("adresToevoegenBtn")
+		adresToevoegenBtn = new IndicatingAjaxLink<>("adresToevoegenBtn")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -317,7 +316,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 	private void openAdresDialog(AjaxRequestTarget target, WebMarkupContainer tehuisAdressenContainer, MammaTehuisAdres adres)
 	{
 		dialog.openWith(target,
-			new MammaTehuisAdresToevoegenPanel(IDialog.CONTENT_ID, ModelUtil.cModel(adres))
+			new MammaTehuisAdresToevoegenPanel(IDialog.CONTENT_ID, ModelUtil.ccModel(adres))
 			{
 
 				private static final long serialVersionUID = 1L;
@@ -337,7 +336,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 	{
 		MammaTehuisAdres adres = new MammaTehuisAdres();
 		adres.setTehuis(getTehuis());
-		IModel<MammaTehuisAdres> clientZoekenModel = ModelUtil.cModel(adres);
+		IModel<MammaTehuisAdres> clientZoekenModel = ModelUtil.ccModel(adres);
 		Form<MammaTehuisAdres> clientZoekenForm = new ScreenitForm<>("clientZoekenForm", clientZoekenModel);
 		clientZoekenForm.add(new PostcodeField("postcode"));
 		clientZoekenForm.add(new TextField<>("huisnummer"));
@@ -351,7 +350,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 		columns.add(new ClientColumn<>("persoon.achternaam", ""));
 		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "persoon"));
-		columns.add(new PropertyColumn<Client, String>(Model.of("Adres"), "gba_adres.straat", "persoon.gbaAdres.getAdres")
+		columns.add(new PropertyColumn<>(Model.of("Adres"), "gba_adres.straat", "persoon.gbaAdres.getAdres")
 		{
 			@Override
 			public IModel<String> getDataModel(IModel<Client> rowModel)
@@ -362,7 +361,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 			}
 		});
 		columns.add(new DateTimePropertyColumn<>(Model.of("Laatste adreswijziging"), "laatsteGbaMutatie.mutatieDatum", "laatste_gba_mutatie.mutatie_datum"));
-		columns.add(new AbstractColumn<Client, String>(Model.of("Doelgroep"), "dossier.doelgroep")
+		columns.add(new AbstractColumn<>(Model.of("Doelgroep"), "dossier.doelgroep")
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<Client>> cellItem, String componentId, IModel<Client> rowModel)
@@ -370,7 +369,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				cellItem.add(new MammaDoelgroepIndicatorPanel(componentId, rowModel.getObject().getMammaDossier(), false));
 			}
 		});
-		columns.add(new PropertyColumn<Client, String>(Model.of("Gekoppeld"), "mammaDossier.tehuis")
+		columns.add(new PropertyColumn<>(Model.of("Gekoppeld"), "mammaDossier.tehuis")
 		{
 			@Override
 			public IModel<String> getDataModel(IModel<Client> rowModel)
@@ -386,7 +385,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				}
 			}
 		});
-		columns.add(new PropertyColumn<Client, String>(Model.of("Uit te nodigen"), "uitTeNodigen", "mammaDossier.uitTeNodigen")
+		columns.add(new PropertyColumn<>(Model.of("Uit te nodigen"), "uitTeNodigen", "mammaDossier.uitTeNodigen")
 		{
 			@Override
 			public IModel<String> getDataModel(IModel<Client> rowModel)
@@ -406,8 +405,8 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				}
 			}
 		});
-		columns.add(new DateTimePropertyColumn<Client, String>(Model.of("Laatste afspraak"),
-			"mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.vanaf", Constants.getDateTimeFormat())
+		columns.add(
+			new DateTimePropertyColumn<>(Model.of("Laatste afspraak"), "mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.vanaf", Constants.getDateTimeFormat())
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<Client> embeddedModel)
@@ -421,7 +420,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 				return vanafStringModel;
 			}
 		});
-		columns.add(new NotClickablePropertyColumn<Client, String>(Model.of(""), "")
+		columns.add(new NotClickablePropertyColumn<>(Model.of(""), "")
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<Client>> cell, String id, IModel<Client> model)
@@ -430,7 +429,7 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 			}
 		});
 
-		ScreenitDataTable<Client, String> tehuisClientenTabel = new ScreenitDataTable<Client, String>("tehuisClientenTabel", columns,
+		ScreenitDataTable<Client, String> tehuisClientenTabel = new ScreenitDataTable<>("tehuisClientenTabel", columns,
 			new MammaTehuisClientenDataProvider("persoon.achternaam", clientZoekenModel), 10, Model.of("cliënt(en)"))
 		{
 			@Override
@@ -494,9 +493,6 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 
 		IndicatingAjaxSubmitLink zoekenButton = new IndicatingAjaxSubmitLink("clientZoekenBtn", clientZoekenForm)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -548,10 +544,8 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 
 	private void addInActiverenButton(Form<MammaTehuis> tehuisWijzigenForm)
 	{
-		inActiverenBtn = new ConfirmingIndicatingAjaxLink<Gebruiker>("inActiverenBtn", dialog, "question.remove.tehuis")
+		inActiverenBtn = new ConfirmingIndicatingAjaxLink<>("inActiverenBtn", dialog, "question.remove.tehuis")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onConfigure()
@@ -610,10 +604,8 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 
 	private void addUitnodigenButton(MarkupContainer container)
 	{
-		uitnodigenBtn = new ConfirmingIndicatingAjaxLink<Gebruiker>("uitnodigen", dialog, "question.uitnodigen")
+		uitnodigenBtn = new ConfirmingIndicatingAjaxLink<>("uitnodigen", dialog, "question.uitnodigen")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onConfigure()
 			{
@@ -644,9 +636,8 @@ public class MammaTehuisEditPage extends MammaPlanningBasePage
 
 				if (aantalClientenMetBrief.get() > 0 || aantalClientenMetProjectBrief.get() > 0 || aantalClientenMetSuspectBrief.get() > 0)
 				{
-					dialog.openWith(target,
-						new MammaTehuisMergedBrievenPanel(IDialog.CONTENT_ID, aantalClientenMetProjectBrief.get(),
-							aantalClientenMetBrief.get() + aantalClientenMetSuspectBrief.get(), aantalClientenMetSuspectBrief.get()));
+					dialog.openWith(target, new MammaTehuisMergedBrievenPanel(IDialog.CONTENT_ID, aantalClientenMetProjectBrief.get(),
+						aantalClientenMetBrief.get() + aantalClientenMetSuspectBrief.get(), aantalClientenMetSuspectBrief.get()));
 					target.add(opmerkingenPanel);
 					target.add(tehuisClientenContainer);
 				}

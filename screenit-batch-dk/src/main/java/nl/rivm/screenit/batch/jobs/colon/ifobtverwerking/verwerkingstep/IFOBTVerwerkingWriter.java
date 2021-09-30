@@ -38,12 +38,10 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.IfobtVerwerkingBeeindigdLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportageEntry;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.IFobtService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -124,7 +122,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 					ifobtTest.setAnalyseDatum(ifobtResult.getAnalyseDatum());
 					ifobtTest.setVerwerkingsDatum(currentDateSupplier.getDate());
 
-					if (correctForMinigripIncident(ifobtTest))
+					if (correctForInpakcentrumIncident(ifobtTest))
 					{
 						BigDecimal uitslag = ifobtResult.getUitslag();
 						ifobtTest.setUitslag(uitslag);
@@ -161,7 +159,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 		}
 	}
 
-	private boolean correctForMinigripIncident(IFOBTTest ifobtTest)
+	private boolean correctForInpakcentrumIncident(IFOBTTest ifobtTest)
 	{
 		ColonUitnodiging colonUitnodiging = ifobtTest.getColonUitnodiging();
 		if (colonUitnodiging != null)
@@ -169,7 +167,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 			String trackTraceId = colonUitnodiging.getTrackTraceId();
 			if (trackTraceId != null && (trackTraceId.startsWith("16859/") || trackTraceId.startsWith("17531/")))
 			{
-				LOG.info("FIT is aangepast naar status verwijderd (Incident MiniGrip): " + ifobtTest.getBarcode());
+				LOG.info("FIT is aangepast naar status verwijderd (Incident Inpakcentrum): " + ifobtTest.getBarcode());
 				ifobtTest.setStatus(IFOBTTestStatus.VERWIJDERD);
 				ifobtTest.setStatusDatum(currentDateSupplier.getDate());
 				return false;

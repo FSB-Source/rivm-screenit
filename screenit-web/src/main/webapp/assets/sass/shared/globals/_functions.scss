@@ -1,13 +1,98 @@
+@charset "utf-8";
+@function prefixed($prefix, $property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  $properties: $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9;
+  $prefixed: false;
 
+  @each $item in $properties {
+    @if type-of($item) == "string" {
+      $prefixed: $prefixed or str-index($item, "url") != 1 and str-index($item, "rgb") != 1 and str-index($item, "#") != 1;
+    }
+    @else if type-of($item) == "color" {}
+    @else if $item != null {
+      $prefixed: true;
+    }
+  }
 
-@function relative-size( $target, $context: $base-fs, $unit: em ) {
-
-  @return #{$target/$context}$unit;
-
+  @return $prefixed;
 }
 
-@function rs( $target, $context: $base-fs, $unit: em ) {
+@function prefix($prefix, $property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  $properties: "";
 
+  @if type-of($property1) == "list" {
+    $properties: $property1;
+  }
+  @else {
+    $properties: $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9;
+  }
+
+  $props: false;
+
+  @each $item in $properties {
+    @if $item == null {}
+    @else {
+      @if prefixed($prefix, $item) {
+        $item: #{$prefix}-#{$item};
+      }
+
+      @if $props {
+        $props: $props, $item;
+      }
+      @else {
+        $props: $item;
+      }
+    }
+  }
+
+  @return $props;
+}
+
+@function -svg($property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  @return prefix("-svg", $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -owg($property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  @return prefix("-owg", $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -webkit($property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  @return prefix("-webkit", $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -moz($property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  @return prefix("-moz", $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -o($property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  @return prefix("-o", $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function -pie($property1, $property2: null, $property3: null, $property4: null, $property5: null, $property6: null, $property7: null, $property8: null, $property9: null) {
+  @return prefix("-pie", $property1, $property2, $property3, $property4, $property5, $property6, $property7, $property8, $property9);
+}
+
+@function first-value-of($list) {
+  @return nth($list, 1);
+}
+
+@function compact($var-1, $var-2: false, $var-3: false, $var-4: false, $var-5: false, $var-6: false, $var-7: false, $var-8: false, $var-9: false, $var-10: false) {
+  $full: $var-1;
+  $vars: $var-2, $var-3, $var-4, $var-5, $var-6, $var-7, $var-8, $var-9, $var-10;
+
+  @each $var in $vars {
+    @if $var {
+      $full: $full, $var;
+    }
+  }
+
+  @return $full;
+}
+
+
+@function relative-size($target, $context: $base-fs, $unit: em) {
+  @return unquote("#{$target / $context}#{$unit}");
+}
+
+@function rs($target, $context: $base-fs, $unit: em) {
   @return relative-size($target, $context, $unit);
-
 }

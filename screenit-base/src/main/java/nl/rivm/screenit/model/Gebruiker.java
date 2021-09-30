@@ -55,7 +55,6 @@ import org.hibernate.envers.NotAudited;
 @Entity
 @Table(
 	indexes = {
-		@Index(name = "IDX_GEBRUIKER_GEBRUIKERSNAAM", columnList = "gebruikersnaam"),
 		@Index(name = "IDX_GEBRUIKER_ACTIEF", columnList = "actief"),
 		@Index(name = "IDX_GEBRUIKER_ACHTERNAAM", columnList = "achternaam") })
 @Audited
@@ -131,9 +130,6 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private InlogMethode inlogMethode;
-
-	@Column(nullable = true)
-	private String openid;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "gebruiker")
 	@NotAudited
@@ -577,16 +573,6 @@ public class Gebruiker extends Medewerker<InstellingGebruiker> implements Accoun
 	public void setGeboortedatum(Date geboortedatum)
 	{
 		this.geboortedatum = geboortedatum;
-	}
-
-	public String getOpenid()
-	{
-		return openid;
-	}
-
-	public void setOpenid(String openid)
-	{
-		this.openid = openid;
 	}
 
 	public List<AfgeslotenMedewerkerOvereenkomst> getAfgeslotenKwaliteitsOvereenkomsten()

@@ -112,16 +112,23 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 	public BriefKlaargezetPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
-		Date datum = geefDatum(model);
-		maakBriefInzienContent(model, datum);
-		maakBriefOpnieuwAanmakenContent(model, datum);
-		tegenhoudenContainer = maakBriefTegenhoudenContent(model);
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+
+		Date datum = geefDatum();
+		maakBriefInzienContent(datum);
+		maakBriefOpnieuwAanmakenContent(datum);
+		tegenhoudenContainer = maakBriefTegenhoudenContent();
 		add(tegenhoudenContainer);
 	}
 
-	private Date geefDatum(IModel<ScreeningRondeGebeurtenis> model)
+	private Date geefDatum()
 	{
-		ClientBrief<?, ?, ?> brief = model.getObject().getBrief();
+		ClientBrief<?, ?, ?> brief = getModelObject().getBrief();
 		MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
 		if (brief.isGegenereerd() && mergedBrieven != null)
 		{
@@ -140,7 +147,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 		}
 	}
 
-	private void maakBriefInzienContent(IModel<ScreeningRondeGebeurtenis> model, Date datum)
+	private void maakBriefInzienContent(Date datum)
 	{
 		add(pdfDialog);
 
@@ -149,7 +156,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 
 		WebMarkupContainer inzienGroep = new WebMarkupContainer("inzienGroep");
 
-		final ClientBrief brief = model.getObject().getBrief();
+		final ClientBrief brief = getModelObject().getBrief();
 		Label inzienMsg;
 		if (brief.getBriefDefinitie() != null)
 		{
@@ -234,16 +241,15 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 		}
 	}
 
-	private void maakBriefOpnieuwAanmakenContent(IModel<ScreeningRondeGebeurtenis> model, Date datum)
+	private void maakBriefOpnieuwAanmakenContent(Date datum)
 	{
 		WebMarkupContainer opnieuwContainer = new WebMarkupContainer("opnieuwContainer");
 		opnieuwContainer.setOutputMarkupId(true);
+		ClientBrief<?, ?, ?> brief = getModelObject().getBrief();
 		opnieuwContainer.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_OPNIEUW_KLAARZETTEN, Actie.AANPASSEN)
-			&& !tegenhoudenNietMogelijkBriefTypes.contains(model.getObject().getBrief().getBriefType()));
+			&& !tegenhoudenNietMogelijkBriefTypes.contains(brief.getBriefType()));
 
 		WebMarkupContainer opnieuwMogelijkContainer = new WebMarkupContainer("opnieuwMogelijk");
-
-		ClientBrief<?, ?, ?> brief = model.getObject().getBrief();
 
 		voegBriefTypeOfNaamBriefToe(opnieuwMogelijkContainer, brief);
 
@@ -322,13 +328,13 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 		return magHerdrukken;
 	}
 
-	private WebMarkupContainer maakBriefTegenhoudenContent(IModel<ScreeningRondeGebeurtenis> model)
+	private WebMarkupContainer maakBriefTegenhoudenContent()
 	{
 		WebMarkupContainer tegenhoudenContainer = new WebMarkupContainer("tegenhoudenContainer");
 		tegenhoudenContainer.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN));
 
 		WebMarkupContainer mogelijk = new WebMarkupContainer("mogelijk");
-		Brief brief = model.getObject().getBrief();
+		Brief brief = getModelObject().getBrief();
 
 		voegBriefTypeOfNaamBriefToe(mogelijk, brief);
 
@@ -336,7 +342,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 		boolean tegenhoudenNietMogelijkBevatBriefType = tegenhoudenNietMogelijkBriefTypes.contains(brief.getBriefType());
 		mogelijk.add(new Label("nietMeer", Model.of("niet meer"))
 			.setVisible(brief.isGegenereerd() || tegenhoudenNietMogelijkBevatBriefType));
-		IndicatingAjaxLink<Void> tegenhoudenLink = new IndicatingAjaxLink<Void>("tegenhouden")
+		IndicatingAjaxLink<Void> tegenhoudenLink = new IndicatingAjaxLink<>("tegenhouden")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -346,8 +352,8 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 				hibernateService.saveOrUpdate(brief);
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
 					BriefUtil.getBriefTypeNaam(brief) + ", wordt tegengehouden.", brief.getBriefType().getOnderzoeken());
-				verversTegenhouden(target);
 				info(getString("info.brieftegenhouden"));
+				verversTegenhouden(target);
 			}
 		};
 		tegenhoudenLink.setVisible(!brief.isTegenhouden() && !tegenhoudenNietMogelijkBevatBriefType);
@@ -358,9 +364,9 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ScreeningRondeGebeurtenis modelObject = BriefKlaargezetPanel.this.getModelObject();
-				modelObject.setGebeurtenis(TypeGebeurtenis.BRIEF_TEGENHOUDEN);
-				ClientBrief<?, ?, ?> brief = modelObject.getBrief();
+				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = BriefKlaargezetPanel.this.getModelObject();
+				screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_TEGENHOUDEN);
+				ClientBrief<?, ?, ?> brief = screeningRondeGebeurtenis.getBrief();
 				brief.setTegenhouden(false);
 				hibernateService.saveOrUpdate(brief);
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
@@ -383,7 +389,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 
 	private void verversTegenhouden(AjaxRequestTarget target)
 	{
-		WebMarkupContainer nieuw = maakBriefTegenhoudenContent(BriefKlaargezetPanel.this.getModel());
+		WebMarkupContainer nieuw = maakBriefTegenhoudenContent();
 		tegenhoudenContainer.replaceWith(nieuw);
 		tegenhoudenContainer = nieuw;
 		target.add(tegenhoudenContainer);

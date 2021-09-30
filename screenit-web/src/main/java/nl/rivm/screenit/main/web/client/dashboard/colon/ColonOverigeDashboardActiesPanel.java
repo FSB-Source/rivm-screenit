@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.service.ClientContactService;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.client.base.ClientFoutPage;
@@ -47,7 +48,6 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.NaamUtil;
@@ -77,7 +77,7 @@ public class ColonOverigeDashboardActiesPanel extends GenericPanel<Client>
 	private ClientContactService clientContactService;
 
 	@SpringBean
-	private ClientService clientService;
+	private ClientDoelgroepService doelgroepService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;
@@ -121,7 +121,7 @@ public class ColonOverigeDashboardActiesPanel extends GenericPanel<Client>
 					extraPanelParams));
 			}
 		};
-		boolean behoortTotDoelgroep = clientService.behoortTotDoelgroep(client, Bevolkingsonderzoek.COLON);
+		boolean behoortTotDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.COLON);
 		boolean magBezwaarMaken = behoortTotDoelgroep;
 
 		if (client.getBezwaarMomenten().size() > 0)
@@ -140,7 +140,7 @@ public class ColonOverigeDashboardActiesPanel extends GenericPanel<Client>
 			@Override
 			public void onClick()
 			{
-				if (clientService.behoortTotDoelgroep(ColonOverigeDashboardActiesPanel.this.getModelObject(), Bevolkingsonderzoek.COLON))
+				if (doelgroepService.behoortTotDoelgroep(ColonOverigeDashboardActiesPanel.this.getModelObject(), Bevolkingsonderzoek.COLON))
 				{
 					List<Object> extraPanelParams = new ArrayList<>();
 					extraPanelParams.add(AanvraagBriefStatus.BRIEF);

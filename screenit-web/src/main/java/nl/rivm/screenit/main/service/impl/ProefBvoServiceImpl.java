@@ -43,6 +43,7 @@ import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -68,6 +69,9 @@ public class ProefBvoServiceImpl implements ProefBvoService
 
 	@Autowired
 	private ClientService clientService;
+
+	@Autowired
+	private BaseAfmeldService baseAfmeldService;
 
 	@Autowired
 	private LogService logService;
@@ -118,7 +122,7 @@ public class ProefBvoServiceImpl implements ProefBvoService
 							document.setNaam(fileName);
 							afmelding.setHandtekeningDocumentAfmelding(document);
 
-							clientService.afmelden(afmelding.getDossier().getClient(), afmelding, ScreenitSession.get().getLoggedInInstellingGebruiker());
+							baseAfmeldService.afmelden(afmelding.getDossier().getClient(), afmelding, ScreenitSession.get().getLoggedInInstellingGebruiker());
 							logService.logGebeurtenis(LogGebeurtenis.AFMELDEN, ScreenitSession.get().getLoggedInAccount(), afmelding.getDossier().getClient(),
 								"Type: " + afmelding.getType().name().toLowerCase(), afmelding.getBevolkingsonderzoek());
 
@@ -196,7 +200,7 @@ public class ProefBvoServiceImpl implements ProefBvoService
 								handtekeningDoc.setNaam(fileName);
 							}
 							afmelding.setHandtekeningDocumentHeraanmelding(handtekeningDoc);
-							clientService.heraanmelden(afmelding, ingelogdeGebruiker);
+							baseAfmeldService.heraanmelden(afmelding, ingelogdeGebruiker);
 							aantalHeraangemeld++;
 						}
 						else

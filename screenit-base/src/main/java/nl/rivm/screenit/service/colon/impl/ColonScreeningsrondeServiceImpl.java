@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.colon.impl;
 
 /*-
@@ -59,6 +58,7 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -91,6 +91,7 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 	private LogService logService;
 
 	@Autowired
+	@Lazy
 	private IFobtService iFobtService;
 
 	@Override

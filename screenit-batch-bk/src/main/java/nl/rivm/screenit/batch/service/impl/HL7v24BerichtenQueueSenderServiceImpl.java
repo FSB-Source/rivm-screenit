@@ -21,17 +21,8 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ADT;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_ILM;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_KWALITEITSOPNAME;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN;
-
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -39,11 +30,10 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.batch.config.MammaHL7ConnectieContext;
 import nl.rivm.screenit.batch.dao.MammaHL7v24SendBerichtenQueueDao;
 import nl.rivm.screenit.batch.exception.HL7CreateMessageException;
 import nl.rivm.screenit.batch.exception.HL7SendMessageException;
-import nl.rivm.screenit.batch.model.HapiContextType;
-import nl.rivm.screenit.batch.model.ScreenITHL7MessageContext;
 import nl.rivm.screenit.batch.model.enums.MammaHL7Connectie;
 import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7v24SendService;
@@ -60,7 +50,6 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
 import nl.rivm.screenit.model.mamma.MammaHL7v24Message;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -87,13 +76,13 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 	private static final long MILLIS_WAIT_TIME = TimeUnit.SECONDS.toMillis(10);
 
 	@Autowired
-	public MammaHL7v24SendService hl7SendService;
+	private MammaHL7v24SendService hl7SendService;
 
 	@Autowired
-	public HibernateService hibernateService;
+	private HibernateService hibernateService;
 
 	@Autowired
-	public MammaHL7v24SendBerichtenQueueDao hl7SendBerichtenQueueDao;
+	private MammaHL7v24SendBerichtenQueueDao hl7SendBerichtenQueueDao;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;
@@ -139,17 +128,7 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 		executorService.submit(() -> {
 			while (true)
 			{
-				Map<MammaHL7BerichtType, MammaHL7Connectie> connectieMap = new HashMap<>();
-				connectieMap.put(IMS_ORM, MammaHL7Connectie.ORM);
-				connectieMap.put(IMS_ORM_UPLOAD_BEELDEN, MammaHL7Connectie.ORM);
-				connectieMap.put(IMS_ORM_ILM_UPLOAD_BEELDEN, MammaHL7Connectie.ORM_ILM);
-				connectieMap.put(IMS_ORM_KWALITEITSOPNAME, MammaHL7Connectie.ORM);
-				connectieMap.put(IMS_ORM_ILM, MammaHL7Connectie.ORM_ILM);
-				connectieMap.put(IMS_ADT, MammaHL7Connectie.ADT);
-
-				connectieMap.get(IMS_ORM).setMessageContext(new ScreenITHL7MessageContext(HapiContextType.ISO_8859_1));
-				connectieMap.get(IMS_ORM_ILM).setMessageContext(new ScreenITHL7MessageContext(HapiContextType.ISO_8859_1));
-				connectieMap.get(IMS_ADT).setMessageContext(new ScreenITHL7MessageContext(HapiContextType.ISO_8859_1));
+				MammaHL7ConnectieContext connectieContext = new MammaHL7ConnectieContext();
 
 				try
 				{
@@ -157,12 +136,12 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 
 					Session session = this.sessionFactory.openSession();
 					TransactionSynchronizationManager.bindResource(this.sessionFactory, new SessionHolder(session));
-					skipWait = verwerkIMSBerichtenQueue(connectieMap);
+					skipWait = verwerkIMSBerichtenQueue(connectieContext);
 					unbindSessionFactory();
 
 					if (!skipWait)
 					{
-						closeHl7Connections(connectieMap);
+						closeHl7Connections(connectieContext);
 
 						imsSendRunCounter++;
 						if (imsSendRunCounter % 6 == 0)
@@ -192,7 +171,7 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 				}
 				finally
 				{
-					closeHl7Connections(connectieMap);
+					closeHl7Connections(connectieContext);
 				}
 			}
 		});
@@ -208,7 +187,7 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 		}
 	}
 
-	private boolean verwerkIMSBerichtenQueue(Map<MammaHL7BerichtType, MammaHL7Connectie> connectionContexts)
+	private boolean verwerkIMSBerichtenQueue(MammaHL7ConnectieContext connectionContext)
 	{
 		List<MammaHL7v24Message> mammaHL7v24Messages = hl7SendBerichtenQueueDao.fetchMessageQueueForIMS(MAMMA_IMS_QUEUE_VERWERK_SIZE);
 		Long queueSize = hl7SendBerichtenQueueDao.fetchQueueSize();
@@ -217,7 +196,7 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 			loadPreferences();
 			try
 			{
-				verstuurBerichten(mammaHL7v24Messages, connectionContexts);
+				verstuurBerichten(mammaHL7v24Messages, connectionContext);
 			}
 			catch (HL7Exception e)
 			{
@@ -228,7 +207,7 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 		return !verstuurProblemen && queueSize > MAMMA_IMS_QUEUE_VERWERK_SIZE;
 	}
 
-	private void verstuurBerichten(List<MammaHL7v24Message> hl7v24Messages, Map<MammaHL7BerichtType, MammaHL7Connectie> connectionContexts)
+	private void verstuurBerichten(List<MammaHL7v24Message> hl7v24Messages, MammaHL7ConnectieContext connectionContext)
 		throws HL7Exception
 	{
 		for (MammaHL7v24Message hl7v24Message : hl7v24Messages)
@@ -236,32 +215,29 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 			MammaHL7v24BerichtTriggerDto triggerDto = null;
 			try
 			{
+				MammaHL7Connectie messageConnection = connectionContext.getConnectie(hl7v24Message);
 				switch (hl7v24Message.getHl7BerichtType())
 				{
 				case IMS_ORM:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerMetClientDto.class);
-					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerMetClientDto) triggerDto,
-						connectionContexts.get(hl7v24Message.getHl7BerichtType()));
+					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerMetClientDto) triggerDto, messageConnection);
 					break;
 				case IMS_ORM_ILM:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerIlmDto.class);
-					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerIlmDto) triggerDto,
-						connectionContexts.get(hl7v24Message.getHl7BerichtType()));
+					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerIlmDto) triggerDto, messageConnection);
 					break;
 				case IMS_ORM_KWALITEITSOPNAME:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto.class);
-					hl7SendService.sendKwaliteitsopnameORMMessage((MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto) triggerDto,
-						connectionContexts.get(IMS_ORM_KWALITEITSOPNAME));
+					hl7SendService.sendKwaliteitsopnameORMMessage((MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto) triggerDto, messageConnection);
 					break;
 				case IMS_ORM_UPLOAD_BEELDEN:
 				case IMS_ORM_ILM_UPLOAD_BEELDEN:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerUploadBeeldenDto.class);
-					hl7SendService.sendUploadBeeldenORMMessage((MammaHL7v24OrmBerichtTriggerUploadBeeldenDto) triggerDto,
-						connectionContexts.get(hl7v24Message.getHl7BerichtType()));
+					hl7SendService.sendUploadBeeldenORMMessage((MammaHL7v24OrmBerichtTriggerUploadBeeldenDto) triggerDto, messageConnection);
 					break;
 				case IMS_ADT:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24AdtBerichtTriggerDto.class);
-					hl7SendService.sendADTBericht((MammaHL7v24AdtBerichtTriggerDto) triggerDto, connectionContexts.get(IMS_ADT));
+					hl7SendService.sendADTBericht((MammaHL7v24AdtBerichtTriggerDto) triggerDto, messageConnection);
 					break;
 				default:
 					throw new IllegalStateException("Onbekend IMS bericht type gevonden: " + hl7v24Message.getHl7BerichtType());
@@ -286,13 +262,13 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 		logVerstuurProblemenOpgelost();
 	}
 
-	private void closeHl7Connections(Map<MammaHL7BerichtType, MammaHL7Connectie> connectionContexts)
+	private void closeHl7Connections(MammaHL7ConnectieContext connectionContext)
 	{
-		for (Map.Entry<MammaHL7BerichtType, MammaHL7Connectie> entry : connectionContexts.entrySet())
+		for (MammaHL7Connectie connectie : connectionContext.getConnecties())
 		{
-			if (entry.getValue().getMessageContext().getConnection() != null)
+			if (connectie.getMessageContext().getConnection() != null)
 			{
-				sendMessageService.discardConnection(entry.getValue().getMessageContext());
+				sendMessageService.discardConnection(connectie.getMessageContext());
 			}
 		}
 	}

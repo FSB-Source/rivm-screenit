@@ -34,7 +34,6 @@ import nl.rivm.screenit.main.model.DossierGebeurtenisType;
 import nl.rivm.screenit.main.model.OpenUitnodigingDossierGebeurtenis;
 import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.afmelding.AfmeldformulierInzienPopupPanel;
@@ -54,9 +53,11 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.OpenUitnodigingUitslag;
 import nl.rivm.screenit.model.project.ProjectClient;
-import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -95,7 +96,7 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	private ClientService clientService;
+	private ClientDoelgroepService doelgroepService;
 
 	private Bevolkingsonderzoek bevolkingsonderzoek;
 
@@ -115,8 +116,13 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 		this.clientModel = clientModel;
 		this.bevolkingsonderzoek = bevolkingsonderzoek;
 		this.dialog = dialog;
+	}
 
-		add(new EnumLabel<Bevolkingsonderzoek>("bevolkingsonderzoek", bevolkingsonderzoek));
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		add(new EnumLabel<>("bevolkingsonderzoek", bevolkingsonderzoek));
 
 		actiefContainer = new WebMarkupContainer("isActief")
 		{
@@ -170,12 +176,12 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 			if (dossier != null && dossier.getInactiefVanaf() != null)
 			{
 				label += " vanaf ";
-				label += dossier.getInactiefVanaf().toString();
+				label += DateUtil.formatShortDate(dossier.getInactiefVanaf());
 			}
 			if (dossier != null && dossier.getInactiefTotMet() != null)
 			{
 				label += " tot/met ";
-				label += dossier.getInactiefTotMet().toString();
+				label += DateUtil.formatShortDate(dossier.getInactiefTotMet());
 			}
 		}
 		return new Label("inactiefLabelTekst", label);
@@ -234,7 +240,7 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 	private String getVolgendeUitnodigingElement(D dossier)
 	{
 		ColonDossier colonDossier = (ColonDossier) dossier;
-		if (clientService.behoortTotDoelgroep(dossier.getClient(), bevolkingsonderzoek) && colonDossier.getVolgendeUitnodiging() != null)
+		if (doelgroepService.behoortTotDoelgroep(dossier.getClient(), bevolkingsonderzoek) && colonDossier.getVolgendeUitnodiging() != null)
 		{
 			LocalDate indicatieveUitnodigingdDatum = dossierBaseService.getDatumVolgendeUitnodiging(colonDossier);
 			String datumString = indicatieveUitnodigingdDatum == null ? "Nooit meer uitnodigen" : indicatieveUitnodigingdDatum.format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
@@ -319,12 +325,12 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 
 				if (clickable)
 				{
-					dossierGebeurtenisContainer.add(new AttributeAppender("class", new Model<String>("badge-clickable"), " "));
+					dossierGebeurtenisContainer.add(new AttributeAppender("class", new Model<>("badge-clickable"), " "));
 					dossierGebeurtenisContainer.add(getGebeurtenisClickBehavior(dossierGebeurtenis));
 				}
 				else
 				{
-					dossierGebeurtenisContainer.add(new AttributeAppender("class", new Model<String>("badge-not-clickable"), " "));
+					dossierGebeurtenisContainer.add(new AttributeAppender("class", new Model<>("badge-not-clickable"), " "));
 				}
 
 				item.add(dossierGebeurtenisContainer);
@@ -350,7 +356,7 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 					A afmelding = afmeldenDossierGebeurtenis.getAfmelding();
 					if (AanvraagBriefStatus.VERWERKT.equals(afmelding.getAfmeldingStatus()))
 					{
-						dialog.openWith(target, new AfmeldformulierInzienPopupPanel<A>(IDialog.CONTENT_ID, afmeldenDossierGebeurtenis.getAfmeldingModel())
+						dialog.openWith(target, new AfmeldformulierInzienPopupPanel<>(IDialog.CONTENT_ID, afmeldenDossierGebeurtenis.getAfmeldingModel())
 						{
 
 							@Override
@@ -362,7 +368,7 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 					}
 					else
 					{
-						dialog.openWith(target, new UploadAfmeldformulierPopupPanel<A>(IDialog.CONTENT_ID, afmeldenDossierGebeurtenis.getAfmeldingModel())
+						dialog.openWith(target, new UploadAfmeldformulierPopupPanel<>(IDialog.CONTENT_ID, afmeldenDossierGebeurtenis.getAfmeldingModel())
 						{
 
 							@Override
@@ -440,7 +446,7 @@ public class ClientInzienDossierPanel<D extends Dossier<?, ?>, A extends Afmeldi
 		}
 		else if (afmelding.getHandtekeningDocumentAfmelding() != null)
 		{
-			omschrijving.append(" (" + getString("label.formulier.getekendafmeld") + ")");
+			omschrijving.append(" (").append(getString("label.formulier.getekendafmeld")).append(")");
 		}
 		return omschrijving.toString();
 	}

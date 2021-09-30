@@ -34,7 +34,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaFotobespreking;
 import nl.rivm.screenit.model.mamma.MammaFotobesprekingOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaIKwaliteitscontrole;
@@ -106,7 +105,9 @@ public interface MammaKwaliteitscontroleService
 
 	Integer getAantalGezienAdhocMeekijkverzoekOnderzoekenInList(List<Long> onderzoekenIds);
 
-	void deleteFotobesprekingOnderzoek(MammaFotobesprekingOnderzoek fotobesprekingOnderzoek);
+	void deleteBesprokenFotobesprekingOnderzoek(MammaFotobesprekingOnderzoek fotobesprekingOnderzoek);
+
+	void deleteFotobespreking(MammaFotobespreking fotobespreking);
 
 	void deleteVisitatieOnderzoek(MammaVisitatieOnderzoek visitatieOnderzoek);
 

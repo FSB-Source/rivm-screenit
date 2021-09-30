@@ -25,7 +25,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.util.EnumStringUtil;
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
@@ -35,8 +35,9 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -57,10 +58,10 @@ public abstract class CervixLaboratoriumTarievenPopupPanel extends GenericPanel<
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixVerrichtingDao verrichtingDao;
 
 	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
+	private CervixBetalingService betalingService;
 
 	public CervixLaboratoriumTarievenPopupPanel(String id)
 	{
@@ -70,7 +71,7 @@ public abstract class CervixLaboratoriumTarievenPopupPanel extends GenericPanel<
 		CervixLabTarief tarief = getModelObject();
 		tarief.setBmhkLaboratorium(instelling);
 
-		CervixLabTarief latest = cervixVerrichtingDao.getLatestCervixLabTarief(instelling);
+		CervixLabTarief latest = verrichtingDao.getLatestCervixLabTarief(instelling);
 		if (latest != null)
 		{
 			tarief.setHpvAnalyseZasTarief(latest.getHpvAnalyseZasTarief());
@@ -130,14 +131,14 @@ public abstract class CervixLaboratoriumTarievenPopupPanel extends GenericPanel<
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				CervixLabTarief tarief = (CervixLabTarief) form.getModelObject();
-				if (cervixVerrichtingDao.getCervixLaboratoriumTarief(tarief) != null)
+				CervixLabTarief tarief = (CervixLabTarief) ModelProxyHelper.deproxy(form.getModelObject());
+				if (verrichtingDao.getCervixLaboratoriumTarief(tarief) != null)
 				{
 					error("Er is al een tarief met dezelfde geldig vanaf datum, selecteer een andere datum.");
 				}
 				else
 				{
-					cervixVerrichtingService.toevoegenTarief(tarief, ScreenitSession.get().getLoggedInAccount());
+					betalingService.toevoegenTarief(tarief, ScreenitSession.get().getLoggedInAccount());
 					opslaan(target);
 				}
 			}

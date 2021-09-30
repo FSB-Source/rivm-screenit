@@ -38,4 +38,6 @@ public interface BerichtToSeRestBkService
 
 	void dbCleanupVoorIedereSe();
 
+	void statusAanvragenVoorIedereSe();
+
 }

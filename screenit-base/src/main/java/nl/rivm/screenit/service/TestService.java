@@ -30,10 +30,10 @@ import java.util.List;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.gba.Land;
 import nl.rivm.screenit.service.impl.ImportBvoViaCsv;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 
 public interface TestService
 {
@@ -53,6 +53,8 @@ public interface TestService
 	boolean verwijderClientContacten(Client client, boolean isDossierVerwijderdDK, boolean isDossierVerwijderdBMHK, boolean isDossierVerwijderdBK);
 
 	boolean verwijderClientContacten(Client client, List<Bevolkingsonderzoek> onderzoeken);
+
+	Gemeente getGemeenteMetScreeningOrganisatie();
 
 	Land getGbaLand();
 

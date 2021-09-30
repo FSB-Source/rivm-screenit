@@ -115,6 +115,10 @@ public class MailServiceImpl implements MailService
 			}
 			return false;
 		}
+		else
+		{
+			LOG.warn("Mail versturen staat uit. To: " + StringUtils.join(to, ";") + " | Subject: " + subject + " | Message: " + message);
+		}
 		return true;
 	}
 

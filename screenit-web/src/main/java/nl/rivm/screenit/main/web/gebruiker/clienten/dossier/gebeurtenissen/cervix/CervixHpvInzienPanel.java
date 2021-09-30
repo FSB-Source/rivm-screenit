@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
-import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -47,6 +46,7 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.topicuszorg.documentupload.wicket.UploadDocumentLink;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -76,13 +76,15 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = Bevolkingsonderzoek.CERVIX)
 public class CervixHpvInzienPanel extends AbstractGebeurtenisDetailPanel
 {
+	private static final Logger LOG = LoggerFactory.getLogger(IFobtVerslagPanel.class);
+
 	@SpringBean
 	private CervixBaseUitnodigingService cervixUitnodigingService;
 
-	private BootstrapDialog confirmDialog;
-
 	@SpringBean
 	private FileService fileService;
+
+	private BootstrapDialog confirmDialog;
 
 	private IModel<List<FileUpload>> file = new ListModel<>();
 
@@ -96,12 +98,16 @@ public class CervixHpvInzienPanel extends AbstractGebeurtenisDetailPanel
 
 	private IndicatingAjaxSubmitLink formUploadBtn;
 
-	private static final Logger LOG = LoggerFactory.getLogger(IFobtVerslagPanel.class);
-
 	public CervixHpvInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
-		uploadForm = new Form<>("uploadForm", model);
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		uploadForm = new Form<>("uploadForm", getModel());
 		uploadForm.setOutputMarkupId(true);
 		uploadForm.setOutputMarkupPlaceholderTag(true);
 		add(uploadForm);
@@ -173,7 +179,7 @@ public class CervixHpvInzienPanel extends AbstractGebeurtenisDetailPanel
 	@Override
 	protected void addButton(String id, GebeurtenisPopupBasePanel parent)
 	{
-		ConfirmingIndicatingAjaxSubmitLink<Void> button = new ConfirmingIndicatingAjaxSubmitLink<Void>(id, uploadForm, confirmDialog, "label.resultaten.monster.verwijderen")
+		ConfirmingIndicatingAjaxSubmitLink<Void> button = new ConfirmingIndicatingAjaxSubmitLink<>(id, uploadForm, confirmDialog, "label.resultaten.monster.verwijderen")
 		{
 			@Override
 			protected boolean skipConfirmation()

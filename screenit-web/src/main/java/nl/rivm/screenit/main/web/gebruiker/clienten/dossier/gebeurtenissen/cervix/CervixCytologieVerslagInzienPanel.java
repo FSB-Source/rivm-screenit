@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
-import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -47,6 +46,7 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.topicuszorg.documentupload.wicket.UploadDocumentLink;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -78,13 +78,15 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetailPanel implements IDetachable
 {
 
+	private static final Logger LOG = LoggerFactory.getLogger(CervixCytologieVerslagInzienPanel.class);
+
 	@SpringBean
 	private CervixBaseUitnodigingService cervixUitnodigingService;
 
-	private BootstrapDialog confirmDialog;
-
 	@SpringBean
 	private FileService fileService;
+
+	private BootstrapDialog confirmDialog;
 
 	private IModel<List<FileUpload>> file = new ListModel<>();
 
@@ -97,8 +99,6 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 	private Form uploadForm;
 
 	private IndicatingAjaxSubmitLink formUploadBtn;
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixCytologieVerslagInzienPanel.class);
 
 	public CervixCytologieVerslagInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
@@ -115,7 +115,12 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 		uploadForm.add(new Label("uitnodiging.monster.laatsteHpvBeoordeling.hpvBericht.laboratorium.naam"));
 		confirmDialog = new BootstrapDialog("confirmDialog");
 		add(confirmDialog);
+	}
 
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		createUploadField();
 		createVervangenUploadSubmitBtn();
 	}
@@ -173,7 +178,7 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 	@Override
 	protected void addButton(String id, GebeurtenisPopupBasePanel parent)
 	{
-		ConfirmingIndicatingAjaxSubmitLink<Void> button = new ConfirmingIndicatingAjaxSubmitLink<Void>(id, uploadForm, confirmDialog, "label.resultaten.monster.verwijderen")
+		ConfirmingIndicatingAjaxSubmitLink<Void> button = new ConfirmingIndicatingAjaxSubmitLink<>(id, uploadForm, confirmDialog, "label.resultaten.monster.verwijderen")
 		{
 			@Override
 			protected boolean skipConfirmation()
@@ -224,8 +229,7 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 				try
 				{
 					uploadDocument.setFile(tmpFile);
-					fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF,
-						getClientVanVerslag().getId());
+					fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, getClientVanVerslag().getId());
 				}
 				catch (IOException e)
 				{
@@ -263,7 +267,7 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 	@Override
 	protected void addDocumentVervangenButton(String id, GebeurtenisPopupBasePanel parent)
 	{
-		IndicatingAjaxLink btn = new IndicatingAjaxLink<Void>(id)
+		IndicatingAjaxLink<Void> btn = new IndicatingAjaxLink<>(id)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)

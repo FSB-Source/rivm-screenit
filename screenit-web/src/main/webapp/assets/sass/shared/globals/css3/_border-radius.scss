@@ -1,0 +1,90 @@
+@import "../shared";
+@import "../functions";
+
+$default-border-radius: 5px !default;
+
+
+@mixin border-radius($radius: $default-border-radius, $vertical-radius: false) {
+
+  @if $vertical-radius {
+    @include experimental(border-radius, first-value-of($radius) first-value-of($vertical-radius),
+            not(-moz),
+            -webkit,
+            not(-o),
+            not(-ms),
+            not(-khtml),
+            not(official)
+    );
+    @include experimental("border-radius", $radius unquote("/") $vertical-radius,
+            -moz,
+            not(-webkit),
+            not(-o),
+            not(-ms),
+            -khtml,
+            official
+    );
+  } @else {
+    @include experimental(border-radius, $radius);
+  }
+}
+
+
+@mixin border-corner-radius($vert, $horz, $radius: $default-border-radius) {
+  @include experimental("border-radius-#{$vert}#{$horz}", $radius,
+          -moz,
+          not(-webkit),
+          not(-o),
+          not(-ms),
+          not(-khtml),
+          not(official)
+  );
+  @include experimental("border-#{$vert}-#{$horz}-radius", $radius,
+          not(-moz),
+          -webkit,
+          not(-o),
+          not(-ms),
+          -khtml,
+          official
+  );
+
+}
+
+
+@mixin border-top-left-radius($radius: $default-border-radius) {
+  @include border-corner-radius(top, left, $radius);
+}
+
+
+@mixin border-top-right-radius($radius: $default-border-radius) {
+  @include border-corner-radius(top, right, $radius);
+}
+
+
+@mixin border-bottom-left-radius($radius: $default-border-radius) {
+  @include border-corner-radius(bottom, left, $radius);
+}
+
+
+@mixin border-bottom-right-radius($radius: $default-border-radius) {
+  @include border-corner-radius(bottom, right, $radius);
+}
+
+@mixin border-top-radius($radius: $default-border-radius) {
+  @include border-top-left-radius($radius);
+  @include border-top-right-radius($radius);
+}
+
+@mixin border-right-radius($radius: $default-border-radius) {
+  @include border-top-right-radius($radius);
+  @include border-bottom-right-radius($radius);
+}
+
+@mixin border-bottom-radius($radius: $default-border-radius) {
+  @include border-bottom-left-radius($radius);
+  @include border-bottom-right-radius($radius);
+}
+
+@mixin border-left-radius($radius: $default-border-radius) {
+  @include border-top-left-radius($radius);
+  @include border-bottom-left-radius($radius);
+}

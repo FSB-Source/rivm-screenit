@@ -24,9 +24,13 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieParameter;
@@ -62,7 +66,7 @@ public abstract class EditOrganisatieParametersPanel extends GenericPanel<List<O
 
 	private IModel<List<OrganisatieParameter>> allParametersModel = ModelUtil.listModel(new ArrayList<>(), false);
 
-	public EditOrganisatieParametersPanel(String id, List<OrganisatieParameterKey> parameterKeys)
+	public EditOrganisatieParametersPanel(String id, List<OrganisatieParameterKey> parameterKeys, boolean valueFieldEnabled)
 	{
 		super(id);
 
@@ -77,7 +81,7 @@ public abstract class EditOrganisatieParametersPanel extends GenericPanel<List<O
 				OrganisatieParameterKey parameterKey = item.getModelObject();
 				item.add(new EnumLabel<OrganisatieParameterKey>("param", parameterKey));
 				item.add(new EnumLabel<OrganisatieType>("organisatieType", parameterKey.getOrganisatieType()));
-				List<Instelling> instellingByOrganisatieTypes = instellingService.getInstellingByOrganisatieTypes(Arrays.asList(parameterKey.getOrganisatieType()));
+				List<Instelling> instellingByOrganisatieTypes = instellingService.getInstellingByOrganisatieTypes(Collections.singletonList(parameterKey.getOrganisatieType()));
 				item.add(new Label("unit", getString(EnumStringUtil.getPropertyString(parameterKey) + ".unit")));
 				item.add(new Label("maxValue", parameterKey.getMaxValue()));
 				addOrganisatieLijst(item, parameterKey, instellingByOrganisatieTypes);
@@ -112,6 +116,7 @@ public abstract class EditOrganisatieParametersPanel extends GenericPanel<List<O
 						TextField<String> valueField = new TextField<String>("value",
 							new PropertyModel<>(EditOrganisatieParametersPanel.this, "allParameters[" + (allParams.size() - 1) + "].value"));
 
+						valueField.setEnabled(valueFieldEnabled);
 						Class<?> valueType = parameterKey.getValueType();
 						if (valueType.equals(Integer.class))
 						{
@@ -142,7 +147,7 @@ public abstract class EditOrganisatieParametersPanel extends GenericPanel<List<O
 									return Integer.valueOf(value.toString());
 								}
 								return null;
-							};
+							}
 						});
 						valueField.add(new AttributeAppender("maxlength", Model.of(parameterKey.getMaxValue().toString().length())));
 					}
@@ -183,7 +188,7 @@ public abstract class EditOrganisatieParametersPanel extends GenericPanel<List<O
 									return BigDecimalUtil.stringToBigDecimal(value.toString(), Constants.LOCALE_NL);
 								}
 								return null;
-							};
+							}
 						});
 					}
 

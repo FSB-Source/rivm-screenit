@@ -143,7 +143,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		form.add(bsnField);
 		form.add(new IndicatingAjaxLink<GbaPersoon>("bsnGenereren", filterModel)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -156,7 +155,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new ScreenitDateTextField("geboortedatum").setOutputMarkupId(true).add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -170,7 +168,6 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new ScreenitDateTextField("overlijdensdatum").setOutputMarkupId(true).add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -198,7 +195,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		});
 		form.add(new AjaxButton("metConclusieColoscopie", form)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -283,7 +279,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnGustig((GbaPersoon) form.getModelObject());
+				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnGunstig((GbaPersoon) form.getModelObject());
 				info("Deze Client heeft nu een FIT teruggestuurd! Status Ifobttest is " + test.getStatus() + " met normwaarde: " + test.getNormWaarde() + " met uitslag: "
 					+ test.getUitslag());
 			}
@@ -423,7 +419,6 @@ public class ColonTestProcesPage extends TestenBasePage
 		form2.add(new TextField<String>("bsn").setRequired(true));
 		final AjaxDownload download = new AjaxDownload()
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

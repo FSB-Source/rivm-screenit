@@ -22,73 +22,62 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
  */
 
 import java.util.Arrays;
-import java.util.Date;
-
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import static nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaGunstigeBeeldenVerwijderenWriter.MINIMUM_AANTAL_GUNSTIGE_AFGESLOTEN_RONDES_MET_BEELDEN;
 
 public class MammaGunstigeBeeldenVerwijderenReader extends BaseScrollableResultReader
 {
-
-	@Autowired
-	private SimplePreferenceService preferenceService;
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private static final int MAX_AANTAL_DOSSIERS = 100000;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Date wachttijd = DateUtil
-			.toUtilDate(currentDateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN_BEELDEN_UITSLAG_GUNSTIG.name())));
+		Criteria criteria = session.createCriteria(MammaDossier.class, "mammadossier");
 
-		Criteria criteria = session.createCriteria(MammaOnderzoek.class);
-		criteria.createAlias("mammografie", "mammografie");
-		criteria.createAlias("laatsteBeoordeling", "beoordeling");
-		criteria.createAlias("afspraak", "afspraak");
-		criteria.createAlias("afspraak.uitnodiging", "uitnodiging");
-		criteria.createAlias("uitnodiging.screeningRonde", "screeningRonde");
-		criteria.createAlias("screeningRonde.dossier", "dossier");
+		DetachedCriteria afgeslotenRondesGunstigEnMetBeelden = DetachedCriteria.forClass(MammaScreeningRonde.class, "rondes");
+		afgeslotenRondesGunstigEnMetBeelden.add(Property.forName("mammadossier.id").eqProperty("rondes.dossier"));
+		afgeslotenRondesGunstigEnMetBeelden.createAlias("laatsteOnderzoek", "onderzoek");
+		afgeslotenRondesGunstigEnMetBeelden.createAlias("onderzoek.laatsteBeoordeling", "beoordeling");
+		afgeslotenRondesGunstigEnMetBeelden.createAlias("onderzoek.mammografie", "mammografie");
+		afgeslotenRondesGunstigEnMetBeelden.add(
+				Restrictions.and(
+						Restrictions.in("status", ScreeningRondeStatus.AFGEROND),
+						Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG),
+						Restrictions.eq("mammografie.ilmStatus", MammaMammografieIlmStatus.BESCHIKBAAR)));
+		afgeslotenRondesGunstigEnMetBeelden.setProjection(Projections.count("id"));
 
-		criteria.add(Restrictions.lt("creatieDatum", wachttijd));
-		criteria.add(Restrictions.eq("mammografie.ilmStatus", MammaMammografieIlmStatus.BESCHIKBAAR));
-		criteria.add(Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG));
+		criteria.add(Subqueries.lt(MINIMUM_AANTAL_GUNSTIGE_AFGESLOTEN_RONDES_MET_BEELDEN, afgeslotenRondesGunstigEnMetBeelden));
 
 		DetachedCriteria dossierBevatOngustigeRondeSubquery = DetachedCriteria.forClass(MammaDossier.class, "dos");
 		dossierBevatOngustigeRondeSubquery.createAlias("screeningRondes", "rondes");
-		dossierBevatOngustigeRondeSubquery.createAlias("rondes.laatsteUitnodiging", "uitnodiging");
-		dossierBevatOngustigeRondeSubquery.createAlias("uitnodiging.laatsteAfspraak", "afspraak");
-		dossierBevatOngustigeRondeSubquery.createAlias("afspraak.onderzoek", "onderzoek");
+		dossierBevatOngustigeRondeSubquery.createAlias("rondes.laatsteOnderzoek", "onderzoek");
 		dossierBevatOngustigeRondeSubquery.createAlias("onderzoek.laatsteBeoordeling", "beoordeling");
-
 		dossierBevatOngustigeRondeSubquery.add(
-			Restrictions.or(
-				Restrictions.in("beoordeling.status", Arrays.asList(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG,
-					MammaBeoordelingStatus.ONBEOORDEELBAAR)),
-				Restrictions.and(
-					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG),
-					Restrictions.eq("rondes.followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE))));
-
+				Restrictions.or(
+						Restrictions.in("beoordeling.status", Arrays.asList(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG,
+								MammaBeoordelingStatus.ONBEOORDEELBAAR)),
+						Restrictions.and(
+								Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG),
+								Restrictions.eq("rondes.followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE))));
 		dossierBevatOngustigeRondeSubquery.setProjection(Projections.id());
 
-		criteria.add(Subqueries.propertyNotIn("dossier.id", dossierBevatOngustigeRondeSubquery));
+		criteria.add(Subqueries.propertyNotIn("id", dossierBevatOngustigeRondeSubquery));
+		criteria.setMaxResults(MAX_AANTAL_DOSSIERS);
 
 		return criteria;
 	}

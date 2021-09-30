@@ -26,7 +26,6 @@ import java.util.Iterator;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
@@ -42,7 +41,5 @@ public interface ColonHuisartsBerichtService
 	void verstuurColonHuisartsBericht(Client client, ColonScreeningRonde colonScreeningRonde, HuisartsBerichtType berichtType, MailMergeContext context, boolean opnieuwVerzonden);
 
 	void verstuurColonHuisartsBericht(Client client, ColonScreeningRonde colonScreeningRonde, HuisartsBerichtType berichtType, MailMergeContext context);
-
-	void verzendOnbekendeHuisartsAanmeldenMail(OnbekendeHuisarts onbekendeHuisarts, Client client);
 
 }

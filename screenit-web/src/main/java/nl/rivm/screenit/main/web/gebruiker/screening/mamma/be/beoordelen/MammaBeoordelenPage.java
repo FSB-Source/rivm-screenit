@@ -31,6 +31,8 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaRonde
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.werklijst.AbstractMammaBeWerklijstPage;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
+import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
+import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -44,6 +46,12 @@ public class MammaBeoordelenPage extends AbstractMammaBeoordelenPage
 
 	private MammaBeoordelenHuidigeRondePanel huidigeRondePanel;
 
+	@SpringBean
+	private MammaBaseScreeningrondeService baseScreeningrondeService;
+
+	@SpringBean
+	private MammaBaseBeoordelingService baseBeoordelingService;
+
 	public MammaBeoordelenPage(Long initieleBeoordelingId, List<Long> beoordelingenIds, Class<? extends AbstractMammaBeWerklijstPage> werklijstPageClass)
 	{
 		super(initieleBeoordelingId, beoordelingenIds, werklijstPageClass);
@@ -53,7 +61,9 @@ public class MammaBeoordelenPage extends AbstractMammaBeoordelenPage
 	protected void maakRondesContainer(IModel<MammaBeoordeling> beoordelingModel)
 	{
 		List<AbstractMammaRondePanel> rondePanels = new ArrayList<>();
-		huidigeRondePanel = new MammaBeoordelenHuidigeRondePanel("rondeItem", beoordelingModel);
+		Integer jaarLaatsteVerwijzing = baseScreeningrondeService.getJaarLaatsteVerwijzing(baseBeoordelingService.getClientVanBeoordeling(beoordelingModel.getObject()));
+
+		huidigeRondePanel = new MammaBeoordelenHuidigeRondePanel("rondeItem", beoordelingModel, jaarLaatsteVerwijzing);
 		rondePanels.add(huidigeRondePanel);
 
 		getHistorischeRondePanels(beoordelingModel, rondePanels);

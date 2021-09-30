@@ -39,8 +39,13 @@ public class ColonHuisartsInzienPanel extends AbstractGebeurtenisDetailPanel
 	public ColonHuisartsInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
+	}
 
-		ColonScreeningRonde ronde = model.getObject().getScreeningsRonde();
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		ColonScreeningRonde ronde = getModelObject().getScreeningsRonde();
 		EnovationHuisarts enovationHuisarts = ronde.getColonHuisarts();
 		OnbekendeHuisarts onbekendeHuisarts = ronde.getOnbekendeHuisarts();
 
@@ -69,7 +74,7 @@ public class ColonHuisartsInzienPanel extends AbstractGebeurtenisDetailPanel
 			add(new Label("weergaveNaam", Model.of("")));
 			add(new Label("klantnummer", Model.of("")));
 			add(new Label("ediadres", Model.of("")));
-			add(new Label("communicatieadres", Model.<String> of("")));
+			add(new Label("communicatieadres", Model.of("")));
 		}
 		else
 		{

@@ -51,8 +51,6 @@ public interface OrganisatieZoekService
 
 	List<Instelling> getMogelijkeParents(@Nonnull Instelling instelling, @Nonnull InstellingGebruiker loggedInInstellingGebruiker);
 
-	List<Long> getZichtbareUltimviewInstellingIds(Instelling instelling, ToegangLevel level);
-
 	List<Long> getZichtbateInstellingenOpToegangLevel(Instelling instelling, ToegangLevel level, List<OrganisatieType> types);
 
 	List<Instelling> findSOs(Instelling instelling);

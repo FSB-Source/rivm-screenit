@@ -106,7 +106,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 import com.google.common.primitives.Ints;
 
 @SecurityConstraint(
-	actie = Actie.AANPASSEN,
+	actie = Actie.INZIEN,
 	constraint = ShiroConstraint.HasPermission,
 	checkScope = true,
 	level = ToegangLevel.REGIO,
@@ -147,6 +147,8 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 	private Form<UitnodigingsGebied> adherentieForm;
 
+	private final boolean magAdherentieAanpassen = magAdherentieAanpassen();
+
 	public GebiedGegevens(IModel<UitnodigingsGebied> model)
 	{
 		this(model, getGesplitsOpPostcode(model));
@@ -161,17 +163,19 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		Form<UitnodigingsGebied> form = new Form<>("form", model);
 		add(form);
 		form.add(new TextField<>("naam").setRequired(true).setEnabled(model.getObject().getPostcodeGebied() != null || StringUtils.isNotBlank(model.getObject().getWoonplaats())));
-		boolean aanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN, Actie.AANPASSEN);
+		boolean magGebiedAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN, Actie.AANPASSEN);
+		boolean magRetourPercentageAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN_PERC_IFOBT_RETOUR, Actie.AANPASSEN);
+		boolean magOngunstigPercentageAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN_PERC_ONGUNSTIGE_IFOBT, Actie.AANPASSEN);
 
 		PercentageIntegerField percentageIFobtRetour = new PercentageIntegerField("percentageIFobtRetour", 1);
-		percentageIFobtRetour.setEnabled(aanpassen && ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN_PERC_IFOBT_RETOUR, Actie.AANPASSEN));
+		percentageIFobtRetour.setEnabled(magRetourPercentageAanpassen);
 		form.add(percentageIFobtRetour);
 
 		PercentageIntegerField percentageOngunstigeIfobt = new PercentageIntegerField("percentageOngunstigeIfobt", 1);
-		percentageOngunstigeIfobt.setEnabled(aanpassen && ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN_PERC_ONGUNSTIGE_IFOBT, Actie.AANPASSEN));
+		percentageOngunstigeIfobt.setEnabled(magOngunstigPercentageAanpassen);
 		form.add(percentageOngunstigeIfobt);
 
-		if (aanpassen)
+		if (magGebiedAanpassen)
 		{
 			if (Boolean.FALSE.equals(gesplitsOpPostcode))
 			{
@@ -211,7 +215,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 				setResponsePage(new GemeenteGegevens(ModelUtil.cRModel(uitnodigingsGebied.getGemeente())));
 			}
 		};
-		opslaan.setVisible(aanpassen);
+		opslaan.setVisible(magGebiedAanpassen || magOngunstigPercentageAanpassen || magRetourPercentageAanpassen);
 		form.add(opslaan);
 
 		form.add(new AjaxLink<UitnodigingsGebied>("annuleren")
@@ -250,6 +254,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		final ScreenitDropdown<ColoscopieCentrum> intakelocaties = ComponentHelper.newDropDownChoice("intakelocaties", intakelocatiesModel,
 			new ChoiceRenderer<ColoscopieCentrum>("naam"));
 		intakelocaties.setModel(new CompoundPropertyModel<>(new PropertyModel<ColoscopieCentrum>(GebiedGegevens.this, "intakelocatie")));
+		intakelocaties.setVisible(magAdherentieAanpassen);
 		adherentieForm.add(intakelocaties);
 
 		initAdherentiePercentages();
@@ -293,45 +298,47 @@ public class GebiedGegevens extends GebiedenBeheerPage
 			}
 
 		});
-		columns.add(new AbstractColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Verwijderen"))
+		if (magAdherentieAanpassen)
 		{
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void populateItem(Item<ICellPopulator<ColoscopieCentrumColonCapaciteitVerdeling>> cellItem, String componentId,
-				final IModel<ColoscopieCentrumColonCapaciteitVerdeling> rowModel)
+			columns.add(new AbstractColumn<ColoscopieCentrumColonCapaciteitVerdeling, String>(Model.of("Verwijderen"))
 			{
-				cellItem.add(new AjaxImageCellPanel<ColoscopieCentrumColonCapaciteitVerdeling>(componentId, rowModel, "icon-trash")
+
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void populateItem(Item<ICellPopulator<ColoscopieCentrumColonCapaciteitVerdeling>> cellItem, String componentId,
+					final IModel<ColoscopieCentrumColonCapaciteitVerdeling> rowModel)
 				{
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					protected void onClick(AjaxRequestTarget target)
+					cellItem.add(new AjaxImageCellPanel<ColoscopieCentrumColonCapaciteitVerdeling>(componentId, rowModel, "icon-trash")
 					{
-						ColoscopieCentrumColonCapaciteitVerdeling verdeling = rowModel.getObject();
-						ColoscopieCentrum intakelocatie = verdeling.getColoscopieCentrum();
-						if (verdeling.getId() != null)
-						{
-							verwijderdeItemModels.put(intakelocatie.getId(), ModelUtil.sModel(verdeling));
-						}
-						else
-						{
-							UitnodigingsGebied uitnodigingsgebied = verdeling.getUitnodigingsGebied();
-							uitnodigingsgebied.getVerdeling().remove(verdeling);
-							intakelocatie.getCapaciteitVerdeling().remove(verdeling);
-						}
-						List<ColoscopieCentrum> locaties = intakelocatiesModel.getObject();
-						locaties.add(intakelocatie);
-						intakelocatiesModel.setObject(new ArrayList<>(locaties));
-						newAdherentiePercentages.remove(ColonRestrictions.getUniekIdOf(verdeling));
-						target.add(adherentieForm, intakelocaties, adherentieTabel);
+						private static final long serialVersionUID = 1L;
 
-					}
-				});
-			}
-		});
+						@Override
+						protected void onClick(AjaxRequestTarget target)
+						{
+							ColoscopieCentrumColonCapaciteitVerdeling verdeling = rowModel.getObject();
+							ColoscopieCentrum intakelocatie = verdeling.getColoscopieCentrum();
+							if (verdeling.getId() != null)
+							{
+								verwijderdeItemModels.put(intakelocatie.getId(), ModelUtil.sModel(verdeling));
+							}
+							else
+							{
+								UitnodigingsGebied uitnodigingsgebied = verdeling.getUitnodigingsGebied();
+								uitnodigingsgebied.getVerdeling().remove(verdeling);
+								intakelocatie.getCapaciteitVerdeling().remove(verdeling);
+							}
+							List<ColoscopieCentrum> locaties = intakelocatiesModel.getObject();
+							locaties.add(intakelocatie);
+							intakelocatiesModel.setObject(new ArrayList<>(locaties));
+							newAdherentiePercentages.remove(ColonRestrictions.getUniekIdOf(verdeling));
+							target.add(adherentieForm, intakelocaties, adherentieTabel);
+
+						}
+					});
+				}
+			});
+		}
 
 		adherentieTabel = new ScreenitDataTable<ColoscopieCentrumColonCapaciteitVerdeling, String>("adherentie", columns,
 			new SortableDataProvider<ColoscopieCentrumColonCapaciteitVerdeling, String>()
@@ -371,7 +378,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		adherentieTabel.setOutputMarkupId(true);
 		adherentieForm.add(adherentieTabel);
 
-		adherentieForm.add(new IndicatingAjaxButton("toevoegen")
+		IndicatingAjaxButton intakeLocatieKoppelenKnop = new IndicatingAjaxButton("toevoegen")
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -417,13 +424,15 @@ public class GebiedGegevens extends GebiedenBeheerPage
 				}
 			}
 
-		});
+		};
+		intakeLocatieKoppelenKnop.setVisible(magAdherentieAanpassen);
+		adherentieForm.add(intakeLocatieKoppelenKnop);
 
 		controleResultaatPanel = new EmptyPanel("controleResultaat");
 		controleResultaatPanel.setOutputMarkupId(true);
 		adherentieForm.add(controleResultaatPanel);
 
-		adherentieForm.add(new IndicatingAjaxButton("controleren", adherentieForm)
+		IndicatingAjaxButton controlerenKnop = new IndicatingAjaxButton("controleren", adherentieForm)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -452,7 +461,9 @@ public class GebiedGegevens extends GebiedenBeheerPage
 					target.appendJavaScript("initTooltip();");
 				}
 			}
-		});
+		};
+		controlerenKnop.setVisible(magAdherentieAanpassen);
+		adherentieForm.add(controlerenKnop);
 
 	}
 
@@ -563,7 +574,10 @@ public class GebiedGegevens extends GebiedenBeheerPage
 		{
 			super(id, "adherentieFragment", fragments, model);
 
-			add(new PercentageIntegerField("nieuweAdherentie", new MapModel<>(newAdherentiePercentages, ColonRestrictions.getUniekIdOf(model.getObject()))));
+			PercentageIntegerField nieuweAdherentieInput = new PercentageIntegerField("nieuweAdherentie",
+				new MapModel<>(newAdherentiePercentages, ColonRestrictions.getUniekIdOf(model.getObject())));
+			nieuweAdherentieInput.setEnabled(magAdherentieAanpassen);
+			add(nieuweAdherentieInput);
 		}
 	}
 
@@ -812,7 +826,7 @@ public class GebiedGegevens extends GebiedenBeheerPage
 
 			};
 			add(doorvoeren);
-			doorvoeren.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_GEBIEDEN_ADHERENTIE_AANPASSEN, Actie.AANPASSEN));
+			doorvoeren.setVisible(magAdherentieAanpassen);
 
 			add(new AjaxLink<Void>("annuleren")
 			{

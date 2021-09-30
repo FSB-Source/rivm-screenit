@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.security;
 
 /*-
@@ -37,12 +36,19 @@ import org.apache.shiro.crypto.hash.Sha512Hash;
 
 public class MultipleAuthenticationSourceCredentialsMatcher implements CredentialsMatcher
 {
-
 	private final HashedCredentialsMatcher passwordCredentialsMatcher;
 
 	private final YubikeyMatcher yubikeyMatcher;
 
 	private final HibernateService hibernateService;
+
+	public MultipleAuthenticationSourceCredentialsMatcher(HibernateService hibernateService, int wrapAroundAllowedRange, int maxSessionCounterIncrease)
+	{
+		this(hibernateService);
+		yubikeyMatcher.setSessionCounterWrapAroundAllowedRange(wrapAroundAllowedRange);
+		yubikeyMatcher.setMaxSessionCounterIncrease(maxSessionCounterIncrease);
+
+	}
 
 	public MultipleAuthenticationSourceCredentialsMatcher(HibernateService hibernateService)
 	{

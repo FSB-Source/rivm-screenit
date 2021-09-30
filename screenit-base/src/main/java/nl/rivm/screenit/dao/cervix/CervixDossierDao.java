@@ -26,6 +26,5 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 
 public interface CervixDossierDao
 {
-
 	CervixScreeningRonde getOntvangstRonde(CervixMonster monster);
 }

@@ -18,16 +18,18 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =========================LICENSE_END==================================
 ###
-import base
-import cherrypy
 import logging
 import os
 import sys
 from argparse import ArgumentParser
+from logging.handlers import TimedRotatingFileHandler
+
+import cherrypy
 from cherrypy.process import plugins
+
+import base
 from controller import fit_afspraak_classifier_controller, fit_dossier_classifier_controller, \
     predict_dossiers_controller, predict_afspraak_controller, predict_afspraken_controller
-from logging.handlers import TimedRotatingFileHandler
 from util import externals
 
 parser = ArgumentParser()
@@ -61,7 +63,8 @@ elif 'LOGGING_DIR' in os.environ:
     directory = os.path.dirname(os.environ['LOGGING_DIR'])
     if not os.path.exists(directory):
         os.makedirs(directory)
-    _file_handler = TimedRotatingFileHandler(directory + '/kansberekening.log', 'midnight')
+    filename = directory + '/kansberekening.log'
+    _file_handler = TimedRotatingFileHandler(filename, 'midnight')
 
 if _file_handler is not None:
     _file_handler.setFormatter(_formatter)

@@ -21,15 +21,11 @@ package nl.rivm.screenit.model.mamma;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.mamma.enums.MammaFollowUpBIRADSWaarde;
-import nl.rivm.screenit.model.mamma.enums.MammaUploadBeeldenVerzoekType;
-import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.envers.Audited;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -41,9 +37,16 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
+import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.mamma.enums.MammaFollowUpBIRADSWaarde;
+import nl.rivm.screenit.model.mamma.enums.MammaUploadBeeldenVerzoekType;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
+
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
@@ -84,7 +87,7 @@ public class MammaUploadBeeldenVerzoek extends AbstractHibernateObject
 	@OneToOne(optional = true, fetch = FetchType.LAZY)
 	private MammaUploadBeeldenPoging laatsteUploadPoging;
 
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uploadBeeldenVerzoek")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "uploadBeeldenVerzoek", cascade = CascadeType.ALL)
 	private List<MammaUploadBeeldenPoging> uploadPogingen = new ArrayList<>();
 
 	public MammaScreeningRonde getScreeningRonde()

@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.model.ProjectParameter;
@@ -38,6 +37,7 @@ import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.util.BigDecimalUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.markup.form.validation.UniqueFieldValidator;
 import nl.topicuszorg.wicket.input.validator.StringIsNumberValidator;
@@ -64,14 +64,22 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 	@SpringBean
 	private HibernateService hibernateService;
 
+	private List<Bevolkingsonderzoek> bevolkingsonderzoeken;
+
 	public EditProjectParametersPanel(String id, IModel<Project> model, List<Bevolkingsonderzoek> bevolkingsonderzoeken)
 	{
-		super(id);
+		super(id, model);
+		this.bevolkingsonderzoeken = bevolkingsonderzoeken;
+	}
 
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		Form<Void> form = new Form<>("form");
 		add(form);
 
-		List<ProjectParameter> parameters = model.getObject().getParameters();
+		List<ProjectParameter> parameters = getModelObject().getParameters();
 		RepeatingView parametersView = new RepeatingView("parameters");
 		List<ProjectParameterKey> parameterKeysVanParameters = parameters.stream().map(ProjectParameter::getKey).collect(Collectors.toList());
 		for (ProjectParameterKey parameterKey : ProjectParameterKey.values())
@@ -79,15 +87,15 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 			int i = parameterKeysVanParameters.indexOf(parameterKey);
 			if (i >= 0)
 			{
-				addParameterKeyRowToParametersView(model, bevolkingsonderzoeken, parametersView, parameterKey, i);
+				addParameterKeyRowToParametersView(parametersView, parameterKey, i);
 			}
 		}
 		form.add(parametersView);
 	}
 
-	private void addParameterKeyRowToParametersView(IModel<Project> model, List<Bevolkingsonderzoek> bevolkingsonderzoeken, RepeatingView parametersView, ProjectParameterKey parameterKey, int i)
+	private void addParameterKeyRowToParametersView(RepeatingView parametersView, ProjectParameterKey parameterKey, int i)
 	{
-		IModel<ProjectParameter> parameterModel = new CompoundPropertyModel<>(new PropertyModel<>(model, "parameters[" + i + "]"));
+		IModel<ProjectParameter> parameterModel = new CompoundPropertyModel<>(new PropertyModel<>(getModel(), "parameters[" + i + "]"));
 		final WebMarkupContainer parameterRow = new WebMarkupContainer(parametersView.newChildId(), parameterModel);
 		ProjectParameter parameter = parameterModel.getObject();
 
@@ -115,7 +123,7 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 
 		parameterRow.add(new Label("unit", getString(EnumStringUtil.getPropertyString(parameterKey) + ".unit")));
 		parameterRow.setVisible(bevolkingsonderzoeken.contains(parameterKey.getBevolkingsonderzoek())
-			&& parameterKey.getProjectType().equals(model.getObject().getType()));
+			&& parameterKey.getProjectType().equals(getModelObject().getType()));
 		parametersView.add(parameterRow);
 	}
 
@@ -123,7 +131,7 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 	{
 		List<ColonOnderzoeksVariant> onderzoeksvarianten = Arrays.asList(ColonOnderzoeksVariant.STANDAARD, ColonOnderzoeksVariant.VERGELIJKEND);
 		ScreenitDropdown<ColonOnderzoeksVariant> onderzoeksvariantDropDown = ComponentHelper.addDropDownChoice(this, "enumValue", true, onderzoeksvarianten, false);
-		onderzoeksvariantDropDown.setModel(new IModel<ColonOnderzoeksVariant>()
+		onderzoeksvariantDropDown.setModel(new IModel<>()
 		{
 			@Override
 			public ColonOnderzoeksVariant getObject()
@@ -171,7 +179,7 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 		Map<String, Object> restrictions = new HashMap<>();
 		restrictions.put("key", parameterKey);
 
-		valueField.add(new UniqueFieldValidator<ProjectParameter, String>(ProjectParameter.class, parameter.getId(), "value", hibernateService, restrictions)
+		valueField.add(new UniqueFieldValidator<>(ProjectParameter.class, parameter.getId(), "value", hibernateService, restrictions)
 		{
 			@Override
 			public void validate(IValidatable<String> validatable)
@@ -193,7 +201,7 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 	private void addIntegerValidators(ProjectParameterKey parameterKey, FormComponent<String> valueField)
 	{
 		valueField.add(new StringIsNumberValidator());
-		valueField.add(new RangeValidator<Integer>(0, parameterKey.getMaxValue())
+		valueField.add(new RangeValidator<>(0, parameterKey.getMaxValue())
 		{
 			@Override
 			protected Integer getValue(IValidatable<Integer> validatable)
@@ -204,13 +212,13 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 					return Integer.valueOf(value.toString());
 				}
 				return null;
-			};
+			}
 		});
 	}
 
 	private void addBigDecimalValidator(ProjectParameterKey parameterKey, FormComponent<String> valueField)
 	{
-		valueField.add(new RangeValidator<BigDecimal>(BigDecimal.ZERO, BigDecimal.valueOf(parameterKey.getMaxValue()))
+		valueField.add(new RangeValidator<>(BigDecimal.ZERO, BigDecimal.valueOf(parameterKey.getMaxValue()))
 		{
 
 			@Override

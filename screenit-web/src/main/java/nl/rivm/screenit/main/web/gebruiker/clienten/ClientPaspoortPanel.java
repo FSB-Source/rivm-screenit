@@ -51,7 +51,12 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 	public ClientPaspoortPanel(String id, IModel<Client> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
+	}
 
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		Client client = getModelObject();
 		GbaPersoon persoon = client.getPersoon();
 
@@ -91,6 +96,6 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 						|| ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_TEHUIS, Actie.INZIEN)));
 			}
 		});
-		add(new MammaDoelgroepIndicatorPanel("doelgroep", model.getObject().getMammaDossier(), true));
+		add(new MammaDoelgroepIndicatorPanel("doelgroep", getModelObject().getMammaDossier(), true));
 	}
 }

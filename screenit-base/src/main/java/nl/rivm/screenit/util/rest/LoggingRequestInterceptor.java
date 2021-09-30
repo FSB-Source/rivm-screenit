@@ -24,6 +24,7 @@ package nl.rivm.screenit.util.rest;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -105,7 +106,7 @@ public class LoggingRequestInterceptor implements ClientHttpRequestInterceptor
 			String responseBody = "";
 			if (responseCopy.getStatusCode() == HttpStatus.OK || responseCopy.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR)
 			{
-				responseBody = IOUtils.toString(responseCopy.getBody());
+				responseBody = IOUtils.toString(responseCopy.getBody(), Charset.defaultCharset());
 			}
 
 			LOG.trace("Method:" + request.getMethod().toString() + "|URI:" + request.getURI().toString() + "|Request:" + new String(body) + "|Response: "

@@ -90,7 +90,8 @@ public class ProjectClient extends AbstractHibernateObject implements IActief
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date projectInactiefDatum;
 
-	@Cascade({ CascadeType.ALL })
+	@Deprecated
+	@Cascade({ CascadeType.SAVE_UPDATE })
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
 	@NotAudited
 	private ProjectInactiveerDocument projectInactiveerDocument;

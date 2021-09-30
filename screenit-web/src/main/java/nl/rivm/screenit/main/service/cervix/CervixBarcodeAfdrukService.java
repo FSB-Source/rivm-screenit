@@ -21,14 +21,13 @@ package nl.rivm.screenit.main.service.cervix;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.UploadDocument;
-
 import java.io.File;
+
+import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 
 public interface CervixBarcodeAfdrukService
 {
 
-    File saveBarcodeDocument(CervixUitnodiging uitnodiging);
+	File saveBarcodeDocument(CervixUitnodiging uitnodiging);
 
 }

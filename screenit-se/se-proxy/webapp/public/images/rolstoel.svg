@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-proxy
+  %%
+  Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<svg width="19px" height="20px" viewBox="0 0 19 20" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
+    <title>List / Minderval</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="List-/-Minderval" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <path d="M11.4174243,13.1049061 L12.5558185,15.3816945 C11.6964425,18.0379477 9.21876099,19.8571463 6.42857909,19.8571463 C2.89062845,19.8571463 0,16.9665178 0,13.4285672 C0,10.7276711 1.69643059,8.31695393 4.22991576,7.39061354 L4.41964813,8.85266886 C2.60044953,9.65624125 1.42857313,11.4419577 1.42857313,13.4285672 C1.42857313,16.1852669 3.67187938,18.4285731 6.42857909,18.4285731 C9.29688608,18.4285731 11.6183174,15.9732131 11.4174243,13.1049061 Z M17.533503,14.2209788 L18.1808252,15.4933018 L15.323679,16.9218749 C15.2232324,16.9776785 15.1116252,17 15.0000179,17 C14.7321604,17 14.4754637,16.8437498 14.3638564,16.6093745 L11.6964425,11.2857075 L6.42857909,11.2857075 C6.07143581,11.2857075 5.75893544,11.0066893 5.71429253,10.649546 L4.64286268,1.95533921 C4.63170195,1.84373193 4.67634486,1.59819593 4.70982704,1.48658865 C4.92188087,0.716498446 5.63616743,0.214265704 6.42857909,0.214265704 C7.41072312,0.214265704 8.21429551,1.01783809 8.21429551,1.99998212 C8.21429551,3.01560833 7.3214373,3.88614508 6.29465036,3.77453781 L6.70759728,6.99998808 L11.4285851,6.99998808 L11.4285851,8.42856121 L6.88616892,8.42856121 L7.06474056,9.85713434 L12.1428716,9.85713434 C12.4107291,9.85713434 12.6674258,10.0133845 12.7790331,10.2477598 L15.323679,15.3258909 L17.533503,14.2209788 Z"
+              id="" fill="#000000"></path>
+    </g>
+</svg>

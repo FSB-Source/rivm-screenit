@@ -37,6 +37,8 @@ import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
 
 @Entity
@@ -54,15 +56,19 @@ public class CervixAfmelding extends Afmelding<CervixScreeningRonde, CervixDossi
 	private CervixDossier dossier;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@Cascade(CascadeType.DELETE)
 	private CervixBrief afmeldingAanvraag;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@Cascade(CascadeType.DELETE)
 	private CervixBrief afmeldingBevestiging;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@Cascade(CascadeType.DELETE)
 	private CervixBrief heraanmeldAanvraag;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
+	@Cascade(CascadeType.DELETE)
 	private CervixBrief heraanmeldBevestiging;
 
 	@OneToMany(mappedBy = "afmelding", fetch = FetchType.LAZY)

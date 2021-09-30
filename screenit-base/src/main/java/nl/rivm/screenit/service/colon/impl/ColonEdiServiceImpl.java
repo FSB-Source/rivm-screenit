@@ -30,7 +30,6 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.MailVerzenden;
 import nl.rivm.screenit.model.MedVryOntvanger;
-import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonHuisartsBerichtStatus;
@@ -72,17 +71,17 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 	}
 
 	@Override
-	public ColonHuisartsBericht maakHuisartsBericht(HuisartsBerichtType berichtType, ColonHuisartsBerichtStatus status, Client client, EnovationHuisarts huisarts,
-		OnbekendeHuisarts onbekendeHuisarts, MailMergeContext context, boolean opnieuwVerzonden)
+	public ColonHuisartsBericht maakHuisartsBericht(HuisartsBerichtType berichtType, ColonHuisartsBerichtStatus status, Client client,
+		EnovationHuisarts huisarts, MailMergeContext context, boolean opnieuwVerzonden)
 	{
 		if (client.getPersoon().getOverlijdensdatum() != null)
 		{
-			LOG.debug("Er wordt geen HuisartsBericht gemaakt voor het HuisartsBerichtType: " + berichtType.getNaam() + ", met de status: " + status.name() + ", voor Client: "
-				+ client.getId() + ". Client is overleden.");
+			LOG.debug("Er wordt geen HuisartsBericht gemaakt voor het HuisartsBerichtType: " + berichtType.getNaam() + ", met de status: "
+				+ status.name() + ", voor Client: " + client.getId() + ". Client is overleden.");
 			return null;
 		}
-		LOG.debug("Er wordt een HuisartsBericht gemaakt voor het HuisartsBerichtType: " + berichtType.getNaam() + ", met de status: " + status.name() + ", voor Client: "
-			+ client.getId());
+		LOG.debug("Er wordt een HuisartsBericht gemaakt voor het HuisartsBerichtType: " + berichtType.getNaam() + ", met de status: " + status.name()
+			+ ", voor Client: " + client.getId());
 		DateTime date = currentDateSupplier.getDateTime();
 
 		ColonHuisartsBericht haBericht = new ColonHuisartsBericht();
@@ -90,7 +89,6 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 		haBericht.setAanmaakDatum(date.toDate());
 		haBericht.setStatus(status);
 		haBericht.setHuisarts(huisarts);
-		haBericht.setOnbekendeHuisarts(onbekendeHuisarts);
 		haBericht.setClient(client);
 		haBericht.setOpnieuwVerzonden(opnieuwVerzonden);
 		Gemeente gbaGemeente = client.getPersoon().getGbaAdres().getGbaGemeente();
@@ -122,11 +120,14 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 
 		String foutmelding = verzendCheck(medVry, huisartsBericht.getScreeningsOrganisatie());
 
+		boolean wasMisluktHuisartsbericht = ColonHuisartsBerichtStatus.VERZENDEN_MISLUKT.equals(huisartsBericht.getStatus());
+
 		try
 		{
 			MailVerzenden mailVerzenden = manipulateEmailadressen(sender, outboundMessageData);
 			if (StringUtils.isBlank(foutmelding)
-				&& (MailVerzenden.UIT.equals(mailVerzenden) || ediMessageService.sendMedVry(sender, sender.getEmail(), outboundMessageData, transactionId)))
+				&& (MailVerzenden.UIT.equals(mailVerzenden)
+					|| ediMessageService.sendMedVry(sender, sender.getEmail(), outboundMessageData, transactionId)))
 			{
 				huisartsBericht.setStatus(ColonHuisartsBerichtStatus.VERZENDEN_GELUKT);
 				huisartsBericht.setVerzendDatum(currentDateSupplier.getDate());
@@ -148,41 +149,34 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 		{
 			hibernateService.save(huisartsBericht);
 
+			LogGebeurtenis logGebeurtenis = LogGebeurtenis.HUISARTS_BERICHT_VERZONDEN;
+
 			if (ColonHuisartsBerichtStatus.VERZENDEN_GELUKT == huisartsBericht.getStatus())
 			{
 				if (Boolean.TRUE.equals(huisartsBericht.isOpnieuwVerzonden()))
 				{
-					logService.logGebeurtenis(LogGebeurtenis.HUISARTSBERICHT_OPNIEUW_VERSTUURD, huisartsBericht.getClient(),
-						getLoggingTekst(huisartsBericht, foutmelding, huisartsBericht.getScreeningsOrganisatie().getEnovationEdiAdres(), medVry.getReceiverId()),
-						Bevolkingsonderzoek.COLON);
-				}
-				else
-				{
-					logService.logGebeurtenis(LogGebeurtenis.HUISARTS_BERICHT_VERZONDEN, huisartsBericht.getClient(),
-						getLoggingTekst(huisartsBericht, foutmelding, huisartsBericht.getScreeningsOrganisatie().getEnovationEdiAdres(), medVry.getReceiverId()),
-						Bevolkingsonderzoek.COLON);
+					logGebeurtenis = LogGebeurtenis.HUISARTSBERICHT_OPNIEUW_VERSTUURD;
 				}
 			}
 			else if (ColonHuisartsBerichtStatus.VERZENDEN_MISLUKT == huisartsBericht.getStatus())
 			{
-				logService.logGebeurtenis(LogGebeurtenis.HUISARTS_BERICHT_NIET_VERZONDEN, huisartsBericht.getClient(),
-					getLoggingTekst(huisartsBericht, foutmelding, huisartsBericht.getScreeningsOrganisatie().getEnovationEdiAdres(), medVry.getReceiverId()),
-					Bevolkingsonderzoek.COLON);
+				logGebeurtenis = wasMisluktHuisartsbericht ? LogGebeurtenis.COLON_HUISARTSBERICHTEN_NIET_VERZONDEN : LogGebeurtenis.HUISARTS_BERICHT_NIET_VERZONDEN;
 			}
+
+			logService.logGebeurtenis(logGebeurtenis, huisartsBericht.getClient(),
+				getLoggingTekst(huisartsBericht, foutmelding, huisartsBericht.getScreeningsOrganisatie().getEnovationEdiAdres(),
+					medVry.getReceiverId()),
+				Bevolkingsonderzoek.COLON);
 		}
 	}
 
 	private void zetOntvanger(ColonHuisartsBericht huisartsBericht, MedVryOut medVryOut)
 	{
-		MedVryOntvanger ontvanger = new MedVryOntvanger(huisartsBericht, "oss.direct@lms.lifeline.nl");
+		MedVryOntvanger ontvanger = new MedVryOntvanger(huisartsBericht);
 		medVryOut.setOntvanger(ontvanger);
 		if (huisartsBericht.getHuisarts() != null)
 		{
 			medVryOut.setReceiverId(huisartsBericht.getHuisarts().getKlantnummer());
-		}
-		else if (huisartsBericht.getOnbekendeHuisarts() != null)
-		{
-			medVryOut.setReceiverId("postbezorging");
 		}
 		medVryOut.setMail(ontvanger.getEdiMailAdres());
 	}
@@ -194,12 +188,6 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 		{
 			logtekst.append("Huisarts: ");
 			logtekst.append(NaamUtil.getNaamHuisarts(haBericht.getHuisarts()));
-			logtekst.append(", ");
-		}
-		else if (haBericht.getOnbekendeHuisarts() != null)
-		{
-			logtekst.append("Onbekende huisarts: ");
-			logtekst.append(NaamUtil.getNaamOnbekendeHuisarts(haBericht.getOnbekendeHuisarts()));
 			logtekst.append(", ");
 		}
 		return getAlgemeneLoggingTekst(haBericht.getBerichtType(), foutmelding, afzender, ontvanger, logtekst);

@@ -30,7 +30,19 @@
                         <div class="controls" wicket:id="monsterId"></div>
 
                     </div>
-                    <label class="control-label span6 floatright"><a class="btn floatright" wicket:id="printMonsterId"><i class="icon-print"></i></a></label>
+                    <div class="span6 floatright">
+                        <div class="row-fluid">
+                            <label class="control-label span12 floatright"><a class="btn floatright" wicket:id="printMonsterId"><i class="icon-print"></i></a></label>
+                        </div>
+                        <div class="row-fluid printen-via-pdf-container" wicket:id="backupPrintMonsterIdContainer">
+                            <hr/>
+                            <div class="control-group">
+                                <label>Foutmelding? Probeer het via PDF: </label>
+                                <a class="btn floatright" wicket:id="backupPrintMonsterId">PDF <i
+                                        class="icon-print"></i></a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <hr>
                 <div class="control-group value">
@@ -86,11 +98,11 @@
                     <div class="controls" wicket:id="uitnodiging.monsterType"></div>
                 </div>
                 <wicket:enclosure wicket:id="labformulier.datumUitstrijkje">
-                <div class="control-group value">
-                    <label class="control-label">Datum Uitstrijkje</label>
+                    <div class="control-group value">
+                        <label class="control-label">Datum Uitstrijkje</label>
 
-                    <div class="controls" wicket:id="labformulier.datumUitstrijkje"></div>
-                </div>
+                        <div class="controls" wicket:id="labformulier.datumUitstrijkje"></div>
+                    </div>
                 </wicket:enclosure>
                 <div class="control-group value">
                     <label class="control-label">Verzenddatum</label>

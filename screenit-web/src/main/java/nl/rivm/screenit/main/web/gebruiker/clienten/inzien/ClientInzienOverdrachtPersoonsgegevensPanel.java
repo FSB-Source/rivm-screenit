@@ -37,7 +37,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
@@ -48,6 +47,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class ClientInzienOverdrachtPersoonsgegevensPanel extends GenericPanel<Client>
 {
@@ -65,6 +65,12 @@ public class ClientInzienOverdrachtPersoonsgegevensPanel extends GenericPanel<Cl
 		super(id, model);
 
 		this.dialog = dialog;
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		addOrReplaceOverdrachtContainer();
 	}
 
@@ -86,7 +92,7 @@ public class ClientInzienOverdrachtPersoonsgegevensPanel extends GenericPanel<Cl
 			gebeurtenissen.add(gebeurtenis);
 		}
 
-		container.add(new ListView<OverdrachtPersoonsgegevensDossierGebeurtenis>("gebeurtenissen", gebeurtenissen)
+		container.add(new ListView<>("gebeurtenissen", gebeurtenissen)
 		{
 			private static final long serialVersionUID = 1L;
 

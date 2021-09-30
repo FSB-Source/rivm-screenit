@@ -56,8 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonStudietestServiceImpl implements ColonStudietestService
 {
-	@Autowired
 	@Lazy
+	@Autowired
 	private IFobtService iFobtService;
 
 	@Autowired
@@ -90,7 +90,7 @@ public class ColonStudietestServiceImpl implements ColonStudietestService
 				iFobtService.bepaalEnSetHeraanmeldenTekstKey(studietest);
 				if (studietest.getHeraanmeldenTekstKey() != null)
 				{
-					iFobtService.heraanmelden(studietest.getColonScreeningRonde(), currentDateSupplier.getDateTime());
+					iFobtService.heraanmelden(studietest.getColonScreeningRonde(), currentDateSupplier.getLocalDateTime());
 					clientIsHeraangemeld = true;
 				}
 			}

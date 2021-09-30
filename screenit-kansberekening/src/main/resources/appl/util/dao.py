@@ -18,12 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =========================LICENSE_END==================================
 ###
-import base
 import logging
-import psycopg2
-from psycopg2 import extras
 
+import base
+import psycopg2
 from pandas import DataFrame
+from psycopg2 import extras
 
 min_voorgaande_screening_rondes_eerste_ronde = 0
 max_voorgaande_screening_rondes_eerste_ronde = 0
@@ -87,7 +87,7 @@ def _read_query(connection, cursor, queryFile, *args) -> DataFrame:
     cursor.execute(open('sql/' + queryFile, 'r').read(), *args)
     events = DataFrame(cursor.fetchall())
     if not events.empty:
-        events.columns = [feature_column[0] for feature_column in cursor.description]
+        events.columns = [column_description[0] for column_description in cursor.description]
         logging.info('events ' + str(events[events.columns[0]].size))
     else:
         logging.info('events 0')
@@ -99,14 +99,16 @@ def update_deelnamekansen(idsScores):
     logging.info('update deelnamekansen ' + str(len(idsScores)))
 
     _execute(_update_kansen, idsScores,
-             'UPDATE mamma.deelnamekans SET deelnamekans = data.score FROM (VALUES %s) AS data (id, score) WHERE deelnamekans.dossier = data.id')
+             'UPDATE mamma.deelnamekans SET deelnamekans = data.score FROM (VALUES %s) AS data (id, score) '
+             'WHERE deelnamekans.dossier = data.id AND deelnamekans.deelnamekans != data.score')
 
 
 def update_opkomstkansen(idsScores):
     logging.info('update opkomstkansen ' + str(len(idsScores)))
 
     _execute(_update_kansen, idsScores,
-             'UPDATE mamma.opkomstkans SET opkomstkans = data.score FROM (VALUES %s) AS data (id, score) WHERE opkomstkans.afspraak = data.id')
+             'UPDATE mamma.opkomstkans SET opkomstkans = data.score FROM (VALUES %s) AS data (id, score) '
+             'WHERE opkomstkans.afspraak = data.id AND opkomstkans.opkomstkans != data.score')
 
 
 def _update_kansen(connection, cursor, idsScores, updateKansSql):

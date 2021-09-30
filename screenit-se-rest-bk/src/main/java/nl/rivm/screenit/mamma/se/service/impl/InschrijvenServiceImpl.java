@@ -45,8 +45,8 @@ import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BezwaarService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -73,13 +73,13 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	private MammaAfspraakService afspraakService;
 
 	@Autowired
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
 	@Override
 	public void inschrijven(InschrijvenDto action, InstellingGebruiker instellingGebruiker, LocalDateTime transactieDatumTijd)
 	{
 		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
-		clientService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
+		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
 		afspraakWijzigen(action, afspraak);
 		afspraakInschrijven(afspraak, instellingGebruiker, transactieDatumTijd);
 		opslaanClientgegevens(action, afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient());
@@ -90,7 +90,7 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	public void inschrijvingWijzigen(InschrijvenDto action, InstellingGebruiker instellingGebruiker)
 	{
 		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
-		clientService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
+		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
 		afspraakWijzigen(action, afspraak);
 		opslaanClientgegevens(action, afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient());
 		hibernateService.saveOrUpdate(afspraak);

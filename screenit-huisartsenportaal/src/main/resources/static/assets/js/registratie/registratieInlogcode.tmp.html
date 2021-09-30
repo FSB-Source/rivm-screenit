@@ -1,0 +1,75 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-huisartsenportaal
+  %%
+  Copyright (C) 2016 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<div class="col-md-6 col-md-offset-3 centered">
+    <br>
+    <div class="panel panel-default login opacity-full">
+        <div class="panel-heading">
+            <span class="row">
+                <div class="col-md-3 text-right">
+                    <h3><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></h3>
+                </div>
+                <div class="col-md-9 text-left">
+                    <h3>Registreren huisartsenportaal</h3>
+                </div>
+            </span>
+        </div>
+        <div class="panel-body">
+            <form class="form-horizontal" accept-charset="UTF-8" role="form" ng-submit="reg.login(loginform, reg.user)"
+                  name="loginform">
+                <fieldset>
+
+                    <div class="form-group required" show-errors>
+                        <label for="inputAGBCode3" class="col-sm-4 control-label">AGB-code</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="reg.user.username"
+                                   name="agbcode" id="inputAGBCode3" placeholder="AGB-code"
+                                   ng-minlength="8" ng-maxlength="8" required>
+                        </div>
+                        <div ng-messages="loginform.agbcode.$error" ng-if="loginform.agbcode.$dirty"
+                             class="col-sm-8 col-sm-offset-4">
+                            <p class="help-block" ng-message="minlength">AGB-code mag minimaal 8 tekens bevatten</p>
+                            <p class="help-block" ng-message="maxlength">AGB-code mag maximaal 8 tekens bevatten</p>
+                            <p ng-messages-include="assets/js/components/default-form-error.tmpl.html"></p>
+                        </div>
+                    </div>
+                    <div class="form-group required" show-errors>
+                        <label for="inputInlogCode3" class="col-sm-4 control-label">Registratiecode</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" ng-model="reg.user.password"
+                                   name="code" id="inputInlogCode3" placeholder="Registratiecode"
+                                   maxlength="11" required>
+                        </div>
+                        <div ng-messages="loginform.code.$error" ng-if="loginform.code.$dirty"
+                             class="col-sm-8 col-sm-offset-4">
+                            <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <span class="col-md-12">
+                             <button type="submit" class="btn btn-primary btn-lg btn-block">Registreren</button>
+                         </span>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>

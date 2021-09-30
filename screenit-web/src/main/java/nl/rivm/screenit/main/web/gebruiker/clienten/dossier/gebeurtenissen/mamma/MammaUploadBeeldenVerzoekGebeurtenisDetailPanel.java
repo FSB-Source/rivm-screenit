@@ -76,7 +76,13 @@ public class MammaUploadBeeldenVerzoekGebeurtenisDetailPanel extends AbstractGeb
 	public MammaUploadBeeldenVerzoekGebeurtenisDetailPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
-		MammaUploadBeeldenVerzoekGebeurtenis uploadBeeldenVerzoekGebeurtenis = (MammaUploadBeeldenVerzoekGebeurtenis) model.getObject();
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		MammaUploadBeeldenVerzoekGebeurtenis uploadBeeldenVerzoekGebeurtenis = (MammaUploadBeeldenVerzoekGebeurtenis) getModelObject();
 		MammaUploadBeeldenVerzoek uploadBeeldenVerzoek = uploadBeeldenVerzoekGebeurtenis.getUploadBeeldenVerzoek();
 		MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenVerzoek.getLaatsteUploadPoging();
 
@@ -102,7 +108,7 @@ public class MammaUploadBeeldenVerzoekGebeurtenisDetailPanel extends AbstractGeb
 		verzoekContainer.add(ingevuldContainer);
 
 		WebMarkupContainer verwijderenContainer = new WebMarkupContainer("verwijderenContainer");
-		IndicatingAjaxLink verwijderButton = new IndicatingAjaxLink<Void>("verwijderen")
+		IndicatingAjaxLink<Void> verwijderButton = new IndicatingAjaxLink<>("verwijderen")
 		{
 
 			@Override

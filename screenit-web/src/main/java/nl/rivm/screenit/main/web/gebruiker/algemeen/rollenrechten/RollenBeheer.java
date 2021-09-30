@@ -31,7 +31,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
-@SecurityConstraint(actie = Actie.AANPASSEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_ROLLEN_BEHEREN, bevolkingsonderzoekScopes = {
+@SecurityConstraint(actie = Actie.INZIEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_ROLLEN_BEHEREN, bevolkingsonderzoekScopes = {
 	Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class RollenBeheer extends AlgemeenPage
 {

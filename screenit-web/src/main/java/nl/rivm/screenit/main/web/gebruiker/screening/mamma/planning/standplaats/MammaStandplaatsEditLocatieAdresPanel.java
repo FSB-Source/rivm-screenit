@@ -66,13 +66,22 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 	@SpringBean
 	private CoordinatenDao coordinatenDao;
 
-	private IModel<MammaStandplaats> standplaatsModel;
+	private final IModel<MammaStandplaats> standplaatsModel;
+
+	private final BootstrapDialog dialog;
 
 	public MammaStandplaatsEditLocatieAdresPanel(String id, IModel<MammaStandplaatsLocatie> model, IModel<MammaStandplaats> standplaatsModel, BootstrapDialog dialog)
 	{
 		super(id, model);
 		this.standplaatsModel = standplaatsModel;
-		boolean tijdelijkeLocatie = Boolean.TRUE.equals(model.getObject().getTijdelijk());
+		this.dialog = dialog;
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		boolean tijdelijkeLocatie = Boolean.TRUE.equals(getModelObject().getTijdelijk());
 		String titel = getString("titel.locatie");
 		if (tijdelijkeLocatie)
 		{

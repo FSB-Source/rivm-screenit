@@ -58,19 +58,19 @@ public class LabaanvraagValidator
 {
 	private Logger LOG = LoggerFactory.getLogger(LabaanvraagValidator.class);
 
-	private ClientService clientService;
+	private final ClientService clientService;
 
-	private CervixHuisartsBaseDao huisartsBaseDao;
+	private final CervixHuisartsBaseDao huisartsBaseDao;
 
-	private CervixMonsterService monsterService;
+	private final CervixMonsterService monsterService;
 
-	private CervixBaseScreeningrondeService screeningRondeService;
+	private final CervixBaseScreeningrondeService screeningRondeService;
 
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	private boolean validated;
 
-	private OperationOutcome operationOutcome = new OperationOutcome();
+	private final OperationOutcome operationOutcome = new OperationOutcome();
 
 	public LabaanvraagValidator()
 	{
@@ -87,7 +87,7 @@ public class LabaanvraagValidator
 	{
 		validateClientGerelateerdeData(resource);
 		validateHuisartsGerelateerdeData(resource);
-		if (resource instanceof LabaanvraagBundle)
+		if (resource instanceof LabaanvraagBundle && operationOutcome.isEmpty())
 		{
 			try
 			{
@@ -568,7 +568,7 @@ public class LabaanvraagValidator
 			.setText(message.name());
 	}
 
-	private void addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage message)
+	public void addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage message)
 	{
 		addOperationOutcomeIssueComponent(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueType.BUSINESSRULE, message);
 	}

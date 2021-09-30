@@ -1,0 +1,120 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-huisartsenportaal
+  %%
+  Copyright (C) 2016 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<div class="col-md-12">
+    <div class="content">
+        <h1>Aanvragen laboratoriumformulieren</h1>
+        <p>Heeft u geen of onvoldoende laboratoriumformulieren dan kunt u deze bijbestellen. Daarvoor kunt u het onderstaande formulier invullen.</p>
+
+        <div class="row">
+            <div class="col-md-12">
+                <table ng-table="form.tableParams" class="table table-verrichtingen table-striped table-hover">
+                    <tr ng-repeat="row in $data track by row.huisartsportaalId">
+                        <td data-title="'Aangevraagd op'" sortable="'aanvraagDatum'">{{row.aanvraagDatum | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                        <td data-title="'Aantal'" sortable="'aantal'">{{row.aantal}}</td>
+                        <td data-title="'Status'" sortable="'status'">{{row.status | aanvraagstatus}}</td>
+                        <td data-title="'Statusdatum'" sortable="'statusDatum'">{{row.statusDatum | date:'dd-MM-yyyy HH:mm:ss'}}</td>
+                        <td data-title="'Aangevraagd door'" sortable="'aangevraagdDoor'">{{row.aangevraagdDoor}}
+                        </td>
+                        <td data-title="'Locatie'" sortable="'locatie.naam'">{{row.locatie.naam}}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-12 row tabel-totalen">
+                <strong>Aantal aanvragen:</strong> <span ng-bind="form.totalen.aantalAanvragen"></span>
+            </div>
+        </div>
+
+        <form class="form-horizontal" ng-submit="form.opslaan(form.aanvraag); aanvraagform.$setPristine()" name="aanvraagform" novalidate>
+            <div class="panel panel-default clearfix locatie-panel">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            <h4>Aanvraag toevoegen</h4>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group" ng-class="{true: 'has-error', false: ''}[aanvraagform.aantal.$invalid && !aanvraagform.aantal.$pristine]">
+                                <label for="inputLocatienaam3" class="col-sm-4 control-label">Aantal:</label>
+                                <div class="col-sm-8">
+                                    <input id="labformulier-aantal-input" class="form-control" ng-model="form.aanvraag.aantal" name="aantal"
+                                           type="number" min="10" max="75" ng-pattern="/^[0-9]+$/" required/>
+                                </div>
+                                <div ng-messages="aanvraagform.aantal.$error"
+                                     ng-if="aanvraagform.aantal.$dirty"
+                                     class="col-sm-8 col-sm-offset-4">
+                                    <p class="help-block" ng-message="min">Er moeten minimaal 10 laboratoriumformulieren worden aangevraagd.</p>
+                                    <p class="help-block" ng-message="max">Er kunnen maximaal 75 laboratoriumformulieren worden aangevraagd.</p>
+                                    <p class="help-block" ng-message="pattern">Het aantal labformulieren moet een heel getal zijn.</p>
+                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group" ng-class="{true: 'has-error', false: ''}[aanvraagform.locatie.$invalid && !aanvraagform.locatie.$pristine]">
+                                <label for="inputIban3" class="col-sm-4 control-label">Locatie:</label>
+                                <div class="col-sm-8">
+                                    <select ng-model="form.aanvraag.locatie" class="form-control select2" name="locatie"
+                                            ng-options="locatie as locatie.naam for locatie in form.huisarts.locaties | filter: {status: 'ACTIEF'}"
+                                            required>
+                                        <option value="">Kies een locatie</option>
+                                    </select>
+                                </div>
+                                <div ng-messages="aanvraagform.locatie.$error"
+                                     class="col-sm-8 col-sm-offset-4">
+                                    <div ng-if="aanvraagform.locatie.$dirty">
+                                        <p ng-messages-include="assets/js/components/default-form-error.tmpl.html"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <div class="col-sm-10">
+                                    <button type="submit" class="btn btn-primary">Indienen</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" tabindex="-1" id="confirmActiveren" role="dialog" aria-labelledby="confirmActiverenLabel">
+    <form class="form-horizontal" name="locatieform">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header purple">
+                    <h4 class="modal-title modal-title-spacing" id="confirmActiverenLabel">Laboratoriumformulieren aangevraagd</h4>
+                </div>
+                <div class="modal-body">
+                    <label>Aanvraag is succesvol verwerkt</label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Sluiten</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.service.ClientContactService;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -79,6 +80,9 @@ public class ClientMammaOverigeDashboardActiesPanel extends GenericPanel<Client>
 
 	@SpringBean
 	private ClientService clientService;
+
+	@SpringBean
+	private ClientDoelgroepService doelgroepService;
 
 	@SpringBean
 	private GebruikersService gebruikerService;
@@ -219,7 +223,7 @@ public class ClientMammaOverigeDashboardActiesPanel extends GenericPanel<Client>
 						extraPanelParams));
 			}
 		};
-		boolean magBezwaarMaken = clientService.behoortTotDoelgroep(client, Bevolkingsonderzoek.MAMMA);
+		boolean magBezwaarMaken = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.MAMMA);
 
 		if (client.getBezwaarMomenten().size() > 0)
 		{

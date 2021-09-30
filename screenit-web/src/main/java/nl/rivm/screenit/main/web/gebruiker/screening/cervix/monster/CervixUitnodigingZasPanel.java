@@ -25,11 +25,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
-import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
+import nl.rivm.screenit.main.web.gebruiker.screening.cervix.CervixBarcodeAfdrukkenBasePage;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixZas;
@@ -41,6 +40,8 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
+import nl.rivm.screenit.util.EnumStringUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -68,9 +69,9 @@ public abstract class CervixUitnodigingZasPanel extends CervixUitnodigingPanel<C
 
 	private ScreenitDropdown<CervixZasStatus> zasStatusDropdown = null;
 
-	public CervixUitnodigingZasPanel(String id, CervixZas zas)
+	public CervixUitnodigingZasPanel(CervixBarcodeAfdrukkenBasePage parentPage, String id, CervixZas zas)
 	{
-		super(id, zas);
+		super(parentPage, id, zas);
 	}
 
 	@Override

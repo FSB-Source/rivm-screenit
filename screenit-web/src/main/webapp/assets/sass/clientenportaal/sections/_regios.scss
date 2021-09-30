@@ -1,3 +1,4 @@
+@charset "utf-8";
 @mixin region-color($color1, $color2, $color3, $logo, $footer) {
   .topnav-title {
     background-color: $color1;

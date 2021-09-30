@@ -27,14 +27,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenPartitioner;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
@@ -57,69 +58,43 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	public static final String KEY_TIJDELIJK = "tijdelijk";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MammaBrievenGenererenReader.class);
+	public static final String KEY_EERSTE_RONDE = "_ronde1";
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(MammaBrievenGenererenPartitioner.class);
 
 	@Autowired
-	public MammaBaseStandplaatsService mammaStandplaatsService;
+	private SimplePreferenceService preferenceService;
 
 	@Override
 	protected void fillingData(Map<String, ExecutionContext> partities, ScreeningOrganisatie organisatie)
 	{
 		for (BriefType briefType : getBriefTypes())
 		{
-			if (briefType.getVerzendendeOrganisatieType() == OrganisatieType.SCREENINGSORGANISATIE)
+			if (briefType.getVerzendendeOrganisatieType() != OrganisatieType.SCREENINGSORGANISATIE)
 			{
-				if (briefType == BriefType.MAMMA_AFSPRAAK_UITNODIGING ||
-					briefType == BriefType.MAMMA_OPEN_UITNODIGING ||
-					briefType == BriefType.MAMMA_UITNODIGING_MINDER_VALIDE ||
-					briefType == BriefType.MAMMA_UITNODIGING_TEHUIS_ZONDER_DATUM ||
-					briefType == BriefType.MAMMA_UITNODIGING_SUSPECT ||
-					briefType == BriefType.MAMMA_AFSPRAAK_VERZET)
+				continue;
+			}
+
+			if (BriefType.getMammaBriefApart().contains(briefType))
+			{
+				Boolean isEersteRondeBrief = isEersteRondeBrief(briefType);
+
+				partitionBuilders(partities, organisatie.getId(), briefType.name(), true, null, false, isEersteRondeBrief);
+
+				partitionBuilders(partities, organisatie.getId(), briefType.name(), true, null, true, isEersteRondeBrief);
+
+				for (Long standplaatsId : getStandplaatsenIdsMetBrief(organisatie.getId(), briefType))
 				{
 
-					ExecutionContext executionContext = new ExecutionContext();
-					executionContext.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
-					executionContext.put(KEY_BRIEFTYPE, briefType.name());
-					executionContext.put(KEY_BRIEFTYPEAPART, true);
-					executionContext.put(KEY_MAMMASTANDPLAATSID, null);
-					executionContext.put(KEY_TIJDELIJK, false);
-					partities.put(organisatie.getId() + briefType.name() + "SL", executionContext);
+					partitionBuilders(partities, organisatie.getId(), briefType.name(), true, standplaatsId, false, isEersteRondeBrief);
 
-					ExecutionContext executionContextTijdelijk = new ExecutionContext();
-					executionContextTijdelijk.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
-					executionContextTijdelijk.put(KEY_BRIEFTYPE, briefType.name());
-					executionContextTijdelijk.put(KEY_BRIEFTYPEAPART, true);
-					executionContextTijdelijk.put(KEY_MAMMASTANDPLAATSID, null);
-					executionContextTijdelijk.put(KEY_TIJDELIJK, true);
-					partities.put(organisatie.getId() + briefType.name() + "TL", executionContextTijdelijk);
-
-					for (Long standplaatsId : getStandplaatsenIdsMetBrief(organisatie.getId(), briefType))
-					{
-						ExecutionContext executionContextBijlagen = new ExecutionContext();
-						executionContextBijlagen.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
-						executionContextBijlagen.put(KEY_BRIEFTYPE, briefType.name());
-						executionContextBijlagen.put(KEY_BRIEFTYPEAPART, true);
-						executionContextBijlagen.put(KEY_MAMMASTANDPLAATSID, standplaatsId);
-						executionContextBijlagen.put(KEY_TIJDELIJK, false);
-						partities.put(organisatie.getId() + briefType.name() + "SL" + standplaatsId + "BL", executionContextBijlagen);
-
-						ExecutionContext executionContextTijdelijkBijlagen = new ExecutionContext();
-						executionContextTijdelijkBijlagen.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
-						executionContextTijdelijkBijlagen.put(KEY_BRIEFTYPE, briefType.name());
-						executionContextTijdelijkBijlagen.put(KEY_BRIEFTYPEAPART, true);
-						executionContextTijdelijkBijlagen.put(KEY_MAMMASTANDPLAATSID, standplaatsId);
-						executionContextTijdelijkBijlagen.put(KEY_TIJDELIJK, true);
-						partities.put(organisatie.getId() + briefType.name() + "TL" + standplaatsId + "BL", executionContextTijdelijkBijlagen);
-					}
+					partitionBuilders(partities, organisatie.getId(), briefType.name(), true, standplaatsId, true, isEersteRondeBrief);
 				}
-				else
-				{
-					ExecutionContext executionContext = new ExecutionContext();
-					executionContext.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
-					executionContext.put(KEY_BRIEFTYPE, briefType.name());
-					executionContext.put(KEY_BRIEFTYPEAPART, false);
-					partities.put(organisatie.getId() + briefType.name(), executionContext);
-				}
+			}
+			else
+			{
+
+				partitionBuilders(partities, organisatie.getId(), briefType.name(), false, null, null, null);
 			}
 		}
 	}
@@ -201,5 +176,70 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 		crit.createAlias("laatsteUitnodiging.laatsteAfspraak", "laatsteAfspraak", JoinType.LEFT_OUTER_JOIN);
 
 		return crit;
+	}
+
+	private Boolean isEersteRondeBrief(BriefType briefType)
+	{
+
+		Boolean annoteerEersteRonde = preferenceService.getBoolean(PreferenceKey.MAMMA_ANNOTEER_EERSTE_RONDE.name());
+		return Boolean.TRUE.equals(annoteerEersteRonde) && BriefType.getMammaEersteRondeBrieftype().contains(briefType);
+	}
+
+	void partitionBuilders(Map<String, ExecutionContext> partities, long organisatieID, String briefType, boolean briefApart, Long standPlaatsID, Boolean tijdelijk,
+		Boolean eersteBrief)
+	{
+		if (Boolean.TRUE.equals(eersteBrief))
+		{
+			partitionBuilder(partities, organisatieID, briefType, briefApart, standPlaatsID, tijdelijk, true);
+			partitionBuilder(partities, organisatieID, briefType, briefApart, standPlaatsID, tijdelijk, false);
+		}
+		else
+		{
+			partitionBuilder(partities, organisatieID, briefType, briefApart, standPlaatsID, tijdelijk, null);
+		}
+	}
+
+	private void partitionBuilder(Map<String, ExecutionContext> partities,
+		long organisatieID,
+		String briefType,
+		boolean briefApart,
+		Long standPlaatsID,
+		Boolean tijdelijk,
+		Boolean eersteBrief)
+	{
+		String partitionIdentifier = organisatieID + briefType;
+		ExecutionContext ec = new ExecutionContext();
+
+		ec.put(KEY_SCREENINGORGANISATIEID, organisatieID);
+		ec.put(KEY_BRIEFTYPE, briefType);
+		ec.put(KEY_BRIEFTYPEAPART, briefApart);
+		ec.put(KEY_MAMMASTANDPLAATSID, standPlaatsID);
+		ec.put(KEY_TIJDELIJK, tijdelijk);
+		ec.put(KEY_EERSTE_RONDE, eersteBrief);
+
+		if (Boolean.TRUE.equals(tijdelijk))
+		{
+			partitionIdentifier += "_TL";
+		}
+		else if (Boolean.FALSE.equals(tijdelijk))
+		{
+			partitionIdentifier += "_SL";
+		}
+
+		if (standPlaatsID != null)
+		{
+			partitionIdentifier += "_" + standPlaatsID + "_BL";
+		}
+
+		if (Boolean.TRUE.equals(eersteBrief))
+		{
+			partitionIdentifier += "_ERT";
+		}
+		else if (Boolean.FALSE.equals(eersteBrief))
+		{
+			partitionIdentifier += "_ERF";
+		}
+
+		partities.put(partitionIdentifier, ec);
 	}
 }

@@ -26,9 +26,14 @@ import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
 
+import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
+import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public interface CervixBetalingService
 {
@@ -45,4 +50,11 @@ public interface CervixBetalingService
 
 	void archiveerBestaandeOpdrachten(ScreeningOrganisatie screeningOrganisatie);
 
+	void toevoegenTarief(CervixTarief tarief, Account account);
+
+	void berekenEinddatumCervixLaboratoriumTarief(BMHKLaboratorium laboratorium);
+
+	String toevoegenIndexatieTarief(CervixTarief nieuweTarief, Account account) throws JsonProcessingException;
+
+	void verwijderCervixTarief(CervixTarief tarief, Account account);
 }

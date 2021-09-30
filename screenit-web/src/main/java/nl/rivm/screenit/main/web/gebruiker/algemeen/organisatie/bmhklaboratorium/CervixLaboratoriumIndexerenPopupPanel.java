@@ -22,54 +22,53 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.bmhklaboratoriu
  */
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
-import nl.rivm.screenit.util.EnumStringUtil;
+import nl.rivm.screenit.main.service.cervix.CervixBetalingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.SimpleStringResourceModel;
 import nl.rivm.screenit.main.web.component.form.BigDecimalField;
 import nl.rivm.screenit.main.web.component.validator.BigDecimalPuntFormValidator;
+import nl.rivm.screenit.main.web.gebruiker.gedeeld.cervix.CervixHerindexeringWaarschuwingPanel;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.model.cervix.facturatie.CervixLabTarief;
 import nl.rivm.screenit.model.cervix.facturatie.CervixTarief;
-import nl.rivm.screenit.service.cervix.CervixAsyncIndexatieService;
-import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
-import nl.rivm.screenit.util.cervix.CervixTariefUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+import nl.topicuszorg.wicket.input.validator.DependantDateValidator;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 public abstract class CervixLaboratoriumIndexerenPopupPanel extends GenericPanel<CervixLabTarief>
 {
 	@SpringBean
-	private CervixVerrichtingDao cervixVerrichtingDao;
+	private CervixVerrichtingDao verrichtingDao;
 
 	@SpringBean
-	private CervixVerrichtingService cervixVerrichtingService;
-
-	@SpringBean
-	private CervixAsyncIndexatieService asyncIndexatieService;
+	private CervixBetalingService betalingService;
 
 	public CervixLaboratoriumIndexerenPopupPanel(String id)
 	{
-		super(id, ModelUtil.cModel(new CervixLabTarief()));
+		super(id, ModelUtil.ccModel(new CervixLabTarief()));
 
 		BMHKLaboratorium instelling = (BMHKLaboratorium) ScreenitSession.get().getCurrentSelectedOrganisatie();
 		CervixLabTarief tarief = getModelObject();
 		tarief.setBmhkLaboratorium(instelling);
 
-		CervixLabTarief latest = cervixVerrichtingDao.getLatestCervixLabTarief(instelling);
+		CervixLabTarief latest = verrichtingDao.getLatestCervixLabTarief(instelling);
 		if (latest != null)
 		{
 			tarief.setHpvAnalyseZasTarief(latest.getHpvAnalyseZasTarief());
@@ -88,6 +87,8 @@ public abstract class CervixLaboratoriumIndexerenPopupPanel extends GenericPanel
 		}
 
 		Form<CervixLabTarief> form = new Form<>("form", getModel());
+
+		form.add(new CervixHerindexeringWaarschuwingPanel("waarschuwing"));
 
 		BigDecimalField hpvAnalyseUitstrijkjeTarief = new BigDecimalField("hpvAnalyseUitstrijkjeTarief");
 		hpvAnalyseUitstrijkjeTarief.setRequired(true);
@@ -117,39 +118,30 @@ public abstract class CervixLaboratoriumIndexerenPopupPanel extends GenericPanel
 
 		DatePicker<Date> startDatumDatePicker = ComponentHelper.newDatePicker("geldigVanafDatum");
 		startDatumDatePicker.setRequired(true);
-		startDatumDatePicker.setLabel(Model.of("Geldig vanaf"));
+		startDatumDatePicker.setLabel(Model.of("Geldig van"));
 		form.add(startDatumDatePicker);
 
 		DatePicker<Date> eindDatumDatePicker = ComponentHelper.newDatePicker("geldigTotenmetDatum");
 		eindDatumDatePicker.setLabel(Model.of("Geldig t/m"));
 		form.add(eindDatumDatePicker);
 
+		form.add(new DependantDateValidator(startDatumDatePicker, eindDatumDatePicker, DependantDateValidator.Operator.AFTER));
+
 		form.add(new BigDecimalPuntFormValidator(hpvAnalyseUitstrijkjeTarief, hpvAnalyseZasTarief, cytologieNaHpvUitstrijkjeTarief, cytologieNaHpvZasTarief,
 			cytologieVervolguitstrijkjeTarief));
 
-		form.add(new AjaxSubmitLink("opslaan", form)
+		form.add(new IndicatingAjaxSubmitLink("opslaan", form)
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				List<CervixTarief> oudeTarieven = new ArrayList<>();
-				CervixTarief nieuweTarief = (CervixLabTarief) form.getModelObject();
 				try
 				{
-					cervixVerrichtingService.toevoegenIndexatieTarief(nieuweTarief, oudeTarieven, ScreenitSession.get().getLoggedInAccount());
-					String melding = "";
-					for (CervixTarief oudeTarief : oudeTarieven)
-					{
-						if (!melding.isEmpty())
-						{
-							melding += "; ";
-						}
-						melding += CervixTariefUtil.getTariefString(oudeTarief);
-						asyncIndexatieService.indexeren(oudeTarief.getId(), nieuweTarief.getId(), CervixTariefType.isHuisartsTarief(nieuweTarief));
-					}
+					CervixTarief nieuweTarief = (CervixTarief) HibernateHelper.deproxy(ModelProxyHelper.deproxy(form.getModelObject()));
+					String melding = betalingService.toevoegenIndexatieTarief(nieuweTarief, ScreenitSession.get().getLoggedInAccount());
 					opslaan(target, melding);
 				}
-				catch (IllegalArgumentException e)
+				catch (IllegalArgumentException | JsonProcessingException e)
 				{
 					error(getString(e.getMessage()));
 				}

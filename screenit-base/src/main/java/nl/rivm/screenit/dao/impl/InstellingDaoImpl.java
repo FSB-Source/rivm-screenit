@@ -22,7 +22,6 @@ package nl.rivm.screenit.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -34,7 +33,6 @@ import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieBoomWrapper;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.colon.AntedateerRange;
@@ -189,35 +187,6 @@ public class InstellingDaoImpl extends AbstractAutowiredDao implements Instellin
 		Criteria crit = getSession().createCriteria(IFobtLaboratorium.class);
 		crit.add(Restrictions.eq("labIdScanner", labIdScanner));
 		return (IFobtLaboratorium) crit.uniqueResult();
-	}
-
-	@Override
-	@SuppressWarnings("unchecked")
-	public List<OrganisatieBoomWrapper> getCompleteOrganisatieBoom()
-	{
-		Criteria crit = getSession().createCriteria(Instelling.class);
-		crit.add(Restrictions.eq("actief", true));
-		crit.add(Restrictions.ne("organisatieType", OrganisatieType.HUISARTS));
-		crit.setProjection(Projections.projectionList().add(Projections.property("id")).add(Projections.property("naam")).add(Projections.property("organisatieType"))
-			.add(Projections.property("parent")));
-
-		List<OrganisatieBoomWrapper> resultaten = new ArrayList<OrganisatieBoomWrapper>();
-		List<Object[]> rijen = crit.list();
-
-		for (Object[] rij : rijen)
-		{
-			if (rij.length == 4 && rij[3] != null)
-			{
-				Long parent = ((Instelling) rij[3]).getId();
-				resultaten.add(new OrganisatieBoomWrapper((Long) rij[0], parent, (String) rij[1], (OrganisatieType) rij[2]));
-			}
-			else
-			{
-				resultaten.add(new OrganisatieBoomWrapper((Long) rij[0], null, (String) rij[1], (OrganisatieType) rij[2]));
-			}
-		}
-
-		return resultaten;
 	}
 
 	@Override

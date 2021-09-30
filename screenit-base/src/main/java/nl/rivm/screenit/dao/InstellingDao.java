@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao;
 
 /*-
@@ -30,7 +29,6 @@ import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.OrganisatieBoomWrapper;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.colon.AntedateerRange;
@@ -63,8 +61,6 @@ public interface InstellingDao
 	<T extends Instelling> List<T> getChildrenInstellingen(@Nonnull Instelling instelling, @Nonnull Class<T> typeInstelling);
 
 	IFobtLaboratorium getIfobtLabByLabID(String labID);
-
-	List<OrganisatieBoomWrapper> getCompleteOrganisatieBoom();
 
 	List<Long> getLandelijkeInstellingIds(OrganisatieType type);
 

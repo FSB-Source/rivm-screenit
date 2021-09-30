@@ -187,6 +187,16 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 		hibernateService.saveOrUpdate(uitstrijkje);
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void koppelDigitaalLabformulier(CervixLabformulier labformulier)
+	{
+		CervixUitstrijkje uitstrijkje = labformulier.getUitstrijkje();
+		uitstrijkje.setLabformulier(labformulier);
+		uitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(uitstrijkje));
+		hibernateService.saveOrUpdate(labformulier);
+	}
+
 	private CervixUitstrijkje valideerLabformulierKoppeling(CervixLabformulier labformulier)
 	{
 		CervixUitstrijkje uitstrijkje;

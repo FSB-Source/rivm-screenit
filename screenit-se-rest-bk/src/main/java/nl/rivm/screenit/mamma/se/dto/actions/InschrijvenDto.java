@@ -33,6 +33,8 @@ public class InschrijvenDto extends AbstractActionDto
 
 	private String identificatienummer;
 
+	private Long clientId;
+
 	private String emailadres;
 
 	private String telefoonnummer1;
@@ -90,6 +92,16 @@ public class InschrijvenDto extends AbstractActionDto
 	public void setIdentificatienummer(String identificatienummer)
 	{
 		this.identificatienummer = identificatienummer;
+	}
+
+	public Long getClientId()
+	{
+		return clientId;
+	}
+
+	public void setClientId(Long clientId)
+	{
+		this.clientId = clientId;
 	}
 
 	public String getEmailadres()

@@ -68,7 +68,6 @@ import org.hibernate.envers.Audited;
 @Audited
 public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief, MammaAfmelding, MammaUitnodiging>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
@@ -160,6 +159,10 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 
 	@OneToOne(optional = true, fetch = FetchType.LAZY)
 	private MammaOnderzoek laatsteOnderzoek;
+
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "screeningRonde")
+	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
+	private List<MammaConclusieReview> conclusieReviews = new ArrayList<>();
 
 	@Override
 	public MammaDossier getDossier()
@@ -423,5 +426,15 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 	public void setLaatsteOnderzoek(MammaOnderzoek laatsteOnderzoek)
 	{
 		this.laatsteOnderzoek = laatsteOnderzoek;
+	}
+
+	public List<MammaConclusieReview> getConclusieReviews()
+	{
+		return conclusieReviews;
+	}
+
+	public void setConclusieReviews(List<MammaConclusieReview> conclusieReviews)
+	{
+		this.conclusieReviews = conclusieReviews;
 	}
 }

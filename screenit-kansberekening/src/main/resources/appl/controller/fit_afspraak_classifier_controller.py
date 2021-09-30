@@ -18,16 +18,24 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =========================LICENSE_END==================================
 ###
-import base
 import logging
+
+import base
 from util import fit, externals, classification, preprocess, dao
 
 
 def fit_afspraak_classifier():
-    logging.info("Eerste ronde")
+    logging.info("Start fit afspraak eerste ronde")
+    _fit_afspraak_eerste_ronde()
+    logging.info("Eind fit afspraak eerste ronde")
 
+    logging.info("Start fit afspraak vervolgronde")
+    _fit_afspraak_vervolgronde()
+    logging.info("Eind fit afspraak vervolgronde")
+
+
+def _fit_afspraak_eerste_ronde():
     _afspraak_samples = dao.get_afspraak_samples_eerste_ronde()
-
     if _afspraak_samples.empty:
         raise Exception('Geen afspraak samples')
     else:
@@ -44,10 +52,9 @@ def fit_afspraak_classifier():
 
         base.afspraak_classifier_eerste_ronde = _classifier
 
-    logging.info("Vervolgronde")
 
+def _fit_afspraak_vervolgronde():
     _afspraak_samples = dao.get_afspraak_samples_vervolgronde()
-
     if _afspraak_samples.empty:
         raise Exception('Geen afspraak samples')
     else:

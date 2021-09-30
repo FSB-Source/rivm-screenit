@@ -50,9 +50,9 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BezwaarService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
@@ -87,7 +87,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
 	@Autowired
 	private BaseBriefService briefService;
@@ -308,7 +308,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 			}
 			if (afmelding != null)
 			{
-				clientService.heraanmeldenZonderVervolg(afmelding);
+				baseAfmeldService.heraanmeldenZonderVervolg(afmelding);
 			}
 		}
 		return heraanmeldenTekstKey;

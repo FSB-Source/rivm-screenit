@@ -49,8 +49,14 @@ public class MammaOnderzoekInzienPanel extends AbstractGebeurtenisDetailPanel
 	public MammaOnderzoekInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 		final MammaOnderzoekGebeurtenis onderzoekGebeurtenis = (MammaOnderzoekGebeurtenis) getModelObject();
-		final IModel<MammaOnderzoek> onderzoekModel = ModelUtil.cRModel(onderzoekGebeurtenis.getOnderzoek());
+		final IModel<MammaOnderzoek> onderzoekModel = ModelUtil.csModel(onderzoekGebeurtenis.getOnderzoek());
 		add(new EnumLabel<>("onderzoek.mammografie.ilmStatus"));
 		add(new MammaVisueleInspectiePanel("visueleInspectiePanel", onderzoekModel));
 		add(new MammaOnderzoekPanel("onderzoekPanel", onderzoekModel));

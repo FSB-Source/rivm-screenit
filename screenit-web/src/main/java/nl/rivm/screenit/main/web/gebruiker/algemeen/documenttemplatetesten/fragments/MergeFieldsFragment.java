@@ -82,7 +82,14 @@ public class MergeFieldsFragment extends Fragment
 			{
 				String property = "fromDB" + modelObject.name();
 				String componentId = "invoerField";
-				if (MergeFieldTestType.BKRADIOLOOG.equals(modelObject))
+				if (field.equals(MergeField.MAMMA_AFSPRAAK_BETREFT))
+				{
+					return new MammaAfspraakBetreftFragment(componentId,
+						markupProvider,
+						createModel(field),
+						getEnabledModel(property));
+				}
+				else if (MergeFieldTestType.BKRADIOLOOG.equals(modelObject))
 				{
 					return new BKRadioloogFragment(componentId,
 						markupProvider,

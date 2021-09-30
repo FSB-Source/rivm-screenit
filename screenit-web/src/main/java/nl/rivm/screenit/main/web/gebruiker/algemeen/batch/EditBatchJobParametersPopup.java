@@ -50,7 +50,7 @@ public abstract class EditBatchJobParametersPopup extends GenericPanel<JobType>
 
 		add(new EnumLabel<JobType>("jobType", jobType));
 		add(new Label("bvos", Bevolkingsonderzoek.getAfkortingen(jobType.getBevolkingsOnderzoeken())));
-		add(new EditOrganisatieParametersPanel("parameters", Arrays.asList(jobType.getJobParameters()))
+		add(new EditOrganisatieParametersPanel("parameters", Arrays.asList(jobType.getJobParameters()), true)
 		{
 
 			@Override

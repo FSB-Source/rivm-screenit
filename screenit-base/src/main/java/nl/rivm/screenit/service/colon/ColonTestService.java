@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.colon;
 
 /*-
@@ -24,21 +23,28 @@ package nl.rivm.screenit.service.colon;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Map;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
+import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
+import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 
 public interface ColonTestService
 {
 	void importColonClientenViaCsv(File file, Map<String, ColonUitnodigingCategorie> categoriePerPatient, int startRondeCorrectie) throws IOException, ParseException;
+
+	ColonBrief maakColonBrief(Client client, ColonScreeningRonde screeningRonde, BriefType briefType);
 
 	ColonIntakeAfspraak maakAfspraak(GbaPersoon persoon, Date fitVerwerkingsDatum);
 
@@ -48,11 +54,15 @@ public interface ColonTestService
 
 	void maakClientKlaarVoorRappeleren(GbaPersoon persoon);
 
-	void maakUitnodigingEnTestenVergelijkendOnderzoek(GbaPersoon filter);
+    IFOBTTest maakHuidigeIFobtOntvangenInclUitslag(GbaPersoon filter, BigDecimal normwaarde, BigDecimal uitslag);
 
-	void huisartsBerichtKlaarzettten(GbaPersoon filter, HuisartsBerichtType berichtType);
+    void maakUitnodigingEnTestenVergelijkendOnderzoek(GbaPersoon filter);
 
-	IFOBTTest maakHuidigeIFobtOntvangenEnGustig(GbaPersoon persoon);
+    ColonScreeningRonde maakNieuweScreeningRonde(ColonDossier dossier);
+
+    void huisartsBerichtKlaarzettten(GbaPersoon filter, HuisartsBerichtType berichtType);
+
+	IFOBTTest maakHuidigeIFobtOntvangenEnGunstig(GbaPersoon persoon);
 
 	IFOBTTest maakHuidigeIFobtOntvangenEnOngunstig(GbaPersoon persoon);
 

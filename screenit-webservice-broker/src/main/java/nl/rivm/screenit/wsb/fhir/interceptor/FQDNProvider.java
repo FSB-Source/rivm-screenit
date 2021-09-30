@@ -50,6 +50,8 @@ public class FQDNProvider
 
 	private List<String> validFQDNs = new ArrayList<>();
 
+	private ThreadLocal<String> currentFQDN = new ThreadLocal<>();
+
 	@Scheduled(cron = "0 */5 * * * ?")
 	public void removeVerlopenSessies()
 	{
@@ -74,5 +76,20 @@ public class FQDNProvider
 	boolean isFQDNValid(String checkFQDN)
 	{
 		return validFQDNs.contains(checkFQDN);
+	}
+
+	public void registerFQDN(String fqdn)
+	{
+		currentFQDN.set(fqdn);
+	}
+
+	public String getCurrentFQDN()
+	{
+		return currentFQDN.get();
+	}
+
+	public void clearCurrentFQDN()
+	{
+		currentFQDN.set(null);
 	}
 }

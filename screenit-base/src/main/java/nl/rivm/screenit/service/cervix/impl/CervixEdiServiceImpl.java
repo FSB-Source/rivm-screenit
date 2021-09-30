@@ -61,8 +61,8 @@ public class CervixEdiServiceImpl extends EdiServiceBaseImpl implements CervixEd
 	private static final Logger LOG = LoggerFactory.getLogger(CervixEdiServiceImpl.class);
 
 	@Autowired
-	@Qualifier(value = "ossAfleverAdres")
-	private String ossAfleverAdres;
+	@Qualifier(value = "ediAfleverAdres")
+	private String ediAfleverAdres;
 
 	@Override
 	public void verstuurMedVry(CervixHuisartsBericht huisartsBericht, Account loggedInAccount)
@@ -310,7 +310,7 @@ public class CervixEdiServiceImpl extends EdiServiceBaseImpl implements CervixEd
 
 	private void zetOntvanger(MedVryOut medVryOut, CervixHuisartsLocatie huisartsLocatie)
 	{
-		MedVryOntvanger ontvanger = new MedVryOntvanger(huisartsLocatie, ossAfleverAdres);
+		MedVryOntvanger ontvanger = new MedVryOntvanger(huisartsLocatie, ediAfleverAdres);
 		medVryOut.setOntvanger(ontvanger);
 		medVryOut.setReceiverId(huisartsLocatie.getZorgmailklantnummer());
 		medVryOut.setMail(ontvanger.getEdiMailAdres());

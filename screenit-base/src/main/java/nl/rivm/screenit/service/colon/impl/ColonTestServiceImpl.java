@@ -107,6 +107,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableMap;
+
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class ColonTestServiceImpl implements ColonTestService
@@ -187,24 +189,18 @@ public class ColonTestServiceImpl implements ColonTestService
 		hibernateService.saveOrUpdate(dossier);
 		hibernateService.saveOrUpdate(screeningRonde);
 
-		ColonBrief b2 = new ColonBrief();
-		b2.setTemplateNaam("intakeuitnodigingsBrief.doc");
-		b2.setBriefType(BriefType.COLON_UITNODIGING_INTAKE);
-		b2.setClient(client);
-		b2.setCreatieDatum(DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusDays(3)));
-		b2.setScreeningRonde(screeningRonde);
-		screeningRonde.getBrieven().add(b2);
+		ColonBrief b2 = maakColonBrief(client, screeningRonde, BriefType.COLON_UITNODIGING_INTAKE);
 
 		ColonUitnodiging uitnodiging = geefUitnodiging(screeningRonde);
 		IFOBTTest fit = null;
 		if (uitnodiging.getGekoppeldeTest() == null)
 		{
-			fit = addIfobt(filter, false);
+			fit = maakHuidigeIFobtOntvangenEnOngunstig(filter);
 		}
 		else if (!IFOBTTestUtil.isOngunstig(uitnodiging.getGekoppeldeTest()))
 		{
 			uitnodiging = maakNieuweUitnodiging(screeningRonde, ColonOnderzoeksVariant.STANDAARD);
-			fit = addIfobt(filter, false);
+			fit = maakHuidigeIFobtOntvangenEnOngunstig(filter);
 		}
 		if (fit != null && fitVerwerkingsDatum != null)
 		{
@@ -268,6 +264,20 @@ public class ColonTestServiceImpl implements ColonTestService
 		hibernateService.saveOrUpdate(client);
 		dossierService.setDatumVolgendeUitnodiging(screeningRonde.getDossier(), ColonUitnodigingsintervalType.GEPLANDE_INTAKE_AFSPRAAK);
 		return intakeAfspraak;
+	}
+
+	@Override
+	public ColonBrief maakColonBrief(Client client, ColonScreeningRonde screeningRonde, BriefType briefType)
+	{
+		ColonBrief brief = new ColonBrief();
+		brief.setTemplateNaam("testBrief.doc");
+		brief.setBriefType(briefType);
+		brief.setClient(client);
+		brief.setCreatieDatum(DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusDays(3)));
+		brief.setScreeningRonde(screeningRonde);
+		screeningRonde.getBrieven().add(brief);
+		hibernateService.saveOrUpdateAll(client, screeningRonde, brief);
+		return brief;
 	}
 
 	@Override
@@ -423,17 +433,56 @@ public class ColonTestServiceImpl implements ColonTestService
 	}
 
 	@Override
-	public IFOBTTest maakHuidigeIFobtOntvangenEnGustig(GbaPersoon filter)
+	public IFOBTTest maakHuidigeIFobtOntvangenEnGunstig(GbaPersoon filter)
 	{
 
-		return addIfobt(filter, Boolean.TRUE);
+		return maakHuidigeIFobtOntvangenInclUitslag(filter, new BigDecimal(20), BigDecimal.TEN);
 	}
 
 	@Override
 	public IFOBTTest maakHuidigeIFobtOntvangenEnOngunstig(GbaPersoon filter)
 	{
 
-		return addIfobt(filter, Boolean.FALSE);
+		return maakHuidigeIFobtOntvangenInclUitslag(filter, BigDecimal.TEN, new BigDecimal(20));
+	}
+
+	@Override
+	public IFOBTTest maakHuidigeIFobtOntvangenInclUitslag(GbaPersoon filter, BigDecimal normwaarde, BigDecimal uitslag)
+	{
+
+		Client client = geefClient(filter.getBsn(), filter.getGeboortedatum(), filter.getOverlijdensdatum());
+		hibernateService.saveOrUpdate(client);
+		geefAdres(client, filter.getGbaAdres().getGbaGemeente());
+		ColonDossier dossier = client.getColonDossier();
+		maakVooraankonding(client, dossier);
+		hibernateService.saveOrUpdate(dossier);
+		ColonScreeningRonde screeningRonde = geefScreeningRonde(dossier);
+		hibernateService.saveOrUpdate(screeningRonde);
+		ColonUitnodiging uitnodiging = geefUitnodiging(screeningRonde);
+
+		if (uitnodiging.getGekoppeldeTest() != null)
+		{
+			uitnodiging = maakNieuweUitnodiging(screeningRonde, ColonOnderzoeksVariant.STANDAARD);
+		}
+
+		IFOBTTest test = geefIFobttest(uitnodiging, screeningRonde);
+
+		test.setNormWaarde(normwaarde);
+		test.setUitslag(uitslag);
+
+		if (test.getStatus() == IFOBTTestStatus.ACTIEF && !IFOBTTestUtil.isOngunstig(test))
+		{
+			test.setStatus(IFOBTTestStatus.UITGEVOERD);
+		}
+		else if (test.getStatus() == IFOBTTestStatus.ACTIEF || IFOBTTestUtil.isOngunstig(test))
+		{
+			test.setStatus(IFOBTTestStatus.UITGEVOERD);
+		}
+		test.setStatusDatum(currentDateSupplier.getDate());
+		test.setVerwerkingsDatum(currentDateSupplier.getDate());
+		test.setAnalyseDatum(currentDateSupplier.getDate());
+
+		return test;
 	}
 
 	@Override
@@ -454,51 +503,6 @@ public class ColonTestServiceImpl implements ColonTestService
 		IFOBTTest studietest = geefStudietest(uitnodiging, screeningRonde);
 		hibernateService.saveOrUpdate(studietest);
 		hibernateService.saveOrUpdateAll(dossier, screeningRonde, client);
-	}
-
-	public IFOBTTest addIfobt(GbaPersoon filter, boolean gunstig)
-	{
-		Client client = geefClient(filter.getBsn(), filter.getGeboortedatum(), filter.getOverlijdensdatum());
-		hibernateService.saveOrUpdate(client);
-		geefAdres(client, filter.getGbaAdres().getGbaGemeente());
-		ColonDossier dossier = client.getColonDossier();
-		maakVooraankonding(client, dossier);
-		hibernateService.saveOrUpdate(dossier);
-		ColonScreeningRonde screeningRonde = geefScreeningRonde(dossier);
-		hibernateService.saveOrUpdate(screeningRonde);
-		ColonUitnodiging uitnodiging = geefUitnodiging(screeningRonde);
-
-		if (uitnodiging.getGekoppeldeTest() != null)
-		{
-			uitnodiging = maakNieuweUitnodiging(screeningRonde, ColonOnderzoeksVariant.STANDAARD);
-		}
-
-		IFOBTTest test = geefIFobttest(uitnodiging, screeningRonde);
-
-		if (gunstig)
-		{
-			test.setNormWaarde(new BigDecimal(20));
-			test.setUitslag(BigDecimal.TEN);
-		}
-		else
-		{
-			test.setNormWaarde(BigDecimal.TEN);
-			test.setUitslag(new BigDecimal(20));
-		}
-
-		if (test.getStatus() == IFOBTTestStatus.ACTIEF && !IFOBTTestUtil.isOngunstig(test))
-		{
-			test.setStatus(IFOBTTestStatus.UITGEVOERD);
-		}
-		else if (test.getStatus() == IFOBTTestStatus.ACTIEF || IFOBTTestUtil.isOngunstig(test))
-		{
-			test.setStatus(IFOBTTestStatus.UITGEVOERD);
-		}
-		test.setStatusDatum(currentDateSupplier.getDate());
-		test.setVerwerkingsDatum(currentDateSupplier.getDate());
-		test.setAnalyseDatum(currentDateSupplier.getDate());
-
-		return test;
 	}
 
 	private ColonUitnodiging maakNieuweUitnodiging(ColonScreeningRonde screeningRonde, ColonOnderzoeksVariant onderzoeksVariant)
@@ -599,14 +603,23 @@ public class ColonTestServiceImpl implements ColonTestService
 		ColonScreeningRonde screeningRonde = dossier.getLaatsteScreeningRonde();
 		if (screeningRonde == null)
 		{
-			screeningRonde = new ColonScreeningRonde();
-			screeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
-			screeningRonde.setAangemeld(true);
-			screeningRonde.setCreatieDatum(currentDateSupplier.getDate());
-			dossier.setLaatsteScreeningRonde(screeningRonde);
-			dossier.getScreeningRondes().add(screeningRonde);
-			screeningRonde.setDossier(dossier);
+			screeningRonde = maakNieuweScreeningRonde(dossier);
 		}
+		return screeningRonde;
+	}
+
+	@Override
+	public ColonScreeningRonde maakNieuweScreeningRonde(ColonDossier dossier)
+	{
+		ColonScreeningRonde screeningRonde = new ColonScreeningRonde();
+		screeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
+		screeningRonde.setAangemeld(true);
+		screeningRonde.setCreatieDatum(currentDateSupplier.getDate());
+		dossier.setLaatsteScreeningRonde(screeningRonde);
+		dossier.getScreeningRondes().add(screeningRonde);
+		screeningRonde.setDossier(dossier);
+		hibernateService.saveOrUpdateAll(screeningRonde, dossier);
+
 		return screeningRonde;
 	}
 
@@ -944,6 +957,9 @@ public class ColonTestServiceImpl implements ColonTestService
 			hibernateService.delete(vooraankondigiging);
 		}
 
+		List<ColonVooraankondiging> vooraankondigingen = hibernateService.getByParameters(ColonVooraankondiging.class, ImmutableMap.of("client", client));
+		hibernateService.deleteAll(vooraankondigingen);
+
 		for (ColonAfmelding afmelding : dossier.getAfmeldingen())
 		{
 			if (ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(afmelding.getReden()))
@@ -960,10 +976,14 @@ public class ColonTestServiceImpl implements ColonTestService
 				}
 			}
 		}
+
 		client.setColonDossier(null);
 		hibernateService.saveOrUpdate(client);
 
 		hibernateService.delete(dossier);
+
+		List<ColonBrief> overgeblevenBrieven = hibernateService.getByParameters(ColonBrief.class, ImmutableMap.of("client", client));
+		hibernateService.deleteAll(overgeblevenBrieven);
 
 		dossierFactory.maakDossiers(client);
 	}

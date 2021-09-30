@@ -74,6 +74,7 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 		addTextAreaField(form, "mammaAfspraakLocatieWijzigingTekst");
 		form.add(new TextField<>("mammaMeekijkverzoekMailAdres", String.class).add(EmailAddressValidator.getInstance()).setRequired(true));
 		form.add(new CheckBox("mammaPalgaExportAlleenVerwezen"));
+		form.add(new CheckBox("mammaAnnoteerEersteRonde"));
 		return form;
 	}
 
@@ -85,6 +86,7 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 
 			private static final long serialVersionUID = 1L;
 
+			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 

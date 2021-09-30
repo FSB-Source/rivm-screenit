@@ -28,9 +28,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.dao.IntakeAfpraakDao;
+import nl.rivm.screenit.batch.dao.IntakeAfspraakDao;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.batch.service.IntakeAfpraakService;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
@@ -45,7 +46,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.joda.time.DateTime;
-import org.omg.CORBA.IntHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +63,7 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 	private static final Logger LOGGER = LoggerFactory.getLogger(IntakeAfpraakServiceImpl.class);
 
 	@Autowired
-	private IntakeAfpraakDao intakeAfpraakDao;
+	private IntakeAfspraakDao intakeAfspraakDao;
 
 	@Autowired
 	private PlanningService<VrijSlot> planningService;
@@ -104,7 +104,7 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 			uitnodigingsinterval = Integer.valueOf(732);
 		}
 
-		List<Object> rawClienten = intakeAfpraakDao.getClientenVoorIntakeAfspraakMaken(uitnodigingsinterval);
+		List<Object> rawClienten = intakeAfspraakDao.getClientenVoorIntakeAfspraakMaken(uitnodigingsinterval);
 		List<ClientAfspraak> clienten = new ArrayList<>();
 		Map<Long, ClientAfspraak> hash = new HashMap<>();
 		if (rawClienten != null)
@@ -224,7 +224,7 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 	}
 
 	@Override
-	public List<VrijSlot> getAllVrijeSlotenIntakeafspraakperiode(int aantalGeselecteerdeClienten, Date begintijd, Date eindtijd, IntHolder aantalExtraDagen)
+	public List<VrijSlot> getAllVrijeSlotenIntakeafspraakperiode(int aantalGeselecteerdeClienten, Date begintijd, Date eindtijd, AtomicInteger aantalExtraDagen)
 	{
 		List<VrijSlot> vrijeSloten = new ArrayList<>();
 
@@ -264,7 +264,7 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 			LOGGER.info("#" + vrijeSloten.size() + " vrije sloten");
 			begintijd = eindtijd;
 			eindtijd = new DateTime(eindtijd).plusDays(1).withTimeAtStartOfDay().toDate();
-			aantalExtraDagen.value = i;
+			aantalExtraDagen.set(i);
 			i++;
 		}
 		return vrijeSloten;

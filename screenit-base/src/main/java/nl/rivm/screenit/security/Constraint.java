@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.security;
 
 /*-
@@ -26,14 +25,10 @@ import java.io.Serializable;
 import java.util.List;
 
 import nl.rivm.screenit.model.Permissie;
-import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.model.enums.ToegangLevel;
 
 public class Constraint extends Permissie
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private Class<?> scopeObjectClass;
@@ -47,14 +42,6 @@ public class Constraint extends Permissie
 	public Constraint()
 	{
 		super();
-	}
-
-	public Constraint(Actie actie, Recht recht, ToegangLevel toegangLevel, Class<?> scopeObjectClass, Serializable scopeObjectId, boolean checkScope)
-	{
-		super(actie, recht, toegangLevel);
-		this.scopeObjectClass = scopeObjectClass;
-		this.scopeObjectId = scopeObjectId;
-		this.checkScope = checkScope;
 	}
 
 	public Class<?> getScopeObjectClass()

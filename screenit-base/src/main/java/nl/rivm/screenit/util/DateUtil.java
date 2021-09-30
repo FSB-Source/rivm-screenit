@@ -21,7 +21,6 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,6 +28,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAccessor;
 import java.time.temporal.WeekFields;
 import java.util.ArrayList;
@@ -62,13 +62,17 @@ public final class DateUtil
 
 	public static DateTimeFormatter LOCAL_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
+	public static DateTimeFormatter LOCAL_DATE_TIME_FORMAT_SECONDS = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+
 	public static DateTimeFormatter LOCAL_DATE_DAG_MAAND_FORMAT = DateTimeFormatter.ofPattern("dd-MM");
 
-	public static DateTimeFormatter LOCAL_DATE_UITEGEBREID_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Constants.LOCALE_NL);
+	public static DateTimeFormatter LOCAL_DATE_UITGEBREID_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Constants.LOCALE_NL);
 
-	public static DateTimeFormatter LOCAL_DATE_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("dd MMMM yyyy", Constants.LOCALE_NL);
+	public static DateTimeFormatter LOCAL_DATE_DAG_UITGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("dd MMMM yyyy", Constants.LOCALE_NL);
 
-	public static DateTimeFormatter LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT = DateTimeFormatter.ofPattern("EEEE d MMMM HH:mm", Constants.LOCALE_NL);
+	public static DateTimeFormatter LOCAL_DATE_TIME_WEERGAVE_CLIENTPORTAAL_FORMAT_INCL_DAG = DateTimeFormatter.ofPattern("EEEE d MMMM HH:mm", Constants.LOCALE_NL);
+
+	public static DateTimeFormatter LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT = DateTimeFormatter.ofPattern("d MMMM yyyy", Constants.LOCALE_NL);
 
 	private DateUtil()
 	{
@@ -453,10 +457,21 @@ public final class DateUtil
 		return df.format(toLocalDateTime(date));
 	}
 
-	public static Date parseDateForPattern(String date, String pattern)
+	public static Date parseDateTimeForPattern(String date, String pattern)
 	{
 		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
 		return toUtilDate(LocalDateTime.parse(date, df));
+	}
+
+	public static Date parseDateForPattern(String date, String pattern)
+	{
+		return toUtilDate(parseLocalDateForPattern(date, pattern));
+	}
+
+	public static LocalDate parseLocalDateForPattern(String date, String pattern)
+	{
+		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
+		return LocalDate.parse(date, df);
 	}
 
 	public static boolean isWithinRange(LocalDate start, LocalDate end, LocalDate testDate)
@@ -511,7 +526,12 @@ public final class DateUtil
 
 	public static String getWeergaveDatumClientportaal(LocalDateTime datum)
 	{
-		String weergaveDatum = datum.format(LOCAL_DATE_WEERGAVE_CLIENTPORTAAL_FORMAT);
+		String weergaveDatum = datum.format(LOCAL_DATE_TIME_WEERGAVE_CLIENTPORTAAL_FORMAT_INCL_DAG);
 		return StringUtils.capitalize(weergaveDatum);
+	}
+
+	public static Date minusTijdseenheid(Date datum, int hoeveelheid, ChronoUnit tijdseenheid)
+	{
+		return toUtilDate(toLocalDateTime(datum).minus(hoeveelheid, tijdseenheid));
 	}
 }

@@ -1,3 +1,4 @@
+@charset "utf-8";
 
 .move-handle {
   cursor: pointer;
@@ -23,11 +24,13 @@ div.split-table {
   td, th {
     padding: 10px 10px 10px 10px;
   }
+
   th {
     padding: 10px;
     vertical-align: middle;
     font-size: 13px;
     background-color: #EEE;
+
     a {
       color: $colorColonis-beheer1;
     }
@@ -36,6 +39,7 @@ div.split-table {
   td {
     color: $colorColonis-beheer1;
     vertical-align: middle;
+
     a {
       color: $colorColonis-beheer1;
     }
@@ -65,9 +69,11 @@ div.split-table {
     width: 160px;
     text-align: center;
   }
+
   th.status-upload {
     width: 290px;
   }
+
   th.status-download {
     width: 90px;
   }
@@ -96,10 +102,12 @@ div.split-table {
   td.status, th.status-header, th.status-download {
     padding: 8px 15px 8px 15px;
     text-align: center;
+
     span {
       margin-right: 5px;
     }
   }
+
   &.cols-2 {
     th, td {
       padding: 10px 15px;
@@ -140,6 +148,10 @@ table.clickable {
 
 table.table tbody tr.selected td {
   background-color: $colorColonis4;
+
+  &.error {
+    background-color: $colorErrorSelected;
+  }
 }
 
 .table h2 {
@@ -154,17 +166,35 @@ table.table tbody tr.selected td {
   tbody tr:hover td {
     background-color: #fff;
   }
+
   td {
     vertical-align: middle;
   }
 }
 
+table {
+  tr {
+    td.error {
+      color: white;
+    }
+
+    &:not(.selected) {
+      td.error {
+        background-color: $colorError !important;
+      }
+    }
+  }
+}
+
+
 .pagination {
   margin-top: 0;
+
   ul {
     padding: 0;
     margin: 0;
   }
+
   a {
     color: $color4;
   }

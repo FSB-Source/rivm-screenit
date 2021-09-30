@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.testen.preferences;
 
 import java.util.Arrays;
 
-import com.google.common.base.Strings;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
@@ -35,18 +34,20 @@ import nl.rivm.screenit.model.MailVerzenden;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.NumberTextField;
 import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
+
+import com.google.common.base.Strings;
 
 @SecurityConstraint(
 	actie = Actie.INZIEN,
@@ -56,21 +57,20 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class TestPreferencesPage extends TestenBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private SimplePreferenceService preferenceService;
 
-	private Model<MailVerzenden> mailVerzendenModel;
+	private final Model<MailVerzenden> mailVerzendenModel;
 
-	private Model<String> alternatiefAdresModel;
+	private final Model<String> alternatiefAdresModel;
 
-	private Model<Boolean> kansberekenenModel;
+	private Model<Boolean> bkKansberekeningEnabledModel;
+
+	private Model<Integer> bkKansberekeningDefaultOpkomstKansModel;
 
 	public TestPreferencesPage()
 	{
-		Form<Void> form = new ScreenitForm<Void>("form");
+		Form<Void> form = new ScreenitForm<>("form");
 		add(form);
 
 		MailVerzenden mailVerzendenPreference = preferenceService.getEnum(PreferenceKey.MAIL_VERZENDEN.toString(), MailVerzenden.class);
@@ -78,26 +78,23 @@ public class TestPreferencesPage extends TestenBasePage
 		{
 			mailVerzendenPreference = MailVerzenden.AAN;
 		}
-		mailVerzendenModel = new Model<MailVerzenden>(mailVerzendenPreference);
+		mailVerzendenModel = new Model<>(mailVerzendenPreference);
 
-		alternatiefAdresModel = new Model<String>(preferenceService.getString(PreferenceKey.ALTERNATIEF_ADRES.toString()));
+		alternatiefAdresModel = new Model<>(preferenceService.getString(PreferenceKey.ALTERNATIEF_ADRES.toString()));
 
-		RadioChoice<MailVerzenden> mailVerzenden = new RadioChoice<MailVerzenden>("mailVerzenden", mailVerzendenModel, Arrays.asList(MailVerzenden.values()),
-			new EnumChoiceRenderer<MailVerzenden>());
+		RadioChoice<MailVerzenden> mailVerzenden = new RadioChoice<>("mailVerzenden", mailVerzendenModel, Arrays.asList(MailVerzenden.values()),
+			new EnumChoiceRenderer<>());
 		mailVerzenden.setPrefix("<label class=\"radio\">");
 		mailVerzenden.setSuffix("</label>");
 		form.add(mailVerzenden);
 
-		final TextField<String> alternatiefAdres = new TextField<String>("alternatiefAdres", alternatiefAdresModel);
+		final TextField<String> alternatiefAdres = new TextField<>("alternatiefAdres", alternatiefAdresModel);
 		alternatiefAdres.setEnabled(MailVerzenden.ALTERNATIEF_ADRES.equals(mailVerzendenModel.getObject()));
 		alternatiefAdres.setOutputMarkupId(true);
 		form.add(alternatiefAdres);
 
 		mailVerzenden.add(new AjaxFormSubmitBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -106,16 +103,13 @@ public class TestPreferencesPage extends TestenBasePage
 			}
 		});
 
-		kansberekenenModel = Model.of(preferenceService.getBoolean(PreferenceKey.KANSBEREKENING_BK.toString()));
-		form.add(ComponentHelper.newCheckBox("kansberekening", kansberekenenModel));
+		kansBerekeningBKFields(form);
 
 		BootstrapDialog dialog = new BootstrapDialog("dialog");
 		add(dialog);
+
 		form.add(new ConfirmingIndicatingAjaxSubmitLink<Void>("opslaan", form, dialog, "opslaan.mailing.aan")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected boolean skipConfirmation()
 			{
@@ -137,8 +131,23 @@ public class TestPreferencesPage extends TestenBasePage
 					success("Voorkeuren opgeslagen");
 				}
 
-				preferenceService.putBoolean(PreferenceKey.KANSBEREKENING_BK.toString(), kansberekenenModel.getObject());
+				opslaanBkKansberekening();
 			}
 		});
+	}
+
+	private void kansBerekeningBKFields(Form<Void> form)
+	{
+		bkKansberekeningEnabledModel = Model.of(preferenceService.getBoolean(PreferenceKey.KANSBEREKENING_BK.toString()));
+		form.add(ComponentHelper.newCheckBox("kansberekeningEnabled", bkKansberekeningEnabledModel));
+
+		bkKansberekeningDefaultOpkomstKansModel = Model.of(preferenceService.getInteger(PreferenceKey.KANSBEREKENING_BK_TEST_DEFAULT_OPKOMSTKANS.toString(), 50));
+		form.add(new NumberTextField<Integer>("defaultOpkomstkans", bkKansberekeningDefaultOpkomstKansModel).setMinimum(0).setMaximum(100));
+	}
+
+	private void opslaanBkKansberekening()
+	{
+		preferenceService.putBoolean(PreferenceKey.KANSBEREKENING_BK.toString(), bkKansberekeningEnabledModel.getObject());
+		preferenceService.putInteger(PreferenceKey.KANSBEREKENING_BK_TEST_DEFAULT_OPKOMSTKANS.toString(), bkKansberekeningDefaultOpkomstKansModel.getObject());
 	}
 }

@@ -44,13 +44,13 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class ColonHuisartsBericht extends HuisartsBericht
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
 	@NotAudited
 	private EnovationHuisarts huisarts;
 
+	@Deprecated
 	@ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST, optional = true)
 	@NotAudited
 	private OnbekendeHuisarts onbekendeHuisarts;
@@ -76,11 +76,13 @@ public class ColonHuisartsBericht extends HuisartsBericht
 		this.huisarts = huisarts;
 	}
 
+	@Deprecated
 	public OnbekendeHuisarts getOnbekendeHuisarts()
 	{
 		return onbekendeHuisarts;
 	}
 
+	@Deprecated
 	public void setOnbekendeHuisarts(OnbekendeHuisarts onbekendeHuisarts)
 	{
 		this.onbekendeHuisarts = onbekendeHuisarts;

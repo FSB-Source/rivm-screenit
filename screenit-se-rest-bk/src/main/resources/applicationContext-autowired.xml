@@ -50,14 +50,11 @@
     </context:component-scan>
 
     <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="CurrentDateDispatcherImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="CurrentDateDispatcherImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="JGroupsChannelImpl.class"/>
 
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="GebruikersServiceImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="AutorisatieServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="GebruikersServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="AutorisatieServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="LogServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="DashboardServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="MailServiceImpl.class"/>
@@ -66,24 +63,21 @@
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="FileServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="AsposeServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="ClientServiceImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="OpenUitnodigingServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseAfmeldServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="OpenUitnodigingServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="TestServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BezwaarServiceImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="AuthenticatieServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="AuthenticatieServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="DossierFactoryImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="InstellingServiceImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="CoordinatenServiceImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="BaseClientContactServiceImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="BaseScreeningRondeServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="InstellingServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="CoordinatenServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseClientContactServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseScreeningRondeServiceImpl.class"/>
 
-    <context:component-scan base-package="nl.rivm.screenit.service.impl"
-                            resource-pattern="BerichtToBatchServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BerichtToBatchServiceImpl.class"/>
+
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="ClientDoelgroepServiceImpl.class"/>
+
     <bean id="berichtToSeRestBkServiceImpl" class="nl.rivm.screenit.service.impl.BerichtToSeRestBkServiceImpl"/>
 
     <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="GebruikerDaoImpl.class"/>
@@ -97,8 +91,7 @@
     <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="CoordinatenDaoImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="GbaBaseDaoImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="InstellingDaoImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.dao.impl"
-                            resource-pattern="HuisartsBerichtTemplateDaoImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="HuisartsBerichtTemplateDaoImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="VerslagDaoImpl.class"/>
 
     <context:component-scan base-package="nl.rivm.screenit.factory.impl"/>

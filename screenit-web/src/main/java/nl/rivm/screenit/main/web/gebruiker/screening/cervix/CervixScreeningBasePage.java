@@ -26,7 +26,6 @@ import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
 
 public abstract class CervixScreeningBasePage extends GebruikerBasePage
 {
-
 	@Override
 	protected GebruikerHoofdMenuItem getActieveMenuItem()
 	{

@@ -21,12 +21,8 @@ package nl.rivm.screenit.util.logging.cxf;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.apache.cxf.ext.logging.LoggingInInterceptor;
 import org.apache.cxf.message.Message;
-import org.apache.cxf.phase.PhaseInterceptor;
 
 public class ScreenITLoggingInInterceptor extends LoggingInInterceptor
 {
@@ -44,9 +40,4 @@ public class ScreenITLoggingInInterceptor extends LoggingInInterceptor
 		((ScreenITLoggingSaver) sender).createExchangeId(message);
 	}
 
-	@Override
-	public Collection<PhaseInterceptor<? extends Message>> getAdditionalInterceptors()
-	{
-		return new ArrayList<>(); 
-	}
 }

@@ -38,12 +38,14 @@ import java.util.stream.Collectors;
 import nl.rivm.screenit.dao.cervix.CervixRondeDao;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Bezwaar;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactManier;
+import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
@@ -51,7 +53,6 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
 import nl.rivm.screenit.model.algemeen.BezwaarViewWrapper;
-import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
@@ -78,6 +79,7 @@ import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseClientContactService;
 import nl.rivm.screenit.service.BezwaarService;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -90,6 +92,7 @@ import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
+import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Polis;
 import nl.topicuszorg.util.collections.CollectionUtils;
@@ -119,6 +122,9 @@ public class BezwaarServiceImpl implements BezwaarService
 
 	@Autowired
 	private ClientService clientService;
+
+	@Autowired
+	private ClientDoelgroepService doelgroepService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -220,7 +226,7 @@ public class BezwaarServiceImpl implements BezwaarService
 		List<BezwaarGroupViewWrapper> lijstBezwaarViewWrappers = new ArrayList<BezwaarGroupViewWrapper>();
 		lijstBezwaarViewWrappers.add(getGroupWrapper(null));
 
-		List<Bevolkingsonderzoek> onderzoeken = clientService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
+		List<Bevolkingsonderzoek> onderzoeken = doelgroepService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
 
 		for (Bevolkingsonderzoek onderzoek : onderzoeken)
 		{
@@ -639,6 +645,7 @@ public class BezwaarServiceImpl implements BezwaarService
 		if (Bevolkingsonderzoek.MAMMA.equals(bezwaar.getBevolkingsonderzoek()))
 		{
 			mammaBaseDossierService.verwijderMammaDossier(client);
+			verwijderNietLaatsteDefinitieveAfmeldingen(client.getMammaDossier());
 		}
 	}
 
@@ -648,17 +655,7 @@ public class BezwaarServiceImpl implements BezwaarService
 
 		cervixBaseScreeningrondeService.verwijderCervixScreeningRondes(dossier);
 
-		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))
-		{
-			for (CervixAfmelding afmelding : dossier.getAfmeldingen())
-			{
-
-				if (!afmelding.equals(dossier.getLaatsteAfmelding()) && afmelding.getHeraanmeldDatum() != null)
-				{
-					hibernateService.delete(afmelding);
-				}
-			}
-		}
+		verwijderNietLaatsteDefinitieveAfmeldingen(dossier);
 
 		baseClientContactService.verwijderClientContacten(client, Bevolkingsonderzoek.CERVIX);
 
@@ -717,30 +714,7 @@ public class BezwaarServiceImpl implements BezwaarService
 			}
 		}
 
-		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))
-		{
-			for (ColonAfmelding afmelding : dossier.getAfmeldingen())
-			{
-				if (ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(afmelding.getReden()))
-				{
-					if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentAfmelding(), "handtekeningDocumentAfmelding"))
-					{
-						afmelding.setHandtekeningDocumentAfmelding(null);
-						hibernateService.saveOrUpdate(afmelding);
-					}
-					if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentHeraanmelding(), "handtekeningDocumentHeraanmelding"))
-					{
-						afmelding.setHandtekeningDocumentHeraanmelding(null);
-						hibernateService.saveOrUpdate(afmelding);
-					}
-				}
-
-				if (!afmelding.equals(dossier.getLaatsteAfmelding()) && afmelding.getHeraanmeldDatum() != null)
-				{
-					hibernateService.delete(afmelding);
-				}
-			}
-		}
+		verwijderNietLaatsteDefinitieveAfmeldingen(dossier);
 
 		baseClientContactService.verwijderClientContacten(client, Bevolkingsonderzoek.COLON);
 
@@ -782,6 +756,52 @@ public class BezwaarServiceImpl implements BezwaarService
 		if (projectClient != null)
 		{
 			clientService.projectClientInactiveren(projectClient, ProjectInactiefReden.VERWIJDERING_VAN_DOSSIER, null);
+		}
+	}
+
+	private <D extends Dossier<?, A>, A extends Afmelding<?, ?, ?>> void verwijderNietLaatsteDefinitieveAfmeldingen(D dossier)
+	{
+
+		for (A afmelding : dossier.getAfmeldingen())
+		{
+
+			if (!afmelding.equals(dossier.getLaatsteAfmelding()) && afmelding.getHeraanmeldDatum() != null)
+			{
+				colonSpecifiekeVerwijderVerwerking(afmelding);
+				if (afmelding.getHandtekeningDocumentAfmelding() != null)
+				{
+					fileService.delete(afmelding.getHandtekeningDocumentAfmelding(), true);
+				}
+				if (afmelding.getHandtekeningDocumentHeraanmelding() != null)
+				{
+					fileService.delete(afmelding.getHandtekeningDocumentHeraanmelding(), true);
+				}
+				hibernateService.delete(afmelding);
+			}
+		}
+	}
+
+	private <A extends Afmelding<?, ?, ?>> void colonSpecifiekeVerwijderVerwerking(A afmelding)
+	{
+		afmelding = (A) HibernateHelper.deproxy(afmelding);
+		if (afmelding instanceof ColonAfmelding)
+		{
+			ColonAfmelding colonAfmelding = (ColonAfmelding) afmelding;
+
+			if (ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(colonAfmelding.getReden()))
+			{
+
+				if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentAfmelding(), "handtekeningDocumentAfmelding"))
+				{
+					afmelding.setHandtekeningDocumentAfmelding(null);
+					hibernateService.saveOrUpdate(afmelding);
+				}
+				if (clientService.isHandtekeningBriefGebruiktBijMeedereColonAfmeldingen(afmelding.getHandtekeningDocumentHeraanmelding(), "handtekeningDocumentHeraanmelding"))
+				{
+					afmelding.setHandtekeningDocumentHeraanmelding(null);
+					hibernateService.saveOrUpdate(afmelding);
+				}
+			}
 		}
 	}
 

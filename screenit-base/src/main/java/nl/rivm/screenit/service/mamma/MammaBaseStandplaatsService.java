@@ -56,4 +56,6 @@ public interface MammaBaseStandplaatsService
 	void zetBrievenKlaarVoorStandplaatsVoorAfdrukken(List<MammaBrief> brieven, MammaStandplaats standplaats);
 
 	List<MammaStandplaats> getActieveStandplaatsen(ScreeningOrganisatie voorRegio);
+
+	Date getMaximaleVrijgegevenTotEnMetDatum(List<MammaStandplaatsPeriode> standplaatsPerioden);
 }

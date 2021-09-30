@@ -91,7 +91,7 @@ import org.apache.wicket.util.visit.IVisitor;
 import org.apache.wicket.validation.ValidationError;
 import org.wicketstuff.shiro.ShiroConstraint;
 
-@SecurityConstraint(actie = Actie.AANPASSEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_ROLLEN_BEHEREN, bevolkingsonderzoekScopes = {
+@SecurityConstraint(actie = Actie.INZIEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = Recht.GEBRUIKER_ROLLEN_BEHEREN, bevolkingsonderzoekScopes = {
 	Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class RolEditPanel extends GenericPanel<Rol>
 {
@@ -135,6 +135,8 @@ public class RolEditPanel extends GenericPanel<Rol>
 
 	private Boolean checkRequired;
 
+	private final boolean magAanpassen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_ROLLEN_BEHEREN, Actie.AANPASSEN);
+
 	public RolEditPanel(String id, IModel<Rol> model)
 	{
 		super(id, model);
@@ -146,6 +148,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 
 		beginDataBevolkingsOnderzoeken = cloneArrayList(rol.getBevolkingsonderzoeken());
 		ScreenitDropdown<Rol> parentRol = ComponentHelper.addDropDownChoiceINaam(rolForm, "parentRol", false, ModelUtil.listRModel(rolService.getParentRollen(rol)), false);
+		parentRol.setEnabled(magAanpassen);
 		parentRol.setNullValid(true);
 
 		onderzoeken = new ScreenitListMultipleChoice<Bevolkingsonderzoek>("bevolkingsonderzoeken", new ListModel<Bevolkingsonderzoek>(getModelObject().getBevolkingsonderzoeken()),
@@ -164,12 +167,14 @@ public class RolEditPanel extends GenericPanel<Rol>
 			}
 		});
 		onderzoeken.setRequired(true);
+		onderzoeken.setEnabled(magAanpassen);
 		rolForm.add(onderzoeken);
 
 		FormComponent<String> textField = ComponentHelper.addTextField(rolForm, "naam", true, 255, false);
 
 		Map<String, Object> restrictions = new HashMap<String, Object>();
 		restrictions.put("actief", Boolean.TRUE);
+		textField.setEnabled(magAanpassen);
 		textField.add(new UniqueFieldValidator<Rol, String>(Rol.class, rol.getId(), "naam", hibernateService, restrictions));
 	}
 
@@ -221,6 +226,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 					}
 				});
 				toegangLevel.setRequired(true);
+				toegangLevel.setEnabled(magAanpassen);
 				toegangLevelContainer.add(toegangLevel);
 				item.add(toegangLevelContainer);
 
@@ -243,6 +249,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 
 					}
 				});
+				actie.setEnabled(magAanpassen);
 				actieContainer.add(actie);
 				item.add(actieContainer);
 
@@ -310,6 +317,8 @@ public class RolEditPanel extends GenericPanel<Rol>
 				}
 				rechtDropDownContainer.add(rechtVast);
 
+				final WebMarkupContainer verwijderColumn = new WebMarkupContainer("verwijderColumn");
+				verwijderColumn.setVisible(magAanpassen);
 				FormulierIndicatingAjaxSubmitLink permissieVerwijderen = new FormulierIndicatingAjaxSubmitLink("permissieVerwijderen", rolForm)
 				{
 
@@ -328,7 +337,8 @@ public class RolEditPanel extends GenericPanel<Rol>
 						super.onBeforeHandleEvent();
 					}
 				};
-				item.add(permissieVerwijderen);
+				verwijderColumn.add(permissieVerwijderen);
+				item.add(verwijderColumn);
 			}
 		};
 		permissiesListView.setOutputMarkupId(true);
@@ -364,6 +374,10 @@ public class RolEditPanel extends GenericPanel<Rol>
 		permissiesContainer = new WebMarkupContainer("permissiesContainer");
 		permissiesContainer.setOutputMarkupId(true);
 		permissiesContainer.add(getPermissieListView());
+
+		final WebMarkupContainer verwijderHeader = new WebMarkupContainer("verwijderHeader");
+		verwijderHeader.setVisible(magAanpassen);
+		permissiesContainer.add(verwijderHeader);
 		rolForm.add(permissiesContainer);
 
 		FormulierIndicatingAjaxSubmitLink opslaan = new FormulierIndicatingAjaxSubmitLink("opslaan", rolForm)
@@ -376,7 +390,6 @@ public class RolEditPanel extends GenericPanel<Rol>
 			{
 				Rol rol = getModelObject();
 				List<String> messages = new ArrayList<String>();
-				List<InstellingGebruikerRol> rollen = null;
 				Map<String, List<Bevolkingsonderzoek>> resultaten = vergelijkArrays(beginDataBevolkingsOnderzoeken, rol.getBevolkingsonderzoeken());
 
 				if (rol.getId() != null && (!resultaten.get("toegevoegd").isEmpty() || !resultaten.get("verwijderd").isEmpty())
@@ -388,6 +401,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 					}
 					if (!resultaten.get("verwijderd").isEmpty())
 					{
+						List<InstellingGebruikerRol> rollen;
 						rollen = medewerkerService.getInstellingGebruikersMetRolEnBvos(rol, resultaten.get("verwijderd"));
 						if (!rollen.isEmpty())
 						{
@@ -409,11 +423,11 @@ public class RolEditPanel extends GenericPanel<Rol>
 				super.onBeforeHandleEvent();
 			}
 		};
+		opslaan.setVisible(magAanpassen);
 		rolForm.add(opslaan);
 
 		AjaxLink<Rol> inActiveren = new ConfirmingIndicatingAjaxLink<Rol>("inActiveren", dialog, "question.remove.rol")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -438,6 +452,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 			labelActiverenKnop = new Label("inActiverenTitle", "Activeren");
 		}
 		inActiveren.add(labelActiverenKnop);
+		inActiveren.setVisible(magAanpassen);
 		add(inActiveren);
 		rolForm.add(inActiveren);
 
@@ -469,6 +484,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 				target.add(rolForm);
 			}
 		};
+		permissieToevoegenKnop.setVisible(magAanpassen);
 		rolForm.add(permissieToevoegenKnop);
 		add(rolForm);
 	}
@@ -571,7 +587,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 
 	private List<ToegangLevel> getToegangLevel(Permissie permissie)
 	{
-		List<ToegangLevel> rechtNiveaus = null;
+		List<ToegangLevel> rechtNiveaus;
 		if (permissie != null && permissie.getRecht() != null && permissie.getRecht().getLevel() != null)
 		{
 			rechtNiveaus = Arrays.asList(permissie.getRecht().getLevel());
@@ -585,7 +601,7 @@ public class RolEditPanel extends GenericPanel<Rol>
 
 	private List<Actie> getActies(Permissie permissie)
 	{
-		List<Actie> rechtTypes = null;
+		List<Actie> rechtTypes;
 		if (permissie != null && permissie.getRecht() != null && permissie.getRecht().getActie() != null && permissie.getRecht().getActie().length > 0)
 		{
 			rechtTypes = Arrays.asList(permissie.getRecht().getActie());

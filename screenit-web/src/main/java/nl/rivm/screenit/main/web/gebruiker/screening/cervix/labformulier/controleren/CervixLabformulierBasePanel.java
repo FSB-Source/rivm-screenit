@@ -21,11 +21,12 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
  * =========================LICENSE_END==================================
  */
 
+import static nl.rivm.screenit.model.cervix.enums.signaleringen.CervixLabformulierSignalering.AFNAMEDATUM_NIET_OF_VERKEERD_OVERGENOMEN_IN_SCREENIT;
+
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -34,6 +35,7 @@ import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
+import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.signaleringen.CervixLabformulierSignalering;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -47,6 +49,7 @@ import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 import nl.rivm.screenit.service.cervix.impl.CervixVervolg;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -77,8 +80,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
-
-import static nl.rivm.screenit.model.cervix.enums.signaleringen.CervixLabformulierSignalering.AFNAMEDATUM_NIET_OF_VERKEERD_OVERGENOMEN_IN_SCREENIT;
 
 public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLabformulier>
 {
@@ -115,12 +116,20 @@ public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLab
 
 	public CervixLabformulierBasePanel(String id, List<Long> labformulierenIds, CervixLabformulier labformulier)
 	{
-		super(id, ModelUtil.cModel(labformulier));
+		super(id, ModelUtil.ccModel(labformulier));
 		this.labformulierenIds = labformulierenIds;
 		vorigeDatumUitstrijkjeValue = labformulier.getDatumUitstrijkje();
-
 		vorigeStatus = labformulier.getStatus();
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+
 		saveLabformulier(true);
+
+		CervixLabformulier labformulier = getModelObject();
 
 		if (labformulier.getDigitaal())
 		{
@@ -144,16 +153,16 @@ public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLab
 
 		WebMarkupContainer monsterstatusContainer = new WebMarkupContainer("monsterstatusContainer");
 		form.add(monsterstatusContainer);
-		EnumLabel monsterstatus = new EnumLabel("uitstrijkje.uitstrijkjeStatus");
+		EnumLabel<CervixUitstrijkjeStatus> monsterstatus = new EnumLabel<>("uitstrijkje.uitstrijkjeStatus");
 		monsterstatus.setOutputMarkupId(true);
 		monsterstatusContainer.add(monsterstatus);
 		if (highlightMonsterstatus(labformulier))
 		{
-			monsterstatusContainer.add(new AttributeAppender("class", new Model("highlight"), " "));
+			monsterstatusContainer.add(new AttributeAppender("class", new Model<>("highlight"), " "));
 		}
 
 		Client client = getClient();
-		clientNaamModel = new Model(NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client));
+		clientNaamModel = new Model<>(NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client));
 
 		Label naam = new Label("clientNaam", clientNaamModel);
 		naam.setOutputMarkupId(true);
@@ -242,7 +251,7 @@ public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLab
 		labformulierSignaleringenContainer.setVisible(getSignaleringenEnabled());
 
 		Integer current = current();
-		Link vorige = new Link<Void>("vorige")
+		Link<Void> vorige = new Link<>("vorige")
 		{
 			@Override
 			public void onClick()
@@ -256,7 +265,7 @@ public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLab
 		add(new Label("nummer", current() + 1));
 		add(new Label("van", labformulierenIds.size()));
 
-		Link volgende = new Link<Void>("volgende")
+		Link<Void> volgende = new Link<>("volgende")
 		{
 			@Override
 			public void onClick()
@@ -434,7 +443,7 @@ public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLab
 
 					labformulier = ModelProxyHelper.deproxy((CervixLabformulier) HibernateHelper.deproxy(labformulier));
 					String diff = labformulierService.koppelEnBewaarLabformulier(labformulier);
-					setModel(ModelUtil.cModel(labformulier));
+					setModel(ModelUtil.ccModel(labformulier));
 
 					logService.logGebeurtenis(LogGebeurtenis.CERVIX_LABFORMULIER_OPGESLAGEN, ScreenitSession.get().getLoggedInAccount(), getClient(),
 						String.format("%s - %s %s %s", getString("titel"), getString(EnumStringUtil.getPropertyString(labformulier.getStatus())), getSignaleringen(), diff),

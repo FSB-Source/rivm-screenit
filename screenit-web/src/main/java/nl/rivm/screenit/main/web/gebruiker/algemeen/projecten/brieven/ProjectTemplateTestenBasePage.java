@@ -142,7 +142,7 @@ public abstract class ProjectTemplateTestenBasePage extends ProjectBasePage
 			wrapper.cloneIntakeLocatie(actieveIntakelocaties.get(0));
 		}
 
-		ToegangLevel level = ScreenitSession.get().getToegangsLevel(Actie.AANPASSEN, Recht.GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES);
+		ToegangLevel level = ScreenitSession.get().getToegangsLevel(Actie.INZIEN, Recht.GEBRUIKER_BEHEER_DOCUMENTENTEMPLATES);
 
 		List<ScreeningOrganisatie> screeningOrganisatieLijst = getRegios();
 
@@ -240,9 +240,8 @@ public abstract class ProjectTemplateTestenBasePage extends ProjectBasePage
 
 	private IndicatingAjaxSubmitLink getPrintButton()
 	{
-		IndicatingAjaxSubmitLink link = new IndicatingAjaxSubmitLink("printen")
+		return new IndicatingAjaxSubmitLink("printen")
 		{
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
@@ -271,7 +270,7 @@ public abstract class ProjectTemplateTestenBasePage extends ProjectBasePage
 					{
 						briefTemplate = getBriefTemplateFile();
 					}
-					else if (bron != TemplateBron.UPLOADED && CollectionUtils.isNotEmpty(fileUploads.getObject()))
+					else if (CollectionUtils.isNotEmpty(fileUploads.getObject()))
 					{
 						briefTemplate = fileUploads.getObject().get(0).writeToTempFile();
 					}
@@ -377,7 +376,6 @@ public abstract class ProjectTemplateTestenBasePage extends ProjectBasePage
 			}
 
 		};
-		return link;
 	}
 
 	protected abstract File getBriefTemplateFile();

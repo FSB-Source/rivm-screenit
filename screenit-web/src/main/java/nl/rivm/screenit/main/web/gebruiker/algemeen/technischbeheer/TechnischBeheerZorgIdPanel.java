@@ -63,8 +63,8 @@ public class TechnischBeheerZorgIdPanel extends BaseTechnischBeheerParametersPan
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				opslaan(target);
 				info("Parameters zijn opgeslagen");
+				opslaan(target);
 			}
 		};
 	}

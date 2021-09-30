@@ -127,7 +127,16 @@ public class OrganisatieZoekDaoImpl extends AbstractAutowiredDao implements Orga
 		{
 			criteria.add(Restrictions.ilike("naam", organisatie.getNaam(), MatchMode.ANYWHERE));
 		}
-
+		if (StringUtils.isNotBlank(organisatie.getEmail()))
+		{
+			criteria.add(
+				Restrictions.or(
+					Restrictions.ilike("email", organisatie.getEmail(), MatchMode.EXACT),
+					Restrictions.ilike("email2", organisatie.getEmail(), MatchMode.EXACT),
+					Restrictions.ilike("email3", organisatie.getEmail(), MatchMode.EXACT),
+					Restrictions.ilike("email4", organisatie.getEmail(), MatchMode.EXACT),
+					Restrictions.ilike("extraEmails", organisatie.getEmail(), MatchMode.ANYWHERE)));
+		}
 		if (organisatie.getId() != null)
 		{
 			criteria.add(Restrictions.eq("id", organisatie.getId()));

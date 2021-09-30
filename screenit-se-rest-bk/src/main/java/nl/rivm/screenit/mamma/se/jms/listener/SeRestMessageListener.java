@@ -26,6 +26,7 @@ import javax.jms.Session;
 
 import nl.rivm.screenit.mamma.se.service.DaglijstService;
 import nl.rivm.screenit.mamma.se.websocket.socket.SeProxyWebsocket;
+import nl.rivm.screenit.websocket.WebsocketBerichtType;
 
 import org.apache.activemq.command.ActiveMQObjectMessage;
 import org.slf4j.Logger;
@@ -56,6 +57,10 @@ public class SeRestMessageListener implements SessionAwareMessageListener<Active
 				if (bericht.startsWith("SE"))
 				{
 					daglijstService.verstuurUpdate(bericht);
+				}
+				else if (bericht.equals(WebsocketBerichtType.VERSTUUR_STATUS.name()))
+				{
+					seProxyWebsocket.sendVerstuurStatusVerzoekNaarIedereSe();
 				}
 				else
 				{

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.base;
 
 /*-
@@ -45,7 +44,7 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.project.ProjectOve
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projectvragenlijsten.ProjectVragenlijstenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.retourzending.RetourzendingenVerwerkenPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.rollenrechten.RollenBeheer;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer.CorrectiesPage;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer.TechnischeParametersPage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.tooltip.ClientTooltipBeheerPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientZoekenPage;
 import nl.rivm.screenit.main.web.gebruiker.dashboard.DashboardPage;
@@ -106,6 +105,7 @@ import nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.fo
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.kwaliteitscontrole.visitatie.MammaVisitatieOverzichtPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.palga.MammaPalgaUitwisselingPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.dashboard.MammaPlanningDashboardPage;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.sestatus.MammaSEStatusPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.CervixTestTimelinePage;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.ColonTestProcesPage;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.ColonTestTimelinePage;
@@ -185,6 +185,7 @@ public enum GebruikerHoofdMenuItem
 			contextMenuItems.add(new GebruikerMenuItem("menu.mammascreening.adhockwaliteitscontrole", MammaAdhocMeekijkverzoekOnderzoekenWerklijstPage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.all.afdrukkendocumenten", MammaAfdrukkenDocumentenPage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.mammascreening.palga", MammaPalgaUitwisselingPage.class));
+			contextMenuItems.add(new GebruikerMenuItem("menu.mammascreening.sestatus", MammaSEStatusPage.class));
 			return new GebruikerMenuItem("menu.mamma", contextMenuItems);
 		}
 
@@ -232,7 +233,7 @@ public enum GebruikerHoofdMenuItem
 			contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.logginginzien", LoggingInzienPage.class));
 			contextMenuItems
 				.add(new GebruikerMenuItem("menu.algemeen.parameterisatie", ColonParameterisatiePage.class, CervixParameterisatiePage.class, MammaParameterisatiePage.class));
-			contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.technischbeheer", CorrectiesPage.class));
+			contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.technischbeheer", TechnischeParametersPage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.formulierendefinitie", FormulierenBeheerPage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.clienttooltipbeheer", ClientTooltipBeheerPage.class));
 			contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.nieuwsbeheer", BeheerNieuwsPage.class));

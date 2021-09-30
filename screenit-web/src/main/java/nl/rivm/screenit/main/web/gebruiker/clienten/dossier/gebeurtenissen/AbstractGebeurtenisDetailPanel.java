@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
 
 /*-
@@ -40,9 +39,9 @@ public class AbstractGebeurtenisDetailPanel extends GenericPanel<ScreeningRondeG
 	protected void addButton(String id, GebeurtenisPopupBasePanel parent)
 	{
 		Button button = new Button(id);
+		parent.add(button);
 		button.setVisible(false);
 		button.add(new Label("label", getString("label.verwijderen")));
-		parent.add(button);
 	}
 
 	protected void addExtraButton(String id, GebeurtenisPopupBasePanel parent)

@@ -21,7 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.Parameterisatie;
@@ -31,7 +31,6 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.EditOrganisatieP
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.ParameterisatiePropertyModel;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
-import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.InstellingService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -40,6 +39,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -91,7 +91,7 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 		labsForm.add(labs);
 		add(labsForm);
 
-		labsForm.add(new AjaxSubmitLink("parametersOpslaan")
+		AjaxSubmitLink opslaanKnop = new AjaxSubmitLink("parametersOpslaan")
 		{
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -100,12 +100,14 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 				info("Parameters zijn opgeslagen");
 
 			}
-		}).setVisible(magAanpassen && ToegangLevel.LANDELIJK == getToegangsLevel());
+		};
+		opslaanKnop.setVisible(magAanpassen);
+		labsForm.add(opslaanKnop);
 	}
 
 	private void sosParameters(boolean magAanpassen)
 	{
-		add(new EditOrganisatieParametersPanel("soParameters", Arrays.asList(OrganisatieParameterKey.MAX_MERGED_BRIEVEN_PDF_SIZE_MB))
+		add(new EditOrganisatieParametersPanel("soParameters", Collections.singletonList(OrganisatieParameterKey.MAX_MERGED_BRIEVEN_PDF_SIZE_MB), magAanpassen)
 		{
 
 			@Override
@@ -125,14 +127,14 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 				TechnischeParametersPanel.this.add(parametersOpslaan);
 			}
 
-		}.setVisible(magAanpassen && ToegangLevel.LANDELIJK == getToegangsLevel()));
+		});
 	}
 
 	@Override
 	protected Form<Parameterisatie> createAndGetForm()
 	{
 		Form<Parameterisatie> form = new Form<>("form");
-		form.add(ComponentHelper.newDatePicker("startdatumBmhk").setRequired(true));
+		form.add(ComponentHelper.newDatePicker("startdatumBmhk", magAanpassen()).setRequired(true));
 		form.add(new TextField<>("internalZorgmailBestandUrl", String.class).setRequired(true));
 		form.add(new TextField<>("internalWsbSchematronVersionpathmapping", String.class).setRequired(true));
 		form.add(new TextField<>("internalMammaSeInformatieOphalenCron", String.class).add(new IValidator<String>()
@@ -146,7 +148,7 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 				}
 			}
 		}).setRequired(true));
-		form.add(ComponentHelper.newDatePicker("internalColonComplicatieVerwerkingStop").setRequired(true));
+		form.add(ComponentHelper.newDatePicker("internalColonComplicatieVerwerkingStop", magAanpassen()).setRequired(true));
 		int maxKiloBytesZip = 129000;
 		form.add(new TextField<>("internalMaxGrootteZip", Integer.class).setRequired(true).add(RangeValidator.range(1, maxKiloBytesZip)));
 		form.add(new TextField<>("internalMammaUploadlimietUploadportaal", Integer.class).setRequired(true).add(RangeValidator.minimum(1)));
@@ -155,7 +157,7 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 		form.add(new TextField<>("internalMammaImsDicomCstoreConfig", String.class).setRequired(true));
 		form.add(new TextField<>("internalCervixLabFormulierValidFqdns", String.class));
 		form.add(new TextField<>("internalUziLoginUrlPrefix", String.class));
-
+		form.add(new CheckBox("bmhkLabelPrintenZonderPdf"));
 		return form;
 	}
 

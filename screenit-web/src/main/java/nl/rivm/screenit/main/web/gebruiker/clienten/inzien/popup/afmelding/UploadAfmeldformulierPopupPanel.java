@@ -34,7 +34,6 @@ import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.Afmelding;
-import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
@@ -46,11 +45,12 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileType;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
+import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -86,7 +86,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private ClientService clientService;
+	private BaseAfmeldService baseAfmeldService;
 
 	@SpringBean
 	private LogService logService;
@@ -105,11 +105,17 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 
 	public UploadAfmeldformulierPopupPanel(final String id, IModel<A> model)
 	{
-		super(id, new CompoundPropertyModel<A>(model));
+		super(id, new CompoundPropertyModel<>(model));
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
 
 		boolean magTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
 
-		Dossier dossier = model.getObject().getDossier();
+		Dossier dossier = getModelObject().getDossier();
 
 		IModel<List<FileUpload>> files = new ListModel<>();
 
@@ -148,7 +154,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 						document.setFile(definitieFile);
 						document.setNaam(fileUpload.getClientFileName());
 						afmelding.setHandtekeningDocumentAfmelding(document);
-						clientService.afmelden(afmelding.getDossier().getClient(), afmelding, ScreenitSession.get().getLoggedInInstellingGebruiker());
+						baseAfmeldService.afmelden(afmelding.getDossier().getClient(), afmelding, ScreenitSession.get().getLoggedInInstellingGebruiker());
 						logService.logGebeurtenis(LogGebeurtenis.AFMELDEN, ScreenitSession.get().getLoggedInAccount(), afmelding.getDossier().getClient(),
 							"Type: " + afmelding.getType().name().toLowerCase(), afmelding.getBevolkingsonderzoek());
 						close(target);
@@ -168,7 +174,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			}
 
 		}.setVisible(DossierStatus.ACTIEF == dossier.getStatus()));
-		uploadForm.add(new Label("wijzeAfmelding", Model.of(getWijzeVanAfmeldingTekst(model.getObject()))));
+		uploadForm.add(new Label("wijzeAfmelding", Model.of(getWijzeVanAfmeldingTekst(getModelObject()))));
 		uploadForm.add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
 
@@ -220,16 +226,13 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 				close(target);
 			}
 		}.setVisible(magTegenhouden && getLaatsteBrief() != null && getLaatsteBrief().isTegenhouden()));
-		uploadForm.add(new ListView<String>("brievenLijst", creatieDatumCreaterAfmelding(model.getObject()))
+		uploadForm.add(new ListView<>("brievenLijst", creatieDatumCreaterAfmelding(getModelObject()))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<String> item)
 			{
 				String tekst = item.getModelObject();
-				item.add(new Label("brief", Model.<String> of(tekst)));
+				item.add(new Label("brief", Model.of(tekst)));
 			}
 		});
 		uploadForm.add(new AjaxLink<Void>("geenHandtekening")
@@ -239,7 +242,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			{
 				A afmelding = UploadAfmeldformulierPopupPanel.this.getModelObject();
 
-				clientService.definitieveAfmeldingAanvragen(afmelding.getDossier().getClient(), afmelding, true, ScreenitSession.get().getLoggedInInstellingGebruiker());
+				baseAfmeldService.definitieveAfmeldingAanvragen(afmelding.getDossier().getClient(), afmelding, true, ScreenitSession.get().getLoggedInInstellingGebruiker());
 
 				info(getString("info.afmeldinghandtekeningverstuurd"));
 				close(target);
@@ -261,7 +264,7 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			List<ColonAfmeldingReden> colonAfmeldingRedenen = new ArrayList<>(Arrays.asList(ColonAfmeldingReden.values()));
 			colonAfmeldingRedenen.remove(ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK);
 			colonAfmeldingRedenen.remove(ColonAfmeldingReden.ONTERECHT);
-			RadioChoice<ColonAfmeldingReden> colonAfmeldingReden = new RadioChoice<>("reden", colonAfmeldingRedenen, new EnumChoiceRenderer<ColonAfmeldingReden>(this));
+			RadioChoice<ColonAfmeldingReden> colonAfmeldingReden = new RadioChoice<>("reden", colonAfmeldingRedenen, new EnumChoiceRenderer<>(this));
 			colonAfmeldingReden.setPrefix("<label class=\"radio\">");
 			colonAfmeldingReden.setSuffix("</label>");
 			colonAfmeldingReden.setOutputMarkupId(true);
@@ -270,15 +273,14 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			break;
 		case CERVIX:
 			List<CervixAfmeldingReden> cervixAfmeldingRedenen = new ArrayList<>(Arrays.asList(CervixAfmeldingReden.values()));
-			RadioChoice<CervixAfmeldingReden> cervixAfmeldingReden = new RadioChoice<>("reden", cervixAfmeldingRedenen, new EnumChoiceRenderer<CervixAfmeldingReden>(this));
+			RadioChoice<CervixAfmeldingReden> cervixAfmeldingReden = new RadioChoice<>("reden", cervixAfmeldingRedenen, new EnumChoiceRenderer<>(this));
 			cervixAfmeldingReden.setPrefix("<label class=\"radio\">");
 			cervixAfmeldingReden.setSuffix("</label>");
 			cervixAfmeldingReden.setOutputMarkupId(true);
 			formulierAanwezig.add(cervixAfmeldingReden);
 			break;
 		case MAMMA:
-			RadioChoice<MammaAfmeldingReden> mammaAfmeldingReden = new RadioChoice<>("reden", MammaAfmeldingReden.definitieveRedenen(),
-				new EnumChoiceRenderer<MammaAfmeldingReden>(this));
+			RadioChoice<MammaAfmeldingReden> mammaAfmeldingReden = new RadioChoice<>("reden", MammaAfmeldingReden.definitieveRedenen(), new EnumChoiceRenderer<>(this));
 			mammaAfmeldingReden.setPrefix("<label class=\"radio\">");
 			mammaAfmeldingReden.setSuffix("</label>");
 			mammaAfmeldingReden.setOutputMarkupId(true);

@@ -299,11 +299,7 @@ public abstract class MammaCapaciteitBlokEditPopup extends GenericPanel<Planning
 			{
 				IModel<PlanningCapaciteitBlokDto> blokModel = MammaCapaciteitBlokEditPopup.this.getModel();
 				aantalAfspraken = baseCapaciteitsBlokService.getAantalAfsprakenOpBlok(blokModel.getObject(), false);
-				if (aantalAfspraken == 0)
-				{
-					return true;
-				}
-				return false;
+				return aantalAfspraken == 0;
 			}
 
 			@Override
@@ -340,9 +336,6 @@ public abstract class MammaCapaciteitBlokEditPopup extends GenericPanel<Planning
 	{
 		final IndicatingAjaxLink<Void> deleteSubmit = new ConfirmingIndicatingAjaxLink<Void>("verwijderen", confirmPopup, "verwijder.popup")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected IModel<String> getContentStringModel()
 			{

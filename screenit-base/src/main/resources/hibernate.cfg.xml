@@ -60,6 +60,7 @@
         <property name="hibernate.cache.use_second_level_cache">true</property>
         <property name="hibernate.cache.use_structured_entries">false</property>
         <property name="hibernate.jdbc.batch_size">20</property>
+        <property name="hibernate.jdbc.lob.non_contextual_creation">true</property>
         <property name="org.hibernate.envers.revision_on_collection_change">false</property>
 
         <property name="default_schema">gedeeld</property>

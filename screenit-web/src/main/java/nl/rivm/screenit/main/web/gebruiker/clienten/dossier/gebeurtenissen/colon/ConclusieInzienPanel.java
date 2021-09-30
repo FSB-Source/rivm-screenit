@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colon;
 
 /*-
@@ -31,16 +30,15 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.BooleanLabel;
 
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -54,8 +52,13 @@ public class ConclusieInzienPanel extends AbstractGebeurtenisDetailPanel
 	public ConclusieInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
+	}
 
-		ColonIntakeAfspraak afspraak = ModelUtil.nullSafeGet(model).getAfspraak();
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		ColonIntakeAfspraak afspraak = getModelObject().getAfspraak();
 		ColonConclusie conclusie = afspraak.getConclusie();
 
 		add(new EnumLabel<ColonConclusieType>("afspraak.conclusie.type"));
