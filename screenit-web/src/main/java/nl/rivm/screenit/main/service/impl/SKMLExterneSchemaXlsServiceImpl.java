@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -57,7 +56,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(SKMLExterneSchemaXlsServiceImpl.class);
 
 	@Autowired
@@ -137,7 +135,7 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 		try
 		{
 			workbook = WorkbookFactory.create(xlsStream);
-			workbook.setMissingCellPolicy(HSSFRow.CREATE_NULL_AS_BLANK);
+			workbook.setMissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
 		}
 		catch (InvalidFormatException | IOException e)
 		{

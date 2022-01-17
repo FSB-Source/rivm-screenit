@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -117,6 +117,11 @@ public class ColonUitnodigingsgebiedSelectieContext implements Comparable<ColonU
 		consumeClient();
 	}
 
+	public void substractUitnodigingscapaciteit(BigDecimal capaciteitAftrekken)
+	{
+		uitnodigingscapaciteitOver = uitnodigingscapaciteitOver.subtract(capaciteitAftrekken);
+	}
+
 	private void consumeClient()
 	{
 		if (getTotaalAntalClienten() != null)
@@ -224,16 +229,12 @@ public class ColonUitnodigingsgebiedSelectieContext implements Comparable<ColonU
 		ColonUitnodigingsgebiedSelectieContext other = (ColonUitnodigingsgebiedSelectieContext) obj;
 		if (uitnodigingsgebiedId == null)
 		{
-			if (other.uitnodigingsgebiedId != null)
-			{
-				return false;
-			}
+			return other.uitnodigingsgebiedId == null;
 		}
-		else if (!uitnodigingsgebiedId.equals(other.uitnodigingsgebiedId))
+		else
 		{
-			return false;
+			return uitnodigingsgebiedId.equals(other.uitnodigingsgebiedId);
 		}
-		return true;
 	}
 
 	@Override

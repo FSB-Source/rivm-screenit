@@ -1,0 +1,162 @@
+package nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid;
+
+/*-
+ * ========================LICENSE_START=================================
+ * screenit-batch-bmhk
+ * %%
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * =========================LICENSE_END==================================
+ */
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+
+import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
+import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Level;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.logging.LogEvent;
+import nl.rivm.screenit.model.project.GroepSelectieType;
+import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.model.project.ProjectGroep;
+import nl.rivm.screenit.model.project.ProjectStatus;
+import nl.rivm.screenit.model.project.ProjectType;
+import nl.rivm.screenit.service.InstellingService;
+import nl.rivm.screenit.service.ProjectService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.beans.factory.annotation.Autowired;
+
+@Slf4j
+public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
+{
+	@Autowired
+	private InstellingService instellingService;
+
+	@Autowired
+	private ProjectService projectService;
+
+	@Autowired
+	private HibernateService hibernateService;
+
+	private String projectNaam;
+
+	@Override
+	protected Bevolkingsonderzoek getBevolkingsonderzoek()
+	{
+		return Bevolkingsonderzoek.CERVIX;
+	}
+
+	@Override
+	protected void beforeStarting(JobExecution jobExecution)
+	{
+		super.beforeStarting(jobExecution);
+		projectNaam = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_PROJECT_VERLATE_DEELNAME);
+		if (StringUtils.isNotBlank(projectNaam))
+		{
+			Project zoekObject = new Project();
+			zoekObject.setNaam(projectNaam);
+			zoekObject.setProjectStatussen(Arrays.asList(ProjectStatus.ACTIEF));
+			zoekObject.setProjectTypes(Arrays.asList(ProjectType.PROJECT));
+			zoekObject.setGroepSelectieType(GroepSelectieType.DYNAMISCH);
+			zoekObject.setBevolkingsonderzoeken(Arrays.asList(Bevolkingsonderzoek.CERVIX));
+			List<Project> projecten = projectService.getProjecten(zoekObject, Collections.emptyList(), Collections.emptyList(), -1, -1, new SortState<>("naam", true));
+			Project project = null;
+			if (!projecten.isEmpty())
+			{
+				project = projecten.get(0);
+			}
+			if (project != null)
+			{
+				jobExecution.getExecutionContext().put(CervixVerlateDeelnameCovidConstants.PROJECT_ID, project.getId());
+			}
+		}
+	}
+
+	@Override
+	protected LogEvent getStartLogEvent()
+	{
+		return new LogEvent();
+	}
+
+	@Override
+	protected LogGebeurtenis getStartLogGebeurtenis()
+	{
+		return LogGebeurtenis.CERVIX_VERLATE_DEELNAME_COVID_GESTART;
+	}
+
+	@Override
+	protected LogGebeurtenis getEindLogGebeurtenis()
+	{
+		return LogGebeurtenis.CERVIX_VERLATE_DEELNAME_COVID_AFGEROND;
+	}
+
+	@Override
+	protected LogEvent getEindLogEvent()
+	{
+		return new LogEvent();
+	}
+
+	@Override
+	protected LogEvent eindLogging(JobExecution jobExecution)
+	{
+		LogEvent event = super.eindLogging(jobExecution);
+		if (event.getLevel() == Level.INFO)
+		{
+			String melding = "";
+			ExecutionContext executionContext = jobExecution.getExecutionContext();
+			if (executionContext.containsKey(CervixVerlateDeelnameCovidConstants.PROJECT_ID) && StringUtils.isNotBlank(projectNaam))
+			{
+				melding = "Geen clienten gevonden. Geen herdrukbrieven aangemaakt voor project '" + projectNaam + "'";
+				event.setLevel(Level.WARNING);
+				if (executionContext.containsKey(CervixVerlateDeelnameCovidConstants.PROJECT_GROEP_ID))
+				{
+					long groepId = executionContext.getLong(CervixVerlateDeelnameCovidConstants.PROJECT_GROEP_ID);
+					ProjectGroep groep = hibernateService.get(ProjectGroep.class, groepId);
+					if (groep != null)
+					{
+						if (groep.getPopulatie() > 0)
+						{
+							melding = groep.getPopulatie() + " herdrukbrieven aangemaakt binnen project '" + projectNaam + "' in groep '" + groep.getNaam() + "'";
+							event.setLevel(Level.INFO);
+						}
+						groep.setActief(false);
+						hibernateService.saveOrUpdate(groep);
+					}
+					else
+					{
+						LOG.error("geen entiteit voor groep met id " + groepId + " gevonden");
+					}
+				}
+			}
+			else
+			{
+				melding = "Project '" + StringUtils.defaultIfEmpty(projectNaam, "&lt;leeg&gt;") + "' of niet bekend of niet actief, dynamisch of BMHK.";
+				event.setLevel(Level.ERROR);
+			}
+			event.setMelding(melding);
+		}
+		return event;
+	}
+}

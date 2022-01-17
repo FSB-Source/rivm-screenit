@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.populatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -114,7 +114,7 @@ public class ProjectGroepEditPage extends ProjectBasePage
 
 	public ProjectGroepEditPage(IModel<Project> projectModel)
 	{
-		this(ModelUtil.cModel(new ProjectGroep(projectModel.getObject())), projectModel);
+		this(ModelUtil.ccModel(new ProjectGroep()), projectModel);
 	}
 
 	public ProjectGroepEditPage(IModel<ProjectGroep> model, IModel<Project> projectModel)
@@ -122,6 +122,10 @@ public class ProjectGroepEditPage extends ProjectBasePage
 		super(projectModel);
 		Project project = projectModel.getObject();
 		ProjectGroep groep = model.getObject();
+		if (groep.getProject() == null)
+		{
+			groep.setProject(project);
+		}
 		isPushDatumAlGezet = groep.getUitnodigingenPushenNa();
 		boolean isNieuweGroep = groep.getId() == null;
 		String projectTitel = "Groep aanpassen";
@@ -141,7 +145,8 @@ public class ProjectGroepEditPage extends ProjectBasePage
 
 		form.add(ComponentHelper.addTextField(form, "naam", true, 24, false));
 
-		form.add(ComponentHelper.addTextField(form, "uitnodigenVoorDKvoor", false, 24, Date.class, false).add(DateValidator.minimum(currentDateSupplier.getDate()))
+		Date nu = currentDateSupplier.getDate();
+		form.add(ComponentHelper.addTextField(form, "uitnodigenVoorDKvoor", false, 24, Date.class, false).add(DateValidator.minimum(nu))
 			.setVisible(ProjectUtil.hasParameterSet(project, ProjectParameterKey.COLON_UITNODIGEN_PRIORITEIT)));
 
 		form.add(new ScreenitDropdown<GroepInvoer>("groepInvoer", GroepInvoer.getGroepinvoerVanSelectieType(project.getGroepSelectieType()), new NaamChoiceRenderer<INaam>())
@@ -153,7 +158,6 @@ public class ProjectGroepEditPage extends ProjectBasePage
 		clientenBestand.setRequired(isNieuweGroep);
 		clientenBestand.setOutputMarkupId(true);
 
-		Date nu = currentDateSupplier.getDate();
 		boolean uitnodigingenPushenInzien = groep.getUitnodigingenPushenNa() != null && nu.after(groep.getUitnodigingenPushenNa()) || nu.after(project.getEindDatum());
 		form.add(ComponentHelper.addTextField(form, "uitnodigingenPushenNa", false, 24, Date.class, uitnodigingenPushenInzien)
 			.add(RangeValidator.range(currentDateSupplier.getDateMidnight(), project.getEindDatum()))
@@ -168,22 +172,16 @@ public class ProjectGroepEditPage extends ProjectBasePage
 
 		add(new AjaxLink<Void>("annuleren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				setResponsePage(new PopulatiePage((IModel<Project>) ProjectGroepEditPage.this.getDefaultModel()));
+				setResponsePage(new PopulatiePage(getProjectModel()));
 			}
 
 		});
 
 		add(new AjaxSubmitLink("opslaan", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -272,7 +270,7 @@ public class ProjectGroepEditPage extends ProjectBasePage
 				{
 					ScreenitSession.get().info("Groep is opgeslagen.");
 				}
-				setResponsePage(new PopulatiePage((IModel<Project>) ProjectGroepEditPage.this.getDefaultModel()));
+				setResponsePage(new PopulatiePage(getProjectModel()));
 			}
 		}
 	}

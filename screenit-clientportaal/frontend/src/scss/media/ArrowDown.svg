@@ -1,0 +1,23 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-clientportaal
+  %%
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<svg width="12px" height="14px" viewBox="0 0 12 14" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.7391 8.62207L6.60201 13.7592C6.56187 13.7993 6.5184 13.8361 6.47157 13.8696C6.42475 13.903 6.38127 13.9197 6.34114 13.9197C6.26087 13.9732 6.16054 14 6.04014 14C5.91973 14 5.79264 13.9732 5.65886 13.9197C5.63211 13.893 5.60387 13.8722 5.57414 13.8573L5.52843 13.8395C5.48161 13.8261 5.43813 13.7993 5.39799 13.7592L0.26087 8.62207C0.0869557 8.44816 0 8.24749 0 8.02007C0 7.79264 0.0869557 7.59197 0.26087 7.41806C0.434784 7.24415 0.63545 7.15719 0.862876 7.15719C1.0903 7.15719 1.29097 7.24415 1.46488 7.41806L5.13713 11.1104L5.13712 0.84281C5.13712 0.588627 5.21739 0.384616 5.37793 0.230769C5.53846 0.0769223 5.74582 0 6 0C6.25418 0 6.46154 0.0769223 6.62207 0.230769C6.78261 0.384616 6.86287 0.588627 6.86287 0.84281L6.86287 11.1104L10.5351 7.41806C10.6288 7.33779 10.7324 7.27425 10.8462 7.22743C10.9599 7.1806 11.0569 7.15719 11.1371 7.15719C11.2174 7.15719 11.3144 7.1806 11.4281 7.22743C11.5418 7.27425 11.6455 7.33779 11.7391 7.41806C11.913 7.59197 12 7.79264 12 8.02007C12 8.24749 11.913 8.44816 11.7391 8.62207Z"/>
+</svg>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.bestanden;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -61,13 +61,10 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 
 	private IModel<ProjectBestand> filterModel;
 
-	private IModel<Project> projectModel;
-
 	public ProjectBestandenOverzicht(IModel<Project> model)
 	{
 		super(model);
-		projectModel = model;
-		filterModel = ModelUtil.cModel(new ProjectBestand());
+		filterModel = ModelUtil.ccModel(new ProjectBestand());
 		ProjectBestand bestand = filterModel.getObject();
 		bestand.setProject(model.getObject());
 
@@ -85,9 +82,9 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 		SimpleDateFormat format = Constants.getDateTimeSecondsFormat();
 
 		List<IColumn<ProjectBestand, String>> columns = new ArrayList<IColumn<ProjectBestand, String>>();
-		columns.add(new PropertyColumn<ProjectBestand, String>(Model.of("Naam"), "uploadDocument.naam", "uploadDocument.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Naam"), "uploadDocument.naam", "uploadDocument.naam"));
 		columns.add(new EnumPropertyColumn<ProjectBestand, String, ProjectBestandType>(Model.of("Type"), "type", "type"));
-		columns.add(new AbstractColumn<ProjectBestand, String>(Model.of("Toepassen op"))
+		columns.add(new AbstractColumn<>(Model.of("Toepassen op"))
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -107,13 +104,10 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 		Map<Boolean, String> presentatie = new HashMap<>();
 		presentatie.put(Boolean.TRUE, "Ja");
 		presentatie.put(Boolean.FALSE, "Nee");
-		columns.add(new BooleanStringPropertyColumn<ProjectBestand, String>(Model.of("Attributen"), presentatie, "attributen"));
-		columns.add(new DateTimePropertyColumn<ProjectBestand, String>(Model.of("Uploaddatum"), "uploadDatum", "uploadDatum", format));
-		columns.add(new AbstractColumn<ProjectBestand, String>(Model.of("Regels mislukt"))
+		columns.add(new BooleanStringPropertyColumn<>(Model.of("Attributen"), presentatie, "attributen"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Uploaddatum"), "uploadDatum", "uploadDatum", format));
+		columns.add(new AbstractColumn<>(Model.of("Regels mislukt"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectBestand>> cellItem, String componentId, IModel<ProjectBestand> rowModel)
 			{
@@ -127,11 +121,8 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 				cellItem.add(new Label(componentId, Model.of(value)));
 			}
 		});
-		columns.add(new AbstractColumn<ProjectBestand, String>(Model.of("Regels verwerkt"))
+		columns.add(new AbstractColumn<>(Model.of("Regels verwerkt"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectBestand>> cellItem, String componentId, IModel<ProjectBestand> rowModel)
 			{
@@ -145,11 +136,8 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 				cellItem.add(new Label(componentId, Model.of(value)));
 			}
 		});
-		columns.add(new AbstractColumn<ProjectBestand, String>(Model.of("Status"))
+		columns.add(new AbstractColumn<>(Model.of("Status"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectBestand>> cellItem, String componentId, IModel<ProjectBestand> rowModel)
 			{
@@ -163,9 +151,6 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 		ScreenitDataTable<ProjectBestand, String> dataTable = new ScreenitDataTable<ProjectBestand, String>("projectBestanden", columns,
 			new ProjectBestandenDataProvider(filterModel), 10, Model.of("bestanden"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ProjectBestand> model)
 			{
@@ -199,7 +184,6 @@ public class ProjectBestandenOverzicht extends ProjectBasePage
 	{
 		super.onDetach();
 		ModelUtil.nullSafeDetach(filterModel);
-		ModelUtil.nullSafeDetach(projectModel);
 	}
 
 }

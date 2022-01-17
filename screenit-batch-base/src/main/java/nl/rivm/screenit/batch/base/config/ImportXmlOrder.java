@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.base.config;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,12 +42,12 @@ import org.springframework.core.annotation.Order;
 		"classpath:applicationContext-jms-batch-base.xml",
 
 		"classpath:applicationContext-batch.xml",
-		"classpath:applicationContext-mail.xml",
+		"classpath:applicationContext-mailfrom.xml",
 		"classpath:applicationContext-quartz.xml",
 		"classpath:applicationContext-jndi.xml",
 		"classpath:applicationContext-jndi-batch-base.xml",
+		"classpath:applicationContext-hibernate-base.xml",
 		"classpath:applicationContext-hibernate-batch-base.xml",
-		"classpath:applicationContext-hibernate.xml",
 		"classpath:applicationContext-preference-module.xml",
 		"classpath:applicationContext-documentupload.xml",
 

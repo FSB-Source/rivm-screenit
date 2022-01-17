@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,6 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
@@ -39,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 {
-
 	@Autowired
 	private CervixFactory factory;
 
@@ -62,34 +60,28 @@ public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 
 		if (!(ronde.getUitstrijkjeCytologieUitslag() != null && ronde.getUitnodigingVervolgonderzoek() == null))
 		{
-			CervixUitnodiging uitnodiging = null;
+			CervixUitnodiging uitnodiging;
 			CervixCISHistorie cisHistorie = dossier.getCisHistorie();
 			if (cisHistorie != null && uitstel.equals(cisHistorie.getUitstel()))
 			{
 
 				cisHistorie.setUitstel(null);
 				hibernateService.saveOrUpdate(cisHistorie);
-				uitnodiging = factory.maakUitnodiging(ronde, BriefType.CERVIX_UITNODIGING, true, true);
+				uitnodiging = factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, true);
 			}
 			else
 			{
-				CervixBrief brief;
 				boolean herinneren = true;
+				CervixBrief brief = briefService.maakBvoBrief(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief());
 
 				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
 				if (laatsteUitnodiging != null)
 				{
 					CervixBrief laatsteUitnodigingBrief = laatsteUitnodiging.getBrief();
-					brief = briefService.maakCervixBrief(ronde, laatsteUitnodigingBrief.getBriefType());
 					brief.setHerdruk(laatsteUitnodigingBrief);
 					herinneren = laatsteUitnodiging.getHerinneren();
+					hibernateService.saveOrUpdate(brief);
 				}
-				else
-				{
-					brief = briefService.maakCervixBrief(ronde, BriefType.CERVIX_UITNODIGING);
-				}
-
-				hibernateService.saveOrUpdate(brief);
 
 				uitnodiging = factory.maakUitnodiging(ronde, brief, herinneren, true);
 			}

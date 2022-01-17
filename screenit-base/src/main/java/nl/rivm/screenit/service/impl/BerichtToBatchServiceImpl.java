@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,7 @@ import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnam
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.dto.mamma.se.MammaKwaliteitsopnameDto;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.helper.ActiveMQHelper;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -54,6 +55,7 @@ import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.apache.activemq.command.ActiveMQMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -119,27 +121,6 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	private final Pattern bsnGewijzigdMarkerPattern = Pattern.compile(bsnMarkerPattern);
 
 	@Override
-	public void queueColonCDABericht(final Long berichtId)
-	{
-		LOG.debug("Sending ActiveMq message to batch DK");
-		queueBericht(colonCdaDestination, berichtId);
-	}
-
-	@Override
-	public void queueCervixCDABericht(final Long berichtId)
-	{
-		LOG.debug("Sending ActiveMq message to batch BMHK");
-		queueBericht(cervixCdaDestination, berichtId);
-	}
-
-	@Override
-	public void queueMammaCDABericht(Long berichtId)
-	{
-		LOG.debug("Sending ActiveMq message to batch BK");
-		queueBericht(mammaCdaDestination, berichtId);
-	}
-
-	@Override
 	public void queueHPVBericht(Long labId)
 	{
 		LOG.debug("Sending ActiveMq message to batch BMHK");
@@ -161,10 +142,37 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	}
 
 	@Override
+	public void queueCDABericht(Bevolkingsonderzoek bvo)
+	{
+		LOG.debug("Sending ActiveMq message to batch " + bvo.getAfkorting());
+		switch (bvo)
+		{
+		case COLON:
+			queueBericht(colonCdaDestination);
+			break;
+		case CERVIX:
+			queueBericht(cervixCdaDestination);
+			break;
+		case MAMMA:
+			queueBericht(mammaCdaDestination);
+			break;
+		}
+	}
+
+	@Override
 	public void queueMammaUploadBeeldenVerzoekBericht()
 	{
 		LOG.debug("Sending uploadBeeldenVerzoek ActiveMq message to batch BK");
 		queueTextBericht(mammaUploadBeeldenVerzoekBerichtDestination, "");
+	}
+
+	@Override
+	public void queueMammaIlmHl7v24BerichtUitgaand(Long uitnodigingsNr, Long clientId, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
+	{
+		MammaHL7v24OrmBerichtTriggerIlmDto triggerDto = new MammaHL7v24OrmBerichtTriggerIlmDto();
+		triggerDto.setAccessionNumber(uitnodigingsNr);
+		triggerDto.setClientId(clientId);
+		queueHL7(status, triggerDto, berichtType);
 	}
 
 	@Override
@@ -197,13 +205,18 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, Date onderzoeksDatum, MammaHL7v24ORMBerichtStatus status,
 		MammaHL7BerichtType berichtType)
 	{
-		MammaHL7v24OrmBerichtTriggerUploadBeeldenDto triggerDto = new MammaHL7v24OrmBerichtTriggerUploadBeeldenDto();
-
 		Client client = uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier().getClient();
+		MammaHL7v24OrmBerichtTriggerUploadBeeldenDto triggerDto = new MammaHL7v24OrmBerichtTriggerUploadBeeldenDto(uploadBeeldenPoging.getAccessionNumber(), client.getId(),
+			onderzoeksDatum);
+		queueHL7(status, triggerDto, berichtType);
 
-		triggerDto.setClientId(client.getId());
-		triggerDto.setAccessionNumber(uploadBeeldenPoging.getAccessionNumber());
-		triggerDto.setOnderzoeksDatum(onderzoeksDatum);
+		LOG.debug("Sending client message to batch BK HL7 queue");
+	}
+
+	@Override
+	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(Long accessionNumber, Long clientId, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
+	{
+		MammaHL7v24OrmBerichtTriggerUploadBeeldenDto triggerDto = new MammaHL7v24OrmBerichtTriggerUploadBeeldenDto(accessionNumber, clientId);
 		queueHL7(status, triggerDto, berichtType);
 
 		LOG.debug("Sending client message to batch BK HL7 queue");
@@ -320,11 +333,23 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	{
 		jmsTemplate.send(destination, new MessageCreator()
 		{
-
 			@Override
 			public Message createMessage(Session session) throws JMSException
 			{
 				return ActiveMQHelper.getActiveMqObjectMessage(id);
+			}
+
+		});
+	}
+
+	private void queueBericht(Destination destination)
+	{
+		jmsTemplate.send(destination, new MessageCreator()
+		{
+			@Override
+			public Message createMessage(Session session) throws JMSException
+			{
+				return new ActiveMQMessage();
 			}
 
 		});

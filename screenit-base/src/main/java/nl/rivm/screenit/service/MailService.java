@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,42 +21,13 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
+import javax.annotation.Nonnull;
+
+import nl.rivm.screenit.model.enums.MailPriority;
+
 public interface MailService
 {
+	void queueMail(String to, String subject, String content);
 
-	boolean sendEmail(String to, String subject, String message);
-
-	boolean sendEmail(String[] to, String subject, String message);
-
-	boolean sendEmail(String to, String subject, String message, MailPriority priority);
-
-	boolean sendEmail(String[] to, String subject, String message, MailPriority priority);
-
-	void sendAsyncMail(AsyncMailer asyncMailer);
-
-	public enum MailPriority
-	{
-
-		LOWEST(5),
-
-		LOW(4),
-
-		NORMAL(3),
-
-		HIGH(2),
-
-		HIGHEST(1);
-
-		private final int priority;
-
-		private MailPriority(int priority)
-		{
-			this.priority = priority;
-		}
-
-		public int getPriority()
-		{
-			return priority;
-		}
-	}
+	void queueMail(String to, String subject, String content, @Nonnull MailPriority priority);
 }

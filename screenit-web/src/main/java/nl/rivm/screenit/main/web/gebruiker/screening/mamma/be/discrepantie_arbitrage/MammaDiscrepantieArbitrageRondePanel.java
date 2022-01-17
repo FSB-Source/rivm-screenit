@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.discrepantie_arbi
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.discrepantie_arbi
 
 import java.util.List;
 
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.MammaOnderzoekPanel;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBeoordelenPage;
@@ -46,6 +47,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class MammaDiscrepantieArbitrageRondePanel extends AbstractMammaRondePanel
 {
+
 	@SpringBean
 	private MammaBaseBeoordelingService baseBeoordelingService;
 
@@ -64,6 +66,7 @@ public class MammaDiscrepantieArbitrageRondePanel extends AbstractMammaRondePane
 	{
 		createDiscrepantiePanel(panelContainer);
 		createVisueleInspectiePanel(panelContainer);
+		createOnderzoekPanel(panelContainer);
 		createMBBerPanel(panelContainer);
 	}
 
@@ -89,11 +92,16 @@ public class MammaDiscrepantieArbitrageRondePanel extends AbstractMammaRondePane
 		panelContainer.add(visueleInspectiePanel);
 	}
 
+	private void createOnderzoekPanel(WebMarkupContainer panelContainer)
+	{
+		panelContainer.add(new MammaOnderzoekPanel("onderzoekPanel", new PropertyModel<>(getModel(), "onderzoek")));
+	}
+
 	void lezingOpslaan(MammaLezing lezing, AjaxRequestTarget target, List<LaesieDto> laesieDtos)
 	{
 		koppelNieuweLaesiesAanLezing(lezing, laesieDtos);
 		baseBeoordelingService.slaLezingOpEnVerwerkStatus(getModelObject(), lezing, ScreenitSession.get().getLoggedInInstellingGebruiker(),
-			(b) -> getString(EnumStringUtil.getPropertyString(((MammaBeoordeling) b).getOpschortReden())));
+			b -> getString(EnumStringUtil.getPropertyString(((MammaBeoordeling) b).getOpschortReden())));
 		((AbstractMammaBeoordelenPage) getPage()).volgendeVerslag(target);
 	}
 
@@ -114,7 +122,7 @@ public class MammaDiscrepantieArbitrageRondePanel extends AbstractMammaRondePane
 		return lezerSoort;
 	}
 
-	public void blokeerOpslaan(AjaxRequestTarget target)
+	public void blokkeerOpslaan(AjaxRequestTarget target)
 	{
 		biradsPanel.blokkeerLezing(target);
 	}

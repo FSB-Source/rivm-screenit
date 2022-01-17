@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@
     <jee:jndi-lookup id="voFileStorePath" jndi-name="gba/voFileStorePath"/>
     <jee:jndi-lookup id="handleidingenPath" jndi-name="handleidingenPath"/>
 
-    <jee:jndi-lookup id="portaalUrl" jndi-name="portaalUrl" default-value="" expected-type="java.lang.String"/>
     <jee:jndi-lookup id="clientportaalUrl" jndi-name="clientportaalUrl" default-value="http://localhost:3000/" expected-type="java.lang.String"/>
     <jee:jndi-lookup id="clientportaalUrlAutoLogin" jndi-name="clientportaalUrlAutoLogin" default-value="https://idp-acc.topicuszorg.nl/auth/realms/ScreenIT/sso/flows/sso-screenit-autocreate?bsn=%s&amp;client_id=screenit-frontend-local&amp;iss=screenit-local&amp;target_uri=%s&amp;ts=%s" expected-type="java.lang.String"/>
     <jee:jndi-lookup id="clientportaalUrlAutoLoginSecret" jndi-name="clientportaalUrlAutoLoginSecret" default-value="1234" expected-type="java.lang.String"/>

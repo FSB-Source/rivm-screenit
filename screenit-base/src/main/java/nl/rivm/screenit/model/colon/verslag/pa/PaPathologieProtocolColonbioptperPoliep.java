@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.pa;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -81,9 +80,10 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@DSValueSetValue(code = "41796003", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "256874006", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "245857005", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "83856002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Lokalisatie poliep", extraTekst = "Lokatie waar de poliep is weggenomen", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155005")
+	@VraagElement(displayName = "Lokalisatie poliep", extraTekst = "Lokatie waar de poliep is weggenomen", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155005")
 	private DSValue lokalisatiePoliep;
 
 	@Embedded
@@ -92,17 +92,13 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@AttributeOverride(name = "value", column = @Column(name = "specifiekeAfstandVanafAnusValue")),
 		@AttributeOverride(name = "unit", column = @Column(name = "specifiekeAfstandVanafAnusUnit"))
 	})
-	@VraagElement(displayName = "Specifieke afstand vanaf anus", extraTekst = "Specifieke afstand vanaf anus (in cm)", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155007", unit = {
+	@VraagElement(displayName = "Specifieke afstand vanaf anus", extraTekst = "Specifieke afstand vanaf anus (in cm)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155007", unit = {
 		@VraagElementUnit(unit = "cm", min = "1.0", max = "200.0")
 	})
 	private Quantity specifiekeAfstandVanafAnus;
 
 	@Column(length = 255)
-	@VraagElement(
-		displayName = "Nummer potje materiaal",
-		extraTekst = "Nummer potje van het binngekomen materiaal",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155010",
-		isVerplicht = true)
+	@VraagElement(displayName = "Nummer potje materiaal", extraTekst = "Nummer potje van het binngekomen materiaal", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155010", isVerplicht = true)
 	private String nummerPotjeMateriaal;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -110,10 +106,7 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@DSValueSetValue(code = "260521003", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "261074009", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(
-		displayName = "Consult materiaal aangevraagd",
-		extraTekst = "Of er (intern/extern) consult materiaal is opgevraagd uit een ander laboratorium",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155011")
+	@VraagElement(displayName = "Consult materiaal aangevraagd", extraTekst = "Of er (intern/extern) consult materiaal is opgevraagd uit een ander laboratorium", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155011")
 	private DSValue consultMateriaalAangevraagd;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -122,7 +115,7 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@DSValueSetValue(code = "399415002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "UNK", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Dysplasiegraad", extraTekst = "Hoog- of laaggradige dysplasie", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155020", isVerplicht = true)
+	@VraagElement(displayName = "Dysplasiegraad", extraTekst = "Hoog- of laaggradige dysplasie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155020", isVerplicht = true)
 	private DSValue dysplasiegraad;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -131,13 +124,15 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@DSValueSetValue(code = "15451000146101", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "82035006:246090004=395528004", codeSystem = "2.16.840.1.113883.6.96", deprecated = true),
 		@DSValueSetValue(code = "86273004", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "146631000146100", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "146641000146108", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "10381000132106", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "10391000132108", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "870423007", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "146621000146102", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(
-		displayName = "Type biopt",
-		extraTekst = "Manier van weefselverwijdering (biopt, excisie, poliepectomie)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155030",
-		isVerplicht = true)
+	@VraagElement(displayName = "Type biopt", extraTekst = "Manier van weefselverwijdering (biopt, excisie, poliepectomie)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155030", isVerplicht = true)
 	private DSValue typeBiopt;
 
 	@Embedded
@@ -147,25 +142,22 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@AttributeOverride(name = "unit", column = @Column(name = "diameterPoliepUnit")),
 		@AttributeOverride(name = "nullFlavour", column = @Column(name = "diameterPoliepNf"))
 	})
-	@VraagElement(
-		displayName = "Diameter poliep",
-		extraTekst = "Diameter van het verwijderde materiaal",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155040",
-		isVerplicht = true,
-		unit = {
-			@VraagElementUnit(unit = "cm", min = "0.1", max = "20.0")
-		})
+	@VraagElement(displayName = "Diameter poliep", extraTekst = "Diameter van het verwijderde materiaal", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155040", isVerplicht = true, unit = {
+		@VraagElementUnit(unit = "cm", min = "0.1", max = "20.0")
+	})
 	private NullFlavourQuantity diameterPoliep;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@DSValueSet(name = "vs_primaire_afwijking", values = {
 		@DSValueSetValue(code = "23875004", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "12402003", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "443897009", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "61722000", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "62047007", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "128859003", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "443734007", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "443157008", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "783210009", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OTHPOL", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.13"),
 		@DSValueSetValue(code = "76235005", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "110448004", codeSystem = "2.16.840.1.113883.6.96"),
@@ -191,11 +183,11 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@DSValueSetValue(code = "269533000:408729009=415684004", codeSystem = "2.16.840.1.113883.6.96", deprecated = true),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Primaire afwijking", extraTekst = "Gevonden primaire afwijking", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155050", isVerplicht = true)
+	@VraagElement(displayName = "Primaire afwijking", extraTekst = "Gevonden primaire afwijking", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155050", isVerplicht = true)
 	private DSValue primaireAfwijking;
 
 	@Column(length = 4096)
-	@VraagElement(displayName = "Andere primaire afwijking", extraTekst = "Specificatie (tekst) andere primaire afwijking", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155052")
+	@VraagElement(displayName = "Andere primaire afwijking", extraTekst = "Specificatie (tekst) andere primaire afwijking", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155052")
 	private String anderePrimaireAfwijking;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -206,15 +198,15 @@ public class PaPathologieProtocolColonbioptperPoliep
 		@DSValueSetValue(code = "162572001:246090004=269533000", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Bevinding", extraTekst = "Bevinding", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155053")
+	@VraagElement(displayName = "Bevinding", extraTekst = "Bevinding", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155053")
 	private DSValue bevinding;
 
 	@Column(length = 4096)
-	@VraagElement(displayName = "Specificatie overige bevinding", extraTekst = "Specificatie (tekst) overige bevinding", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155054")
+	@VraagElement(displayName = "Specificatie overige bevinding", extraTekst = "Specificatie (tekst) overige bevinding", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155054")
 	private String specificatieOverigeBevinding;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "pathologieProtocolColonbioptperPoliep", cascade = CascadeType.ALL)
-	@VraagElement(displayName = "Gegevens bij maligniteit", extraTekst = "Gegevens bij maligniteit", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155057", isReference = true)
+	@VraagElement(displayName = "Gegevens bij maligniteit", extraTekst = "Gegevens bij maligniteit", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155057", isReference = true)
 	private PaGegevensBijMaligniteit gegevensBijMaligniteit;
 
 	public PaVerslagContent getVerslagContent()

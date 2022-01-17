@@ -1,0 +1,50 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.beforeSearching {
+	border-radius: 10px;
+	background-color: $grijs-600;
+	height: fit-content;
+	padding-bottom: 50px;
+	padding-top: 50px;
+	margin-bottom: 20px;
+
+	@include respond-below(sm) {
+		padding-top: 20px;
+		padding-bottom: 20px;
+	}
+
+	span {
+		width: 60%;
+		color: $zwart;
+		font-size: 1.1rem;
+		letter-spacing: 0;
+		line-height: 27px;
+		text-align: center;
+		display: block;
+		margin: 0 auto;
+		white-space: pre-wrap;
+
+		@include respond-below(sm) {
+			width: 100%;
+			padding-left: 60px;
+			padding-right: 60px;
+		}
+
+		@include respond-below(xs) {
+			padding-left: 20px;
+			padding-right: 20px;
+			font-size: 1rem;
+		}
+	}
+
+	svg {
+		position: absolute;
+		top: 25px;
+		left: 50px;
+
+		@include respond-below(sm) {
+			display: none;
+		}
+	}
+}

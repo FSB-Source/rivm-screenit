@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.main.model.mamma.MammaFollowUpConclusieChoice;
+import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -69,6 +70,9 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 	@Autowired
 	private MammaBaseFollowUpService baseFollowUpService;
 
+	@Autowired
+	private MammaConclusieReviewService conclusieReviewService;
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void saveOrUpdateRadiologie(MammaFollowUpRadiologieVerslag verslag, InstellingGebruiker loggedInInstellingGebruiker)
@@ -99,6 +103,8 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 		screeningRonde.setStatusDatum(nu);
 		hibernateService.saveOrUpdate(screeningRonde);
 		baseFollowUpService.refreshUpdateFollowUpConclusie(screeningRonde.getDossier());
+
+		conclusieReviewService.maakConclusieReviewVoorBetrokkenRadiologen(screeningRonde);
 
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_FOLLOW_UP_CONCLUSIE, loggedInInstellingGebruiker, screeningRonde.getDossier().getClient(),
 			"Conclusie: " + followUpConclusieStatus, Bevolkingsonderzoek.MAMMA);

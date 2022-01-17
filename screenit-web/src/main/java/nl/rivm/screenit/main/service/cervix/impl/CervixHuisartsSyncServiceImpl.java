@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,13 +36,11 @@ import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsSyncService;
 import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Gebruiker;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.Woonplaats;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsAdres;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag;
-import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsAanmeldStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierAanvraagStatus;
@@ -62,8 +60,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -74,8 +70,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHuisartsSyncServiceImpl.class);
 
 	@Autowired
 	private CervixHuisartsSyncDao cervixHuisartsSyncDao;
@@ -111,7 +105,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Override
 	public void sendData(CervixHuisarts cervixHuisarts)
 	{
-		HuisartsDto huisartsDto = CervixHuisartsToDtoUtil.getHuisartsDto(cervixHuisarts);
+		var huisartsDto = CervixHuisartsToDtoUtil.getHuisartsDto(cervixHuisarts);
 
 		huisartsenportaalSyncService.sendJmsBericht(huisartsDto);
 	}
@@ -175,7 +169,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Override
 	public String getPraktijkNaam(Gebruiker gebruiker)
 	{
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 		builder.append("Praktijk van ");
 		builder.append(NaamUtil.getTussenvoegselEnAchternaam(gebruiker));
 		return builder.toString();
@@ -183,7 +177,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 
 	private CervixHuisarts setWachtwoordInlogcode(CervixHuisarts huisarts, String inlogCode)
 	{
-		Gebruiker medewerker = huisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
+		var medewerker = huisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
 		medewerker.setWachtwoordChangeCode(inlogCode);
 		if (CervixHuisartsAanmeldStatus.GEREGISTREERD.equals(huisarts.getAanmeldStatus()) && StringUtils.isNotBlank(inlogCode))
 		{
@@ -237,6 +231,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		return locatie;
 	}
 
+	@Override
 	public CervixHuisartsLocatieMutatieSoort getMutatieSoort(CervixHuisartsLocatie locatie, LocatieDto locatieDto)
 	{
 		if (locatie == null || locatie.getId() == null
@@ -250,8 +245,8 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 			return CervixHuisartsLocatieMutatieSoort.GEINACTIVEERD;
 		}
 
-		AdresDto adresDto = locatieDto.getLocatieAdres();
-		CervixHuisartsAdres adres = locatie.getLocatieAdres();
+		var adresDto = locatieDto.getLocatieAdres();
+		var adres = locatie.getLocatieAdres();
 		if (!StringUtils.equals(adres.getStraat(), adresDto.getStraat()) ||
 			adres.getHuisnummer().intValue() != adresDto.getHuisnummer().intValue() ||
 			!StringUtils.equals(adres.getHuisnummerToevoeging(), adresDto.getHuisnummertoevoeging()) ||
@@ -300,7 +295,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Override
 	public void sendData(Overeenkomst overeenkomst)
 	{
-		OvereenkomstDto overeenkomstDto = new OvereenkomstDto();
+		var overeenkomstDto = new OvereenkomstDto();
 		overeenkomstDto.setPath(overeenkomst.getDocument().getPath());
 		overeenkomstDto.setNaam(overeenkomst.getDocument().getNaam());
 		overeenkomstDto.setScreenitId(overeenkomst.getId());
@@ -313,7 +308,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void updateHuisarts(HuisartsDto huisartsDto)
 	{
-		Date mutatieDatum = currentDateSupplier.getDate();
+		var mutatieDatum = currentDateSupplier.getDate();
 		CervixHuisarts arts = setHuisarts(huisartsDto, mutatieDatum);
 	}
 
@@ -321,7 +316,7 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void nieuweAanvraagLabformulieren(AanvraagDto aanvraagDto)
 	{
-		Date nu = currentDateSupplier.getDate();
+		var nu = currentDateSupplier.getDate();
 		CervixHuisartsLocatie locatie = null;
 		if (aanvraagDto.getLocatie() != null && aanvraagDto.getLocatie().getScreenitId() != null)
 		{
@@ -333,8 +328,8 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 		}
 		if (locatie != null)
 		{
-			CervixHuisarts huisarts = locatie.getHuisarts();
-			CervixLabformulierAanvraag aanvraag = new CervixLabformulierAanvraag();
+			var huisarts = locatie.getHuisarts();
+			var aanvraag = new CervixLabformulierAanvraag();
 			aanvraag.setAanvraagDatum(aanvraagDto.getAanvraagDatum());
 			aanvraag.setHuisartsportaalId(aanvraagDto.getHuisartsportaalId());
 			aanvraag.setMutatiedatum(nu);
@@ -344,11 +339,11 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 			aanvraag.setStatusDatum(aanvraagDto.getStatusDatum());
 			aanvraag.setHuisartsLocatie(locatie);
 
-			ScreeningOrganisatie so = locatie.getLocatieAdres().getGbaGemeente().getScreeningOrganisatie();
-			CervixRegioBrief labformulierenBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER, nu, null);
+			var so = locatie.getLocatieAdres().getGbaGemeente().getScreeningOrganisatie();
+			var labformulierenBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER, nu, null);
 			aanvraag.setBrief(labformulierenBrief);
 
-			CervixRegioBrief voorbladBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER, nu, null);
+			var voorbladBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER, nu, null);
 			aanvraag.setVoorbladBrief(voorbladBrief);
 
 			hibernateService.saveOrUpdate(aanvraag);
@@ -361,14 +356,14 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Override
 	public void sendData(CervixLabformulierAanvraag labformulierAanvraag)
 	{
-		AanvraagDto dto = CervixHuisartsToDtoUtil.getAanvraagDto(labformulierAanvraag);
+		var dto = CervixHuisartsToDtoUtil.getAanvraagDto(labformulierAanvraag);
 		huisartsenportaalSyncService.sendJmsBericht(dto);
 	}
 
 	@Override
 	public void sendData(CervixHuisartsLocatie locatie)
 	{
-		LocatieDto dto = CervixHuisartsToDtoUtil.getLocatieDto(locatie);
+		var dto = CervixHuisartsToDtoUtil.getLocatieDto(locatie);
 		huisartsenportaalSyncService.sendJmsBericht(dto);
 	}
 
@@ -377,48 +372,48 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	{
 		if (huisarts != null && StringUtils.isNotBlank(huisarts.getEmail()))
 		{
-			String defaultPasswordResetMail = "Geachte {aanhef}{tussenvoegsel}{achternaam} <br><br>"
+			var defaultPasswordResetMail = "Geachte {aanhef}{tussenvoegsel}{achternaam} <br><br>"
 				+ "U heeft een nieuw wachtwoord aangevraagd. U kunt via deze {link} en inlogcode: {code} uw wachtwoord opnieuw instellen. <br><br> Met vriendelijke groet, <br> Het ScreenIT-team";
-			String passwordResetMail = preferenceService.getString(PreferenceKey.HUISARTS_WACHTWOORD_EMAIL.name(), defaultPasswordResetMail);
+			var passwordResetMail = preferenceService.getString(PreferenceKey.HUISARTS_WACHTWOORD_EMAIL.name(), defaultPasswordResetMail);
 
-			Gebruiker medewerker = huisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
-			String aanhef = "";
+			var medewerker = huisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
+			var aanhef = "";
 			if (medewerker.getAanhef() != null)
 			{
 				aanhef = " " + medewerker.getAanhef().getNaam();
 			}
 
-			String titel = "";
+			var titel = "";
 			if (medewerker.getTitel() != null)
 			{
 				titel = " " + medewerker.getTitel().getNaam();
 			}
 
-			String achternaam = "";
+			var achternaam = "";
 			if (StringUtils.isNotBlank(medewerker.getAchternaam()))
 			{
 				achternaam = " " + medewerker.getAchternaam();
 			}
 
-			String tussenvoegsel = "";
+			var tussenvoegsel = "";
 			if (StringUtils.isNotBlank(medewerker.getTussenvoegsel()))
 			{
 				tussenvoegsel = " " + medewerker.getTussenvoegsel();
 			}
 
-			String voorletters = "";
+			var voorletters = "";
 			if (StringUtils.isNotBlank(medewerker.getVoorletters()))
 			{
 				voorletters = " " + medewerker.getVoorletters();
 			}
 
-			String code = "";
+			var code = "";
 			if (StringUtils.isNotBlank(medewerker.getWachtwoordChangeCode()))
 			{
 				code = medewerker.getWachtwoordChangeCode();
 			}
 
-			String link = "";
+			var link = "";
 			if (StringUtils.isNotBlank(huisartsPortaalUrl))
 			{
 				link = "<a href=\"" + huisartsPortaalUrl + "#/wachtwoordvergeten/registreren/\">link</a>";
@@ -432,8 +427,8 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 			passwordResetMail = passwordResetMail.replaceAll("\\{link\\}", link);
 			passwordResetMail = passwordResetMail.replaceAll("\\{code\\}", code);
 
-			String passwordResetMailSubject = preferenceService.getString(PreferenceKey.HUISARTS_WACHTWOORD_EMAILSUBJECT.name(), "Huisartsenportaal - Wachtwoord vergeten");
-			mailService.sendEmail(huisarts.getEmail(), passwordResetMailSubject, passwordResetMail);
+			var passwordResetMailSubject = preferenceService.getString(PreferenceKey.HUISARTS_WACHTWOORD_EMAILSUBJECT.name(), "Huisartsenportaal - Wachtwoord vergeten");
+			mailService.queueMail(huisarts.getEmail(), passwordResetMailSubject, passwordResetMail);
 		}
 	}
 
@@ -441,9 +436,9 @@ public class CervixHuisartsSyncServiceImpl implements CervixHuisartsSyncService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void updateLocatie(LocatieDto locatieDto)
 	{
-		Date mutatieDatum = currentDateSupplier.getDate();
-		CervixHuisarts huisarts = hibernateService.load(CervixHuisarts.class, locatieDto.getHuisartsId());
-		CervixHuisartsLocatie locatie = setLocatie(huisarts, locatieDto, mutatieDatum);
+		var mutatieDatum = currentDateSupplier.getDate();
+		var huisarts = hibernateService.load(CervixHuisarts.class, locatieDto.getHuisartsId());
+		var locatie = setLocatie(huisarts, locatieDto, mutatieDatum);
 		if (CervixLocatieStatus.KLANTNUMMER_NIET_GEVERIFIEERD.equals(locatie.getStatus()) && !Boolean.FALSE.equals(locatieDto.getHerzendVerificatieMail()))
 		{
 			huisartsBerichtService.sendKlantnummerVerificatieMail(huisarts, locatie);

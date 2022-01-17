@@ -1,0 +1,52 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+@import "src/scss/mixins";
+
+.results {
+  .showMoreResultsButtonArea {
+    text-align: center;
+  }
+
+  .navigationButtons {
+		position: relative;
+		background-color: $grijs-600;
+		border-radius: 10px;
+		margin-left: 0;
+		width: 100%;
+		padding: 35px;
+
+		@include respond-below(sm) {
+			padding: 15px;
+
+			button {
+				padding-top: 6px;
+				padding-bottom: 6px;
+			}
+		}
+
+		.noPadding {
+			padding-left: 0;
+			padding-right: 0;
+		}
+
+		.text {
+			font-size: 1.1rem;
+			font-weight: 500;
+			line-height: initial;
+			width: 100%;
+			@include center-in-div(50%);
+		}
+
+		.left svg, .right svg {
+			fill: $blauw-base !important;
+		}
+
+		.meerResultaten svg {
+			fill: $wit-base;
+		}
+	}
+}
+
+.meerResultaten {
+  margin-top: 15px;
+}

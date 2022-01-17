@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>screenit-parent</artifactId>
         <groupId>nl.rivm.screenit</groupId>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>screenit-webservice-broker</artifactId>
@@ -71,8 +72,8 @@
                         <artifactId>xercesImpl</artifactId>
                     </dependency>
                     <dependency>
-                        <groupId>org.daisy.libs</groupId>
-                        <artifactId>saxon-he</artifactId>
+                        <groupId>net.sf.saxon</groupId>
+                        <artifactId>Saxon-HE</artifactId>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -208,12 +209,6 @@
         <dependency>
             <groupId>nl.topicuszorg.crypto-util</groupId>
             <artifactId>crypto-util</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>

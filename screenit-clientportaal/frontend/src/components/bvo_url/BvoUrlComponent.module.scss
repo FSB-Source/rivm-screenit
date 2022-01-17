@@ -1,0 +1,19 @@
+@import "src/scss/media-mixins";
+
+.infoLinkContainer {
+	margin-top: 25px;
+	margin-bottom: 25px;
+	font-weight: 500;
+	font-size: 14px;
+
+	@include respond-below(xs) {
+		margin-top: 10px;
+		margin-bottom: 10px;
+	}
+
+	i {
+		vertical-align: middle;
+		margin-right: 10px;
+		font-size: 14px;
+	}
+}

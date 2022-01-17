@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,9 +38,9 @@ public class MammaClientAfspraakVerzettenPanel extends MammaClientAfspraakWijzig
 	public MammaClientAfspraakVerzettenPanel(String id, MammaAfspraak afspraak)
 	{
 		super(id, afspraak);
-		add(new MammaAfspraakPanel("huidigeAfspraakPanel", afspraak, false, false));
+		add(new MammaAfspraakPanel("huidigeAfspraakPanel", afspraak, false));
 
-		afspraakKiezenPanel = new MammaAfspraakKiezenPanel("afspraakKiezenPanel", ModelUtil.sModel(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient()), false);
+		afspraakKiezenPanel = new MammaAfspraakKiezenPanel("afspraakKiezenPanel", ModelUtil.sModel(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient()));
 		add(afspraakKiezenPanel);
 	}
 

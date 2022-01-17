@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,9 +31,6 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.service.TestTimelineService;
-import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.main.web.client.base.ClientLoginFoutPage;
-import nl.rivm.screenit.main.web.client.dashboard.home.ClientHomeDashboardPage;
 import nl.rivm.screenit.main.web.component.AjaxDownload;
 import nl.rivm.screenit.main.web.component.ScreenitDateTextField;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
@@ -106,9 +103,6 @@ public class ColonTestProcesPage extends TestenBasePage
 
 	@SpringBean
 	private TestTimelineService testTimelineService;
-
-	@SpringBean(name = "portaalUrl")
-	private String clientportaalUrl;
 
 	@SpringBean
 	private ClientService clientService;
@@ -234,25 +228,6 @@ public class ColonTestProcesPage extends TestenBasePage
 				else
 				{
 					error("Je client is nog niet bekend binnen ScreenIT. Maak eerst de client aan voordat je naar het dossier kunt gaan!");
-				}
-			}
-		});
-		form.add(new AjaxButton("directNaarOudeClientportaal", form)
-		{
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onSubmit(AjaxRequestTarget target)
-			{
-				ScreenitSession.get().setAfkomstigURLRegioCode(clientportaalUrl + "/");
-				if (ScreenitSession.get().signIn(((GbaPersoon) form.getModelObject()).getBsn()))
-				{
-					setResponsePage(ClientHomeDashboardPage.class);
-				}
-				else
-				{
-					setResponsePage(new ClientLoginFoutPage(getString("loginUnsuccessfulErrorMessage")));
 				}
 			}
 		});

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.stream.Stream;
 
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -36,6 +37,7 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
@@ -45,12 +47,16 @@ import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseClientContactService;
+import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaAfmeldService;
 import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
+import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
+import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
+import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -92,6 +98,18 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 
 	@Autowired(required = false)
 	private MammaAfmeldService afmeldService;
+
+	@Autowired
+	private MammaBaseOnderzoekService onderzoekService;
+
+	@Autowired
+	private MammaBaseStandplaatsService standplaatsService;
+
+	@Autowired
+	private MammaBaseFactory baseFactory;
+
+	@Autowired
+	private ClientDoelgroepService doelgroepService;
 
 	@Override
 	public MammaFactorType getFactorType(MammaDossier dossier)
@@ -150,8 +168,8 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 					}
 					boolean isOnderzoekVanLaatsteAfspraakOnderbrokenOfOpgeschort = onderzoekVanLaatsteAfspraak != null && onderzoekVanLaatsteAfspraak.isDoorgevoerd()
 						&& (onderzoekVanLaatsteAfspraak.getStatus() == MammaOnderzoekStatus.ONDERBROKEN
-							|| onderzoekVanLaatsteAfspraak.getStatus() == MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG
-							|| MammaBeoordelingStatus.OPGESCHORT.equals(onderzoekVanLaatsteAfspraak.getLaatsteBeoordeling().getStatus()) && !viaClientportaal);
+						|| onderzoekVanLaatsteAfspraak.getStatus() == MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG
+						|| MammaBeoordelingStatus.OPGESCHORT.equals(onderzoekVanLaatsteAfspraak.getLaatsteBeoordeling().getStatus()) && !viaClientportaal);
 
 					boolean isLaatsteAfspraakNoShow = laatsteAfspraak != null && laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND
 						&& laatsteAfspraak.getVanaf().compareTo(currentDateSupplier.getDate()) < 0;
@@ -210,7 +228,8 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Override
 	public boolean isSuspect(MammaDossier dossier)
 	{
-		MammaScreeningRonde laatsteScreeningRondeMetAfspraak = dossier.getScreeningRondes().stream().filter(screeningRonde -> {
+		MammaScreeningRonde laatsteScreeningRondeMetAfspraak = dossier.getScreeningRondes().stream().filter(screeningRonde ->
+		{
 			MammaUitnodiging uitnodiging = screeningRonde.getLaatsteUitnodiging();
 			MammaAfspraak afspraak = uitnodiging != null ? uitnodiging.getLaatsteAfspraak() : null;
 			return afspraak != null;
@@ -281,19 +300,72 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 		{
 			return false;
 		}
-
 		MammaScreeningRonde laatsteRonde = dossier.getLaatsteScreeningRonde();
 		if (laatsteRonde == null)
 		{
 			return true;
 		}
-		return laatsteRonde.getStatus() == ScreeningRondeStatus.AFGEROND || laatsteRonde.getLaatsteUitnodiging() == null;
+		MammaOnderzoek laatsteOnderzoek = laatsteRonde.getLaatsteOnderzoek();
+		if (laatsteRonde.getStatus() == ScreeningRondeStatus.LOPEND)
+		{
+			if (laatsteRonde.getLaatsteUitnodiging() == null)
+			{
+				return true;
+			}
+			else if (laatsteOnderzoek == null)
+			{
+				return false;
+			}
+		}
 
+		if (laatsteRonde.getStatus() == ScreeningRondeStatus.AFGEROND && afmeldService.magEenmaligHeraanmelden(dossier.getClient()))
+		{
+			return false;
+		}
+
+		if (onderzoekWachtNogOpUitslag(laatsteOnderzoek))
+		{
+			return false;
+		}
+		return onderzoekService.heeftBinnenMammografieIntervalGeenOnderzoekGehad(dossier);
+	}
+
+	private boolean onderzoekWachtNogOpUitslag(MammaOnderzoek laatsteOnderzoek)
+	{
+		if (laatsteOnderzoek != null)
+		{
+			boolean onderzoekHeeftEenUitslag =
+				laatsteOnderzoek.getLaatsteBeoordeling() != null && MammaBeoordelingStatus.isUitslagStatus(laatsteOnderzoek.getLaatsteBeoordeling().getStatus());
+
+			return !onderzoekService.isOnderzoekOnvolledigZonderFotos(laatsteOnderzoek) && !onderzoekHeeftEenUitslag
+				&& laatsteOnderzoek.getStatus() != MammaOnderzoekStatus.ONDERBROKEN_ZONDER_VERVOLG;
+		}
+		return false;
 	}
 
 	private boolean heeftGbaPostcode(MammaDossier dossier)
 	{
 		return StringUtils.isNotBlank(clientService.getGbaPostcode(dossier.getClient()));
+	}
+
+	@Override
+	public void rondeForceren(Client client) throws MammaStandplaatsVanPostcodeOnbekendException
+	{
+		MammaStandplaats standplaats = standplaatsService.getStandplaatsMetPostcode(client);
+		if (standplaats == null)
+		{
+			throw new MammaStandplaatsVanPostcodeOnbekendException();
+		}
+		MammaScreeningRonde ronde = baseFactory.maakRonde(client.getMammaDossier(), standplaatsService.getStandplaatsRondeVanStandplaats(standplaats), true);
+
+		baseFactory.maakUitnodiging(ronde, ronde.getStandplaatsRonde(),
+			mammaBaseScreeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(isSuspect(client.getMammaDossier()), client.getMammaDossier().getDoelgroep()));
+	}
+
+	@Override
+	public boolean isAutomatischRondeForcerenNaHeraanmeldenMogelijk(MammaDossier dossier)
+	{
+		return doelgroepService.behoortTotMammaLeeftijdDoelgroep(dossier.getClient()) && isRondeForcerenMogelijk(dossier);
 	}
 
 	@Override

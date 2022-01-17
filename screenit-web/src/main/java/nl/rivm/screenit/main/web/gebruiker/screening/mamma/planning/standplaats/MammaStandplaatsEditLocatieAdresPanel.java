@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.standplaats
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,6 +54,8 @@ import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+
+import com.google.common.collect.Range;
 
 public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel<MammaStandplaatsLocatie>
 {
@@ -110,10 +112,11 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 			new PropertyModel<>(getModel(), "standplaatsLocatieBijlage"), validator);
 		locatieForm.add(uploadDocumentFormComponentPanel);
 
-		MammaStandplaatsLocatie initieleLocatie = tijdelijkeLocatie ? standplaatsModel.getObject().getTijdelijkeLocatie() : standplaatsModel.getObject().getLocatie();
-		final String initieelAdres = AdresUtil.getVolledigeAdresString(initieleLocatie);
-		final Date initieelStartDatum = tijdelijkeLocatie ? initieleLocatie.getStartDatum() : null;
-		final Date initieelEindDatum = tijdelijkeLocatie ? initieleLocatie.getEindDatum() : null;
+		MammaStandplaatsLocatie oudeLocatie = tijdelijkeLocatie ? standplaatsModel.getObject().getTijdelijkeLocatie() : standplaatsModel.getObject().getLocatie();
+		final String oudeAdres = AdresUtil.getVolledigeAdresString(oudeLocatie);
+		final Range<Date> oudePeriode = tijdelijkeLocatie && (oudeLocatie.getStartDatum() != null && oudeLocatie.getEindDatum() != null)
+			? Range.closed(DateUtil.startDag(oudeLocatie.getStartDatum()), DateUtil.eindDag(oudeLocatie.getEindDatum()))
+			: null;
 
 		locatieForm.add(new IndicatingAjaxButton("opslaan")
 		{
@@ -145,8 +148,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 					}
 					else
 					{
-						waarschuwing = standplaatsService.controleerUitnodigingenNaVeranderingTijdelijkeLocatie(standplaats, initieelAdres, initieelStartDatum,
-							initieelEindDatum);
+						waarschuwing = standplaatsService.controleerUitnodigingenNaVeranderingTijdelijkeLocatie(standplaats, oudeAdres, oudePeriode);
 					}
 				}
 				else
@@ -158,8 +160,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 						error(getString("geen.coordinaten"));
 					}
 
-					waarschuwing = standplaatsService.controleerUitnodigingenNaVeranderingLocatie(standplaats, initieelAdres, initieelStartDatum,
-						initieelEindDatum);
+					waarschuwing = standplaatsService.controleerUitnodigingenNaVeranderingLocatie(standplaats);
 				}
 				if (!hasErrorMessage())
 				{
@@ -169,8 +170,7 @@ public abstract class MammaStandplaatsEditLocatieAdresPanel extends GenericPanel
 						locatie.setBrievenApartPrinten(true);
 					}
 					boolean changed = standplaatsService.saveOrUpdateStandplaatsLocatie(locatie, documentFromSelectedFile, standplaats,
-						ScreenitSession.get().getLoggedInInstellingGebruiker(), initieelAdres, initieelStartDatum,
-						initieelEindDatum);
+						ScreenitSession.get().getLoggedInInstellingGebruiker(), oudeAdres, oudePeriode);
 					if (changed)
 					{
 						if (StringUtils.isNotBlank(waarschuwing))

@@ -1,0 +1,52 @@
+{
+  "title": {
+    "afmelden": "Afmelden bevolkingsonderzoek %s"
+  },
+  "infoText": "Wilt u niet meedoen aan het bevolkingsonderzoek? Of kunt u niet meedoen? Dan kunt u zich afmelden:",
+  "hintText": "Wilt u op een later moment weer meedoen? Dan kunt u zich opnieuw aanmelden via Mijn Bevolkingsonderzoek of via de informatielijn.",
+  "afmeldType": {
+    "eenmalig": {
+      "text": "Eenmalig afmelden: deze keer niet meedoen",
+      "info": "U doet deze keer niet mee aan het bevolkingsonderzoek. U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent."
+    },
+    "definitief": {
+      "text": "Definitief afmelden: nooit meer meedoen",
+      "info": "U wilt of u kunt nooit meer meedoen aan het bevolkingsonderzoek. U krijgt geen nieuwe uitnodigingen meer."
+    }
+  },
+  "errorIntakeAfspraak": "Let op: Er is een afspraak voor u gepland voor een gesprek over vervolgonderzoek. </br>Meldt u zich nu af? Dan gaat dit gesprek niet door.",
+  "form": {
+    "title": {
+      "afmeldType": {
+        "algemeen": "Wilt u zich eenmalig of definitief afmelden?",
+        "definitief": "Wilt u zich definitief afmelden?"
+      },
+      "afmeldReden": "Waarom meldt u zich af?"
+    },
+    "radiobutton": {
+      "eenmalig": "Eenmalig afmelden",
+      "definitief": "Definitief afmelden"
+    },
+    "submit": "Afmelden",
+    "error": "Maak uw keuze",
+    "aanHetLaden": "Een ogenblik geduld, de gegevens worden geladen"
+  },
+  "toast": {
+    "eenmalig": "U heeft zich voor deze keer afgemeld voor het bevolkingsonderzoek %s. U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent.",
+    "definitief": "U heeft zich definitief afgemeld voor het bevolkingsonderzoek %s. U krijgt geen nieuwe uitnodigingen meer. Wij sturen u hierover een brief."
+  },
+  "MammaAfmeldingReden.MEDISCHE_REDEN": "Medische redenen",
+  "MammaAfmeldingReden.ANGST_VOOR_KANKER": "Angst voor kanker",
+  "MammaAfmeldingReden.ANGST_VOOR_STRALING": "Angst voor straling",
+  "MammaAfmeldingReden.NARE_ERVARING_MET_ONDERZOEK": "Nare ervaring met het onderzoek",
+  "MammaAfmeldingReden.ONDERZOEK_NIET_NUTTIG": "Onderzoek niet nuttig",
+  "MammaAfmeldingReden.PIJNLIJKHEID_VORIG_ONDERZOEK": "Pijnlijkheid vorig onderzoek",
+  "MammaAfmeldingReden.VERHINDERD": "Verhinderd",
+  "MammaAfmeldingReden.OVERIGE_REDENEN": "Overige redenen",
+  "CervixAfmeldingReden.UE": "Mijn baarmoeder is weggehaald, ook de baarmoederhals",
+  "CervixAfmeldingReden.ANDERS": "Om een andere reden",
+  "ColonAfmeldingReden.GEEN_TIJD_ZIN": "Geen tijd / zin",
+  "ColonAfmeldingReden.MEDISCHE_REDEN": "Medische reden",
+  "ColonAfmeldingReden.ANDERS": "Anders",
+  "ColonAfmeldingReden.GEEN_REDEN": "Zonder reden"
+}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,6 +36,7 @@ import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
+import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.service.colon.ColonStudietestService;
 import nl.rivm.screenit.service.impl.ProjectUitslagenUploadException;
 import nl.rivm.screenit.util.IFOBTTestUtil;
@@ -91,7 +92,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 	public TestIfobtTestPopup(String id, IModel<List<Client>> clientModel)
 	{
 		super(id, clientModel);
-		buisModel = ModelUtil.cModel(new IFOBTTest());
+		buisModel = ModelUtil.ccModel(new IFOBTTest());
 
 		ifobtTestContainer = getIfobtContainer();
 		ifobtTestContainer.setVisible(false);
@@ -132,7 +133,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 				}
 			}
 		}
-		buisDropDown = new ScreenitDropdown<>("uitnodigingen", buisModel, buizenListModel, new IChoiceRenderer<IFOBTTest>()
+		buisDropDown = new ScreenitDropdown<>("uitnodigingen", buisModel, buizenListModel, new IChoiceRenderer<>()
 		{
 			@Override
 			public Object getDisplayValue(IFOBTTest test)
@@ -171,7 +172,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 				IFOBTTest buis = buisDropDown.getConvertedInput();
 				if (buis != null)
 				{
-					testModel = ModelUtil.cModel(buis);
+					testModel = ModelUtil.ccModel(buis);
 				}
 				else
 				{
@@ -255,23 +256,26 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 			}
 			for (IFOBTTest buis : testBuizen)
 			{
-				if (buis.getType().equals(IFOBTType.STUDIE))
+				if (!IFOBTTestStatus.NIETTEBEOORDELEN.equals(buis.getStatus()))
 				{
-					try
+					if (buis.getType().equals(IFOBTType.STUDIE))
 					{
-						studietestService.controleerUitslagenbestandOpFouten(buis, null);
+						try
+						{
+							studietestService.controleerUitslagenbestandOpFouten(buis, null);
+							testTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
+						}
+						catch (ProjectUitslagenUploadException e)
+						{
+							buis.setGeinterpreteerdeUitslag(null);
+							hibernateService.saveOrUpdate(buis);
+							error(e.getMessage());
+						}
+					}
+					else
+					{
 						testTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
 					}
-					catch (ProjectUitslagenUploadException e)
-					{
-						buis.setGeinterpreteerdeUitslag(null);
-						hibernateService.saveOrUpdate(buis);
-						error(e.getMessage());
-					}
-				}
-				else
-				{
-					testTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
 				}
 			}
 		}

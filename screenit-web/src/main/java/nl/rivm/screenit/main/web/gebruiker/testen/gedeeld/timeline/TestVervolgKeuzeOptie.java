@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,6 +55,7 @@ import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMam
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMammaOnderzoekOntvangenAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMammaOnderzoekStartenAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups.TestMammaEersteTweeLezingenMakenPopup;
+import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups.TestMammaFollowUpVastleggenPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups.TestMammaKiesSeVoorAfspraakPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups.TestMammaKiesSeVoorNieuweRondeMetDatumtijdAfspraakPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.popups.TestMammaLezingMakenPopup;
@@ -151,7 +152,9 @@ public enum TestVervolgKeuzeOptie implements INaam
 
 	MAMMA_VERSLAG_LEZING_MAKEN("Verslag lezing maken", TestMammaLezingMakenPopup.class),
 
-	MAMMA_STATUS_NAAR_UITSLAG_ONGUNSTIG("Naar uitslag ongunstig zetten", TestMammaBeoordelingStatusNaarUitslagOngunstigAction.class);
+	MAMMA_STATUS_NAAR_UITSLAG_ONGUNSTIG("Naar uitslag ongunstig zetten", TestMammaBeoordelingStatusNaarUitslagOngunstigAction.class),
+
+	MAMMA_FOLLOW_UP_VASTLEGGEN("Follow Up conclusie vastleggen", TestMammaFollowUpVastleggenPopup.class);
 
 	private String naam;
 

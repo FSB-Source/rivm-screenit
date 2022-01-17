@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dao.InstellingDao;
+import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsOrganisatieDto;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.CentraleEenheid;
 import nl.rivm.screenit.model.Gebruiker;
@@ -65,6 +66,7 @@ import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.MedewerkerUtil;
@@ -72,7 +74,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
-import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionDefinition;
 import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 import nl.topicuszorg.wicket.planning.model.schedule.ScheduleSet;
 
@@ -111,6 +112,9 @@ public class InstellingServiceImpl implements InstellingService
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired(required = false)
+	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
 	@Override
 	public List<CentraleEenheid> getMogelijkeCentraleEenheden(Instelling instelling)
@@ -191,6 +195,22 @@ public class InstellingServiceImpl implements InstellingService
 
 		hibernateService.saveOrUpdate(screeningOrganisatie);
 
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void saveOrUpdateSoPlanningBk(ScreeningOrganisatie screeningOrganisatie, InstellingGebruiker loggedInInstellingGebruiker)
+	{
+		PlanningScreeningsOrganisatieDto screeningsOrganisatieDto = new PlanningScreeningsOrganisatieDto();
+		screeningsOrganisatieDto.id = screeningOrganisatie.getId();
+		screeningsOrganisatieDto.factorMinderValideBk = screeningOrganisatie.getFactorMinderValideBk();
+		screeningsOrganisatieDto.factorDubbeleTijdBk = screeningOrganisatie.getFactorDubbeleTijdBk();
+		screeningsOrganisatieDto.factorEersteOnderzoekBk = screeningOrganisatie.getFactorEersteOnderzoekBk();
+		screeningsOrganisatieDto.wekenVanTevorenUitnodigen = screeningOrganisatie.getWekenVanTevorenUitnodigen();
+		screeningsOrganisatieDto.vervallenCapaciteitsreserveringDagenBk = screeningOrganisatie.getVervallenCapaciteitsreserveringDagenBk();
+		screeningsOrganisatieDto.minimaleDagCapaciteitMinderValideAfspraken = screeningOrganisatie.getMinimaleDagCapaciteitMinderValideAfspraken();
+		baseConceptPlanningsApplicatie.updateScreeningsOrganisatie(screeningsOrganisatieDto);
+
 		String oudeAfspraakDrempelBk = EntityAuditUtil.getDiffFieldToLatestVersion(screeningOrganisatie, "afspraakDrempelBk", hibernateService.getHibernateSession());
 		if (!oudeAfspraakDrempelBk.equals(""))
 		{
@@ -217,7 +237,7 @@ public class InstellingServiceImpl implements InstellingService
 				logService.logGebeurtenis(LogGebeurtenis.MAMMA_AFSPRAAK_DREMPEL_GEWIJZIGD, loggedInInstellingGebruiker, logMeldingAfspraakDrempelBk, Bevolkingsonderzoek.MAMMA);
 			}
 		}
-
+		hibernateService.saveOrUpdate(screeningOrganisatie);
 	}
 
 	@Override
@@ -234,11 +254,11 @@ public class InstellingServiceImpl implements InstellingService
 
 				AfspraakDefinitie definitie = new AfspraakDefinitie();
 				definitie.setActief(true);
-				definitie.setDuurAfspraakInMinuten(Integer.valueOf(15));
+				definitie.setDuurAfspraakInMinuten(15);
 				definitie.setLabel(ColonTijdSlotType.ROOSTER_ITEM.getTitle());
 				definitie.setType(ActionType.APPOINTMENT);
 				definitie.setTypeAfspraak(TypeAfspraak.AFSPRAAK);
-				definitie.setPossibleLocations(new ArrayList<Location>());
+				definitie.setPossibleLocations(new ArrayList<>());
 				definitie.addDiscipline(disciplines.get(0));
 				definitie.setInstelling(organisatie);
 
@@ -246,7 +266,7 @@ public class InstellingServiceImpl implements InstellingService
 
 				ScheduleSet scheduleSet = new ScheduleSet();
 				scheduleSet.setTitle(ColonTijdSlotType.ROOSTER_ITEM.getTitle());
-				scheduleSet.setActionDefinitions(new ArrayList<ActionDefinition>());
+				scheduleSet.setActionDefinitions(new ArrayList<>());
 				scheduleSet.getActionDefinitions().add(definitie);
 				hibernateService.saveOrUpdate(scheduleSet);
 				organisatie.getAfspraakDefinities().add(definitie);
@@ -284,6 +304,7 @@ public class InstellingServiceImpl implements InstellingService
 	}
 
 	@Override
+	@Transactional
 	public <T extends Instelling> List<T> getActieveInstellingen(Class<T> typeInstelling)
 	{
 		return instellingDao.getActieveInstellingen(typeInstelling);
@@ -408,7 +429,7 @@ public class InstellingServiceImpl implements InstellingService
 
 		if (organisatie == null)
 		{
-			List<Instelling> organisaties = getInstellingByOrganisatieTypes(Arrays.asList(parameterKey.getOrganisatieType()));
+			List<Instelling> organisaties = getInstellingByOrganisatieTypes(List.of(parameterKey.getOrganisatieType()));
 			if (!organisaties.isEmpty())
 			{
 				organisatie = organisaties.get(0);
@@ -436,6 +457,10 @@ public class InstellingServiceImpl implements InstellingService
 			else if (valueType.equals(String.class))
 			{
 				value = (T) orgParamValue;
+			}
+			else if (valueType.equals(Boolean.class))
+			{
+				value = (T) Boolean.valueOf(orgParamValue);
 			}
 			else
 			{

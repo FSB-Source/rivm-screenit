@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,16 +28,19 @@ import java.security.KeyStore;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 import javax.inject.Inject;
 import javax.net.ssl.SSLContext;
 
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.main.service.IdpServer2ServerService;
 import nl.rivm.screenit.main.service.ZorgIdSessieService;
 import nl.rivm.screenit.main.service.impl.zorgid.ClosedSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.InitializedSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.OpenCancelledSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.OpenedSessieState;
+import nl.rivm.screenit.main.service.impl.zorgid.SessieState;
 import nl.topicuszorg.cloud.distributedsessions.RedisConfig;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -46,7 +49,6 @@ import nl.topicuszorg.zorgid.client.impl.ZorgidClientImpl;
 import nl.topicuszorg.zorgid.model.ZorgidException;
 import nl.topicuszorg.zorgid.model.sessie.ClosedReason;
 import nl.topicuszorg.zorgid.model.sessie.OpenCancelledReason;
-import nl.topicuszorg.zorgid.model.sessie.SessieState;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -82,12 +84,15 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 
 	private static final int MAX_CONCURRENT_CONNECTIONS = 16;
 
-	private static int SESSIE_TIMEOUT = 1800; 
+	private static final int SESSIE_TIMEOUT = 1800; 
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Inject
 	private SimplePreferenceService preferenceService;
+
+	@Inject
+	private IdpServer2ServerService idpService;
 
 	@Inject
 	@Qualifier("applicationEnvironment")
@@ -358,17 +363,17 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 
 	private int zorgidClientReadTimeout()
 	{
-		return getIntegerValue(PreferenceKey.INTERNAL_ZORGID_CLIENTCONNECTTIMEOUT, Integer.valueOf(500));
+		return getIntegerValue(PreferenceKey.INTERNAL_ZORGID_CLIENTCONNECTTIMEOUT, 500);
 	}
 
 	private int zorgidClientConnectTimeout()
 	{
-		return getIntegerValue(PreferenceKey.INTERNAL_ZORGID_CLIENTCONNECTTIMEOUT, Integer.valueOf(200));
+		return getIntegerValue(PreferenceKey.INTERNAL_ZORGID_CLIENTCONNECTTIMEOUT, 200);
 	}
 
 	private int zorgidClientMaxConnections()
 	{
-		return getIntegerValue(PreferenceKey.INTERNAL_ZORGID_CLIENTMAXCONNECTIONS, Integer.valueOf(10));
+		return getIntegerValue(PreferenceKey.INTERNAL_ZORGID_CLIENTMAXCONNECTIONS, 10);
 	}
 
 	private String zorgidKeyStoreLocation()
@@ -443,7 +448,8 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 	{
 		String zorgidCallbackUrl = zorgidCallbackUrl();
 		LOG.info("Opgestart met zorgidCallbackUrl: " + zorgidCallbackUrl);
-		return new ZorgidClientImpl(zorgidServerUrl(), zorgidCallbackUrl, zorgidClientTemplate);
+		Supplier<String> oAuthTokenSupplier = idpService::getIdpAccessTokenVoorZorgId;
+		return new ZorgidClientImpl(zorgidServerUrl(), zorgidCallbackUrl, zorgidClientTemplate, oAuthTokenSupplier);
 	}
 
 	@Override

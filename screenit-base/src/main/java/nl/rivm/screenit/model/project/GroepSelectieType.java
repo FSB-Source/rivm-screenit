@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,27 +22,10 @@ package nl.rivm.screenit.model.project;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.CodeboekDoc;
-import nl.rivm.screenit.model.INaam;
-
-public enum GroepSelectieType implements INaam
+public enum GroepSelectieType
 {
+	STATISCH,
 
-	@CodeboekDoc("Kan via import of via criteria") STATISCH("Statisch"),
-
-	@CodeboekDoc("Kan alleen via criteria") DYNAMISCH("Dynamisch");
-
-	private String naam;
-
-	private GroepSelectieType(String naam)
-	{
-		this.naam = naam;
-	}
-
-	@Override
-	public String getNaam()
-	{
-		return this.naam;
-	}
+	DYNAMISCH
 
 }

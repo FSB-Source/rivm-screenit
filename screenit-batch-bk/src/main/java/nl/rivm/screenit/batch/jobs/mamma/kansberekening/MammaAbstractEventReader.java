@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,13 +22,11 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening;
  */
 
 import java.util.Iterator;
-import nl.rivm.screenit.datasource.DataSourceRouter;
+
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Projections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemStream;
@@ -44,7 +42,6 @@ public abstract class MammaAbstractEventReader implements ItemReader<Long>, Item
 	@Override
 	public void open(ExecutionContext executionContext)
 	{
-		DataSourceRouter.useReadOnly();
 		StatelessSession session = sessionFactory.openStatelessSession();
 
 		Criteria criteria = getCriteria(session);
@@ -53,7 +50,6 @@ public abstract class MammaAbstractEventReader implements ItemReader<Long>, Item
 		threadLocalIterator.set(criteria.list().iterator());
 
 		session.close();
-		DataSourceRouter.useReadWrite();
 	}
 
 	@Override

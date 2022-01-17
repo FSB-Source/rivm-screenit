@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,39 +21,57 @@
 <html xmlns:wicket="http://wicket.apache.org/">
 <body>
 <wicket:panel>
-    <div class="row-fluid">
-        <div class="span12">
-            <h1 class="pageTitle">
-                ILM BK beelden met status te lang op "te verwijderen"
-            </h1>
-        </div>
-    </div>
-    <div class="row-fluid">
-        <div class="span6">
-            <div class="control-group value">
-                <span class="control-label">Datum verwerking: </span>
-                <span wicket:id="logRegel.gebeurtenisDatum" class="controls"/>
-            </div>
-            <div class="control-group value">
-                <span class="control-label">Aantal onderzoeken: </span>
-                <span wicket:id="rapportage.aantalBeelden" class="controls"/>
-            </div>
-        </div>
-    </div>
-    <div class="row-fluid">
-        <div class="span6">
-            <table class="table table-condensed table-bordered">
-                <tr>
-                    <td>Uitnodiging nr</td>
-                    <td>Status datum te verwijderen gezet op</td>
-                </tr>
-                <tr wicket:id="entries">
-                    <td wicket:id="uitnodigingsNr"/>
-                    <td wicket:id="statusDatum"/>
-                </tr>
-            </table>
-        </div>
-    </div>
+	<div class="row-fluid">
+		<div class="span12">
+			<h1 class="pageTitle">
+				ILM BK beelden met status te lang op "te verwijderen"
+			</h1>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span6">
+			<p>
+				De ILM BK batch heeft naar aanleiding van een bezwaar of verlopen bewaartermijn een verwijder-bericht gestuurd naar IDS7.<br/>
+				Voor onderstaande onderzoek(en) is, na opnieuw proberen, geen verwijder-bevestiging ontvangen vanuit IDS7.<br/>
+				Met de verwijderen forceren knop wordt de status voor de betreffende beelden alsnog aangepast van 'Te verwijderen' naar 'Verwijderd'. Dit pas na fysieke controle in
+				IDS7 door IMS beheer.
+			</p>
+			<div class="control-group value">
+				<span class="control-label">Datum verwerking: </span>
+				<span wicket:id="logRegel.gebeurtenisDatum" class="controls"/>
+			</div>
+			<div class="control-group value">
+				<span class="control-label">Opnieuw verwijderd: </span>
+				<span wicket:id="rapportage.aantalRetries" class="controls"/>
+			</div>
+			<div class="control-group value">
+				<span class="control-label">Opnieuw verwijderen gefaald: </span>
+				<span wicket:id="rapportage.aantalFailedRetries" class="controls"/>
+			</div>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span6">
+			<table class="table table-condensed table-bordered">
+				<tr>
+					<td>Accession number</td>
+					<td>Geboortedatum</td>
+					<td>Status datum te verwijderen gezet op</td>
+					<td>Bezwaar</td>
+					<td>Geupload</td>
+					<td>Verwijderen forceren</td>
+				</tr>
+				<tr wicket:id="entries">
+					<td wicket:id="accessionNumber"/>
+					<td wicket:id="client.persoon.geboortedatum"/>
+					<td wicket:id="statusDatum"/>
+					<td wicket:id="bezwaar"/>
+					<td wicket:id="uploaded"/>
+					<td wicket:id="delete"/>
+				</tr>
+			</table>
+		</div>
+	</div>
 </wicket:panel>
 </body>
 </html>

@@ -1,0 +1,63 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+@import "src/scss/mixins";
+
+.overlay {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2000;
+  background-color: rgba(44, 66, 88, 0.7);
+  opacity: 0;
+  visibility: hidden;
+  transition: visibility 0.3s linear, opacity 0.3s linear;
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .content {
+		@include center-in-div(40%);
+		z-index: 2001;
+		width: 560px;
+		border-radius: 10px;
+		box-shadow: 0 20px 30px -19px rgba(0, 0, 0, 0.15);
+		background-color: white;
+		padding: 40px;
+
+		@include respond-below(sm) {
+			padding: 25px;
+			width: 75%;
+		}
+
+		@include respond-below(xs) {
+			width: 95%;
+			padding: 15px;
+		}
+
+		h2 {
+			width: 100%;
+			margin-bottom: 10px;
+
+			@include respond-below(xs) {
+				margin-bottom: 5px;
+			}
+		}
+
+		button {
+			width: 100%;
+		}
+
+		.description {
+			margin-top: 15px;
+
+			@include respond-below(xs) {
+				margin-top: 10px;
+			}
+		}
+	}
+
+}

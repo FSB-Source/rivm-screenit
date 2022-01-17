@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,9 +48,6 @@ import com.aspose.words.Document;
 
 public class ProjectBriefHerinneringTemplatePage extends ProjectTemplateTestenBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private FileService fileService;
 
@@ -74,38 +71,19 @@ public class ProjectBriefHerinneringTemplatePage extends ProjectTemplateTestenBa
 	{
 		add(new Link<Void>("terugViaTitle")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{
-				setResponsePage(new ProjectBriefActiePage(ProjectBriefHerinneringTemplatePage.this.getModel()));
+				setResponsePage(new ProjectBriefActiePage(getProjectModel()));
 			}
 
-			@Override
-			protected void onDetach()
-			{
-				super.onDetach();
-				ModelUtil.nullSafeDetach(briefactieModel);
-			}
 		});
 		add(new Link<Void>("terugViaTitleTwee")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{
-				setResponsePage(new ProjectBriefActieTemplatePage(ProjectBriefHerinneringTemplatePage.this.getModel(), briefactieModel));
-			}
-
-			@Override
-			protected void onDetach()
-			{
-				super.onDetach();
-				ModelUtil.nullSafeDetach(briefactieModel);
+				setResponsePage(new ProjectBriefActieTemplatePage(getProjectModel(), briefactieModel));
 			}
 		});
 	}
@@ -121,12 +99,6 @@ public class ProjectBriefHerinneringTemplatePage extends ProjectTemplateTestenBa
 			tekst = herinnerActie.getAantalDagen() + " dagen na een " + getString("ProjectBriefActieType." + type.name());
 		}
 		return tekst;
-	}
-
-	@SuppressWarnings("unchecked")
-	private IModel<Project> getModel()
-	{
-		return (IModel<Project>) getDefaultModel();
 	}
 
 	@Override

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.verslag;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,6 +48,7 @@ import nl.rivm.screenit.model.formulieren.TypeFormulier;
 import nl.rivm.screenit.model.mamma.verslag.MammaVerslag;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent;
 import nl.rivm.screenit.model.verslag.VerslagContent;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.VerwerkVerslagService;
 import nl.topicuszorg.formulieren2.persistence.resultaat.FormulierResultaatImpl;
@@ -90,6 +91,9 @@ public class ClientVerslagPage extends ClientPage
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	@SpringBean
+	private BaseVerslagService baseVerslagService;
 
 	private boolean checkRequired;
 
@@ -394,9 +398,6 @@ public class ClientVerslagPage extends ClientPage
 	{
 		IndicatingAjaxLink<Void> verwijderen = new ConfirmingIndicatingAjaxLink<Void>("verwijderen", dialog, "verwijder.verslag")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -404,7 +405,7 @@ public class ClientVerslagPage extends ClientPage
 				if (verslag.getType().getBevolkingsonderzoek() != Bevolkingsonderzoek.CERVIX)
 				{
 					ScreenitSession.get().info("Verslag verwijderd");
-					verslagService.verwijderVerslag(verslag, ScreenitSession.get().getLoggedInInstellingGebruiker());
+					baseVerslagService.verwijderVerslag(verslag, ScreenitSession.get().getLoggedInInstellingGebruiker(), true);
 					markeerFormulierenOpgeslagen(target);
 
 					setResponsePage(new ClientVerslagenPage(ModelUtil.sModel((Client) ClientVerslagPage.this.getDefaultModelObject())));

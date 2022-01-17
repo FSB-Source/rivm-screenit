@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.service;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,10 +21,15 @@ package nl.rivm.screenit.batch.service;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+
 public interface VerwerkCdaBerichtService
 {
-
 	void verwerkBericht(Long berichtID) throws Exception;
 
 	void verwerkError(Long berichtID, Exception e);
+
+	List<Long> getAlleNietVerwerkteCdaBerichten(Bevolkingsonderzoek bvo);
 }

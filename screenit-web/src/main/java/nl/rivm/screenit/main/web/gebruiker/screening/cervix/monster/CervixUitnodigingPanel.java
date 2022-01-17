@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -261,7 +261,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 
 				if (moetPrintenSignaleringen())
 				{
-					showBarcode(target);
+					showBarcode(target, false);
 				}
 				else
 				{
@@ -278,13 +278,13 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 				if (preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
 				{
 					target.prependJavaScript(
-						"printBarcode(" + CervixUitnodigingPanel.this.getModelObject().getUitnodiging().getBrief().getClient().getPersoon().getBsn() + ", "
-							+ (CervixUitnodigingPanel.this.getModelObject().getMonsterId() + ");"));
+						"printBarcode('" + CervixUitnodigingPanel.this.getModelObject().getUitnodiging().getBrief().getClient().getPersoon().getBsn() + "', '"
+							+ (CervixUitnodigingPanel.this.getModelObject().getMonsterId() + "');"));
 					showBackupPrintMonsterIdContainer(target);
 				}
 				else
 				{
-					showBarcode(target);
+					showBarcode(target, false);
 				}
 			}
 		});
@@ -340,8 +340,12 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 		}
 	}
 
-	protected void showBarcode(AjaxRequestTarget target)
+	protected void showBarcode(AjaxRequestTarget target, boolean force)
 	{
+		if (!force && preferenceService.getBoolean(PreferenceKey.BMHK_LABEL_PRINTEN_ZONDER_PDF.name(), false))
+		{
+			return;
+		}
 		File barcodeFile = barcodeAfdrukService.saveBarcodeDocument(getModelObject().getUitnodiging());
 		ScreenitSession.get().addTempFile(barcodeFile);
 
@@ -377,7 +381,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				CervixUitnodigingPanel.this.showBarcode(target);
+				CervixUitnodigingPanel.this.showBarcode(target, true);
 			}
 		});
 

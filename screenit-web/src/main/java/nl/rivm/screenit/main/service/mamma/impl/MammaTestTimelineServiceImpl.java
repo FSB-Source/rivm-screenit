@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -334,6 +334,10 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 						else if (MammaBeoordelingStatus.VERSLAG_GEREED.equals(beoordeling.getStatus()))
 						{
 							keuzes.add(TestVervolgKeuzeOptie.MAMMA_STATUS_NAAR_UITSLAG_ONGUNSTIG);
+						}
+						else if (MammaBeoordelingStatus.eindStatussen().contains(beoordeling.getStatus()))
+						{
+							keuzes.add(TestVervolgKeuzeOptie.MAMMA_FOLLOW_UP_VASTLEGGEN);
 						}
 					}
 				}
@@ -963,6 +967,8 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			&& ronde.getDossier().getLaatsteScreeningRonde().equals(ronde);
 		boolean isLopend = ScreeningRondeStatus.LOPEND.equals(ronde.getStatus());
 		boolean isAangemeld = ronde.getAangemeld();
-		return !isOverleden && (isLopend || !isAangemeld && !isLopend || onderbrokenZonderFotosSitautie);
+		boolean heeftGunstigeUitslag = onderzoek != null && onderzoek.getLaatsteBeoordeling() != null && MammaBeoordelingStatus.UITSLAG_GUNSTIG.equals(onderzoek.getLaatsteBeoordeling().getStatus());
+		boolean heeftFollowUpConclusie = ronde.getFollowUpConclusieStatus() != null;
+		return !isOverleden && (isLopend || !isAangemeld || onderbrokenZonderFotosSitautie || (heeftGunstigeUitslag && !heeftFollowUpConclusie));
 	}
 }

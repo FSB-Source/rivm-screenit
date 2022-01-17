@@ -1,0 +1,76 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.content {
+  padding-bottom: 30px;
+
+  .paspoort {
+		min-width: 275px;
+		max-width: 320px;
+		height: 240px;
+		border-radius: 10px;
+		background-color: $grijs-600;
+		padding: 1rem;
+
+		@include respond-below(lg) {
+			margin-top: 30px;
+			margin-left: 0;
+		}
+
+		@include respond-below(xs) {
+			height: 220px;
+		}
+
+		h6 {
+			font-size: 0.8rem;
+			color: $blauw-700;
+			line-height: 22px;
+
+			&.adres {
+				margin-top: 25px;
+
+				@include respond-below(xs) {
+					margin-bottom: 2px;
+					margin-top: 15px;
+				}
+			}
+		}
+
+    span {
+      width: 100%;
+      display: block;
+      font-size: 0.9rem;
+
+      &.lichtGrijs {
+        color: $grijs-900;
+      }
+
+    }
+
+  }
+
+  .topTakenContainer {
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+
+  .topTaakSelectie {
+		margin-top: 70px;
+		margin-bottom: 50px;
+
+		@include respond-below(xs) {
+			margin-top: 40px;
+			margin-bottom: 10px;
+		}
+	}
+
+  .bvoSelectie {
+		margin-top: 140px;
+		margin-bottom: 40px;
+
+		@include respond-below(xs) {
+			margin-top: 70px;
+			margin-bottom: 0;
+		}
+	}
+}

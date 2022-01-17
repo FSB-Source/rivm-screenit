@@ -1,0 +1,194 @@
+﻿.toptask-hover {
+  &:hover {
+    position: relative;
+    bottom: 1px;
+  }
+}
+
+.toptasks {
+  position: relative;
+  bottom: 190px;
+  margin-bottom: -190px;
+  display: inline-block;
+  width: 100%;
+
+  @include respond-between(md, lg) {
+    bottom: 38px;
+    margin-bottom: -38px;
+  }
+
+
+  @include respond-between(sm, md) {
+    bottom: 100px;
+    margin-bottom: -100px;
+  }
+
+  @include respond-below(sm) {
+    margin-bottom: -30px;
+    bottom: 30px;
+  }
+
+  &--item {
+    background: white;
+    height: 320px;
+    border-radius: 10px;
+    border: 1px solid #F0F1F1;
+    box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.05);
+    padding: 48px 0 0;
+
+    @include respond-above(sm) {
+      &:hover {
+        box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    @include respond-below(lg) {
+      padding: 48px 8px 0;
+    }
+
+    @include respond-below(sm) {
+      height: 96px;
+      box-shadow: none;
+      border: none;
+      padding: 16px 0;
+      background: transparent;
+    }
+
+    &--link {
+      text-align: center;
+
+      @include respond-below(sm) {
+        text-align: left;
+      }
+
+      & p {
+        margin: 4px;
+      }
+
+      .arrow {
+        @include size(18px, 12px);
+        margin: 30px auto 15px;
+
+        @include respond-below(sm) {
+          float: right;
+          margin: 0;
+          position: relative;
+          bottom: 22px;
+          right: 2px;
+        }
+      }
+
+      &.borstkanker {
+        color: $bk;
+
+        .arrow {
+          @include bg-image-url(url(/images/svg/arrow-bk.svg));
+        }
+      }
+
+      &.baarmoederhalskanker {
+        color: $bmk;
+
+        .arrow {
+          @include bg-image-url(url(/images/svg/arrow-bmk.svg));
+        }
+      }
+
+      &.darmkanker {
+        color: $dk;
+
+        .arrow {
+          @include bg-image-url(url(/images/svg/arrow-dk.svg));
+        }
+      }
+    }
+
+    &--title {
+      font-size: calc-em(30);
+
+      @include respond-below(lg) {
+        font-size: calc-em(26);
+      }
+
+      @include respond-between(sm, md) {
+        font-size: calc-em(20);
+      }
+
+      @include respond-below(sm) {
+        font-size: calc-em(30);
+      }
+
+      font-weight: 500;
+    }
+  }
+
+  &--list {
+    list-style-type: none;
+    padding: 0;
+
+    &--item {
+      color: $toptask-gray;
+      height: 56px;
+      margin: 10px 0 0;
+      font-size: calc-em(17.5);
+
+      @include respond-between(sm, lg) {
+        font-size: calc-em(16);
+      }
+
+
+      &:first-child {
+        border-bottom: 1px solid $border;
+      }
+
+      i {
+        position: relative;
+        top: 8px;
+        font-size: 30px;
+
+        @include respond-below(lg) {
+          display: none;
+        }
+
+
+        &.borstkanker {
+          color: $bk;
+        }
+
+        &.baarmoederhalskanker {
+          color: $bmk;
+        }
+
+        &.darmkanker {
+          color: $dk;
+        }
+      }
+    }
+  }
+}
+
+.toptasks-border {
+  border-radius: 0 0 10px 10px;
+  height: 15px;
+  position: relative;
+  bottom: 15px;
+
+  @include respond-below(sm) {
+    bottom: 0;
+    width: 120%;
+    margin: 20px -10%;
+    height: 10px;
+  }
+
+  &.borstkanker {
+    background: $bk;
+  }
+
+  &.baarmoederhalskanker {
+    background: $bmk;
+  }
+
+  &.darmkanker {
+    background: $dk;
+  }
+}

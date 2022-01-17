@@ -5,7 +5,7 @@
     <parent>
         <artifactId>screenit-parent</artifactId>
         <groupId>nl.rivm.screenit</groupId>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>screenit-se-rest-bk</artifactId>

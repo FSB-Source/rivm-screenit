@@ -1,0 +1,91 @@
+﻿
+.search-bar {
+  margin: 24px 0 10px;
+
+  &--result {
+    border-bottom: 1px solid $link;
+    width: 100%;
+    font-size: calc-em(16);
+    font-weight: 400;
+    color: $link;
+    margin-bottom: 54px;
+    line-height: 2.4;
+
+    &__total {
+      color: $blue;
+      margin: 0 2px;
+      font-weight: 500;
+    }
+  }
+
+  &--input {
+    height: 34px;
+    width: 100%;
+    border: none;
+    padding-left: 14px;
+    font-size: calc-em(20);
+
+    @include placeholder {
+      color: $link;
+      font-weight: 300;
+    }
+
+    &__btn {
+      @include bg-image-url(url(/images/svg/zoek.svg));
+      float: right;
+      position: relative;
+      bottom: 32px;
+      right: 12px;
+      cursor: pointer;
+      border: none;
+      @include square(20px);
+    }
+  }
+
+  &.home {
+    float: right;
+    min-width: 360px;
+    margin: 2px 0;
+  }
+}
+
+.zoekresultaten {
+  padding: 0 !important;
+  margin: 20px 0;
+  height: 48px;
+  width: 100%;
+
+  .form-control {
+    border: none;
+    background: rgba(245, 245, 245, 0.73);
+    border-radius: 0;
+    box-shadow: none;
+    color: $blue;
+  }
+}
+
+.zoekresutaten-text {
+  color: $black;
+
+  strong {
+    color: $blue;
+  }
+}
+
+.type-portfolio {
+  display: block;
+  min-height: 50px;
+  box-shadow: 0 6px 6px -6px rgba(128, 128, 128, 0.2);
+  margin-bottom: 62px;
+  padding-bottom: 48px;
+
+  h3 {
+    a {
+      color: $black;
+    }
+  }
+}
+
+.ezsearch-pager {
+  text-align: center;
+}

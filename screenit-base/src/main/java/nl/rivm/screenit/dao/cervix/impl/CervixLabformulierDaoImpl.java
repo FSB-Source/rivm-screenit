@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,6 @@ package nl.rivm.screenit.dao.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.CONTROLEREN_VOOR_CYTOLOGIE;
-import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.CYTOLOGIE;
-import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.HUISARTS_ONBEKEND;
-
 import java.util.List;
 
 import nl.rivm.screenit.dao.cervix.CervixLabformulierDao;
@@ -32,7 +28,7 @@ import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -49,6 +45,10 @@ import org.joda.time.DateTime;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.primitives.Ints;
+
+import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.CONTROLEREN_VOOR_CYTOLOGIE;
+import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.CYTOLOGIE;
+import static nl.rivm.screenit.model.cervix.CervixLabformulierenFilter.LabprocesStap.HUISARTS_ONBEKEND;
 
 @Repository
 public class CervixLabformulierDaoImpl extends AbstractAutowiredDao implements CervixLabformulierDao
@@ -155,7 +155,7 @@ public class CervixLabformulierDaoImpl extends AbstractAutowiredDao implements C
 			baseCriteria.createAlias("ontvangstScreeningRonde.monsterHpvUitslag", "monster");
 			baseCriteria.createAlias("monster.laatsteHpvBeoordeling", "hpvBeoordeling");
 
-			baseCriteria.add(Restrictions.eq("hpvBeoordeling.hpvUitslag", CervixHpvUitslag.POSITIEF));
+			baseCriteria.add(Restrictions.eq("hpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.POSITIEF));
 			baseCriteria.add(Restrictions.in("uitstrijkje.uitstrijkjeStatus", new CervixUitstrijkjeStatus[] { CervixUitstrijkjeStatus.ONTVANGEN,
 				CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_1, CervixUitstrijkjeStatus.GEANALYSEERD_OP_HPV_POGING_2 }));
 			baseCriteria.or(Restrictions.isNull("ontvangstScreeningRonde.uitstrijkjeCytologieUitslag"),

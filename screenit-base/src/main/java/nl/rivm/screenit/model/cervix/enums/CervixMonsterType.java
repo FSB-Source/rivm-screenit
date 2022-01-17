@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,36 +21,22 @@ package nl.rivm.screenit.model.cervix.enums;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import nl.rivm.screenit.model.enums.BriefType;
 
+@Getter
+@AllArgsConstructor
 public enum CervixMonsterType
 {
+	UITSTRIJKJE(BriefType.getCervixUitstrijkjeBrieven()),
 
-	UITSTRIJKJE(Arrays.asList(
-		BriefType.CERVIX_UITNODIGING,
-		BriefType.CERVIX_UITNODIGING_CONTROLEUITSTRIJKJE,
-		BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_HPV_ONBEOORDEELBAAR,
-		BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR,
-		BriefType.CERVIX_UITSTRIJKJE_TWEEDE_KEER_ONBEOORDEELBAAR,
-		BriefType.CERVIX_CYTOLOGIE_ONBEOORDEELBAAR,
-		BriefType.CERVIX_ZAS_HPV_POSITIEF,
-		BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR,
-		BriefType.CERVIX_ZAS_NA_HPV_POSITIEF,
-		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR)),
-
-	ZAS((Arrays.asList(
-		BriefType.CERVIX_ZAS_UITNODIGING,
-		BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR)));
+	ZAS(BriefType.getCervixZasBrieven());
 
 	List<BriefType> briefTypen;
-
-	CervixMonsterType(List<BriefType> briefTypen)
-	{
-		this.briefTypen = briefTypen;
-	}
 
 	public static CervixMonsterType getMonsterType(BriefType briefType)
 	{
@@ -63,10 +49,5 @@ public enum CervixMonsterType
 			return ZAS;
 		}
 		return null;
-	}
-
-	public List<BriefType> getBrieftypen()
-	{
-		return briefTypen;
 	}
 }

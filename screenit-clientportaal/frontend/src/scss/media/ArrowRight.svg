@@ -1,0 +1,23 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-clientportaal
+  %%
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<svg width="14px" height="12px" viewBox="0 0 14 12" version="1.1" xmlns="http://www.w3.org/2000/svg">
+  <path d="M8.62207 11.7391L13.7592 6.60201C13.7993 6.56187 13.8361 6.5184 13.8696 6.47157C13.903 6.42475 13.9197 6.38127 13.9197 6.34114C13.9732 6.26087 14 6.16054 14 6.04014C14 5.91973 13.9732 5.79264 13.9197 5.65886C13.893 5.63211 13.8722 5.60387 13.8573 5.57414L13.8395 5.52843C13.8261 5.48161 13.7993 5.43813 13.7592 5.39799L8.62207 0.26087C8.44816 0.0869557 8.24749 0 8.02007 0C7.79264 0 7.59197 0.0869557 7.41806 0.26087C7.24415 0.434784 7.15719 0.63545 7.15719 0.862876C7.15719 1.0903 7.24415 1.29097 7.41806 1.46488L11.1104 5.13713L0.84281 5.13712C0.588627 5.13712 0.384616 5.21739 0.230769 5.37793C0.0769223 5.53846 0 5.74582 0 6C0 6.25418 0.0769223 6.46154 0.230769 6.62207C0.384616 6.78261 0.588627 6.86287 0.84281 6.86287L11.1104 6.86287L7.41806 10.5351C7.33779 10.6288 7.27425 10.7324 7.22743 10.8462C7.1806 10.9599 7.15719 11.0569 7.15719 11.1371C7.15719 11.2174 7.1806 11.3144 7.22743 11.4281C7.27425 11.5418 7.33779 11.6455 7.41806 11.7391C7.59197 11.913 7.79264 12 8.02007 12C8.24749 12 8.44816 11.913 8.62207 11.7391Z"/>
+</svg>

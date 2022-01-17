@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,19 +22,17 @@ package nl.rivm.screenit.batch.service.impl;
  */
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.dao.IntakeAfspraakDao;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.batch.service.IntakeAfpraakService;
-import nl.rivm.screenit.model.PostcodeCoordinaten;
-import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.planning.VrijSlot;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
@@ -45,7 +42,6 @@ import nl.rivm.screenit.service.colon.PlanningService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,82 +76,84 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 	@Override
 	public List<ClientAfspraak> getClientenVoorIntakeAfspraakMaken(Integer afstandFactor, Integer tijdFactor, StringBuilder foutmeldingTextUitJobContext)
 	{
-		Integer intakeafspraakperiode = preferenceService.getInteger(PreferenceKey.INTAKEAFSPRAAKPERIODE.name());
+		var intakeafspraakperiode = preferenceService.getInteger(PreferenceKey.INTAKEAFSPRAAKPERIODE.name());
 		if (intakeafspraakperiode == null)
 		{
 
 			intakeafspraakperiode = Integer.valueOf(14);
 		}
 
-		Integer maxAfstandClientColoscopiecentrum = preferenceService.getInteger(PreferenceKey.MAX_AFSTAND_CLIENT_COLOSCOPIECENTRUM.name());
+		var maxAfstandClientColoscopiecentrum = preferenceService.getInteger(PreferenceKey.MAX_AFSTAND_CLIENT_COLOSCOPIECENTRUM.name());
 		if (maxAfstandClientColoscopiecentrum == null)
 		{
 
 			maxAfstandClientColoscopiecentrum = Integer.valueOf(45);
 		}
 
-		double wachttijdNormering = getWachttijdNormering(intakeafspraakperiode, tijdFactor);
-		double afstandNormering = getAfstandNormering(maxAfstandClientColoscopiecentrum, afstandFactor);
+		var wachttijdNormering = getWachttijdNormering(intakeafspraakperiode, tijdFactor);
+		var afstandNormering = getAfstandNormering(maxAfstandClientColoscopiecentrum, afstandFactor);
 
-		Integer uitnodigingsinterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
+		var uitnodigingsinterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
 		if (uitnodigingsinterval == null)
 		{
 
 			uitnodigingsinterval = Integer.valueOf(732);
 		}
 
-		List<Object> rawClienten = intakeAfspraakDao.getClientenVoorIntakeAfspraakMaken(uitnodigingsinterval);
-		List<ClientAfspraak> clienten = new ArrayList<>();
-		Map<Long, ClientAfspraak> hash = new HashMap<>();
+		var rawClienten = intakeAfspraakDao.getClientenVoorIntakeAfspraakMaken(uitnodigingsinterval);
+		var clienten = new ArrayList<ClientAfspraak>();
+		var hash = new HashMap<Long, ClientAfspraak>();
 		if (rawClienten != null)
 		{
-			for (Object rawClientRow : rawClienten)
+			for (var rawClientRow : rawClienten)
 			{
 
-				Object[] rawClientRowCells = (Object[]) rawClientRow;
+				var rawClientRowCells = (Object[]) rawClientRow;
 				int index = 0;
 
-				Object rawClientId = rawClientRowCells[index++];
-				Object rawColonScreeningRondeId = rawClientRowCells[index++];
-				Object rawAnalyseDatum = rawClientRowCells[index++];
-				Object rawGbaLatitude = rawClientRowCells[index++];
-				Object rawGbaLongitude = rawClientRowCells[index++];
-				Object rawGemLatitude = rawClientRowCells[index++];
-				Object rawGemLongitude = rawClientRowCells[index++];
-				Object rawGemNaam = rawClientRowCells[index++];
-				Object rawSOId = rawClientRowCells[index++];
-				Object intakeAfspraakId = rawClientRowCells[index++];
-				Object bsn = rawClientRowCells[index++];
-				LOGGER.trace("Client " + bsn + " " + rawClientRowCells[index++]);
+				var rawClientId = rawClientRowCells[index++];
+				var rawColonScreeningRondeId = rawClientRowCells[index++];
+				var rawAnalyseDatum = rawClientRowCells[index++];
+				var rawGbaLatitude = rawClientRowCells[index++];
+				var rawGbaLongitude = rawClientRowCells[index++];
+				var rawGemLatitude = rawClientRowCells[index++];
+				var rawGemLongitude = rawClientRowCells[index++];
+				var rawGemNaam = rawClientRowCells[index++];
+				var rawSOId = rawClientRowCells[index++];
+				var intakeAfspraakId = rawClientRowCells[index++];
+				var bsn = rawClientRowCells[index++];
+				var technischeLoggingMelding = "Client (id) " + rawClientId;
+				LOGGER.trace(technischeLoggingMelding);
 
 				if (rawSOId == null)
 				{
-					String melding = "Client " + bsn + " is aan gemeente " + rawGemNaam
+					var additioneleMelding = " is aan gemeente " + rawGemNaam
 						+ " gekoppeld. Alleen deze gemeente is niet gekoppeld aan een screeningsorganisatie/regio. Overgeslagen.";
-					LoggingZoekCriteria loggingZoekCriteria = new LoggingZoekCriteria();
-					loggingZoekCriteria.setMelding(melding);
-					List<LogGebeurtenis> gebeurtenissen = new ArrayList<>();
+					var applicatieLoggingMelding = "Client " + bsn + additioneleMelding;
+					var loggingZoekCriteria = new LoggingZoekCriteria();
+					loggingZoekCriteria.setMelding(applicatieLoggingMelding);
+					var gebeurtenissen = new ArrayList<LogGebeurtenis>();
 					gebeurtenissen.add(LogGebeurtenis.INTAKE_AFSPRAAK_MAKEN_AFGEROND);
 					loggingZoekCriteria.setGebeurtenis(gebeurtenissen);
 
 					if (logService.countLogRegels(loggingZoekCriteria) > 0)
 					{
-						LOGGER.warn(melding + " Melding wordt geskipped, hebben we al eerder gehad.");
+						LOGGER.warn(technischeLoggingMelding + additioneleMelding + " Melding wordt geskipped, hebben we al eerder gehad.");
 					}
 					else
 					{
 						if (foutmeldingTextUitJobContext.length() > 0)
 						{
-							if (!foutmeldingTextUitJobContext.toString().contains(melding))
+							if (!foutmeldingTextUitJobContext.toString().contains(applicatieLoggingMelding))
 							{
-								foutmeldingTextUitJobContext.append("<br>").append(melding);
+								foutmeldingTextUitJobContext.append("<br>").append(applicatieLoggingMelding);
 							}
 						}
 						else
 						{
-							foutmeldingTextUitJobContext.append(melding);
+							foutmeldingTextUitJobContext.append(applicatieLoggingMelding);
 						}
-						LOGGER.warn(melding);
+						LOGGER.warn(technischeLoggingMelding +  additioneleMelding);
 					}
 
 					continue;
@@ -163,11 +161,11 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 
 				boolean isAlClientAfspraakDezeBatch = false;
 
-				Long colonScreeningRondeId = (Long) rawColonScreeningRondeId;
-				Date analyseDatum = (Date) rawAnalyseDatum;
+				var colonScreeningRondeId = (Long) rawColonScreeningRondeId;
+				var analyseDatum = (Date) rawAnalyseDatum;
 				if (hash.containsKey(colonScreeningRondeId))
 				{
-					ClientAfspraak oldAfspraak = hash.get(colonScreeningRondeId);
+					var oldAfspraak = hash.get(colonScreeningRondeId);
 					isAlClientAfspraakDezeBatch = true;
 
 					if (oldAfspraak.getAnalyseDatum() == null || oldAfspraak.getAnalyseDatum().before(analyseDatum))
@@ -178,7 +176,7 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 
 				if (!isAlClientAfspraakDezeBatch)
 				{
-					ClientAfspraak rawAfspraak = new ClientAfspraak();
+					var rawAfspraak = new ClientAfspraak();
 					rawAfspraak.setClientId((Long) rawClientId);
 					rawAfspraak.setColonScreeningRondeId(colonScreeningRondeId);
 					rawAfspraak.setAnalyseDatum(analyseDatum);
@@ -208,13 +206,13 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 	@Override
 	public List<ClientAfspraak> getClientenVoorIntakeAfspraakMaken(StringBuilder foutTekst)
 	{
-		Integer afstandFactor = preferenceService.getInteger(PreferenceKey.AFSTANDFACTOR.name());
+		var afstandFactor = preferenceService.getInteger(PreferenceKey.AFSTANDFACTOR.name());
 		if (afstandFactor == null)
 		{
 			afstandFactor = Integer.valueOf(40);
 		}
 
-		Integer tijdFactor = preferenceService.getInteger(PreferenceKey.TIJDFACTOR.name());
+		var tijdFactor = preferenceService.getInteger(PreferenceKey.TIJDFACTOR.name());
 		if (tijdFactor == null)
 		{
 			tijdFactor = Integer.valueOf(60);
@@ -224,35 +222,34 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 	}
 
 	@Override
-	public List<VrijSlot> getAllVrijeSlotenIntakeafspraakperiode(int aantalGeselecteerdeClienten, Date begintijd, Date eindtijd, AtomicInteger aantalExtraDagen)
+	public List<VrijSlot> getAllVrijeSlotenIntakeafspraakperiode(int aantalGeselecteerdeClienten, LocalDate beginDatum, LocalDate eindDatum, AtomicInteger aantalExtraDagen)
 	{
-		List<VrijSlot> vrijeSloten = new ArrayList<>();
+		var vrijeSloten = new ArrayList<VrijSlot>();
 
-		List<ColoscopieCentrum> intakeLocaties = instellingService.getActieveIntakelocaties();
+		var intakeLocaties = instellingService.getActieveIntakelocaties();
 
-		int i = 0;
 		LOGGER.info("Aantal geselecteerde clienten " + aantalGeselecteerdeClienten);
 
-		Integer ongunstigeUitslagWachtPeriode = preferenceService.getInteger(PreferenceKey.ONGUNSTIGE_UITSLAG_WACHT_PERIODE.name());
+		var ongunstigeUitslagWachtPeriode = preferenceService.getInteger(PreferenceKey.ONGUNSTIGE_UITSLAG_WACHT_PERIODE.name());
 		if (ongunstigeUitslagWachtPeriode == null)
 		{
 
 			ongunstigeUitslagWachtPeriode = Integer.valueOf(2); 
 		}
-		int days = preferenceService.getInteger(PreferenceKey.COLON_MAX_EXTRA_DAGEN_PLANNING_INTAKE.name())
+		var days = preferenceService.getInteger(PreferenceKey.COLON_MAX_EXTRA_DAGEN_PLANNING_INTAKE.name())
 			+ preferenceService.getInteger(PreferenceKey.INTAKEAFSPRAAKPERIODE.name()) + 1;
 
-		DateTime dateTime = new DateTime(begintijd);
-		Date laatsteIntakeDatum = DateUtil.minusWerkdagen(dateTime, ongunstigeUitslagWachtPeriode).plusDays(days).withTimeAtStartOfDay().toDate();
+		var laatsteIntakeDatum = DateUtil.minusWerkdagen(beginDatum, ongunstigeUitslagWachtPeriode).plusDays(days);
 
-		while (vrijeSloten.size() < aantalGeselecteerdeClienten * 2 && eindtijd.before(laatsteIntakeDatum))
+		aantalExtraDagen.set(-1);
+		while (vrijeSloten.size() < aantalGeselecteerdeClienten * 2 && eindDatum.isBefore(laatsteIntakeDatum))
 		{
-			for (ColoscopieCentrum intakelocatie : intakeLocaties)
+			for (var intakelocatie : intakeLocaties)
 			{
-				for (VrijSlot vrijSlot : planningService.getBeschikbaarheid(begintijd, eindtijd, intakelocatie))
+				for (var vrijSlot : planningService.getBeschikbaarheid(DateUtil.toUtilDate(beginDatum), DateUtil.toUtilDate(eindDatum), intakelocatie))
 				{
 					LOGGER.trace(vrijSlot.toString());
-					PostcodeCoordinaten postcodeCoordinaten = intakelocatie.getPostcodeCoordinaten();
+					var postcodeCoordinaten = intakelocatie.getPostcodeCoordinaten();
 					if (postcodeCoordinaten != null)
 					{
 						vrijSlot.setLatitude(postcodeCoordinaten.getLatitude());
@@ -261,11 +258,14 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 					vrijeSloten.add(vrijSlot);
 				}
 			}
-			LOGGER.info("#" + vrijeSloten.size() + " vrije sloten");
-			begintijd = eindtijd;
-			eindtijd = new DateTime(eindtijd).plusDays(1).withTimeAtStartOfDay().toDate();
-			aantalExtraDagen.set(i);
-			i++;
+			LOGGER.info("#" + vrijeSloten.size() + " vrije sloten tussen " + beginDatum + " en " + eindDatum);
+			beginDatum = eindDatum;
+			eindDatum = eindDatum.plusDays(1);
+			aantalExtraDagen.incrementAndGet();
+		}
+		if (aantalExtraDagen.get() < 0)
+		{
+			aantalExtraDagen.set(0);
 		}
 		return vrijeSloten;
 	}
@@ -273,7 +273,6 @@ public class IntakeAfpraakServiceImpl implements IntakeAfpraakService
 	@Override
 	public double getWachttijdNormering(Integer intakeAfspraakPeriode, Integer tijdfactor)
 	{
-
 		return NORMERINGS_FACTOR / (intakeAfspraakPeriode * 24.0) * (tijdfactor * 1.0);
 	}
 

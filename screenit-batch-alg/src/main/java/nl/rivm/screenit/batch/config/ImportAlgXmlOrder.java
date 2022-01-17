@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.config;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,7 +31,8 @@ import org.springframework.core.annotation.Order;
 @ImportResource(
 	locations = {
 		"classpath:applicationContext-edi.xml",
-		"classpath:applicationContext-jobs.xml"
+		"classpath:applicationContext-jobs.xml",
+		"classpath:applicationContext-mail.xml"
 	})
 public class ImportAlgXmlOrder
 {

@@ -2,7 +2,7 @@
 # ========================LICENSE_START=================================
 # screenit-kansberekening
 # %%
-# Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+# Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
 # %%
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published by
@@ -18,12 +18,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # =========================LICENSE_END==================================
 ###
+import base
+import joblib
 import logging
 import os
-
-from sklearn.externals import joblib
-
-import base
 
 _dossier_classifier_eerste_ronde = 'dossier_classifier_eerste_ronde.pkl'
 _dossier_classifier_vervolgronde = 'dossier_classifier_vervolgronde.pkl'

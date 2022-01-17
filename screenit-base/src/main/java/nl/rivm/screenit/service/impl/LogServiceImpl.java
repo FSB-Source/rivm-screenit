@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +21,15 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.Column;
 
 import nl.rivm.screenit.dao.LogDao;
@@ -99,6 +102,24 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	@Qualifier("batchApplicationType")
 	private String batchApplicationTypeString;
 
+	@PostConstruct
+	private void init()
+	{
+		Properties applicationProperties = new Properties();
+		try (InputStream resourceAsStream = getClass().getResourceAsStream("/application.properties"))
+		{
+			applicationProperties.load(resourceAsStream);
+			String version = applicationProperties.getProperty("application.version");
+			String timestamp = applicationProperties.getProperty("application.timestamp");
+			String buildnumber = applicationProperties.getProperty("application.buildnumber");
+			LOG.info("ScreenIT versie: {} ({}, {})", version, buildnumber, timestamp);
+		}
+		catch (IOException e)
+		{
+			LOG.error("Fout bij het lezen van de application.properties", e);
+		}
+	}
+
 	@Override
 	public List<LogRegel> getLogRegelsVanDashboard(DashboardStatus item, int first, int count, SortState<String> sortState)
 	{
@@ -146,25 +167,22 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	private Bevolkingsonderzoek[] getBvos(LogGebeurtenis logGebeurtenis)
 	{
 		Bevolkingsonderzoek[] bvos = null;
-		if (LogGebeurtenis.MEDVRY_VERSTUURD.equals(logGebeurtenis))
+		if (LogGebeurtenis.MEDVRY_VERSTUURD.equals(logGebeurtenis) && batchApplicationTypeString != null)
 		{
-			if (batchApplicationTypeString != null)
+			BatchApplicationType batchApplicationType = BatchApplicationType.valueOf(batchApplicationTypeString);
+			switch (batchApplicationType)
 			{
-				BatchApplicationType batchApplicationType = BatchApplicationType.valueOf(batchApplicationTypeString);
-				switch (batchApplicationType)
-				{
-				case CERVIX:
-					bvos = new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX };
-					break;
-				case COLON:
-					bvos = new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON };
-					break;
-				case GENERALIS:
-					bvos = new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA };
-					break;
-				default:
-					break;
-				}
+			case CERVIX:
+				bvos = new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX };
+				break;
+			case COLON:
+				bvos = new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON };
+				break;
+			case GENERALIS:
+				bvos = new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA };
+				break;
+			default:
+				break;
 			}
 		}
 		return bvos;
@@ -330,15 +348,12 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 		logRegel.setScreeningsEenheid(mammaScreeningsEenheid);
 		logRegel.setGebruiker(getGebruiker(account));
 		logRegel.setIngelogdeGebruiker(getIngelogdeGebruiker(account));
-		if (logEvent != null)
+		if (logEvent != null && logEvent.getLevel().compareTo(logGebeurtenis.getDefaultLevel()) < 0)
 		{
-			if (logEvent.getLevel().compareTo(logGebeurtenis.getDefaultLevel()) < 0)
-			{
-				logEvent.setLevel(logGebeurtenis.getDefaultLevel());
-			}
+			logEvent.setLevel(logGebeurtenis.getDefaultLevel());
 		}
-
 		fitMelding(logEvent);
+
 		logRegel.setLogEvent(logEvent);
 		logEvent.setLogRegel(logRegel);
 		if (client == null && account instanceof Client)
@@ -352,7 +367,7 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 		}
 		else
 		{
-			logRegel.setBevolkingsonderzoeken(new ArrayList<Bevolkingsonderzoek>());
+			logRegel.setBevolkingsonderzoeken(new ArrayList<>());
 		}
 		logDao.saveOrUpdateLogRegel(logRegel);
 
@@ -366,13 +381,14 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 		loggingZoekCriteria.setGebeurtenis(gebeurtenis);
 		loggingZoekCriteria.setBsnClient(bsn);
 		loggingZoekCriteria.setMelding(melding);
-		loggingZoekCriteria.setLevel(Arrays.asList(Level.INFO));
+		loggingZoekCriteria.setLevel(List.of(Level.INFO));
+
 		loggingZoekCriteria.setVanaf(currentDateSupplier.getDateTime()
 			.minusDays(dagen).toDate());
 
 		List<LogRegel> result = getLogRegels(loggingZoekCriteria, 0, 1, new SortState<>("gebeurtenisDatum", Boolean.FALSE));
 
-		return result.size() == 0;
+		return result.isEmpty();
 	}
 
 	private LogEvent getLogEvent(Level level, String melding)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,7 +70,6 @@ import nl.rivm.screenit.model.colon.IFOBTType;
 import nl.rivm.screenit.model.colon.IFOBTVervaldatum;
 import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.MdlVerslag;
-import nl.rivm.screenit.model.colon.enums.ColonCTColografieReden;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
@@ -363,13 +362,12 @@ public class TestTimelineServiceImpl implements TestTimelineService
 		}
 
 		ColonDossier dossier = client.getColonDossier();
-		geefColonVooraankondiging(dossier);
-
 		ColonScreeningRonde ronde = newColonScreeningRonde(dossier);
+		geefColonVooraankondiging(ronde);
 
 		if (tijdstip == TestTimeLineDossierTijdstip.DAG_NA_UITNODIGING_ZONDER_FIT)
 		{
-			briefService.maakColonBrief(ronde, BriefType.COLON_UITNODIGING_ZONDER_FIT, currentDateSupplier.getDate());
+			briefService.maakBvoBrief(ronde, BriefType.COLON_UITNODIGING_ZONDER_FIT, currentDateSupplier.getDate());
 		}
 		else
 		{
@@ -473,8 +471,9 @@ public class TestTimelineServiceImpl implements TestTimelineService
 		return ronde;
 	}
 
-	private ColonVooraankondiging geefColonVooraankondiging(ColonDossier dossier)
+	private ColonVooraankondiging geefColonVooraankondiging(ColonScreeningRonde ronde)
 	{
+		ColonDossier dossier = ronde.getDossier();
 		ColonVooraankondiging vooraankondiging = dossier.getColonVooraankondiging();
 		if (vooraankondiging == null)
 		{
@@ -483,7 +482,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 			Date nu = currentDateSupplier.getDate();
 			vooraankondiging.setCreatieDatum(nu);
 			dossier.setColonVooraankondiging(vooraankondiging);
-			ColonBrief brief = briefService.maakColonBrief(dossier.getClient(), BriefType.COLON_VOORAANKONDIGING, nu);
+			ColonBrief brief = briefService.maakBvoBrief(ronde, BriefType.COLON_VOORAANKONDIGING);
 			vooraankondiging.setBrief(brief);
 			hibernateService.saveOrUpdateAll(vooraankondiging);
 		}
@@ -583,7 +582,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 	@Override
 	public List<TestTimelineRonde> getTimelineRondes(Client client)
 	{
-		List<Bevolkingsonderzoek> onderzoeken = new ArrayList<Bevolkingsonderzoek>();
+		List<Bevolkingsonderzoek> onderzoeken = new ArrayList<>();
 		onderzoeken.add(Bevolkingsonderzoek.COLON);
 		List<ScreeningRondeGebeurtenissen> rondes = dossierService.getScreeningRondeGebeurtenissen(client, new ClientDossierFilter(onderzoeken, false));
 
@@ -593,7 +592,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 
 	private List<TestTimelineRonde> convertToTimeLineRondes(List<ScreeningRondeGebeurtenissen> rondeDossier)
 	{
-		Map<Integer, TestTimelineRonde> rondes = new HashMap<Integer, TestTimelineRonde>();
+		Map<Integer, TestTimelineRonde> rondes = new HashMap<>();
 		for (ScreeningRondeGebeurtenissen ronde : rondeDossier)
 		{
 			Integer index = new Integer(ronde.getRondenr() - 1);
@@ -615,7 +614,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 
 	private List<TestTimelineRonde> convertHashMapToList(Map<Integer, TestTimelineRonde> map)
 	{
-		List<TestTimelineRonde> rondes = new ArrayList<TestTimelineRonde>();
+		List<TestTimelineRonde> rondes = new ArrayList<>();
 		for (Entry<Integer, TestTimelineRonde> ronde : map.entrySet())
 		{
 			rondes.add(ronde.getKey(), ronde.getValue());
@@ -705,7 +704,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 		if (TestTimeLineDossierTijdstip.DAG_NA_HERINNERING_VERSTUREN.equals(tijdstip))
 		{
 			ColonScreeningRonde csr = dossier.getLaatsteScreeningRonde();
-			ColonBrief herinneringsBrief = briefService.maakColonBrief(csr, BriefType.COLON_HERINNERING);
+			ColonBrief herinneringsBrief = briefService.maakBvoBrief(csr, BriefType.COLON_HERINNERING);
 			for (IFOBTTest iTest : rappelerendeIfobts(csr))
 			{
 				iTest.setHerinnering(Boolean.TRUE);
@@ -718,7 +717,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 
 	private List<IFOBTTest> rappelerendeIfobts(ColonScreeningRonde csr)
 	{
-		List<IFOBTTest> rappeleren = new ArrayList<IFOBTTest>();
+		List<IFOBTTest> rappeleren = new ArrayList<>();
 		Date rapelDate = getRapelDate();
 		for (IFOBTTest test : csr.getIfobtTesten())
 		{
@@ -754,7 +753,7 @@ public class TestTimelineServiceImpl implements TestTimelineService
 
 		ColonScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 
-		ColonBrief brief = briefService.maakColonBrief(ronde, BriefType.COLON_UITNODIGING_INTAKE);
+		ColonBrief brief = briefService.maakBvoBrief(ronde, BriefType.COLON_UITNODIGING_INTAKE);
 		brief.setCreatieDatum(new DateTime(brief.getCreatieDatum()).minusSeconds(5).toDate());
 
 		ColonIntakeAfspraak intakeAfspraak = ronde.getLaatsteAfspraak();
@@ -836,7 +835,6 @@ public class TestTimelineServiceImpl implements TestTimelineService
 			conclusie.setDatumColoscopie(DateUtil.toUtilDate(currentDateSupplier.getLocalDate().plusDays(10)));
 		case CT_COLOGRAFIE:
 			keuzes.intakeConclusie = true;
-			conclusie.setRedenCTColografie(ColonCTColografieReden.ANDERE_MEDISCHE_REDEN);
 			break;
 		case NO_SHOW:
 		case ON_HOLD:

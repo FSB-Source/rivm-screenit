@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <artifactId>se-parent</artifactId>
-    <groupId>nl.rivm.screenit</groupId>
     <packaging>pom</packaging>
 
     <parent>
-        <groupId>nl.topicuszorg</groupId>
-        <artifactId>parent</artifactId>
+        <groupId>nl.rivm.screenit</groupId>
+        <artifactId>screenit-parent</artifactId>
     </parent>
-
-    <organization>
-        <name>Facilitaire Samenwerking Bevolkingsonderzoek</name>
-        <url>https://www.bevolkingsonderzoeknederland.nl/</url>
-    </organization>
 
     <inceptionYear>2017</inceptionYear>
 
@@ -86,31 +81,7 @@
                 <artifactId>maven-resources-plugin</artifactId>
             </plugin>
 
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-
-                    <release>${java.version}</release>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-    </dependencies>
 
 </project>

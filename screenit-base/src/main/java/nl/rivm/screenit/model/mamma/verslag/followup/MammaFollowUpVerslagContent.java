@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.mamma.verslag.followup;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,11 +54,7 @@ public class MammaFollowUpVerslagContent
 	private MammaFollowUpVerrichting verrichting;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "verslagContent", cascade = CascadeType.ALL)
-	@VraagElement(
-		displayName = "Pathologie : medische observatie",
-		extraTekst = "Pathologie : medische observatie",
-		code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.150000",
-		isReference = true)
+	@VraagElement(displayName = "Pathologie : medische observatie", extraTekst = "Pathologie : medische observatie", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.150000", isReference = true)
 	private MammaFollowUpPathologieMedischeObservatie pathologieMedischeObservatie;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "verslagContent", cascade = CascadeType.ALL)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,7 +39,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class MammaBeeldenStatusSignalerenReader extends BaseScrollableResultReader
 {
-
 	@Autowired
 	private SimplePreferenceService preferenceService;
 
@@ -54,7 +53,7 @@ public class MammaBeeldenStatusSignalerenReader extends BaseScrollableResultRead
 
 		Criteria criteria = session.createCriteria(MammaMammografie.class);
 
-		criteria.add(Restrictions.eq("ilmStatus", MammaMammografieIlmStatus.TE_VERWIJDEREN));
+		criteria.add(Restrictions.in("ilmStatus", MammaMammografieIlmStatus.TE_VERWIJDEREN, MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT));
 		criteria.add(Restrictions.lt("ilmStatusDatum", signaleerTermijn));
 
 		return criteria;

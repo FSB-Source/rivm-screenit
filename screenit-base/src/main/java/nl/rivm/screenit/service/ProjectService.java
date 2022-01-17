@@ -5,7 +5,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
@@ -44,14 +43,12 @@ import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.model.project.ProjectImportMelding;
 import nl.rivm.screenit.model.project.ProjectType;
 
 import com.aspose.words.Document;
 
 public interface ProjectService
 {
-
 	void saveOrUpdateProject(Project project, InstellingGebruiker loggedInInstellingGebruiker);
 
 	List<Project> getProjecten(Project zoekObject, List<Long> instellingIdsProject, List<Long> instellingIdsBriefproject, long first, long count, SortState<String> sortState);
@@ -77,8 +74,6 @@ public interface ProjectService
 
 	void queueProjectBestandVoorPopulatie(ProjectGroep groep, String contentType, String filenaam, File file, Account loggedInAccount) throws IOException;
 
-	boolean verwerkGroepClienten(List<Client> clienten, ProjectGroep groep);
-
 	Iterator<ProjectBriefActie> getProjectBriefActies(ProjectBriefActie actie, long first, long count, SortState<String> sortState);
 
 	long getCountProjectBriefActies(ProjectBriefActie actie);
@@ -95,8 +90,6 @@ public interface ProjectService
 
 	String generateVragenlijstKey(ProjectBrief projectBrief);
 
-	ProjectBrief getProjectBriefFromVragenlijstKey(String url);
-
 	boolean isVragenlijstGekoppeldAanNietBeeindigdProject(Long vragenlijstId);
 
 	boolean isVragenlijstGekoppeldAanProject(Long vragenlijstId);
@@ -104,8 +97,6 @@ public interface ProjectService
 	Long getAantalProjectClientenVanProject(Project project);
 
 	Long getAantalInactieveProjectClientenVanProject(Project project);
-
-	Long getAantalProjectClientenVanProjectGroep(ProjectGroep groep);
 
 	Long getAantalInactieveProjectClientenVanProjectGroep(ProjectGroep groep);
 
@@ -122,4 +113,10 @@ public interface ProjectService
 	void projectAttribuutOpslaan(ProjectAttribuut attribuut);
 
 	void updateWachtOpStartProject();
+
+	ProjectClient addClientToProjectGroep(ProjectGroep projectGroep, Client client);
+
+	void verwijderProjectGroep(ProjectGroep groep, Account loggedInAccount);
+
+	String updateProjectGroepActiefStatus(ProjectGroep groep, Account loggedInAccount);
 }

@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -227,7 +227,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 						}
 						if (type != null)
 						{
-							ColonBrief brief = briefService.maakColonBrief(screeningRonde, type);
+							ColonBrief brief = briefService.maakBvoBrief(screeningRonde, type);
 							if (BriefType.COLON_UITNODIGING_INTAKE.equals(type))
 							{
 								brief.setIfobtTest(ColonScreeningRondeUtil.getEersteOngunstigeTest(screeningRonde));

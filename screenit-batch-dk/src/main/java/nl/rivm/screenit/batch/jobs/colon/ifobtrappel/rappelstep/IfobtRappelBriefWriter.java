@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtrappel.rappelstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,7 +54,7 @@ public class IfobtRappelBriefWriter extends BaseWriter<Client>
 	{
 		ColonScreeningRonde csr = client.getColonDossier().getLaatsteScreeningRonde();
 		IFOBTTest ifobtTest = csr.getLaatsteIFOBTTest();
-		ColonBrief herinneringsBrief = briefService.maakColonBrief(csr, BriefType.COLON_HERINNERING);
+		ColonBrief herinneringsBrief = briefService.maakBvoBrief(csr, BriefType.COLON_HERINNERING);
 		logService.logGebeurtenis(LogGebeurtenis.RAPPEL_VERZONDEN, client, Bevolkingsonderzoek.COLON);
 		ifobtTest.setHerinnering(Boolean.TRUE);
 		getHibernateService().saveOrUpdate(ifobtTest);

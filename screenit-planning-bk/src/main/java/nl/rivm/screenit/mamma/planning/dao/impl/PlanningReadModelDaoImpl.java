@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokkadeIndex;
@@ -53,6 +52,7 @@ import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStandplaatsIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStandplaatsPeriodeIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStandplaatsRondeIndex;
+import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningTehuisIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlokkade;
@@ -91,6 +91,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaBlokkadeType;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
@@ -164,11 +165,14 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			OpenHibernate5Session.withCommittedTransaction().run(() -> {
 				try
 				{
+					PlanningStatusIndex.set(MammaPlanningStatus.OPSTARTEN);
 					readDataModel();
+					PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 				}
 				catch (Exception e)
 				{
 					LOG.error("Fout bij opstarten", e);
+					PlanningStatusIndex.set(MammaPlanningStatus.ERROR);
 				}
 				finally
 				{
@@ -183,8 +187,6 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 	public void readDataModel()
 	{
 		LOG.info("readDataModel");
-
-		DataSourceRouter.useReadWrite();
 
 		PlanningWijzigingen.clear();
 

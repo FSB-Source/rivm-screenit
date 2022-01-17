@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.pa;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,28 +53,20 @@ public class PaPathologieMedischeObservatie
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(displayName = "Datum ontvangst materiaal", extraTekst = "Datum ontvangst materiaal", code = "2.16.840.1.113883.2.4.3.36.77.2.8.150060", isVerplicht = true)
+	@VraagElement(displayName = "Datum ontvangst materiaal", extraTekst = "Datum ontvangst materiaal", code = "2.16.840.1.113883.2.4.3.36.77.2.10.150060", isVerplicht = true)
 	private Date datumOntvangstMateriaal;
 
 	@Column(length = 255)
-	@VraagElement(displayName = "T-nummer laboratorium", extraTekst = "T-nummer laboratorium", code = "2.16.840.1.113883.2.4.3.36.77.2.8.150080", isVerplicht = true)
+	@VraagElement(displayName = "T-nummer laboratorium", extraTekst = "T-nummer laboratorium", code = "2.16.840.1.113883.2.4.3.36.77.2.10.150080", isVerplicht = true)
 	private String tnummerLaboratorium;
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(
-		displayName = "Datum autorisatie uitslag",
-		extraTekst = "Datum waarop uitslag is geautoriseerd (en doorgegeven aan MDL arts)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.150050",
-		isVerplicht = true)
+	@VraagElement(displayName = "Datum autorisatie uitslag", extraTekst = "Datum waarop uitslag is geautoriseerd (en doorgegeven aan MDL arts)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.150050", isVerplicht = true)
 	private Date datumAutorisatieUitslag;
 
 	@Column(length = 4096)
-	@VraagElement(
-		displayName = "Versie protocol",
-		extraTekst = "Versienummer van het gebruikte protocol m.b.v. de Palga protocolmodule",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.150090",
-		isVerplicht = true)
+	@VraagElement(displayName = "Versie protocol", extraTekst = "Versienummer van het gebruikte protocol m.b.v. de Palga protocolmodule", code = "2.16.840.1.113883.2.4.3.36.77.2.10.150090", isVerplicht = true)
 	private String versieProtocol;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -83,11 +74,7 @@ public class PaPathologieMedischeObservatie
 		@DSValueSetValue(code = "260521003", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "261074009", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(
-		displayName = "Consult/revisie materiaal aangevraagd",
-		extraTekst = "Of er (intern/extern) consult/revisie materiaal is opgevraagd uit een ander laboratorium",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.3.150010",
-		useInFormulier = false)
+	@VraagElement(displayName = "Consult/revisie materiaal aangevraagd", extraTekst = "Of er (intern/extern) consult/revisie materiaal is opgevraagd uit een ander laboratorium", code = "2.16.840.1.113883.2.4.3.36.77.2.3.150010", useInFormulier = false)
 	private DSValue consultrevisieMateriaalAangevraagd;
 
 	public PaVerslagContent getVerslagContent()

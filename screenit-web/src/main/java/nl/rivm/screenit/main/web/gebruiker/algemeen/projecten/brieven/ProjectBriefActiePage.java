@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
@@ -55,6 +54,7 @@ import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -83,9 +83,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA })
 public class ProjectBriefActiePage extends ProjectBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private FileService fileService;
 
@@ -111,8 +108,8 @@ public class ProjectBriefActiePage extends ProjectBasePage
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
 
-		ProjectBriefActie actie = new ProjectBriefActie(model.getObject());
-		briefActieModel = ModelUtil.cModel(actie);
+		briefActieModel = ModelUtil.ccModel(new ProjectBriefActie());
+		briefActieModel.getObject().setProject(model.getObject());
 		briefActieModel.getObject().setActief(Boolean.TRUE);
 
 		if (!ScreenitSession.get().isZoekObjectGezetForComponent(ProjectBriefActiePage.class))
@@ -120,7 +117,7 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			ScreenitSession.get().setZoekObject(ProjectBriefActiePage.class, briefActieModel);
 		}
 
-		add(new AjaxLink<Project>("briefToevoegen", model)
+		add(new AjaxLink<>("briefToevoegen", model)
 		{
 			private static final long serialVersionUID = 1L;
 
@@ -131,12 +128,13 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 
 			@Override
-			public boolean isVisible()
+			public void onConfigure()
 			{
+				super.onConfigure();
 				Project project = getModelObject();
 				Date eindDatum = project.getEindDatum();
 				Date nu = currentDateSupplier.getDate();
-				return !eindDatum.before(nu);
+				setVisible(!eindDatum.before(nu));
 			}
 
 		});
@@ -152,11 +150,8 @@ public class ProjectBriefActiePage extends ProjectBasePage
 		briefActieContainer.setOutputMarkupId(true);
 		List<IColumn<ProjectBriefActie, String>> columns = new ArrayList<IColumn<ProjectBriefActie, String>>();
 		columns.add(new EnumPropertyColumn<ProjectBriefActie, String, ProjectBriefActieType>(Model.of("Soort"), "type", "type"));
-		columns.add(new AbstractColumn<ProjectBriefActie, String>(Model.of("Moment"))
+		columns.add(new AbstractColumn<>(Model.of("Moment"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectBriefActie>> cellItem, String componentId, IModel<ProjectBriefActie> rowModel)
 			{
@@ -164,10 +159,10 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 		});
 
-		columns.add(new PropertyColumn<ProjectBriefActie, String>(Model.of("Naam"), "document.naam", "document.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Naam"), "document.naam", "document.naam"));
 
 		FileValidator validator = new FileValidator(FileType.WORD_NIEUW);
-		columns.add(new UploadDocumentColumn<ProjectBriefActie, String>(Model.of("Uploaden"), "document", briefActieContainer, validator)
+		columns.add(new UploadDocumentColumn<>(Model.of("Uploaden"), "document", briefActieContainer, validator)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -219,11 +214,11 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 		});
 
-		columns.add(new UploadDocumentDownloadColumn<ProjectBriefActie, String>(Model.of("Downloaden"), "document"));
-		columns.add(new DateTimePropertyColumn<ProjectBriefActie, String>(Model.of("Laatst gewijzigd"), "laatstGewijzigd", "laatstGewijzigd", new SimpleDateFormat("dd-MM-yyyy")));
-		columns.add(new PropertyColumn<ProjectBriefActie, String>(Model.of("Vragenlijst"), "vragenlijst.naam", "vragenlijst.naam"));
+		columns.add(new UploadDocumentDownloadColumn<>(Model.of("Downloaden"), "document"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Laatst gewijzigd"), "laatstGewijzigd", "laatstGewijzigd", new SimpleDateFormat("dd-MM-yyyy")));
+		columns.add(new PropertyColumn<>(Model.of("Vragenlijst"), "vragenlijst.naam", "vragenlijst.naam"));
 
-		columns.add(new AbstractColumn<ProjectBriefActie, String>(Model.of("Details / Test Projectbrief template"))
+		columns.add(new AbstractColumn<>(Model.of("Details / Test Projectbrief template"))
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -234,11 +229,8 @@ public class ProjectBriefActiePage extends ProjectBasePage
 				ProjectBriefActie actie = rowModel.getObject();
 				if (actie.getDocument() != null)
 				{
-					cellItem.add(new NavigeerNaarCellPanel<ProjectBriefActie>(componentId, rowModel)
+					cellItem.add(new NavigeerNaarCellPanel<>(componentId, rowModel)
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected boolean magNavigerenNaar(IModel<ProjectBriefActie> rowModel)
 						{
@@ -260,11 +252,9 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			}
 		});
 
-		columns.add(new ActiefPropertyColumn<ProjectBriefActie, ProjectBriefActie>(Model.of("Verwijderen"), "actief", briefActieContainer, briefActieModel, true, dialog,
+		columns.add(new ActiefPropertyColumn<>(Model.of("Verwijderen"), "actief", briefActieContainer, briefActieModel, true, dialog,
 			"projectBriefActiePage.verwijderen")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onAfterToggleActief(AjaxRequestTarget target, ProjectBriefActie actiefObject)
@@ -304,9 +294,6 @@ public class ProjectBriefActiePage extends ProjectBasePage
 		ScreenitDataTable<ProjectBriefActie, String> dataTable = new ScreenitDataTable<ProjectBriefActie, String>("projectBriefacties", columns,
 			new BriefActieDataProvider(briefActieModel), 10, Model.of("briefacties"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected boolean isRowClickable(IModel<ProjectBriefActie> rowModel)
 			{

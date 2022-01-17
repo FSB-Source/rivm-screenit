@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,7 +54,9 @@ public class MammaScreeningRondesVerwijderenWriter extends BaseWriter<MammaScree
 	protected void write(MammaScreeningRonde ronde)
 	{
 		boolean heeftLaatstePositieveUitslagBinnenBewaartermijn = heeftLaatstePositieveUitslagBinnenBewaartermijn(ronde);
-		boolean isVerwijderd = false;
+		boolean isVerwijderd;
+		aantalContextOphogen(MammaIlmJobListener.KEY_RONDES_VERWERKT_AANTAL);
+
 		if (!heeftLaatstePositieveUitslagBinnenBewaartermijn)
 		{
 			isVerwijderd = screeningrondeService.verwijderScreeningRonde(ronde, false);
@@ -69,6 +71,7 @@ public class MammaScreeningRondesVerwijderenWriter extends BaseWriter<MammaScree
 					heeftLaatstePositieveUitslagBinnenBewaartermijn);
 			}
 		}
+		getExecutionContext().putLong(MammaIlmJobListener.KEY_LAATSTE_RONDE_ID, ronde.getId());
 	}
 
 	private boolean heeftLaatstePositieveUitslagBinnenBewaartermijn(MammaScreeningRonde ronde)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
+
 import nl.rivm.screenit.model.Bezwaar;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
@@ -32,6 +34,18 @@ public class BezwaarUtil
 
 	private BezwaarUtil()
 	{
+	}
+
+	public static boolean isBezwaarActiefVoorEenVanDeOnderzoeken(Client client, BezwaarType type)
+	{
+		if (type.getBevolkingsonderzoeken().length == 0)
+		{
+			return isBezwaarActiefVoor(client, type);
+		}
+		else
+		{
+			return Arrays.asList(type.getBevolkingsonderzoeken()).stream().anyMatch(onderzoek -> isBezwaarActiefVoor(client, type, onderzoek));
+		}
 	}
 
 	public static boolean isBezwaarActiefVoor(Client client, BezwaarType type)
@@ -66,7 +80,7 @@ public class BezwaarUtil
 
 	public static boolean isVerwijderDossierHetEnigeBezwaar(BezwaarMoment moment)
 	{
-		if (moment.getBezwaren().isEmpty())
+		if (moment == null || moment.getBezwaren().isEmpty())
 		{
 			return false;
 		}

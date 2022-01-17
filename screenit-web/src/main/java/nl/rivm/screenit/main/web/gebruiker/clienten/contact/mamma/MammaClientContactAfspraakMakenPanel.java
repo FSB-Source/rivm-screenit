@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel;
@@ -34,6 +33,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel.C
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -60,7 +60,7 @@ public class MammaClientContactAfspraakMakenPanel extends AbstractClientContactA
 			@Override
 			public void afspraakAanmaken(AjaxRequestTarget target, IModel<Client> clientModel)
 			{
-				MammaAfspraakKiezenPanel newAfspraakWijzigenPanel = new MammaAfspraakKiezenPanel("afspraakWijzigenPanel", clientModel, false);
+				MammaAfspraakKiezenPanel newAfspraakWijzigenPanel = new MammaAfspraakKiezenPanel("afspraakWijzigenPanel", clientModel);
 				newAfspraakWijzigenPanel.setOutputMarkupId(true);
 
 				afspraakWijzigenPanel.replaceWith(newAfspraakWijzigenPanel);
@@ -84,6 +84,12 @@ public class MammaClientContactAfspraakMakenPanel extends AbstractClientContactA
 			{
 				ClientContactActieType contactActieType = MammaClientContactAfspraakMakenPanel.this.getModelObject().getType();
 				return afspraakService.magUitstellen(client.getObject().getMammaDossier(), ClientContactActieType.MAMMA_AFSPRAAK_MAKEN_FORCEREN.equals(contactActieType));
+			}
+
+			@Override
+			protected boolean rondeForcerenMeldingTonen()
+			{
+				return extraPanelParams.stream().anyMatch(p -> Constants.RONDE_FORCEREN_MELDING_BIJ_AFSPRAAK_MAKEN.equals(p.toString()));
 			}
 		});
 

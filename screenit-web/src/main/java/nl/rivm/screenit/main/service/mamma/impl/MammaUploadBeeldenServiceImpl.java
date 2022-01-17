@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -177,12 +177,41 @@ public class MammaUploadBeeldenServiceImpl implements MammaUploadBeeldenService
 	}
 
 	@Override
-	public void setGeenBeeldenBeschikbaar(MammaUploadBeeldenVerzoek uploadBeeldenVerzoek, InstellingGebruiker instellingGebruiker)
+	public void setGeenBeeldenBeschikbaar(MammaUploadBeeldenVerzoek verzoek, InstellingGebruiker instellingGebruiker) throws IllegalStateException
 	{
-		uploadBeeldenVerzoek.setStatus(MammaUploadBeeldenVerzoekStatus.GEEN_BEELDEN_BESCHIKBAAR);
-		uploadBeeldenVerzoek.setStatusDatum(dateSupplier.getDate());
-		hibernateService.saveOrUpdate(uploadBeeldenVerzoek);
-		logUploadVerzoekGebeurtenis(instellingGebruiker, uploadBeeldenVerzoek, "Geen beelden beschikbaar");
+		hibernateService.reload(verzoek);
+		if (MammaUploadBeeldenVerzoekStatus.BEELDEN_GEUPLOAD == verzoek.getStatus()
+			|| MammaUploadBeeldenVerzoekStatus.VERWERKT == verzoek.getStatus())
+		{
+			throw new IllegalStateException("Uploadverzoek heeft beelden");
+		}
+		if (MammaUploadBeeldenVerzoekStatus.GEEN_BEELDEN_BESCHIKBAAR == verzoek.getStatus())
+		{
+			return;
+		}
+		verzoek.setStatus(MammaUploadBeeldenVerzoekStatus.GEEN_BEELDEN_BESCHIKBAAR);
+		verzoek.setStatusDatum(dateSupplier.getDate());
+		hibernateService.saveOrUpdate(verzoek);
+		logUploadVerzoekGebeurtenis(instellingGebruiker, verzoek, "Geen beelden beschikbaar");
+	}
+
+	@Override
+	public void annuleerVerzoek(MammaUploadBeeldenVerzoek verzoek, InstellingGebruiker instellingGebruiker) throws IllegalStateException
+	{
+		hibernateService.reload(verzoek);
+		if (MammaUploadBeeldenVerzoekStatus.BEELDEN_GEUPLOAD == verzoek.getStatus()
+			|| MammaUploadBeeldenVerzoekStatus.VERWERKT == verzoek.getStatus())
+		{
+			throw new IllegalStateException("Uploadverzoek heeft beelden");
+		}
+		if (MammaUploadBeeldenVerzoekStatus.GEANNULEERD == verzoek.getStatus())
+		{
+			return;
+		}
+		verzoek.setStatus(MammaUploadBeeldenVerzoekStatus.GEANNULEERD);
+		verzoek.setStatusDatum(dateSupplier.getDate());
+		hibernateService.saveOrUpdate(verzoek);
+		logUploadVerzoekGebeurtenis(instellingGebruiker, verzoek, "Uploadverzoek geannuleerd");
 	}
 
 	private void logUploadVerzoekGebeurtenis(InstellingGebruiker instellingGebruiker, MammaUploadBeeldenVerzoek uploadBeeldenVerzoek, String melding)

@@ -5,7 +5,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.Date;
 
 import nl.rivm.screenit.dto.mamma.se.MammaKwaliteitsopnameDto;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
@@ -34,11 +35,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 
 public interface BerichtToBatchService
 {
-	void queueColonCDABericht(Long berichtId);
-
-	void queueCervixCDABericht(Long berichtId);
-
-	void queueMammaCDABericht(Long berichtId);
+	void queueCDABericht(Bevolkingsonderzoek bvo);
 
 	void queueHPVBericht(Long labId);
 
@@ -46,12 +43,16 @@ public interface BerichtToBatchService
 
 	void queueMammaUploadBeeldenVerzoekBericht();
 
+	void queueMammaIlmHl7v24BerichtUitgaand(Long uitnodigingsNr, Long clientId, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType);
+
 	void queueMammaIlmHL7v24BerichtUitgaand(MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType);
 
 	void queueMammaHL7v24BerichtUitgaand(Client client, MammaHL7v24ORMBerichtStatus status);
 
 	void queueMammaUploadBeeldenHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, Date onderzoeksDatum, MammaHL7v24ORMBerichtStatus status,
 		MammaHL7BerichtType berichtType);
+
+	void queueMammaUploadBeeldenHL7v24BerichtUitgaand(Long accessionNumber, Long clientId, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType);
 
 	void queueMammaKwaliteitsopnameHL7v24BerichtUitgaand(MammaKwaliteitsopnameDto kwaliteitsopname, MammaHL7v24ORMBerichtStatus status);
 
@@ -62,5 +63,4 @@ public interface BerichtToBatchService
 	void queueMammaBsnWijzigingenImsBericht(Client client, GbaMutatie mutatie);
 
 	void queueMammaVerzamelOnderzoeksDataBericht();
-
 }

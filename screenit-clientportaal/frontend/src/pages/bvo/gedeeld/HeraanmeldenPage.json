@@ -1,0 +1,45 @@
+{
+  "title": {
+    "heraanmelden": "Opnieuw aanmelden bevolkingsonderzoek"
+  },
+  "afmeldenText": "U heeft zich eerder afgemeld voor het bevolkingsonderzoek. Wilt u toch weer meedoen? Dat kan.",
+  "uitnodigingText": "U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent.",
+  "COLON": {
+    "uitnodiging": {
+      "infoText": "U kunt meedoen door de ontlastingstest die u eerder heeft gekregen in te sturen. ",
+      "hintText": "Heeft u de ontlastingstest niet meer? Of is de test te oud? Dan kunt u een nieuwe ontlastingstest aanvragen. Op het buisje ziet u tot wanneer u de ontlastingstest kunt gebruiken. </br></br> Kies hieronder of u een nieuwe ontlastingstest wilt ontvangen en klik daarna op ‘Opnieuw aanmelden’."
+    },
+    "afspraak": {
+      "infoText": "De vorige keer dat u meedeed, was er vervolgonderzoek nodig. Er was toen een afspraak gemaakt voor een gesprek over vervolgonderzoek.  Omdat u zich heeft afgemeld ging deze afspraak niet door. U kunt nu een nieuwe afspraak maken.",
+      "hintText": "Maakt u geen afspraak voor een gesprek over vervolgonderzoek? Dan krijgt u automatisch een nieuwe uitnodiging met ontlastingstest wanneer u weer aan de beurt bent."
+    }
+  },
+  "form": {
+    "title": {
+      "COLON": {
+        "uitnodiging": "Ik wil graag een nieuwe ontlastingstest",
+        "afspraak": "Wilt u een nieuwe afspraak maken voor een gesprek over vervolgonderzoek?"
+      }
+    },
+    "radio_button": {
+      "ja": "Ja",
+      "nee": "Nee"
+    },
+    "button": "Opnieuw aanmelden",
+    "error": "Maak uw keuze"
+  },
+  "toast": {
+    "CERVIX": {
+      "algemeen": "U heeft zich weer aangemeld voor het bevolkingsonderzoek. </br>U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent."
+    },
+    "COLON": {
+      "algemeen": "U heeft zich weer aangemeld voor het bevolkingsonderzoek. </br>U krijgt automatisch een nieuwe uitnodiging wanneer u weer aan de beurt bent.",
+      "uitnodiging": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek. </br>U krijgt binnen 14 dagen een nieuwe uitnodiging met ontlastingstest.",
+      "afspraak": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek. </br>U kunt een nieuwe afspraak maken voor een gesprek over vervolgonderzoek."
+    },
+    "MAMMA": {
+      "algemeen": "U heeft zich weer aangemeld voor het bevolkingsonderzoek. </br>U krijgt een uitnodiging en kunt op een later moment de afspraak inplannen.",
+      "afspraak": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek. </br>U kunt een nieuwe afspraak maken voor het onderzoek."
+    }
+  }
+}

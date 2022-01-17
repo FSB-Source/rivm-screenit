@@ -1,0 +1,109 @@
+﻿.react-form {
+  display: inline-block;
+  width: 100%;
+
+  &--link {
+    margin-bottom: 5px;
+    cursor: pointer;
+
+    &:hover {
+      color: $black;
+    }
+
+    h2 {
+      &:hover {
+        color: $black;
+        text-decoration: underline;
+      }
+    }
+
+    &:after {
+      display: inline-block;
+      font-size: 29px;
+      color: $pink;
+      position: relative;
+      top: -42px;
+      font-family: ElegantIcons;
+      content: "\32";
+      left: 226px;
+      height: 25px;
+      line-height: 27px;
+      transform-origin: 50% 50%;
+      -ms-transform-origin: 50% 50%;
+      -webkit-transform-origin: 50% 50%;
+      transform: rotate(180deg);
+      -ms-transform: rotate(180deg);
+      -webkit-transform: rotate(180deg);
+      overflow: hidden;
+      transition: All 180ms ease-out;
+      -webkit-transition: All 180ms ease-out;
+      -moz-transition: All 180ms ease-out;
+      -o-transition: All 180ms ease-out;
+    }
+  }
+
+  .umbraco-forms-form {
+    padding: 0 !important;
+  }
+
+  &--link[aria-expanded="true"] {
+
+    &:after {
+      transform: rotate(0);
+      -ms-transform: rotate(0);
+      -webkit-transform: rotate(0);
+    }
+  }
+
+  fieldset {
+    margin: -20px 0 0 !important;
+    padding: 0 !important;
+  }
+
+  .umbraco-forms-container {
+    padding: 0;
+    position: relative;
+
+    textarea {
+      width: 95%;
+
+      @media only screen and (max-width: 767px) {
+        width: 100%;
+      }
+    }
+
+    label {
+      line-height: 2;
+      margin-top: 18px;
+    }
+
+    .radiobuttonlist {
+      label {
+        font-weight: normal;
+      }
+    }
+
+    input[type="checkbox"] {
+      position: absolute;
+      margin-left: 0;
+      margin-top: -21px;
+    }
+
+    .umbraco-forms-indicator {
+      font-size: 14px;
+      color: $pink;
+    }
+
+
+    .input-validation-error {
+      background: rgba(227, 1, 121, 0.03);
+      border-color: $pink;
+    }
+
+    .checkbox {
+      label.umbraco-forms-label {
+        font-weight: normal;
+      }
+    }
+  }
+}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,9 +25,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.dao.mamma.MammaBaseOnderzoekDao;
+import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.dao.mamma.MammaBaseMammografieDao;
+import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -55,12 +58,15 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
+import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.KeyValue;
+import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.StringUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,11 +97,17 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private MammaBaseOnderzoekDao baseOnderzoekDao;
+	private MammaBaseMammografieDao baseMammografieDao;
 
 	@Autowired
 	@Lazy
 	private MammaBaseAfspraakService afspraakService;
+
+	@Autowired
+	private MammaBaseIlmService baseIlmService;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	@Override
 	public void onderzoekDoorvoerenVanuitSe(MammaOnderzoek onderzoek)
@@ -126,7 +138,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		if (onderzoekOnvolledigZonderFotos && !heeftEerdereBeeldenBinnenUitnodiging)
 		{
 			MammaScreeningRonde screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
-			briefService.maakMammaBrief(screeningRonde, BriefType.MAMMA_GEEN_ONDERZOEK);
+			briefService.maakBvoBrief(screeningRonde, BriefType.MAMMA_GEEN_ONDERZOEK);
 			setScreeningrondeStatus(screeningRonde, ScreeningRondeStatus.AFGEROND);
 			hibernateService.saveOrUpdate(screeningRonde);
 		}
@@ -175,13 +187,13 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	}
 
 	@Override
-	public MammaBeoordeling voegNieuweBeoordelingToe(MammaOnderzoek onderzoek)
+	public void voegNieuweBeoordelingToe(MammaOnderzoek onderzoek)
 	{
 		if (onderzoek.getBeoordelingen().isEmpty())
 		{
 			throw new IllegalStateException("Onderzoek moet een beoordeling hebben. Onderzoek id: " + onderzoek.getId());
 		}
-		return maakBeoordelingEnKoppelAanOnderzoek(onderzoek);
+		maakBeoordelingEnKoppelAanOnderzoek(onderzoek);
 	}
 
 	private MammaBeoordeling maakBeoordelingEnKoppelAanOnderzoek(MammaOnderzoek onderzoek)
@@ -248,12 +260,9 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	public void beeldenVerwijderdVoorOnderzoek(MammaIMSBericht bericht, Client client, boolean error)
 	{
 		Long accessionNumber = bericht.getAccessionNumber();
-		List<MammaOnderzoek> onderzoeken = baseOnderzoekDao.getOnderzoekenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
+		List<MammaMammografie> mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
 
-		onderzoeken.forEach(onderzoek -> {
-			MammaMammografie mammografie = onderzoek.getMammografie();
-			setMammografieStatus(mammografie, !error ? MammaMammografieIlmStatus.VERWIJDERD : MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT);
-		});
+		mammografieen.forEach(mammografie -> setMammografieStatus(mammografie, !error ? MammaMammografieIlmStatus.VERWIJDERD : MammaMammografieIlmStatus.VERWIJDEREN_MISLUKT));
 		if (error)
 		{
 			String melding = String.format("Fout bij het verwijderen van beelden voor accession number %s. Raadpleeg het IMS systeem voor verdere analyse.", accessionNumber);
@@ -264,6 +273,10 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 			logEvent.setClient(client);
 
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
+		}
+		else
+		{
+			baseIlmService.verwijderIlmBezwaarPoging(client.getMammaDossier(), accessionNumber);
 		}
 	}
 
@@ -358,7 +371,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		List<KeyValue> result = new ArrayList<>();
 		if (opSE)
 		{
-			addIfPresent("Extra MBB'er", onderzoek.getExtraMedewerker(), result);
+			addIfPresent("Extra MBB'er", naamExtraMedewerker(onderzoek), result);
 			addIfPresent("Opmerking MBB'er", onderzoek.getOpmerkingMbber(), result);
 		}
 		addIfPresent("Extra foto's", StringUtil.literals2string(onderzoek.getExtraFotosRedenen()), result);
@@ -383,15 +396,21 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		return result;
 	}
 
+	private String naamExtraMedewerker(MammaOnderzoek onderzoek)
+	{
+		var extraMedewerker = onderzoek.getExtraMedewerker();
+		return extraMedewerker != null ? NaamUtil.getNaamGebruiker(extraMedewerker.getMedewerker()) : null;
+	}
+
 	private String operatiesTekst(MammaOnderzoek onderzoek)
 	{
-		if (onderzoek.getOperatieLinks())
+		if (Boolean.TRUE.equals(onderzoek.getOperatieLinks()))
 		{
-			return onderzoek.getOperatieRechts() ? "Rechts en links" : "Links";
+			return Boolean.TRUE.equals(onderzoek.getOperatieRechts()) ? "Rechts en links" : "Links";
 		}
 		else
 		{
-			return onderzoek.getOperatieRechts() ? "Rechts" : null;
+			return Boolean.TRUE.equals(onderzoek.getOperatieRechts()) ? "Rechts" : null;
 		}
 	}
 
@@ -433,6 +452,29 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		}
 	}
 
+	@Override
+	public boolean forceerMammografieIlmStatus(long accessionNumber, MammaMammografieIlmStatus status, Account account)
+	{
+		List<MammaMammografie> mammografieen = baseMammografieDao.getMammografieenVanUitnodigingsNummerMetBeeldenTeVerwijderen(accessionNumber);
+		AtomicBoolean isChanged = new AtomicBoolean(false);
+		mammografieen.forEach(mammografie ->
+		{
+			if (mammografie.getIlmStatus() != MammaMammografieIlmStatus.VERWIJDERD)
+			{
+				setMammografieStatus(mammografie, MammaMammografieIlmStatus.VERWIJDERD);
+				isChanged.set(true);
+			}
+		});
+		if (isChanged.get())
+		{
+			String melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUpload: %b", accessionNumber, status.toString(), false, false);
+			LOG.info(melding);
+			Client client = mammografieen.get(0).getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient();
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_ILM_STATUS_GEFORCEERD, account, client, melding, Bevolkingsonderzoek.MAMMA);
+		}
+		return isChanged.get();
+	}
+
 	private void updateDossierMammografieVelden(MammaMammografie mammografie)
 	{
 		MammaAfspraak afspraak = mammografie.getOnderzoek().getAfspraak();
@@ -448,5 +490,18 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	private boolean heeftBeelden(MammaOnderzoek onderzoek)
 	{
 		return onderzoek != null && onderzoek.getMammografie() != null && onderzoek.getMammografie().getIlmStatus() == MammaMammografieIlmStatus.BESCHIKBAAR;
+	}
+
+	@Override
+	public boolean heeftBinnenMammografieIntervalGeenOnderzoekGehad(MammaDossier dossier)
+	{
+		if (dossier.getLaatsteMammografieAfgerond() != null)
+		{
+			int minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());
+			LocalDate referentieDatum = DateUtil.toLocalDate(dossier.getLaatsteMammografieAfgerond());
+			LocalDate minimaalIntervalOnderzoeken = referentieDatum.plusDays(minimaleIntervalMammografieOnderzoeken);
+			return !minimaalIntervalOnderzoeken.isAfter(currentDateSupplier.getLocalDate());
+		}
+		return true;
 	}
 }

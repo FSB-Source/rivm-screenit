@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-huisartsenportaal
  * %%
- * Copyright (C) 2016 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2016 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -103,6 +103,21 @@ function config($routeProvider, $httpProvider, OAuthProvider, OAuthTokenProvider
         controllerAs: 'ctrl'
     }).otherwise({
         redirectTo: '/'
+    });
+
+    OAuthProvider.configure({
+        baseUrl: './',
+        clientId: 'screenit',
+        clientSecret: '123456', 
+        grantPath: './oauth/token',
+        revokePath: './oauth/token/revoke'
+    });
+
+    OAuthTokenProvider.configure({
+        name: 'token',
+        options: {
+            secure: false
+        }
     });
 
     $httpProvider.interceptors.push('authHttpResponseInterceptor');

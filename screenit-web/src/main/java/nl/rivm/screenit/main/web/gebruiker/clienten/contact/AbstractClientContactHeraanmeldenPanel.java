@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
 
 import java.util.Map;
 
-import nl.rivm.screenit.service.ClientContactService;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonClientNieuweAfspraakMakenPanel;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Afmelding;
@@ -37,6 +34,8 @@ import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.Uitnodiging;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.radiochoice.BooleanRadioChoice;
 
@@ -52,6 +51,8 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 {
 	private static final long serialVersionUID = 1L;
 
+	private final IModel<Client> clientModel;
+
 	@SpringBean
 	private ClientContactService clientContactService;
 
@@ -61,10 +62,18 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 
 	protected IModel<A> herAanTeMeldenAfmeldingModel;
 
-	public AbstractClientContactHeraanmeldenPanel(String id, IModel<ClientContactActie> model, IModel<Client> client)
+	public AbstractClientContactHeraanmeldenPanel(String id, IModel<ClientContactActie> model, IModel<Client> clientModel)
 	{
 		super(id, model);
-		D dossier = getDossier(client.getObject());
+		this.clientModel = clientModel;
+	}
+
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+		D dossier = getDossier(clientModel.getObject());
+
 		A herAanTeMeldenAfmelding = null;
 
 		for (A afmelding : dossier.getAfmeldingen())
@@ -88,7 +97,7 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 				}
 			}
 		}
-		this.herAanTeMeldenAfmeldingModel = ModelUtil.cModel(herAanTeMeldenAfmelding);
+		this.herAanTeMeldenAfmeldingModel = ModelUtil.ccModel(herAanTeMeldenAfmelding);
 
 		add(new Label("heraanmeldtekst", "heraanmelden"));
 
@@ -119,6 +128,7 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 		{
 			add(new EmptyPanel("afspraakMaken").setVisible(false));
 		}
+
 	}
 
 	private boolean magColonNieuweUitnodigingAanvragen(D dossier)
@@ -147,6 +157,7 @@ public abstract class AbstractClientContactHeraanmeldenPanel<D extends Dossier<?
 	{
 		super.onDetach();
 		ModelUtil.nullSafeDetach(herAanTeMeldenAfmeldingModel);
+		ModelUtil.nullSafeDetach(clientModel);
 	}
 
 	protected abstract D getDossier(Client client);

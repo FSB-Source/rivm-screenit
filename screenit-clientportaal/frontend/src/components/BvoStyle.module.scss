@@ -1,0 +1,259 @@
+@import "src/scss/colors";
+
+*:not(.mamma, .cervix, .colon) {
+
+  svg {
+    fill: $blauw-base;
+  }
+
+  input[type=checkbox]:checked {
+    border: none;
+    background-color: $blauw-base;
+  }
+
+  .datePicker {
+
+    & * {
+      border-color: $blauw-base;
+    }
+
+  }
+}
+
+.mamma {
+
+  svg {
+    fill: $oranje-base;
+  }
+
+  .bvoText {
+    color: $oranje-base;
+    fill: $oranje-base;
+  }
+
+  input[type=checkbox]:checked {
+    border: none;
+    background-color: $oranje-base;
+  }
+
+  input[type=radio]:checked {
+    border-color: $oranje-base;
+  }
+
+  &.bvoNav {
+    border-color: $oranje-base !important;
+  }
+
+  .baseBackgroundColor {
+    background-color: $oranje-base;
+    color: $wit-base;
+
+    svg {
+      fill: $oranje-base;
+    }
+
+    &:disabled {
+      background-color: $grijs-600;
+      color: $grijs-900;
+      box-shadow: none;
+    }
+  }
+
+  .darkBackgroundColor {
+    background-color: $oranje-700;
+    color: $wit-base;
+
+    svg {
+      fill: $oranje-700;
+    }
+
+    &:disabled {
+      background-color: $grijs-600;
+      color: $grijs-900;
+      box-shadow: none;
+    }
+  }
+
+  .datePicker {
+    border-color: $oranje-base;
+  }
+
+  .light {
+    border-color: $oranje-base;
+    color: $oranje-base;
+  }
+
+}
+
+.mammaIcon {
+  rect, polyline, path, polygon, line, circle, ellipse {
+    stroke: $oranje-base;
+  }
+}
+
+.cervix {
+  svg {
+    fill: $roze-base;
+  }
+
+  .bvoText {
+    color: $roze-base;
+    fill: $roze-base;
+
+  }
+
+  input[type=checkbox]:checked {
+    background-color: $roze-base;
+  }
+
+  input[type=radio]:checked {
+    border-color: $roze-base;
+  }
+
+  &.bvoNav {
+    color: red;
+    border-color: $roze-base !important;
+  }
+
+  .darkBackgroundColor {
+    background-color: $roze-700 !important;
+    color: $wit-base;
+
+    svg {
+      fill: $roze-700;
+    }
+
+    &:disabled {
+      background-color: $grijs-600;
+      color: $grijs-900;
+      box-shadow: none;
+    }
+  }
+
+  .baseBackgroundColor {
+    background-color: $roze-base !important;
+    color: $wit-base;
+
+    svg {
+      fill: $roze-base;
+    }
+
+    &:disabled {
+      background-color: $grijs-600;
+      color: $grijs-900;
+      box-shadow: none;
+    }
+  }
+
+  .datePicker {
+    border-color: $roze-base;
+  }
+
+  .light {
+    border-color: $roze-base;
+    color: $roze-base;
+  }
+
+}
+
+.cervixIcon {
+  rect, polyline, path, polygon, line, circle, ellipse {
+    stroke: $roze-base;
+  }
+}
+
+.colon {
+  svg {
+    fill: $paars-base;
+  }
+
+  .bvoText {
+    color: $paars-base;
+    fill: $paars-base;
+
+  }
+
+  input[type=checkbox]:checked {
+    background-color: $paars-base;
+  }
+
+  input[type=radio]:checked {
+    border-color: $paars-base;
+  }
+
+  &.bvoNav {
+    border-color: $paars-base !important;
+  }
+
+  .baseBackgroundColor {
+    background-color: $paars-base !important;
+    color: $wit-base;
+
+    svg {
+      fill: $paars-base;
+    }
+
+    &:disabled {
+      background-color: $grijs-600;
+      color: $grijs-900;
+      box-shadow: none;
+    }
+  }
+
+  .darkBackgroundColor {
+    background-color: $paars-900 !important;
+    color: $wit-base;
+
+    svg {
+      fill: $paars-900;
+    }
+
+    &:disabled {
+      background-color: $grijs-600;
+      color: $grijs-900;
+      box-shadow: none;
+    }
+  }
+
+  .datePicker {
+    border-color: $paars-base;
+  }
+
+  .light {
+    border-color: $paars-base;
+    color: $paars-base;
+  }
+
+}
+
+.colonIcon {
+  rect, polyline, path, polygon, line, circle, ellipse {
+    stroke: $paars-base;
+  }
+}
+
+.baseBackgroundColor {
+  background-color: $blauw-base;
+
+  svg {
+    fill: $blauw-base;
+  }
+
+  &:disabled {
+    background-color: $grijs-600;
+    color: $grijs-900;
+    box-shadow: none;
+  }
+}
+
+.bvoNav {
+  border-color: $blauw-base !important;
+}
+
+.bvoText {
+  color: $blauw-base;
+}
+
+svg {
+  fill: $blauw-base;
+}

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.mdl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,7 +52,7 @@ public class MdlIncidentcomplicatie
 		@DSValueSetValue(code = "10", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.10"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Type incident/complicatie", extraTekst = "Registratie plaatsgevonden incident of complicatie", code = "2.16.840.1.113883.2.4.3.36.77.2.8.125070")
+	@VraagElement(displayName = "Type incident/complicatie", extraTekst = "Registratie plaatsgevonden incident of complicatie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125070")
 	private DSValue typeIncidentcomplicatie;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -63,10 +62,7 @@ public class MdlIncidentcomplicatie
 		@DSValueSetValue(code = "24484000", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "399166001", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(
-		displayName = "Ernst incident/complicatie",
-		extraTekst = "Mate waarin complicatie is opgetreden of ernst van het incident",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.125075")
+	@VraagElement(displayName = "Ernst incident/complicatie", extraTekst = "Mate waarin complicatie is opgetreden of ernst van het incident", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125075")
 	private DSValue ernstIncidentcomplicatie;
 
 	public MdlVerrichting getVerrichting()

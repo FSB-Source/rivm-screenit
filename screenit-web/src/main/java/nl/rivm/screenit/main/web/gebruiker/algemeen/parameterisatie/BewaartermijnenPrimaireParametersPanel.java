@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,7 +50,8 @@ public class BewaartermijnenPrimaireParametersPanel extends BasePrimaireParamete
 		Form<Parameterisatie> form = new Form<>("form");
 		form.add(new TextField<>("ilmBewaartermijn", Integer.class).add(RangeValidator.minimum(5475)).setRequired(true));
 		form.add(new TextField<>("ilmBewaartermijnNietMedisch", Integer.class).add(RangeValidator.minimum(1825)).setRequired(true));
-		form.add(new TextField<>("ilmSignaleertermijnBeeldenStatus", Integer.class).add(RangeValidator.minimum(1)).add(RangeValidator.maximum(99)).setRequired(true));
+		form.add(new TextField<>("ilmSignaleertermijnBeeldenStatus", Integer.class).add(RangeValidator.minimum(1)).setRequired(true));
+		form.add(new TextField<>("ilmBewaartermijnPalga", Integer.class).add(RangeValidator.minimum(1)).setRequired(true));
 		return form;
 	}
 

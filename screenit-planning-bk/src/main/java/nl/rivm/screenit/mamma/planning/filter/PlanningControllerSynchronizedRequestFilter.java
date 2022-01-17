@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.filter;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,8 @@ package nl.rivm.screenit.mamma.planning.filter;
  */
 
 import java.io.IOException;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -29,16 +31,24 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
+import nl.rivm.screenit.util.EnvironmentUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 
 public class PlanningControllerSynchronizedRequestFilter implements Filter
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(PlanningControllerSynchronizedRequestFilter.class);
 
-	private Object lock = new Object();
+	private static final Integer MAX_WACHTTIJD_LANGE_PLANNING_ACTIES = EnvironmentUtil.getIntegerEnvironmentVariable("MAX_WACHTTIJD_LANGE_PLANNING_ACTIES", 50);
+
+	private Semaphore semaphore = new Semaphore(1);
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException
@@ -46,13 +56,44 @@ public class PlanningControllerSynchronizedRequestFilter implements Filter
 	}
 
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-		throws IOException, ServletException
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
 	{
 		LOG.trace("Started");
-		synchronized (lock)
+		String path = ((HttpServletRequest) request).getRequestURI();
+		if (path.startsWith("/" + PlanningRestConstants.C_STATUS))
 		{
 			chain.doFilter(request, response);
+		}
+		else
+		{
+			try
+			{
+				boolean acquired = semaphore.tryAcquire(MAX_WACHTTIJD_LANGE_PLANNING_ACTIES, TimeUnit.SECONDS);
+				if (acquired)
+				{
+					try
+					{
+						chain.doFilter(request, response);
+					}
+					finally
+					{
+						semaphore.release();
+					}
+				}
+				else
+				{
+					LOG.info("locked");
+					HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+					httpServletResponse.setStatus(HttpStatus.LOCKED.value());
+				}
+
+			}
+			catch (InterruptedException e)
+			{
+				LOG.error("Fout bij wachten op kunnen uitvoeren van een taak", e);
+				HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+				httpServletResponse.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+			}
 		}
 		LOG.trace("Ended");
 	}
@@ -60,7 +101,6 @@ public class PlanningControllerSynchronizedRequestFilter implements Filter
 	@Override
 	public void destroy()
 	{
-
 	}
 
 }

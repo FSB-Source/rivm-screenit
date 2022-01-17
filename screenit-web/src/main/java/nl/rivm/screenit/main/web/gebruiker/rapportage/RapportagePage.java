@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.rapportage;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.rapportage;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.service.OpenIDConnectIdpService;
+import nl.rivm.screenit.main.service.IdpSingleSignOnService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
@@ -45,7 +45,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class RapportagePage extends GebruikerBasePage
 {
 	@SpringBean
-	private OpenIDConnectIdpService openIDConnectIdpService;
+	private IdpSingleSignOnService idpService;
 
 	public RapportagePage()
 	{
@@ -54,12 +54,11 @@ public class RapportagePage extends GebruikerBasePage
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				final String ssoUrl = openIDConnectIdpService.createWebFocusSsoUrl(ScreenitSession.get().getLoggedInInstellingGebruiker());
+				final String ssoUrl = idpService.createWebFocusSsoUrl(ScreenitSession.get().getLoggedInInstellingGebruiker());
 				final String javaScriptString = String.format("window.open('%s', '_blank')", ssoUrl);
 				target.appendJavaScript(javaScriptString);
 			}
 		};
-		webFocusLink.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_RAPPORTAGE_WEBFOCUS, Actie.INZIEN));
 
 		webFocusLink.setOutputMarkupPlaceholderTag(true);
 		add(webFocusLink);

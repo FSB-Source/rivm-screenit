@@ -1,0 +1,19 @@
+@import "src/scss/colors";
+
+.results {
+  svg {
+    fill: $wit-base;
+  }
+
+  .seperateButtonArea {
+    text-align: center;
+  }
+}
+
+.datepicker {
+  width: 100%;
+}
+
+.button {
+  margin-top: 20px;
+}

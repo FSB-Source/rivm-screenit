@@ -1,0 +1,88 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.titelBox {
+  margin-bottom: 20px;
+
+  .titel {
+    font-size: 0.70rem;
+    width: 100%
+  }
+
+  .tekstTitel {
+    display: inline-block;
+    font-size: 1.17rem;
+    width: 100%;
+  }
+
+}
+
+.adresBox {
+	.adresLocatie {
+		line-height: 0.8rem;
+		font-size: 0.82rem;
+		width: 100%;
+	}
+}
+
+.link {
+  font-size: 0.82rem;
+}
+
+.arrow {
+  path {
+    fill: $blauw-base;
+  }
+}
+
+.outerBox {
+  .link {
+    padding: 0;
+    margin-top: 20px;
+  }
+}
+
+.outerBlobBox {
+  position: relative;
+  height: 312px;
+
+  .blobBox {
+    position: absolute;
+    width: 340px;
+    height: 312px;
+
+    svg {
+      position: absolute;
+    }
+
+    .titelBox {
+      margin: 40px 0 20px 100px;
+      position: relative;
+    }
+
+    .adresBox {
+      position: relative;
+      margin-left: 100px;
+
+      .adresLocatie {
+        position: relative;
+      }
+    }
+
+    .link {
+      position: absolute;
+      top: 240px;
+      width: 100%;
+      left: 85px;
+    }
+
+    .arrow {
+      position: absolute;
+      top: 250px;
+      left: 175px;
+    }
+  }
+}
+
+
+

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ========================LICENSE_START=================================
+  screenit-clientportaal
+  %%
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<svg width="8px" height="10px" viewbox="0 0 8 10" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <path d="M7.82609 3.58528L4.40134 0.160534C4.37458 0.133778 4.3456 0.109253 4.31438 0.0869562C4.28317 0.0646593 4.25418 0.0535126 4.22743 0.0535126C4.17391 0.0178375 4.10703 0 4.02676 0C3.94649 0 3.86176 0.0178375 3.77258 0.0535126C3.74582 0.0802689 3.71683 0.0981029 3.68562 0.107022C3.6544 0.11594 3.62542 0.133778 3.59866 0.160534L0.173913 3.58528C0.0579705 3.70123 0 3.83501 0 3.98662C0 4.13824 0.0579705 4.27202 0.173913 4.38796C0.289856 4.5039 0.423634 4.56188 0.575251 4.56188C0.726868 4.56188 0.860646 4.5039 0.976589 4.38796L3.42475 1.92642L3.42475 8.77146C3.42475 8.94092 3.47826 9.07692 3.58528 9.17949C3.69231 9.28205 3.83055 9.33333 4 9.33333C4.16946 9.33333 4.30769 9.28205 4.41472 9.17949C4.52174 9.07692 4.57525 8.94092 4.57525 8.77146L4.57525 1.92642L7.02341 4.38796C7.08584 4.44147 7.15496 4.48383 7.23077 4.51505C7.30658 4.54627 7.37124 4.56188 7.42475 4.56188C7.47826 4.56188 7.54292 4.54627 7.61873 4.51505C7.69454 4.48383 7.76366 4.44147 7.82609 4.38796C7.94203 4.27202 8 4.13824 8 3.98662C8 3.83501 7.94203 3.70123 7.82609 3.58528Z" id="Icon" fill="#006DAB" fill-rule="evenodd" stroke="none" />
+</svg>

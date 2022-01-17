@@ -1,0 +1,111 @@
+﻿.faq {
+  margin: auto auto 142px;
+  max-width: 770px;
+  z-index: 100;
+  position: relative;
+
+  @include respond-below(md) {
+    margin: auto auto 40px;
+  }
+
+  @include respond-between(sm, lg) {
+    margin-bottom: 140px;
+  }
+
+  &--title {
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .intro {
+    margin: 20px 0;
+
+    @include respond-below(md) {
+      text-align: left;
+    }
+  }
+
+  .faq-list {
+    margin-bottom: 14px;
+    list-style-type: none;
+    padding: 0;
+
+    &--item {
+      border: 1px solid #D0D2D3;
+      background: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+
+      ul {
+        list-style-type: none;
+
+        li {
+          line-height: 2;
+          &:before {
+            content: "\f111";
+            font-family: FontAwesome;
+            font-size: calc-em(10);
+            margin-right: 12px;
+            color: $blue;
+            position: absolute;
+            left: 15px;
+            margin: 8px 0 0 0;
+          }
+        }
+      }
+
+      a {
+        color: $blue;
+      }
+
+
+      &:before {
+        content: "";
+      }
+
+      &__link {
+        color: $black;
+        cursor: pointer;
+        font-weight: 700;
+        line-height: 1.4;
+
+        &:hover {
+          text-decoration: none;
+          color: $black;
+        }
+
+        &:before {
+          content: "\f105";
+          font-family: FontAwesome;
+          font-size: calc-em(26);
+          margin-right: 12px;
+          color: $blue;
+          font-weight: 300;
+          float: right;
+          position: relative;
+          bottom: 6px;
+          left: 12px;
+        }
+
+        &[aria-expanded="true"] {
+          &:before {
+            content: "\f107";
+          }
+        }
+      }
+    }
+
+    .faq-answer {
+      margin-top: 8px;
+      font-size: calc-em(16);
+      -webkit-transition-property: height, visibility;
+      transition-property: height, visibility;
+      -webkit-transition-duration: 0.2s;
+      transition-duration: 0.2s;
+      -webkit-transition-timing-function: ease-in-out;
+      transition-timing-function: ease;
+      position: relative;
+    }
+  }
+}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import nl.rivm.screenit.batch.service.CervixHL7BaseService;
 import nl.rivm.screenit.batch.service.CervixMaakHpvOruBerichtService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 
 import org.slf4j.Logger;
@@ -112,11 +112,11 @@ public class CervixMaakHpvOruBerichtServiceImpl implements CervixMaakHpvOruBeric
 	private void setObx1_HpvUitslag_ObservationValue(ORU_R01 oruBericht, CervixMonster monster, OBX obx1) throws DataTypeException
 	{
 		FT hpvUitslagWaarde = new FT(oruBericht);
-		if (CervixHpvUitslag.POSITIEF.equals(monster.getLaatsteHpvBeoordeling().getHpvUitslag()))
+		if (CervixHpvBeoordelingWaarde.POSITIEF.equals(monster.getLaatsteHpvBeoordeling().getHpvUitslag()))
 		{
 			hpvUitslagWaarde.setValue(OBX1_HPV_POSITIEF);
 		}
-		else if (CervixHpvUitslag.NEGATIEF.equals(monster.getLaatsteHpvBeoordeling().getHpvUitslag()))
+		else if (CervixHpvBeoordelingWaarde.NEGATIEF.equals(monster.getLaatsteHpvBeoordeling().getHpvUitslag()))
 		{
 			hpvUitslagWaarde.setValue(OBX1_HPV_NEGATIEF);
 		}

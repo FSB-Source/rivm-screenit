@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.mdl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -58,15 +57,11 @@ public class MdlLaesiecoloscopiecentrum
 	private MdlVerslagContent verslagContent;
 
 	@Column(length = 255)
-	@VraagElement(
-		displayName = "Nummer potje monster",
-		extraTekst = "Nummer potje afgenomen materiaal zoals ingestuurd voor pathologie (bijvoorbeeld: I, II, III, IV, of 1, 2, 3)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145050",
-		isVerplicht = true)
+	@VraagElement(displayName = "Nummer potje monster", extraTekst = "Nummer potje afgenomen materiaal zoals ingestuurd voor pathologie (bijvoorbeeld: I, II, III, IV, of 1, 2, 3)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145050", isVerplicht = true)
 	private String nummerPotjeMonster;
 
 	@Column(length = 255)
-	@VraagElement(displayName = "Monster identificatie", extraTekst = "Unieke monster identificatie (bijvoorbeeld T12-12345.I)", code = "2.16.840.1.113883.2.4.3.36.77.2.8.145054")
+	@VraagElement(displayName = "Monster identificatie", extraTekst = "Unieke monster identificatie (bijvoorbeeld T12-12345.I)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145054")
 	private String monsterIdentificatie;
 
 	@Embedded
@@ -76,16 +71,13 @@ public class MdlLaesiecoloscopiecentrum
 		@AttributeOverride(name = "unit", column = @Column(name = "volgnummerLaesieUnit")),
 		@AttributeOverride(name = "nullFlavour", column = @Column(name = "volgnummerLaesieNf"))
 	})
-	@VraagElement(displayName = "Volgnummer laesie", extraTekst = "Volgnummer laesie", code = "2.16.840.1.113883.2.4.3.36.77.2.8.145053", isVerplicht = true, unit = {
+	@VraagElement(displayName = "Volgnummer laesie", extraTekst = "Volgnummer laesie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145053", isVerplicht = true, unit = {
 		@VraagElementUnit(unit = "aantal")
 	})
 	private NullFlavourQuantity volgnummerLaesie;
 
 	@Column
-	@VraagElement(
-		displayName = "Materiaal (laesie) ingezonden voor pathologie",
-		extraTekst = "Materiaal (laesie) ingezonden voor pathologie",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145052")
+	@VraagElement(displayName = "Materiaal (laesie) ingezonden voor pathologie", extraTekst = "Materiaal (laesie) ingezonden voor pathologie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145052")
 	private Boolean materiaallaesieIngezondenVoorPathologie;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -112,13 +104,10 @@ public class MdlLaesiecoloscopiecentrum
 		@DSValueSetValue(code = "41796003", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "256874006", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "245857005", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "83856002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(
-		displayName = "Lokalisatie laesie",
-		extraTekst = "Lokalisatie van de gedetecteerde laesie in het colon",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145060",
-		isVerplicht = true)
+	@VraagElement(displayName = "Lokalisatie laesie", extraTekst = "Lokalisatie van de gedetecteerde laesie in het colon", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145060", isVerplicht = true)
 	private DSValue lokalisatieLaesie;
 
 	@Embedded
@@ -127,14 +116,9 @@ public class MdlLaesiecoloscopiecentrum
 		@AttributeOverride(name = "value", column = @Column(name = "afstandVanafAnusValue")),
 		@AttributeOverride(name = "unit", column = @Column(name = "afstandVanafAnusUnit"))
 	})
-	@VraagElement(
-		displayName = "Afstand vanaf anus",
-		extraTekst = "Afstand vanaf anus (in cm), als alternatief indien localisatie laesie niet is ingevuld",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145061",
-		isVerplicht = true,
-		unit = {
-			@VraagElementUnit(unit = "cm", min = "1.0", max = "200.0")
-		})
+	@VraagElement(displayName = "Afstand vanaf anus", extraTekst = "Afstand vanaf anus (in cm), als alternatief indien localisatie laesie niet is ingevuld", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145061", isVerplicht = true, unit = {
+		@VraagElementUnit(unit = "cm", min = "1.0", max = "200.0")
+	})
 	private Quantity afstandVanafAnus;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -143,11 +127,7 @@ public class MdlLaesiecoloscopiecentrum
 		@DSValueSetValue(code = "258415003", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "NA", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(
-		displayName = "Type afgenomen materiaal",
-		extraTekst = "Materiaal dat is afgenomen tijdens coloscopie per poliep",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145070",
-		isVerplicht = true)
+	@VraagElement(displayName = "Type afgenomen materiaal", extraTekst = "Materiaal dat is afgenomen tijdens coloscopie per poliep", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145070", isVerplicht = true)
 	private DSValue typeAfgenomenMateriaal;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -165,38 +145,27 @@ public class MdlLaesiecoloscopiecentrum
 		@DSValueSetValue(code = "35917007", codeSystem = "2.16.840.1.113883.6.96", deprecated = true),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(
-		displayName = "Klinische diagnose",
-		extraTekst = "Macroscopische diagnose (per poliep) zoals gesteld door endoscopist",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145040")
+	@VraagElement(displayName = "Klinische diagnose", extraTekst = "Macroscopische diagnose (per poliep) zoals gesteld door endoscopist", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145040")
 	private DSValue klinischeDiagnose;
 
 	@Column(length = 4096)
-	@VraagElement(displayName = "Overige klinische diagnose (tekst)", extraTekst = "Overige klinische diagnose (tekst)", code = "2.16.840.1.113883.2.4.3.36.77.2.8.145042")
+	@VraagElement(displayName = "Overige klinische diagnose (tekst)", extraTekst = "Overige klinische diagnose (tekst)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145042")
 	private String overigeKlinischeDiagnosetekst;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "laesiecoloscopiecentrum", cascade = CascadeType.ALL)
-	@VraagElement(
-		displayName = "Poliep",
-		extraTekst = "Gegevens van een poliep zoals vastgesteld door endoscopist",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145019",
-		isReference = true)
+	@VraagElement(displayName = "Poliep", extraTekst = "Gegevens van een poliep zoals vastgesteld door endoscopist", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145019", isReference = true)
 	private MdlPoliep poliep;
 
 	@Column
-	@VraagElement(displayName = "Verdenking carcinoom ja/nee", extraTekst = "Verdenking carcinoom ja/nee", code = "2.16.840.1.113883.2.4.3.36.77.2.8.145105", isVerplicht = true)
+	@VraagElement(displayName = "Verdenking carcinoom ja/nee", extraTekst = "Verdenking carcinoom ja/nee", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145105", isVerplicht = true)
 	private Boolean verdenkingCarcinoomJanee;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "laesiecoloscopiecentrum", cascade = CascadeType.ALL)
-	@VraagElement(
-		displayName = "(Verdenking van) carcinoom",
-		extraTekst = "Gegevens indien sprake is van (verdenking van) een carcinoom",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145104",
-		isReference = true)
+	@VraagElement(displayName = "(Verdenking van) carcinoom", extraTekst = "Gegevens indien sprake is van (verdenking van) een carcinoom", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145104", isReference = true)
 	private MdlVanCarcinoom vanCarcinoom;
 
 	@Column
-	@VraagElement(displayName = "Markering geplaatst", extraTekst = "Of er een markering (tatoeage) is geplaatst", code = "2.16.840.1.113883.2.4.3.36.77.2.8.145092")
+	@VraagElement(displayName = "Markering geplaatst", extraTekst = "Of er een markering (tatoeage) is geplaatst", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145092")
 	private Boolean markeringGeplaatst;
 
 	public MdlVerslagContent getVerslagContent()

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.populatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,16 +38,14 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectPaspoortPan
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.GroepInvoer;
+import nl.rivm.screenit.model.project.GroepSelectieType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ProjectService;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -73,13 +71,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA })
 public class PopulatiePage extends ProjectBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private final BootstrapDialog dialog;
-
-	@SpringBean
-	private HibernateService hibernateService;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
@@ -87,21 +79,16 @@ public class PopulatiePage extends ProjectBasePage
 	@SpringBean
 	private ProjectService projectService;
 
-	@SpringBean
-	private LogService logService;
-
 	private WebMarkupContainer groepenContainer;
 
 	private IModel<ProjectGroep> zoekModel;
-
-	private IModel<Project> projectModel;
 
 	public PopulatiePage(IModel<Project> model)
 	{
 		super(model);
 
-		zoekModel = ModelUtil.cModel(new ProjectGroep(model.getObject()));
-		projectModel = model;
+		zoekModel = ModelUtil.ccModel(new ProjectGroep());
+		zoekModel.getObject().setProject(model.getObject());
 
 		if (!ScreenitSession.get().isZoekObjectGezetForComponent(PopulatiePage.class))
 		{
@@ -114,23 +101,22 @@ public class PopulatiePage extends ProjectBasePage
 		add(new AjaxLink<Void>("groepToevoegen")
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				setResponsePage(new ProjectGroepEditPage((IModel<Project>) PopulatiePage.this.getDefaultModel()));
+				setResponsePage(new ProjectGroepEditPage(getProjectModel()));
 			}
 
 			@Override
-			public boolean isVisible()
+			public void onConfigure()
 			{
-				Project project = projectModel.getObject();
+				super.onConfigure();
+				Project project = getProjectModel().getObject();
 				Date eindDatum = project.getEindDatum();
 				Date nu = currentDateSupplier.getDate();
 				boolean levelProject = getToegangsLevel(Recht.GEBRUIKER_PROJECT_SELECTIE, Actie.TOEVOEGEN) != null;
 				boolean levelBriefproject = getToegangsLevel(Recht.GEBRUIKER_BRIEFPROJECT_SELECTIE, Actie.TOEVOEGEN) != null;
-				return !eindDatum.before(nu) && (levelProject || levelBriefproject);
+				setVisible(!eindDatum.before(nu) && (levelProject || levelBriefproject) && project.getGroepSelectieType() == GroepSelectieType.STATISCH);
 			}
 		});
 
@@ -145,13 +131,10 @@ public class PopulatiePage extends ProjectBasePage
 		groepenContainer.setOutputMarkupId(true);
 
 		List<IColumn<ProjectGroep, String>> columns = new ArrayList<IColumn<ProjectGroep, String>>();
-		columns.add(new PropertyColumn<ProjectGroep, String>(Model.of("Naam"), "naam"));
-		columns.add(new PropertyColumn<ProjectGroep, String>(Model.of("Populatie"), "populatie"));
-		columns.add(new AbstractColumn<ProjectGroep, String>(Model.of("Inactief"))
+		columns.add(new PropertyColumn<>(Model.of("Naam"), "naam"));
+		columns.add(new PropertyColumn<>(Model.of("Populatie"), "populatie"));
+		columns.add(new AbstractColumn<>(Model.of("Inactief"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ProjectGroep>> cellItem, String componentId, IModel<ProjectGroep> rowModel)
 			{
@@ -160,38 +143,22 @@ public class PopulatiePage extends ProjectBasePage
 			}
 		});
 		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-		columns.add(new DateTimePropertyColumn<ProjectGroep, String>(Model.of("Push"), "uitnodigingenPushenNa", "uitnodigingenPushenNa", format));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Push"), "uitnodigingenPushenNa", "uitnodigingenPushenNa", format));
 		columns.add(new EnumPropertyColumn<ProjectGroep, String, GroepInvoer>(Model.of("Type"), "groepInvoer"));
 		columns
-			.add(new ActiefPropertyColumn<ProjectGroep, ProjectGroep>(Model.of("Actief"), "actief", groepenContainer, zoekModel, true, dialog, "question.project.inactiveer.groep")
+			.add(new ActiefPropertyColumn<>(Model.of("Actief"), "actief", groepenContainer, zoekModel, true, dialog, "question.project.inactiveer.groep")
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				protected void onAfterToggleActief(AjaxRequestTarget target, ProjectGroep actiefObject)
 				{
-					actiefObject.setActiefDatum(currentDateSupplier.getDate());
-					hibernateService.saveOrUpdate(actiefObject);
+					String melding = projectService.updateProjectGroepActiefStatus(actiefObject, ScreenitSession.get().getLoggedInAccount());
+					info(melding);
 
 					WebMarkupContainer container = getGroepenDataTable();
 					PopulatiePage.this.groepenContainer.replaceWith(container);
 					PopulatiePage.this.groepenContainer = container;
 					target.add(PopulatiePage.this.groepenContainer);
-					if (actiefObject.getProject().getType().equals(ProjectType.BRIEFPROJECT))
-					{
-						String melding = "Briefproject: " + actiefObject.getProject().getNaam() + " Groep: " + actiefObject.getNaam() + " Populatie: " + actiefObject.getPopulatie()
-							+ " en is op " + (actiefObject.getActief() ? "actief" : "inactief") + " gezet.";
-						info(melding);
-						logService.logGebeurtenis(LogGebeurtenis.BRIEFPROJECT_GROEP_GEWIJZIGD, ScreenitSession.get().getLoggedInAccount(), melding);
-					}
-					else
-					{
-						String melding = "Project: " + actiefObject.getProject().getNaam() + " Groep: " + actiefObject.getNaam() + " Populatie: " + actiefObject.getPopulatie()
-							+ " en is op " + (actiefObject.getActief() ? "actief" : "inactief") + " gezet.";
-						info(melding);
-						logService.logGebeurtenis(LogGebeurtenis.PROJECT_GROEP_GEWIJZIGD, ScreenitSession.get().getLoggedInAccount(), melding);
-					}
 				}
 			});
 
@@ -203,27 +170,12 @@ public class PopulatiePage extends ProjectBasePage
 				@Override
 				public void onClickDeleteAction(AjaxRequestTarget target, IModel<ProjectGroep> rowModel)
 				{
-					ProjectGroep groep = rowModel.getObject();
-					Project project = (Project) PopulatiePage.this.getDefaultModelObject();
-					project.getGroepen().remove(groep);
-					hibernateService.delete(groep);
-					hibernateService.saveOrUpdate(project);
+					projectService.verwijderProjectGroep(ModelProxyHelper.deproxy(rowModel.getObject()), ScreenitSession.get().getLoggedInAccount());
 
 					WebMarkupContainer container = getGroepenDataTable();
 					PopulatiePage.this.groepenContainer.replaceWith(container);
 					PopulatiePage.this.groepenContainer = container;
 					target.add(PopulatiePage.this.groepenContainer);
-
-					if (project.getType().equals(ProjectType.BRIEFPROJECT))
-					{
-						logService.logGebeurtenis(LogGebeurtenis.BRIEFPROJECT_GROEP_VERWIJDERD, ScreenitSession.get().getLoggedInAccount(),
-							"Briefproject: " + project.getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie());
-					}
-					else
-					{
-						logService.logGebeurtenis(LogGebeurtenis.PROJECT_GROEP_VERWIJDERD, ScreenitSession.get().getLoggedInAccount(),
-							"Project: " + project.getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie());
-					}
 				}
 
 				@Override
@@ -239,12 +191,10 @@ public class PopulatiePage extends ProjectBasePage
 			Model.of("Groepen"))
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ProjectGroep> model)
 			{
-				setResponsePage(new ProjectGroepEditPage(ModelUtil.cModel(model.getObject()), (IModel<Project>) PopulatiePage.this.getDefaultModel()));
+				setResponsePage(new ProjectGroepEditPage(ModelUtil.ccModel(model.getObject()), (IModel<Project>) PopulatiePage.this.getDefaultModel()));
 			}
 		};
 		groepenContainer.add(dataTable);

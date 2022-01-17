@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,10 +23,10 @@ package nl.rivm.screenit.mamma.se.service.impl;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
@@ -41,9 +41,9 @@ import nl.rivm.screenit.mamma.se.service.dtomapper.VorigOnderzoekDtoMapper;
 import nl.rivm.screenit.mamma.se.websocket.socket.SeProxyWebsocket;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
@@ -58,18 +58,16 @@ import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class DaglijstServiceImpl implements DaglijstService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(DaglijstServiceImpl.class);
 
 	@Autowired
 	private MammaAfsprakenDao afsprakenDao;
@@ -114,7 +112,7 @@ public class DaglijstServiceImpl implements DaglijstService
 	@Override
 	public List<AfspraakSeDto> readDaglijst(LocalDate datum, String seCode)
 	{
-		List<AfspraakSeDto> afspraakDtos = baseAfspraakDao
+		var afspraakDtos = baseAfspraakDao
 			.getAfspraken(seCode, DateUtil.toUtilDate(datum), DateUtil.toUtilDate(datum.plusDays(1)), MammaAfspraakStatus.NIET_GEANNULEERD.toArray(new MammaAfspraakStatus[] {}))
 			.stream()
 			.filter(afspraak -> afspraak.getId().equals(afspraak.getUitnodiging().getLaatsteAfspraak().getId()))
@@ -138,7 +136,7 @@ public class DaglijstServiceImpl implements DaglijstService
 
 	private AfspraakSeDto createAfspraakDto(MammaAfspraak afspraak)
 	{
-		AfspraakSeDto afspraakSeDto = afspraakDtoMapper.createAfspraakSeDto(afspraak);
+		var afspraakSeDto = afspraakDtoMapper.createAfspraakSeDto(afspraak);
 		updateAfspraakDtoBijzonderhedenZelfdeRonde(afspraak, afspraakSeDto);
 		updateAfspraakDtoMetOpkomstTellers(afspraak, afspraakSeDto);
 		updateClientDtoMetVorigeOnderzoeken(afspraak, afspraakSeDto.getClient());
@@ -147,8 +145,8 @@ public class DaglijstServiceImpl implements DaglijstService
 
 	private void updateClientDtoMetVorigeOnderzoeken(MammaAfspraak afspraak, ClientSeDto clientSeDto)
 	{
-		MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
-		MammaScreeningsEenheid daglijstSe = afspraak.getStandplaatsPeriode().getScreeningsEenheid();
+		var dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
+		var daglijstSe = afspraak.getStandplaatsPeriode().getScreeningsEenheid();
 
 		clientSeDto.setVorigeOnderzoeken(
 			baseDossierService.laatste3AfgerondeRondesMetOnderzoek(dossier)
@@ -182,8 +180,8 @@ public class DaglijstServiceImpl implements DaglijstService
 			LOG.error(String.format("Exception bij opbouwen logmelding tijdens het mappen van een vorig onderzoek, ronde id: %s", ronde.getId()));
 			LOG.error(exception.getMessage(), exception);
 		}
-		String clientId = client != null ? client.getId().toString() : "onbekende client";
-		String seCode = daglijstSe != null ? daglijstSe.getCode() : "onbekende SE";
+		var clientId = client != null ? client.getId().toString() : "onbekende client";
+		var seCode = daglijstSe != null ? daglijstSe.getCode() : "onbekende SE";
 		LOG.error(String.format("Fout tijdens opbouwen vorig onderzoek (ronde %s) van client: %s in %s", ronde.getId(), clientId, seCode));
 		sendErrorEmail(seCode);
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_SE_DAGLIJST_OPBOUWEN_ERROR, daglijstSe, null, client, "Neem contact op met Topicus", currentDateSupplier.getLocalDateTime());
@@ -191,34 +189,34 @@ public class DaglijstServiceImpl implements DaglijstService
 
 	private void sendErrorEmail(String se)
 	{
-		String emailadressen = simplePreferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
+		var emailadressen = simplePreferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
 		if (emailadressen != null)
 		{
-			String subject = String.format("ScreenIT foutieve historische data op %s", applicationEnvironment);
-			String content = String.format("Bij het maken van een daglijst voor %s is een fout opgetreden. <br />" + 
+			var subject = String.format("ScreenIT foutieve historische data op %s", applicationEnvironment);
+			var content = String.format("Bij het maken van een daglijst voor %s is een fout opgetreden. <br />" + 
 				"Dit heeft tot gevolg dat de historische rondes bij een onderzoek niet getoond konden worden. <br />" + 
 				"Controleer in de applicatielogging van ScreenIT welke client het betreft en neem contact op met Topicus. <br />" +
 				"Zoek op 'Fout tijdens vorig onderzoek opbouwen' als gebeurtenis in algemeen>logging inzien", se);
-			mailService.sendEmail(emailadressen, subject, content, MailService.MailPriority.HIGH);
+			mailService.queueMail(emailadressen, subject, content, MailPriority.HIGH);
 		}
 	}
 
 	private boolean afsprakenKunnenGeopendWordenOpSe(LocalDate afspraakDatum)
 	{
-		LocalDate vandaag = currentDateSupplier.getLocalDate();
+		var vandaag = currentDateSupplier.getLocalDate();
 		return !afspraakDatum.isBefore(vandaag);
 	}
 
 	private void updateAfspraakDtoBijzonderhedenZelfdeRonde(MammaAfspraak afspraak, AfspraakSeDto afspraakSeDto)
 	{
 
-		boolean eerderOnderbrokenInZelfdeRonde = afspraak.getUitnodiging().getScreeningRonde().getUitnodigingen().stream()
+		var eerderOnderbrokenInZelfdeRonde = afspraak.getUitnodiging().getScreeningRonde().getUitnodigingen().stream()
 			.flatMap(uitnodiging -> uitnodiging.getAfspraken().stream())
 			.filter(rondeAfspraak -> rondeAfspraak.getOnderzoek() != null && !rondeAfspraak.getId().equals(afspraak.getId()))
 			.anyMatch(rondeAfspraak -> rondeAfspraak.getOnderzoek().getStatus() == MammaOnderzoekStatus.ONDERBROKEN);
 		afspraakSeDto.setEerderOnderbrokenInZelfdeRonde(eerderOnderbrokenInZelfdeRonde);
 
-		Optional<MammaBeoordeling> opgeschorteBeoordelingResult = mammaBaseBeoordelingService.zoekOpgeschorteBeoordelingInRonde(afspraak.getUitnodiging().getScreeningRonde(),
+		var opgeschorteBeoordelingResult = mammaBaseBeoordelingService.zoekOpgeschorteBeoordelingInRonde(afspraak.getUitnodiging().getScreeningRonde(),
 			MammaBeoordelingOpschortenReden.AANVULLENDE_BEELDEN_NODIG_SE);
 
 		afspraakSeDto.setEerdereOpschortenReden(opgeschorteBeoordelingResult.map(MammaBeoordeling::getOpschortReden).orElse(null));
@@ -228,18 +226,18 @@ public class DaglijstServiceImpl implements DaglijstService
 
 	private void updateAfspraakDtoMetOpkomstTellers(MammaAfspraak afspraak, AfspraakSeDto afspraakSeDto)
 	{
-		MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
+		var dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
 		afspraakSeDto.setAantalOproepen(baseDossierService.aantalOproepen(dossier));
 		afspraakSeDto.setAantalOpgekomen(baseDossierService.aantalOpgekomenSE(dossier));
 	}
 
 	private void setDefaultIdentificaties(List<AfspraakSeDto> afspraakDtos)
 	{
-		List<Long> clientIds = afspraakDtos.stream().map(afspraakDto -> afspraakDto.getClient().getId()).collect(Collectors.toList());
+		var clientIds = afspraakDtos.stream().map(afspraakDto -> afspraakDto.getClient().getId()).collect(Collectors.toList());
 		if (!clientIds.isEmpty())
 		{
-			Map<Long, ClientIdentificatie> laatsteIdentificaties = afsprakenDao.readLaatsteIdentificatieVanClienten(clientIds);
-			for (AfspraakSeDto afspraakDto : afspraakDtos)
+			var laatsteIdentificaties = afsprakenDao.readLaatsteIdentificatieVanClienten(clientIds);
+			for (var afspraakDto : afspraakDtos)
 			{
 				ClientIdentificatie laatsteIdentificatie = laatsteIdentificaties.get(afspraakDto.getClient().getId());
 				if (laatsteIdentificatie != null)

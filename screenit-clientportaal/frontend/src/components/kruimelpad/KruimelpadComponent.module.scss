@@ -1,0 +1,48 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.style {
+	margin-bottom: 50px;
+
+	@include respond-below(xs) {
+		margin-bottom: 30px;
+	}
+
+	span {
+		font-size: 0.9rem;
+	}
+
+	button {
+		padding: 4px 8px;
+		margin-right: 8px;
+	}
+
+	a {
+		color: $zwart;
+
+		&:hover {
+			font-weight: 500;
+		}
+
+		i {
+			vertical-align: middle;
+			color: $grijs-800;
+		}
+
+		&:hover {
+			text-decoration: none;
+		}
+
+		&:first-of-type {
+			i {
+				display: none;
+			}
+		}
+	}
+
+}
+
+.homeIcon {
+  width: 25px;
+  stroke-width: 2px;
+}

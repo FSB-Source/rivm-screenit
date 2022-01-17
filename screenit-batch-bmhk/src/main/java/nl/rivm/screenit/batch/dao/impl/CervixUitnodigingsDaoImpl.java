@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -84,7 +84,7 @@ public class CervixUitnodigingsDaoImpl extends AbstractAutowiredDao implements C
 		subQuery.createAlias("uitnodigingen.brief", "brief");
 		subQuery.createAlias("brief.mergedBrieven", "mergedbrief");
 		subQuery.add(Restrictions.eq("mergedbrief.geprint", true));
-		subQuery.add(Restrictions.eq("brief.briefType", BriefType.CERVIX_UITNODIGING));
+		subQuery.add(Restrictions.in("brief.briefType", BriefType.getCervixUitnodigingen()));
 		subQuery.setProjection(Projections.distinct(Projections.property("ronde.id")));
 
 		criteria.add(Subqueries.propertyIn("screeningRonde.id", subQuery));

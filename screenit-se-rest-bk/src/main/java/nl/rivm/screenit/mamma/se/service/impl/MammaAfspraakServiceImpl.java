@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,6 @@ package nl.rivm.screenit.mamma.se.service.impl;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.PreferenceKey;
@@ -36,15 +35,15 @@ import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.PassantInschrijvenValidatorService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.dashboard.DashboardStatus;
+import nl.rivm.screenit.model.Mail;
 import nl.rivm.screenit.model.dashboard.DashboardType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
-import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
+import nl.rivm.screenit.repository.MailRepository;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DashboardService;
@@ -114,7 +113,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Override
 	public void setAfspraakStatus(AfspraakSignalerenDto actionDto, MammaAfspraakStatus nieuweStatus, InstellingGebruiker gebruiker)
 	{
-		final MammaAfspraak afspraak = getOfMaakLaatsteAfspraakVanVandaag(actionDto.getAfspraakId(), gebruiker);
+		final var afspraak = getOfMaakLaatsteAfspraakVanVandaag(actionDto.getAfspraakId(), gebruiker);
 		afspraak.setStatus(nieuweStatus);
 		hibernateService.saveOrUpdate(afspraak);
 	}
@@ -122,26 +121,26 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Override
 	public Map<Long, Integer> getIngeschrevenByGebruikerOpDatumVoorSe(Date beginDatum, String seCode)
 	{
-		Date eindDatum = DateUtil.eindDag(beginDatum);
+		var eindDatum = DateUtil.eindDag(beginDatum);
 		return afsprakenDao.readInschrijvingenVanSeInRange(beginDatum, eindDatum, seCode);
 	}
 
 	@Override
 	public LocalDate getDatumVanOudsteNietAfgeslotenOnderzoek(String seCode)
 	{
-		Date datum = afsprakenDao.readDatumVanOudsteNietAfgeslotenOnderzoek(currentDateSupplier.getLocalDate(), seCode);
+		var datum = afsprakenDao.readDatumVanOudsteNietAfgeslotenOnderzoek(currentDateSupplier.getLocalDate(), seCode);
 		return DateUtil.toLocalDate(datum);
 	}
 
 	@Override
 	public void afspraakMakenPassant(AfspraakMakenPassantDto actionDto, InstellingGebruiker gebruiker, MammaScreeningsEenheid screeningsEenheid)
 	{
-		Client client = clientService.getClientByBsn(actionDto.getBsn());
+		var client = clientService.getClientByBsn(actionDto.getBsn());
 		if (client != null && DateUtil.isGeboortedatumGelijk(actionDto.getGeboortedatum(), client))
 		{
 			if (passantInschrijvenValidatorService.isGeldigPassantScenario(client, currentDateSupplier.getLocalDate(), screeningsEenheid))
 			{
-				MammaUitnodiging laatsteUitnodiging = client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
+				var laatsteUitnodiging = client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
 				heraanmeldenIndienNodig(gebruiker, client);
 				maakAfspraak(gebruiker, screeningsEenheid, client, laatsteUitnodiging);
 			}
@@ -159,12 +158,12 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 	@Override
 	public MammaAfspraak getOfMaakLaatsteAfspraakVanVandaag(Long afspraakId, InstellingGebruiker gebruiker)
 	{
-		MammaAfspraak afspraak = hibernateService.get(MammaAfspraak.class, afspraakId);
+		var afspraak = hibernateService.get(MammaAfspraak.class, afspraakId);
 		if (afspraak == null)
 		{
 			throw new IllegalStateException("Afspraak met afspraakId " + afspraakId + " bestaat niet.");
 		}
-		MammaAfspraak laatsteAfspraak = afspraak.getUitnodiging().getScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak();
+		var laatsteAfspraak = afspraak.getUitnodiging().getScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak();
 
 		if (!afspraak.equals(laatsteAfspraak))
 		{
@@ -177,9 +176,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 			else
 			{
 
-				Client client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
+				var client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
 				heraanmeldenIndienNodig(gebruiker, client);
-				MammaAfspraak nieuweAfspraak = maakAfspraak(gebruiker, afspraak.getStandplaatsPeriode().getScreeningsEenheid(), client, laatsteAfspraak.getUitnodiging());
+				var nieuweAfspraak = maakAfspraak(gebruiker, afspraak.getStandplaatsPeriode().getScreeningsEenheid(), client, laatsteAfspraak.getUitnodiging());
 
 				logService.logGebeurtenis(LogGebeurtenis.MAMMA_AFSPRAAK_AFGEMELD_SE_OFFLINE, laatsteAfspraak.getStandplaatsPeriode().getScreeningsEenheid(),
 					Collections.singletonList(laatsteAfspraak.getStandplaatsPeriode().getScreeningsEenheid().getBeoordelingsEenheid().getParent().getRegio()), client,
@@ -195,41 +194,38 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	private void verstuurMailAfspraakAfgezegdOfflineWerken(MammaAfspraak laatsteAfspraak)
 	{
-		List<DashboardStatus> dashboardStatussen = dashboardService.getDashboardStatussen(DashboardType.MAMMA_SE_BERICHTEN);
-		DashboardStatus dashboardStatus = dashboardStatussen.stream().filter(dashboardStatus1 -> dashboardStatus1.getOrganisatie()
+		var dashboardStatussen = dashboardService.getDashboardStatussen(DashboardType.MAMMA_SE_BERICHTEN);
+		var dashboardStatus = dashboardStatussen.stream().filter(dashboardStatus1 -> dashboardStatus1.getOrganisatie()
 			.equals(laatsteAfspraak.getStandplaatsPeriode().getScreeningsEenheid().getBeoordelingsEenheid().getParent().getRegio())).findFirst().orElseGet(null);
 
 		if (dashboardStatus != null)
 		{
-			String emailadressen = simplePreferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
+			var emailadressen = simplePreferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
 			if (StringUtils.isNotBlank(dashboardStatus.getEmailadressen()))
 			{
 				emailadressen = dashboardStatus.getEmailadressen();
 			}
 
-			DashboardType type = dashboardStatus.getType();
-			String content = "Voor een client is een afspraak in de toekomst afgezegd, deze is terug te vinden op het dashboard '" + type.getNaam() + "' van "
+			var type = dashboardStatus.getType();
+			var content = "Voor een client is een afspraak in de toekomst afgezegd, deze is terug te vinden op het dashboard '" + type.getNaam() + "' van "
 				+ dashboardStatus.getOrganisatie().getNaam() + " of via 'Logging inzien' door te filteren op de gebeurtenis 'Afspraak afgemeld SE offline'";
 
-			mailService.sendEmail(emailadressen,
-				"Onderzoek nabewerken: afspraak in de toekomst afgezegd",
-				content,
-				MailService.MailPriority.NORMAL);
+			mailService.queueMail(emailadressen, "Onderzoek nabewerken: afspraak in de toekomst afgezegd", content);
 		}
 	}
 
 	private MammaAfspraak maakAfspraak(InstellingGebruiker gebruiker, MammaScreeningsEenheid screeningsEenheid, Client client, MammaUitnodiging laatsteUitnodiging)
 	{
-		Date nu = currentDateSupplier.getDate();
-		MammaStandplaatsPeriode standplaatsPeriode = baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheid, nu);
+		var nu = currentDateSupplier.getDate();
+		var standplaatsPeriode = baseStandplaatsPeriodeDao.getStandplaatsPeriode(screeningsEenheid, nu);
 
 		if (standplaatsPeriode == null)
 		{
 			throw new IllegalStateException("Er is geen standplaatsperiode beschikbaar op " + nu.toString() + " voor SE: " + screeningsEenheid.getNaam());
 		}
 
-		MammaAfspraak vorigeAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
-		boolean annuleerVorigeAfspraak = vorigeAfspraak != null && vorigeAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND)
+		var vorigeAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
+		var annuleerVorigeAfspraak = vorigeAfspraak != null && vorigeAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND)
 			&& vorigeAfspraak.getVanaf().compareTo(currentDateSupplier.getDate()) > 0;
 
 		baseKansberekeningService.resetPreferences();

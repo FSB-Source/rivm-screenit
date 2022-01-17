@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,13 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class EnvironmentInfoDto
 {
 	private String version;
@@ -39,49 +46,7 @@ public class EnvironmentInfoDto
 
 	private String cacheVulling;
 
-	public EnvironmentInfoDto()
-	{
-	}
-
-	public Boolean getMagUpdaten()
-	{
-		return magUpdaten;
-	}
-
-	public void setMagUpdaten(Boolean magUpdaten)
-	{
-		this.magUpdaten = magUpdaten;
-	}
-
-	public String getVersion()
-	{
-		return version;
-	}
-
-	public void setVersion(String version)
-	{
-		this.version = version;
-	}
-
-	public String getEnvironment()
-	{
-		return environment;
-	}
-
-	public void setEnvironment(String environment)
-	{
-		this.environment = environment;
-	}
-
-	public String getTimestamp()
-	{
-		return timestamp;
-	}
-
-	public void setTimestamp(String timestamp)
-	{
-		this.timestamp = timestamp;
-	}
+	private int dagenDaglijstOphalenLimiet;
 
 	public Boolean isNfcEnabled()
 	{
@@ -91,35 +56,5 @@ public class EnvironmentInfoDto
 	public void setNfcEnabled(String nfcEnabled)
 	{
 		this.nfcEnabled = nfcEnabled.equals("true");
-	}
-
-	public String getHuidigWerkstationIpAdres()
-	{
-		return huidigWerkstationIpAdres;
-	}
-
-	public void setHuidigWerkstationIpAdres(String huidigWerkstationIpAdres)
-	{
-		this.huidigWerkstationIpAdres = huidigWerkstationIpAdres;
-	}
-
-	public String getDagenInDaglijstCache()
-	{
-		return dagenInDaglijstCache;
-	}
-
-	public void setDagenInDaglijstCache(String dagenInDaglijstCache)
-	{
-		this.dagenInDaglijstCache = dagenInDaglijstCache;
-	}
-
-	public String getCacheVulling()
-	{
-		return cacheVulling;
-	}
-
-	public void setCacheVulling(String cacheVulling)
-	{
-		this.cacheVulling = cacheVulling;
 	}
 }

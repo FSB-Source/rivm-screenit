@@ -1,0 +1,34 @@
+{
+  "inleiding": {
+    "title": "Zelfafnameset aanvragen",
+    "description": {
+      "algemeen": "Wilt u meedoen aan het bevolkingsonderzoek, maar vindt u het vervelend om een uitstrijkje te laten maken? Dan kunt u een zelfafnameset aanvragen.</br></br>Met de zelfafnameset neemt u gemakkelijk en betrouwbaar zelf vaginaal materiaal af. Het laboratorium onderzoekt dit op het humaan papillomavirus (HPV). Bij ongeveer 1&nbsp;op de 10 vrouwen vinden ze HPV. Bij een HPV-besmetting moet u toch nog een uitstrijkje laten maken om te kijken of er afwijkende cellen zijn. </br></br>Als u de zelfafnameset aanvraagt, krijgt u deze binnen 14 dagen met de post.",
+      "na_uitstel": "Wilt u meedoen aan het bevolkingsonderzoek, maar vindt u het vervelend om een uitstrijkje te laten maken? Dan kunt u een zelfafnameset aanvragen. </br></br>Met de zelfafnameset neemt u gemakkelijk en betrouwbaar zelf vaginaal materiaal af. Het laboratorium onderzoekt dit op het humaan papillomavirus (HPV). Bij ongeveer 1&nbsp;op de 10 vrouwen vinden ze HPV. Bij een HPV-besmetting moet u toch nog een uitstrijkje laten maken om te kijken of er afwijkende cellen zijn."
+    }
+  },
+  "error": {
+    "zas_te_vaak_aangevraagd": "Het is niet meer mogelijk om een zelfafnameset aan te vragen via Mijn Bevolkingsonderzoek.<br/>Neem contact op met de informatielijn voor het aanvragen van een zelfafnameset.",
+    "zas_request": "Helaas, er is iets fout gegaan. We kunnen uw aanvraag nu niet verwerken. Probeer het nog een keer.<br/> Krijgt u steeds deze foutmelding? Bel dan met onze informatielijn."
+  },
+  "form": {
+    "title": "U heeft aangegeven dat u later mee wilt doen aan het bevolkingsonderzoek.",
+    "description": "Kies hieronder wanneer u de zelfafnameset wilt ontvangen:",
+    "uitstellen": {
+      "label": "Ik wil de zelfafnameset ontvangen rond %s.",
+      "description": "Dit is de datum waarop u wilt meedoen aan het bevolkingsonderzoek."
+    },
+    "niet_uitstellen": {
+      "label": "Ik wil de zelfafnameset graag zo snel mogelijk ontvangen.",
+      "description": "U krijgt de zelfafnameset binnen 14 dagen met de post."
+    },
+    "error": "Maak uw keuze",
+    "button": "Zelfafnameset aanvragen"
+  },
+  "toast": {
+    "title": "U heeft een zelfafnameset aangevraagd.",
+    "description": {
+      "regulier": "U krijgt de zelfafnameset binnen 14 dagen met de post.",
+      "uitstel": "U krijgt de zelfafnameset rond %s."
+    }
+  }
+}

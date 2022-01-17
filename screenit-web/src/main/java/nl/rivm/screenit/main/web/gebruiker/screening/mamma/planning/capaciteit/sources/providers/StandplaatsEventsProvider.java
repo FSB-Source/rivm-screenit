@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,15 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
 import nl.rivm.screenit.main.util.StandplaatsPeriodeUtil;
 import nl.rivm.screenit.main.web.component.fullcalendar.event.Event;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.MammaCapaciteitOverviewPanel;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit.sources.ScreenITEventSourceFactory;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.wicket.injection.Injector;
@@ -37,14 +40,12 @@ import org.joda.time.DateTime;
 public class StandplaatsEventsProvider extends AbstractScreenITEventProvider
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
-	private ScreenITEventSourceFactory screenITEventSourceFactory;
+	private final ScreenITEventSourceFactory screenITEventSourceFactory;
 
-	private MammaCapaciteitOverviewPanel capaciteitOverviewPanel;
+	private final MammaCapaciteitOverviewPanel capaciteitOverviewPanel;
 
 	public StandplaatsEventsProvider(ScreenITEventSourceFactory screenITEventSourceFactory, MammaCapaciteitOverviewPanel capaciteitOverviewPanel)
 	{
@@ -65,9 +66,9 @@ public class StandplaatsEventsProvider extends AbstractScreenITEventProvider
 			capaciteitOverviewPanel.addMeldingTooltip(Model.of(standplaatsPeriodeDto));
 			String tooltipId = "tooltip-m" + standplaatsPeriodeDto.conceptId;
 			event.setTitle(
-				StandplaatsPeriodeUtil.getStandplaatsPeriodeNaam(standplaatsPeriodeDto, standplaats) + "<span class=\"icon-warning-sign "
-					+ standplaatsPeriodeDto.meldingenDto.niveau.getCssClass() + "\" data-tooltip=\"" + tooltipId
-					+ "\" style=\"margin-left : 5px;\"></span>");
+				StandplaatsPeriodeUtil.getStandplaatsPeriodeNaam(standplaatsPeriodeDto, standplaats) +
+					maakMeldingIcoon(tooltipId, standplaatsPeriodeDto.meldingenDto.niveau.getCssClass()) +
+					maakPeriodeTekst(standplaatsPeriodeDto.vanaf, standplaatsPeriodeDto.totEnMet));
 			event.setStart(new DateTime(
 				standplaatsPeriodeDto.vanaf.getYear(),
 				standplaatsPeriodeDto.vanaf.getMonthValue(),
@@ -80,6 +81,19 @@ public class StandplaatsEventsProvider extends AbstractScreenITEventProvider
 			event.setEditable(false);
 			putEvent(standplaatsPeriodeDto.conceptId + "-" + standplaatsPeriodeDto.vanaf.getDayOfWeek().getValue(), event);
 		}
+	}
+
+	private String maakMeldingIcoon(String tooltipId, String cssClass)
+	{
+		return "<span class=\"icon-warning-sign "
+			+ cssClass + "\" data-tooltip=\"" + tooltipId
+			+ "\" style=\"margin-left : 5px;\"></span>";
+	}
+
+	private String maakPeriodeTekst(LocalDate startDatum, LocalDate eindDatum)
+	{
+		return "<span style=\"margin-left : 5px;\">" + DateUtil.formatShortDate(DateUtil.toUtilDate(startDatum))
+			+ " t/m " + DateUtil.formatShortDate(DateUtil.toUtilDate(eindDatum)) + "</span>";
 	}
 
 	@Override

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,12 +51,8 @@ import nl.rivm.screenit.main.model.mamma.beoordeling.MammaBeoordelingGebeurtenis
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaLezingGebeurtenis;
 import nl.rivm.screenit.main.model.mamma.onderzoek.MammaOnderzoekGebeurtenis;
 import nl.rivm.screenit.main.service.ClientDossierFilter;
-import nl.rivm.screenit.model.enums.GebeurtenisBron;
-import nl.rivm.screenit.service.BaseDossierAuditService;
 import nl.rivm.screenit.main.service.DossierService;
-import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.main.service.cervix.CervixOmissieGebeurtenisFactory;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaFollowUpRadiologieVerslagGebeurtenis;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaUploadBeeldenVerzoekGebeurtenis;
 import nl.rivm.screenit.model.Afmelding;
@@ -113,13 +109,13 @@ import nl.rivm.screenit.model.colon.MdlVerslag;
 import nl.rivm.screenit.model.colon.OpenUitnodiging;
 import nl.rivm.screenit.model.colon.ScannedAntwoordFormulier;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
-import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.enums.RetourzendingWijze;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.OpenUitnodigingUitslag;
 import nl.rivm.screenit.model.envers.ScreenitRevisionEntity;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
@@ -151,8 +147,11 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder;
 import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
 import nl.rivm.screenit.model.project.ScannedVragenlijst;
+import nl.rivm.screenit.service.BaseDossierAuditService;
+import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.EntityAuditUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
@@ -238,15 +237,7 @@ public class DossierServiceImpl implements DossierService
 	{
 		List<ScreeningRondeGebeurtenissen> dossiers = new ArrayList<>();
 		List<ColonScreeningRonde> screeningRondes = new ArrayList<>(client.getColonDossier().getScreeningRondes());
-		Collections.sort(screeningRondes, new Comparator<ColonScreeningRonde>()
-		{
-
-			@Override
-			public int compare(ColonScreeningRonde o1, ColonScreeningRonde o2)
-			{
-				return o1.getCreatieDatum().compareTo(o2.getCreatieDatum()) * -1;
-			}
-		});
+		Collections.sort(screeningRondes, (o1, o2) -> o1.getCreatieDatum().compareTo(o2.getCreatieDatum()) * -1);
 
 		int i = screeningRondes.size();
 		for (ColonScreeningRonde colonScreeningRonde : screeningRondes)
@@ -283,7 +274,7 @@ public class DossierServiceImpl implements DossierService
 				ColoscopieCentrum coloscopieCentrum = afspraak.getLocation().getColoscopieCentrum();
 
 				NieuweIntakeAfspraakMakenReden nieuweAfspraakMakenReden = afspraak.getNieuweAfspraakMakenReden();
-				String propertyString = null;
+				String propertyString;
 				if (nieuweAfspraakMakenReden != null)
 				{
 					propertyString = EnumStringUtil.getPropertyString(nieuweAfspraakMakenReden);
@@ -324,7 +315,7 @@ public class DossierServiceImpl implements DossierService
 				uitnodigingAangemaakt.setDatum(colonUitnodiging.getCreatieDatum());
 				uitnodigingAangemaakt.setGebeurtenis(TypeGebeurtenis.UITNODIGING_AANGEMAAKT);
 				uitnodigingAangemaakt.setExtraOmschrijving("klaarzetten voor inpakcentrum op: ", Constants.getDateFormat().format(colonUitnodiging.getUitnodigingsDatum()));
-				uitnodigingAangemaakt.setBron(GebeurtenisBron.AUTOMATISCH);
+				uitnodigingAangemaakt.setBron(bepaalGebeurtenisBron(colonUitnodiging, false));
 				rondeDossier.addGebeurtenis(uitnodigingAangemaakt);
 
 				if (colonUitnodiging.getVerstuurdDatum() != null)
@@ -335,7 +326,7 @@ public class DossierServiceImpl implements DossierService
 					screeningRondeGebeurtenis.setUitnodiging(colonUitnodiging);
 
 					screeningRondeGebeurtenis.setExtraOmschrijving(colonUitnodiging.getTemplateNaam());
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(colonUitnodiging, false));
+					screeningRondeGebeurtenis.setBron(GebeurtenisBron.AUTOMATISCH);
 					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
 				}
 
@@ -389,7 +380,7 @@ public class DossierServiceImpl implements DossierService
 
 			for (ColonVerslag<?> verslag : colonScreeningRonde.getVerslagen())
 			{
-				Date ontvangen = null;
+				Date ontvangen;
 				if (verslag.getOntvangenBericht() != null)
 				{
 					ontvangen = verslag.getOntvangenBericht().getOntvangen();
@@ -628,10 +619,6 @@ public class DossierServiceImpl implements DossierService
 		List<String> extraOmschrijving = new ArrayList<>();
 		extraOmschrijving.add("Conclusie: ");
 		extraOmschrijving.add(EnumStringUtil.getPropertyString(conclusie.getType()));
-		if (ColonConclusieType.COLOSCOPIE.equals(conclusie.getType()) && Boolean.TRUE.equals(conclusie.getNoShowColoscopie()))
-		{
-			extraOmschrijving.add("no show");
-		}
 		extraOmschrijving.add("Intakelocatie: " + intakelocatie.getNaam());
 		extraOmschrijving.add(intakelocatie.getEerstePlaats());
 		screeningRondeGebeurtenis.setExtraOmschrijving(extraOmschrijving.toArray(new String[] {}));
@@ -805,14 +792,7 @@ public class DossierServiceImpl implements DossierService
 		if (client.getCervixDossier() != null)
 		{
 			List<CervixScreeningRonde> screeningRondes = new ArrayList<>(client.getCervixDossier().getScreeningRondes());
-			Collections.sort(screeningRondes, new Comparator<CervixScreeningRonde>()
-			{
-				@Override
-				public int compare(CervixScreeningRonde o1, CervixScreeningRonde o2)
-				{
-					return o1.getCreatieDatum().compareTo(o2.getCreatieDatum()) * -1;
-				}
-			});
+			Collections.sort(screeningRondes, (o1, o2) -> o1.getCreatieDatum().compareTo(o2.getCreatieDatum()) * -1);
 
 			CervixCISHistorie cisHistorie = client.getCervixDossier().getCisHistorie();
 
@@ -968,8 +948,8 @@ public class DossierServiceImpl implements DossierService
 
 							if (huisartsBericht.getStatus() != CervixHuisartsBerichtStatus.AANGEMAAKT)
 							{
-								TypeGebeurtenis type = null;
-								GebeurtenisBron bron = null;
+								TypeGebeurtenis type;
+								GebeurtenisBron bron;
 								switch (huisartsBericht.getStatus())
 								{
 								case VERSTUURD:
@@ -1633,25 +1613,16 @@ public class DossierServiceImpl implements DossierService
 				&& !BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR.equals(briefType))
 			{
 				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+				List<String> extraOmschrijvingen = new ArrayList<>();
+				extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
 				if (brief.getProjectBrief() == null)
 				{
 					screeningRondeGebeurtenis.setBrief(brief);
-					List<String> extraOmschrijvingen = new ArrayList<>();
+					screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
+					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
 					if (brief.getHerdruk() != null)
 					{
-						Date datum = brief.getCreatieDatum();
-						if (brief.getMergedBrieven() != null && !brief.getMergedBrieven().getGeprint())
-						{
-							datum = brief.getMergedBrieven().getCreatieDatum();
-						}
-						else if (brief.getMergedBrieven() != null && brief.getMergedBrieven().getGeprint())
-						{
-							datum = brief.getMergedBrieven().getPrintDatum();
-						}
-						screeningRondeGebeurtenis.setDatum(datum);
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_HERDRUK);
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
-						extraOmschrijvingen.addAll(getExtraOmschrijvingenVoorHerdrukBrief(brief));
+						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.BRIEF_HERDRUK);
 					}
 					else if (brief.isGegenereerd())
 					{
@@ -1673,92 +1644,41 @@ public class DossierServiceImpl implements DossierService
 						else
 						{
 							screeningRondeGebeurtenis.setBron(GebeurtenisBron.MEDEWERKER);
-							screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
 							screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AFGEDRUKT);
 						}
-						extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
 						extraOmschrijvingen.add(brief.getTemplateNaam());
 					}
 					else if (brief.isVervangen())
 					{
-						screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_VERVANGEN);
-						extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
 					}
 					else if (brief.isTegenhouden())
 					{
-						screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_TEGENHOUDEN);
-						extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
 					}
 					else
 					{
-						screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AANGEMAAKT);
-						extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
 					}
 
-					if (brief.getBevolkingsonderzoek() == Bevolkingsonderzoek.CERVIX)
-					{
-						CervixBrief cervixBrief = (CervixBrief) HibernateHelper.deproxy(brief);
-						CervixUitnodiging uitnodiging = cervixBrief.getUitnodiging();
-						if (uitnodiging != null && uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
-						{
-							extraOmschrijvingen.add("Monster-id: ");
-							extraOmschrijvingen.add(uitnodiging.getMonster().getMonsterId());
-							extraOmschrijvingen.add("Controleletters: ");
-							extraOmschrijvingen.add(((CervixUitstrijkje) uitnodiging.getMonster()).getControleLetters());
-						}
-						if (briefType == BriefType.CERVIX_UITNODIGING)
-						{
-							extraOmschrijvingen.add("Leeftijdcategorie: ");
-							extraOmschrijvingen
-								.add(Integer.toString(cervixBrief.getUitnodiging().getScreeningRonde().getLeeftijdcategorie().getLeeftijd()));
-						}
-					}
-					else if (brief.getBevolkingsonderzoek() == Bevolkingsonderzoek.COLON)
-					{
-						ColonBrief colonBrief = (ColonBrief) HibernateHelper.deproxy(brief);
-						IFOBTTest ifobtTest = colonBrief.getIfobtTest();
-						if (ifobtTest != null)
-						{
-							ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(ifobtTest);
-							if (uitnodiging != null)
-							{
-								extraOmschrijvingen.add("UitnodigingsID: ");
-								extraOmschrijvingen.add(String.valueOf(uitnodiging.getUitnodigingsId()));
-							}
-							extraOmschrijvingen.add("Barcode: ");
-							extraOmschrijvingen.add(ifobtTest.getBarcode());
-						}
-					}
-					else if (brief.getBevolkingsonderzoek() == Bevolkingsonderzoek.MAMMA)
-					{
-						ScreeningRonde sr = (ScreeningRonde) HibernateHelper.deproxy(screeningRonde);
-						if (sr instanceof MammaScreeningRonde)
-						{
-							MammaScreeningRonde mammaScreeningRonde = (MammaScreeningRonde) sr;
-							extraOmschrijvingen.add("uitnodigingsnummer: ");
-							extraOmschrijvingen.add(mammaScreeningRonde.getUitnodigingsNr().toString());
-							if (Boolean.TRUE.equals(mammaScreeningRonde.getIsGeforceerd()))
-							{
-								extraOmschrijvingen.add("Geforceerde ronde");
-							}
-						}
-					}
-
-					screeningRondeGebeurtenis.setExtraOmschrijving(extraOmschrijvingen.toArray(new String[] {}));
 				}
 				else
 				{
-					ProjectBrief pBrief = brief.getProjectBrief();
-					screeningRondeGebeurtenis.setBrief(pBrief);
-					if (pBrief.isGegenereerd())
+					ProjectBrief projectBrief = brief.getProjectBrief();
+					screeningRondeGebeurtenis.setBrief(projectBrief);
+					screeningRondeGebeurtenis.setDatum(projectBrief.getCreatieDatum());
+					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(projectBrief));
+					if (projectBrief.getHerdruk() != null)
 					{
-						MergedBrieven<?> mergedBrieven = pBrief.getMergedBrieven();
+						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, projectBrief, TypeGebeurtenis.PROJECT_BRIEF_HERDRUK);
+					}
+					else if (brief.getHerdruk() != null)
+					{
+						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.PROJECT_BRIEF_HERDRUK);
+					}
+					else if (projectBrief.isGegenereerd())
+					{
+						MergedBrieven<?> mergedBrieven = projectBrief.getMergedBrieven();
 						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(mergedBrieven));
 						if (mergedBrieven.getPrintDatum() != null)
 						{
@@ -1770,39 +1690,109 @@ public class DossierServiceImpl implements DossierService
 							screeningRondeGebeurtenis.setDatum(mergedBrieven.getCreatieDatum());
 							screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.PROJECT_BRIEF_KLAARGEZET);
 						}
-						screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(briefType), brief.getTemplateNaam());
+						extraOmschrijvingen.add(brief.getTemplateNaam());
 					}
-					else if (pBrief.isVervangen())
+					else if (projectBrief.isVervangen())
 					{
-						screeningRondeGebeurtenis.setDatum(pBrief.getCreatieDatum());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.PROJECT_BRIEF_VERVANGEN);
-						screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(briefType));
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(pBrief));
 					}
-					else if (pBrief.isTegenhouden())
+					else if (projectBrief.isTegenhouden())
 					{
-						screeningRondeGebeurtenis.setDatum(pBrief.getCreatieDatum());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.PROJECT_BRIEF_TEGENHOUDEN);
-						screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(briefType));
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(pBrief));
 					}
 					else
 					{
-						screeningRondeGebeurtenis.setDatum(pBrief.getCreatieDatum());
 						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.PROJECT_BRIEF_AANGEMAAKT);
-						screeningRondeGebeurtenis.setExtraOmschrijving(EnumStringUtil.getPropertyString(briefType));
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(pBrief));
 					}
 				}
+				bvoSpecifiekeExtraOmschrijvingen(screeningRonde, brief, briefType, extraOmschrijvingen);
+				screeningRondeGebeurtenis.setExtraOmschrijving(extraOmschrijvingen.toArray(new String[] {}));
 				rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+			}
+		}
+	}
+
+	private <B extends ClientBrief<?, ?, ?>> void herdrukGebeurtenis(ScreeningRondeGebeurtenis screeningRondeGebeurtenis, List<String> extraOmschrijvingen, B brief,
+		TypeGebeurtenis typeGebeurtenis)
+	{
+		Date datum = brief.getCreatieDatum();
+		if (brief.getMergedBrieven() != null && !brief.getMergedBrieven().getGeprint())
+		{
+			datum = brief.getMergedBrieven().getCreatieDatum();
+		}
+		else if (brief.getMergedBrieven() != null && brief.getMergedBrieven().getGeprint())
+		{
+			datum = brief.getMergedBrieven().getPrintDatum();
+		}
+		screeningRondeGebeurtenis.setDatum(datum);
+		screeningRondeGebeurtenis.setGebeurtenis(typeGebeurtenis);
+		extraOmschrijvingen.clear();
+		extraOmschrijvingen.addAll(getExtraOmschrijvingenVoorHerdrukBrief(brief));
+	}
+
+	private <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> void bvoSpecifiekeExtraOmschrijvingen(SR screeningRonde, B brief, BriefType briefType,
+		List<String> extraOmschrijvingen)
+	{
+		if (brief.getBevolkingsonderzoek() == Bevolkingsonderzoek.CERVIX)
+		{
+			CervixBrief cervixBrief = (CervixBrief) HibernateHelper.deproxy(brief);
+			CervixUitnodiging uitnodiging = cervixBrief.getUitnodiging();
+			if (uitnodiging != null && uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
+			{
+				extraOmschrijvingen.add("Monster-id: ");
+				extraOmschrijvingen.add(uitnodiging.getMonster().getMonsterId());
+				extraOmschrijvingen.add("Controleletters: ");
+				extraOmschrijvingen.add(((CervixUitstrijkje) uitnodiging.getMonster()).getControleLetters());
+			}
+
+			if (briefType == BriefType.CERVIX_UITNODIGING)
+			{
+				extraOmschrijvingen.add("Leeftijdcategorie: ");
+				extraOmschrijvingen
+					.add(Integer.toString(cervixBrief.getUitnodiging().getScreeningRonde().getLeeftijdcategorie().getLeeftijd()));
+			}
+		}
+		else if (brief.getBevolkingsonderzoek() == Bevolkingsonderzoek.COLON)
+		{
+			ColonBrief colonBrief = (ColonBrief) HibernateHelper.deproxy(brief);
+			IFOBTTest ifobtTest = colonBrief.getIfobtTest();
+			if (ifobtTest != null)
+			{
+				ColonUitnodiging uitnodiging = IFOBTTestUtil.getUitnodiging(ifobtTest);
+				if (uitnodiging != null)
+				{
+					extraOmschrijvingen.add("UitnodigingsID: ");
+					extraOmschrijvingen.add(String.valueOf(uitnodiging.getUitnodigingsId()));
+				}
+				extraOmschrijvingen.add("Barcode: ");
+				extraOmschrijvingen.add(ifobtTest.getBarcode());
+			}
+		}
+		else if (brief.getBevolkingsonderzoek() == Bevolkingsonderzoek.MAMMA)
+		{
+			ScreeningRonde sr = (ScreeningRonde) HibernateHelper.deproxy(screeningRonde);
+			if (sr instanceof MammaScreeningRonde)
+			{
+				MammaScreeningRonde mammaScreeningRonde = (MammaScreeningRonde) sr;
+				extraOmschrijvingen.add("uitnodigingsnummer: ");
+				extraOmschrijvingen.add(mammaScreeningRonde.getUitnodigingsNr().toString());
+				if (Boolean.TRUE.equals(mammaScreeningRonde.getIsGeforceerd()))
+				{
+					extraOmschrijvingen.add("Geforceerde ronde");
+				}
 			}
 		}
 	}
 
 	private List<String> getExtraOmschrijvingenVoorHerdrukBrief(ClientBrief brief)
 	{
-		List<String> extraOmschrijvingen = new ArrayList<String>();
+		List<String> extraOmschrijvingen = new ArrayList<>();
 		ClientBrief oudeBrief = brief.getHerdruk();
+		if (brief.getProjectBrief() != null)
+		{
+			brief = brief.getProjectBrief();
+		}
+
 		if (brief.isGegenereerd())
 		{
 			MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
@@ -2056,7 +2046,7 @@ public class DossierServiceImpl implements DossierService
 
 	private GebeurtenisBron bepaalGebeurtenisBron(HibernateObject entity, AuditCriterion extraCriteria, boolean max)
 	{
-		GebeurtenisBron bron = null;
+		GebeurtenisBron bron;
 		AuditQuery query = EntityAuditUtil.createQuery(entity, hibernateService.getHibernateSession());
 		if (max)
 		{
@@ -2142,7 +2132,7 @@ public class DossierServiceImpl implements DossierService
 	@Override
 	public List<DossierGebeurtenis> getColonDossierGebeurtenissen(Client client)
 	{
-		List<DossierGebeurtenis> gebeurtenissen = new ArrayList<DossierGebeurtenis>();
+		List<DossierGebeurtenis> gebeurtenissen = new ArrayList<>();
 
 		ColonDossier colonDossier = client.getColonDossier();
 
@@ -2153,7 +2143,7 @@ public class DossierServiceImpl implements DossierService
 				if (afmelding.getAfmeldingStatus() != null && afmelding.getStatusAfmeldDatum() != null && AfmeldingType.DEFINITIEF.equals(afmelding.getType()))
 				{
 
-					AfmeldenDossierGebeurtenis<ColonAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<ColonAfmelding>(afmelding.getStatusAfmeldDatum());
+					AfmeldenDossierGebeurtenis<ColonAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<>(afmelding.getStatusAfmeldDatum());
 					dossierGebeurtenis.setDossierGebeurtenisType(DossierGebeurtenisType.AFMELDING);
 					dossierGebeurtenis.setAfmelding(afmelding);
 					dossierGebeurtenis.setBron(bepaalGebeurtenisBron(afmelding,
@@ -2163,7 +2153,7 @@ public class DossierServiceImpl implements DossierService
 				if (afmelding.getHeraanmeldStatus() != null && afmelding.getStatusHeraanmeldDatum() != null)
 				{
 
-					AfmeldenDossierGebeurtenis<ColonAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<ColonAfmelding>(afmelding.getStatusHeraanmeldDatum());
+					AfmeldenDossierGebeurtenis<ColonAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<>(afmelding.getStatusHeraanmeldDatum());
 					dossierGebeurtenis.setDossierGebeurtenisType(DossierGebeurtenisType.HERAANMELDING);
 					dossierGebeurtenis.setHeraanmelding(afmelding);
 					dossierGebeurtenis.setBron(bepaalGebeurtenisBron(afmelding));
@@ -2221,7 +2211,7 @@ public class DossierServiceImpl implements DossierService
 						&& AfmeldingType.DEFINITIEF.equals(cervixAfmelding.getType()))
 					{
 
-						AfmeldenDossierGebeurtenis<CervixAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<CervixAfmelding>(cervixAfmelding.getStatusAfmeldDatum());
+						AfmeldenDossierGebeurtenis<CervixAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<>(cervixAfmelding.getStatusAfmeldDatum());
 						dossierGebeurtenis.setDossierGebeurtenisType(DossierGebeurtenisType.AFMELDING);
 						dossierGebeurtenis.setAfmelding(cervixAfmelding);
 						dossierGebeurtenis.setBron(bepaalGebeurtenisBron(cervixAfmelding,
@@ -2231,7 +2221,7 @@ public class DossierServiceImpl implements DossierService
 					if (cervixAfmelding.getHeraanmeldStatus() != null && cervixAfmelding.getStatusHeraanmeldDatum() != null)
 					{
 
-						AfmeldenDossierGebeurtenis<CervixAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<CervixAfmelding>(
+						AfmeldenDossierGebeurtenis<CervixAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<>(
 							cervixAfmelding.getStatusHeraanmeldDatum());
 						dossierGebeurtenis.setDossierGebeurtenisType(DossierGebeurtenisType.HERAANMELDING);
 						dossierGebeurtenis.setHeraanmelding(cervixAfmelding);
@@ -2260,7 +2250,7 @@ public class DossierServiceImpl implements DossierService
 						&& AfmeldingType.DEFINITIEF.equals(afmelding.getType()))
 					{
 
-						AfmeldenDossierGebeurtenis<MammaAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<MammaAfmelding>(afmelding.getStatusAfmeldDatum());
+						AfmeldenDossierGebeurtenis<MammaAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<>(afmelding.getStatusAfmeldDatum());
 						dossierGebeurtenis.setDossierGebeurtenisType(DossierGebeurtenisType.AFMELDING);
 						dossierGebeurtenis.setAfmelding(afmelding);
 						dossierGebeurtenis.setBron(bepaalGebeurtenisBron(afmelding,
@@ -2270,7 +2260,7 @@ public class DossierServiceImpl implements DossierService
 					if (afmelding.getHeraanmeldStatus() != null && afmelding.getStatusHeraanmeldDatum() != null)
 					{
 
-						AfmeldenDossierGebeurtenis<MammaAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<MammaAfmelding>(
+						AfmeldenDossierGebeurtenis<MammaAfmelding> dossierGebeurtenis = new AfmeldenDossierGebeurtenis<>(
 							afmelding.getStatusHeraanmeldDatum());
 						dossierGebeurtenis.setDossierGebeurtenisType(DossierGebeurtenisType.HERAANMELDING);
 						dossierGebeurtenis.setHeraanmelding(afmelding);
@@ -2286,14 +2276,14 @@ public class DossierServiceImpl implements DossierService
 	@Override
 	public List<ScreeningRondeGebeurtenis> getProjectGebeurtenissen(ProjectClient pClient)
 	{
-		List<ScreeningRondeGebeurtenis> gebeurtenissen = new ArrayList<ScreeningRondeGebeurtenis>();
+		List<ScreeningRondeGebeurtenis> gebeurtenissen = new ArrayList<>();
 		gebeurtenissen.addAll(getProjectBrievenGebeurtenissen(pClient.getBrieven()));
 		return gebeurtenissen;
 	}
 
 	private List<ScreeningRondeGebeurtenis> getProjectBrievenGebeurtenissen(List<ProjectBrief> projectBrieven)
 	{
-		List<ScreeningRondeGebeurtenis> gebeurtenissen = new ArrayList<ScreeningRondeGebeurtenis>();
+		List<ScreeningRondeGebeurtenis> gebeurtenissen = new ArrayList<>();
 		for (ProjectBrief projectBrief : projectBrieven)
 		{
 			ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();

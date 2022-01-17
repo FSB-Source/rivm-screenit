@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,7 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -313,9 +313,9 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 					CervixUitstrijkjeStatus.ONTVANGEN)
 				&& uitstrijkje.getBrief() == null
 				&& (ronde.getMonsterHpvUitslag() == null
-					|| ronde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag().equals(CervixHpvUitslag.POSITIEF)
-						&& ronde.getUitstrijkjeCytologieUitslag() == null
-					|| ronde.getInVervolgonderzoekDatum() != null && ronde.getUitstrijkjeVervolgonderzoekUitslag() == null);
+				|| ronde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag().equals(CervixHpvBeoordelingWaarde.POSITIEF)
+				&& ronde.getUitstrijkjeCytologieUitslag() == null
+				|| ronde.getInVervolgonderzoekDatum() != null && ronde.getUitstrijkjeVervolgonderzoekUitslag() == null);
 
 		case ZAS:
 			CervixZas zas = (CervixZas) uitnodiging.getMonster();
@@ -444,7 +444,7 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 				labformulierStatus = uitstrijkje.getLabformulier().getStatus();
 			}
 			return labformulierStatus == CervixLabformulierStatus.GECONTROLEERD && ronde.getMonsterHpvUitslag() != null
-				&& ronde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvUitslag.POSITIEF;
+				&& ronde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.POSITIEF;
 		case ZAS:
 			return false;
 		}

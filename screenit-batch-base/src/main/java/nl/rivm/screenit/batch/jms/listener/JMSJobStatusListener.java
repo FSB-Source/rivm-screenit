@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jms.listener;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,11 @@ package nl.rivm.screenit.batch.jms.listener;
  * =========================LICENSE_END==================================
  */
 
-import java.io.Serializable;
-import java.util.Set;
-
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.batch.BatchServerStatus;
 import nl.rivm.screenit.model.batch.GetBatchStatusRequest;
@@ -38,8 +37,6 @@ import nl.rivm.screenit.model.helper.ActiveMQHelper;
 import org.apache.activemq.command.ActiveMQObjectMessage;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
@@ -50,9 +47,9 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 
+@Slf4j
 public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(JMSJobStatusListener.class);
 
 	@Autowired
 	private JobOperator jobOperator;
@@ -69,17 +66,16 @@ public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveM
 		try
 		{
 			LOG.info("Reply queue: " + message.getJMSReplyTo());
-			Serializable object = message.getObject();
+			var object = message.getObject();
 			if (object instanceof GetBatchStatusRequest)
 			{
 				jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
 				{
-
 					@Override
 					public Message createMessage(Session session) throws JMSException
 					{
-						Set<String> jobs = jobOperator.getJobNames();
-						BatchServerStatus serverStatus = new BatchServerStatus();
+						var jobs = jobOperator.getJobNames();
+						var serverStatus = new BatchServerStatus();
 
 						try
 						{
@@ -90,18 +86,18 @@ public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveM
 							LOG.error("Could not resolve scheduler name", e);
 						}
 
-						for (String jobName : jobs)
+						for (var jobName : jobs)
 						{
-							Job job = new Job();
+							var job = new Job();
 							job.setJobName(jobName);
 							serverStatus.getJobs().add(job);
 
 							try
 							{
-								Set<Long> executionIDs = jobOperator.getRunningExecutions(jobName);
-								for (Long executionID : executionIDs)
+								var executionIDs = jobOperator.getRunningExecutions(jobName);
+								for (var executionID : executionIDs)
 								{
-									JobInstance jobInstance = new JobInstance();
+									var jobInstance = new JobInstance();
 									job.getInstances().add(jobInstance);
 									jobInstance.setSamenvatting(jobOperator.getSummary(executionID));
 								}
@@ -120,19 +116,18 @@ public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveM
 			{
 				jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
 				{
-
 					@Override
 					public Message createMessage(Session session) throws JMSException
 					{
-						Set<String> jobs = jobOperator.getJobNames();
+						var jobs = jobOperator.getJobNames();
 
-						for (String jobName : jobs)
+						for (var jobName : jobs)
 						{
 							LOG.info("Stop job " + jobName);
 							try
 							{
-								Set<Long> executionIDs = jobOperator.getRunningExecutions(jobName);
-								for (Long executionID : executionIDs)
+								var executionIDs = jobOperator.getRunningExecutions(jobName);
+								for (var executionID : executionIDs)
 								{
 									jobOperator.stop(executionID);
 								}

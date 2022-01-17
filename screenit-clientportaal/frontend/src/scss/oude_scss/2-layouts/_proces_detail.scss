@@ -1,0 +1,271 @@
+﻿.proces-gradient-left {
+  height: 278px;
+  position: absolute;
+  width: 120px;
+  z-index: 1;
+  background: -moz-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  background: -webkit-linear-gradient(left, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#00ffffff', GradientType=1);
+  @include respond-below(md) {
+    left: -30px;
+  }
+}
+
+.proces-gradient-right {
+  height: 278px;
+  position: absolute;
+  width: 120px;
+  right: 0;
+  z-index: 1;
+  background: -moz-linear-gradient(left, rgba(255, 255, 255, 0) 2%, rgba(255, 255, 255, 1) 100%);
+  background: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 2%, rgba(255, 255, 255, 1) 100%);
+  background: linear-gradient(to right, rgba(255, 255, 255, 0) 2%, rgba(255, 255, 255, 1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00ffffff', endColorstr='#ffffff', GradientType=1);
+  @include respond-below(md) {
+    right: -30px;
+  }
+}
+
+.proces-detail {
+  margin: auto;
+  min-height: 700px;
+  display: block;
+  background: url(/images/svg/blob2.svg);
+  background-position: top 7px left 54%;
+  background-repeat: no-repeat;
+  background-size: 545px;
+  display: block;
+
+  @include respond-between(sm, lg) {
+    min-height: 500px;
+    background-size: 420px;
+  }
+
+  @include respond-below(sm) {
+    min-height: 400px;
+    background-size: 350px;
+  }
+
+  &--item {
+    margin-top: 100px;
+
+    &--icn {
+      @include square(130px);
+      border-radius: 50%;
+      margin: 0 auto 14px;
+
+      &.current {
+        @include square(230px);
+
+        @include respond-below(sm) {
+          @include square(200px);
+        }
+
+        .proces-detail--item--icn__img {
+          @include square(94px);
+          margin: 22% 30%;
+
+          @include respond-below(sm) {
+            @include square(80px);
+          }
+        }
+      }
+
+      &__img {
+        @include square(50px);
+        margin: 26% 30%;
+      }
+    }
+
+    &--title {
+      text-align: center;
+      font-size: calc-em(24);
+    }
+
+    &--stap {
+      color: $bk;
+      font-size: calc-em(14);
+      font-weight: 500;
+      line-height: 1.8;
+      text-align: center;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+  }
+
+  &--body {
+    margin: auto;
+    max-width: 700px;
+    position: relative;
+    margin-bottom: -6%;
+    top: 25%;
+    text-align: center;
+
+
+    &--title {
+      font-size: calc-em(40);
+      line-height: 1.3;
+      font-weight: 500;
+      margin: 0 0 20px;
+    }
+
+    &--intro {
+      font-size: calc-em(18);
+      line-height: 1.6;
+      margin-bottom: 80px;
+
+      @include respond-below(sm) {
+        margin-bottom: 30px;
+      }
+    }
+  }
+
+  &--arrow {
+    @include bg-image-url(url(/images/svg/stap-arrow.svg));
+    @include size(44px, 20px);
+    margin: 0 8px;
+    position: relative;
+    top: 62px;
+  }
+
+  &--links {
+    position: relative;
+    top: 160px;
+    width: 80%;
+    margin: auto;
+
+    @include respond-below(sm) {
+      margin: 50px auto;
+      top: 166px;
+      width: 92%;
+      position: absolute;
+    }
+
+    a {
+      display: block;
+      font-size: calc-em(14);
+      font-weight: 400;
+
+      &:after {
+        @include bg-image-url(url(/images/svg/stap-arrow.svg));
+        @include size(44px, 20px);
+        position: relative;
+        bottom: 50px;
+        left: 10px;
+        content: "";
+      }
+    }
+
+    .prev {
+
+      &:after {
+        transform: scaleX(-1);
+      }
+    }
+
+    .next {
+      text-align: right;
+      position: absolute;
+      top: 0;
+      right: 0;
+
+      &:after {
+        left: 18px;
+      }
+    }
+  }
+}
+
+.borstkanker {
+  .proces-detail--item--icn {
+    background: $bk;
+  }
+
+  .count {
+    color: $bk;
+  }
+
+  .proces-detail--item--stap {
+    color: $bk;
+  }
+
+  .proces-detail--links {
+    a {
+      color: $bk;
+    }
+  }
+}
+
+.baarmoederhalskanker {
+  .proces-detail--item--icn {
+    background: $bmk;
+  }
+
+  .count {
+    color: $bmk;
+  }
+
+  .proces-detail--item--stap {
+    color: $bmk;
+  }
+}
+
+.darmkanker {
+  .proces-detail--item--icn {
+    background: $dk;
+  }
+
+  .count {
+    color: $dk;
+  }
+
+  .proces-detail--item--stap {
+    color: $dk;
+  }
+}
+
+.count {
+  cursor: pointer;
+  width: 26px;
+  height: 26px;
+  background: white;
+  border-radius: 50%;
+  overflow: hidden;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px;
+  border: 2.5px solid #d9dbdb;
+  position: relative;
+  bottom: 3px;
+  left: 5px;
+  color: $blue;
+  display: block;
+}
+
+.popover-content {
+  padding: 9px;
+  width: 120px;
+  font-family: $sans;
+  color: $black;
+  font-size: calc-em(16);
+  text-align: center;
+  line-height: 1.6;
+}
+
+
+.proces-detail-anchor {
+  height: 100px;
+  margin-top: -100px;
+  width: 100%;
+
+  @include respond-between(sm, lg) {
+    height: 200px;
+    margin-top: -200px;
+  }
+
+  @include respond-above(lg) {
+    display: none;
+  }
+}

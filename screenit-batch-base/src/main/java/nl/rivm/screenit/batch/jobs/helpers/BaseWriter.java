@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,7 +72,7 @@ public abstract class BaseWriter<S extends HibernateObject> implements ItemWrite
 			}
 			else
 			{
-				LOG.error("Een database error opgetreden bij de aanpassing op de database.");
+				LOG.error("Een database error is opgetreden bij de aanpassing in de database.");
 			}
 			crashMelding("De job heeft onsuccesvol gedraaid, neem contact op met de helpdesk.", e);
 			throw e;

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.bestanden;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.Iterator;
 
 import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.project.ProjectBestandVerwerking;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerkingEntry;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -36,32 +37,36 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ProjectBestandVerwerkingDataProvider extends SortableDataProvider<ProjectBestandVerwerkingEntry, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ProjectDao projectDao;
 
-	private IModel<ProjectBestandVerwerkingEntry> entryModel;
+	private IModel<ProjectBestandVerwerking> verwerkingModel;
 
-	public ProjectBestandVerwerkingDataProvider(IModel<ProjectBestandVerwerkingEntry> entryModel)
+	public ProjectBestandVerwerkingDataProvider(IModel<ProjectBestandVerwerking> verwerkingModel)
 	{
 		Injector.get().inject(this);
 		setSort("regelNummer", SortOrder.ASCENDING);
-		this.entryModel = entryModel;
+		this.verwerkingModel = verwerkingModel;
 	}
 
 	@Override
 	public Iterator<? extends ProjectBestandVerwerkingEntry> iterator(long first, long count)
 	{
-		return projectDao.getProjectBestandVerwerkingEntries(ModelUtil.nullSafeGet(entryModel), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
+		return projectDao.getProjectBestandVerwerkingEntries(maakFilter(), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
 
 	}
 
 	@Override
 	public long size()
 	{
-		return projectDao.getAantalProjectbestandVerwerkingEntries(ModelUtil.nullSafeGet(entryModel));
+		return projectDao.getAantalProjectbestandVerwerkingEntries(maakFilter());
+	}
+
+	private ProjectBestandVerwerkingEntry maakFilter()
+	{
+		ProjectBestandVerwerkingEntry entry = new ProjectBestandVerwerkingEntry();
+		entry.setVerwerking(ModelUtil.nullSafeGet(verwerkingModel));
+		return entry;
 	}
 
 	@Override

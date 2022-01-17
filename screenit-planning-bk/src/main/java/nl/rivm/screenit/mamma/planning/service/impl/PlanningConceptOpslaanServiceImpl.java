@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto.PlanningMeldingDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto.PlanningMeldingenPerSeDto;
@@ -85,6 +84,9 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 {
 	private static final Logger LOG = LoggerFactory.getLogger(PlanningConceptOpslaanServiceImpl.class);
 
+	private static final String MAX_AANTAL_MELDINGEN_BEREIKT_MELDING = "Het zijn meer dan " + PlanningConstanten.MAX_MELDINGEN_PER_SE
+		+ " meldingen voor deze SE. Gestopt met zoeken naar wijzigingen.";
+
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -105,7 +107,6 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 	public PlanningConceptMeldingenDto opslaan(Long screeningOrganisatieId, boolean runDry)
 		throws OpslaanVerwijderenTijdBlokException, DryRunException, OpslaanAfsprakenBuitenStandplaatsPeriodeException
 	{
-		DataSourceRouter.useReadWrite();
 		PlanningConceptMeldingenDto meldingenDto = new PlanningConceptMeldingenDto();
 
 		Map<Long, PlanningBlok> nieuweBlokken = new HashMap<>();
@@ -598,6 +599,9 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		meldingDto.tekst = melding;
 		meldingDto.niveau = niveau;
 		Long screeningsEenheidId = screeningsEenheid.getId();
+
+		LOG.info(screeningsEenheidId + " " + niveau + ": " + melding);
+
 		PlanningMeldingenPerSeDto meldingenPerSeDto = getMeldingenPerSeDto(meldingenDto, screeningsEenheid);
 		if (meldingenPerSeDto == null)
 		{
@@ -606,14 +610,23 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 			meldingenPerSeDto.screeningsEenheidId = screeningsEenheidId;
 			meldingenDto.seMeldingen.put(screeningsEenheidId, meldingenPerSeDto);
 		}
-		if (meldingenPerSeDto.meldingen.size() >= PlanningConstanten.MAX_MELDINGEN_PER_SE)
+		List<PlanningMeldingDto> meldingenPerSe = meldingenPerSeDto.meldingen;
+		if (meldingenPerSe.size() >= PlanningConstanten.MAX_MELDINGEN_PER_SE)
 		{
-			meldingDto = new PlanningMeldingDto();
-			meldingDto.tekst = "Het zijn meer dan " + PlanningConstanten.MAX_MELDINGEN_PER_SE + " meldingen voor deze SE. Gestopt met zoeken naar wijzigingen.";
-			meldingDto.niveau = MammaMeldingNiveau.WAARSCHUWING;
-			maxMeldingVoorSeBereikt = true;
+			if (MAX_AANTAL_MELDINGEN_BEREIKT_MELDING.equals(meldingenPerSe.get(meldingenPerSe.size() - 1).tekst))
+			{
+
+				return;
+			}
+			else
+			{
+				meldingDto = new PlanningMeldingDto();
+				meldingDto.tekst = MAX_AANTAL_MELDINGEN_BEREIKT_MELDING;
+				meldingDto.niveau = MammaMeldingNiveau.WAARSCHUWING;
+				maxMeldingVoorSeBereikt = true;
+			}
 		}
-		meldingenPerSeDto.meldingen.add(meldingDto);
+		meldingenPerSe.add(meldingDto);
 
 		if (meldingenDto.niveau == null || meldingenDto.niveau.ordinal() < niveau.ordinal())
 		{
@@ -623,7 +636,6 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 		{
 			meldingenPerSeDto.niveau = niveau;
 		}
-		LOG.info(screeningsEenheidId + " " + niveau + ": " + melding);
 		if (maxMeldingVoorSeBereikt && runDry)
 		{
 			throw new MaxMeldingenVoorSeBereiktException();

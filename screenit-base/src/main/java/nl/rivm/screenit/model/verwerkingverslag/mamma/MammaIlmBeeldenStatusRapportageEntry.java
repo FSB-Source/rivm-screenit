@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.verwerkingverslag.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,16 +25,25 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import nl.rivm.screenit.model.Client;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(schema = "mamma", name = "ilm_beelden_status_rapportage_entry")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -45,38 +54,21 @@ public class MammaIlmBeeldenStatusRapportageEntry extends AbstractHibernateObjec
 	private Date statusDatum;
 
 	@Column(nullable = false)
-	private long uitnodigingsNr;
+	private Long accessionNumber;
+
+	@ManyToOne(optional = false, fetch = FetchType.LAZY)
+	private Client client;
+
+	@Column(nullable = false)
+	private boolean bezwaar;
+
+	@Column(nullable = false)
+	private boolean uploaded;
+
+	@Column(nullable = false)
+	private boolean failedRetry;
 
 	@ManyToOne
 	private MammaIlmBeeldenStatusRapportage rapportage;
 
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public long getUitnodigingsNr()
-	{
-		return uitnodigingsNr;
-	}
-
-	public void setUitnodigingsNr(long uitnodigingsNr)
-	{
-		this.uitnodigingsNr = uitnodigingsNr;
-	}
-
-	public MammaIlmBeeldenStatusRapportage getRapportage()
-	{
-		return rapportage;
-	}
-
-	public void setRapportage(MammaIlmBeeldenStatusRapportage rapportage)
-	{
-		this.rapportage = rapportage;
-	}
 }

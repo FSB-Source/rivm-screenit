@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,9 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.BoundType;
+import com.google.common.collect.Range;
 
 @Repository
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -96,9 +99,21 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 	}
 
 	@Override
+	public long countAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen)
+	{
+		return count(createAfsprakenCriteria(standplaats, periode, false, afspraakStatussen));
+	}
+
+	@Override
 	public List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Date vanaf, Date totEnMet, MammaAfspraakStatus... afspraakStatussen)
 	{
 		return createAfsprakenCriteria(standplaats, vanaf, totEnMet, false, afspraakStatussen).list();
+	}
+
+	@Override
+	public List<MammaAfspraak> getAfspraken(MammaStandplaats standplaats, Range<Date> periode, MammaAfspraakStatus... afspraakStatussen)
+	{
+		return createAfsprakenCriteria(standplaats, periode, false, afspraakStatussen).list();
 	}
 
 	@Override
@@ -144,6 +159,14 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 		return crit;
 	}
 
+	private Criteria createAfsprakenCriteria(MammaStandplaats standplaats, Range<Date> periode, boolean bepaalBenodigdeCapaciteit, MammaAfspraakStatus... afspraakStatussen)
+	{
+		Criteria crit = createAfsprakenCriteria(standplaats, bepaalBenodigdeCapaciteit);
+		binnenPeriode(crit, periode);
+		afspraakStatussen(crit, afspraakStatussen);
+		return crit;
+	}
+
 	private Criteria createAfsprakenCriteria(long standplaatsPeriodeId, boolean bepaalBenodigdeCapaciteit, MammaAfspraakStatus... afspraakStatussen)
 	{
 		Criteria crit = createAfsprakenCriteria(standplaatsPeriodeId, bepaalBenodigdeCapaciteit);
@@ -157,6 +180,32 @@ public class MammaBaseAfspraakDaoImpl extends AbstractAutowiredDao implements Ma
 		vanafTotEnMet(crit, vanaf, totEnMet);
 		afspraakStatussen(crit, afspraakStatussen);
 		return crit;
+	}
+
+	private void binnenPeriode(Criteria crit, Range<Date> periode)
+	{
+		if (periode.lowerEndpoint() != null)
+		{
+			if (periode.lowerBoundType() == BoundType.CLOSED)
+			{
+				crit.add(Restrictions.ge("afspraak.vanaf", periode.lowerEndpoint()));
+			}
+			else if (periode.lowerBoundType() == BoundType.OPEN)
+			{
+				crit.add(Restrictions.gt("afspraak.vanaf", periode.lowerEndpoint()));
+			}
+		}
+		if (periode.upperEndpoint() != null)
+		{
+			if (periode.upperBoundType() == BoundType.CLOSED)
+			{
+				crit.add(Restrictions.le("afspraak.vanaf", periode.upperEndpoint()));
+			}
+			else if (periode.upperBoundType() == BoundType.OPEN)
+			{
+				crit.add(Restrictions.lt("afspraak.vanaf", periode.upperEndpoint()));
+			}
+		}
 	}
 
 	private void vanafTotEnMet(Criteria crit, Date vanaf, Date totEnMet)

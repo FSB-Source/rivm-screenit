@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.config;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,12 +33,13 @@ import org.springframework.core.annotation.Order;
 		"classpath:applicationContext-jndi.xml",
 		"classpath:applicationContext-jndi-planning-bk.xml",
 
-		"classpath:applicationContext-mail.xml",
+		"classpath:applicationContext-mailfrom.xml",
 
 		"classpath:applicationContext-hibernate5-extension-spring.xml",
 		"classpath:applicationContext-spring-extension-injection.xml",
 		"classpath:applicationContext-autowired.xml",
 
+		"classpath:applicationContext-hibernate-base.xml",
 		"classpath:applicationContext-hibernate.xml",
 		"classpath:applicationContext-jms.xml",
 		"classpath:applicationContext-preference-module.xml",

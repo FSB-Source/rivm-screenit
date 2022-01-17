@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.batch;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +22,10 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.batch;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
@@ -36,9 +34,12 @@ import nl.rivm.screenit.model.batch.BvoZoekCriteria;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.JobFlag;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.enums.JobType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.JobService;
+import nl.rivm.screenit.util.EnumStringUtil;
+import nl.topicuszorg.wicket.input.behavior.IndicatingAjaxFormComponentUpdatingBehavior;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -46,8 +47,10 @@ import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.PropertyListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -86,7 +89,7 @@ public class JobStartPanel extends BatchBvoFilterPanel
 		for (JobType jobType : JobType.values())
 		{
 			Boolean heeftBVO = Boolean.FALSE;
-			for (Bevolkingsonderzoek bvo : Arrays.asList(jobType.getBevolkingsOnderzoeken()))
+			for (Bevolkingsonderzoek bvo : jobType.getBevolkingsOnderzoeken())
 			{
 				if (getBatchJobZoekCriteria().getBevolkingsonderzoeken().contains(bvo) || getBatchJobZoekCriteria().getBevolkingsonderzoeken().isEmpty())
 				{
@@ -101,26 +104,29 @@ public class JobStartPanel extends BatchBvoFilterPanel
 		boolean magToevoegen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BATCH_STATUS, Actie.TOEVOEGEN);
 		jobsContainer.add(new WebMarkupContainer("startHeader").setVisible(magToevoegen));
 		jobsContainer.add(new WebMarkupContainer("configHeader").setVisible(magToevoegen));
-		jobsContainer.add(new PropertyListView<JobType>("jobs", jobs)
+		jobsContainer.add(new PropertyListView<>("jobs", jobs)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(final ListItem<JobType> item)
 			{
 				JobType jobType = item.getModelObject();
+				IModel<Boolean> selectieHerstart = Model.of(false);
 				item.add(new Label("bvoLabel", Bevolkingsonderzoek.getAfkortingen(jobType.getBevolkingsOnderzoeken())));
 				item.add(new EnumLabel<>("naam", jobType));
 				item.add(new Label("beschrijving", getString(EnumStringUtil.getPropertyString(jobType) + ".beschrijving")));
-				item.add(new ConfirmingIndicatingAjaxLink<JobType>("start", item.getModel(), dialog, null)
+				item.add(new ConfirmingIndicatingAjaxLink<>("start", item.getModel(), dialog, null)
 				{
-
 					@Override
 					public void onClick(AjaxRequestTarget target)
 					{
 						BatchJob batchJob = new BatchJob();
 						batchJob.setJobType(getModelObject());
+						if (JobType.CLIENT_SELECTIE.equals(getModelObject()))
+						{
+							batchJob.getJobParameters().put(JobStartParameter.COLON_SELECTIE_HERSTART.name(), selectieHerstart.getObject());
+						}
 						jobService.startJob(batchJob, ScreenitSession.get().getLoggedInInstellingGebruiker());
 					}
 
@@ -141,6 +147,15 @@ public class JobStartPanel extends BatchBvoFilterPanel
 						return Model.of(beginQuestion + naam + endQuestion);
 					}
 
+					@Override
+					protected Component createCustomComponent(String id)
+					{
+						if (JobType.CLIENT_SELECTIE.equals(getModelObject()))
+						{
+							return new CheckboxFragment(id, selectieHerstart, JobStartParameter.COLON_SELECTIE_HERSTART);
+						}
+						return super.createCustomComponent(id);
+					}
 				}.setVisible(magToevoegen));
 
 				WebMarkupContainer configButtonContainer = new WebMarkupContainer("configButtonContainer");
@@ -176,5 +191,30 @@ public class JobStartPanel extends BatchBvoFilterPanel
 	{
 		maakListView(target);
 		target.add(jobsContainer);
+	}
+
+	private class CheckboxFragment extends Fragment
+	{
+
+		private static final long serialVersionUID = 1L;
+
+		public CheckboxFragment(String id, IModel<Boolean> model, JobStartParameter jobStartParameter)
+		{
+			super(id, "checkboxFragment", JobStartPanel.this);
+
+			add(new EnumLabel<>("parameterOmschrijving", jobStartParameter));
+			CheckBox checkBox = ComponentHelper.newCheckBox("checkbox", model);
+
+			checkBox.add(new IndicatingAjaxFormComponentUpdatingBehavior("click", checkBox)
+			{
+				@Override
+				protected void onComponentUpdate(AjaxRequestTarget target)
+				{
+
+				}
+			});
+
+			add(checkBox);
+		}
 	}
 }

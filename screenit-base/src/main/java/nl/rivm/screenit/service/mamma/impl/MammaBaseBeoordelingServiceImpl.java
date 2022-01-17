@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -595,7 +595,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	{
 		if (!briefService.briefTypeAlVerstuurdInDezeRonde(ronde, Collections.singletonList(briefType)))
 		{
-			briefService.maakMammaBrief(ronde, briefType, briefGegenereerd);
+			briefService.maakBvoBrief(ronde, briefType, briefGegenereerd);
 			return true;
 		}
 		return false;

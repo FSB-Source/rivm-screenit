@@ -1,0 +1,39 @@
+{
+  "page": {
+    "title": "Afspraak bevestigen",
+    "description": "Hieronder ziet u de gegevens van uw afspraak. Wilt u deze afspraak definitief maken? Klik dan op een van de blauwe knoppen. Wilt u uw onderzoek toch liever op een ander moment? Kies dan voor ‘Andere afspraak maken’."
+  },
+  "appointment": {
+    "description": {
+      "datetime": "Datum en tijd",
+      "location": "Locatie"
+    },
+    "values": {
+      "time": "%s uur"
+    }
+  },
+  "buttons": {
+    "confirmationletter": "Afspraak maken",
+    "differentappointment": "Andere afspraak maken"
+  },
+  "toast": {
+    "bevestiging": {
+      "title": "U heeft een afspraak gemaakt voor een gesprek over vervolgonderzoek.",
+      "message": "U krijgt binnen een paar dagen een brief met de gegevens van uw afspraak."
+    },
+    "errors": {
+      "geen_wijzigingen": "Geen wijzigingen opgeslagen",
+      "verplaatsen": {
+        "title": "Fout verplaatsen afspraak",
+        "message": "Helaas, er is iets fout gegaan. Probeer het nog een keer.<br/>Krijgt u steeds deze foutmelding? Bel dan met onze informatielijn.",
+        "niet_beschikbaar": "Dit tijdstip is niet meer beschikbaar.",
+        "afspraak.niet.gemaakt": "Het is niet gelukt het contact af te ronden."
+      },
+      "nieuwe_afspraak": {
+        "title": "Fout herplannen afspraak",
+        "message": "Helaas, er is iets fout gegaan. Probeer het nog een keer.<br/>Krijgt u steeds deze foutmelding? Bel dan met onze informatielijn.",
+        "niet_beschikbaar": "Dit tijdstip is niet meer beschikbaar."
+      }
+    }
+  }
+}

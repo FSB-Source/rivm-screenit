@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,18 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Map;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPanel;
 import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -53,7 +54,6 @@ import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.joda.time.DateTime;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfspraak>
@@ -69,17 +69,12 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 
 	private IModel<Boolean> briefAanmaken = Model.of(false);
 
-	private IModel<Boolean> uitnodigingsbriefTegenhouden = Model.of(false);
-
 	private boolean isNieuweAfspraak;
 
-	private boolean isGeforceerd;
-
-	public MammaAfspraakPanel(String id, MammaAfspraak afspraak, boolean isNieuweAfspraak, boolean isGeforceerd)
+	public MammaAfspraakPanel(String id, MammaAfspraak afspraak, boolean isNieuweAfspraak)
 	{
 		super(id, ModelUtil.ccModel(afspraak));
 		this.isNieuweAfspraak = isNieuweAfspraak;
-		this.isGeforceerd = isGeforceerd;
 	}
 
 	@Override
@@ -113,11 +108,8 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 
 		add(DateLabel.forDatePattern("vanaf", "EEEE dd-MM-yyyy HH:mm"));
 
-		CheckBox uitnodigingsbriefTegenhoudenCheckbox = ComponentHelper.newCheckBox("uitnodigingsbriefTegenhouden", uitnodigingsbriefTegenhouden);
-		add(uitnodigingsbriefTegenhoudenCheckbox.setVisible(isNieuweAfspraak && isGeforceerd));
-
 		CheckBox briefAanmakenCheckBox = ComponentHelper.newCheckBox("briefAanmaken", briefAanmaken);
-		add(briefAanmakenCheckBox.setVisible(isNieuweAfspraak && !isGeforceerd));
+		add(briefAanmakenCheckBox.setVisible(isNieuweAfspraak));
 
 		boolean vanuitPlanning = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY).bkVanuitPlanning;
 
@@ -129,10 +121,10 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 
 		MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
 		WebMarkupContainer waarschuwing = new WebMarkupContainer("waarschuwing");
-		waarschuwing.setVisible(isNieuweAfspraak && afspraakService.kortVoorVolgendeRonde(afspraak, isGeforceerd) && dossier.getTehuis() == null);
+		waarschuwing.setVisible(isNieuweAfspraak && afspraakService.kortVoorVolgendeRonde(afspraak) && dossier.getTehuis() == null);
 		add(waarschuwing);
 
-		IndicatingAjaxLink<Void> wijzigMoment = new IndicatingAjaxLink<Void>("wijzigMoment")
+		IndicatingAjaxLink<Void> wijzigMoment = new IndicatingAjaxLink<>("wijzigMoment")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -153,8 +145,8 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 		{
 			MammaVerzettenReden verzettenReden = nieuweAfspraak.getVerzettenReden();
 			int aantalWerkdagenVerzettenVanaf = simplePreferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name());
-			DateTime minimumAfspraakDatum = DateUtil.plusWerkdagen(dateSupplier.getDateTimeMidnight(), aantalWerkdagenVerzettenVanaf);
-			if (MammaVerzettenReden.briefVerplicht(verzettenReden) && minimumAfspraakDatum.toDate().after(nieuweAfspraak.getVanaf()))
+			LocalDate minimumAfspraakDatum = DateUtil.plusWerkdagen(dateSupplier.getLocalDate(), aantalWerkdagenVerzettenVanaf);
+			if (MammaVerzettenReden.briefVerplicht(verzettenReden) && DateUtil.toUtilDate(minimumAfspraakDatum).after(nieuweAfspraak.getVanaf()))
 			{
 				error("Voor deze afspraak wordt een bevestiging gestuurd omdat er geen overleg met client is geweest. De afspraak mag niet eerder zijn dan "
 					+ aantalWerkdagenVerzettenVanaf + " werkdag(en) vanaf nu.");
@@ -167,7 +159,6 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 	{
 		Map<ExtraOpslaanKey, Object> opslaanObjecten = super.getOpslaanObjecten();
 		opslaanObjecten.put(ExtraOpslaanKey.MAMMA_BRIEF_AANMAKEN, briefAanmaken.getObject());
-		opslaanObjecten.put(ExtraOpslaanKey.AFSPRAAK_BRIEF_TEGENHOUDEN, Boolean.TRUE.equals(uitnodigingsbriefTegenhouden.getObject()));
 		return opslaanObjecten;
 	}
 

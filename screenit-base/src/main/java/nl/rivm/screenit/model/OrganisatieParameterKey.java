@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,19 @@ public enum OrganisatieParameterKey
 
 	CERVIX_MAX_AANTAL_ZAS_NAAR_INPAKCENTRUM(OrganisatieType.INPAKCENTRUM, Integer.class, 20000, Bevolkingsonderzoek.CERVIX),
 
-	MAX_MERGED_BRIEVEN_PDF_SIZE_MB(OrganisatieType.SCREENINGSORGANISATIE, Integer.class, 999, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA),;
+	CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 15000, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_PROJECT_VERLATE_DEELNAME(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.CERVIX),
+
+	MAX_MERGED_BRIEVEN_PDF_SIZE_MB(OrganisatieType.SCREENINGSORGANISATIE, Integer.class, 999, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA),
+
+	MAMMA_ILM_BEELDEN_STATUS_SIGNALEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_ILM_GUNSTIGE_BEELDEN_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_ILM_OVERIGE_BEELDEN_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_ILM_PALGA_IMPORT_VERSLAGEN_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_ILM_APPLICATIE_LOGGING_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_ILM_RONDES_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
+	MAMMA_ILM_MAX_TIJD_MINUTEN(OrganisatieType.RIVM, Integer.class, 600, Bevolkingsonderzoek.MAMMA);
 
 	private final OrganisatieType organisatieType;
 

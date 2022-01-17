@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-mammograaf-stub
+  %%
+  Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<NativeDicomModel xml:space="preserve">
+	<DicomAttribute keyword="Modality" tag="00080060" vr="CS">
+		<Value number="1">MG</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="ProcedureCodeSequence" tag="00081032" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH">
+				<Value number="1">SCREEN</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="CodingSchemeDesignator" tag="00080102" vr="SH"/>
+			<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO"/>
+		</Item>
+	</DicomAttribute>
+	<DicomAttribute keyword="ReferencedPatientSequence" tag="00081120" vr="SQ"/>
+	<DicomAttribute keyword="AnatomicStructureSpaceOrRegionSequence" tag="00082229" vr="SQ"/>
+    
+    
+    
+    
+	<DicomAttribute keyword="DistanceSourceToDetector" tag="00181110" vr="DS"/>
+    
+	<DicomAttribute keyword="PerformedStationAETitle" tag="00400241" vr="AE">
+		<Value number="1">SEBK2020</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedStationName" tag="00400242" vr="SH">
+		<Value number="1">Dimenions01</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedLocation" tag="00400243" vr="SH"/>
+    
+    
+	<DicomAttribute keyword="PerformedProcedureStepEndDate" tag="00400250" vr="DA"/>
+	<DicomAttribute keyword="PerformedProcedureStepEndTime" tag="00400251" vr="TM"/>
+	<DicomAttribute keyword="PerformedProcedureStepStatus" tag="00400252" vr="CS">
+		<Value number="1">IN PROGRESS</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProcedureStepID" tag="00400253" vr="SH">
+		<Value number="1">H0922141700002</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProcedureStepDescription" tag="00400254" vr="LO">
+		<Value number="1">Screening</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProcedureTypeDescription" tag="00400255" vr="LO">
+		<Value number="1">Screening</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProtocolCodeSequence" tag="00400260" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH">
+				<Value number="1">std</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="CodingSchemeDesignator" tag="00080102" vr="SH">
+				<Value number="1">99HOLX</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO">
+				<Value number="1">Standard Screening - Conventional</Value>
+			</DicomAttribute>
+		</Item>
+	</DicomAttribute>
+    
+	<DicomAttribute keyword="TotalNumberOfExposures" tag="00400301" vr="US">
+		<Value number="1">0</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="EntranceDose" tag="00400302" vr="US">
+		<Value number="1">0</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="DistanceSourceToEntrance" tag="00400306" vr="US"/>
+	<DicomAttribute keyword="ExposureDoseSequence" tag="0040030E" vr="SQ"/>
+	<DicomAttribute keyword="OrganDose" tag="00400316" vr="DS"/>
+	<DicomAttribute keyword="OrganExposed" tag="00400318" vr="CS"/>
+	<DicomAttribute keyword="PerformedSeriesSequence" tag="00400340" vr="SQ"/>
+	<DicomAttribute keyword="EntranceDoseInmGy" tag="00408302" vr="DS"/>
+</NativeDicomModel>

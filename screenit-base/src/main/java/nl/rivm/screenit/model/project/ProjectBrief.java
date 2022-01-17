@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,9 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
@@ -45,18 +48,16 @@ import org.hibernate.envers.NotAudited;
 		@Index(name = "idx_project_brief_vervangendeprojectbrief", columnList = "vervangendeprojectbrief"),
 	})
 @Audited
+@Getter
+@Setter
 public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, ProjectBrief>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	@NotAudited
 	private ProjectClient projectClient;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	@NotAudited
 	private ProjectBriefActie definitie;
 
@@ -69,7 +70,6 @@ public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, Project
 	private ProjectBrief teHerinnerenBrief;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ProjectMergedBrieven mergedBrieven;
 
 	@OneToOne(fetch = FetchType.LAZY, optional = true)
@@ -78,76 +78,18 @@ public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, Project
 	private ProjectVragenlijstAntwoordenHolder vragenlijstAntwoordenHolder;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	private ScreeningRonde screeningRonde;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	private Afmelding afmelding;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	private ProjectBrief herdruk;
 
-	public ProjectClient getProjectClient()
-	{
-		return projectClient;
-	}
-
-	public void setProjectClient(ProjectClient projectClient)
-	{
-		this.projectClient = projectClient;
-	}
-
-	public ProjectBriefActie getDefinitie()
-	{
-		return definitie;
-	}
-
-	public void setDefinitie(ProjectBriefActie definitie)
-	{
-		this.definitie = definitie;
-	}
-
-	public ClientBrief getBrief()
-	{
-		return brief;
-	}
-
-	public void setBrief(ClientBrief brief)
-	{
-		this.brief = brief;
-	}
-
-	@Override
-	public MergedBrieven getMergedBrieven()
-	{
-		return mergedBrieven;
-	}
-
 	@Override
 	public void setMergedBrieven(MergedBrieven mergedBrieven)
 	{
 		this.mergedBrieven = (ProjectMergedBrieven) mergedBrieven;
-	}
-
-	public ProjectVragenlijstAntwoordenHolder getVragenlijstAntwoordenHolder()
-	{
-		return vragenlijstAntwoordenHolder;
-	}
-
-	public void setVragenlijstAntwoordenHolder(ProjectVragenlijstAntwoordenHolder vragenlijstAntwoordenHolder)
-	{
-		this.vragenlijstAntwoordenHolder = vragenlijstAntwoordenHolder;
-	}
-
-	public ProjectBrief getTeHerinnerenBrief()
-	{
-		return teHerinnerenBrief;
-	}
-
-	public void setTeHerinnerenBrief(ProjectBrief teHerinnerenBrief)
-	{
-		this.teHerinnerenBrief = teHerinnerenBrief;
 	}
 
 	@Override
@@ -174,15 +116,4 @@ public class ProjectBrief extends ClientBrief<ScreeningRonde, Afmelding, Project
 		this.afmelding = afmelding;
 	}
 
-	@Override
-	public ProjectBrief getHerdruk()
-	{
-		return herdruk;
-	}
-
-	@Override
-	public void setHerdruk(ProjectBrief herdruk)
-	{
-		this.herdruk = herdruk;
-	}
 }

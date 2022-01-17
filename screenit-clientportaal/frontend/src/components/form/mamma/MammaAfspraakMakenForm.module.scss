@@ -1,0 +1,18 @@
+@import "src/scss/colors";
+
+.style {
+	.advancedSearchButton {
+		margin-top: 15px;
+		margin-bottom: 15px;
+		display: block;
+		cursor: pointer;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+
+	.datepicker {
+		width: 100%;
+	}
+}

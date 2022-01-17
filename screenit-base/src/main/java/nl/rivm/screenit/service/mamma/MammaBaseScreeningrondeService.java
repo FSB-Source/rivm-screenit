@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,8 +24,10 @@ package nl.rivm.screenit.service.mamma;
 import java.util.Date;
 
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 
 public interface MammaBaseScreeningrondeService
 {
@@ -37,13 +39,17 @@ public interface MammaBaseScreeningrondeService
 
 	MammaScreeningRonde getRondeVanUitnodigingsr(Client client, Long uitnodigingsNr);
 
-    MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client);
+	MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client);
 
-    MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client, Date voorDatum);
+	MammaScreeningRonde getLaatsteScreeningRondeMetUitslag(Client client, Date voorDatum);
 
 	MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client);
 
 	Integer getJaarLaatsteVerwijzing(Client client);
 
 	MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client, Date voorDatum);
+
+	BriefType bepaalBriefTypeVoorOpenUitnodiging(boolean isSuspect, MammaDoelgroep doelgroep);
+
+	boolean isRondeNogGeldig(MammaScreeningRonde laatsteRonde);
 }

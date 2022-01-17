@@ -1,0 +1,48 @@
+@import "src/scss/media-mixins";
+
+.historyCard {
+	position: relative;
+	padding-left: 40px;
+	padding-top: 20px;
+	padding-bottom: 20px;
+	background-color: white;
+	border-radius: 10px;
+	box-shadow: 0 20px 30px -19px rgba(0, 0, 0, 0.15);
+	margin-bottom: 20px;
+
+	span {
+		letter-spacing: 0;
+		display: block;
+
+		@include respond-below(sm) {
+			display: inline-block;
+		}
+	}
+
+	.tekst, .datum {
+		@include respond-below(sm) {
+			padding-left: 0;
+		}
+	}
+
+	.verticalRectangle {
+		position: absolute;
+		left: 18px;
+		top: 20px;
+		bottom: 20px;
+	}
+
+	.datumTijd {
+		padding-left: 0;
+
+		span {
+			font-weight: 500;
+		}
+
+		@include respond-below(sm) {
+			span:last-of-type {
+				margin-left: 10px;
+			}
+		}
+	}
+}

@@ -1,0 +1,77 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.content {
+	padding-top: 15px;
+	padding-bottom: 30px;
+	width: 100%;
+
+	@include respond-below(xs) {
+		padding-top: 10px;
+		padding-bottom: 15px;
+	}
+}
+
+.greetingText {
+  font-size: 17px;
+}
+
+.personName {
+  display: block;
+  color: $blauw-700;
+  font-size: 21px;
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.infoContainer {
+  max-width: 640px;
+}
+
+.infoText {
+  display: block;
+  margin-top: 15px;
+}
+
+.inleiding {
+	margin-bottom: 30px;
+
+	@include respond-below(xs) {
+		margin-bottom: 10px;
+	}
+}
+
+.infoLinkContainer {
+
+  margin-top: 25px;
+  font-weight: 500;
+
+  i {
+    vertical-align: middle;
+    margin-bottom: 3px;
+    margin-right: 10px;
+  }
+
+}
+
+.sectieHeader {
+	margin-top: 75px;
+	margin-bottom: 30px;
+
+	@include respond-below(lg) {
+		margin-top: 50px;
+	}
+
+	@include respond-below(xs) {
+		margin-top: 30px;
+		margin-bottom: 20px;
+	}
+}
+
+.blob {
+
+  @include respond-below(lg) {
+    display: none;
+  }
+
+}

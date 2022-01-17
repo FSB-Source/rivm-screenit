@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -313,7 +313,7 @@ public class IFobtServiceImpl implements IFobtService
 
 	private void maakBriefEnKoppelAanTest(ColonScreeningRonde ronde, IFOBTTest buisVoorBrief, BriefType briefType)
 	{
-		ColonBrief brief = briefService.maakColonBrief(ronde, briefType);
+		ColonBrief brief = briefService.maakBvoBrief(ronde, briefType);
 		brief.setIfobtTest(buisVoorBrief);
 		hibernateService.saveOrUpdate(brief);
 	}

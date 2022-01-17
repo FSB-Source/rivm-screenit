@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.werkli
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -44,6 +43,7 @@ import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.enums.JobType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
@@ -99,7 +99,7 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 				Instelling instelling = ScreenitSession.get().getInstelling();
 				BatchJob batchJob = new BatchJob();
 				batchJob.setJobType(JobType.CERVIX_ORDER);
-				batchJob.getJobParameters().put(Constants.CERVIX_ORDER_JOB_LABORATORIUM_PARAMETER, instelling.getId());
+				batchJob.getJobParameters().put(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name(), instelling.getId());
 				jobService.startJob(batchJob, ScreenitSession.get().getLoggedInInstellingGebruiker());
 				info("De opdracht om orders te verwerken is ontvangen, deze zal z.s.m. worden uitgevoerd");
 			}
@@ -123,7 +123,7 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 
 		columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of(getString("barcode")), "labformulier.barcode", "barcode"));
-		columns.add(new PropertyColumn<CervixLabformulier, String>(Model.of("Cliënt"), "persoon.achternaam", "uitstrijkje.uitnodiging.screeningRonde.dossier.client")
+		columns.add(new PropertyColumn<>(Model.of("Cliënt"), "persoon.achternaam", "uitstrijkje.uitnodiging.screeningRonde.dossier.client")
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<CervixLabformulier> labformulierModel)
@@ -141,7 +141,7 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 		}
 		if (naHuisartsOnbekendVisible)
 		{
-			columns.add(new PropertyColumn<CervixLabformulier, String>(Model.of("Na huisarts onbekend"), "huisartsOnbekendBrief", "huisartsOnbekendBrief")
+			columns.add(new PropertyColumn<>(Model.of("Na huisarts onbekend"), "huisartsOnbekendBrief", "huisartsOnbekendBrief")
 			{
 				@Override
 				public void populateItem(Item<ICellPopulator<CervixLabformulier>> item, String componentId, IModel<CervixLabformulier> rowModel)
@@ -150,7 +150,7 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 				}
 			});
 		}
-		Map<Boolean, String> booleanStringMap = new HashMap<Boolean, String>();
+		Map<Boolean, String> booleanStringMap = new HashMap<>();
 		booleanStringMap.put(true, "Ja");
 		booleanStringMap.put(false, "Nee");
 		columns.add(new BooleanStringPropertyColumn<>(Model.of("Digitaal"), booleanStringMap, "digitaal", "digitaal"));
@@ -172,7 +172,7 @@ public abstract class CervixLabformulierenBasePage extends CervixScreeningBasePa
 		{
 			CervixLabformulierProvider labformulierProvider = new CervixLabformulierProvider(filter);
 
-			ScreenitDataTable<CervixLabformulier, String> labformulieren = new ScreenitDataTable<CervixLabformulier, String>("labformulieren", columns, labformulierProvider, 10,
+			ScreenitDataTable<CervixLabformulier, String> labformulieren = new ScreenitDataTable<>("labformulieren", columns, labformulierProvider, 10,
 				Model.of("labformulieren"))
 			{
 				@Override

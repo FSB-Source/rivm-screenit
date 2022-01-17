@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -94,7 +93,6 @@ import au.com.bytecode.opencsv.CSVReader;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtContentService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(VerwerkCdaBerichtContentServiceImpl.class);
 
 	private static final Map<String, String> XPATH_MAPPING = new HashMap<>();
@@ -220,7 +218,6 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		},
 		MDL_TNUMMER("145162")
 		{
-
 			@Override
 			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
 			{
@@ -230,7 +227,6 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 		},
 		MDL_OPDRACHTNUMMER("145161")
 		{
-
 			@Override
 			Object getValue(ConceptExceptionContext context) throws XPathExpressionException
 			{
@@ -397,7 +393,6 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 				}
 			}
 			while (line != null);
-			reader.close();
 		}
 	}
 
@@ -432,6 +427,7 @@ public class VerwerkCdaBerichtContentServiceImpl implements VerwerkCdaBerichtCon
 			| XPathExpressionException e)
 		{
 			LOG.error("Fout bij vertaling van bericht naar model classes", e);
+			throw new IllegalArgumentException("Fout bij vertaling van CDA bericht naar verslag in DB");
 		}
 	}
 

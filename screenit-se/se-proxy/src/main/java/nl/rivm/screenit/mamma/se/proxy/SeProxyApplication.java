@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -91,7 +91,7 @@ public class SeProxyApplication implements ApplicationListener<ContextRefreshedE
 		{
 			environmentInfo = new EnvironmentInfoDto();
 			var applicationProperties = new Properties();
-			try (InputStream resourceAsStream = SeProxyApplication.class.getResourceAsStream("/pom.properties"))
+			try (InputStream resourceAsStream = SeProxyApplication.class.getResourceAsStream("/application.properties"))
 			{
 				applicationProperties.load(resourceAsStream);
 				environmentInfo.setVersion(applicationProperties.getProperty("application.version"));
@@ -112,7 +112,7 @@ public class SeProxyApplication implements ApplicationListener<ContextRefreshedE
 			}
 			catch (IOException e)
 			{
-				LOG.error("Could not load pom.properties (for environmentInformation) {}", e.getMessage());
+				LOG.error("Could not load application.properties (for environmentInformation) {}", e.getMessage());
 			}
 		}
 		return environmentInfo;

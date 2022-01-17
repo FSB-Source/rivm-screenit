@@ -1,0 +1,61 @@
+﻿.share {
+  display: block;
+  padding: 20px 0;
+  font-size: .8235294117647059em;
+  font-weight: 500;
+
+  a {
+    float: left;
+    height: 38px;
+    padding: 0 15px;
+    margin-right: 1px;
+    color: #606162;
+    line-height: 38px;
+    text-decoration: none;
+    text-align: center;
+    background: #f5f5f5;
+
+    &:hover {
+      color: #fff;
+      background: #606162;
+    }
+  }
+
+  .ei {
+    padding: 0;
+    font-size: 1.357142857142857em;
+    line-height: 38px;
+  }
+
+  .mail {
+    color: #4c606a;
+    background: #b0dff5;
+    padding: 0;
+    width: 32px;
+
+    &:before {
+      content: "";
+    }
+  }
+
+  .facebook {
+    background: #3c5590;
+    color: white;
+    width: 32px;
+    padding: 0;
+  }
+
+  .linkedin {
+    background: #13689c;
+    color: white;
+    width: 32px;
+    padding: 0;
+  }
+
+  .twitter {
+    background: #1377bc;
+    padding: 0;
+    width: 32px;
+    color: #fff;
+  }
+}

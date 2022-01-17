@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -66,6 +66,12 @@ public enum LogGebeurtenis
 	CERVIX_MIGRANTEN_UITNODIGEN_AFGEROND(Level.INFO),
 
 	CERVIX_DIGITAAL_LABFORMULIER_ONTVANGEN(Level.INFO),
+
+	CERVIX_VERLATE_DEELNAME_COVID_GESTART(Level.INFO, DashboardType.CERVIX_VERLATE_DEELNAME_COVID19, DashboardActieType.START),
+
+	CERVIX_CLIENT_GEEN_VERLATE_DEELNAME_UITNODIGING(Level.WARNING, DashboardType.CERVIX_VERLATE_DEELNAME_COVID19, DashboardActieType.OVERIG),
+
+	CERVIX_VERLATE_DEELNAME_COVID_AFGEROND(Level.INFO, DashboardType.CERVIX_VERLATE_DEELNAME_COVID19, DashboardActieType.OVERIG),
 
 	NIEUWE_IFOBT_AANGEVRAAGD(Level.INFO),
 
@@ -228,6 +234,14 @@ public enum LogGebeurtenis
 	ORGANISATIE_NIEUW(Level.INFO),
 
 	ORGANISATIE_WIJZIG(Level.INFO),
+
+	MAIL_QUEUE_VERSTUREN_MISLUKT(Level.WARNING, DashboardType.MAIL_LANDELIJK, DashboardActieType.DAG),
+
+	MAIL_QUEUE_VERBINDING_HERSTELD(Level.INFO, DashboardType.MAIL_LANDELIJK, DashboardActieType.DAG),
+
+	MAIL_QUEUE_ERG_GROOT(Level.WARNING, DashboardType.MAIL_LANDELIJK, DashboardActieType.DAG),
+
+	MAIL_QUEUE_NORMAAL(Level.INFO, DashboardType.MAIL_LANDELIJK, DashboardActieType.DAG),
 
 	GBA_IMPORT_GESTART(Level.INFO, DashboardType.GBA_LANDELIJK, DashboardActieType.START),
 
@@ -764,6 +778,7 @@ public enum LogGebeurtenis
 
 	CERVIX_MAIL_VERSTUURD(Level.INFO),
 
+	@Deprecated(since = "Vervallen met ingebruikname van Mailqueue", forRemoval = true)
 	CERVIX_MAIL_VERSTUREN_MISLUKT(Level.INFO),
 
 	MAMMA_STANDPLAATS(Level.INFO),
@@ -971,6 +986,8 @@ public enum LogGebeurtenis
 	MAMMA_ILM_GESTART(Level.INFO, DashboardType.MAMMA_ILM, DashboardActieType.START),
 
 	MAMMA_ILM_AFGEROND(Level.INFO, DashboardType.MAMMA_ILM, DashboardActieType.OVERIG),
+
+	MAMMA_ILM_STATUS_GEFORCEERD(Level.INFO),
 
 	MAMMA_XDS_BATCH_JOB_GESTART(Level.INFO),
 

@@ -1,0 +1,43 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.advancedSearchButton {
+  margin-bottom: 20px;
+  display: block;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.results {
+  .showMoreResultsButtonArea {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.keuzePagina {
+  .hintContainer {
+    font-weight: bold;
+  }
+
+  .errorLabel {
+    position: relative;
+    color: $rood-base;
+    font-size: 0.7rem;
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  .radioGroup {
+    list-style: none;
+    margin-left: -40px;
+  }
+
+  .radioButton {
+    width: 100%;
+  }
+}
+

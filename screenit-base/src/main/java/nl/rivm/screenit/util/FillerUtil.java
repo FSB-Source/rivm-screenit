@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,9 @@ package nl.rivm.screenit.util;
  */
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -37,15 +39,18 @@ import nl.rivm.screenit.model.colon.enums.ColonTijdSlotType;
 import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.TypeAfspraak;
 import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.project.GroepInvoer;
 import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.model.project.ProjectBestand;
+import nl.rivm.screenit.model.project.ProjectBestandType;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.model.project.ProjectImport;
 import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
@@ -53,6 +58,8 @@ import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
+
+import au.com.bytecode.opencsv.CSVWriter;
 
 import static nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider.getApplicationContext;
 
@@ -107,30 +114,20 @@ public class FillerUtil
 		groep.setProject(project);
 		groep.setGroepInvoer(GroepInvoer.IMPORT);
 
-		ProjectImport pImport = new ProjectImport();
-		pImport.setGroep(groep);
-		pImport.setSkipFouten(true);
-
-		groep.setProjectImport(pImport);
-
-		if (project.getGroepen() == null)
-		{
-			project.setGroepen(new ArrayList<>());
-		}
-
 		project.getGroepen().add(groep);
 
-		if (groep.getClienten() == null)
-		{
-			groep.setClienten(new ArrayList<>());
-		}
 		hibernateService.saveOrUpdateAll(groep, project);
 		return groep;
 	}
 
-	public static void fillProjectWithPopulatie(Project project, int populatie, Iterator<Client> clientenIterator, HibernateService hibernateService)
+	public static void fillProjectWithPopulatie(Project project, int populatie, File file, Iterator<Client> clientenIterator, HibernateService hibernateService)
 	{
-		ProjectGroep groep = FillerUtil.createGroep(project, hibernateService);
+		ProjectGroep groep = createGroep(project, hibernateService);
+		ProjectBestand bestand = maakProjectBestand(project, file, ProjectBestandType.POPULATIE);
+		hibernateService.saveOrUpdate(bestand);
+		bestand.setGroep(groep);
+		groep.getProjectBestanden().add(bestand);
+
 		groep.setPopulatie(populatie);
 
 		for (int i = 0; i < populatie; i++)
@@ -150,6 +147,7 @@ public class FillerUtil
 		}
 		LOG.debug("Voor project " + project.getNaam() + " zijn er " + populatie + " clienten aangemaakt!");
 		hibernateService.saveOrUpdate(groep);
+		hibernateService.saveOrUpdate(bestand);
 	}
 
 	public static void definieerAfspraakDefinitie(AfspraakDefinitie definitie, Discipline discipline)
@@ -174,5 +172,72 @@ public class FillerUtil
 			}
 		}
 		return buffer.toString();
+	}
+
+	public static File createFile(String filePath, List<Client> clienten, List<String> attributen)
+	{
+		File file = new File(filePath);
+		if (file.exists() && !file.delete())
+		{
+			LOG.error("Verwijderen van bestand " + file.getPath() + " lukt niet");
+		}
+
+		try (CSVWriter csvOutput = new CSVWriter(new FileWriter(filePath, true), ','))
+		{
+			csvOutput.writeNext(getHeaders(attributen));
+			for (Client client : clienten)
+			{
+				csvOutput.writeNext(getAttribuutValuesForEachClient(client, attributen));
+			}
+		}
+		catch (Exception e)
+		{
+			LOG.error("Error met het bestand creeeren!", e);
+		}
+		return new File(filePath);
+	}
+
+	private static String[] getHeaders(List<String> attributen)
+	{
+		List<String> headers = new ArrayList<>();
+		headers.add("bsn");
+		headers.add("geboortedatum");
+		for (String attribuut : attributen)
+		{
+			headers.add(attribuut);
+		}
+		return headers.toArray(new String[0]);
+	}
+
+	private static String[] getAttribuutValuesForEachClient(Client client, List<String> attributen)
+	{
+		SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+		List<String> values = new ArrayList<>();
+		values.add(client.getPersoon().getBsn());
+		values.add(format.format(client.getPersoon().getGeboortedatum()));
+		for (String value : attributen)
+		{
+			values.add(value);
+		}
+		return values.toArray(new String[0]);
+	}
+
+	public static ProjectBestand maakProjectBestand(Project project, File file, ProjectBestandType bestandType)
+	{
+		ICurrentDateSupplier currentDateSupplier = getApplicationContext().getBean(ICurrentDateSupplier.class);
+		HibernateService hibernateService = getApplicationContext().getBean(HibernateService.class);
+		ProjectBestand bestand = new ProjectBestand();
+		if (file != null)
+		{
+			bestand.setUploadDocument(getUploadDocumentEnSlaOp(project.getId(), "voorbeeldBestand.csv", "", file, FileStoreLocation.PROJECT_BESTAND));
+		}
+		bestand.setUploadDatum(currentDateSupplier.getDate());
+		bestand.setProject(project);
+		bestand.setStatus(BestandStatus.NOG_TE_VERWERKEN);
+		bestand.setStatusDatum(currentDateSupplier.getDate());
+		bestand.setAttributen(true);
+		bestand.setType(bestandType);
+		hibernateService.saveOrUpdate(bestand);
+		return bestand;
 	}
 }

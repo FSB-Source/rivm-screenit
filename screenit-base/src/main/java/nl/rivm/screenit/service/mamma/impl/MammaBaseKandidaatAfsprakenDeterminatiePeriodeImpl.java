@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -104,7 +104,9 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 
 	private boolean extraOpties = false;
 
-	private LocalDate vandaagOfMorgen, aflopendVanaf;
+	private LocalDate vandaagOfMorgen;
+
+	private LocalDate aflopendVanaf;
 
 	private MammaCapaciteit capaciteit;
 
@@ -181,12 +183,12 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 		Integer capaciteitVolledigBenutTotEnMetAantalWerkdagen, Integer afspraakBijUitnodigenVanafAantalWerkdagen)
 		throws MammaOnvoldoendeVrijeCapaciteitException
 	{
-		List<MammaStandplaatsPeriode> standplaatsPeriodeList = standplaatsRonde.getStandplaatsPerioden().stream()
+		List<MammaStandplaatsPeriode> standplaatsPeriodes = standplaatsRonde.getStandplaatsPerioden().stream()
 			.filter(standplaatsPeriode -> standplaatsPeriode.getScreeningsEenheid().getUitnodigenTotEnMet() != null).collect(Collectors.toList());
-		init(standplaatsPeriodeList, dossier, voorlopigeOpkomstkans, capaciteitVolledigBenutTotEnMetAantalWerkdagen);
+		init(standplaatsPeriodes, dossier, voorlopigeOpkomstkans, capaciteitVolledigBenutTotEnMetAantalWerkdagen);
 
 		LocalDate uitnodigenVanafDatum = DateUtil.plusWerkdagen(vandaagOfMorgen, afspraakBijUitnodigenVanafAantalWerkdagen);
-		for (MammaStandplaatsPeriode standplaatsPeriode : standplaatsPeriodeList)
+		for (MammaStandplaatsPeriode standplaatsPeriode : standplaatsPeriodes)
 		{
 			standplaatsPeriodeVanafMap.put(standplaatsPeriode, Collections.max(Arrays.asList(uitnodigenVanafDatum, DateUtil.toLocalDate(standplaatsPeriode.getVanaf()))));
 			standplaatsPeriodeTotEnMetMap.put(standplaatsPeriode,
@@ -225,7 +227,8 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 		TreeMap<LocalDate, List<MammaCapaciteitBlokDto>> capaciteitsBlokMap = new TreeMap<>();
 		nietGeblokkeerdeCapaciteitsBlokken.stream()
 			.filter(blok -> blok.blokType == blokType)
-			.forEach(blok -> {
+			.forEach(blok ->
+			{
 				LocalDate vanafDatum = blok.vanaf.toLocalDate();
 				capaciteitsBlokMap.computeIfAbsent(vanafDatum, v -> new ArrayList<>()).add(blok);
 			});
@@ -269,7 +272,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 		for (int i = 0; i < maxZoekPogingen; i++)
 		{
 			if (aantalKandidatenVrijeCapaciteit == 0 || !extraOpties && maxAantalKandidatenTonen == 0
-				|| !meerdereKandidaten && kandidaatAfspraken.size() > 0)
+				|| !meerdereKandidaten && !kandidaatAfspraken.isEmpty())
 			{
 				break;
 			}
@@ -358,7 +361,8 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			AtomicReference<BigDecimal> totaleBeschikbareDagCapaciteit = new AtomicReference<>(BigDecimal.ZERO);
 
 			dateCapaciteitBlokMap.get(datum)
-				.forEach(capaciteitBlok -> {
+				.forEach(capaciteitBlok ->
+				{
 					DeterminatieBlok determinatieBlok = new DeterminatieBlok(capaciteitBlok, datum);
 					totaleBeschikbareDagCapaciteit.set(totaleBeschikbareDagCapaciteit.get().add(capaciteitBlok.beschikbareCapaciteit));
 					if (!isMindervalide || !determinatieBlok.getMinderValidePeriodeList().isEmpty())
@@ -380,7 +384,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			var determinatieBlok = binairZoeken(determinatieBlokList);
 			LOG.debug("getKandidaatAfspraak op blok vanaf: {}, mv: {}, beschikbaar: {}, benut: {}, ratio: {}, blokId: {} ", determinatieBlok.capaciteitBlokDto.vanaf,
 				determinatieBlok.capaciteitBlokDto.minderValideAfspraakMogelijk, determinatieBlok.beschikbareCapaciteit, determinatieBlok.benutteCapaciteit,
-				determinatieBlok.getRatio(), determinatieBlok.capaciteitBlokDto.id);
+				determinatieBlok.getRatioTekst(), determinatieBlok.capaciteitBlokDto.id);
 			MammaKandidaatAfspraak kandidaatAfspraak = determinatieBlok.getKandidaatAfspraak(benodigdeCapaciteit);
 			if (kandidaatAfspraak.isMinderValide() && magMinderValide)
 			{
@@ -456,7 +460,7 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			blokType = capaciteitBlokDto.blokType;
 			minderValideAfspraakMogelijk = capaciteitBlokDto.minderValideAfspraakMogelijk;
 
-			LOG.debug(capaciteitBlokDto.afspraakDtos.size() + " afspraken in capaciteitBlok " + capaciteitBlokDto.id);
+			LOG.debug("{} afspraken in capaciteitBlok {}", capaciteitBlokDto.afspraakDtos.size(), capaciteitBlokDto.id);
 
 			if (isMindervalide)
 			{
@@ -466,7 +470,8 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 			{
 				this.beschikbareCapaciteit = capaciteitBlokDto.beschikbareCapaciteit;
 
-				capaciteitBlokDto.afspraakDtos.forEach(afspraak -> {
+				capaciteitBlokDto.afspraakDtos.forEach(afspraak ->
+				{
 					MammaKandidaatAfspraak kandidaatAfspraak = new MammaKandidaatAfspraak(capaciteitBlokDto, capaciteitBlokDto.vanaf.toLocalTime(), capaciteitBlokDto.tot,
 						afspraak.vanaf.toLocalDate(), afspraak.vanaf.toLocalTime(),
 						afspraak.tot, afspraak.benodigdeCapaciteit, screeningsEenheidDto, afspraak.minderValide);
@@ -517,7 +522,8 @@ public class MammaBaseKandidaatAfsprakenDeterminatiePeriodeImpl implements Mamma
 		private void maakDeterminatieMindervalidePeriode(TimeRange mindervalidePeriode, BigDecimal beschikbareCapaciteitMindervalidePeriode)
 		{
 			List<MammaKandidaatAfspraak> afsprakenMindervalidePeriode = new ArrayList<>();
-			this.capaciteitBlokDto.afspraakDtos.forEach(afspraakDto -> {
+			this.capaciteitBlokDto.afspraakDtos.forEach(afspraakDto ->
+			{
 				if (mindervalidePeriode.bevat(afspraakDto.vanaf.toLocalTime()))
 				{
 					MammaKandidaatAfspraak kandidaatAfspraak = new MammaKandidaatAfspraak(this.capaciteitBlokDto, mindervalidePeriode.getVanaf(),

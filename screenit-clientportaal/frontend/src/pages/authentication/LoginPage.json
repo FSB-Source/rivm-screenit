@@ -1,0 +1,12 @@
+{
+  "title": {
+    "logging_in": "Aan het inloggen...",
+    "inloggen": "Inloggen",
+    "opnieuw_inloggen": "Opnieuw inloggen"
+  },
+  "description": {
+    "inloggen": "Welkom bij Mijn Bevolkingsonderzoek.</br></br>Hier kunt u zaken regelen voor de bevolkingsonderzoeken naar baarmoederhalskanker, borstkanker en darmkanker. </br></br>U logt in met uw DigiD.",
+    "opnieuw_inloggen": "U heeft meer dan 15 minuten niets gedaan in Mijn Bevolkingsonderzoek.</br>U bent daarom uitgelogd.</br></br>Wilt u verder? Log dan opnieuw in."
+  },
+  "button": "Inloggen met DigiD"
+}

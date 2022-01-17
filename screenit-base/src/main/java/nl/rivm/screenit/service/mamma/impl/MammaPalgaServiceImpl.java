@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,8 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -362,7 +362,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	}
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED, noRollbackFor = IllegalArgumentException.class)
+	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
 	public String verwerkImportDto(MammaPalgaCsvImportDto dto) throws NoSuchFieldException
 	{
 		MammaDossier dossier = hibernateService.get(MammaDossier.class, dto.getPseudoId());
@@ -405,9 +405,9 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		followupPa.setMaligniteitsgraad(getDsValue(dto.getMaligniteitsgraad(), "maligniteitsgraad", MammaFollowUpFollowupPa.class));
 
 		String ptnmCode = dto.getPtnm();
+		MammaFollowUpPtnmEnGradering ptnmEnGradering = new MammaFollowUpPtnmEnGradering();
 		if (dto.getPtnm() != null && dto.getPtnm().charAt(0) != 'y')
 		{
-			MammaFollowUpPtnmEnGradering ptnmEnGradering = new MammaFollowUpPtnmEnGradering();
 			ptnmEnGradering.setFollowupPa(followupPa);
 			ptnmEnGradering.setPtnmbreastGradering(getDsValue(dto.getStadiering(), "ptnmbreastGradering", MammaFollowUpPtnmEnGradering.class));
 			boolean isAsku = ptnmCode.contains("ASKU");
@@ -416,9 +416,9 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			String pnString = isAsku ? "ASKU" : getPnString(ptnmCode);
 			ptnmEnGradering.setPn(getDsValue(pnString, "pn", MammaFollowUpPtnmEnGradering.class, true));
 			ptnmEnGradering.setPm(getDsValue("ASKU", "pm", MammaFollowUpPtnmEnGradering.class));
-			followupPa.setPtnmEnGradering(ptnmEnGradering);
 		}
-		verslagContent.setFollowupPa(Arrays.asList(followupPa));
+		followupPa.setPtnmEnGradering(ptnmEnGradering);
+		verslagContent.setFollowupPa(Collections.singletonList(followupPa));
 
 		MammaFollowUpPathologieMedischeObservatie medischeObservatie = new MammaFollowUpPathologieMedischeObservatie();
 		medischeObservatie.setVerslagContent(verslagContent);
@@ -478,6 +478,24 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			medischeObservatie.getDatumOntvangstMateriaal() != null;
 	}
 
+	private boolean ptnmIsNull(MammaFollowUpPtnmEnGradering ptnmEnGradering)
+	{
+		return ptnmEnGradering == null ||
+			(ptnmEnGradering.getPtnmbreastGradering() == null &&
+				ptnmEnGradering.getPt() == null &&
+				ptnmEnGradering.getPn() == null &&
+				ptnmEnGradering.getPm() == null);
+	}
+
+	private boolean ptnmIsCompleet(MammaFollowUpPtnmEnGradering ptnmEnGradering)
+	{
+		return ptnmEnGradering != null &&
+			ptnmEnGradering.getPtnmbreastGradering() != null &&
+			ptnmEnGradering.getPt() != null &&
+			ptnmEnGradering.getPn() != null &&
+			ptnmEnGradering.getPm() != null;
+	}
+
 	private String valideerFollowUpPa(MammaFollowUpFollowupPa followupPa, boolean isProtocol, boolean skipPtnm)
 	{
 		MammaFollowUpMonstermateriaal monstermateriaal = followupPa.getMonstermateriaal();
@@ -503,12 +521,12 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 				followupPa.getProgesteronReceptorStatus() == null &&
 				followupPa.getHer2Status() == null &&
 				followupPa.getBclassificatieOpMammabiopt() == null &&
-				ptnmEnGradering == null &&
+				ptnmIsNull(ptnmEnGradering) &&
 				(followupPa.getCclassificatiePunctie() != null || !isProtocol)) ? "punctie" : null;
 
 		case "129249002": 
 			return !(followupPa.getCclassificatiePunctie() == null &&
-				ptnmEnGradering == null &&
+				ptnmIsNull(ptnmEnGradering) &&
 				(followupPa.getOestrogeenReceptorStatus() != null &&
 					followupPa.getProgesteronReceptorStatus() != null &&
 					followupPa.getHer2Status() != null
@@ -521,12 +539,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 				(followupPa.getOestrogeenReceptorStatus() != null &&
 					followupPa.getProgesteronReceptorStatus() != null &&
 					followupPa.getHer2Status() != null &&
-					(skipPtnm && ptnmEnGradering == null ||
-						ptnmEnGradering != null &&
-							ptnmEnGradering.getPt() != null &&
-							ptnmEnGradering.getPn() != null &&
-							ptnmEnGradering.getPm() != null &&
-							ptnmEnGradering.getPtnmbreastGradering() != null)
+					(skipPtnm && ptnmIsNull(ptnmEnGradering) || ptnmIsCompleet(ptnmEnGradering))
 					|| !isProtocol)) ? "excisie" : null;
 		default:
 			return "verkrijginswijze code";

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -46,18 +47,22 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 
 	private boolean cursorClosed = false;
 
-	private final Queue<ClientCategorieEntry> concurrentEntries = new ConcurrentLinkedQueue<ClientCategorieEntry>();
+	private final Queue<ClientCategorieEntry> concurrentEntries = new ConcurrentLinkedQueue<>();
 
 	private ForkJoinPool forkJoinPool;
 
 	private final ColonClientSelectieContext selectieContext;
 
+	private final LocalDate vandaag;
+
 	private CountDownLatch latch = null;
 
-	public ClientSelectieMetCapaciteitItemCursor(ColonClientSelectieContext selectieContext, Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden)
+	public ClientSelectieMetCapaciteitItemCursor(ColonClientSelectieContext selectieContext, Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden,
+		LocalDate vandaag)
 	{
 		this.selectieContext = selectieContext;
 		this.alleUitnodigingsgebieden = uitnodigingsgebieden;
+		this.vandaag = vandaag;
 
 		startSelectieThreads(uitnodigingsgebieden);
 	}
@@ -72,9 +77,7 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 		LOG.info("Start selecteren van clienten voor " + uitnodigingsgebieden.size() + " uitnodigingsgebieden.");
 		for (ColonUitnodigingsgebiedSelectieContext uitnodigingsgebied : uitnodigingsgebieden)
 		{
-			forkJoinPool.submit(() -> OpenHibernate5Session.withCommittedTransaction().run(() -> {
-				selecteerClientenVoorUitnodigingsgebied(uitnodigingsgebied);
-			}));
+			forkJoinPool.submit(() -> OpenHibernate5Session.withCommittedTransaction().run(() -> selecteerClientenVoorUitnodigingsgebied(uitnodigingsgebied)));
 		}
 		forkJoinPool.shutdown();
 	}
@@ -85,11 +88,11 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 		ClientSelectieMetCapaciteitPerGebiedItemCursor cursor = null;
 		try
 		{
-			cursor = new ClientSelectieMetCapaciteitPerGebiedItemCursor(selectieContext, uitnodigingsgebied);
+			cursor = new ClientSelectieMetCapaciteitPerGebiedItemCursor(selectieContext, uitnodigingsgebied, vandaag);
 			ugNaam = cursor.getUitnodigingsgebied().getNaam() + " " + ugNaam;
 			LOG.info("Selectie voor uitnodigingsgebied " + ugNaam + " is gestart.");
 
-			ClientCategorieEntry clientCategorieEntry = null;
+			ClientCategorieEntry clientCategorieEntry;
 			while (cursor.hasNext() && !cursorClosed)
 			{
 				clientCategorieEntry = cursor.next();
@@ -164,7 +167,7 @@ public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItem
 					}
 				}
 				boolean await = latch.await(100, TimeUnit.MILLISECONDS);
-				LOG.trace("Latch " + (latch != null ? latch.toString() + " " + await : " gone"));
+				LOG.trace("Latch " + (latch != null ? latch + " " + await : " gone"));
 			}
 			catch (InterruptedException e)
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl.zorgid;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,7 @@ package nl.rivm.screenit.main.service.impl.zorgid;
  * =========================LICENSE_END==================================
  */
 
-import nl.topicuszorg.zorgid.model.ExpirableStateImpl;
 import nl.topicuszorg.zorgid.model.sessie.OpenCancelledReason;
-import nl.topicuszorg.zorgid.model.sessie.SessieState;
 
 public class OpenCancelledSessieState extends ExpirableStateImpl implements SessieState
 {

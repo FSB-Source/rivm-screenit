@@ -1,0 +1,46 @@
+{
+  "page": {
+    "title": {
+      "doorgeven": "Tijdelijk adres",
+      "wijzigen": "Tijdelijk adres wijzigen"
+    },
+    "description": {
+      "doorgeven": "Wij gebruiken voor de post over het bevolkingsonderzoek het adres waarop u staat ingeschreven bij de gemeente. Woont u tijdelijk op een ander adres, waarop u niet ingeschreven staat? Of wilt u dat wij de post naar een ander adres sturen? Dan kunt u een tijdelijk adres doorgeven. U kunt alleen een adres in Nederland invullen. </br></br>Bent u verhuisd of gaat u verhuizen? Dan moet u uw nieuwe adres doorgeven aan de gemeente waar u woont. Wij krijgen uw nieuwe adres dan automatisch.",
+      "wijzigen": "U heeft een tijdelijk adres doorgegeven. Wij sturen uw post van het bevolkingsonderzoek naar dit adres. \nWilt u dat wij uw post naar een ander tijdelijk adres sturen? Vul dan hieronder dat adres in. </br></br>Bent u verhuisd of gaat u verhuizen? Dan moet u uw nieuwe adres doorgeven aan de gemeente waar u woont. Wij krijgen uw nieuwe adres dan automatisch."
+    }
+  },
+  "form": {
+    "title": {
+      "algemeen": "Mijn tijdelijke adres is",
+      "periode": "Vul hieronder een begindatum en een einddatum in. In deze periode sturen wij uw post naar uw tijdelijke adres."
+    },
+    "placeholder": {
+      "straat": "Straatnaam",
+      "huisnummer": "Huisnummer",
+      "letter": "Letter",
+      "toevoeging": "Toevoeging",
+      "aanduiding": "Aanduiding",
+      "postcode": "Postcode",
+      "plaats": "Plaatsnaam",
+      "startdatum": "Vanaf",
+      "einddatum": "Tot en met"
+    },
+    "error": {
+      "verplicht": "Dit veld is verplicht",
+      "lengte": "Ongeldig – teveel karakters ingevuld",
+      "huisnummer": "Ongeldig – vul een cijfer in",
+      "huisletter": "Ongeldig – vul een letter in",
+      "postcode": "Ongeldig - vul in: 1234AB",
+      "datum": {
+        "eind_voor_start": "Ongeldig - de begindatum moet voor de einddatum liggen",
+        "minimum": "Ongeldig - Kies een datum vanaf %s",
+        "ongeldig": "Vul een geldige datum in"
+      }
+    },
+    "button": "Gegevens opslaan"
+  },
+  "toast": {
+    "title": "U heeft een tijdelijk adres opgegeven.",
+    "description": "Wij sturen uw post over het bevolkingsonderzoek naar dit adres."
+  }
+}

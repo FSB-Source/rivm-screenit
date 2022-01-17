@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-batch-bmhk
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -48,7 +48,7 @@
         <beans:property name="step" ref="cervix.clientselectie"/>
         <beans:property name="gridSize" value="10"/>
     </beans:bean>
-    <beans:bean id="cervixSelectiePartitioner" class="nl.rivm.screenit.batch.jobs.cervix.CervixSelectiePartitioner"/>
+    <beans:bean id="cervixLabPartitioner" class="nl.rivm.screenit.batch.jobs.cervix.CervixLabPartitioner"/>
     <beans:bean id="cervixSelectieReader" class="nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep.CervixSelectieReader">
         <beans:property name="fetchSize" value="50"/>
     </beans:bean>
@@ -68,7 +68,7 @@
             </tasklet>
         </step>
         <step id="cervix.clientselectie.master" next="laatste_ronde_sluiten_step">
-            <partition partitioner="cervixSelectiePartitioner" handler="cervixSelectiePartitionHandler"
+            <partition partitioner="cervixLabPartitioner" handler="cervixSelectiePartitionHandler"
                        step="cervix.clientselectie"/>
         </step>
         <step id="laatste_ronde_sluiten_step">
@@ -579,7 +579,7 @@
 
     <job id="cervix_heroverwegers" restartable="true">
         <step id="cervix.heroverwegers.master">
-            <partition partitioner="cervixSelectiePartitioner" handler="cervixHeroverwegersPartitionHandler"
+            <partition partitioner="cervixLabPartitioner" handler="cervixHeroverwegersPartitionHandler"
                        step="heroverwegers_step"/>
         </step>
         <listeners>
@@ -611,4 +611,35 @@
         </listeners>
     </job>
 
+    
+    <beans:bean id="cervixVerlateDeelnameCovidPartitionHandler"
+                class="org.springframework.batch.core.partition.support.TaskExecutorPartitionHandler">
+        <beans:property name="taskExecutor" ref="taskExecutor"/>
+        <beans:property name="step" ref="verlate_deelname_covid_step_per_lab"/>
+        <beans:property name="gridSize" value="10"/>
+    </beans:bean>
+    <beans:bean id="cervixVerlateDeelnameCovidReader" class="nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.step.CervixVerlateDeelnameCovidReader"/>
+    <beans:bean id="cervixVerlateDeelnameCovidWriter" class="nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.step.CervixVerlateDeelnameCovidWriter"/>
+    <beans:bean id="cervixVerlateDeelnameCovidDecider" class="nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.step.CervixVerlateDeelnameCovidDecider"/>
+    <beans:bean id="cervixVerlateDeelnameCovidJobListener" class="nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.CervixVerlateDeelnameCovidJobListener"/>
+
+    <job id="cervix_verlate_deelname_covid19">
+        <decision id="verlate_deelname_covid19_decider" decider="cervixVerlateDeelnameCovidDecider">
+            <next on="FAILED" to="verlate_deelname_covid_step"/>
+            <end on="COMPLETED"/>
+        </decision>
+
+        <step id="verlate_deelname_covid_step">
+            <partition partitioner="cervixLabPartitioner" handler="cervixVerlateDeelnameCovidPartitionHandler" step="verlate_deelname_covid_step_per_lab"/>
+        </step>
+        <listeners>
+            <listener ref="cervixVerlateDeelnameCovidJobListener"></listener>
+        </listeners>
+    </job>
+
+    <step id="verlate_deelname_covid_step_per_lab">
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="cervixVerlateDeelnameCovidReader" writer="cervixVerlateDeelnameCovidWriter" commit-interval="1"/>
+        </tasklet>
+    </step>
 </beans:beans>

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl.dicom;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -106,7 +106,7 @@ public class DicomDir
 			din = new DicomInputStream(f);
 			din.setIncludeBulkData(IncludeBulkData.NO);
 			fmi = din.readFileMetaInformation();
-			dataset = din.readDataset(-1, Tag.PixelData);
+			dataset = din.readDatasetUntilPixelData();
 		}
 		catch (IOException e)
 		{
@@ -116,6 +116,7 @@ public class DicomDir
 		finally
 		{
 			if (din != null)
+			{
 				try
 				{
 					din.close();
@@ -123,6 +124,7 @@ public class DicomDir
 				catch (Exception ignore)
 				{
 				}
+			}
 		}
 		char prompt = '.';
 		if (fmi == null)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,8 @@ import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsOpmerking;
 
+import com.google.common.collect.Range;
+
 public interface MammaStandplaatsService
 {
 	boolean saveOrUpdateStandplaats(MammaStandplaats standplaats, InstellingGebruiker ingelogdeGebruiker);
@@ -44,15 +46,15 @@ public interface MammaStandplaatsService
 	boolean saveOrUpdateStandplaatsOpmerking(MammaStandplaatsOpmerking opmerking, MammaStandplaats standplaats, InstellingGebruiker loggedInInstellingGebruiker);
 
 	boolean saveOrUpdateStandplaatsLocatie(MammaStandplaatsLocatie locatie, UploadDocument documentFromSelectedFile, MammaStandplaats standplaats,
-		InstellingGebruiker ingelogdeGebruiker, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum);
+		InstellingGebruiker ingelogdeGebruiker, String oudeAdres, Range<Date> oudePeriode);
 
 	String magStandplaatsInactiveren(MammaStandplaats standplaats);
 
 	MammaStandplaats getStandplaatsMetPostcode(Client client);
 
-	String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum);
+	String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats);
 
-	String controleerUitnodigingenNaVeranderingTijdelijkeLocatie(MammaStandplaats standplaats, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum);
+	String controleerUitnodigingenNaVeranderingTijdelijkeLocatie(MammaStandplaats standplaats, String oudeAdres, Range<Date> oudePeriode);
 
 	Double bepaalAfstand(MammaStandplaats standplaats, Client client);
 

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.model;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,8 +33,8 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervi
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervix.CervixLabformulierInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colon.ColonHuisartsInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colon.ConclusieInzienPanel;
-import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaHerbeoordelingGebeurtenisPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaFollowUpRadiologieGebeurtenisDetailPanel;
+import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaHerbeoordelingGebeurtenisPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaHuisartsInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaLezingInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaOnderzoekInzienPanel;
@@ -120,6 +120,8 @@ public enum TypeGebeurtenis
 	PROJECT_GEDEACTIVEERD(),
 
 	PROJECT_TOEGEVOEGD(),
+
+	PROJECT_BRIEF_HERDRUK(BriefKlaargezetPanel.class),
 
 	PROJECT_BRIEF_AANGEMAAKT(BriefKlaargezetPanel.class),
 

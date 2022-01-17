@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,8 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.main.service.cervix.HpvSendingMessageService;
-import nl.rivm.screenit.model.cervix.berichten.CervixHpvBerichtWrapper;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV251MessageWrapper;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvBerichtWrapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

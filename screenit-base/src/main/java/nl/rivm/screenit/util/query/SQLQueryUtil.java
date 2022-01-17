@@ -4,7 +4,7 @@ package nl.rivm.screenit.util.query;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,7 @@ public class SQLQueryUtil
 		{
 			return "WHERE ";
 		}
-		return where + "AND ";
+		return where + " AND ";
 	}
 
 	public static Map<String, Object> inExpressionParametersEnum(String baseParamName, List<? extends Enum> enums)

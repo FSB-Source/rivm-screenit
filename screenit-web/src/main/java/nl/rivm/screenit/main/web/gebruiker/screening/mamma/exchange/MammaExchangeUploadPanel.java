@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,7 @@ import nl.rivm.screenit.main.web.component.form.upload.ScreenitUploadProgressBar
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientPaspoortPanel;
-import nl.rivm.screenit.main.web.gebruiker.screening.mamma.panel.MammaGeenBeeldenBeschikbaarCellPanel;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.panel.MammaGeenBeeldenBeschikbaarPanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.FileType;
@@ -106,7 +106,7 @@ public class MammaExchangeUploadPanel extends GenericPanel<MammaUploadBeeldenVer
 			}
 		});
 
-		form.add(new MammaGeenBeeldenBeschikbaarCellPanel("geenBeschikbaar", dialog, "geenBeeldenBeschikbaar", uploadBeeldenVerzoekModel)
+		form.add(new MammaGeenBeeldenBeschikbaarPanel("geenBeschikbaar", dialog, "geenBeeldenBeschikbaar", uploadBeeldenVerzoekModel)
 		{
 			@Override
 			protected void onOpslaan(AjaxRequestTarget ajaxRequestTarget, MammaUploadBeeldenVerzoek uploadBeeldenVerzoek)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,12 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpSession;
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.service.OvereenkomstService;
-import nl.rivm.screenit.main.web.component.browser.Browser;
-import nl.rivm.screenit.main.web.component.browser.OperatingSystem;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.nieuws.NieuwsPage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
@@ -61,14 +60,11 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.envers.AccountResolver.AccountResolverDelegate;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
-import nl.rivm.screenit.security.BrowserOSToken;
 import nl.rivm.screenit.security.Constraint;
-import nl.rivm.screenit.security.DigiDToken;
 import nl.rivm.screenit.security.InstellingGebruikerToken;
 import nl.rivm.screenit.security.UziToken;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.AutorisatieService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -76,12 +72,10 @@ import nl.rivm.screenit.service.NieuwsService;
 import nl.rivm.screenit.service.ScopeService;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.crypto.util.UZIpas.UziCertInfo;
-import nl.topicuszorg.digid.services.DigidSession;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.yubikey.shiro.YubikeyToken;
@@ -106,9 +100,7 @@ import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Request;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.Strings;
 import org.hibernate.Hibernate;
@@ -116,13 +108,9 @@ import org.hibernate.proxy.HibernateProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ScreenitSession extends WebSession implements DigidSession
+public class ScreenitSession extends WebSession
 {
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(ScreenitSession.class);
-
-	private String digidSessionId;
 
 	private Long accountId;
 
@@ -170,10 +158,12 @@ public class ScreenitSession extends WebSession implements DigidSession
 
 	private Set<File> tempFiles = new HashSet<>();
 
+	@Getter
+	@Setter
+	private boolean isInPlanningmodule;
+
 	private class ZoekStatus implements IDetachable
 	{
-		private static final long serialVersionUID = 1L;
-
 		private Long pageNumber;
 
 		private ISortState<?> currentSort;
@@ -252,54 +242,10 @@ public class ScreenitSession extends WebSession implements DigidSession
 		this.regioCode = regioCode;
 	}
 
-	@Override
-	public String getSessionId()
-	{
-		return digidSessionId;
-	}
-
-	@Override
-	public void setSessionId(String id)
-	{
-		this.digidSessionId = id;
-	}
-
-	@Override
 	public boolean isSignedIn()
 	{
 		Subject currentUser = SecurityUtils.getSubject();
 		return currentUser.isAuthenticated();
-	}
-
-	@Override
-	public boolean signIn(String bsn)
-	{
-		DigiDToken digiDToken = new DigiDToken(bsn);
-		setBrowserOsToken(digiDToken);
-		Subject currentUser = SecurityUtils.getSubject();
-		try
-		{
-			currentUser.login(digiDToken);
-			ClientService clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
-
-			setLoggedInAccount(clientService.getClientByBsn(bsn));
-			Request request = RequestCycle.get().getRequest();
-			HttpSession httpSession = ((ServletWebRequest) request).getContainerRequest().getSession();
-			httpSession.setMaxInactiveInterval(15 * 60);
-			return true;
-		}
-		catch (AuthenticationException e)
-		{
-			LOG.warn("Client met bsn niet bekend " + bsn, e.getMessage());
-			return false;
-		}
-	}
-
-	private void setBrowserOsToken(BrowserOSToken token)
-	{
-		String userAgent = WebSession.get().getClientInfo().getUserAgent();
-		token.setBrowser(Browser.parseUserAgentString(userAgent).getName());
-		token.setOs(OperatingSystem.parseUserAgentString(userAgent).getName());
 	}
 
 	@Override
@@ -467,7 +413,7 @@ public class ScreenitSession extends WebSession implements DigidSession
 	{
 		Subject currentUser = SecurityUtils.getSubject();
 		InstellingGebruikerToken token = new InstellingGebruikerToken(gebruiker.getId());
-		setBrowserOsToken(token);
+		token.setUserAgent(WebSession.get().getClientInfo().getUserAgent());
 		if (ingelogdMetZorgId != null)
 		{
 			if (ingelogdMetZorgId)

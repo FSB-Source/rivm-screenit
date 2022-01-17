@@ -1,0 +1,94 @@
+{
+  "gedeeld": {
+    "bvo_title_prefix": "Bevolkingsonderzoek ",
+    "title": "Mijn huisarts",
+    "blob": {
+      "title": "Mijn huisarts",
+      "locatie": "%s <br> %s <br> %s <br>"
+    },
+    "tussenpagina": {
+      "form": {
+        "title": "",
+        "description": "Maak uw keuze:</br></br>",
+        "radiobuttons": {
+          "bevestigen": "de gegevens van mijn huisarts kloppen.",
+          "zoeken": "ik wil een andere huisarts doorgeven.",
+          "annuleren": "ik wil geen huisarts doorgeven."
+        },
+        "submit": "Bevestigen",
+        "error": "Maak uw keuze"
+      }
+    },
+    "zoekpagina": {
+      "blob": {
+        "title": "Dit is uw huisarts:",
+        "link": "Verwijderen"
+      },
+      "zoekform": {
+        "title": "Zoeken",
+        "placeholders": {
+          "naam": "Achternaam huisarts/naam praktijk",
+          "plaats": "Plaats",
+          "postcode": "Postcode",
+          "straat": "Straat"
+        },
+        "validation": {
+          "postcode": "Ongeldig - vul een postcode in"
+        },
+        "submit": "Zoeken"
+      },
+      "resultaten": {
+        "geen": "Helaas, er zijn geen zoekresultaten. Controleer of u de gegevens juist heeft geschreven. </br>U hoeft niet alle zoekvelden in te vullen. Vul een van de velden in en probeer opnieuw.",
+        "meer": "Toon meer opties",
+        "resultaat": {
+          "hover": "Kies deze huisarts",
+          "locatie_header": "Locatie"
+        },
+        "button": {
+          "header": "Hulp nodig?",
+          "text": "Kunt u uw huisarts niet vinden? Bel dan met onze informatielijn. "
+        }
+      }
+    },
+    "toasts": {
+      "zelfde": {
+        "title": "Zelfde huisarts",
+        "description": "De gekozen huisarts is hetzelfde als uw huidige huisarts"
+      },
+      "opgeslagen": {
+        "title": "Huisarts opgeslagen",
+        "description": "De gegevens van uw huisarts zijn opgeslagen."
+      },
+      "geen": {
+        "title": "U heeft geen huisarts doorgegeven.",
+        "description": "Uw huisarts krijgt geen bericht over de uitslag van uw onderzoek."
+      },
+      "verwijderen_forbidden": {
+        "title": "Huisarts niet verwijderd",
+        "description": "U kunt op dit moment uw huisarts niet verwijderen."
+      }
+    }
+  },
+  "mamma": {
+    "tussenpagina": {
+      "description": "Als u meedoet aan het bevolkingsonderzoek borstkanker, maken wij röntgenfoto’s van uw borsten. Als wij daarop afwijkingen zien, is vervolgonderzoek nodig. Uw huisarts stuurt u dan door naar het ziekenhuis. </br>Uw huisarts krijgt geen bericht als de uitslag van uw onderzoek goed is. </br></br>Wij sturen uw huisarts een bericht als er meer onderzoek nodig is. Wij gebruiken daarvoor de gegevens van de huisarts die wij van u hebben gekregen. Wij gebruiken deze gegevens één keer. </br></br>U heeft eerder uw huisarts doorgegeven. Dit is uw huisarts:"
+    },
+    "zoekpagina": {
+      "description_toevoegen": "Als u meedoet aan het bevolkingsonderzoek borstkanker, maken wij röntgenfoto’s van uw borsten. Als wij daarop afwijkingen zien, is er meer onderzoek nodig. Wij sturen uw huisarts hierover een bericht. Uw huisarts stuurt u dan naar het ziekenhuis voor verder onderzoek. </br>Uw huisarts krijgt geen bericht als de uitslag van uw onderzoek goed is. </br></br>Vul hieronder de achternaam en/of plaats van uw huisarts in en zoek uw huisarts.",
+      "description_wijzigen": "Als u meedoet aan het bevolkingsonderzoek borstkanker, maken wij röntgenfoto’s van uw borsten. Als wij daarop afwijkingen zien, is meer onderzoek nodig. Wij sturen uw huisarts hierover een bericht. Wij gebruiken daarvoor de gegevens van de huisarts die wij van u hebben gekregen. Uw huisarts stuurt u dan naar het ziekenhuis voor verder onderzoek. </br>Uw huisarts krijgt geen bericht als de uitslag van uw onderzoek goed is. </br></br>U heeft eerder de gegevens van uw huisarts doorgegeven. U ziet uw huisarts rechtsboven in het scherm. </br></br>Wilt u een andere huisarts doorgeven? Zoek dan hieronder uw huisarts.</br></br>Wilt u geen huisarts doorgeven? </br>Klik dan onder uw huisarts op Verwijderen.</br></br><b>Huisarts zoeken</b> </br>Vul hieronder de achternaam en/of plaats van uw huisarts in en zoek uw huisarts."
+    }
+  },
+  "colon": {
+    "tussenpagina": {
+      "description": "Bij het bevolkingsonderzoek darmkanker doet u thuis een ontlastingstest. Deze stuurt u op naar het laboratorium. Daar kijken we of er bloed in uw ontlasting zit. Is dat zo? Dan krijgt u een uitnodiging voor verder onderzoek in het ziekenhuis of behandelcentrum. </br></br>Wilt u dat wij uw huisarts hierover een bericht sturen? Dan moet u ons dat laten weten. Wij gebruiken daarvoor de gegevens van de huisarts die wij van u hebben gekregen. Wij gebruiken deze gegevens één keer. </br></br>Uw huisarts krijgt geen bericht als de uitslag van uw onderzoek goed is. </br></br>U heeft eerder uw huisarts aan ons doorgegeven. Dit is uw huisarts: "
+    },
+    "zoekpagina": {
+      "description_toevoegen": "Bij het bevolkingsonderzoek darmkanker doet u thuis een ontlastingstest. Deze stuurt u op naar het laboratorium. Daar kijken we of er bloed in uw ontlasting zit. Is dat zo? Dan krijgt u een uitnodiging voor verder onderzoek in het ziekenhuis of behandelcentrum. </br></br>Wilt u dat wij uw huisarts hierover een bericht sturen? Geef dan aan ons door wie uw huisarts is.  </br>Uw huisarts krijgt geen bericht als de uitslag van uw onderzoek goed is.  </br></br>Vul hieronder de achternaam en/of plaats van uw huisarts in en zoek uw huisarts.",
+      "description_wijzigen": "Bij het bevolkingsonderzoek darmkanker doet u thuis een ontlastingstest. Deze stuurt u op naar het laboratorium. Daar kijken we of er bloed in uw ontlasting zit. Is dat zo? Dan krijgt u een uitnodiging voor verder onderzoek in het ziekenhuis of behandelcentrum. </br></br>Wilt u dat wij uw huisarts hierover een bericht sturen? Geef dan aan ons door wie uw huisarts is. </br>Uw huisarts krijgt geen bericht als de uitslag van uw onderzoek goed is.  </br></br>U heeft eerder uw huisarts doorgegeven. U ziet uw huisarts rechtsboven in het scherm. </br></br>Wilt u een andere huisarts doorgeven? Zoek dan hieronder uw huisarts.</br></br>Wilt u geen huisarts doorgeven?</br>Klik dan onder uw huisarts op Verwijderen. </br></br><b>Huisarts zoeken</b></br>Vul hieronder de achternaam en/of plaats van uw huisarts in."
+    }
+  },
+  "HUISARTS_IN_HET_BUITENLAND": "Uw huisarts heeft de praktijk in het buitenland",
+  "CLIENT_WIL_HUISARTS_NIET_OPGEVEN": "U heeft geen huisarts",
+  "TEHUIS_HUISARTS": "Uw huisarts werkt in een tehuis",
+  "HUISARTS_STAAT_ER_NIET_TUSSEN": "Uw huisarts is niet bekend bij Bevolkingsonderzoek Nederland"
+}

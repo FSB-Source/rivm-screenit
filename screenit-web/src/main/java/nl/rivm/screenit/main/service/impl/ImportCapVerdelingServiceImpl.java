@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,7 +45,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -85,10 +83,10 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 		Workbook workbook;
 		String melding = "";
 		Level level = Level.INFO;
-		try (PushbackInputStream pushbackInputStream = new PushbackInputStream(new FileInputStream(file));)
+		try (PushbackInputStream pushbackInputStream = new PushbackInputStream(new FileInputStream(file)))
 		{
 			workbook = WorkbookFactory.create(pushbackInputStream);
-			workbook.setMissingCellPolicy(HSSFRow.CREATE_NULL_AS_BLANK);
+			workbook.setMissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
 
 			Sheet sheet = workbook.getSheetAt(0);
 			if (sheet == null)
@@ -128,14 +126,14 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 							if (numericCellValue > 0.0)
 							{
 								numericCellValue *= 10000.0;
-								adherentie = String.valueOf(Double.valueOf(numericCellValue).intValue());
+								adherentie = String.valueOf(numericCellValue);
 							}
 							String capaciteit = "";
 							numericCellValue = getNummericCellValue(row, colIdx);
 							if (numericCellValue > 0.0)
 							{
 								numericCellValue *= 10000.0;
-								capaciteit = String.valueOf(Double.valueOf(numericCellValue).intValue());
+								capaciteit = String.valueOf(numericCellValue);
 							}
 
 							if (StringUtils.isNotBlank(adherentie) && StringUtils.isNotBlank(capaciteit))
@@ -342,7 +340,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 
 	private Double getNummericCellValue(Row row, int index)
 	{
-		Double cellValue = Double.valueOf(0.0);
+		double cellValue = 0.0;
 		if (row.getLastCellNum() > index && row.getFirstCellNum() <= index)
 		{
 			Cell cell = row.getCell(index);
@@ -350,14 +348,14 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 			{
 				if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC)
 				{
-					cellValue = Double.valueOf(cell.getNumericCellValue());
+					cellValue = cell.getNumericCellValue();
 				}
 				else
 				{
 					String stringCellValue = cell.getStringCellValue();
 					if (StringUtils.isNotBlank(stringCellValue))
 					{
-						cellValue = Double.valueOf(stringCellValue);
+						cellValue = Double.parseDouble(stringCellValue);
 					}
 				}
 			}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,18 +21,17 @@ package nl.rivm.screenit.batch.service;
  * =========================LICENSE_END==================================
  */
 
-import ca.uhn.hl7v2.HL7Exception;
+import java.util.List;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
 
-import java.util.List;
+import ca.uhn.hl7v2.HL7Exception;
 
 public interface MammaCStoreService
 {
-    MammaUploadBeeldenPoging getUploadPoging(Long accessionNumber);
-
     void beeldenOntvangenUploadPoging(MammaUploadBeeldenPoging uploadBeeldenPoging) throws HL7Exception;
 
     void beeldenVerwijderdUploadVerzoek(MammaUploadBeeldenPoging uploadBeeldenPoging, MammaIMSBericht bericht, Client client, boolean error);

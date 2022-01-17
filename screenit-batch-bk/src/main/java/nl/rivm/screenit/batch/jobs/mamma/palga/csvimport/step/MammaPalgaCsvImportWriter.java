@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.palga.csvimport.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,7 +51,7 @@ public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImport
 	private MammaPalgaService palgaService;
 
 	@Override
-	public void write(List<? extends MammaPalgaCsvImportDto> items)
+	public void write(List<? extends MammaPalgaCsvImportDto> items) throws Exception
 	{
 		for (MammaPalgaCsvImportDto dto : items)
 		{
@@ -73,10 +73,12 @@ public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImport
 				catch (IllegalArgumentException e)
 				{
 					logMelding(logMeldingPrefix + "semantisch", e);
+					throw e;
 				}
 				catch (Exception e)
 				{
 					logMelding(logMeldingPrefix + "technisch", e);
+					throw e;
 				}
 
 			}

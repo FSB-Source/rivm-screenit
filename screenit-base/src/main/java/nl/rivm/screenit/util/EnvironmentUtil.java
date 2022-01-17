@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,19 @@ public class EnvironmentUtil
 {
 	public static Integer getIntegerEnvironmentVariable(String key, Integer defaultValue)
 	{
-		String property = System.getProperty(key);
+		String property = System.getenv(key);
 		return StringUtils.isNotBlank(property) ? Integer.parseInt(property) : defaultValue;
+	}
+
+	public static String getStringEnvironmentVariable(String key, String defaultValue)
+	{
+		String property = System.getenv(key);
+		return StringUtils.isNotBlank(property) ? property : defaultValue;
+	}
+
+	public static Boolean getBooleanEnvironmentVariable(String key, Boolean defaultValue)
+	{
+		String property = System.getenv(key);
+		return StringUtils.isNotBlank(property) ? Boolean.parseBoolean(property) : defaultValue;
 	}
 }

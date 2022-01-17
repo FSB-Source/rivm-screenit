@@ -1,0 +1,138 @@
+<!DOCTYPE HTML>
+<!--
+  ========================LICENSE_START=================================
+  se-mammograaf-stub
+  %%
+  Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Mammograaf stub</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}"/>
+    <link rel="stylesheet" th:href="@{/bootstrap/css/bootstrap.min.css}"/>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-sm">
+                    <h4 th:text="'Werklijst ' + ${AETitle}"/>
+                </div>
+                <div class="col-sm">
+                    <div class="float-right">
+                        <a class="btn btn-secondary btn-lg" th:style="${DissableWorklist} ? 'display:none' : 'display:block'" href="/werklijst">Werklijst opnieuw
+                            ophalen</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Patient naam</th>
+                    <th scope="col">Geslacht</th>
+                    <th scope="col">Geboortedatum</th>
+                    <th scope="col">PatientID</th>
+                    <th scope="col">Accession Number</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">
+                        <p th:text="${PatientName}"/>
+                    </th>
+                    <td>
+                        <p th:text="${PatientSex}"/>
+                    </td>
+                    <td>
+                        <p th:text="${PatientBirthDate}"/>
+                    </td>
+                    <td>
+                        <p th:text="${PatientID}"/>
+                    </td>
+                    <td>
+                        <p th:text="${StudyID}"/>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-sm">
+                    <h4>MPPS</h4>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                <tr>
+                    <th scope="col">Bericht status</th>
+                    <th scope="col">Request id</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Response id</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">
+                        <p th:text="${SoortMpps}"/>
+                    </th>
+                    <td>
+                        <p th:text="${Uid}"/>
+                    </td>
+                    <td>
+                        <p th:text="${Status}"/>
+                    </td>
+                    <td>
+                        <p th:text="${ResponseUid}"/>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div th:style="${DissableMPPS} ? 'display:none' : 'display:block'" class="card">
+        <div class="card-header">
+            <h4>Stuur een MPPS bericht</h4>
+        </div>
+        <div class="card-body">
+            <a class="btn btn-secondary btn-lg" href="/mppsCompleted/rechts">Beelden Rechts</a>
+            <a class="btn btn-secondary btn-lg" href="/mppsCompleted/links">Beelden Links</a>
+            <a class="btn btn-secondary btn-lg" href="/mppsCompleted/beide">Beelden Beide Zijden</a>
+            <a class="btn btn-secondary btn-lg" href="/mppsDiscontinued">Afgebroken</a>
+            <a class="btn btn-secondary btn-lg errorTest" href="/mppsCompleted/beide?foutMelding=true">Beelden (Foutmelding)</a>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container">
+        <span class="text-muted">Versie: <p th:text="${Versie}"/></span>
+    </div>
+</footer>
+
+</body>
+</html>

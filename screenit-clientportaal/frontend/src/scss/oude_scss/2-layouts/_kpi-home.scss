@@ -1,0 +1,60 @@
+﻿.kpi {
+  @include respond-below(md) {
+    margin: 0;
+  }
+
+  &--stats {
+    padding: 114px 0 0 0;
+
+    @include respond-below(md) {
+      padding: 20px 0 0 0;
+    }
+
+    &--title {
+      margin-bottom: 40px;
+      color: $blue;
+
+      @include respond-below(md) {
+        margin-bottom: 20px;
+      }
+    }
+
+    &--body {
+      min-height: 210px;
+      padding-left: 0;
+
+      @include respond-below(md) {
+        min-height: 1px;
+        border-bottom: 1px solid $border;
+        display: inline-block;
+        padding: 20px 0;
+      }
+
+
+      &__icn {
+        float: left;
+        margin: 10px 22px 0 0;
+        @include size(56px, 62px);
+      }
+
+      p {
+        margin-top: 6px;
+        font-size: calc-em(16);
+        display: inline-block;
+        @include text-overflow(6);
+      }
+    }
+  }
+
+  &--img {
+    margin: 0 0 100px;
+
+    @include respond-above(md) {
+      padding-left: 30px;
+    }
+
+    @include respond-below(md) {
+      display: none;
+    }
+  }
+}

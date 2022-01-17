@@ -1,0 +1,23 @@
+@import "src/scss/media-mixins";
+
+.overigeMeerInformatieBlok {
+	padding: 1.5rem 1.875rem 1.5rem 1.875rem;
+	border-radius: 0.625rem;
+	border: 0.063rem solid #D5D5D5;
+	margin-bottom: 0.625rem;
+
+	@include respond-below(xs) {
+		padding: 0.5rem 0.7rem 0.5rem 0.7rem;
+	}
+
+	span:first-of-type {
+		font-weight: 500;
+		display: block;
+		font-size: 0.875rem;
+	}
+
+	span:last-of-type {
+		font-weight: 400;
+		font-size: 0.875rem;
+	}
+}

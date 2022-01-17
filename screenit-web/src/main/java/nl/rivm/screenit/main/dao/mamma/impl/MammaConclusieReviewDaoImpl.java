@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,8 @@ package nl.rivm.screenit.main.dao.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 import nl.rivm.screenit.main.dao.mamma.MammaConclusieReviewDao;
@@ -32,10 +33,10 @@ import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
+import org.hibernate.SQLQuery;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Order;
@@ -56,22 +57,20 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
-	private final LocalDate ONDERZOEKEN_MEENEMEN_VANAF = LocalDate.of(2019, 1, 1);
-
 	private final int AANTAL_JAAR_REVIEWS_TERUGZIEN = 1;
 
 	@Override
-	public long countScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject)
+	public long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject)
 	{
-		Criteria crit = createScreeningRondeCriteria(zoekObject);
+		Criteria crit = createConclusieReviewCriteria(zoekObject);
 		crit.setProjection(Projections.rowCount());
 		return (Long) crit.uniqueResult();
 	}
 
 	@Override
-	public List<MammaScreeningRonde> zoekScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
+	public List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
 	{
-		Criteria crit = createScreeningRondeCriteria(zoekObject);
+		Criteria crit = createConclusieReviewCriteria(zoekObject);
 
 		addSortering(sortProperty, asc, crit);
 
@@ -87,7 +86,7 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	@Override
 	public List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc)
 	{
-		Criteria crit = createScreeningRondeCriteria(zoekObject);
+		Criteria crit = createConclusieReviewCriteria(zoekObject);
 		addSortering(sortProperty, asc, crit);
 
 		crit.createAlias("laatsteOnderzoek.laatsteBeoordeling", "laatsteBeoordeling");
@@ -96,36 +95,20 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 		return crit.list();
 	}
 
-	private Criteria createScreeningRondeCriteria(MammaConclusieReviewZoekObject zoekObject)
+	private Criteria createConclusieReviewCriteria(MammaConclusieReviewZoekObject zoekObject)
 	{
 		InstellingGebruiker instellingGebruiker = zoekObject.getInstellingGebruiker();
-		DetachedCriteria subCriteria = DetachedCriteria.forClass(MammaScreeningRonde.class);
-		subCriteria.createAlias("uitnodigingen", "uitnodiging");
-		subCriteria.createAlias("uitnodiging.afspraken", "afspraak");
-		subCriteria.createAlias("afspraak.onderzoek", "onderzoek");
-		subCriteria.createAlias("onderzoek.signaleren", "signaleren", JoinType.LEFT_OUTER_JOIN);
-		subCriteria.createAlias("onderzoek.beoordelingen", "beoordeling");
-		subCriteria.createAlias("beoordeling.eersteLezing", "eersteLezing", JoinType.LEFT_OUTER_JOIN);
-		subCriteria.createAlias("beoordeling.tweedeLezing", "tweedeLezing", JoinType.LEFT_OUTER_JOIN);
-		subCriteria.createAlias("beoordeling.discrepantieLezing", "discrepantieLezing", JoinType.LEFT_OUTER_JOIN);
-		subCriteria.createAlias("beoordeling.arbitrageLezing", "arbitrageLezing", JoinType.LEFT_OUTER_JOIN);
-		subCriteria.createAlias("conclusieReviews", "conclusieReviews", JoinType.LEFT_OUTER_JOIN,
-			Restrictions.eq("conclusieReviews.radioloog", zoekObject.getInstellingGebruiker()));
+		DetachedCriteria subCriteria = DetachedCriteria.forClass(MammaConclusieReview.class);
+		subCriteria.createAlias("screeningRonde", "screeningRonde");
 
 		addGereviewedRestriction(zoekObject, subCriteria);
 
-		subCriteria.add(Restrictions.gt("onderzoek.creatieDatum", DateUtil.toUtilDate(ONDERZOEKEN_MEENEMEN_VANAF)));
-		subCriteria.add(Restrictions.in("followUpConclusieStatus", MammaFollowUpConclusieStatus.conclusieReviewStatussen()));
-		subCriteria.add(Restrictions.or(
-			Restrictions.eq("eersteLezing.beoordelaar", instellingGebruiker),
-			Restrictions.eq("tweedeLezing.beoordelaar", instellingGebruiker),
-			Restrictions.eq("discrepantieLezing.beoordelaar", instellingGebruiker),
-			Restrictions.eq("arbitrageLezing.beoordelaar", instellingGebruiker)));
+		subCriteria.add(Restrictions.eq("radioloog", zoekObject.getInstellingGebruiker()));
 
 		addFilterOptieRestrictions(zoekObject, instellingGebruiker, subCriteria);
 		subCriteria.setProjection(Projections.id());
 
-		Criteria crit = getSession().createCriteria(MammaScreeningRonde.class);
+		Criteria crit = getSession().createCriteria(MammaConclusieReview.class);
 		crit.add(Subqueries.propertyIn("id", subCriteria));
 
 		return crit;
@@ -135,13 +118,14 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	{
 		if (sortProperty != null)
 		{
+			crit.createAlias("screeningRonde", "screeningRonde");
 			if (sortProperty.startsWith("laatsteOnderzoek."))
 			{
-				crit.createAlias("laatsteOnderzoek", "laatsteOnderzoek");
+				crit.createAlias("screeningRonde.laatsteOnderzoek", "laatsteOnderzoek");
 			}
 			else if (sortProperty.startsWith("persoon."))
 			{
-				crit.createAlias("dossier", "dossier");
+				crit.createAlias("screeningRonde.dossier", "dossier");
 				crit.createAlias("dossier.client", "client");
 				crit.createAlias("client.persoon", "persoon");
 			}
@@ -160,11 +144,14 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 	{
 		if (zoekObject.getGezienTonen())
 		{
-			crit.add(Restrictions.ge("conclusieReviews.reviewMoment", currentDateSupplier.getLocalDateTime().minusYears(AANTAL_JAAR_REVIEWS_TERUGZIEN)));
+			LocalDateTime beginKalenderJaar = currentDateSupplier.getLocalDate().with(TemporalAdjusters.firstDayOfYear()).atStartOfDay();
+			LocalDateTime tonenNaDatum = zoekObject.getVoorDashboard() ? beginKalenderJaar : currentDateSupplier.getLocalDateTime().minusYears(AANTAL_JAAR_REVIEWS_TERUGZIEN);
+
+			crit.add(Restrictions.ge("reviewMoment", tonenNaDatum));
 		}
 		else
 		{
-			crit.add(Restrictions.isNull("conclusieReviews.id"));
+			crit.add(Restrictions.isNull("reviewMoment"));
 		}
 	}
 
@@ -173,20 +160,34 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 		switch (zoekObject.getFilterOptie())
 		{
 		case FALSE_NEGATIVE_MBB_SIGNALERING:
+			crit.createAlias("screeningRonde.uitnodigingen", "uitnodiging");
+			crit.createAlias("uitnodiging.afspraken", "afspraak");
+			crit.createAlias("afspraak.onderzoek", "onderzoek");
+			crit.createAlias("onderzoek.signaleren", "signaleren");
+
 			crit.add(Restrictions.eq("signaleren.heeftAfwijkingen", true));
-			crit.add(Restrictions.eq("followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE));
+			crit.add(Restrictions.eq("screeningRonde.followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE));
 			break;
 		case FALSE_NEGATIVE:
-			crit.add(Restrictions.eq("followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE));
+			crit.add(Restrictions.eq("screeningRonde.followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE));
 			break;
 		case FALSE_POSITIVE:
-			crit.add(Restrictions.eq("followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_POSITIVE));
+			crit.add(Restrictions.eq("screeningRonde.followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_POSITIVE));
 			break;
 		case TRUE_POSITIVE:
-			crit.add(Restrictions.eq("followUpConclusieStatus", MammaFollowUpConclusieStatus.TRUE_POSITIVE));
+			crit.add(Restrictions.eq("screeningRonde.followUpConclusieStatus", MammaFollowUpConclusieStatus.TRUE_POSITIVE));
 			break;
 		case TRUE_POSITIVE_INDIVIDU_GEMIST:
-			crit.add(Restrictions.eq("followUpConclusieStatus", MammaFollowUpConclusieStatus.TRUE_POSITIVE));
+			crit.createAlias("screeningRonde.uitnodigingen", "uitnodiging");
+			crit.createAlias("uitnodiging.afspraken", "afspraak");
+			crit.createAlias("afspraak.onderzoek", "onderzoek");
+			crit.createAlias("onderzoek.beoordelingen", "beoordeling");
+			crit.createAlias("beoordeling.eersteLezing", "eersteLezing", JoinType.LEFT_OUTER_JOIN);
+			crit.createAlias("beoordeling.tweedeLezing", "tweedeLezing", JoinType.LEFT_OUTER_JOIN);
+			crit.createAlias("beoordeling.discrepantieLezing", "discrepantieLezing", JoinType.LEFT_OUTER_JOIN);
+			crit.createAlias("beoordeling.arbitrageLezing", "arbitrageLezing", JoinType.LEFT_OUTER_JOIN);
+
+			crit.add(Restrictions.eq("screeningRonde.followUpConclusieStatus", MammaFollowUpConclusieStatus.TRUE_POSITIVE));
 			crit.add(Restrictions.or(
 				heeftNietVerwezenLezing("eersteLezing", instellingGebruiker),
 				heeftNietVerwezenLezing("tweedeLezing", instellingGebruiker),
@@ -211,5 +212,30 @@ public class MammaConclusieReviewDaoImpl extends AbstractAutowiredDao implements
 		criteria.add(Restrictions.eq("conclusieReview.radioloog.id", radioloog.getId()));
 
 		return (MammaConclusieReview) criteria.uniqueResult();
+	}
+
+	@Override
+	public List<InstellingGebruiker> getRadiologenMetLezingVanRondeEnZonderReview(MammaScreeningRonde screeningRonde)
+	{
+		StringBuilder queryString = new StringBuilder();
+		queryString.append("select distinct {ig.*}");
+
+		queryString.append(" from algemeen.instelling_gebruiker ig");
+
+		queryString.append(" inner join algemeen.org_organisatie_medewerker ig_1_ on ig.id = ig_1_.id");
+		queryString.append(" inner join mamma.lezing l on ig.id = l.beoordelaar");
+		queryString.append(" inner join mamma.beoordeling b on l.id = b.eerste_lezing or l.id = b.tweede_lezing or l.id = b.arbitrage_lezing or l.id = b.discrepantie_lezing");
+		queryString.append(" inner join mamma.onderzoek o on b.onderzoek = o.id");
+		queryString.append(" inner join mamma.afspraak a on o.id = a.onderzoek");
+		queryString.append(" inner join mamma.uitnodiging u on a.uitnodiging = u.id");
+		queryString.append(" inner join mamma.screening_ronde sr on u.screening_ronde = sr.id");
+		queryString.append(" left outer join mamma.conclusie_review cr on sr.id = cr.screening_ronde and cr.radioloog = ig.id");
+		queryString.append(" where sr.id = :screeningRondeId");
+		queryString.append(" and cr.id is null");
+
+		SQLQuery query = getSession().createSQLQuery(queryString.toString()).addEntity("ig", InstellingGebruiker.class);
+		query.setParameter("screeningRondeId", screeningRonde.getId());
+
+		return (List<InstellingGebruiker>) query.list();
 	}
 }

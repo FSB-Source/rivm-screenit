@@ -1,0 +1,23 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.checkboxTekst {
+  margin-top: -35px;
+  margin-left: 31px;
+}
+
+.bevestigenRadioButton {
+  padding-right: 70px;
+}
+
+.errorLabel {
+  position: relative;
+  color: $rood-base;
+  font-size: 0.7rem;
+  width: 100%;
+  margin: 5px  0  0 40px;
+}
+
+.radiobuttons {
+  margin-left: -35px;
+}

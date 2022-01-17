@@ -1,0 +1,30 @@
+﻿.breadcrumbs {
+  margin: 60px 0 20px;
+  line-height: 1.2;
+
+  @include respond-below(md) {
+    margin: 20px 0 10px;
+  }
+
+  &--home {
+    color: $link !important;
+    font-size: calc-em(20);
+  }
+
+  &--ancestor {
+    font-size: calc-em(20);
+    color: $link !important;
+
+    &:before {
+      content: "\f105" !important;
+      font-family: FontAwesome;
+      font-size: calc-em(20);
+      margin: 0 12px 0 10px;
+      position: relative;
+      top: 1px;
+      color: $black;
+      font-weight: 400;
+      display: inline-block;
+    }
+  }
+}

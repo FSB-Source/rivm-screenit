@@ -5,7 +5,7 @@ package nl.rivm.screenit.wsb.pd.service.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -91,6 +91,7 @@ public class ProvideDocumentPortTypeImpl implements ProvideDocumentPortType
 
 	private void provideDocument(DocumentMetaData documentMetaData, byte[] document, Holder<Boolean> success, Holder<String> code, Holder<String> text, String remoteAddr)
 	{
+		LOG.info("ProvideDocumentPortTypeImpl");
 		success.value = false;
 		String cda = new String(document);
 
@@ -164,20 +165,7 @@ public class ProvideDocumentPortTypeImpl implements ProvideDocumentPortType
 					{
 						ontvangenCdaBericht.setStatus(BerichtStatus.VERWERKING);
 						hibernateService.saveOrUpdate(ontvangenCdaBericht);
-						Long id = ontvangenCdaBericht.getId();
-						switch (berichtType)
-						{
-						case MDL_VERSLAG:
-						case PA_LAB_VERSLAG:
-							verwerkBerichtService.queueColonCDABericht(id);
-							break;
-						case CERVIX_CYTOLOGIE_VERSLAG:
-							verwerkBerichtService.queueCervixCDABericht(id);
-							break;
-						case MAMMA_PA_FOLLOW_UP_VERSLAG:
-							verwerkBerichtService.queueMammaCDABericht(id);
-							break;
-						}
+						verwerkBerichtService.queueCDABericht(berichtType.getBevolkingsonderzoek());
 						success.value = true;
 					}
 					catch (Exception e)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,23 +23,21 @@ package nl.rivm.screenit.mamma.se.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.mamma.se.security.SEAccountResolverDelegate;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.SELogService;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,10 +47,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/adhocMeekijkverzoek")
 public class AdhocMeekijkverzoekController extends AuthorizedController
 {
+
+	private static final String EMAIL_ONDERWERP = "AD HOC meekijk verzoek BVO BK";
 
 	@Autowired
 	private MailService mailService;
@@ -75,10 +76,6 @@ public class AdhocMeekijkverzoekController extends AuthorizedController
 	@Autowired
 	private MammaAfspraakService afspraakService;
 
-	private static final Logger LOG = LoggerFactory.getLogger(AdhocMeekijkverzoekController.class);
-
-	private static final String EMAIL_ONDERWERP = "AD HOC meekijk verzoek BVO BK";
-
 	@RequestMapping(value = "/indienen/{afspraakId}", method = RequestMethod.POST)
 	public ResponseEntity adhocIndienen(@RequestBody String reden, @PathVariable long afspraakId, HttpServletRequest request)
 	{
@@ -87,11 +84,11 @@ public class AdhocMeekijkverzoekController extends AuthorizedController
 		{
 			return createUnauthorizedResponse();
 		}
-		InstellingGebruiker account = getInstellingGebruiker(request);
+		var account = getInstellingGebruiker(request);
 		SEAccountResolverDelegate.setInstellingGebruiker(account);
-		MammaScreeningsEenheid se = getScreeningsEenheid(request);
+		var se = getScreeningsEenheid(request);
 
-		MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(afspraakId, account);
+		var afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(afspraakId, account);
 		if (afspraak.getOnderzoek().getMeekijkverzoek() != null)
 		{
 			LOG.warn(String.format("Bestaat al een meekijkverzoek LRCB voor onderzoekId: %s met reden: %s", afspraak.getOnderzoek().getId(), reden));
@@ -102,13 +99,13 @@ public class AdhocMeekijkverzoekController extends AuthorizedController
 			LOG.warn(String.format("Onderzoek met onderzoekId: %s is doorgevoerd en hiervoor kan geen meekijkverzoek worden ingediend.", afspraak.getOnderzoek().getId()));
 			return ResponseEntity.status(HttpStatus.CONFLICT).build();
 		}
-		long adHocVolgNr = baseFactory.maakAdhocMeekijkverzoek(afspraak.getOnderzoek(), reden).getVolgnummer();
-		String logevent = String.format("Volgnummer: %s, reden: %s", adHocVolgNr, reden);
+		var adHocVolgNr = baseFactory.maakAdhocMeekijkverzoek(afspraak.getOnderzoek(), reden).getVolgnummer();
+		var logevent = String.format("Volgnummer: %s, reden: %s", adHocVolgNr, reden);
 		logService.logInfo(LogGebeurtenis.MAMMA_SE_LRCB_MEEKIJKVERZOEK, account, afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient(), se,
 			currentDateSupplier.getLocalDateTime(), logevent);
-		String lrcb_emailadres = preferenceService.getString(PreferenceKey.MAMMA_MEEKIJKVERZOEK_MAIL_ADRES.name());
+		var lrcb_emailadres = preferenceService.getString(PreferenceKey.MAMMA_MEEKIJKVERZOEK_MAIL_ADRES.name());
 
-		String emailBody = String.format("Beste LRCB,<br />" +
+		var emailBody = String.format("Beste LRCB,<br />" +
 			"<br />" +
 			"Er staat een nieuw meekijk verzoek gereed op jullie AD HOC meekijk werklijst in ScreenIT.<br />" +
 			"Het betreft onderzoek met volgnummer: %s en reden: %s.<br />" +
@@ -118,7 +115,7 @@ public class AdhocMeekijkverzoekController extends AuthorizedController
 			"<br />" +
 			"Dit is een automatisch gegenereerde email, beantwoorden is niet mogelijk.", adHocVolgNr, reden,
 			afspraak.getStandplaatsPeriode().getScreeningsEenheid().getCode());
-		mailService.sendEmail(lrcb_emailadres, EMAIL_ONDERWERP, emailBody, MailService.MailPriority.HIGH);
+		mailService.queueMail(lrcb_emailadres, EMAIL_ONDERWERP, emailBody, MailPriority.HIGH);
 
 		return ResponseEntity.ok().build();
 	}
@@ -126,7 +123,7 @@ public class AdhocMeekijkverzoekController extends AuthorizedController
 	@RequestMapping(value = "/controleren/{afspraakId}", method = RequestMethod.POST)
 	public ResponseEntity adhocControle(@PathVariable long afspraakId, HttpServletRequest request)
 	{
-		MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(afspraakId, getInstellingGebruiker(request));
+		var afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(afspraakId, getInstellingGebruiker(request));
 		if (afspraak.getOnderzoek().getMeekijkverzoek() != null)
 		{
 			return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED).build();

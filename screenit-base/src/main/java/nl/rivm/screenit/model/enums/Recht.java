@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -726,6 +726,12 @@ public enum Recht implements INaam
 		Actie.VERWIJDEREN),
 
 	GEBRUIKER_SCREENING_MAMMA_PLANNING("Planning", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }, new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
+
+	GEBRUIKER_SCREENING_MAMMA_PLANNING_BEHEER(
+		"Planning regio beheer",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
+		Actie.AANPASSEN),
 
 	GEBRUIKER_SCREENING_MAMMA_SE_BEHEER("SE beheer", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA }, new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK }),
 

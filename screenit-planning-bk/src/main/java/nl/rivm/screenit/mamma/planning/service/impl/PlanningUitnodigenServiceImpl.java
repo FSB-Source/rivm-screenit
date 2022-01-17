@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,14 +22,13 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  */
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.mamma.planning.index.PlanningClientIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
@@ -57,7 +56,6 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaUitstel;
-import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
 import nl.rivm.screenit.service.InstellingService;
@@ -66,6 +64,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseKandidaatAfsprakenDeterminatiePeriode;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
 import nl.rivm.screenit.service.mamma.impl.MammaKandidaatAfspraak;
 import nl.rivm.screenit.service.mamma.impl.MammaOnvoldoendeVrijeCapaciteitException;
@@ -107,13 +106,15 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 	@Autowired
 	private InstellingService instellingService;
 
+	@Autowired
+	private MammaBaseScreeningrondeService screeningrondeService;
+
 	private final Map<Long, Integer> screeningsEenheidLaatsteVolgNrMap = new HashMap<>();
 
 	@Override
 	public void uitnodigen(PlanningStandplaatsRonde standplaatsRonde, Set<PlanningClient> openUitnodigingClientSet, NavigableSet<PlanningClient> afspraakUitnodigingClientSet,
 		PlanningUitnodigenRapportageDto rapportageDto, PlanningUitnodigingContext context)
 	{
-		DataSourceRouter.useReadWrite();
 		Instelling rivm = instellingService.getActieveInstellingen(Rivm.class).get(0);
 
 		MammaStandplaatsRonde mammaStandplaatsRonde = hibernateService.get(MammaStandplaatsRonde.class, standplaatsRonde.getId());
@@ -125,11 +126,8 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 
 		for (PlanningClient client : openUitnodigingClientSet)
 		{
-			BriefType briefType = client.isSuspect() ? BriefType.MAMMA_UITNODIGING_SUSPECT
-				: client.getDoelgroep().equals(MammaDoelgroep.MINDER_VALIDE) ? BriefType.MAMMA_UITNODIGING_MINDER_VALIDE : BriefType.MAMMA_OPEN_UITNODIGING;
-			maakRondeEnUitnodiging(getDossier(client), briefType, mammaStandplaatsRonde, false);
-
-			voegToe(getStandplaatsPeriodeUitnodigenRapportage(rapportageDto, eersteMammaStandplaatsPeriode), briefType, client);
+			voegToe(getStandplaatsPeriodeUitnodigenRapportage(rapportageDto, eersteMammaStandplaatsPeriode),
+				screeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(client.isSuspect(), client.getDoelgroep()), client);
 		}
 
 		for (PlanningClient client : afspraakUitnodigingClientSet)
@@ -139,7 +137,7 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 			BigDecimal voorlopigeOpkomstkans = baseKansberekeningService
 				.getVoorlopigeOpkomstkans(dossier, eersteMammaStandplaatsPeriode, null, briefType);
 
-			MammaKandidaatAfspraak kandidaatAfspraak = null;
+			MammaKandidaatAfspraak kandidaatAfspraak;
 			try
 			{
 				MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = SpringBeanProvider.getInstance()
@@ -150,7 +148,7 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 			catch (MammaOnvoldoendeVrijeCapaciteitException e)
 			{
 				ScreeningOrganisatie regio = mammaStandplaatsRonde.getStandplaats().getRegio();
-				logService.logGebeurtenis(LogGebeurtenis.MAMMA_ONVOLDOENDE_VRIJE_CAPACITEIT, Arrays.asList(regio),
+				logService.logGebeurtenis(LogGebeurtenis.MAMMA_ONVOLDOENDE_VRIJE_CAPACITEIT, List.of(regio),
 					new LogEvent(mammaStandplaatsRonde.getStandplaats().getNaam()),
 					Bevolkingsonderzoek.MAMMA);
 				break;

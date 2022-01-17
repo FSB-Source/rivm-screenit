@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +30,7 @@ import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
+import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.berichten.enums.BerichtType;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.cervix.verslag.CervixVerslag;
@@ -49,6 +49,7 @@ import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
+import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.MatchMode;
@@ -57,10 +58,13 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.primitives.Ints;
 
 @Repository
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class VerslagDaoImpl extends AbstractAutowiredDao implements VerslagDao
 {
 
@@ -300,5 +304,15 @@ public class VerslagDaoImpl extends AbstractAutowiredDao implements VerslagDao
 		Criteria criteria = createCriteria(zoekObject);
 		criteria.setProjection(Projections.rowCount());
 		return (Long) criteria.uniqueResult();
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void setBerichtenOpnieuwVerwerken(List<Long> ids)
+	{
+		Query query = getSession().createQuery(
+			"update " + OntvangenCdaBericht.class.getName() + " set status = '" + BerichtStatus.VERWERKING.name() + "' where id in (:ids)");
+		query.setParameterList("ids", ids);
+		query.executeUpdate();
 	}
 }

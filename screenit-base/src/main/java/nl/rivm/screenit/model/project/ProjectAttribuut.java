@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -64,6 +64,9 @@ public class ProjectAttribuut extends AbstractHibernateObject implements INaam, 
 	@Column(nullable = false)
 	private String mergeField;
 
+	@Column(nullable = false)
+	private boolean barcode = false;
+
 	public ProjectAttribuut()
 	{
 	}
@@ -119,5 +122,15 @@ public class ProjectAttribuut extends AbstractHibernateObject implements INaam, 
 	public void setMergeField(String mergeField)
 	{
 		this.mergeField = mergeField;
+	}
+
+	public boolean isBarcode()
+	{
+		return barcode;
+	}
+
+	public void setBarcode(boolean barcode)
+	{
+		this.barcode = barcode;
 	}
 }

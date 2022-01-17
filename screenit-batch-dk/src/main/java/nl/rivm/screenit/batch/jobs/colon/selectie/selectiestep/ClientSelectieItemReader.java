@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,16 +22,19 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  */
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 public class ClientSelectieItemReader extends AbstractClientSelectieReader
 {
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public void open(ExecutionContext executionContext) throws ItemStreamException
@@ -69,12 +71,11 @@ public class ClientSelectieItemReader extends AbstractClientSelectieReader
 			}
 			context = executionContext;
 			cursor = new ClientSelectieItemCursor(hibernateSession, fetchSize, uitnodigingsInterval, context, minimaleLeeftijd, maximaleLeeftijd, uitgenodigdeClientIds,
-				wachttijdVerzendenPakket, clientDao);
+				wachttijdVerzendenPakket, clientDao, currentDateSupplier.getLocalDate());
 
 		}
 		finally
 		{
-			DataSourceRouter.useReadWrite();
 			if (unbindSessionFromThread)
 			{
 				TransactionSynchronizationManager.unbindResource(sessionFactory);

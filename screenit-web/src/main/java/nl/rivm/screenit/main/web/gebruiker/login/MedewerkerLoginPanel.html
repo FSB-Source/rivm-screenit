@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,35 +21,34 @@
   -->
 
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+	  xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
 <body>
 <wicket:panel>
-    <div class="inlog-container">
-        <div class="inlog-formulier">
-            <h1>Aanmelden ScreenIT</h1>
-            <p>Gebruik uw gebruikersnaam en wachtwoord om verder te gaan. </p>
-            <form wicket:id="loginForm" class="form-horizontal">
+	<div class="inlog-container">
+		<div class="inlog-formulier">
+			<h1>Aanmelden ScreenIT</h1>
+			<p>Gebruik uw gebruikersnaam en wachtwoord om verder te gaan. </p>
+			<form class="form-horizontal" wicket:id="loginForm">
 
-                <div class="control-group">
-                    <label class="control-label" for="input01">Gebruikersnaam</label>
-                    <div class="controls">
-                        <input wicket:id="gebruikersnaam" type="text" class="input-large" id="input01"/>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label class="control-label" for="input02">Wachtwoord</label>
-                    <div class="controls">
-                        <input wicket:id="wachtwoord" type="password" class="input-large" id="input02">
-                    </div>
-                    <a class="wachtwoord-link" wicket:id="passwordRequest">Wachtwoord opnieuw instellen</a>
-                </div>
-                <div class="form-actions">
-                    <button wicket:id="submit" type="submit" class="btn btn-primary">Inloggen</button>
-                </div>
-                <div wicket:id="keepalive"></div>
-            </form>
-        </div>
-    </div>
+				<div class="control-group">
+					<label class="control-label" for="gebruikersnaam">
+						<wicket:message key="label.gebruikersnaam"/>
+					</label>
+					<div class="controls">
+						<input class="input-large" id="gebruikersnaam" type="text" wicket:id="gebruikersnaam"/>
+					</div>
+				</div>
+				<div class="control-group">
+					<div wicket:id="wachtwoordField"></div>
+					<a class="wachtwoord-link" wicket:id="passwordRequest">Wachtwoord opnieuw instellen</a>
+				</div>
+				<div class="form-actions">
+					<button class="btn btn-primary" type="submit" wicket:id="submit">Inloggen</button>
+				</div>
+				<div wicket:id="keepalive"></div>
+			</form>
+		</div>
+	</div>
 </wicket:panel>
 </body>
 </html>

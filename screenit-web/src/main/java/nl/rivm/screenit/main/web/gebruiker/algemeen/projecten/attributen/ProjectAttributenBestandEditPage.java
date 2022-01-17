@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.attributen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -89,7 +89,7 @@ public class ProjectAttributenBestandEditPage extends ProjectBasePage
 		FormComponent<List<FileUpload>> bestandUpload = new FileUploadField("bestand", bestanden).add(new FileValidator(FileType.CSV));
 		bestandUpload.setRequired(true);
 		form.add(bestandUpload);
-		form.add(new ScreenitDropdown<String>("toepassenOp", new ListModel<String>(getOptionsVoorToepassenOp())).setRequired(true));
+		form.add(new ScreenitDropdown<>("toepassenOp", new ListModel<>(getOptionsVoorToepassenOp())).setRequired(true));
 		form.add(ComponentHelper.newCheckBox("attributen").setRequired(true));
 
 		add(getPassPoortContainer());
@@ -108,9 +108,8 @@ public class ProjectAttributenBestandEditPage extends ProjectBasePage
 		return options;
 	}
 
-	private ProjectGroep getGroepVanToepassenOp(Project object, String waarde)
+	private ProjectGroep getGroepVanToepassenOp(Project project, String waarde)
 	{
-		Project project = getProjectModel().getObject();
 		for (ProjectGroep groep : project.getGroepen())
 		{
 			if (groep.getNaam().equals(waarde))

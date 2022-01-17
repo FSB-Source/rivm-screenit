@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.project;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +26,11 @@ import javax.persistence.FetchType;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.UploadDocument;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -36,10 +39,10 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Table(schema = "algemeen")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Deprecated
-public class ProjectImport extends ProjectSelectie
+@Getter
+@Setter
+public class ProjectImport extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	private ProjectGroep groep;
@@ -48,35 +51,4 @@ public class ProjectImport extends ProjectSelectie
 	private UploadDocument uploadDocument;
 
 	private Boolean skipFouten;
-
-	public UploadDocument getUploadDocument()
-	{
-		return uploadDocument;
-	}
-
-	public void setUploadDocument(UploadDocument uploadDocument)
-	{
-		this.uploadDocument = uploadDocument;
-	}
-
-	public ProjectGroep getGroep()
-	{
-		return groep;
-	}
-
-	public void setGroep(ProjectGroep groep)
-	{
-		this.groep = groep;
-	}
-
-	public Boolean getSkipFouten()
-	{
-		return skipFouten;
-	}
-
-	public void setSkipFouten(Boolean skipFouten)
-	{
-		this.skipFouten = skipFouten;
-	}
-
 }

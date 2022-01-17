@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,6 +50,7 @@ import nl.rivm.screenit.util.SkipFieldForDiff;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
 
 @Entity
@@ -162,6 +163,7 @@ public class MammaScreeningRonde extends ScreeningRonde<MammaDossier, MammaBrief
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "screeningRonde")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
+	@Cascade(CascadeType.DELETE)
 	private List<MammaConclusieReview> conclusieReviews = new ArrayList<>();
 
 	@Override

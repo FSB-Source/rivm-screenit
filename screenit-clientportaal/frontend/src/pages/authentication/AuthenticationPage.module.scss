@@ -1,0 +1,34 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.style {
+	margin-top: 50px;
+
+	@include respond-below(xs) {
+		margin-top: 20px;
+		margin-left: 10px;
+	}
+
+	.introTextContainer {
+
+		max-width: 640px;
+		margin-top: 25px;
+		margin-bottom: 25px;
+
+		span {
+			font-weight: 400;
+			display: block;
+			margin-bottom: 10px;
+		}
+
+	}
+
+  .blob {
+
+    @include respond-below(md) {
+      display: none;
+    }
+
+  }
+
+}

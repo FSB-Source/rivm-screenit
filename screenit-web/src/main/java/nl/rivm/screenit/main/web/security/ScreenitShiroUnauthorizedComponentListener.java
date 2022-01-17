@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.security;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +23,6 @@ package nl.rivm.screenit.main.web.security;
 
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.base.ScreenitContext;
-import nl.rivm.screenit.main.web.client.digid.ClientportaalDigidRedirectPage;
 
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.subject.Subject;
@@ -37,7 +35,6 @@ import org.apache.wicket.authorization.IUnauthorizedComponentInstantiationListen
 
 public class ScreenitShiroUnauthorizedComponentListener implements IUnauthorizedComponentInstantiationListener
 {
-
 	private final Class<? extends Page> loginPage;
 
 	private final Class<? extends Page> unauthorizedPage;
@@ -73,12 +70,7 @@ public class ScreenitShiroUnauthorizedComponentListener implements IUnauthorized
 			if (component.getPage() instanceof BasePage)
 			{
 				BasePage basePage = (BasePage) component.getPage();
-
-				if (basePage.getContext() == ScreenitContext.CLIENT)
-				{
-					page = ClientportaalDigidRedirectPage.class;
-				}
-				else if (basePage.getContext() == ScreenitContext.GEBRUIKER)
+				if (basePage.getContext() == ScreenitContext.GEBRUIKER)
 				{
 					page = Application.get().getHomePage();
 				}

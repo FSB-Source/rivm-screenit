@@ -4,7 +4,7 @@ package nl.rivm.screenit.model;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,14 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 
+@AllArgsConstructor
+@Getter
 public enum OrganisatieType
 {
 
@@ -63,17 +68,6 @@ public enum OrganisatieType
 	private final String naam;
 
 	private final Recht recht;
-
-	private OrganisatieType(String naam, Recht recht)
-	{
-		this.naam = naam;
-		this.recht = recht;
-	}
-
-	public Recht getRecht()
-	{
-		return recht;
-	}
 
 	@Override
 	public String toString()

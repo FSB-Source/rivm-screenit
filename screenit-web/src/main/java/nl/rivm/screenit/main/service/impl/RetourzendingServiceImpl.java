@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,9 +33,9 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.BaseUitnodigingDao;
 import nl.rivm.screenit.main.service.RetourzendingService;
 import nl.rivm.screenit.model.DossierStatus;
+import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
-import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.RetourredenAfhandeling;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -156,7 +155,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 		logEvent.setSanddBestand(uploadDocument);
 
 		Workbook workbook;
-		try (PushbackInputStream pushbackInputStream = new PushbackInputStream(new FileInputStream(uploadDocumentService.load(uploadDocument)));)
+		try (PushbackInputStream pushbackInputStream = new PushbackInputStream(new FileInputStream(uploadDocumentService.load(uploadDocument))))
 		{
 			workbook = WorkbookFactory.create(pushbackInputStream);
 
@@ -310,9 +309,10 @@ public class RetourzendingServiceImpl implements RetourzendingService
 		return isValid;
 	}
 
+	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public <U extends InpakbareUitnodiging<S>, S extends ScreeningRonde<?, ?, ?, ?>> void verwerkRetourzendingHandmatig(InstellingGebruiker ingelogdeGebruiker, U uitnodiging,
-                                                                                                                        String retourzendingReden)
+		String retourzendingReden)
 	{
 		RetourzendingLogEvent logEvent = new RetourzendingLogEvent();
 		RetourredenAfhandeling retourredenAfhandeling = bepaalAfhandelingVoorRetourzending(retourzendingReden);
@@ -327,7 +327,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	}
 
 	private <U extends InpakbareUitnodiging<S>, S extends ScreeningRonde<?, ?, ?, ?>> void verwerkRetourzending(RetourzendingLogEvent logEvent, U uitnodiging,
-                                                                                                                RetourredenAfhandeling afhandeling, RetourzendingWijze wijze)
+		RetourredenAfhandeling afhandeling, RetourzendingWijze wijze)
 	{
 		DateTime nu = currentDateSupplier.getDateTime();
 		uitnodiging.setRetourOntvangen(nu.toDate());
@@ -392,12 +392,12 @@ public class RetourzendingServiceImpl implements RetourzendingService
 				ColonScreeningRonde ronde = (ColonScreeningRonde) screeningRonde;
 				if (!colonScreeningsrondeService.isRondeStatusBuitenDoelgroep(ronde))
 				{
-					briefService.maakColonBrief(ronde, BriefType.COLON_ZENDING_GEWEIGERD);
+					briefService.maakBvoBrief(ronde, BriefType.COLON_ZENDING_GEWEIGERD);
 				}
 			}
 			else if (uitnodiging instanceof CervixUitnodiging)
 			{
-				briefService.maakCervixBrief((CervixScreeningRonde) screeningRonde, BriefType.CERVIX_ZENDING_GEWEIGERD);
+				briefService.maakBvoBrief((CervixScreeningRonde) screeningRonde, BriefType.CERVIX_ZENDING_GEWEIGERD);
 			}
 			break;
 		default:

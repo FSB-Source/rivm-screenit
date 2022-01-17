@@ -1,0 +1,89 @@
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+
+  &.no-scroll {
+    position: fixed;
+    overflow-y: scroll;
+    width: 100%;
+  }
+}
+
+.page-body {
+  max-width: 1552px;
+  margin: 0 auto 0;
+
+  @include respond-below(md) {
+    margin: 80px auto 0;
+  }
+
+
+  @media only screen and (max-width: 1552px) {
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  @media only screen and (min-device-width: 768px) and (max-device-width: 1024px) {
+    overflow: hidden;
+    max-width: 100%;
+  }
+}
+
+a, a:hover, a:focus {
+  color: inherit;
+}
+
+
+.bevolking-con {
+  min-height: 700px;
+}
+
+.bg-blob {
+  height: 0;
+  float: right;
+
+  &--img {
+    top: -235px;
+    width: 1100px;
+    position: absolute;
+    left: 450px;
+
+    &.news {
+      left: 700px;
+      top: -200px;
+    }
+
+    @include respond-below(sm) {
+      top: -128px;
+      width: 600px;
+      left: 92px;
+    }
+
+    @include respond-between(sm, md) {
+      top: -236px;
+      width: 900px;
+      left: 210px;
+    }
+
+    @include respond-between(md, lg) {
+      left: 350px;
+      width: 1000px;
+    }
+  }
+}
+
+.no-padding-xs {
+  @include respond-below(sm) {
+    padding: 0;
+  }
+}
+
+.rivm-logo {
+  float: right;
+  width: 200px;
+}

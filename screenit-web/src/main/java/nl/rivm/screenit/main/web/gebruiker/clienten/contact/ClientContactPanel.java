@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,11 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import nl.rivm.screenit.service.ClientContactService;
-import nl.rivm.screenit.main.service.ClientDossierFilter;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
-import nl.rivm.screenit.util.EnumStringUtil;
+import nl.rivm.screenit.main.service.ClientDossierFilter;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ScreenitIndicatingAjaxSubmitLink;
@@ -56,10 +54,13 @@ import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaUitstel;
-import nl.rivm.screenit.service.AutorisatieService;
+import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.ExceptionConverter;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
@@ -118,9 +119,9 @@ public class ClientContactPanel extends GenericPanel<Client>
 	private ClientService clientService;
 
 	@SpringBean
-	private AutorisatieService autorisatieService;
+	private MammaBaseDossierService mammaBaseDossierService;
 
-	private IModel<ClientDossierFilter> zoekObjectModel = null;
+	private IModel<ClientDossierFilter> zoekObjectModel;
 
 	private ContactForm contactForm;
 
@@ -146,7 +147,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 	}
 
-	public static final MetaDataKey<ClientContactPanelCreateContext> CREATE_CONTEXT_KEY = new MetaDataKey<ClientContactPanelCreateContext>()
+	public static final MetaDataKey<ClientContactPanelCreateContext> CREATE_CONTEXT_KEY = new MetaDataKey<>()
 	{
 		private static final long serialVersionUID = 1L;
 	};
@@ -171,7 +172,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 		dialog = new BootstrapDialog("dialog"); 
 		add(dialog);
 
-		contactForm = new ContactForm("form", ModelUtil.cModel(new ClientContact()), extraPanelParams, defaultSelectedActies);
+		contactForm = new ContactForm("form", ModelUtil.ccModel(new ClientContact()), extraPanelParams, defaultSelectedActies);
 		contactForm.setVisible(!clientService.isClientOverleden(clientModel.getObject()));
 		add(contactForm);
 
@@ -184,7 +185,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 	private void filter()
 	{
-		FilterBvoFormPanel<ClientDossierFilter> bvoFilter = new FilterBvoFormPanel<ClientDossierFilter>("bvoFilterContainer", zoekObjectModel, true)
+		FilterBvoFormPanel<ClientDossierFilter> bvoFilter = new FilterBvoFormPanel<>("bvoFilterContainer", zoekObjectModel, true)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -215,10 +216,10 @@ public class ClientContactPanel extends GenericPanel<Client>
 		ClientContactDataProvider provider = new ClientContactDataProvider(this.getModel(), zoekObjectModel.getObject().getBevolkingsonderzoeken());
 
 		List<IColumn<ClientContact, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<ClientContact, String>(Model.of("Datum / tijd"), "datum", "datum"));
-		columns.add(new PropertyColumn<ClientContact, String>(Model.of("Medewerker"), "medewerker.achternaam", "instellingGebruiker.medewerker.naamVolledig"));
-		columns.add(new PropertyColumn<ClientContact, String>(Model.of("Opmerking"), "opmerking"));
-		columns.add(new AbstractColumn<ClientContact, String>(Model.of("Vervolgstap(pen)"))
+		columns.add(new DateTimePropertyColumn<>(Model.of("Datum / tijd"), "datum", "datum"));
+		columns.add(new PropertyColumn<>(Model.of("Medewerker"), "medewerker.achternaam", "instellingGebruiker.medewerker.naamVolledig"));
+		columns.add(new PropertyColumn<>(Model.of("Opmerking"), "opmerking"));
+		columns.add(new AbstractColumn<>(Model.of("Vervolgstap(pen)"))
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -248,7 +249,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_CONTACT, Actie.AANPASSEN, getModelObject()))
 		{
-			columns.add(new AbstractColumn<ClientContact, String>(Model.of(""))
+			columns.add(new AbstractColumn<>(Model.of(""))
 			{
 
 				private static final long serialVersionUID = 1L;
@@ -265,8 +266,8 @@ public class ClientContactPanel extends GenericPanel<Client>
 						cellItem.add(new EmptyPanel(componentId));
 						return;
 					}
-					;
-					cellItem.add(new AjaxLinkTableCellPanel<ClientContact>(componentId, rowModel, "correctie")
+
+					cellItem.add(new AjaxLinkTableCellPanel<>(componentId, rowModel, "correctie")
 					{
 
 						private static final long serialVersionUID = 1L;
@@ -274,7 +275,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 						@Override
 						protected void onClick(AjaxRequestTarget target, IModel<ClientContact> iModel)
 						{
-							dialog.openWith(target, new ClientContactEditPanel(IDialog.CONTENT_ID, ModelUtil.cModel(iModel.getObject()))
+							dialog.openWith(target, new ClientContactEditPanel(IDialog.CONTENT_ID, ModelUtil.ccModel(iModel.getObject()))
 							{
 
 								private static final long serialVersionUID = 1L;
@@ -293,7 +294,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 			});
 		}
-		ScreenitDataTable<ClientContact, String> dataTable = new ScreenitDataTable<ClientContact, String>("contacten", columns, provider, Model.of("contacten"))
+		ScreenitDataTable<ClientContact, String> dataTable = new ScreenitDataTable<>("contacten", columns, provider, Model.of("contacten"))
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -377,7 +378,6 @@ public class ClientContactPanel extends GenericPanel<Client>
 			vervolgactiesGroup.setOutputMarkupId(true);
 			vervolgactiesGroup.add(new AjaxFormChoiceComponentUpdatingBehavior()
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -435,7 +435,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 					if (!hasError())
 					{
-						ArrayList<String> meldingen = new ArrayList<String>();
+						List<String> meldingen = new ArrayList<>();
 
 						for (Entry<ClientContactActieTypeWrapper, Panel> entry : actiePanelsCache.entrySet())
 						{
@@ -498,7 +498,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 			for (ClientContactActieTypeWrapper actie : acties)
 			{
 				Panel actiePanel = null;
-				IModel<ClientContactActie> contactActieModel = ModelUtil.cModel(new ClientContactActie(actie.getType()));
+				IModel<ClientContactActie> contactActieModel = ModelUtil.ccModel(new ClientContactActie(actie.getType()));
 				if (selectedActies.contains(actie) && actie.getPanelClass() != null && actie.getType() != null)
 				{
 
@@ -543,7 +543,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 				if (actiePanel instanceof EmptyPanel && selectedActies.contains(typeWrapper) && typeWrapper.getPanelClass() != null && typeWrapper.getType() != null)
 				{
-					IModel<ClientContactActie> contactActieModel = ModelUtil.cModel(new ClientContactActie(typeWrapper.getType()));
+					IModel<ClientContactActie> contactActieModel = ModelUtil.ccModel(new ClientContactActie(typeWrapper.getType()));
 
 					Object[] initArgs = new Object[] { actiePanel.getId(), contactActieModel, ClientContactPanel.this.getModel(), extraPanelParams };
 					try
@@ -576,7 +576,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 
 		private boolean isOpmerkingToegestaan()
 		{
-			return !selectedActies.containsAll(Arrays.asList(ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK));
+			return !selectedActies.contains(ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK);
 		}
 
 		@SuppressWarnings("unused")
@@ -713,12 +713,30 @@ public class ClientContactPanel extends GenericPanel<Client>
 				{
 					clientContactService.saveClientContact(ModelProxyHelper.deproxy(contact), extraOpslaanObjecten, ScreenitSession.get().getLoggedInInstellingGebruiker());
 					BasePage.markeerFormulierenOpgeslagen(target);
-					contactAfgerond();
+
+					if (acties.stream().anyMatch(a -> a.getType().equals(ClientContactActieType.MAMMA_RONDE_FORCEREN))
+						|| acties.stream().anyMatch(a -> a.getType().equals(ClientContactActieType.MAMMA_HERAANMELDEN)) && mammaBaseDossierService.isAfspraakMakenMogelijk(
+						client.getMammaDossier(), false, false))
+					{
+						List<Object> extraParameters = new ArrayList<>();
+						extraParameters.add(Constants.RONDE_FORCEREN_MELDING_BIJ_AFSPRAAK_MAKEN);
+						ClientContactActieTypeWrapper actie = ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN;
+						setResponsePage(new ClientContactPage(ModelUtil.sModel(client), extraParameters, actie));
+					}
+					else
+					{
+						contactAfgerond();
+					}
 				}
 			}
 			catch (MammaTijdNietBeschikbaarException e)
 			{
 				ScreenitSession.get().error(getString("tijd.niet.beschikbaar"));
+				handleContactAfrondenFout(target, contact);
+			}
+			catch (MammaStandplaatsVanPostcodeOnbekendException e)
+			{
+				ScreenitSession.get().error(getString("standplaats.postcode.onbekend"));
 				handleContactAfrondenFout(target, contact);
 			}
 			catch (RuntimeException e)
@@ -751,7 +769,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 			{
 				Check<ClientContactActieTypeWrapper> check = new Check<>("checkbox", item.getModel());
 				item.add(check);
-				item.add(new EnumLabel<ClientContactActieType>("label", item.getModelObject().getType()));
+				item.add(new EnumLabel<>("label", item.getModelObject().getType()));
 			}
 		}
 	}

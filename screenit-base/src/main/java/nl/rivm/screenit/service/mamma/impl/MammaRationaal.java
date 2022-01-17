@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 class MammaRationaal implements Comparable<MammaRationaal>
@@ -54,7 +55,17 @@ class MammaRationaal implements Comparable<MammaRationaal>
 
 	BigDecimal getRatio()
 	{
-		return getDeeltal().divide(getDeler(), 10, BigDecimal.ROUND_HALF_UP);
+		return getDeeltal().divide(getDeler(), 10, RoundingMode.HALF_UP);
+	}
+
+	String getRatioTekst()
+	{
+		return delerIsZero() ? "oneindig" : getRatio().toString();
+	}
+
+	private boolean delerIsZero()
+	{
+		return getDeler().compareTo(BigDecimal.ZERO) == 0;
 	}
 
 	static MammaRationaal getRationaal(List<? extends MammaRationaal> rationaalList)
@@ -70,14 +81,14 @@ class MammaRationaal implements Comparable<MammaRationaal>
 	}
 
 	@Override
-	public int compareTo(MammaRationaal rationaal)
+	public int compareTo(MammaRationaal other)
 	{
-		boolean zero1 = this.getDeler().compareTo(BigDecimal.ZERO) == 0;
-		boolean zero2 = rationaal.getDeler().compareTo(BigDecimal.ZERO) == 0;
+		boolean thisZeroDeler = delerIsZero();
+		boolean otherZeroDeler = other.delerIsZero();
 
-		if (zero1)
+		if (thisZeroDeler)
 		{
-			if (zero2)
+			if (otherZeroDeler)
 			{
 				return 0;
 			}
@@ -88,13 +99,13 @@ class MammaRationaal implements Comparable<MammaRationaal>
 		}
 		else
 		{
-			if (zero2)
+			if (otherZeroDeler)
 			{
 				return -1;
 			}
 			else
 			{
-				return this.getRatio().compareTo(rationaal.getRatio());
+				return this.getRatio().compareTo(other.getRatio());
 			}
 		}
 	}

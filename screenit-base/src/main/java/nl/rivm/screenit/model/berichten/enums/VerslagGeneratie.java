@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.berichten.enums;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,20 +26,14 @@ import nl.rivm.screenit.model.berichten.VerslagProjectVersionMapping;
 public enum VerslagGeneratie
 {
 	V1,
-
 	V2,
-
 	V3,
-
 	V4,
-
 	V5,
-
 	V6,
-
 	V7,
-
-	V8;
+	V8,
+	V10;
 
 	VerslagGeneratie()
 	{

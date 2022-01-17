@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,11 +53,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DateOption;
 
 public abstract class MammaCapaciteitHerhalenPopup extends GenericPanel<MammaScreeningsEenheid>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private BootstrapDialog confirmPopup;
-
 	@SpringBean
 	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
@@ -66,9 +61,11 @@ public abstract class MammaCapaciteitHerhalenPopup extends GenericPanel<MammaScr
 
 	private IModel<MammaScreeningsEenheid> selectedScreeningEenheid;
 
-	private Form<MammaScreeningsEenheid> herhalenForm;
+	private final BootstrapDialog confirmPopup;
 
-	private LocalDate herhalingsWeek;
+	private final Form<MammaScreeningsEenheid> herhalenForm;
+
+	private final LocalDate herhalingsWeek;
 
 	private WeekNumberDateField herhalenVanafDatumDatePicker;
 
@@ -128,9 +125,6 @@ public abstract class MammaCapaciteitHerhalenPopup extends GenericPanel<MammaScr
 
 		ConfirmingIndicatingAjaxSubmitLink<Void> opslaan = new ConfirmingIndicatingAjaxSubmitLink<Void>("opslaan", herhalenForm, confirmPopup, "overschrijven.popup")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -65,10 +65,6 @@ public class MammaConclusieReviewenPage extends AbstractMammaBeoordelenPage
 		MammaScreeningRonde screeningRonde = baseBeoordelingService.getScreeningRonde(beoordelingModel.getObject());
 
 		MammaConclusieReview conclusieReview = conclusieReviewService.getConclusieReview(screeningRonde, ScreenitSession.get().getLoggedInInstellingGebruiker());
-		if (conclusieReview == null)
-		{
-			conclusieReview = new MammaConclusieReview();
-		}
 
 		huidigeRondePanel = new MammaConclusieReviewHuidigeRondePanel("rondeItem", ModelUtil.sModel(beoordelingModel.getObject()), ModelUtil.ccModel(conclusieReview));
 		rondePanels.add(huidigeRondePanel);

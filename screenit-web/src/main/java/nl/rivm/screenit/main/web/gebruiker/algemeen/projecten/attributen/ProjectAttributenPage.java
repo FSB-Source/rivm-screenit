@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.attributen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.table.ActiefPropertyColumn;
@@ -64,13 +65,10 @@ public class ProjectAttributenPage extends ProjectBasePage
 
 	private IModel<ProjectAttribuut> filterModel;
 
-	private IModel<Project> projectModel;
-
 	public ProjectAttributenPage(IModel<Project> model)
 	{
 		super(model);
-		projectModel = model;
-		filterModel = ModelUtil.cModel(new ProjectAttribuut());
+		filterModel = ModelUtil.ccModel(new ProjectAttribuut());
 		filterModel.getObject().setProject(model.getObject());
 
 		dialog = new BootstrapDialog("dialog");
@@ -82,8 +80,8 @@ public class ProjectAttributenPage extends ProjectBasePage
 			public void onClick(AjaxRequestTarget target)
 			{
 
-				IModel<ProjectAttribuut> projectAttribuutModel = ModelUtil.cModel(new ProjectAttribuut());
-				projectAttribuutModel.getObject().setProject(projectModel.getObject());
+				IModel<ProjectAttribuut> projectAttribuutModel = ModelUtil.ccModel(new ProjectAttribuut());
+				projectAttribuutModel.getObject().setProject(getProjectModel().getObject());
 
 				openProjectAttribuutEditPage(target, projectAttribuutModel);
 			}
@@ -95,7 +93,7 @@ public class ProjectAttributenPage extends ProjectBasePage
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				setResponsePage(new ProjectAttributenBestandEditPage(model));
+				setResponsePage(new ProjectAttributenBestandEditPage(getProjectModel()));
 			}
 
 		}.setVisible(magPopulatieBewerken()));
@@ -121,15 +119,18 @@ public class ProjectAttributenPage extends ProjectBasePage
 		WebMarkupContainer container = new WebMarkupContainer("projectAttributenContainer");
 		container.setOutputMarkupId(true);
 
-		List<IColumn<ProjectAttribuut, String>> columns = new ArrayList<IColumn<ProjectAttribuut, String>>();
+		List<IColumn<ProjectAttribuut, String>> columns = new ArrayList<>();
 		columns.add(new PropertyColumn<>(Model.of("Naam"), "naam", "naam"));
 		columns.add(new PropertyColumn<>(Model.of("Mergefield"), "mergeField", "mergeField"));
 
-		Map<Boolean, String> booleanStringMap = new HashMap<Boolean, String>();
+		Map<Boolean, String> isBarcode = Constants.getBooleanWeergave();
+		columns.add(new BooleanStringPropertyColumn<>(Model.of("Barcode"), isBarcode, "barcode"));
+
+		Map<Boolean, String> booleanStringMap = new HashMap<>();
 		booleanStringMap.put(true, "Niet zichtbaar");
 		booleanStringMap.put(false, "Zichtbaar");
 		columns.add(new BooleanStringPropertyColumn<>(Model.of("Zichtbaarheid in cliëntdossier"), booleanStringMap, "nietZichtbaarInClientDossier"));
-		columns.add(new ActiefPropertyColumn<ProjectAttribuut, ProjectAttribuut>(Model.of("Verwijderen"), "actief", container, filterModel, true, dialog,
+		columns.add(new ActiefPropertyColumn<>(Model.of("Verwijderen"), "actief", container, filterModel, true, dialog,
 			"ProjectAttributenPage.verwijderen")
 		{
 
@@ -207,6 +208,5 @@ public class ProjectAttributenPage extends ProjectBasePage
 	{
 		super.onDetach();
 		ModelUtil.nullSafeDetach(filterModel);
-		ModelUtil.nullSafeDetach(projectModel);
 	}
 }

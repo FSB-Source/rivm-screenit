@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-batch-base
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -41,7 +41,15 @@
         <property name="jobRegistry" ref="jobRegistry"/>
     </bean>
 
-	<bean id="executionContextSerializer" class="org.springframework.batch.core.repository.dao.XStreamExecutionContextStringSerializer"/>
+    <bean id="executionContextSerializer" class="org.springframework.batch.core.repository.dao.Jackson2ExecutionContextStringSerializer">
+        <constructor-arg>
+            <list>
+                <value>nl.rivm.screenit.model.logging.IntakeMakenLogEvent</value>
+                <value>nl.rivm.screenit.model.colon.IntakeMakenLogEventRegel</value>
+                <value>nl.rivm.screenit.batch.model.dto.MammaIlmRetryDto</value>
+            </list>
+        </constructor-arg>
+    </bean>
 
     <bean id="jobRepository"
           class="org.springframework.batch.core.repository.support.JobRepositoryFactoryBean"

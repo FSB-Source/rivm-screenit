@@ -1,0 +1,34 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:wicket="http://wicket.apache.org/dtds.data/wicket-xhtml1.4-strict.dtd">
+<body>
+<wicket:panel>
+	<label class="control-label">
+		<wicket:message key="label.wachtwoord"/>
+	</label>
+	<div class="controls wachtwoord-input">
+		<i class="toonWachtwoordToggle icon-eye-open" title="Houd het oogje ingedrukt om wachtwoord te tonen"></i>
+		<input class="input-large" type="password" placeholder="" autocomplete="off" wicket:id="wachtwoord">
+	</div>
+</wicket:panel>
+</body>
+</html>

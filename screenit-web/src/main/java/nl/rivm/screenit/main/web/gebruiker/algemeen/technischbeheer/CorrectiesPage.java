@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,16 +21,20 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import nl.rivm.screenit.main.service.BatchService;
 import nl.rivm.screenit.main.service.CorrectieService;
+import nl.rivm.screenit.main.service.VerslagService;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
-import nl.rivm.screenit.service.BerichtToBatchService;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.JobService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -39,9 +42,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class CorrectiesPage extends TechnischBeheerPage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private JobService jobService;
 
@@ -52,7 +52,7 @@ public class CorrectiesPage extends TechnischBeheerPage
 	private BatchService batchService;
 
 	@SpringBean
-	private BerichtToBatchService berichtToBatchService;
+	private VerslagService verslagService;
 
 	private IModel<String> berichtIds = new Model<>("");
 
@@ -60,9 +60,6 @@ public class CorrectiesPage extends TechnischBeheerPage
 	{
 		add(new IndicatingAjaxLink<Void>("resumeClientSelectie")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -73,9 +70,6 @@ public class CorrectiesPage extends TechnischBeheerPage
 
 		add(new IndicatingAjaxLink<Void>("opruimenGefaaldeBatches")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -86,9 +80,6 @@ public class CorrectiesPage extends TechnischBeheerPage
 
 		add(new IndicatingAjaxLink<Void>("stopAllRunningBatches")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -103,35 +94,29 @@ public class CorrectiesPage extends TechnischBeheerPage
 		form.add(new TextArea<>("berichtIds", berichtIds));
 		form.add(new AjaxSubmitLink("berichtenNaarDK")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				String[] ids = berichtIds.getObject().split(",");
-				for (String id : ids)
-				{
-					berichtToBatchService.queueColonCDABericht(Long.valueOf(id));
-				}
-				info(ids.length + " berichten worden opgepakt door batch DK");
-
+				berichtenOpieuwVerwerken(Bevolkingsonderzoek.COLON);
 			}
 
 		});
 		form.add(new AjaxSubmitLink("berichtenNaarBMHK")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				String[] ids = berichtIds.getObject().split(",");
-				for (String id : ids)
-				{
-					berichtToBatchService.queueCervixCDABericht(Long.valueOf(id));
-				}
-				info(ids.length + " berichten worden opgepakt door batch BMHK");
+				berichtenOpieuwVerwerken(Bevolkingsonderzoek.CERVIX);
 			}
 		});
+
 	}
+
+	private void berichtenOpieuwVerwerken(Bevolkingsonderzoek bvo)
+	{
+		List<Long> ids = Arrays.stream(berichtIds.getObject().split(",")).map(Long::valueOf).collect(Collectors.toList());
+		verslagService.berichtenOpnieuwVerwerken(ids, bvo);
+		info(ids.size() + " berichten worden opgepakt door batch " + bvo.getAfkorting());
+	}
+
 }

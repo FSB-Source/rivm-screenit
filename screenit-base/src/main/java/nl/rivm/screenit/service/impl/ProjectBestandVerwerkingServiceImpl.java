@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +34,6 @@ import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.BezwaarType;
-import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
@@ -53,15 +50,12 @@ import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.ProjectBestandVerwerkingService;
-import nl.rivm.screenit.util.AfmeldingUtil;
-import nl.rivm.screenit.util.BezwaarUtil;
+import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.util.collections.CollectionUtils;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +69,6 @@ import ca.uhn.hl7v2.util.StringUtil;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwerkingService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectBestandVerwerkingServiceImpl.class);
 
 	@Autowired
@@ -92,6 +85,9 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 
 	@Autowired
 	private ClientDoelgroepService doelgroepService;
+
+	@Autowired
+	private ProjectService projectService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -253,26 +249,16 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 
 	private ProjectClient verwerkPopulatie(ProjectBestandVerwerkingContext context, Client client) throws IllegalStateException
 	{
-		ProjectClient projectClient = null;
 		ProjectBestand bestand = context.getBestand();
 		ProjectGroep groep = bestand.getGroep();
-		valideerRulesPopulatie(groep, client);
-
-		projectClient = new ProjectClient(client, groep);
-		projectClient.setToegevoegd(currentDateSupplier.getDate());
-		client.getProjecten().add(projectClient);
-
-		groep.setPopulatie(groep.getPopulatie() + 1);
-		if (groep.getClienten() != null)
+		try
 		{
-			groep.getClienten().add(projectClient);
+			return projectService.addClientToProjectGroep(groep, client);
 		}
-		else
+		catch (IllegalStateException e)
 		{
-			groep.setClienten(Arrays.asList(projectClient));
+			throw new IllegalStateException(e.getMessage() + ". Verwijder deze cliënt uit de csv.");
 		}
-		hibernateService.saveAll(groep, projectClient);
-		return projectClient;
 	}
 
 	private void verwerkInactiverenProjectClient(ProjectBestandVerwerkingContext context, ProjectClient projectClient)
@@ -398,81 +384,4 @@ public class ProjectBestandVerwerkingServiceImpl implements ProjectBestandVerwer
 			|| ScreeningRondeStatus.AFGEROND.equals(ronde.getStatus()) && DateUtil.compareAfter(ronde.getStatusDatum(), project.getStartDatum());
 	}
 
-	private void valideerRulesPopulatie(ProjectGroep groep, Client client) throws IllegalStateException
-	{
-		if (client.getPersoon().getOverlijdensdatum() != null)
-		{
-			throw new IllegalStateException("Deze cliënt is al overleden. Verwijder deze cliënt uit de xls.");
-		}
-		if (client.getPersoon().getDatumVertrokkenUitNederland() != null)
-		{
-			throw new IllegalStateException("Deze cliënt is reeds vertrokken uit Nederland. Verwijder deze cliënt uit de xls.");
-		}
-		if (!GbaStatus.INDICATIE_AANWEZIG.equals(client.getGbaStatus()))
-		{
-			throw new IllegalStateException("Deze cliënt heeft een verkeerde gba status. Verwijder deze cliënt uit de xls.");
-		}
-
-		Project project = groep.getProject();
-		List<Bevolkingsonderzoek> excludeerAfmeldingOnderzoeken = project.getExcludeerAfmelding();
-		List<Bevolkingsonderzoek> clientOnderzoeken = doelgroepService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
-		if (excludeerAfmeldingOnderzoeken.size() > 0 && clientOnderzoeken.size() > 0)
-		{
-
-			for (Bevolkingsonderzoek excludeerOnderzoek : excludeerAfmeldingOnderzoeken)
-			{
-				if (clientOnderzoeken.contains(excludeerOnderzoek)
-					&& AfmeldingUtil.isAfgemeld(clientService.getDossier(client, excludeerOnderzoek)))
-				{
-					throw new IllegalStateException(
-						"Deze cliënt heeft zich afgemeld bij het onderzoek: " + excludeerOnderzoek.getAfkorting() + ", en deze is geëxcludeerd. Verwijder deze cliënt uit de xls.");
-				}
-			}
-		}
-
-		if (groep.getProject().getType().equals(ProjectType.PROJECT))
-		{
-			if (ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false) != null)
-			{
-				throw new IllegalStateException("Deze cliënt doet al mee aan het project. Verwijder deze cliënt uit de xls.");
-			}
-			else if (ProjectUtil.getProjectClientVanProject(client, project) != null)
-			{
-				throw new IllegalStateException("Deze cliënt is al aan dit project gekoppeld of is al gekoppeld geweest. Verwijder deze cliënt uit de xls.");
-			}
-		}
-
-		if (Boolean.TRUE.equals(project.getExcludeerBezwaar()) && (BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, Bevolkingsonderzoek.COLON)
-			|| BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, Bevolkingsonderzoek.CERVIX)))
-		{
-			throw new IllegalStateException("Deze cliënt heeft een bezwaar op wetenschappelijk onderzoek. Verwijder deze cliënt uit de xls.");
-		}
-		if (Boolean.TRUE.equals(project.getExcludeerBezwaar()) && (BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_KWALITEITSWAARBORGING, Bevolkingsonderzoek.COLON)
-			|| BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, Bevolkingsonderzoek.CERVIX)))
-		{
-			throw new IllegalStateException("Deze cliënt heeft een bezwaar op kwaliteitsborging. Verwijder deze cliënt uit de xls.");
-		}
-
-		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.COLON)
-			&& client.getColonDossier().getLaatsteScreeningRonde() != null && client.getColonDossier().getLaatsteScreeningRonde().getCreatieDatum() != null
-			&& !new DateTime(client.getColonDossier().getLaatsteScreeningRonde().getCreatieDatum()).withTimeAtStartOfDay().isAfter(project.getStartDatum().getTime()))
-		{
-			throw new IllegalStateException(
-				"Deze cliënt is al gestart met een DK screeningronde terwijl dit project een excludeer op open ronde heeft. Verwijder deze cliënt uit de xls.");
-		}
-		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.CERVIX) && client.getCervixDossier() != null
-			&& client.getCervixDossier().getLaatsteScreeningRonde() != null && client.getCervixDossier().getLaatsteScreeningRonde().getCreatieDatum() != null
-			&& !new DateTime(client.getCervixDossier().getLaatsteScreeningRonde().getCreatieDatum()).withTimeAtStartOfDay().isAfter(project.getStartDatum().getTime()))
-		{
-			throw new IllegalStateException(
-				"Deze cliënt is al gestart met een BMHK screeningronde terwijl dit project een excludeer op open ronde heeft. Verwijder deze cliënt uit de xls.");
-		}
-		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.MAMMA) && client.getMammaDossier() != null
-			&& client.getMammaDossier().getLaatsteScreeningRonde() != null && client.getMammaDossier().getLaatsteScreeningRonde().getCreatieDatum() != null
-			&& !new DateTime(client.getMammaDossier().getLaatsteScreeningRonde().getCreatieDatum()).withTimeAtStartOfDay().isAfter(project.getStartDatum().getTime()))
-		{
-			throw new IllegalStateException(
-				"Deze cliënt is al gestart met een BK screeningronde terwijl dit project een excludeer op open ronde heeft. Verwijder deze cliënt uit de xls.");
-		}
-	}
 }

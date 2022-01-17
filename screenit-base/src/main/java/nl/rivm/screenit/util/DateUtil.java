@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,7 +52,7 @@ public final class DateUtil
 {
 	private static final Logger LOG = LoggerFactory.getLogger(DateUtil.class);
 
-	private static final ZoneId SCREENIT_DEFAULT = ZoneId.of("Europe/Amsterdam");
+	public static final ZoneId SCREENIT_DEFAULT_ZONE = ZoneId.of("Europe/Amsterdam");
 
 	public static DateTimeFormatter LOCAL_DATE_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT);
 
@@ -308,7 +308,7 @@ public final class DateUtil
 		{
 			return ((java.sql.Date) utilDate).toLocalDate().atStartOfDay(); 
 		}
-		return LocalDateTime.ofInstant(utilDate.toInstant(), SCREENIT_DEFAULT);
+		return LocalDateTime.ofInstant(utilDate.toInstant(), SCREENIT_DEFAULT_ZONE);
 	}
 
 	public static LocalTime toLocalTime(Date utilDate)
@@ -330,7 +330,7 @@ public final class DateUtil
 		{
 			return null;
 		}
-		ZonedDateTime atZone = localDateTime.atZone(SCREENIT_DEFAULT);
+		ZonedDateTime atZone = localDateTime.atZone(SCREENIT_DEFAULT_ZONE);
 		Instant instant = atZone.toInstant();
 		Date date = Date.from(instant);
 		if (LOG.isTraceEnabled())
@@ -360,7 +360,7 @@ public final class DateUtil
 		{
 			return null;
 		}
-		ZonedDateTime atStartOfDay = localDate.atStartOfDay(SCREENIT_DEFAULT);
+		ZonedDateTime atStartOfDay = localDate.atStartOfDay(SCREENIT_DEFAULT_ZONE);
 		Instant instant = atStartOfDay.toInstant();
 		Date date = Date.from(instant);
 		if (LOG.isTraceEnabled())
@@ -398,9 +398,14 @@ public final class DateUtil
 		return tempAcc.get(WeekFields.of(Constants.LOCALE_NL).weekOfWeekBasedYear());
 	}
 
+	public static Date startDag(Date date)
+	{
+		return toUtilDate(toLocalDate(date).atStartOfDay());
+	}
+
 	public static Date eindDag(Date date)
 	{
-		return new DateTime(date).withTime(23, 59, 59, 0).toDate();
+		return toUtilDate(toLocalDateTime(date).with(LocalTime.MAX));
 	}
 
 	public static String formatShortDate(Date date)
@@ -533,5 +538,10 @@ public final class DateUtil
 	public static Date minusTijdseenheid(Date datum, int hoeveelheid, ChronoUnit tijdseenheid)
 	{
 		return toUtilDate(toLocalDateTime(datum).minus(hoeveelheid, tijdseenheid));
+	}
+
+	public static Date plusTijdseenheid(Date datum, int hoeveelheid, ChronoUnit tijdseenheid)
+	{
+		return toUtilDate(toLocalDateTime(datum).plus(hoeveelheid, tijdseenheid));
 	}
 }

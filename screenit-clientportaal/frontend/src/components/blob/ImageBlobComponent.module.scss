@@ -1,0 +1,12 @@
+@import "src/scss/media-mixins";
+
+.style {
+	width: 100%;
+	max-width: 380px;
+	height: auto;
+	display: block;
+
+	@include respond-below(md) {
+		display: none;
+	}
+}

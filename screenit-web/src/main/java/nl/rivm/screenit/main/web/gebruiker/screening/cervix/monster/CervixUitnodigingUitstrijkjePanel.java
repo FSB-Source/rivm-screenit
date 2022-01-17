@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.monster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,7 @@ import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -170,9 +170,9 @@ public abstract class CervixUitnodigingUitstrijkjePanel extends CervixUitnodigin
 			CervixScreeningRonde ontvangstRonde = getModelObject().getOntvangstScreeningRonde();
 			if (ontvangstRonde != null
 				&& (ontvangstRonde.getMonsterHpvUitslag() == null
-					|| ontvangstRonde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag().equals(CervixHpvUitslag.POSITIEF)
-						&& ontvangstRonde.getUitstrijkjeCytologieUitslag() == null
-					|| ontvangstRonde.getInVervolgonderzoekDatum() != null && ontvangstRonde.getUitstrijkjeVervolgonderzoekUitslag() == null))
+				|| ontvangstRonde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag().equals(CervixHpvBeoordelingWaarde.POSITIEF)
+				&& ontvangstRonde.getUitstrijkjeCytologieUitslag() == null
+				|| ontvangstRonde.getInVervolgonderzoekDatum() != null && ontvangstRonde.getUitstrijkjeVervolgonderzoekUitslag() == null))
 			{
 				mogelijkeUitstrijkjeStatussen.add(CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR);
 			}

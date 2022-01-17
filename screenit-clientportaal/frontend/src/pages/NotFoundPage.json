@@ -1,0 +1,11 @@
+{
+  "title": "Pagina niet gevonden",
+  "authenticated": {
+    "message": "De pagina die u zoekt, bestaat niet. </br></br>Om naar de startpagina te gaan, klik dan hier: ",
+    "link_text": "Mijn Bevolkingsonderzoek"
+  },
+  "unauthenticated": {
+    "message": "De pagina die u zoekt, bestaat niet. </br></br>Om in te loggen, klik dan hier: ",
+    "link_text": "Inloggen Mijn Bevolkingsonderzoek"
+  }
+}

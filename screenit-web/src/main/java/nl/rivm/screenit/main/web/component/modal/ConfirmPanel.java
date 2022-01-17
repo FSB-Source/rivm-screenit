@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.modal;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,15 +22,16 @@ package nl.rivm.screenit.main.web.component.modal;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 public class ConfirmPanel extends Panel
 {
-
 	private static final long serialVersionUID = 1L;
 
 	public ConfirmPanel(String id, IModel<String> header, IModel<String> content, final IConfirmCallback callback, final IDialog dialog)
@@ -46,10 +47,10 @@ public class ConfirmPanel extends Panel
 		{
 			add(new Label("content", "").setVisible(false));
 		}
+		add(createCustomComponent("customComponent"));
 
 		add(new IndicatingAjaxLink<Void>("close")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -62,7 +63,6 @@ public class ConfirmPanel extends Panel
 
 		add(new IndicatingAjaxLink<Void>("ja")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -74,7 +74,6 @@ public class ConfirmPanel extends Panel
 		});
 		add(new IndicatingAjaxLink<Void>("nee")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -84,5 +83,10 @@ public class ConfirmPanel extends Panel
 				callback.onNoClick(target);
 			}
 		});
+	}
+
+	protected Component createCustomComponent(String id)
+	{
+		return new WebMarkupContainer(id).setVisible(false);
 	}
 }

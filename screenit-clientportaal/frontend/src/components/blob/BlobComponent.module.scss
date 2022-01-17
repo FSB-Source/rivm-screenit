@@ -1,0 +1,51 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.style {
+	position: relative;
+	background: none;
+
+	svg {
+		width: 100%;
+		max-width: 380px;
+		height: auto;
+		display: block;
+
+		@include respond-below(xl) {
+			display: none;
+		}
+	}
+
+	@include respond-below(xl) {
+		background-color: $grijs-600;
+		border-radius: 10px;
+		width: 100%;
+		padding: 15px;
+		margin: 20px 0;
+	}
+
+	@include respond-below(xs) {
+		margin-bottom: 0;
+	}
+
+	.content {
+		position: absolute;
+		top: 0;
+
+		padding-top: 8%;
+		padding-left: 22.5%;
+		padding-right: 15%;
+
+		@include respond-below(xl) {
+			position: relative;
+			padding: 0;
+
+			a {
+				padding-left: 0;
+				padding-bottom: 0;
+			}
+		}
+	}
+
+
+}

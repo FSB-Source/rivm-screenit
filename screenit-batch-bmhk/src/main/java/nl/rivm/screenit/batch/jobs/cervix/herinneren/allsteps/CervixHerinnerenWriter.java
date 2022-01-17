@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 {
-
 	@Autowired
 	private BaseBriefService briefService;
 
@@ -58,13 +57,13 @@ public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 		switch (uitnodiging.getMonsterType())
 		{
 		case UITSTRIJKJE:
-			if (brief.getBriefType() == BriefType.CERVIX_UITNODIGING)
+			if (BriefType.getCervixUitnodigingen().contains(brief.getBriefType()))
 			{
-				nieuweBrief = briefService.maakCervixBrief(ronde, BriefType.CERVIX_HERINNERING_UITNODIGING);
+				nieuweBrief = briefService.maakBvoBrief(ronde, BriefType.CERVIX_HERINNERING_UITNODIGING);
 			}
 			else
 			{
-				nieuweBrief = briefService.maakCervixBrief(ronde, brief.getBriefType());
+				nieuweBrief = briefService.maakBvoBrief(ronde, brief.getBriefType());
 				nieuweBrief.setHerdruk(brief);
 
 				CervixUitnodiging nieuweUitnodiging = factory.maakUitnodiging(ronde, nieuweBrief);
@@ -74,7 +73,7 @@ public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 			}
 			break;
 		case ZAS:
-			nieuweBrief = briefService.maakCervixBrief(ronde, BriefType.CERVIX_HERINNERING_ZAS_UITNODIGING);
+			nieuweBrief = briefService.maakBvoBrief(ronde, BriefType.CERVIX_HERINNERING_ZAS_UITNODIGING);
 			break;
 		}
 

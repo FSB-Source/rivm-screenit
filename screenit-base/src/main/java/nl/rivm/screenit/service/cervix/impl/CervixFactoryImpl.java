@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.service.cervix.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.model.Account;
@@ -34,6 +35,7 @@ import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.CervixDossier;
+import nl.rivm.screenit.model.cervix.CervixHpvAnalyseresultaten;
 import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling;
 import nl.rivm.screenit.model.cervix.CervixHpvBericht;
 import nl.rivm.screenit.model.cervix.CervixMonster;
@@ -42,9 +44,13 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvAnalyseresultaat;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvOrderCode;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultCode;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstelType;
@@ -158,14 +164,14 @@ public class CervixFactoryImpl implements CervixFactory
 	@Override
 	public CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, BriefType briefType, boolean herinneren, boolean herinneringOnderbreken)
 	{
-		CervixBrief brief = briefService.maakCervixBrief(ronde, briefType);
+		CervixBrief brief = briefService.maakBvoBrief(ronde, briefType);
 		return maakUitnodiging(ronde, brief, herinneren, herinneringOnderbreken);
 	}
 
 	@Override
 	public CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, CervixBrief brief, boolean herinneren, boolean herinneringOnderbreken)
 	{
-		LOG.info("CervixUitnodiging aanmaken voor clientId " + ronde.getDossier().getClient().getId());
+		LOG.info("CervixUitnodiging aanmaken (clientId: " + ronde.getDossier().getClient().getId() + ")");
 
 		if (herinneringOnderbreken)
 		{
@@ -197,7 +203,6 @@ public class CervixFactoryImpl implements CervixFactory
 			ronde.setEersteUitnodiging(uitnodiging);
 		}
 
-		Date uitnodigsdatum = nu;
 		switch (monsterType)
 		{
 		case UITSTRIJKJE:
@@ -212,7 +217,7 @@ public class CervixFactoryImpl implements CervixFactory
 		default:
 			throw new IllegalStateException();
 		}
-		uitnodiging.setUitnodigingsDatum(uitnodigsdatum);
+		uitnodiging.setUitnodigingsDatum(nu);
 
 		hibernateService.saveOrUpdate(brief);
 		hibernateService.saveOrUpdate(uitnodiging);
@@ -265,7 +270,7 @@ public class CervixFactoryImpl implements CervixFactory
 	private boolean heeftEersteUitnodingOntvangen(CervixScreeningRonde ronde)
 	{
 		return ronde.getUitnodigingen().stream()
-			.anyMatch(uitnodiging -> BriefType.CERVIX_UITNODIGING.equals(uitnodiging.getBrief().getBriefType())
+			.anyMatch(uitnodiging -> BriefType.getCervixUitnodigingen().contains(uitnodiging.getBrief().getBriefType())
 				&& uitnodiging.getBrief().getMergedBrieven() != null
 				&& uitnodiging.getBrief().getMergedBrieven().getGeprint());
 	}
@@ -291,9 +296,9 @@ public class CervixFactoryImpl implements CervixFactory
 
 		hibernateService.saveOrUpdate(uitstrijkje);
 
-		LOG.info("CervixUitstrijkje aanmaken voor client met id "
+		LOG.info("CervixUitstrijkje aanmaken (clientId: "
 			+ cervixDossier.getClient().getId()
-			+ " met monsterId " + monsterId + " en monsterControleLetters " + monsterControleLetters);
+			+ ", monsterId: " + monsterId + ", monsterControleLetters: " + monsterControleLetters + ")");
 
 		return uitstrijkje;
 	}
@@ -335,7 +340,9 @@ public class CervixFactoryImpl implements CervixFactory
 	}
 
 	@Override
-	public CervixHpvBeoordeling maakHpvBeoordeling(CervixMonster monster, CervixHpvBericht hpvBericht, Date analyseDatum, Date autorisatieDatum, CervixHpvUitslag hpvUitslag)
+	public CervixHpvBeoordeling maakHpvBeoordeling(CervixMonster monster, CervixHpvBericht hpvBericht, Date analyseDatum, Date autorisatieDatum,
+		CervixHpvBeoordelingWaarde hpvUitslag,
+		List<CervixHpvAnalyseresultaat> analyseresultaten)
 	{
 		LOG.info("CervixHpvBeoordeling aanmaken voor clientId " + monster.getUitnodiging().getScreeningRonde().getDossier().getClient().getId() + " met monsterId "
 			+ monster.getMonsterId());
@@ -351,8 +358,31 @@ public class CervixFactoryImpl implements CervixFactory
 		monster.getHpvBeoordelingen().add(hpvBeoordeling);
 
 		hibernateService.saveOrUpdate(hpvBeoordeling);
+		saveAnalyseresultaten(analyseresultaten, hpvBeoordeling);
 		hibernateService.saveOrUpdate(monster);
 		return hpvBeoordeling;
+	}
+
+	private void saveAnalyseresultaten(List<CervixHpvAnalyseresultaat> analyseresultaten, CervixHpvBeoordeling hpvBeoordeling)
+	{
+		if (analyseresultaten != null)
+		{
+			CervixHpvAnalyseresultaten persistentAnalyseresultaten = new CervixHpvAnalyseresultaten();
+			hpvBeoordeling.setAnalyseresultaten(persistentAnalyseresultaten);
+			persistentAnalyseresultaten.setBeoordeling(hpvBeoordeling);
+			persistentAnalyseresultaten.setHpvhr(getResultValue(analyseresultaten, CervixHpvOrderCode.PAN, CervixHpvResultCode.HR));
+			persistentAnalyseresultaten.setHpvohr(getResultValue(analyseresultaten, CervixHpvOrderCode.GEN, CervixHpvResultCode.OHR));
+			persistentAnalyseresultaten.setHpv16(getResultValue(analyseresultaten, CervixHpvOrderCode.GEN, CervixHpvResultCode.HPV16));
+			persistentAnalyseresultaten.setHpv18(getResultValue(analyseresultaten, CervixHpvOrderCode.GEN, CervixHpvResultCode.HPV18));
+			hibernateService.saveOrUpdate(hpvBeoordeling);
+			hibernateService.saveOrUpdate(persistentAnalyseresultaten);
+		}
+	}
+
+	private static CervixHpvResultValue getResultValue(List<CervixHpvAnalyseresultaat> analyseresultaten, CervixHpvOrderCode orderCode, CervixHpvResultCode resultCode)
+	{
+		return analyseresultaten.stream().filter(ar -> ar.getOrderCode().equals(orderCode) && ar.getResultCode().equals(
+			resultCode)).findFirst().orElse(new CervixHpvAnalyseresultaat()).getResultValue();
 	}
 
 	@Override

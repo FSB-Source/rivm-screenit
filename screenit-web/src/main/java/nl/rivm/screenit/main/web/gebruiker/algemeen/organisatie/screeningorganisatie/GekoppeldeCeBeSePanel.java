@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.screeningorgani
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,7 +52,7 @@ public class GekoppeldeCeBeSePanel extends GenericPanel<Instelling>
 
 	private List<GekoppeldeCeBeSeRij> rijen = new ArrayList<>();
 
-	GekoppeldeCeBeSePanel(String id, IModel<Instelling> model)
+	public GekoppeldeCeBeSePanel(String id, IModel<Instelling> model)
 	{
 		super(id, model);
 

@@ -1,0 +1,60 @@
+@import "src/scss/media-mixins";
+@import "src/scss/colors";
+
+.header {
+	margin-bottom: 30px;
+	height: 150px;
+
+	@include respond-below(sm) {
+		margin-bottom: 0;
+	}
+
+	.navigationContainer {
+		transition: 0.5s all ease;
+
+		@include respond-above(md) {
+			padding-left: 40px;
+			padding-right: 40px;
+		}
+
+		@include respond-below(md) {
+			padding-top: 10px;
+			padding-left: 10px;
+			padding-right: 10px;
+		}
+	}
+}
+
+.logout {
+  color: $blauw-base;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline: $blauw-base;
+    cursor: pointer;
+  }
+}
+
+.headerTopLinks {
+  height: 50px;
+  margin-left: 40px;
+  margin-right: 40px;
+  font-size: 14px;
+  transition: 0.2s;
+
+  span {
+    margin-right: 15px;
+  }
+
+  i {
+    font-size: 20px;
+    vertical-align: middle;
+    margin-right: 10px;
+    padding-bottom: 3px;
+  }
+
+  @include respond-below(md) {
+    display: none;
+  }
+
+}

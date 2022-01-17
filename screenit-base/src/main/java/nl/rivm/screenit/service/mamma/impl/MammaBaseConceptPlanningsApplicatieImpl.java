@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,6 +46,7 @@ import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsEenheidMetaDataDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsOrganisatieDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningStandplaatsPeriodeDto;
+import nl.rivm.screenit.dto.mamma.planning.PlanningStatusDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningVerzetClientenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningWeekDto;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -56,6 +57,7 @@ import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
+import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.rest.RestApiFactory;
@@ -72,6 +74,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -513,5 +516,22 @@ public class MammaBaseConceptPlanningsApplicatieImpl implements MammaBaseConcept
 	public void verzetClienten(PlanningVerzetClientenDto verzetClientenDto)
 	{
 		verzetClientenThread.addRequest(verzetClientenDto);
+	}
+
+	@Override
+	public PlanningStatusDto getStatus()
+	{
+		RestTemplate restApi = RestApiFactory.create();
+		try
+		{
+			ResponseEntity<PlanningStatusDto> responseEntity = restApi.getForEntity(
+				planningBkRestUrl + PlanningRestConstants.C_STATUS, PlanningStatusDto.class);
+			return responseEntity.getBody();
+		}
+		catch (ResourceAccessException e)
+		{
+
+		}
+		return new PlanningStatusDto(MammaPlanningStatus.OFFLINE, null);
 	}
 }

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.enums;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,11 +21,6 @@ package nl.rivm.screenit.model.enums;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.CERVIX;
-import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.COLON;
-import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.MAMMA;
-import static nl.rivm.screenit.model.enums.JobFlag.BLOCK_MANUAL_START;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -37,16 +31,18 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 
+import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.CERVIX;
+import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.COLON;
+import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.MAMMA;
+import static nl.rivm.screenit.model.enums.JobFlag.BLOCK_MANUAL_START;
+
 public enum JobType
 {
-
 	GBA(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 
 	GBA_ZONDER_VO105(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 
 	COLON_NA_GBA(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
-
-	CERVIX_NA_GBA(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
 	CLIENT_SELECTIE(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
@@ -55,8 +51,6 @@ public enum JobType
 	IFOBT_VERWERKING(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	IFOBT_HERINNERING(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
-
-	COLON_ILM(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	KOPPELDATA_VERWERKING(new JobFlag[] { BLOCK_MANUAL_START }, BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
@@ -70,41 +64,42 @@ public enum JobType
 
 	HUISARTS_ONTKOPPELEN_JOB_DK(new JobFlag[] { BLOCK_MANUAL_START }, BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
-	ENOVATION_HUISARTSEN_BATCH(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, MAMMA }),
+	ONEINDIGE_ROOSTERITEMS_UITROLLEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	BRIEVEN_GENEREREN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
-	CERVIX_SELECTIE(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }, new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE }),
+	COLON_ILM(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
+
+	CERVIX_NA_GBA(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
+
+	CERVIX_SELECTIE(
+		BatchApplicationType.CERVIX,
+		new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE }),
 
 	CERVIX_KOPPELDATA_VERWERKING(new JobFlag[] { BLOCK_MANUAL_START }, BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
 	CERVIX_ILM(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
-	CERVIX_ZAS_UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }, new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_ZAS_NAAR_INPAKCENTRUM }),
+	CERVIX_ZAS_UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM(
+		BatchApplicationType.CERVIX,
+		new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_ZAS_NAAR_INPAKCENTRUM }),
 
 	CERVIX_VERVOLGONDERZOEK(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
 	CERVIX_UITSTEL(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
-	CERVIX_HERINNEREN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }, new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS }),
+	CERVIX_HERINNEREN(
+		BatchApplicationType.CERVIX,
+		new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS }),
 
 	CERVIX_HUISARTSBERICHTEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
 	CERVIX_GEVOLGEN_LABPROCES_VERWERKEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
 	CERVIX_BRIEVEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
-
-	PROJECT_BRIEVEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
-
-	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
-
-	ONEINDIGE_ROOSTERITEMS_UITROLLEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
-
-	COORDINATEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
-
-	BEZWAAR_BRIEVEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
-
-	ALGEMENE_BRIEVEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 
 	REGIO_BRIEVEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
@@ -116,9 +111,17 @@ public enum JobType
 
 	CERVIX_HPVMIN_VERWIJDEREN_UITSLAG(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
-	CERVIX_HEROVERWEGERS(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }, new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS }),
+	CERVIX_HEROVERWEGERS(
+		BatchApplicationType.CERVIX,
+		new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS }),
 
 	CERVIX_CISMIGRANTEN_UITNODIGEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
+
+	CERVIX_VERLATE_DEELNAME_COVID19(
+		BatchApplicationType.CERVIX,
+		new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME, OrganisatieParameterKey.CERVIX_PROJECT_VERLATE_DEELNAME }),
 
 	MAMMA_NA_GBA(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
@@ -142,13 +145,35 @@ public enum JobType
 
 	MAMMA_UITWISSELPORTAAL(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
-	MAMMA_ILM(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
+	MAMMA_ILM(
+		BatchApplicationType.MAMMA,
+		new Bevolkingsonderzoek[] { MAMMA },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.MAMMA_ILM_BEELDEN_STATUS_SIGNALEREN_UITVOEREN,
+			OrganisatieParameterKey.MAMMA_ILM_GUNSTIGE_BEELDEN_VERWIJDEREN_UITVOEREN,
+			OrganisatieParameterKey.MAMMA_ILM_OVERIGE_BEELDEN_VERWIJDEREN_UITVOEREN,
+			OrganisatieParameterKey.MAMMA_ILM_PALGA_IMPORT_VERSLAGEN_VERWIJDEREN_UITVOEREN,
+			OrganisatieParameterKey.MAMMA_ILM_APPLICATIE_LOGGING_VERWIJDEREN_UITVOEREN,
+			OrganisatieParameterKey.MAMMA_ILM_RONDES_VERWIJDEREN_UITVOEREN,
+			OrganisatieParameterKey.MAMMA_ILM_MAX_TIJD_MINUTEN }),
 
 	MAMMA_XDS(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
 	MAMMA_PALGA_CSV_EXPORT(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
-	MAMMA_PALGA_CSV_IMPORT(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA });
+	MAMMA_PALGA_CSV_IMPORT(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
+
+	COORDINATEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
+
+	BEZWAAR_BRIEVEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
+
+	ALGEMENE_BRIEVEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
+
+	PROJECT_BRIEVEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
+
+	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
+
+	ENOVATION_HUISARTSEN_BATCH(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, MAMMA }),
+	;
 
 	private static Set<JobType> getJobTypes(BatchApplicationType batchApplicationType)
 	{
@@ -181,33 +206,27 @@ public enum JobType
 		for (JobType jobType : colon)
 		{
 			jobType.parallelleJobs.addAll(cervixMamma);
-			switch (jobType)
+			if (jobType == JobType.UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_JOB_DK)
 			{
-			case UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_JOB_DK:
 				jobType.parallelleJobs.removeAll(inpakcentrum);
-				break;
 			}
 		}
 
 		for (JobType jobType : cervix)
 		{
 			jobType.parallelleJobs.addAll(colonMamma);
-			switch (jobType)
+			if (jobType == JobType.CERVIX_ZAS_UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM)
 			{
-			case CERVIX_ZAS_UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM:
 				jobType.parallelleJobs.removeAll(inpakcentrum);
-				break;
 			}
 		}
 
 		for (JobType jobType : mamma)
 		{
 			jobType.parallelleJobs.addAll(colonCervix);
-			switch (jobType)
+			if (jobType == JobType.MAMMA_KANSBEREKENING)
 			{
-			case MAMMA_KANSBEREKENING:
 				jobType.parallelleJobs.addAll(generalis);
-				break;
 			}
 		}
 
@@ -225,7 +244,7 @@ public enum JobType
 
 	private final OrganisatieParameterKey[] jobParameters;
 
-	private Set<JobType> parallelleJobs = new HashSet<>();
+	private final Set<JobType> parallelleJobs = new HashSet<>();
 
 	JobType(BatchApplicationType batchApplicationType, Bevolkingsonderzoek[] bevolkingsOnderzoeken)
 	{
@@ -274,7 +293,7 @@ public enum JobType
 	public List<JobType> getParallelleJobs()
 	{
 		List<JobType> jobs = new ArrayList<>();
-		if (parallelleJobs != null)
+		if (!parallelleJobs.isEmpty())
 		{
 			jobs = new ArrayList<>(parallelleJobs);
 		}
@@ -293,7 +312,7 @@ public enum JobType
 
 	public boolean hasJobFlag(JobFlag searchJobFlag)
 	{
-		return this.jobFlags != null && Arrays.stream(this.jobFlags).anyMatch(f -> f.equals(searchJobFlag));
+		return this.jobFlags != null && Arrays.asList(this.jobFlags).contains(searchJobFlag);
 	}
 
 	public OrganisatieParameterKey[] getJobParameters()

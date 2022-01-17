@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,31 +25,30 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import nl.rivm.screenit.model.enums.BriefType;
+
 import com.google.common.primitives.Ints;
 
+@Getter
+@AllArgsConstructor
 public enum CervixLeeftijdcategorie
 {
-	_30(30),
-	_35(35),
-	_40(40),
-	_45(45),
-	_50(50),
-	_55(55),
-	_60(60),
-	_65(65),
-	_70(70);
+	_30(30, BriefType.CERVIX_UITNODIGING_30),
+	_35(35, BriefType.CERVIX_UITNODIGING_35),
+	_40(40, BriefType.CERVIX_UITNODIGING_40),
+	_45(45, BriefType.CERVIX_UITNODIGING_45),
+	_50(50, BriefType.CERVIX_UITNODIGING_50),
+	_55(55, BriefType.CERVIX_UITNODIGING_55),
+	_60(60, BriefType.CERVIX_UITNODIGING_60),
+	_65(65, BriefType.CERVIX_UITNODIGING_65),
+	_70(70, null);
 
-	private int leeftijd;
+	private final int leeftijd;
 
-	CervixLeeftijdcategorie(int leeftijd)
-	{
-		this.leeftijd = leeftijd;
-	}
-
-	public int getLeeftijd()
-	{
-		return leeftijd;
-	}
+	private final BriefType uitnodigingsBrief;
 
 	public static CervixLeeftijdcategorie getLeeftijdcategorie(LocalDate geboortedatum, LocalDateTime creatiedatum)
 	{

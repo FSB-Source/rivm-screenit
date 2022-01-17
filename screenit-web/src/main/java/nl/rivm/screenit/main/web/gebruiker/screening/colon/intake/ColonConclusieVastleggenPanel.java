@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -97,6 +97,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 	private ICurrentDateSupplier dateSupplier;
 
 	private ColonConclusieType origConclusie;
+
 	private Component conclusieContainer;
 
 	private IModel<List<Boolean>> booleanOptionsModel = new ListModel<>(Arrays.asList(Boolean.TRUE, Boolean.FALSE));
@@ -133,7 +134,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		}
 	}
 
-	public ColonConclusieVastleggenPanel(String id, IModel<ColonIntakeAfspraak> model)
+	protected ColonConclusieVastleggenPanel(String id, IModel<ColonIntakeAfspraak> model)
 	{
 		super(id, model);
 
@@ -242,7 +243,8 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 						InstellingGebruiker loggedInInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
 						conclusie.setInstellingGebruiker(loggedInInstellingGebruiker);
-						dossierService.conclusieOpslaan(ModelProxyHelper.deproxy(afspraak), vervolgonderzoekDto, loggedInInstellingGebruiker, ColonConclusieType.ON_HOLD.equals(origConclusie));
+						dossierService.conclusieOpslaan(ModelProxyHelper.deproxy(afspraak), vervolgonderzoekDto, loggedInInstellingGebruiker,
+							ColonConclusieType.ON_HOLD.equals(origConclusie));
 
 						close(target);
 					}
@@ -688,33 +690,22 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 				vervolgonderzoekDto.afspraakDirectMaken = null;
 			}
 		}
-		if (vervolgonderzoekDto.conclusie == null)
+		if (vervolgonderzoekDto.conclusie == null || ColonConclusieType.CT_COLOGRAFIE == vervolgonderzoekDto.conclusie)
 		{
 			vervolgonderzoekDto.redenGeenVervolgOnderzoek = null;
-			conclusie.setTekstCTColografieAnders(null);
-			conclusie.setRedenCTColografie(null);
 			conclusie.setColoscopieDatumOpVerzoekClient(null);
 			conclusie.setDatumColoscopie(null);
 		}
 		else if (vervolgonderzoekDto.conclusie == ColonConclusieType.GEEN_VERVOLGONDERZOEK)
 		{
-			conclusie.setTekstCTColografieAnders(null);
-			conclusie.setRedenCTColografie(null);
 			conclusie.setColoscopieDatumOpVerzoekClient(null);
 			conclusie.setDatumColoscopie(null);
 		}
 		else if (ColonConclusieType.COLOSCOPIE == vervolgonderzoekDto.conclusie)
 		{
 			vervolgonderzoekDto.redenGeenVervolgOnderzoek = null;
-			conclusie.setTekstCTColografieAnders(null);
-			conclusie.setRedenCTColografie(null);
 		}
-		else if (ColonConclusieType.CT_COLOGRAFIE == vervolgonderzoekDto.conclusie)
-		{
-			vervolgonderzoekDto.redenGeenVervolgOnderzoek = null;
-			conclusie.setColoscopieDatumOpVerzoekClient(null);
-			conclusie.setDatumColoscopie(null);
-		}
+
 		if (vervolgonderzoekDto.redenGeenVervolgOnderzoek == null || !vervolgonderzoekDto.redenGeenVervolgOnderzoek)
 		{
 			vervolgonderzoekDto.terugNaarScreening = null;

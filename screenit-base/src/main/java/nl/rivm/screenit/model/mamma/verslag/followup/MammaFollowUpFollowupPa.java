@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.mamma.verslag.followup;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -61,11 +60,7 @@ public class MammaFollowUpFollowupPa
 		@DSValueSetValue(code = "44085002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "68453008", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(
-		displayName = "C-classificatie punctie",
-		extraTekst = "Diagnose na beoordeling cytologische punctie",
-		code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300015",
-		isVerplicht = true)
+	@VraagElement(displayName = "C-classificatie punctie", extraTekst = "Diagnose na beoordeling cytologische punctie", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300015", isVerplicht = true)
 	private DSValue cclassificatiePunctie;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -96,11 +91,7 @@ public class MammaFollowUpFollowupPa
 		@DSValueSetValue(code = "427685000", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OHT-8", codeSystem = "2.16.840.1.113883.2.4.3.36.77.0.2.5.1")
 	})
-	@VraagElement(
-		displayName = "HER2 status",
-		extraTekst = "HER2 (human epidermal growth factor receptor 2) status",
-		code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300040",
-		isVerplicht = true)
+	@VraagElement(displayName = "HER2 status", extraTekst = "HER2 (human epidermal growth factor receptor 2) status", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300040", isVerplicht = true)
 	private DSValue her2Status;
 
 	@ManyToOne(fetch = FetchType.LAZY)

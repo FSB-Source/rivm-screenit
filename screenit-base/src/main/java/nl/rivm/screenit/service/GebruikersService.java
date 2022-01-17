@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +21,6 @@ package nl.rivm.screenit.service;
  * =========================LICENSE_END==================================
  */
 
-import javax.annotation.Nonnull;
-
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
@@ -38,10 +35,6 @@ public interface GebruikersService
 	Gebruiker getGebruikerBy(String key, String value);
 
 	ScreeningOrganisatie getScreeningOrganisatie(Gebruiker gebruiker);
-
-	String hashWachtwoord(Gebruiker gebruiker, String plainWachtwoord);
-
-	void setWachtwoord(@Nonnull Gebruiker medewerker, String uncryptedWachtwoord);
 
 	Gebruiker getPatholoog(String patholoogId, Instelling instelling);
 

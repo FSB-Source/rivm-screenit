@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -100,7 +100,7 @@ public class ZasUitnodigingenVersturenListener extends BaseLogListener
 
 		long totaalVerstuurd = 0;
 
-		for (BriefType brieftype : CervixMonsterType.ZAS.getBrieftypen())
+		for (BriefType brieftype : CervixMonsterType.ZAS.getBriefTypen())
 		{
 			Long aantal = context.getLong(brieftype.name(), 0);
 

@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-batch-bk
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -425,63 +425,177 @@
     </job>
 
     
-    <beans:bean id="mammaBeeldenStatusSignalerenReader" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBeeldenStatusSignalerenReader"/>
-    <beans:bean id="mammaBeeldenStatusSignalerenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBeeldenStatusSignalerenWriter"/>
-    <beans:bean id="mammaScreeningRondesVerwijderenReader" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaScreeningRondesVerwijderenReader"/>
-    <beans:bean id="mammaScreeningRondesVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaScreeningRondesVerwijderenWriter"/>
-    <beans:bean id="mammaGunstigeBeeldenVerwijderenReader" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaGunstigeBeeldenVerwijderenReader"/>
-    <beans:bean id="mammaGunstigeBeeldenVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaGunstigeBeeldenVerwijderenWriter"/>
-    <beans:bean id="mammaOverigeBeeldenVerwijderenReader" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaOverigeBeeldenVerwijderenReader"/>
-    <beans:bean id="mammaOverigeBeeldenVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaOverigeBeeldenVerwijderenWriter"/>
-    <beans:bean id="ilmApplicatieLoggingVerwijderenReader" class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenReader">
+    <beans:bean id="mammaBeeldenStatusSignalerenReader"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBeeldenStatusSignalerenReader"/>
+    <beans:bean id="mammaBeeldenStatusSignalerenWriter"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBeeldenStatusSignalerenWriter"/>
+    <beans:bean id="mammaUploadBeeldenStatusSignalerenReader"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaUploadBeeldenStatusSignalerenReader"/>
+    <beans:bean id="mammaUploadBeeldenStatusSignalerenWriter"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaUploadBeeldenStatusSignalerenWriter"/>
+    <beans:bean id="mammaBezwaarBeeldenStatusSignalerenReader"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBezwaarBeeldenStatusSignalerenReader"/>
+    <beans:bean id="mammaBezwaarBeeldenStatusSignalerenWriter"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBezwaarBeeldenStatusSignalerenWriter"/>
+    <beans:bean id="mammaBeeldenVerwijderenRetryTasklet"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaBeeldenVerwijderenRetryTasklet"/>
+    <beans:bean id="mammaScreeningRondesVerwijderenReader"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaScreeningRondesVerwijderenReader"/>
+    <beans:bean id="mammaScreeningRondesVerwijderenWriter"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaScreeningRondesVerwijderenWriter"/>
+    <beans:bean id="mammaGunstigeBeeldenVerwijderenReader"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaGunstigeBeeldenVerwijderenReader"/>
+    <beans:bean id="mammaGunstigeBeeldenVerwijderenWriter"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaGunstigeBeeldenVerwijderenWriter"/>
+    <beans:bean id="mammaOverigeBeeldenVerwijderenReader"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaOverigeBeeldenVerwijderenReader"/>
+    <beans:bean id="mammaOverigeBeeldenVerwijderenWriter"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaOverigeBeeldenVerwijderenWriter"/>
+    <beans:bean id="ilmApplicatieLoggingVerwijderenReader"
+                class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenReader">
         <beans:property name="bvo" value="MAMMA"/>
     </beans:bean>
-    <beans:bean id="ilmApplicatieLoggingVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenWriter"/>
-    <beans:bean id="mammaIlmJobListener" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener"/>
+    <beans:bean id="mammaPalgaImportVerslagenVerwijderenReader"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaPalgaImportVerslagenVerwijderenReader"/>
+    <beans:bean id="mammaPalgaImportVerslagenVerwijderenWriter"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaPalgaImportVerslagenVerwijderenWriter"/>
+    <beans:bean id="ilmApplicatieLoggingVerwijderenWriter"
+                class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenWriter"/>
+    <beans:bean id="mammaIlmJobListener"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener"/>
+    <beans:bean id="beeldenStatusSignalerenDecider"
+                class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaIlmDecider">
+        <beans:property name="stepKey" value="MAMMA_ILM_BEELDEN_STATUS_SIGNALEREN_UITVOEREN"/>
+        <beans:property name="observesTimeLimit" value="false"/>
+    </beans:bean>
+    <beans:bean id="gunstigeBeeldenVerwijderenDecider" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaIlmDecider">
+        <beans:property name="stepKey" value="MAMMA_ILM_GUNSTIGE_BEELDEN_VERWIJDEREN_UITVOEREN"/>
+        <beans:property name="observesTimeLimit" value="false"/>
+    </beans:bean>
+    <beans:bean id="overigeBeeldenVerwijderenDecider" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaIlmDecider">
+        <beans:property name="stepKey" value="MAMMA_ILM_OVERIGE_BEELDEN_VERWIJDEREN_UITVOEREN"/>
+        <beans:property name="observesTimeLimit" value="false"/>
+    </beans:bean>
+    <beans:bean id="palgaVerslagenVerwijderenDecider" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaIlmDecider">
+        <beans:property name="stepKey" value="MAMMA_ILM_PALGA_IMPORT_VERSLAGEN_VERWIJDEREN_UITVOEREN"/>
+        <beans:property name="observesTimeLimit" value="false"/>
+    </beans:bean>
+    <beans:bean id="ilmApplicatieLoggingVerwijderenDecider" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaIlmDecider">
+        <beans:property name="stepKey" value="MAMMA_ILM_APPLICATIE_LOGGING_VERWIJDEREN_UITVOEREN"/>
+        <beans:property name="observesTimeLimit" value="false"/>
+    </beans:bean>
+    <beans:bean id="rondesVerwijderenDecider" class="nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step.MammaIlmDecider">
+        <beans:property name="stepKey" value="MAMMA_ILM_RONDES_VERWIJDEREN_UITVOEREN"/>
+        <beans:property name="observesTimeLimit" value="true"/>
+    </beans:bean>
 
     <job id="mamma_ilm">
+        <decision id="beelden_status_signaleren_decider" decider="beeldenStatusSignalerenDecider">
+            <next on="COMPLETED" to="beelden_status_signaleren"/>
+            <next on="FAILED" to="gunstige_beelden_verwijderen_decider"/>
+        </decision>
         <step id="beelden_status_signaleren">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="mammaBeeldenStatusSignalerenReader"
                        writer="mammaBeeldenStatusSignalerenWriter" commit-interval="250">
                 </chunk>
             </tasklet>
-            <next on="*" to="gunstige_beelden_verwijderen"/>
-            <next on="FAILED" to="gunstige_beelden_verwijderen"/>
+            <next on="*" to="upload_beelden_status_signaleren"/>
         </step>
+        <step id="upload_beelden_status_signaleren">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="mammaUploadBeeldenStatusSignalerenReader"
+                       writer="mammaUploadBeeldenStatusSignalerenWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+            <next on="*" to="bezwaar_beelden_status_signaleren"/>
+        </step>
+        <step id="bezwaar_beelden_status_signaleren">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="mammaBezwaarBeeldenStatusSignalerenReader"
+                       writer="mammaBezwaarBeeldenStatusSignalerenWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+            <next on="*" to="beelden_verwijderen_opnieuw_proberen"/>
+        </step>
+        <step id="beelden_verwijderen_opnieuw_proberen">
+            <tasklet ref="mammaBeeldenVerwijderenRetryTasklet"/>
+            <next on="*" to="gunstige_beelden_verwijderen_decider"/>
+        </step>
+
+        <decision id="gunstige_beelden_verwijderen_decider" decider="gunstigeBeeldenVerwijderenDecider">
+            <next on="COMPLETED" to="gunstige_beelden_verwijderen"/>
+            <next on="FAILED" to="overige_beelden_verwijderen_decider"/>
+        </decision>
         <step id="gunstige_beelden_verwijderen">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="mammaGunstigeBeeldenVerwijderenReader"
-                       writer="mammaGunstigeBeeldenVerwijderenWriter" commit-interval="250">
+                       writer="mammaGunstigeBeeldenVerwijderenWriter"
+                       commit-interval="250">
                 </chunk>
             </tasklet>
-            <next on="*" to="overige_beelden_verwijderen"/>
-            <next on="FAILED" to="overige_beelden_verwijderen"/>
+            <next on="*" to="overige_beelden_verwijderen_decider"/>
         </step>
+
+        <decision id="overige_beelden_verwijderen_decider" decider="overigeBeeldenVerwijderenDecider">
+            <next on="COMPLETED" to="overige_beelden_verwijderen"/>
+            <next on="FAILED" to="palga_verslagen_verwijderen_decider"/>
+        </decision>
         <step id="overige_beelden_verwijderen">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="mammaOverigeBeeldenVerwijderenReader"
-                       writer="mammaOverigeBeeldenVerwijderenWriter" commit-interval="250">
+                       writer="mammaOverigeBeeldenVerwijderenWriter"
+                       commit-interval="250">
                 </chunk>
             </tasklet>
-            <next on="*" to="rondes_verwijderen"/>
-            <next on="FAILED" to="rondes_verwijderen"/>
+            <next on="*" to="palga_verslagen_verwijderen_decider"/>
         </step>
-        <step id="rondes_verwijderen">
+
+        <decision id="palga_verslagen_verwijderen_decider" decider="palgaVerslagenVerwijderenDecider">
+            <next on="COMPLETED" to="palga_verslagen_verwijderen"/>
+            <next on="FAILED" to="ilm_applicatie_logging_verwijderen_decider"/>
+        </decision>
+        <step id="palga_verslagen_verwijderen">
             <tasklet transaction-manager="transactionManager">
-                <chunk reader="mammaScreeningRondesVerwijderenReader"
-                       writer="mammaScreeningRondesVerwijderenWriter" commit-interval="250">
+                <chunk reader="mammaPalgaImportVerslagenVerwijderenReader"
+                       writer="mammaPalgaImportVerslagenVerwijderenWriter"
+                       commit-interval="1">
                 </chunk>
+                <no-rollback-exception-classes>
+                    <include class="java.lang.Exception"/>
+                </no-rollback-exception-classes>
             </tasklet>
-            <next on="*" to="ilm_applicatie_logging_verwijderen"/>
-            <next on="FAILED" to="ilm_applicatie_logging_verwijderen"/>
+            <next on="*" to="ilm_applicatie_logging_verwijderen_decider"/>
         </step>
+
+        <decision id="ilm_applicatie_logging_verwijderen_decider" decider="ilmApplicatieLoggingVerwijderenDecider">
+            <next on="COMPLETED" to="ilm_applicatie_logging_verwijderen"/>
+            <next on="FAILED" to="rondes_verwijderen_decider"/>
+        </decision>
         <step id="ilm_applicatie_logging_verwijderen">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="ilmApplicatieLoggingVerwijderenReader"
-                       writer="ilmApplicatieLoggingVerwijderenWriter" commit-interval="250">
+                       writer="ilmApplicatieLoggingVerwijderenWriter"
+                       commit-interval="250">
                 </chunk>
             </tasklet>
+            <next on="*" to="rondes_verwijderen_decider"/>
+        </step>
+
+        <decision id="rondes_verwijderen_decider" decider="rondesVerwijderenDecider">
+            <next on="COMPLETED" to="rondes_verwijderen"/>
+            <end on="FAILED"/>
+        </decision>
+        <step id="rondes_verwijderen">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="mammaScreeningRondesVerwijderenReader"
+                       writer="mammaScreeningRondesVerwijderenWriter"
+                       commit-interval="50">
+                    
+                </chunk>
+            </tasklet>
+            <next on="*" to="rondes_verwijderen_decider"/>
+            <end on="FAILED"/>
         </step>
         <listeners>
             <listener ref="mammaIlmJobListener"/>
@@ -527,8 +641,12 @@
         <step id="importeren">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="mammaPalgaCsvImportReader"
-                       writer="mammaPalgaCsvImportWriter" commit-interval="50">
+                       writer="mammaPalgaCsvImportWriter"
+                       commit-interval="1">
                 </chunk>
+                <no-rollback-exception-classes>
+                    <include class="java.lang.Exception"/>
+                </no-rollback-exception-classes>
             </tasklet>
         </step>
         <listeners>

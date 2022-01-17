@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,11 @@ import java.util.List;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseUitwisselportaalDao;
+import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
@@ -43,6 +47,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
 import nl.rivm.screenit.util.ZipUtil;
@@ -57,12 +63,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableMap;
+
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselportaalService
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseUitwisselportaalServiceImpl.class);
+
+	@Autowired
+	private LogService logService;
 
 	@Autowired
 	private FileService fileService;
@@ -81,6 +92,9 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 	@Autowired
 	private BerichtToBatchService berichtToBatchService;
+
+	@Autowired
+	private MammaBaseIlmService baseIlmService;
 
 	@Override
 	public void kopieerVerslagPdfNaarDownloadVerzoekMap(MammaDownloadOnderzoek downloadOnderzoek)
@@ -210,6 +224,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 			fileService.delete(bestand, true);
 		}
 		uploadBeeldenPoging.getBestanden().clear();
+
 		if (MammaMammografieIlmStatus.beeldenMogelijkAanwezig(uploadBeeldenPoging.getIlmStatus()))
 		{
 			berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.GOINGTODELETE,
@@ -218,6 +233,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 				MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
 			uploadBeeldenPoging.setIlmStatus(MammaMammografieIlmStatus.TE_VERWIJDEREN);
 			uploadBeeldenPoging.setIlmStatusDatum(dateSupplier.getDate());
+			baseIlmService.maakIlmBezwaarPoging(uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier(), uploadBeeldenPoging.getAccessionNumber(), true);
 		}
 	}
 
@@ -225,13 +241,46 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void verwijderBeelden(MammaUploadBeeldenPoging uploadBeeldenPoging)
 	{
-		MammaUploadBeeldenVerzoek uploadBeeldenVerzoek = uploadBeeldenPoging.getUploadBeeldenVerzoek();
-		uploadBeeldenVerzoek.setConclusieBirads(null);
-		uploadBeeldenVerzoek.setConclusieEersteUitslagRadiologie(null);
-		uploadBeeldenPoging.setIlmStatus(MammaMammografieIlmStatus.TE_VERWIJDEREN);
-		uploadBeeldenPoging.setIlmStatusDatum(dateSupplier.getDate());
-		hibernateService.saveOrUpdateAll(uploadBeeldenPoging, uploadBeeldenVerzoek);
+		setIlmStatus(uploadBeeldenPoging, MammaMammografieIlmStatus.TE_VERWIJDEREN);
 		berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.DELETE,
 			MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void setIlmStatus(MammaUploadBeeldenPoging uploadBeeldenPoging, MammaMammografieIlmStatus ilmStatus)
+	{
+		MammaUploadBeeldenVerzoek uploadBeeldenVerzoek = uploadBeeldenPoging.getUploadBeeldenVerzoek();
+		if (ilmStatus == MammaMammografieIlmStatus.VERWIJDERD)
+		{
+			uploadBeeldenVerzoek.setConclusieBirads(null);
+			uploadBeeldenVerzoek.setConclusieEersteUitslagRadiologie(null);
+		}
+		uploadBeeldenPoging.setIlmStatus(ilmStatus);
+		uploadBeeldenPoging.setIlmStatusDatum(dateSupplier.getDate());
+		hibernateService.saveOrUpdateAll(uploadBeeldenPoging, uploadBeeldenVerzoek);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public boolean forceerUploadPogingIlmStatus(long accessionNumber, MammaMammografieIlmStatus status, Account account)
+	{
+		MammaUploadBeeldenPoging uploadBeeldenPoging = getUploadPoging(accessionNumber);
+		if (status != uploadBeeldenPoging.getIlmStatus())
+		{
+			setIlmStatus(uploadBeeldenPoging, MammaMammografieIlmStatus.VERWIJDERD);
+			String melding = String.format("AccessionNumber: %d, status: %s, isBezwaar: %b, isUpload: %b", accessionNumber, status.toString(), false, true);
+			LOG.info(melding);
+			Client client = uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier().getClient();
+			logService.logGebeurtenis(LogGebeurtenis.MAMMA_ILM_STATUS_GEFORCEERD, account, client, melding, Bevolkingsonderzoek.MAMMA);
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public MammaUploadBeeldenPoging getUploadPoging(Long accessionNumber)
+	{
+		return hibernateService.getUniqueByParameters(MammaUploadBeeldenPoging.class, ImmutableMap.of("accessionNumber", accessionNumber));
 	}
 }

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service.mamma.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -134,7 +133,8 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 		List<AfspraakDatumResultTransformer.AfspraakDatum> afspraakDatums = afspraakDao.getAfspraakDatums(blokkade);
 		Map<MammaScreeningsEenheid, List<Date>> screeningsEenheidAfspraakDatumsMap = new HashMap<>();
 
-		afspraakDatums.forEach(afspraakDatum -> {
+		afspraakDatums.forEach(afspraakDatum ->
+		{
 			if (screeningsEenheidAfspraakDatumsMap.containsKey(afspraakDatum.screeningsEenheid))
 			{
 				screeningsEenheidAfspraakDatumsMap.get(afspraakDatum.screeningsEenheid).add(afspraakDatum.datum);
@@ -207,7 +207,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 			verzetClientenDto.clientIdSet.add(dossier.getClient().getId());
 
-			baseBriefService.maakMammaBrief(uitnodiging.getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET);
+			baseBriefService.maakBvoBrief(uitnodiging.getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET);
 		}
 
 		baseConceptPlanningsApplicatie.verzetClienten(verzetClientenDto);
@@ -222,17 +222,17 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	@Override
-	public boolean kortVoorVolgendeRonde(MammaAfspraak afspraak, boolean nieuweGeforceerdeRonde)
+	public boolean kortVoorVolgendeRonde(MammaAfspraak afspraak)
 	{
 		MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
 		MammaStandplaats huidigeStandplaats = baseStandplaatsService.getStandplaatsMetPostcode(dossier.getClient());
 
-		MammaScreeningRonde laatsteScreeningRonde = nieuweGeforceerdeRonde ? afspraak.getUitnodiging().getScreeningRonde() : dossier.getLaatsteScreeningRonde();
+		MammaScreeningRonde laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
 
 		if (laatsteScreeningRonde != null && huidigeStandplaats != null)
 		{
 			MammaStandplaatsRonde vorigeStandplaatsRondeClient = laatsteScreeningRonde.getStandplaatsRonde();
-			LocalDate startMinimalePeriode = null;
+			LocalDate startMinimalePeriode;
 			MammaStandplaatsPeriode eerstVolgendeStandplaatsPeriode = null;
 			Date vandaag = dateSupplier.getDateMidnight();
 			for (MammaStandplaatsRonde ronde : huidigeStandplaats.getStandplaatsRonden())
@@ -406,7 +406,7 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 				{
 					baseAfspraakService.maakAfspraak(afspraak.getUitnodiging().getScreeningRonde(), afspraak.getCapaciteitBlok(), afspraak.getVanaf(),
 						persistentStandplaatsPeriode, MammaVerzettenReden.ONVOORZIENE_OMSTANDIGHEDEN, true, false, false, true, true, ingelogedeInstellingGebruiker, false);
-					brieven.add(baseBriefService.maakMammaBrief(afspraak.getUitnodiging().getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET));
+					brieven.add(baseBriefService.maakBvoBrief(afspraak.getUitnodiging().getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET));
 					verzetClientenDto.clientIdSet.add(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getId());
 					afspraakDatums.add(DateUtil.toLocalDate(afspraak.getVanaf()));
 				}

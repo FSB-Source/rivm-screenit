@@ -5,19 +5,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.rivm.screenit</groupId>
     <artifactId>screenit-huisartsenportaal-commons</artifactId>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>nl.topicuszorg</groupId>
-        <artifactId>parent</artifactId>
+        <groupId>nl.rivm.screenit</groupId>
+        <artifactId>screenit-parent</artifactId>
     </parent>
-
-    <organization>
-        <name>Facilitaire Samenwerking Bevolkingsonderzoek</name>
-        <url>https://www.bevolkingsonderzoeknederland.nl/</url>
-    </organization>
 
     <inceptionYear>2016</inceptionYear>
 
@@ -69,18 +63,6 @@
                 </includes>
             </testResource>
         </testResources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <release>${java.version}</release>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 
     <dependencies>
@@ -88,11 +70,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
         </dependency>
 
         <dependency>

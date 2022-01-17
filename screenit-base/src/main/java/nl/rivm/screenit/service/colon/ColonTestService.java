@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,7 +44,7 @@ public interface ColonTestService
 {
 	void importColonClientenViaCsv(File file, Map<String, ColonUitnodigingCategorie> categoriePerPatient, int startRondeCorrectie) throws IOException, ParseException;
 
-	ColonBrief maakColonBrief(Client client, ColonScreeningRonde screeningRonde, BriefType briefType);
+	ColonBrief maakBrief(Client client, ColonScreeningRonde screeningRonde, BriefType briefType);
 
 	ColonIntakeAfspraak maakAfspraak(GbaPersoon persoon, Date fitVerwerkingsDatum);
 

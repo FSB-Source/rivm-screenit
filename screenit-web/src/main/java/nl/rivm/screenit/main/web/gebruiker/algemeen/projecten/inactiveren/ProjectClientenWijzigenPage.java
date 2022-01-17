@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.inactiveren;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -74,10 +74,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA })
 public class ProjectClientenWijzigenPage extends ProjectBasePage
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectServiceImpl.class);
-
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private ProjectService projectService;
@@ -92,9 +89,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 
 	private IModel<ProjectBestand> formModel;
 
-	private IModel<Project> project;
-
-	private IModel<UploadDocument> document;
+	private IModel<UploadDocument> documentModel;
 
 	private final BootstrapDialog dialog;
 
@@ -105,11 +100,10 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 	public ProjectClientenWijzigenPage(IModel<Project> model)
 	{
 		super(model);
-		project = model;
 
-		formModel = ModelUtil.cModel(new ProjectBestand());
+		formModel = ModelUtil.ccModel(new ProjectBestand());
 
-		form = new Form<ProjectBestand>("form", formModel);
+		form = new Form<>("form", formModel);
 		add(form);
 
 		dialog = new BootstrapDialog("dialog");
@@ -166,7 +160,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 								Project project = getProjectModel().getObject();
 
 								ProjectBestand projectBestand = ProjectClientenWijzigenPage.this.form.getModelObject();
-								UploadDocument uploadDocument = document.getObject();
+								UploadDocument uploadDocument = documentModel.getObject();
 
 								projectService.queueProjectBestandVoorClientWijzigingen(project, projectBestand, uploadDocument, attributenBestand.getContentType(),
 									attributenBestand.getClientFileName(),
@@ -190,9 +184,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 			}
 
 		});
-		passpoortContainer =
-
-			getPassPoortContainer();
+		passpoortContainer = getPassPoortContainer();
 
 		add(passpoortContainer);
 	}
@@ -211,7 +203,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 				document.setContentType(upload.getContentType());
 				document.setFile(definitieFile);
 				document.setNaam(upload.getClientFileName());
-				this.document = ModelUtil.cModel(document);
+				this.documentModel = ModelUtil.ccModel(document);
 			}
 		}
 		catch (Exception e)
@@ -227,7 +219,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 		WebMarkupContainer container = new WebMarkupContainer("projectPasspoortContainer");
 		container.setOutputMarkupId(true);
 
-		container.add(new ProjectPaspoortPanel("projectPasspoort", project));
+		container.add(new ProjectPaspoortPanel("projectPasspoort", getProjectModel()));
 
 		return container;
 	}
@@ -237,5 +229,6 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 	{
 		super.onDetach();
 		ModelUtil.nullSafeDetach(formModel);
+		ModelUtil.nullSafeDetach(documentModel);
 	}
 }

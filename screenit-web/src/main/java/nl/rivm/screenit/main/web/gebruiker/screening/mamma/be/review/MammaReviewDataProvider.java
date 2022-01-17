@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import java.util.List;
 import com.google.common.primitives.Ints;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -36,7 +36,7 @@ import org.apache.wicket.injection.Injector;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
-public class MammaReviewDataProvider extends SortableDataProvider<MammaScreeningRonde, String>
+public class MammaReviewDataProvider extends SortableDataProvider<MammaConclusieReview, String>
 {
 	@SpringBean
 	private MammaConclusieReviewService conclusieReviewService;
@@ -51,7 +51,7 @@ public class MammaReviewDataProvider extends SortableDataProvider<MammaScreening
 	}
 
 	@Override
-	public Iterator<MammaScreeningRonde> iterator(long first, long count)
+	public Iterator<MammaConclusieReview> iterator(long first, long count)
 	{
 		String sortProperty = null;
 		boolean asc = true;
@@ -61,7 +61,7 @@ public class MammaReviewDataProvider extends SortableDataProvider<MammaScreening
 			asc = getSort().isAscending();
 		}
 
-		List<MammaScreeningRonde> lijstOnderzoeken = conclusieReviewService.zoekScreeningRondesMetConclusie(getZoekObject(), Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, asc);
+		List<MammaConclusieReview> lijstOnderzoeken = conclusieReviewService.zoekConclusieReviewsVanRadioloog(getZoekObject(), Ints.checkedCast(first), Ints.checkedCast(count), sortProperty, asc);
 		return lijstOnderzoeken.iterator();
 	}
 
@@ -73,11 +73,11 @@ public class MammaReviewDataProvider extends SortableDataProvider<MammaScreening
 	@Override
 	public long size()
 	{
-		return conclusieReviewService.countScreeningRondesMetConclusie(getZoekObject());
+		return conclusieReviewService.countConclusieReviewsVanRadioloog(getZoekObject());
 	}
 
 	@Override
-	public IModel<MammaScreeningRonde> model(MammaScreeningRonde object)
+	public IModel<MammaConclusieReview> model(MammaConclusieReview object)
 	{
 		return ModelUtil.sModel(object);
 	}

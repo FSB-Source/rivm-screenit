@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.dao.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,11 +30,13 @@ import java.util.List;
 
 public interface MammaConclusieReviewDao
 {
-    long countScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject);
+    long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject);
 
-    List<MammaScreeningRonde> zoekScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
+    List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
 
     List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc);
 
     MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
+
+    List<InstellingGebruiker> getRadiologenMetLezingVanRondeEnZonderReview(MammaScreeningRonde screeningRonde);
 }

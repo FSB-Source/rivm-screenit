@@ -5,7 +5,7 @@ package nl.rivm.screenit.dao;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,6 @@ import nl.rivm.screenit.model.verslag.DSValue;
 
 public interface VerslagDao
 {
-
 	MdlVerslag getMdlVerslagMetTNummer(PaVerslagContent verslagContent);
 
 	List<PaVerslag> getPaVerslagMetTNummer(MdlVerslagContent verslagContent);
@@ -62,4 +61,6 @@ public interface VerslagDao
 	<V extends Verslag> List<V> zoekVerslagen(V zoekObject, int first, int count, String property, boolean ascending);
 
 	<V extends Verslag> long countVerslagen(V zoekObject);
+
+	void setBerichtenOpnieuwVerwerken(List<Long> ids);
 }

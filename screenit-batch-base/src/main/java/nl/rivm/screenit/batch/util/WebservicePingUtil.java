@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.util;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,8 +35,6 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.config.RequestConfig.Builder;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
@@ -54,24 +52,10 @@ public final class WebservicePingUtil
 
 	public static boolean ping(String url, List<String> markers, StringBuilder message)
 	{
-		CloseableHttpClient httpclient = null;
-
-		if (url.startsWith("https"))
-		{
-
-			SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(SSLContexts.createDefault(), new String[] { "TLSv1" }, null,
-				SSLConnectionSocketFactory.BROWSER_COMPATIBLE_HOSTNAME_VERIFIER);
-
-			httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
-		}
-		else
-		{
-			httpclient = HttpClients.createDefault();
-		}
+		CloseableHttpClient httpclient = HttpClients.createDefault();
 		boolean hasWsdlVerified = false;
 		if (httpclient != null)
 		{
-
 			try
 			{
 				HttpGet httpget = new HttpGet(url);

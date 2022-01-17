@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback;
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback.DelegatedReadOnlyDBActions;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
@@ -49,7 +48,6 @@ import org.springframework.batch.item.ExecutionContext;
 
 public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 {
-
 	private static final String UITNODIGINGSCAT = "key.uitnodigingscat";
 
 	private static final Logger LOG = LoggerFactory.getLogger(ClientSelectieItemCursor.class);
@@ -80,8 +78,10 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 
 	private Integer uitnodigingsInterval;
 
+	private final LocalDate vandaag;
+
 	public ClientSelectieItemCursor(Session hibernateSession, int fetchSize, Integer uitnodigingsInterval, ExecutionContext context, Integer minimaleLeeftijd,
-		Integer maximaleLeeftijd, List<Long> uitgenodigdeClientIds, Integer wachttijdVerzendenPakket, ClientDao clientDao)
+		Integer maximaleLeeftijd, List<Long> uitgenodigdeClientIds, Integer wachttijdVerzendenPakket, ClientDao clientDao, LocalDate vandaag)
 	{
 		this.hibernateSession = hibernateSession;
 		this.fetchSize = fetchSize;
@@ -92,6 +92,7 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 		this.uitgenodigdeClientIds = uitgenodigdeClientIds;
 		this.wachttijdVerzendenPakket = wachttijdVerzendenPakket;
 		this.clientDao = clientDao;
+		this.vandaag = vandaag;
 
 		initialiseCursor(context);
 	}
@@ -121,7 +122,7 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 				{
 					if (!context.containsKey(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES))
 					{
-						Map<Long, String> map = new HashMap<Long, String>();
+						Map<Long, String> map = new HashMap<>();
 						context.put(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES, map);
 					}
 					Map<Long, String> map = (Map<Long, String>) context.get(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES);
@@ -135,8 +136,10 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 
 				List<Client> clientenOpAdres = clientDao.getClientenOpAdres(adres, minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval);
 				Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
-				boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2 || !ColonRestrictions.isIfobtActief(andereClient, uitgenodigdeClientIds)
-					|| ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket);
+
+				boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2
+					|| !ColonRestrictions.isIfobtActief(andereClient, uitgenodigdeClientIds)
+					|| ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket, uitgenodigdeClientIds, vandaag);
 				if (geenAndereClientMetZelfdeAdresEnActieveIfobt)
 				{
 					cursorCount++;
@@ -205,32 +208,24 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 
 	private void setCursor()
 	{
-		ReadOnlyDBActionsWithFallback.runReadOnlyDBActions(new DelegatedReadOnlyDBActions()
+		Criteria crit;
+		switch (colonUitnodigingCategorie)
 		{
+		case U3:
+			crit = ColonRestrictions.getQueryU3(hibernateSession, vandaag);
+			break;
+		case U4:
+			crit = ColonRestrictions.getQueryU4(hibernateSession, vandaag);
+			break;
+		case U6:
+			crit = ColonRestrictions.getQueryU6(hibernateSession, vandaag);
+			break;
+		default:
+			throw new NotImplementedException("Niet bekende categorie");
+		}
 
-			@Override
-			public void doActions()
-			{
-				Criteria crit = null;
-				switch (colonUitnodigingCategorie)
-				{
-				case U3:
-					crit = ColonRestrictions.getQueryU3(hibernateSession);
-					break;
-				case U4:
-					crit = ColonRestrictions.getQueryU4(hibernateSession);
-					break;
-				case U6:
-					crit = ColonRestrictions.getQueryU6(hibernateSession);
-					break;
-				default:
-					throw new NotImplementedException("Niet bekende categorie");
-				}
+		cursor = crit.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
 
-				cursor = crit.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY);
-
-			}
-		});
 	}
 
 	@Override

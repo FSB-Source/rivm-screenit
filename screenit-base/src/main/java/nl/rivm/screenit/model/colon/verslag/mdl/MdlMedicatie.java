@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.mdl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,11 +53,11 @@ public class MdlMedicatie
 	private MdlColoscopieMedischeObservatie coloscopieMedischeObservatie;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "medicatie", cascade = CascadeType.ALL)
-	@VraagElement(displayName = "Medicatiemiddel", extraTekst = "Medicatiemiddel", code = "2.16.840.1.113883.2.4.3.36.77.2.8.140092", isReference = true)
+	@VraagElement(displayName = "Medicatiemiddel", extraTekst = "Medicatiemiddel", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140092", isReference = true)
 	private List<MdlMedicatiemiddel> medicatiemiddel = new ArrayList<>();
 
 	@Column
-	@VraagElement(displayName = "Sedatie ja/nee", extraTekst = "Sedatie ja/nee", code = "2.16.840.1.113883.2.4.3.36.77.2.8.140106", isVerplicht = true)
+	@VraagElement(displayName = "Sedatie ja/nee", extraTekst = "Sedatie ja/nee", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140106", isVerplicht = true)
 	private Boolean sedatieJanee;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -70,11 +69,7 @@ public class MdlMedicatie
 		@DSValueSetValue(code = "5", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.90"),
 		@DSValueSetValue(code = "NA", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(
-		displayName = "Mate van sedatie",
-		extraTekst = "Mate waarin sedatie gelukt is volgens de Leeds score",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.140101",
-		isVerplicht = true)
+	@VraagElement(displayName = "Mate van sedatie", extraTekst = "Mate waarin sedatie gelukt is volgens de Leeds score", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140101", isVerplicht = true)
 	private DSValue mateVanSedatie;
 
 	public MdlColoscopieMedischeObservatie getColoscopieMedischeObservatie()

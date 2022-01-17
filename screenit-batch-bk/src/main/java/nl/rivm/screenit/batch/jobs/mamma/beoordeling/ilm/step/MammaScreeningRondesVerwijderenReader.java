@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.Date;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
+import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -58,8 +59,9 @@ public class MammaScreeningRondesVerwijderenReader extends BaseScrollableResultR
 
 		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.AFGEROND));
 		crit.add(Restrictions.le("ronde.statusDatum", verwijderGrensDatum));
-
-		crit.addOrder(Order.asc("ronde.statusDatum"));
+		crit.add(Restrictions.gt("ronde.id", getExecutionContext().get(MammaIlmJobListener.KEY_LAATSTE_RONDE_ID)));
+		crit.setMaxResults(MammaIlmJobListener.MAX_AANTAL_RONDES_VERWERKEN_IN_STEP);
+		crit.addOrder(Order.asc("ronde.id"));
 		return crit;
 	}
 

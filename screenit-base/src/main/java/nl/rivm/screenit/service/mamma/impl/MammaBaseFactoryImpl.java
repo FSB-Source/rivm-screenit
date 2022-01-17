@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -185,7 +185,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 
 		if (briefType != null)
 		{
-			MammaBrief brief = briefService.maakMammaBrief(screeningRonde, briefType);
+			MammaBrief brief = briefService.maakBvoBrief(screeningRonde, briefType);
 			uitnodiging.setBrief(brief);
 			brief.setUitnodiging(uitnodiging);
 			hibernateService.saveOrUpdateAll(brief, uitnodiging);

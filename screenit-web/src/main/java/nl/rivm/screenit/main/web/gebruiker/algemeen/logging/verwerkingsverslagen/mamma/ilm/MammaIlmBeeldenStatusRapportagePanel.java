@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslage
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,10 +25,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
+import nl.rivm.screenit.main.web.component.table.AjaxImageCellPanel;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
 import nl.rivm.screenit.model.logging.MammaIlmLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportageEntry;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+import nl.topicuszorg.wicket.input.BooleanLabel;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.PropertyListView;
@@ -44,21 +49,42 @@ public class MammaIlmBeeldenStatusRapportagePanel extends GenericPanel<MammaIlmL
 		super(id, new CompoundPropertyModel<>(model));
 
 		add(DateLabel.forDatePattern("logRegel.gebeurtenisDatum", "dd-MM-yyyy HH:mm:ss"));
-		add(new Label("rapportage.aantalBeelden"));
-
+		add(new Label("rapportage.aantalRetries"));
+		add(new Label("rapportage.aantalFailedRetries"));
 		List<MammaIlmBeeldenStatusRapportageEntry> entries = getModelObject().getRapportage().getEntries()
 			.stream()
-			.filter(v -> v.getStatusDatum() != null)
+			.filter(MammaIlmBeeldenStatusRapportageEntry::isFailedRetry)
 			.sorted(Comparator.comparing(MammaIlmBeeldenStatusRapportageEntry::getStatusDatum))
 			.collect(Collectors.toList());
 
-		add(new PropertyListView<MammaIlmBeeldenStatusRapportageEntry>("entries", ModelUtil.listRModel(entries, false))
+		add(new PropertyListView<>("entries", ModelUtil.listRModel(entries, false))
 		{
 			@Override
-			protected void populateItem(ListItem<MammaIlmBeeldenStatusRapportageEntry> entry)
+			protected void populateItem(ListItem<MammaIlmBeeldenStatusRapportageEntry> entryRow)
 			{
-				entry.add(new Label("uitnodigingsNr"));
-				entry.add(DateLabel.forDatePattern("statusDatum", "dd-MM-yyyy HH:mm:ss"));
+				entryRow.add(new Label("accessionNumber"));
+				entryRow.add(new Label("client.persoon.geboortedatum"));
+				entryRow.add(DateLabel.forDatePattern("statusDatum", "dd-MM-yyyy HH:mm:ss"));
+				entryRow.add(new BooleanLabel("uploaded"));
+				entryRow.add(new BooleanLabel("bezwaar"));
+				entryRow.add(new AjaxImageCellPanel<>("delete", entryRow.getModel(), "icon-trash")
+				{
+					@Override
+					public void onClick(AjaxRequestTarget target)
+					{
+						BootstrapDialog dialog = ((AlgemeenPage) getPage()).getDialog();
+						dialog.openWith(target,
+							new MammaIlmBeeldenStatusForcerenPopupPanel(BootstrapDialog.CONTENT_ID, entryRow.getModel())
+							{
+								@Override
+								protected void onOpslaanSuccesvol(AjaxRequestTarget target)
+								{
+									dialog.close(target);
+								}
+							});
+
+					}
+				});
 			}
 		});
 	}

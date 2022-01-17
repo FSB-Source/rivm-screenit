@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.dashboard;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,6 +32,8 @@ public enum DashboardType
 {
 	GBA_LANDELIJK("GBA", JobType.GBA, Arrays.asList(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
+	COLON_BATCH_NA_GBA_VERWERKING("Darmkanker specifieke verwerking nav. GBA", JobType.COLON_NA_GBA, Bevolkingsonderzoek.COLON),
+
 	CLIENT_SELECTIE("Client selectie", JobType.CLIENT_SELECTIE, Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON),
 
 	UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM("Uitnodiging versturen naar inpakcentrum", JobType.UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_JOB_DK, Bevolkingsonderzoek.COLON),
@@ -41,6 +43,8 @@ public enum DashboardType
 	TERUGKOPPELING_CLIENT_SELECTIE("Terugkoppeling van Inpakcentrum", JobType.KOPPELDATA_VERWERKING, Bevolkingsonderzoek.COLON),
 
 	RETOURZENDINGEN("Retourzendingen", Bevolkingsonderzoek.COLON),
+
+	COLON_IFOBT_KOPPELING("FIT-berichten koppeling", Arrays.asList(OrganisatieType.RIVM, OrganisatieType.LABORATORIUM), Bevolkingsonderzoek.COLON),
 
 	IFOBT_INLEZEN("FIT uitslagen ontvangen", Bevolkingsonderzoek.COLON),
 
@@ -54,13 +58,19 @@ public enum DashboardType
 
 	COLON_VERVOLG_INTAKE_CONCLUSIE("Vervolg intakeconclusie", JobType.VERVOLG_INTAKE_CONCLUSIE_BATCH, Bevolkingsonderzoek.COLON),
 
-	VERSLAGEN("CDA Berichten", Bevolkingsonderzoek.COLON),
+	COLON_HUISARTSBERICHTEN(
+		"Huisartsberichten",
+		JobType.COLON_HUISARTSBERICHTEN_OPNIEUW_VERSTUREN,
+		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
+		Bevolkingsonderzoek.COLON),
 
 	BRIEVEN_GENEREREN("Brieven genereren", JobType.BRIEVEN_GENEREREN, Bevolkingsonderzoek.COLON),
 
-	ENOVATION_HUISARTSEN("Enovation huisartsen import", JobType.ENOVATION_HUISARTSEN_BATCH, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON),
+	VERSLAGEN("CDA Berichten", Bevolkingsonderzoek.COLON),
 
-	CERVIX_ILM("ILM BMHK", JobType.CERVIX_ILM, Bevolkingsonderzoek.CERVIX),
+	COLON_ILM("ILM DK", JobType.COLON_ILM, Bevolkingsonderzoek.COLON),
+
+	CERVIX_BATCH_NA_GBA_VERWERKING("Baarmoederhalskanker specifieke verwerking nav. GBA", JobType.CERVIX_NA_GBA, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_SELECTIE("Client selectie", JobType.CERVIX_SELECTIE, Bevolkingsonderzoek.CERVIX),
 
@@ -98,33 +108,6 @@ public enum DashboardType
 
 	CERVIX_VERSLAG_CYTOLOGIE("Verslag cytologie", Arrays.asList(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
-	BEZWAAR_BRIEVEN_GENEREREN("Bezwaar brieven genereren", JobType.BEZWAAR_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
-
-	ALGEMENE_BRIEVEN_GENEREREN("Algemene brieven genereren", JobType.ALGEMENE_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
-
-	PROJECT_BRIEVEN_GENEREREN("Project brieven genereren", JobType.PROJECT_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
-
-	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN(
-		"ILM algemene gegevens verwijderen",
-		JobType.ILM_ALGEMENE_GEGEVENS_VERWIJDEREN,
-		Bevolkingsonderzoek.COLON,
-		Bevolkingsonderzoek.CERVIX,
-		Bevolkingsonderzoek.MAMMA),
-
-	COLON_ILM("ILM DK", JobType.COLON_ILM, Bevolkingsonderzoek.COLON),
-
-	COLON_IFOBT_KOPPELING("FIT-berichten koppeling", Arrays.asList(OrganisatieType.RIVM, OrganisatieType.LABORATORIUM), Bevolkingsonderzoek.COLON),
-
-	COLON_BATCH_NA_GBA_VERWERKING("Darmkanker specifieke verwerking nav. GBA", JobType.COLON_NA_GBA, Bevolkingsonderzoek.COLON),
-
-	COLON_HUISARTSBERICHTEN(
-		"Huisartsberichten",
-		JobType.COLON_HUISARTSBERICHTEN_OPNIEUW_VERSTUREN,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
-		Bevolkingsonderzoek.COLON),
-
-	CERVIX_BATCH_NA_GBA_VERWERKING("Baarmoederhalskanker specifieke verwerking nav. GBA", JobType.CERVIX_NA_GBA, Bevolkingsonderzoek.CERVIX),
-
 	CERVIX_BEPALEN_VERRICHTINGEN(
 		"Bepalen verrichtingen",
 		JobType.CERVIX_BEPALEN_VERRICHTINGEN,
@@ -144,6 +127,10 @@ public enum DashboardType
 		Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN("HPV(-) labformuliergegevens wissen", JobType.CERVIX_HPV_ORU, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_VERLATE_DEELNAME_COVID19("Verlate deelname COVID-19", JobType.CERVIX_VERLATE_DEELNAME_COVID19, Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_ILM("ILM BMHK", JobType.CERVIX_ILM, Bevolkingsonderzoek.CERVIX),
 
 	MAMMA_HERINNEREN("Herinneren", JobType.MAMMA_HERINNEREN, Bevolkingsonderzoek.MAMMA),
 
@@ -198,6 +185,23 @@ public enum DashboardType
 
 	MAMMA_ILM("ILM BK", JobType.MAMMA_ILM, Bevolkingsonderzoek.MAMMA),
 
+	ALGEMENE_BRIEVEN_GENEREREN("Algemene brieven genereren", JobType.ALGEMENE_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+
+	BEZWAAR_BRIEVEN_GENEREREN("Bezwaar brieven genereren", JobType.BEZWAAR_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+
+	PROJECT_BRIEVEN_GENEREREN("Project brieven genereren", JobType.PROJECT_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+
+	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN(
+		"ILM algemene gegevens verwijderen",
+		JobType.ILM_ALGEMENE_GEGEVENS_VERWIJDEREN,
+		Bevolkingsonderzoek.COLON,
+		Bevolkingsonderzoek.CERVIX,
+		Bevolkingsonderzoek.MAMMA),
+
+	ENOVATION_HUISARTSEN("Enovation huisartsen import", JobType.ENOVATION_HUISARTSEN_BATCH, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON),
+
+	MAIL_LANDELIJK("Mail versturen", Arrays.asList(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX,
+			Bevolkingsonderzoek.MAMMA),
 	;
 
 	private final String naam;

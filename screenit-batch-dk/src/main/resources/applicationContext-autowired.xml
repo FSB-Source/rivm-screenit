@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-batch-dk
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -55,13 +55,13 @@
     <context:component-scan base-package="nl.rivm.screenit.factory"/>
     <context:component-scan base-package="nl.rivm.screenit.service.colon.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.colon.impl"/>
+	<context:component-scan base-package="nl.rivm.screenit.cache" resource-pattern="CacheMBeanRegistration.class"/>
 
     
     <context:component-scan base-package="nl.rivm.screenit.batch.service.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.batch.dao.impl"/>
 
     
-    <context:component-scan base-package="nl.topicuszorg.hibernate.schema.dao.impl"/>
     <context:component-scan base-package="nl.topicuszorg.wicket.planning.dao"/>
     <context:component-scan base-package="nl.topicuszorg.wicket.planning.services"/>
 

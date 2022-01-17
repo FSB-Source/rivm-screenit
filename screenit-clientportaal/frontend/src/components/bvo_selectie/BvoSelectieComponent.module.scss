@@ -1,0 +1,13 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.bvoSelectie {
+
+	margin-bottom: 30px;
+	max-width: 1100px;
+
+	@include respond-below(xs) {
+		margin-bottom: 0;
+	}
+
+}

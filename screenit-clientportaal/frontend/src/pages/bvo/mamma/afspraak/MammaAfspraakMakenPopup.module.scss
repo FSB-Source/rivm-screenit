@@ -1,0 +1,59 @@
+@import "src/scss/media-mixins";
+@import "src/scss/mixins";
+
+.afspraakDiv {
+	position: relative;
+	margin-bottom: 15px;
+
+	.afspraakGegevensRow {
+		margin-left: 15px;
+
+		@include respond-below(xs) {
+			margin-left: 5px;
+		}
+
+		span {
+			display: block;
+		}
+
+		span:nth-child(1) {
+			font-size: 0.75rem;
+		}
+
+		span:nth-child(2) {
+			font-size: 1rem;
+			font-weight: 500;
+		}
+
+		@include respond-below(xs) {
+			.locatieColumn {
+				margin-top: 10px;
+			}
+		}
+	}
+
+	.verticalRectangle {
+		position: absolute;
+		top: 10px;
+	}
+}
+
+.bevestigenForm {
+	margin-top: 20px;
+
+	.bevestigingsBrief {
+		position: relative;
+		display: block;
+		margin-bottom: 20px;
+
+		label {
+			@include center-in-div-vertically(50%);
+		}
+	}
+
+	button, a {
+		width: 100%;
+		margin-bottom: 10px;
+		text-align: center;
+	}
+}

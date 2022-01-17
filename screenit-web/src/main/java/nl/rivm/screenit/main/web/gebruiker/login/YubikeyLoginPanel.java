@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.login;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.ScreenitWachtwoordField;
 import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.bootstrap.BootstrapFeedbackPanel;
@@ -48,8 +48,6 @@ import org.apache.wicket.util.time.Duration;
 public class YubikeyLoginPanel extends Panel
 {
 
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private SimplePreferenceService preferenceService;
 
@@ -61,9 +59,6 @@ public class YubikeyLoginPanel extends Panel
 
 	public final class LoginForm extends Form<Void>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		private String gebruikersnaam;
 
 		private String wachtwoord;
@@ -76,9 +71,9 @@ public class YubikeyLoginPanel extends Panel
 
 			add(new BootstrapFeedbackPanel("feedback"));
 
-			add(new TextField<String>("gebruikersnaam", new PropertyModel<String>(this, "gebruikersnaam")).add(new FocusBehavior()));
-			add(new PasswordTextField("wachtwoord", new PropertyModel<String>(this, "wachtwoord")));
-			add(new PasswordTextField("yubikeyOTP", new PropertyModel<String>(this, "yubikeyOTP")));
+			add(new TextField<>("gebruikersnaam", new PropertyModel<>(this, "gebruikersnaam")).add(new FocusBehavior()));
+			add(new ScreenitWachtwoordField("wachtwoord", new PropertyModel<>(this, "wachtwoord"), false, null));
+			add(new PasswordTextField("yubikeyOTP", new PropertyModel<>(this, "yubikeyOTP")));
 
 			Boolean aanvragenwachtwoordVisible = preferenceService.getBoolean(PreferenceKey.WACHTWOORDAANVRAGEN.name());
 			if (aanvragenwachtwoordVisible == null)
@@ -86,11 +81,8 @@ public class YubikeyLoginPanel extends Panel
 				aanvragenwachtwoordVisible = Boolean.FALSE;
 			}
 
-			StatelessLink<Void> passwordRequest = new StatelessLink<Void>("passwordRequest")
+			StatelessLink<Void> passwordRequest = new StatelessLink<>("passwordRequest")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick()
 				{
@@ -108,9 +100,6 @@ public class YubikeyLoginPanel extends Panel
 
 			add(new SubmitLink("submit")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onSubmit()
 				{

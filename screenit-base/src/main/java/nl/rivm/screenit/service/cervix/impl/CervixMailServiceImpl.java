@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,13 +23,13 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.service.AsyncMailer;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
@@ -62,135 +62,54 @@ public class CervixMailServiceImpl implements CervixMailService
 	@Override
 	public void sendBMHKBezwaarLichaamsmateriaalMailAsync(CervixMonster monster)
 	{
-		long clientid = getClientIdVanMonster(monster);
 		final String mailContent = getBaseMailContent(PreferenceKey.CERVIX_BEZWAAR_WETENSCHAPPELIJK_GEBRUIK_LICHAAMSMATERIAAL, monster);
 		final String subject = preferenceService.getString(PreferenceKey.CERVIX_BEZWAAR_WETENSCHAPPELIJK_GEBRUIK_LICHAAMSMATERIAAL_SUBJECT.name());
-		AsyncMailer asyncMailer = new AsyncMailer(monster.getLaboratorium().getBmhkLabWarnMail(), subject, mailContent)
-		{
-			@Override
-			public void onError()
-			{
-				LogEvent logevent = new LogEvent(String.format("Email versturen bezwaar gebruik lichaamsmateriaal mislukt voor mosnterID %s", monster.getMonsterId()), Level.ERROR);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUREN_MISLUKT, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-
-			@Override
-			public void onSuccess()
-			{
-				LogEvent logevent = new LogEvent(String.format("Nieuwe bezwaarmail verstuurd voor monsterID %s", monster.getMonsterId()), Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-
-		};
-		mailService.sendAsyncMail(asyncMailer);
+		mailService.queueMail(monster.getLaboratorium().getBmhkLabWarnMail(), subject, mailContent);
+		LogEvent logevent = new LogEvent(String.format("Nieuwe bezwaarmail verstuurd voor monsterID %s", monster.getMonsterId()), Level.INFO);
+		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(monster), Bevolkingsonderzoek.CERVIX);
 	}
 
 	@Override
 	public void sendBMHKBezwaarControlleVerwijsAdviesMail(CervixMonster monster)
 	{
-		long clientid = getClientIdVanMonster(monster);
 		final String mailContent = getBaseMailContent(PreferenceKey.CERVIX_BEZWAAR_CONTROLE_VERVOLG_VERWIJSADVIES, monster);
 		final String subject = preferenceService.getString(PreferenceKey.CERVIX_BEZWAAR_CONTROLE_VERVOLG_VERWIJSADVIES_SUBJECT.name());
-		AsyncMailer asyncMailer = new AsyncMailer(monster.getLaboratorium().getBmhkLabWarnMail(), subject, mailContent)
-		{
-			@Override
-			public void onError()
-			{
-				LogEvent logevent = new LogEvent(String.format("Email versturen bezwaar controle verwijs advies mislukt voor mosnterID %s", monster.getMonsterId()), Level.ERROR);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUREN_MISLUKT, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-
-			@Override
-			public void onSuccess()
-			{
-				LogEvent logevent = new LogEvent(String.format("Nieuwe bezwaarmail (controle verwijs advies) verstuurd voor monsterID %s", monster.getMonsterId()), Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-
-		};
-		mailService.sendAsyncMail(asyncMailer);
+		mailService.queueMail(monster.getLaboratorium().getBmhkLabWarnMail(), subject, mailContent);
+		LogEvent logevent = new LogEvent(String.format("Nieuwe bezwaarmail (controle verwijs advies) verstuurd voor monsterID %s", monster.getMonsterId()), Level.INFO);
+		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(monster), Bevolkingsonderzoek.CERVIX);
 	}
 
 	@Override
 	public void sendOnbeoordeelbaarMaarTochOntvangstBeoordeling(CervixUitstrijkje uitstrijkje)
 	{
-		long clientid = getClientIdVanMonster(uitstrijkje);
 		String content = getBaseMailContent(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL, uitstrijkje);
 		final String subject = preferenceService.getString(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_ALSNOG_BEOORDELING_ONTVANGEN_MAIL_SUBJECT.name());
-		AsyncMailer asyncMailer = new AsyncMailer(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content)
-		{
-			@Override
-			public void onError()
-			{
-				LogEvent logevent = new LogEvent(String.format("Beoordeling ontvangen na verlopen omissie mail versturen mislukt. Voor monster id: %s", uitstrijkje.getMonsterId()),
-					Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUREN_MISLUKT, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-
-			@Override
-			public void onSuccess()
-			{
-				LogEvent logevent = new LogEvent(String.format("Beoordeling ontvangen na verlopen omissie mail verstuurd. Voor monster id: %s", uitstrijkje.getMonsterId()),
-					Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-		};
-		mailService.sendAsyncMail(asyncMailer);
+		mailService.queueMail(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content);
+		LogEvent logevent = new LogEvent(String.format("Beoordeling ontvangen na verlopen omissie mail verstuurd. Voor monster id: %s", uitstrijkje.getMonsterId()), Level.INFO);
+		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(uitstrijkje), Bevolkingsonderzoek.CERVIX);
 	}
 
 	@Override
 	public void sendWachttijdVerstrekenMetHuisartsOnbekend(CervixUitstrijkje uitstrijkje)
 	{
-		long clientid = getClientIdVanMonster(uitstrijkje);
 		String content = getBaseMailContent(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL, uitstrijkje);
 		String subject = preferenceService.getString(PreferenceKey.CERVIX_OMMISSIE_VERSTREKEN_HA_ONBEKEND_MAIL_SUBJECT.name());
-		AsyncMailer asyncMailer = new AsyncMailer(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content)
-		{
-			@Override
-			public void onError()
-			{
-				LogEvent logevent = new LogEvent(String.format("Wachttijd verstreken voor uitstrijkje mail versturen mislukt voor monster id: %s", uitstrijkje.getMonsterId()),
-					Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUREN_MISLUKT, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-
-			@Override
-			public void onSuccess()
-			{
-				LogEvent logevent = new LogEvent(String.format("Wachttijd verstreken voor uitstrijkje mail verstuurd voor monster id: %s", uitstrijkje.getMonsterId()), Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-		};
-		mailService.sendAsyncMail(asyncMailer);
+		mailService.queueMail(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content);
+		LogEvent logevent = new LogEvent(String.format("Wachttijd verstreken voor uitstrijkje mail verstuurd voor monster id: %s", uitstrijkje.getMonsterId()), Level.INFO);
+		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(uitstrijkje), Bevolkingsonderzoek.CERVIX);
 	}
 
 	@Override
 	public void sendHuisartsGekoppeldAanUitstrijkjeMail(CervixUitstrijkje uitstrijkje)
 	{
-		long clientid = getClientIdVanMonster(uitstrijkje);
 		String content = getBaseMailContent(PreferenceKey.CERVIX_HUISARTS_AAN_UITSTRIJKJE_GEKOPPELD_MAIL, uitstrijkje);
 		String subject = preferenceService.getString(PreferenceKey.CERVIX_HUISARTS_AAN_UITSTRIJKJE_GEKOPPELD_MAIL_SUBJECT.name());
 		CervixOmissiesLabproces omissie = appContext.getBean(CervixOmissiesLabproces.class, uitstrijkje);
 		content = content.replaceAll("\\{aantalWerkdagenTotInsturen}", String.valueOf(omissie.omissieWachtOpCytologieUitslag().bepaalWerkdagenTotOmissie()));
-		AsyncMailer asyncMailer = new AsyncMailer(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content)
-		{
-			@Override
-			public void onError()
-			{
-				LogEvent logevent = new LogEvent(String.format("Huisarts gekoppeld aan uitstrijkje mail versturen is mislukt voor monster id: %s", uitstrijkje.getMonsterId()),
-					Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUREN_MISLUKT, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-
-			@Override
-			public void onSuccess()
-			{
-				LogEvent logevent = new LogEvent(String.format("Huisarts gekoppeld aan uitstrijkje mail is verstuurd voor monster id: %s", uitstrijkje.getMonsterId()),
-					Level.INFO);
-				logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClient(clientid), Bevolkingsonderzoek.CERVIX);
-			}
-		};
-		mailService.sendAsyncMail(asyncMailer);
+		mailService.queueMail(uitstrijkje.getLaboratorium().getBmhkLabWarnMail(), subject, content);
+		LogEvent logevent = new LogEvent(String.format("Huisarts gekoppeld aan uitstrijkje mail is verstuurd voor monster id: %s", uitstrijkje.getMonsterId()),
+			Level.INFO);
+		logService.logGebeurtenis(LogGebeurtenis.CERVIX_MAIL_VERSTUURD, logevent, getClientVanMonster(uitstrijkje), Bevolkingsonderzoek.CERVIX);
 	}
 
 	private String getBaseMailContent(PreferenceKey mailKey, CervixMonster monster)
@@ -243,8 +162,8 @@ public class CervixMailServiceImpl implements CervixMailService
 		return orderVerstuurd;
 	}
 
-	private Long getClientIdVanMonster(CervixMonster monster)
+	private Client getClientVanMonster(CervixMonster monster)
 	{
-		return monster.getOntvangstScreeningRonde().getDossier().getClient().getId();
+		return monster.getOntvangstScreeningRonde().getDossier().getClient();
 	}
 }

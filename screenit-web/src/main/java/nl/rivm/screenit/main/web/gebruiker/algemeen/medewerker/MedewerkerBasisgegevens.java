@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.medewerker;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.service.MedewerkerService;
@@ -63,6 +66,7 @@ import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.StamtabellenService;
+import nl.rivm.screenit.service.WachtwoordService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
@@ -83,7 +87,6 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -106,9 +109,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class MedewerkerBasisgegevens extends MedewerkerBeheer
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
@@ -123,6 +123,9 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 
 	@SpringBean
 	private GebruikersService gebruikersService;
+
+	@SpringBean
+	private WachtwoordService wachtwoordService;
 
 	@SpringBean
 	private StamtabellenService stamtabellenService;
@@ -142,7 +145,7 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 
 	public MedewerkerBasisgegevens()
 	{
-		init(ModelUtil.cModel(getCurrentSelectedMedewerker()));
+		init(ModelUtil.ccModel(getCurrentSelectedMedewerker()));
 	}
 
 	public MedewerkerBasisgegevens(IModel<Gebruiker> model)
@@ -190,10 +193,12 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 	public class MedewerkerEditForm extends ScreenitForm<Gebruiker>
 	{
 
-		private static final long serialVersionUID = 1L;
-
+		@Getter
+		@Setter
 		private String wachtwoordControle;
 
+		@Getter
+		@Setter
 		private String wachtwoord;
 
 		private Boolean geblokkeerd = null;
@@ -227,7 +232,7 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			List<Adres> adressen = medewerker.getAdressen();
 			if (adressen == null)
 			{
-				medewerker.setAdressen(new ArrayList<Adres>());
+				medewerker.setAdressen(new ArrayList<>());
 				adressen = medewerker.getAdressen();
 			}
 			if (adressen.size() == 0)
@@ -290,9 +295,6 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 
 			Component zorgverlenerCheckbox = new CheckBox("zorgverlener").add(new OnChangeAjaxBehavior()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
@@ -335,11 +337,8 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 
 		private void addAnnulerenButton()
 		{
-			AjaxLink<Gebruiker> annuleren = new AjaxLink<Gebruiker>("annuleren")
+			AjaxLink<Gebruiker> annuleren = new AjaxLink<>("annuleren")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
@@ -354,17 +353,14 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 		{
 			FormComponent<String> gebruikersnaam = ComponentHelper.addTextField(this, "gebruikersnaam", true, 30, inzien);
 			gebruikersnaam.setEnabled(!inzien && isBeheerder);
-			gebruikersnaam.add(new UniqueFieldValidator<Gebruiker, String>(Gebruiker.class, medewerker.getId(), "gebruikersnaam", hibernateService, true));
+			gebruikersnaam.add(new UniqueFieldValidator<>(Gebruiker.class, medewerker.getId(), "gebruikersnaam", hibernateService, true));
 			gebruikersnaam.setLabel(Model.of("Gebruikersnaam"));
 
 			ScreenitDropdown<InlogMethode> inlogMethode = ComponentHelper.newDropDownChoice("inlogMethode", new ListModel<>(Arrays.asList(InlogMethode.values())),
-				new EnumChoiceRenderer<InlogMethode>(), true);
+				new EnumChoiceRenderer<>(), true);
 
 			inlogMethode.add(new OnChangeAjaxBehavior()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
@@ -411,9 +407,6 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 
 			blokkeer.add(new AjaxFormComponentUpdatingBehavior("click")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onUpdate(AjaxRequestTarget target)
 				{
@@ -427,11 +420,8 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			add(ComponentHelper.newDatePicker("actiefVanaf"));
 			add(ComponentHelper.newDatePicker("actiefTotEnMet"));
 
-			IndicatingAjaxLink<Object> resetWachtwoord = new IndicatingAjaxLink<Object>("resetWachtwoord")
+			IndicatingAjaxLink<Object> resetWachtwoord = new IndicatingAjaxLink<>("resetWachtwoord")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
@@ -452,20 +442,14 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 			resetWachtwoord.setVisible(isBestaande && !eigenGegevens && isBeheerder);
 			add(resetWachtwoord);
 
-			IndicatingAjaxLink<Object> changeWachtwoord = new IndicatingAjaxLink<Object>("changeWachtwoord")
+			IndicatingAjaxLink<Object> changeWachtwoord = new IndicatingAjaxLink<>("changeWachtwoord")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
 					Gebruiker medewerker = MedewerkerEditForm.this.getModelObject();
 					dialog.setContent(new PasswordChangePanel(IDialog.CONTENT_ID, medewerker)
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void onWachtwoordChanged(AjaxRequestTarget target, Gebruiker gebruiker)
 						{
@@ -482,11 +466,8 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 
 		private void addVerwijderenButton(Gebruiker medewerker)
 		{
-			AjaxLink<Gebruiker> inActiveren = new ConfirmingIndicatingAjaxLink<Gebruiker>("inActiveren", dialog, "question.remove.medewerker")
+			AjaxLink<Gebruiker> inActiveren = new ConfirmingIndicatingAjaxLink<>("inActiveren", dialog, "question.remove.medewerker")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
@@ -528,14 +509,11 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 		{
 			ScreenitIndicatingAjaxSubmitLink opslaan = new ScreenitIndicatingAjaxSubmitLink("opslaan", this)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
 					Gebruiker medewerker = getModelObject();
-					if (!medewerker.getInlogMethode().equals(InlogMethode.UZIPAS) && medewerker.getEmailextra() != null || medewerker.getInlogMethode().equals(InlogMethode.UZIPAS))
+					if (medewerker.getInlogMethode().equals(InlogMethode.UZIPAS) || medewerker.getEmailextra() != null)
 					{
 						InlogStatus oldInlogstatus = medewerker.getInlogstatus();
 						boolean wordGeblokkeerd = false;
@@ -594,7 +572,7 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 							{
 								if (StringUtils.isNotBlank(wachtwoord))
 								{
-									gebruikersService.setWachtwoord(medewerker, wachtwoord);
+									wachtwoordService.setWachtwoord(medewerker, wachtwoord);
 								}
 
 								if (privateYubiIdentity != null)
@@ -663,26 +641,6 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 				}
 			};
 			add(opslaan);
-		}
-
-		public String getWachtwoordControle()
-		{
-			return this.wachtwoordControle;
-		}
-
-		public void setWachtwoordControle(String wachtwoordControle)
-		{
-			this.wachtwoordControle = wachtwoordControle;
-		}
-
-		public String getWachtwoord()
-		{
-			return wachtwoord;
-		}
-
-		public void setWachtwoord(String wachtwoord)
-		{
-			this.wachtwoord = wachtwoord;
 		}
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,9 +23,10 @@ package nl.rivm.screenit.main.web.gebruiker.login;
 
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Gebruiker;
-import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.LogService;
@@ -37,19 +38,12 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class PasswordRequestPage extends LoginBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(PasswordRequestPage.class);
-
 	@SpringBean
 	private AuthenticatieService authenticatieService;
 
@@ -66,23 +60,18 @@ public class PasswordRequestPage extends LoginBasePage
 		{
 			medewerker.setGebruikersnaam(pageParameters.get("naam").toString());
 		}
-		final Form<Gebruiker> form = new Form<Gebruiker>("requestForm");
-		form.setDefaultModel(ModelUtil.cRModel(medewerker));
+		final Form<Gebruiker> form = new Form<>("requestForm");
+		form.setDefaultModel(ModelUtil.csModel(medewerker));
 
 		ComponentHelper.addTextField(form, "gebruikersnaam", false, 50, false).add(new FocusBehavior());
 		ComponentHelper.addTextField(form, "emailextra", false, 50, false);
 
 		AjaxButton zoeken = new AjaxButton("zoek", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				ServletWebRequest request = (ServletWebRequest) getRequest();
-
-				Gebruiker gebruiker = (Gebruiker) form.getModelObject();
+				Gebruiker gebruiker = form.getModelObject();
 				if (StringUtils.isBlank(gebruiker.getGebruikersnaam()) && StringUtils.isBlank(gebruiker.getEmailextra()))
 				{
 					error(getLocalizer().getString("error.password.request", this));
@@ -90,15 +79,11 @@ public class PasswordRequestPage extends LoginBasePage
 				}
 				int size = hibernateSearchService.count(gebruiker);
 
+				info(getLocalizer().getString("info.gegevens.verstuurd", this));
 				if (size == 1)
 				{
-					requestPassword(request, target, gebruiker);
+					requestPassword(gebruiker);
 				}
-				else
-				{
-					error(getLocalizer().getString("error.password.request.wrong", this));
-				}
-
 			}
 
 			@Override
@@ -115,47 +100,26 @@ public class PasswordRequestPage extends LoginBasePage
 
 	}
 
-	private void requestPassword(ServletWebRequest request, AjaxRequestTarget target, Gebruiker medewerkerModelObject)
+	private void requestPassword(Gebruiker medewerkerModelObject)
 	{
 		Map<Gebruiker, Boolean> medewerkerMap = authenticatieService.requestNewPassword(medewerkerModelObject);
-
-		boolean gelukt = false;
 
 		Gebruiker medewerker = null;
 		if (medewerkerMap.size() > 0)
 		{
 			medewerker = medewerkerMap.keySet().iterator().next();
-
-			gelukt = medewerkerMap.get(medewerker);
 		}
 
-		if (medewerker == null)
+		if (medewerker != null)
 		{
-			error(getLocalizer().getString("error.noUser", this));
-
-		}
-		else if (medewerker.getEmailwerk() == null && medewerker.getEmailextra() == null)
-		{
-			logService.logGebeurtenis(LogGebeurtenis.AANVRAGEN_ACCOUNT_MISLUKT, medewerker, "Er is geen mail adres aanwezig voor deze gebruiker");
-
-			error(getLocalizer().getString("error.login.no.email", this));
-		}
-		else if (gelukt)
-		{
-			logService.logGebeurtenis(LogGebeurtenis.WACHTWOORD_AANGEVRAAGD, medewerker);
-			info(getLocalizer().getString("infoSend", this));
-		}
-		else
-		{
-			String gebruikteAdres = medewerker.getEmailwerk();
-			if (StringUtils.isNotBlank(medewerker.getEmailextra()))
+			if (medewerker.getEmailwerk() == null && medewerker.getEmailextra() == null)
 			{
-				gebruikteAdres = medewerker.getEmailextra();
+				logService.logGebeurtenis(LogGebeurtenis.AANVRAGEN_ACCOUNT_MISLUKT, medewerker, "Er is geen mail adres aanwezig voor deze gebruiker");
 			}
-
-			logService.logGebeurtenis(LogGebeurtenis.AANVRAGEN_ACCOUNT_MISLUKT, medewerker, "Het gebruikte mail adres: " + gebruikteAdres, Bevolkingsonderzoek.COLON);
-
-			error(getLocalizer().getString("error.login.non.existing.email", this));
+			else
+			{
+				logService.logGebeurtenis(LogGebeurtenis.WACHTWOORD_AANGEVRAAGD, medewerker);
+			}
 		}
 	}
 }

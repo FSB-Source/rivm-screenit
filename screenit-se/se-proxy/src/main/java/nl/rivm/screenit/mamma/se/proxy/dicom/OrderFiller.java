@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.dicom;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -79,9 +79,9 @@ class OrderFiller
 
 	private void configureTransferCapabilities()
 	{
-		ae.addTransferCapability(new TransferCapability(null, UID.VerificationSOPClass, TransferCapability.Role.SCP, ONLY_DEF_TS));
-		ae.addTransferCapability(new TransferCapability(null, UID.ModalityWorklistInformationModelFIND, TransferCapability.Role.SCP, ONLY_DEF_TS));
-		ae.addTransferCapability(new TransferCapability(null, UID.ModalityPerformedProcedureStepSOPClass, TransferCapability.Role.SCP, ONLY_DEF_TS));
+		ae.addTransferCapability(new TransferCapability(null, UID.Verification, TransferCapability.Role.SCP, ONLY_DEF_TS));
+		ae.addTransferCapability(new TransferCapability(null, UID.ModalityWorklistInformationModelFind, TransferCapability.Role.SCP, ONLY_DEF_TS));
+		ae.addTransferCapability(new TransferCapability(null, UID.ModalityPerformedProcedureStep, TransferCapability.Role.SCP, ONLY_DEF_TS));
 	}
 
 	private DicomServiceRegistry createServiceRegistry(WerklijstStoreService werklijstStoreService, MammografenStatusService mammografenStatusService)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -80,8 +80,7 @@ public class ClientDoelgroepServiceImpl implements ClientDoelgroepService
 
 	private boolean heeftDossierActiviteit(Dossier<?, ?> dossier)
 	{
-		return dossier != null && (dossier.getLaatsteScreeningRonde() != null
-				|| dossier.getLaatsteAfmelding() != null);
+		return dossier != null && (dossier.getLaatsteScreeningRonde() != null || dossier.getLaatsteAfmelding() != null);
 	}
 
 	private boolean behoortTotColonDoelgroep(Client client)
@@ -91,7 +90,7 @@ public class ClientDoelgroepServiceImpl implements ClientDoelgroepService
 		return clientIsOuderDanMinimaleLeeftijd(geboortedatum, Bevolkingsonderzoek.COLON,
 			simplePreferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name()))
 			&& clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.COLON,
-				simplePreferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1)
+			simplePreferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1)
 			|| heeftDossierActiviteit(client.getColonDossier());
 	}
 
@@ -107,16 +106,20 @@ public class ClientDoelgroepServiceImpl implements ClientDoelgroepService
 
 	private boolean behoortTotMammaDoelgroep(Client client)
 	{
+		return behoortTotMammaLeeftijdDoelgroep(client) || heeftDossierActiviteit(client.getMammaDossier());
+	}
+
+	@Override
+	public boolean behoortTotMammaLeeftijdDoelgroep(Client client)
+	{
 		LocalDate geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
 
 		boolean isVrouw = Geslacht.VROUW.equals(client.getPersoon().getGeslacht());
 		return isVrouw
 			&& clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.MAMMA,
-				simplePreferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()))
+			simplePreferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()))
 			&& clientIsOuderDanMinimaleLeeftijd(geboortedatum, Bevolkingsonderzoek.MAMMA,
-				simplePreferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name()))
-			|| heeftDossierActiviteit(client.getMammaDossier());
-
+			simplePreferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name()));
 	}
 
 	private boolean clientIsOuderDanMinimaleLeeftijd(LocalDate geboortedatum, Bevolkingsonderzoek bevolkingsonderzoek, int minimaleLeeftijdParameter)

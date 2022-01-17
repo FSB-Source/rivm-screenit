@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.cervix.CervixSelectiePartitioner;
+import nl.rivm.screenit.batch.jobs.cervix.CervixLabPartitioner;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -58,7 +58,7 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 		Criteria criteria = session.createCriteria(CervixCISHistorie.class);
 
 		ExecutionContext stepContext = getStepExecutionContext();
-		Long bmhkLabId = (Long) stepContext.get(CervixSelectiePartitioner.KEY_BMHK_LAB);
+		Long bmhkLabId = (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB);
 
 		criteria.createAlias("dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
@@ -68,7 +68,7 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
 
-		selectieRestrictionsService.addClientSelectieRestrictions(criteria, getMaxAantalWekenVertraging() * 7);
+		selectieRestrictionsService.addClientSelectieRestrictions(criteria, getMaxAantalWekenVertraging(bmhkLabId) * 7);
 
 		criteria.add(Restrictions.isNotNull("gemeente.screeningOrganisatie"));
 		criteria.add(Restrictions.eq("gemeente.bmhkLaboratorium.id", bmhkLabId));
@@ -86,11 +86,10 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 		return criteria;
 	}
 
-	private Integer getMaxAantalWekenVertraging()
+	private Integer getMaxAantalWekenVertraging(Long bmhkLabId)
 	{
-		ExecutionContext stepContext = getStepExecutionContext();
-		BMHKLaboratorium bmhkLabId = hibernateService.get(BMHKLaboratorium.class, (Long) stepContext.get(CervixSelectiePartitioner.KEY_BMHK_LAB));
-		return instellingService.getOrganisatieParameter(bmhkLabId, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS, 0);
+		BMHKLaboratorium bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
+		return instellingService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS, 0);
 	}
 
 }

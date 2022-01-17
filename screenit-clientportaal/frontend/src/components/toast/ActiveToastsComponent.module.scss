@@ -1,0 +1,160 @@
+@import "src/scss/mixins";
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.overlay {
+	opacity: 1;
+	min-height: 150px;
+	position: fixed;
+	z-index: 20;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	padding-bottom: 50px;
+	background: linear-gradient(180deg, rgba(227, 234, 241, 0) 0%, rgba(227, 234, 241, 0.8) 40%, rgba(227, 234, 241, 0.8) 100%);
+	transition: 0.5s;
+
+	&.hidden {
+		opacity: 0;
+		z-index: -1;
+	}
+
+	@include respond-below(sm) {
+		padding-left: 40px;
+		padding-right: 40px;
+	}
+
+	@include respond-below(xs) {
+		padding-left: 20px;
+		padding-right: 20px;
+	}
+
+	.toast {
+		position: relative;
+		padding-bottom: 20px;
+		padding-top: 20px;
+		padding-left: 40px;
+		max-width: 650px;
+		width: 650px;
+		background-color: #FFFFFF;
+		box-shadow: 0 0 30px -10px rgba(0, 0, 0, 0.15);
+		border-radius: 10px;
+		margin-top: 15px;
+		margin-left: auto;
+		margin-right: auto;
+
+		&.error {
+			padding-left: 20px;
+		}
+
+		@include respond-below(sm) {
+			width: 100%;
+		}
+
+		@include respond-below(xs) {
+			padding-bottom: 15px;
+			padding-top: 15px;
+			padding-left: 25px;
+
+			&.error {
+				padding-left: 15px;
+			}
+		}
+
+		.verticalRectangle {
+			position: absolute;
+			left: 20px;
+			top: 17px;
+			bottom: 17px;
+
+			@include respond-below(xs) {
+				left: 12px;
+			}
+		}
+
+		.toastText {
+
+			@include respond-above(xs) {
+				padding-left: 0;
+			}
+
+			@include respond-below(xs) {
+				padding: 0;
+			}
+
+			.overigTitle {
+				display: block;
+				font-weight: 500;
+				font-size: 1em;
+				margin-bottom: 5px;
+			}
+
+			i {
+				@include respond-above(xs) {
+					display: block;
+					@include center-in-div-vertically(50%);
+					font-size: 1.5rem;
+				}
+
+				@include respond-below(xs) {
+					font-size: 0.8rem;
+					margin-right: 5px;
+				}
+			}
+
+			span {
+				display: block;
+			}
+
+			.description {
+				font-size: 0.9em;
+
+				@include respond-below(xs) {
+					margin-top: 5px;
+				}
+			}
+		}
+
+		.toastClear {
+			&.error {
+				border-left: solid $wit-base 2px;
+			}
+
+			border-left: solid $grijs-800 2px;
+			cursor: pointer;
+
+			i {
+				font-size: 1.5rem;
+				@include center-in-div(50%);
+				color: $zwart;
+
+				@include respond-below(xs) {
+					font-size: 1.3rem;
+				}
+			}
+		}
+
+		&.error {
+			background: $rood-300;
+			i {
+				color: $rood-600;
+			}
+
+			span {
+				@include respond-above(xs) {
+					margin-left: 40px;
+				}
+				@include respond-below(xs) {
+					display: initial;
+				}
+			}
+		}
+
+		.alignCenter {
+			display: flex;
+			justify-content: center;
+			flex-direction: column;
+		}
+	}
+
+}

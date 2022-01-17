@@ -1,0 +1,15 @@
+{
+  "page": {
+    "title": "Nieuwe ontlastingstest aanvragen",
+    "description": "Kunt u uw ontlastingstest niet meer gebruiken omdat deze te oud is? Of om een andere reden? Dan kunt u een nieuwe ontlastingstest aanvragen. U krijgt de test binnen 14 dagen met de post. </br>Op het buisje staat tot wanneer u de ontlastingstest kunt gebruiken. </br></br>Op de ontlastingstest staat ook een streepjescode. In deze streepjescode zijn uw gegevens verwerkt. Zo weten wij dat de ontlastingstest van u is."
+  },
+  "button": "Nieuwe ontlastingstest aanvragen",
+  "error": {
+    "request": " Helaas, er is iets fout gegaan. We kunnen uw aanvraag nu niet verwerken. Probeer het nog een keer.<br/> Krijgt u steeds deze foutmelding? Bel dan met onze informatielijn.",
+    "max_aantal": "Het is niet meer mogelijk om een ontlastingstest aan te vragen via Mijn Bevolkingsonderzoek. </br>Bel de informatielijn om een ontlastingstest aan te vragen."
+  },
+  "toast": {
+    "title": "U heeft een nieuwe ontlastingstest aangevraagd.",
+    "description": "U krijgt de ontlastingstest binnen 14 dagen per post."
+  }
+}

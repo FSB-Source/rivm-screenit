@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,8 +35,8 @@ import javax.xml.bind.Unmarshaller;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.service.BarcodeValiderenService;
 import nl.rivm.screenit.batch.service.WebserviceInpakcentrumOpzettenService;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.algemeen.KoppelData;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.logging.LogEvent;
 
@@ -212,7 +212,7 @@ public abstract class BaseKoppelReader implements ItemStream
 
 	private KoppelData getKoppelData()
 	{
-		Long id = getStepExecution().getJobParameters().getLong(Constants.XML_PARAMETER_KOPPEL_JOB);
+		Long id = getStepExecution().getJobParameters().getLong(JobStartParameter.KOPPEL_XML.name());
 		return getHibernateSession().get(KoppelData.class, id);
 	}
 
@@ -294,7 +294,6 @@ public abstract class BaseKoppelReader implements ItemStream
 
 	protected void unbindSessionIfPossible()
 	{
-		DataSourceRouter.useReadWrite();
 		if (unbindSessionFromThread)
 		{
 			TransactionSynchronizationManager.unbindResource(sessionFactory);

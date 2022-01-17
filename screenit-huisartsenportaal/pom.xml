@@ -2,19 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>nl.rivm.screenit</groupId>
     <artifactId>screenit-huisartsenportaal</artifactId>
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>nl.topicuszorg</groupId>
-        <artifactId>parent</artifactId>
+        <groupId>nl.rivm.screenit</groupId>
+        <artifactId>screenit-parent</artifactId>
     </parent>
-
-    <organization>
-        <name>Facilitaire Samenwerking Bevolkingsonderzoek</name>
-        <url>https://www.bevolkingsonderzoeknederland.nl/</url>
-    </organization>
 
     <inceptionYear>2016</inceptionYear>
 
@@ -68,18 +62,6 @@
         </testResources>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-
-                    <release>${java.version}</release>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-            </plugin>
-
-            <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <executions>
@@ -98,26 +80,6 @@
             <plugin>
                 <groupId>org.bsc.maven</groupId>
                 <artifactId>maven-processor-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>process</id>
-                        <goals>
-                            <goal>process</goal>
-                        </goals>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <processors>
-                                <processor>org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor</processor>
-                            </processors>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.hibernate</groupId>
-                        <artifactId>hibernate-jpamodelgen</artifactId>
-                    </dependency>
-                </dependencies>
             </plugin>
             <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>
@@ -134,7 +96,7 @@
                     <file>${project.build.outputDirectory}/static/index.html</file>
                     <regex>false</regex>
                     <token>{timestamp}</token>
-                    <value>${timestamp}</value>
+                    <value>${maven.build.timestamp}</value>
                 </configuration>
             </plugin>
         </plugins>
@@ -273,23 +235,19 @@
         <dependency>
             <groupId>com.aspose</groupId>
             <artifactId>aspose-words</artifactId>
-            <classifier>jdk16</classifier>
+            <classifier>jdk17</classifier>
         </dependency>
 
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
         </dependency>
 
         <dependency>
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>
         </dependency>
+
     </dependencies>
 
 </project>

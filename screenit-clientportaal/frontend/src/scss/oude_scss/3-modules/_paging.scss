@@ -1,0 +1,78 @@
+﻿.paging {
+  margin: auto;
+  display: block;
+  width: max-content;
+
+  @media only screen and (max-width: 767px) {
+    width: 100%;
+  }
+
+  ul {
+    font-size: calc-em(18);
+
+    li {
+
+      a {
+        border: none;
+        color: $black;
+        padding: 0 12px;
+        font-size: calc-em(16);
+
+        &:hover {
+          background: white;
+          color: $blue;
+        }
+
+        span {
+          font-size: calc-em(30);
+          bottom: 9px;
+          position: relative;
+        }
+      }
+
+      &.active {
+        a {
+          background: white;
+          color: $blue !important;
+          font-weight: 700;
+          text-decoration: underline;
+
+          &:hover {
+            background: white;
+            color: $blue;
+          }
+        }
+      }
+
+      .blue {
+        color: $blue;
+        background: none;
+      }
+
+      &.disabled {
+        a {
+          color: $link !important;
+        }
+      }
+
+      &.pink {
+        a {
+          color: $blue;
+        }
+      }
+    }
+  }
+}
+
+
+.page {
+  font-size: calc-em(18);
+  padding: 0 4px;
+  margin: 10px 0;
+}
+
+.type-portfolio {
+  &:before {
+    content: none !important;
+  }
+}

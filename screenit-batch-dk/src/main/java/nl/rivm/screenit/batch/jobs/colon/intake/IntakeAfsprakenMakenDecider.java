@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.intake;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,7 +48,7 @@ public class IntakeAfsprakenMakenDecider implements JobExecutionDecider
 
 		Boolean allesVerwerkt = (Boolean) jobExecution.getExecutionContext().get(IntakeAfsprakenMakenConstants.ALLE_INTAKES_VERWERKT);
 
-		if ((allesVerwerkt == null || !allesVerwerkt))
+		if (!Boolean.TRUE.equals(allesVerwerkt))
 		{
 			LOGGER.info("Ronde gestart voor \"Intake afspraken maken job\". Ronde: " + ronde);
 			jobExecution.getExecutionContext().putInt(IntakeAfsprakenMakenConstants.HUIDIGE_RONDE, ronde);

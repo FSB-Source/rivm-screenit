@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,16 +29,18 @@ import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageGewijzigdGebiedEntry;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +64,9 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 
 	@Autowired
 	private ProjectService projectService;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	private Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden;
 
@@ -90,14 +95,16 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 				unbindSessionFromThread = true;
 			}
 			dossierService.updateIntervalReferentieDatums();
-			uitnodigingsgebieden = uitnodigingsGebiedCapactieitService.bepaalCapaciteit(executionContext, true);
+
+			JobParameters jobParameters = stepExecution.getJobExecution().getJobParameters();
+			boolean herstartJob = Boolean.parseBoolean(jobParameters.getString(JobStartParameter.COLON_SELECTIE_HERSTART.name(), "false"));
+			uitnodigingsgebieden = uitnodigingsGebiedCapactieitService.bepaalCapaciteit(executionContext, true, herstartJob);
 			context = executionContext;
 			setCursor();
 
 		}
 		finally
 		{
-			DataSourceRouter.useReadWrite();
 			if (unbindSessionFromThread)
 			{
 				TransactionSynchronizationManager.unbindResource(sessionFactory);
@@ -143,7 +150,7 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 		selectieContext.uitnodigingsInterval = uitnodigingsInterval;
 		selectieContext.init(uitnodigingsDao.getUitnodigingCohorten(), projectGroepen);
 
-		cursor = new ClientSelectieMetCapaciteitItemCursor(selectieContext, uitnodigingsgebieden);
+		cursor = new ClientSelectieMetCapaciteitItemCursor(selectieContext, uitnodigingsgebieden, currentDateSupplier.getLocalDate());
 	}
 
 	private void rapporteerLeegLopendeGebieden()

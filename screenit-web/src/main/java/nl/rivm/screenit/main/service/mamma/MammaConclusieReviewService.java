@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.service.mamma;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
@@ -29,21 +28,22 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.MammaConclusieReviewFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 
 public interface MammaConclusieReviewService
 {
-	long countScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject);
+	long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject);
 
-	List<MammaScreeningRonde> zoekScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
+	List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc);
 
 	List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc);
 
-	LocalDateTime getReviewMoment(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
+	MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
 
-    MammaConclusieReview getConclusieReview(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog);
+	void maakConclusieReviewVoorBetrokkenRadiologen(MammaScreeningRonde screeningRonde);
 
-    void saveConclusieReview(InstellingGebruiker gebruiker, MammaScreeningRonde screeningRonde, MammaConclusieReview conclusieReview);
+	void conclusieReviewAfronden(MammaConclusieReview conclusieReview);
 
-    MammobridgeRole getMammobridgeRoleBijConclusieReviewFilter(MammaConclusieReviewFilterOptie filterOptie);
+	MammobridgeRole getMammobridgeRoleBijConclusieReviewFilter(MammaConclusieReviewFilterOptie filterOptie);
 }

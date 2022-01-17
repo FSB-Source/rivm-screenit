@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.uploadb
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,9 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.werklijst.uploadb
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import nl.rivm.screenit.main.service.mamma.MammaUploadBeeldenService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
@@ -31,7 +34,8 @@ import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.ClientDossierPage;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.ce.AbstractMammaCePage;
-import nl.rivm.screenit.main.web.gebruiker.screening.mamma.panel.MammaGeenBeeldenBeschikbaarCellPanel;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.panel.MammaGeenBeeldenBeschikbaarPanel;
+import nl.rivm.screenit.main.web.gebruiker.screening.mamma.panel.MammaUploadBeeldenVerzoekAnnulerenPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.enums.Actie;
@@ -39,6 +43,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -50,9 +55,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SecurityConstraint(
 	actie = Actie.AANPASSEN,
@@ -90,13 +92,54 @@ public class MammaCeUploadBeeldenVerzoekInstellingWerklijstPage extends Abstract
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaUploadBeeldenVerzoek>> item, String s, IModel<MammaUploadBeeldenVerzoek> uploadBeeldenVerzoekModel)
 			{
-				item.add(new MammaGeenBeeldenBeschikbaarCellPanel(s, dialog, "geenBeeldenBeschikbaar", uploadBeeldenVerzoekModel)
+				item.add(new MammaGeenBeeldenBeschikbaarPanel(s, dialog, "geenBeeldenBeschikbaar", uploadBeeldenVerzoekModel)
 				{
 					@Override
 					protected void onOpslaan(AjaxRequestTarget ajaxRequestTarget, MammaUploadBeeldenVerzoek uploadBeeldenVerzoek)
 					{
-						uploadBeeldenService.setGeenBeeldenBeschikbaar(uploadBeeldenVerzoek, ScreenitSession.get().getLoggedInInstellingGebruiker());
-						ajaxRequestTarget.add(table);
+						try
+						{
+							uploadBeeldenService.setGeenBeeldenBeschikbaar(uploadBeeldenVerzoek, ScreenitSession.get().getLoggedInInstellingGebruiker());
+							getPage().info(getString("MammaUploadBeeldenVerzoekActie.GEEN_BEELDEN_BESCHIKBAAR"));
+
+						}
+						catch (IllegalStateException e)
+						{
+							getPage().error(getString("MammaUploadBeeldenVerzoekActie.ERROR"));
+						}
+						finally
+						{
+							ajaxRequestTarget.add(table);
+						}
+					}
+				});
+			}
+		});
+
+		columns.add(new NotClickableAbstractColumn<MammaUploadBeeldenVerzoek, String>(Model.of(""))
+		{
+			@Override
+			public void populateItem(Item<ICellPopulator<MammaUploadBeeldenVerzoek>> item, String s, IModel<MammaUploadBeeldenVerzoek> uploadBeeldenVerzoekModel)
+			{
+				item.add(new MammaUploadBeeldenVerzoekAnnulerenPanel(s, dialog, "verzoekAnnuleren", uploadBeeldenVerzoekModel)
+				{
+					@Override
+					protected void onOpslaan(AjaxRequestTarget ajaxRequestTarget, MammaUploadBeeldenVerzoek uploadBeeldenVerzoek)
+					{
+						try
+						{
+							uploadBeeldenService.annuleerVerzoek(uploadBeeldenVerzoek, ScreenitSession.get().getLoggedInInstellingGebruiker());
+							getPage().info(getString("MammaUploadBeeldenVerzoekActie.ANNULEREN"));
+
+						}
+						catch (IllegalStateException e)
+						{
+							getPage().error(getString("MammaUploadBeeldenVerzoekActie.ERROR"));
+						}
+						finally
+						{
+							ajaxRequestTarget.add(table);
+						}
 					}
 				});
 			}

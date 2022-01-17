@@ -1,0 +1,13 @@
+# Dit bestand wordt gebruikt voor defaults voor lokale ontwikkelomgeving.
+# Als je voor je zelf tijdelijk iets wilt overschrijven, maak dan een application-local.properties
+server:
+  port: 8090
+
+# ENVIRONMENT=Test om werkstationkiezer, tijdreizen e.d. te enablen
+ENVIRONMENT: Test
+
+#Sessiemeenemen werkt alleen met NFC enabled. Test dan bij voorkeur ook met ENVIRONMENT=Productie zodat je geen last hebt van werkstationkiezer scherm
+DISABLE_NFC_AUTHENTICATION: true
+
+# SE-Code wordt op productie en ketentest bepaald obv IP adres, zet deze als je via localhost test (via 127.0.0.1 werkt het ook zonder deze parameter)
+SE_CODE: SE-001

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -79,11 +79,9 @@ import org.joda.time.LocalTime;
 public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEenheid>
 {
 
-	private static final long serialVersionUID = 1L;
+	public static final LocalTime MINIMALE_TIJD = new LocalTime(7, 30);
 
-	private BootstrapDialog dialog;
-
-	private FullCalendar calendar;
+	public static final LocalTime MAXIMALE_TIJD = new LocalTime(21, 0);
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -103,15 +101,15 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 
 	private DateTime huidigeEindVanWeek;
 
-	public static final LocalTime MINIMALE_TIJD = new LocalTime(7, 30);
+	private final BootstrapDialog dialog;
 
-	public static final LocalTime MAXIMALE_TIJD = new LocalTime(21, 0);
+	private final FullCalendar calendar;
 
-	private ScreenITEventSourceFactory sourceFactory;
+	private final ScreenITEventSourceFactory sourceFactory;
 
-	private RepeatingView tooltips;
+	private final RepeatingView tooltips;
 
-	private List<String> addedTooltips = new ArrayList<>();
+	private final List<String> addedTooltips = new ArrayList<>();
 
 	public MammaCapaciteitOverviewPanel(String id, IModel<MammaScreeningsEenheid> model, LocalDate date, boolean isGrootOverzicht)
 	{
@@ -183,9 +181,6 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 
 		calendar = new FullCalendar("calendar", config)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onDateRangeSelected(SelectedRange range, CalendarResponse response)
 			{
@@ -261,9 +256,6 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 		origStartTijd = blokModel.getObject().vanaf;
 		dialog.openWith(response.getTarget(), new MammaCapaciteitBlokEditPopup(IDialog.CONTENT_ID, blokModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onVerwijderen(AjaxRequestTarget target, IModel<PlanningCapaciteitBlokDto> model)
 			{
@@ -423,18 +415,13 @@ public class MammaCapaciteitOverviewPanel extends GenericPanel<MammaScreeningsEe
 	private class MeldingenTooltip extends Fragment
 	{
 
-		private static final long serialVersionUID = 1L;
-
 		public MeldingenTooltip(String id, IModel<PlanningStandplaatsPeriodeDto> model)
 		{
 			super(id, "meldingenFragment", MammaCapaciteitOverviewPanel.this);
 			PlanningStandplaatsPeriodeDto standplaatsPeriodeDto = model.getObject();
 			add(new AttributeAppender("class", Model.of(" tooltip-m" + standplaatsPeriodeDto.conceptId)));
-			add(new ListView<PlanningMeldingenDto.PlanningMeldingDto>("meldingen", standplaatsPeriodeDto.meldingenDto.meldingen)
+			add(new ListView<>("meldingen", standplaatsPeriodeDto.meldingenDto.meldingen)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void populateItem(ListItem<PlanningMeldingenDto.PlanningMeldingDto> item)
 				{

@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -79,22 +79,22 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 			{
 				Boolean isEersteRondeBrief = isEersteRondeBrief(briefType);
 
-				partitionBuilders(partities, organisatie.getId(), briefType.name(), true, null, false, isEersteRondeBrief);
+				partitionBuilders(partities, organisatie.getId(), briefType, true, null, false, isEersteRondeBrief);
 
-				partitionBuilders(partities, organisatie.getId(), briefType.name(), true, null, true, isEersteRondeBrief);
+				partitionBuilders(partities, organisatie.getId(), briefType, true, null, true, isEersteRondeBrief);
 
 				for (Long standplaatsId : getStandplaatsenIdsMetBrief(organisatie.getId(), briefType))
 				{
 
-					partitionBuilders(partities, organisatie.getId(), briefType.name(), true, standplaatsId, false, isEersteRondeBrief);
+					partitionBuilders(partities, organisatie.getId(), briefType, true, standplaatsId, false, isEersteRondeBrief);
 
-					partitionBuilders(partities, organisatie.getId(), briefType.name(), true, standplaatsId, true, isEersteRondeBrief);
+					partitionBuilders(partities, organisatie.getId(), briefType, true, standplaatsId, true, isEersteRondeBrief);
 				}
 			}
 			else
 			{
 
-				partitionBuilders(partities, organisatie.getId(), briefType.name(), false, null, null, null);
+				partitionBuilders(partities, organisatie.getId(), briefType, false, null, null, null);
 			}
 		}
 	}
@@ -185,7 +185,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 		return Boolean.TRUE.equals(annoteerEersteRonde) && BriefType.getMammaEersteRondeBrieftype().contains(briefType);
 	}
 
-	void partitionBuilders(Map<String, ExecutionContext> partities, long organisatieID, String briefType, boolean briefApart, Long standPlaatsID, Boolean tijdelijk,
+	void partitionBuilders(Map<String, ExecutionContext> partities, long organisatieID, BriefType briefType, boolean briefApart, Long standPlaatsID, Boolean tijdelijk,
 		Boolean eersteBrief)
 	{
 		if (Boolean.TRUE.equals(eersteBrief))
@@ -199,19 +199,20 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 		}
 	}
 
-	private void partitionBuilder(Map<String, ExecutionContext> partities,
-		long organisatieID,
-		String briefType,
-		boolean briefApart,
-		Long standPlaatsID,
-		Boolean tijdelijk,
-		Boolean eersteBrief)
+	private void partitionBuilder(
+			Map<String, ExecutionContext> partities,
+			long organisatieID,
+			BriefType briefType,
+			boolean briefApart,
+			Long standPlaatsID,
+			Boolean tijdelijk,
+			Boolean eersteBrief)
 	{
-		String partitionIdentifier = organisatieID + briefType;
+		String partitionIdentifier = organisatieID + briefType.name();
 		ExecutionContext ec = new ExecutionContext();
 
 		ec.put(KEY_SCREENINGORGANISATIEID, organisatieID);
-		ec.put(KEY_BRIEFTYPE, briefType);
+		ec.put(KEY_BRIEFTYPE, briefType.name());
 		ec.put(KEY_BRIEFTYPEAPART, briefApart);
 		ec.put(KEY_MAMMASTANDPLAATSID, standPlaatsID);
 		ec.put(KEY_TIJDELIJK, tijdelijk);

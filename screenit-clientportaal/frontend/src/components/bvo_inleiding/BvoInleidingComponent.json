@@ -1,0 +1,10 @@
+{
+  "title": "Bevolkingsonderzoek",
+  "inleidingtekst":
+  {
+    "mamma": "Bij het bevolkingsonderzoek borstkanker maken we röntgenfoto’s van uw borsten. Twee radiologen kijken of ze afwijkingen op de foto’s zien. Zien ze een afwijking? Dan stuurt uw huisarts u door naar het ziekenhuis voor verder onderzoek.",
+    "cervix": "Bij het bevolkingsonderzoek baarmoederhalskanker laat u een uitstrijkje maken bij de huisarts. In het laboratorium wordt het uitstrijkje onderzocht op HPV (humaan papillomavirus).  Als dit virus wordt gevonden, beoordelen ze ook meteen of er afwijkende cellen in het uitstrijkje zitten. Is dat zo? Dan stuurt uw huisarts u door naar de gynaecoloog voor verder onderzoek. Vindt u het vervelend om een uitstrijkje te laten maken? Dan kunt u een zelfafnameset aanvragen.",
+    "colon": "Bij het bevolkingsonderzoek darmkanker doet u thuis een ontlastingstest. Deze stuurt u op naar het laboratorium. Daar kijken we of er bloed in uw ontlasting (poep) zit. Is dat zo? Dan krijgt u een uitnodiging voor een gesprek voor vervolgonderzoek in het ziekenhuis of behandelcentrum."
+  },
+  "linkTekst": "Lees meer over het bevolkingsonderzoek %s"
+}

@@ -5,7 +5,7 @@ package nl.rivm.screenit.hl7v3.cda.helper;
  * ========================LICENSE_START=================================
  * screenit-ws-common
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by

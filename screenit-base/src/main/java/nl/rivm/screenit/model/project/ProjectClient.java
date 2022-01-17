@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,10 +33,12 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.IActief;
@@ -53,34 +55,31 @@ import org.hibernate.envers.NotAudited;
 @Table(schema = "gedeeld")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public class ProjectClient extends AbstractHibernateObject implements IActief
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date toegevoegd;
 
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Client client;
 
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Project project;
 
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	@ManyToOne(fetch = FetchType.LAZY)
 	private ProjectGroep groep;
 
 	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "projectClient")
-	private List<ProjectClientAttribuut> attributen = new ArrayList<ProjectClientAttribuut>();
+	private List<ProjectClientAttribuut> attributen = new ArrayList<>();
 
-	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "projectClient")
-	private List<ProjectBrief> brieven = new ArrayList<ProjectBrief>();
+	@Cascade(CascadeType.DELETE)
+	private List<ProjectBrief> brieven = new ArrayList<>();
 
 	private Boolean actief = Boolean.TRUE;
 
@@ -91,133 +90,11 @@ public class ProjectClient extends AbstractHibernateObject implements IActief
 	private Date projectInactiefDatum;
 
 	@Deprecated
-	@Cascade({ CascadeType.SAVE_UPDATE })
-	@OneToOne(fetch = FetchType.LAZY, optional = true)
+	@ManyToOne(fetch = FetchType.LAZY, optional = true)
 	@NotAudited
+	@Cascade(CascadeType.DELETE)
 	private ProjectInactiveerDocument projectInactiveerDocument;
 
 	private Boolean isUitgenodigdInProjectPeriode = Boolean.FALSE;
 
-	public ProjectClient()
-	{
-	}
-
-	public ProjectClient(Client client, ProjectGroep groep)
-	{
-		this.client = client;
-		this.groep = groep;
-		this.project = groep.getProject();
-	}
-
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public Project getProject()
-	{
-		return project;
-	}
-
-	public void setProject(Project project)
-	{
-		this.project = project;
-	}
-
-	public ProjectGroep getGroep()
-	{
-		return groep;
-	}
-
-	public void setGroep(ProjectGroep groep)
-	{
-		this.groep = groep;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public Date getToegevoegd()
-	{
-		return toegevoegd;
-	}
-
-	public void setToegevoegd(Date toegevoegd)
-	{
-		this.toegevoegd = toegevoegd;
-	}
-
-	public ProjectInactiefReden getProjectInactiefReden()
-	{
-		return projectInactiefReden;
-	}
-
-	public void setProjectInactiefReden(ProjectInactiefReden projectInactiefReden)
-	{
-		this.projectInactiefReden = projectInactiefReden;
-	}
-
-	public Date getProjectInactiefDatum()
-	{
-		return projectInactiefDatum;
-	}
-
-	public void setProjectInactiefDatum(Date projectInactiefDatum)
-	{
-		this.projectInactiefDatum = projectInactiefDatum;
-	}
-
-	public List<ProjectBrief> getBrieven()
-	{
-		return brieven;
-	}
-
-	public void setBrieven(List<ProjectBrief> brieven)
-	{
-		this.brieven = brieven;
-	}
-
-	public ProjectInactiveerDocument getProjectInactiveerDocument()
-	{
-		return projectInactiveerDocument;
-	}
-
-	public void setProjectInactiveerDocument(ProjectInactiveerDocument projectInactiveerDocument)
-	{
-		this.projectInactiveerDocument = projectInactiveerDocument;
-	}
-
-	public List<ProjectClientAttribuut> getAttributen()
-	{
-		return attributen;
-	}
-
-	public void setAttributen(List<ProjectClientAttribuut> attributen)
-	{
-		this.attributen = attributen;
-	}
-
-	public Boolean getUitgenodigdInProjectPeriode()
-	{
-		return isUitgenodigdInProjectPeriode;
-	}
-
-	public void setUitgenodigdInProjectPeriode(Boolean uitgenodigdInProjectPeriode)
-	{
-		isUitgenodigdInProjectPeriode = uitgenodigdInProjectPeriode;
-	}
 }

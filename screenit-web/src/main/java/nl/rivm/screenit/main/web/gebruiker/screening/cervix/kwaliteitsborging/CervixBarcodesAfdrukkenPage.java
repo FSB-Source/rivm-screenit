@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.kwaliteitsborging;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,7 +54,6 @@ import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
@@ -192,10 +191,10 @@ public class CervixBarcodesAfdrukkenPage extends CervixBarcodeAfdrukkenBasePage
 	{
 		WebMarkupContainer container = new WebMarkupContainer("backupAfdrukkenContainer");
 		container.setOutputMarkupId(true);
-		container.add(new IndicatingAjaxLink<Void>("backupAfdrukken")
+		container.add(new IndicatingAjaxSubmitLink("backupAfdrukken")
 		{
 			@Override
-			public void onClick(AjaxRequestTarget target)
+			public void onSubmit(AjaxRequestTarget target)
 			{
 				printBarcodesMetPdf(target);
 			}

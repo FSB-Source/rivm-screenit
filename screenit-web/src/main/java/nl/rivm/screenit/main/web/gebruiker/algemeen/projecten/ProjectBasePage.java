@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -44,6 +44,7 @@ import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.ProjectUtil;
+import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
@@ -186,7 +187,7 @@ public class ProjectBasePage extends AlgemeenPage
 		@Override
 		public IndicatingAjaxLink<?> createWicketLink(String markupId)
 		{
-			return new IndicatingAjaxLink<Project>(markupId, getProjectModel())
+			return new IndicatingAjaxLink<>(markupId, getProjectModel())
 			{
 				private static final long serialVersionUID = 1L;
 
@@ -210,5 +211,12 @@ public class ProjectBasePage extends AlgemeenPage
 	protected boolean getPageLarge()
 	{
 		return false;
+	}
+
+	@Override
+	protected void onDetach()
+	{
+		super.onDetach();
+		ModelUtil.nullSafeDetach(projectModel);
 	}
 }

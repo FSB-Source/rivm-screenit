@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,7 @@ import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
@@ -242,12 +242,12 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 					CervixScreeningRonde ontvangstRonde = monster.getOntvangstScreeningRonde();
 
 					if (ontvangstRonde.getUitstrijkjeCytologieUitslag() == null && ontvangstRonde.getMonsterHpvUitslag() != null
-						&& ontvangstRonde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvUitslag.POSITIEF
+						&& ontvangstRonde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.POSITIEF
 						|| ontvangstRonde.getUitstrijkjeVervolgonderzoekUitslag() == null && ontvangstRonde.getInVervolgonderzoekDatum() != null
 							&& uitstrijkje.getOntvangstdatum().after(ontvangstRonde.getInVervolgonderzoekDatum()))
 					{
 						PreferenceKey heraanmeldenTekstKey = heraanmelden(monster);
-						CervixBrief huisartsOnbekendBrief = briefService.maakCervixBrief(ontvangstRonde, BriefType.CERVIX_HUISARTS_ONBEKEND);
+						CervixBrief huisartsOnbekendBrief = briefService.maakBvoBrief(ontvangstRonde, BriefType.CERVIX_HUISARTS_ONBEKEND);
 						huisartsOnbekendBrief.setHeraanmeldenTekstKey(heraanmeldenTekstKey);
 						huisartsOnbekendBrief.setLabformulier(labformulier);
 						labformulier.setHuisartsOnbekendBrief(huisartsOnbekendBrief);
@@ -326,7 +326,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private CervixBrief brief(CervixMonster monster, BriefType briefType, PreferenceKey heraanmeldenTekstKey, @Nullable CervixOmissieType omissieType)
 	{
-		CervixBrief brief = briefService.maakCervixBrief(monster.getOntvangstScreeningRonde(), briefType);
+		CervixBrief brief = briefService.maakBvoBrief(monster.getOntvangstScreeningRonde(), briefType);
 		monster.setBrief(brief);
 		brief.setMonster(monster);
 		brief.setHeraanmeldenTekstKey(heraanmeldenTekstKey);

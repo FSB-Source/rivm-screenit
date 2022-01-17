@@ -4,7 +4,7 @@ package nl.rivm.screenit.service;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import nl.rivm.screenit.document.BaseDocumentCreator;
+import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.BriefDefinitie;
@@ -43,18 +44,10 @@ import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.batch.BvoZoekCriteria;
-import nl.rivm.screenit.model.cervix.CervixAfmelding;
-import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonAfmelding;
-import nl.rivm.screenit.model.colon.ColonBrief;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
@@ -72,45 +65,27 @@ public interface BaseBriefService
 
 	void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename) throws IOException;
 
-	ColonBrief maakColonBrief(ColonScreeningRonde ronde, BriefType type);
-
-	ColonBrief maakColonBrief(ColonScreeningRonde ronde, BriefType type, Date date);
-
-	ColonBrief maakColonBrief(ColonAfmelding afmelding, BriefType type, Date date);
-
-	ColonBrief maakColonBrief(Client client, BriefType type, Date date);
-
 	BezwaarBrief maakBezwaarBrief(BezwaarMoment bezwaar, BriefType type, Date date);
 
 	AlgemeneBrief maakAlgemeneBrief(Client client, BriefType type);
 
 	ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie);
 
-	CervixBrief maakCervixBrief(CervixScreeningRonde ronde, BriefType type);
+	<B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment);
 
-	CervixBrief maakCervixBrief(CervixScreeningRonde ronde, BriefType type, Date date);
+	<B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type);
 
-	CervixBrief maakCervixBrief(CervixAfmelding afmelding, BriefType type, Date date);
+	<B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment);
 
-	CervixBrief maakCervixBrief(Client client, BriefType type, Date date);
+	<B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, boolean gegenereerd);
+
+	<B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment, boolean gegenereerd);
 
 	CervixRegioBrief maakRegioBrief(ScreeningOrganisatie so, BriefType type, Date date, CervixHuisarts arts);
 
 	<B extends ClientBrief<?, ?, ?>> void checkVoorDubbeleBrieven(BriefType type, Client client, Class<B> briefClass);
 
-	boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief> briefClass);
-
-	MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType briefType);
-
-	MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType type, Date date);
-
-	MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType briefType, boolean briefGegenereerd);
-
-	MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType type, Date date, boolean briefGegenereerd);
-
-	MammaBrief maakMammaBrief(MammaAfmelding afmelding, BriefType type, Date date);
-
-	MammaBrief maakMammaBrief(Client client, BriefType type, Date date);
+	boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief<?, ?, ?>> briefClass);
 
 	void completePdf(MergedBrieven<?> mergedBrieven);
 
@@ -138,6 +113,5 @@ public interface BaseBriefService
 
 	boolean briefTypeAlVerstuurdInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes);
 
-	List<ClientBrief> getClientBrieven(Client client);
-
+	List<ClientBrief<?, ?, ?>> getClientBrieven(Client client);
 }

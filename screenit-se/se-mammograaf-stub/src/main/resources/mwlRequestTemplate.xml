@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-mammograaf-stub
+  %%
+  Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<NativeDicomModel xml:space="preserve">
+	<DicomAttribute keyword="ScheduledProcedureStepSequence" tag="00400100" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="ScheduledStationAETitle" tag="00400001" vr="AE"/>
+            
+			<DicomAttribute keyword="ScheduledProcedureStepStartDate" tag="00400002" vr="DA"/>
+			<DicomAttribute keyword="ScheduledProcedureStepStartTime" tag="00400003" vr="TM"/>
+			<DicomAttribute keyword="Modality" tag="00080060" vr="CS">
+				<Value number="1">MG</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="ScheduledPerformingPhysicianName" tag="00400006" vr="PN"/>
+			<DicomAttribute keyword="ScheduledProcedureStepDescription" tag="00400007" vr="LO"/>
+			<DicomAttribute keyword="ScheduledStationName" tag="00400010" vr="SH"/>
+			<DicomAttribute keyword="ScheduledProcedureStepLocation" tag="00400011" vr="SH"/>
+			<DicomAttribute keyword="ScheduledProtocolCodeSequence" tag="00400008" vr="SQ">
+				<Item number="1">
+					<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH"/>
+					<DicomAttribute keyword="CodingSchemeDesignator" tag="00080102" vr="SH"/>
+					<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO"/>
+				</Item>
+			</DicomAttribute>
+			<DicomAttribute keyword="ScheduledProcedureStepID" tag="00400009" vr="SH"/>
+		</Item>
+	</DicomAttribute>
+	<DicomAttribute keyword="RequestedProcedureID" tag="00401001" vr="SH"/>
+	<DicomAttribute keyword="ReasonForRequestedProcedureCodeSequence" tag="0040100A" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH"/>
+			<DicomAttribute keyword="CodingSchemeDesignator" tag="00080102" vr="SH"/>
+			<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO"/>
+		</Item>
+	</DicomAttribute>
+	<DicomAttribute keyword="RequestedProcedureDescription" tag="00321060" vr="LO"/>
+	<DicomAttribute keyword="RequestedProcedureCodeSequence" tag="00321064" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH"/>
+			<DicomAttribute keyword="CodingSchemeDesignator" tag="00080102" vr="SH"/>
+			<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO"/>
+		</Item>
+	</DicomAttribute>
+	<DicomAttribute keyword="StudyInstanceUID" tag="0020000D" vr="UI"/>
+	<DicomAttribute keyword="ReferenceStudySequence" tag="00081110" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="Referenced​SOP​Class​UID" tag="00081150" vr="UI"/>
+			<DicomAttribute keyword="Referenced​SOP​Instance​UID" tag="00081155" vr="UI"/>
+		</Item>
+	</DicomAttribute>
+	<DicomAttribute keyword="AccessionNumber" tag="00080050" vr="SH"/>
+	<DicomAttribute keyword="RequestingPhysician" tag="00321032" vr="PN"/>
+	<DicomAttribute keyword="ReferringPhysicianName" tag="00080090" vr="PN"/>
+	<DicomAttribute keyword="AdmissionID" tag="00380010" vr="LO"/>
+	<DicomAttribute keyword="Current​Patient​Location" tag="00380300" vr="LO"/>
+	<DicomAttribute keyword="PatientName" tag="00100010" vr="PN"/>
+	<DicomAttribute keyword="PatientID" tag="00100020" vr="LO"/>
+	<DicomAttribute keyword="IssuerOfPatientID" tag="00100021" vr="LO"/>
+    
+	<DicomAttribute keyword="OtherPatientIDs" tag="00101000" vr="LO"/>
+	<DicomAttribute keyword="PatientBirthDate" tag="00100030" vr="DA"/>
+	<DicomAttribute keyword="PatientSex" tag="00100040" vr="CS"/>
+	<DicomAttribute keyword="Patient​Address" tag="00101040" vr="LO"/>
+	<DicomAttribute keyword="Patient​Age" tag="00101010" vr="AS"/>
+    
+	<DicomAttribute keyword="PatientWeight" tag="00101030" vr="DS"/>
+	<DicomAttribute keyword="Patient​Comments" tag="00104000" vr="LT"/>
+	<DicomAttribute keyword="Study​Description" tag="00081030" vr="LO"/>
+	<DicomAttribute keyword="Procedure​Code​Sequence" tag="00081032" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH"/>
+			<DicomAttribute keyword="CodingSchemeDesignator" tag="000840102" vr="SH"/>
+			<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO"/>
+		</Item>
+	</DicomAttribute>
+	<DicomAttribute keyword="Study​ID" tag="00200010" vr="SH"/>
+</NativeDicomModel>

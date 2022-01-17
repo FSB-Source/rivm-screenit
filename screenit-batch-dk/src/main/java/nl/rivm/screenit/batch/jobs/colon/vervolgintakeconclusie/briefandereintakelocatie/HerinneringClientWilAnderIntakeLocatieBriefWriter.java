@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereinta
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,6 +41,6 @@ public class HerinneringClientWilAnderIntakeLocatieBriefWriter extends BaseWrite
 	@Override
 	protected void write(ColonScreeningRonde ronde) throws Exception
 	{
-		briefService.maakColonBrief(ronde, BriefType.COLON_HERINNERING_ANDERE_INTAKELOCATIE);
+		briefService.maakBvoBrief(ronde, BriefType.COLON_HERINNERING_ANDERE_INTAKELOCATIE);
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.EnovationHuisartsDao;
 import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
@@ -35,12 +37,10 @@ import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsSyncService;
 import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Account;
-import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisartsAdres;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
@@ -52,7 +52,6 @@ import nl.rivm.screenit.model.cervix.enums.CervixHuisartsLocatieMutatieSoort;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierAanvraagStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.enums.HuisartsGeslacht;
 import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.envers.ScreenitRevisionEntity;
@@ -70,28 +69,23 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.util.collections.CollectionUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixHuisartsServiceImpl implements CervixHuisartsService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHuisartsServiceImpl.class);
 
 	@Autowired
 	private BaseBriefService briefService;
@@ -140,17 +134,17 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	@Override
 	public CervixHuisarts getUitstrijkendArtsMetAgb(String agbCode)
 	{
-		CervixHuisarts arts = cervixHuisartsBaseDao.getHuisarts(agbCode);
+		var arts = cervixHuisartsBaseDao.getHuisarts(agbCode);
 		if (arts == null)
 		{
 			arts = new CervixHuisarts();
 			arts.setAanmeldStatus(CervixHuisartsAanmeldStatus.AANGEMAAKT);
 			arts.setAgbcode(agbCode);
-			InstellingGebruiker instellingGebruiker = new InstellingGebruiker();
+			var instellingGebruiker = new InstellingGebruiker();
 			arts.setOrganisatieMedewerkers(new ArrayList<>());
 			arts.getOrganisatieMedewerkers().add(instellingGebruiker);
 			arts.setActief(true);
-			Gebruiker medewerker = new Gebruiker();
+			var medewerker = new Gebruiker();
 			medewerker.setActief(true);
 			instellingGebruiker.setMedewerker(medewerker);
 			instellingGebruiker.setOrganisatie(arts);
@@ -159,13 +153,13 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 			medewerker.setOrganisatieMedewerkers(new ArrayList<>());
 			medewerker.getOrganisatieMedewerkers().add(instellingGebruiker);
 
-			CervixHuisartsAdres postadresCervixHuisarts = new CervixHuisartsAdres();
+			var postadresCervixHuisarts = new CervixHuisartsAdres();
 
-			EnovationHuisarts enovationHuisarts = huisartsDao.getHuisartsByAgb(agbCode);
+			var enovationHuisarts = huisartsDao.getHuisartsByAgb(agbCode);
 			if (enovationHuisarts != null)
 			{
-				String praktijknaam = enovationHuisarts.getPraktijknaam();
-				String achternaam = enovationHuisarts.getAchternaam();
+				var praktijknaam = enovationHuisarts.getPraktijknaam();
+				var achternaam = enovationHuisarts.getAchternaam();
 				if (StringUtils.isNotBlank(praktijknaam))
 				{
 					arts.setNaam(praktijknaam);
@@ -182,7 +176,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 					medewerker.setTussenvoegsel(enovationHuisarts.getTussenvoegels());
 				}
 
-				HuisartsGeslacht geslacht = enovationHuisarts.getGeslacht();
+				var geslacht = enovationHuisarts.getGeslacht();
 				if (geslacht != null)
 				{
 					switch (geslacht)
@@ -198,8 +192,8 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 					}
 				}
 
-				CervixHuisartsAdres locatieAdres = new CervixHuisartsAdres();
-				CervixHuisartsLocatie locatie = new CervixHuisartsLocatie();
+				var locatieAdres = new CervixHuisartsAdres();
+				var locatie = new CervixHuisartsLocatie();
 				locatie.setZorgmailklantnummer(enovationHuisarts.getKlantnummer());
 				locatie.setNaam("<empty>");
 				locatie.setIban("<empty>");
@@ -211,7 +205,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 
 				if (enovationHuisarts.getAdres() != null)
 				{
-					Adres postadresColonHuisarts = enovationHuisarts.getAdres();
+					var postadresColonHuisarts = enovationHuisarts.getAdres();
 					postadresCervixHuisarts.setWoonplaats(woonplaatsService.getWoonplaatsByName(postadresColonHuisarts.getPlaats()));
 					postadresCervixHuisarts.setHuisnummer(postadresColonHuisarts.getHuisnummer());
 					postadresCervixHuisarts.setHuisnummerToevoeging(postadresColonHuisarts.getHuisnummerToevoeging());
@@ -229,7 +223,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public CervixHuisarts maakOfWijzigUitstrijkendArts(CervixHuisarts arts, InstellingGebruiker account) throws IllegalStateException
 	{
-		Gebruiker artsGebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
+		var artsGebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
 
 		if (artsGebruiker.getGebruikersnaam() == null)
 		{
@@ -243,8 +237,8 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 		arts.setActief(Boolean.TRUE);
 		arts.setNaam("Praktijk van " + NaamUtil.getTussenvoegselEnAchternaam(artsGebruiker));
 
-		CervixHuisartsAdres postadres = arts.getPostadres();
-		Gemeente gemeente = updateGemeente(postadres);
+		var postadres = arts.getPostadres();
+		var gemeente = updateGemeente(postadres);
 
 		if (gemeente == null)
 		{
@@ -256,9 +250,9 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 			throw new IllegalStateException("Er is geen screeningsorganisatie gekoppeld aan de gemeente " + gemeente.getNaam() + ". Neem contact op met de helpdesk.");
 		}
 
-		for (CervixHuisartsLocatie locatie : arts.getHuisartsLocaties())
+		for (var locatie : arts.getHuisartsLocaties())
 		{
-			CervixHuisartsAdres locatieAdres = locatie.getLocatieAdres();
+			var locatieAdres = locatie.getLocatieAdres();
 			if (locatieAdres.getWoonplaats() == null)
 			{
 				locatieAdres.setWoonplaats(postadres.getWoonplaats());
@@ -285,9 +279,9 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 
 		if (arts.getGemachtigde() == null)
 		{
-			List<Overeenkomst> modelOvereenkomsten = overeenkomstService.getOvereenkomsten(OrganisatieType.HUISARTS, OvereenkomstType.ZAKELIJKE_OVEREENKOMST);
+			var modelOvereenkomsten = overeenkomstService.getOvereenkomsten(OrganisatieType.HUISARTS, OvereenkomstType.ZAKELIJKE_OVEREENKOMST);
 			Overeenkomst actueelsteModelOvereenkomst = null;
-			for (Overeenkomst modelOvereenkomst : modelOvereenkomsten)
+			for (var modelOvereenkomst : modelOvereenkomsten)
 			{
 				if (actueelsteModelOvereenkomst == null
 					|| DateUtil.compareBefore(actueelsteModelOvereenkomst.getLaatsteUpdateDocument(), modelOvereenkomst.getLaatsteUpdateDocument()))
@@ -297,7 +291,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 			}
 			if (actueelsteModelOvereenkomst != null)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = new AfgeslotenInstellingOvereenkomst();
+				var afgeslotenOvereenkomst = new AfgeslotenInstellingOvereenkomst();
 				afgeslotenOvereenkomst.setInstelling(arts);
 				afgeslotenOvereenkomst.setScreeningOrganisatie(postadres.getGbaGemeente().getScreeningOrganisatie());
 				afgeslotenOvereenkomst.setStartDatum(currentDateSupplier.getDate());
@@ -309,14 +303,14 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 			hibernateService.saveOrUpdate(arts);
 		}
 
-		Gebruiker gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
+		var gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
 
-		String codeB = CodeGenerator.genereerCode(3, 3);
+		var codeB = CodeGenerator.genereerCode(3, 3);
 		gebruiker.setDatumWachtwoordAanvraag(currentDateSupplier.getDate());
 		gebruiker.setWachtwoordChangeCode(codeB);
 
-		Date date = currentDateSupplier.getDate();
-		CervixRegioBrief cervixRegioBrief = briefService.maakRegioBrief(gemeente.getScreeningOrganisatie(), BriefType.REGIO_REGISTRATIE_UITSTRIJKEND_HUISARTS, date, arts);
+		var date = currentDateSupplier.getDate();
+		var cervixRegioBrief = briefService.maakRegioBrief(gemeente.getScreeningOrganisatie(), BriefType.REGIO_REGISTRATIE_UITSTRIJKEND_HUISARTS, date, arts);
 		cervixRegioBrief.setHuisarts(arts);
 		hibernateService.saveOrUpdateAll(cervixRegioBrief);
 		logService.logGebeurtenis(LogGebeurtenis.ORGANISATIE_NIEUW, account, "Huisarts: " + arts.getNaam(), Bevolkingsonderzoek.CERVIX);
@@ -328,7 +322,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	{
 		if (!CollectionUtils.isEmpty(locaties))
 		{
-			for (CervixHuisartsLocatie locatie : locaties)
+			for (var locatie : locaties)
 			{
 				hibernateService.saveOrUpdate(locatie.getLocatieAdres());
 				hibernateService.saveOrUpdate(locatie);
@@ -342,28 +336,28 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	{
 		try
 		{
-			String content = preferenceService.getString(PreferenceKey.HUISARTS_REG_EMAIL.name(), "U kunt zich registreren als huisarts met deze {link}.");
-			Gebruiker gebruiker = huisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
+			var content = preferenceService.getString(PreferenceKey.HUISARTS_REG_EMAIL.name(), "U kunt zich registreren als huisarts met deze {link}.");
+			var gebruiker = huisarts.getOrganisatieMedewerkers().get(0).getMedewerker();
 
-			String achternaam = "";
+			var achternaam = "";
 			if (StringUtils.isNotBlank(gebruiker.getAchternaam()))
 			{
 				achternaam = " " + gebruiker.getAchternaam();
 			}
 
-			String tussenvoegsel = "";
+			var tussenvoegsel = "";
 			if (StringUtils.isNotBlank(gebruiker.getTussenvoegsel()))
 			{
 				tussenvoegsel = " " + gebruiker.getTussenvoegsel();
 			}
 
-			String voorletters = "";
+			var voorletters = "";
 			if (StringUtils.isNotBlank(gebruiker.getVoorletters()))
 			{
 				voorletters = " " + gebruiker.getVoorletters();
 			}
 
-			String aanhef = "";
+			var aanhef = "";
 			if (gebruiker.getAanhef() != null)
 			{
 				aanhef = " " + gebruiker.getAanhef().getNaam();
@@ -373,15 +367,10 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 			content = content.replaceAll("\\{tussenvoegsel\\}", tussenvoegsel);
 			content = content.replaceAll("\\{voorletters\\}", voorletters);
 
-			String url = applicationUrl;
-			if (!url.endsWith("/"))
-			{
-				url += "/";
-			}
-			String link = "<a href=\"" + huisartsPortaalUrl + "registreren/\">link</a>";
+			var link = "<a href=\"" + huisartsPortaalUrl + "registreren/\">link</a>";
 			content = content.replaceAll("\\{link\\}", link);
 
-			mailService.sendEmail(huisarts.getEmail(), preferenceService.getString(PreferenceKey.HUISARTS_REG_EMAILSUBJECT.name(), "Registreren huisarts"), content);
+			mailService.queueMail(huisarts.getEmail(), preferenceService.getString(PreferenceKey.HUISARTS_REG_EMAILSUBJECT.name(), "Registreren huisarts"), content);
 		}
 		catch (Exception e)
 		{
@@ -391,7 +380,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 
 	private Gemeente updateGemeente(CervixHuisartsAdres adres)
 	{
-		Gemeente gemeente = adres.getWoonplaats().getGemeente();
+		var gemeente = adres.getWoonplaats().getGemeente();
 		adres.setGbaGemeente(gemeente);
 		return gemeente;
 	}
@@ -399,13 +388,13 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	@Override
 	public void aanvraagLabformulieren(CervixLabformulierAanvraag labformulierAanvraag, CervixHuisartsLocatie huisartsLocatie, InstellingGebruiker instellingGebruiker)
 	{
-		Date nu = currentDateSupplier.getDate();
+		var nu = currentDateSupplier.getDate();
 
-		ScreeningOrganisatie so = huisartsLocatie.getHuisarts().getPostadres().getGbaGemeente().getScreeningOrganisatie();
+		var so = huisartsLocatie.getHuisarts().getPostadres().getGbaGemeente().getScreeningOrganisatie();
 
-		CervixRegioBrief labformulierenBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER, nu, null);
+		var labformulierenBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_LABFORMULIER, nu, null);
 
-		CervixRegioBrief voorbladBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER, nu, null);
+		var voorbladBrief = briefService.maakRegioBrief(so, BriefType.REGIO_UITSTRIJKEND_ARTS_VOORBLAD_LABFORMULIER, nu, null);
 
 		labformulierAanvraag.setBrief(labformulierenBrief);
 		labformulierAanvraag.setVoorbladBrief(voorbladBrief);
@@ -425,7 +414,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	public void saveOrUpdateArts(CervixHuisarts arts, LogGebeurtenis logGebeurtenis, InstellingGebruiker ingelogdeGebruiker)
 	{
 		updateGemeente(arts.getPostadres());
-		InstellingGebruiker instellingGebruiker = arts.getOrganisatieMedewerkers().get(0);
+		var instellingGebruiker = arts.getOrganisatieMedewerkers().get(0);
 		arts.setMutatiedatum(currentDateSupplier.getDate());
 		arts.setNaam(cervixHuisartsSyncService.getPraktijkNaam(instellingGebruiker.getMedewerker()));
 		hibernateService.saveOrUpdateAll(instellingGebruiker.getMedewerker(), arts);
@@ -442,10 +431,10 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	@Override
 	public Date getMutatiedatumUitstrijkendArts(CervixHuisarts cervixHuisarts)
 	{
-		AuditQuery query = EntityAuditUtil.createQuery(cervixHuisarts, hibernateService.getHibernateSession());
+		var query = EntityAuditUtil.createQuery(cervixHuisarts, hibernateService.getHibernateSession());
 		query.addProjection(AuditEntity.revisionNumber().max());
 
-		Number lastRevision = (Number) query.getSingleResult();
+		var lastRevision = (Number) query.getSingleResult();
 		ScreenitRevisionEntity revisionEntity = null;
 		if (lastRevision != null)
 		{
@@ -485,26 +474,21 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	public boolean isAndereLocatieMetNaam(CervixHuisartsLocatie locatie)
 	{
 
-		if (cervixHuisartsBaseDao.getCervixHuisartsLocatieWithName(locatie) != null)
-		{
-			return true;
-		}
-
-		return false;
+		return cervixHuisartsBaseDao.getCervixHuisartsLocatieWithName(locatie) != null;
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void updateLabformulierAanvraag(CervixRegioMergedBrieven regioMergedBrieven)
 	{
-		List<CervixLabformulierAanvraag> formulierAanvragen = cervixHuisartsBaseDao.getCervixLabformulierAanvraagFromMergedBrieven(regioMergedBrieven);
+		var formulierAanvragen = cervixHuisartsBaseDao.getCervixLabformulierAanvraagFromMergedBrieven(regioMergedBrieven);
 		if (!CollectionUtils.isEmpty(formulierAanvragen))
 		{
-			boolean isVolledigAfgedrukt = true;
+			var isVolledigAfgedrukt = true;
 			for (CervixLabformulierAanvraag aanvraag : formulierAanvragen)
 			{
-				boolean isVoorbladIsAfgedrukt = Boolean.TRUE.equals(aanvraag.getVoorbladBrief().getMergedBrieven().getGeprint());
-				boolean isFormulierenAfgedrukt = Boolean.TRUE.equals(aanvraag.getBrief().getMergedBrieven().getGeprint());
+				var isVoorbladIsAfgedrukt = Boolean.TRUE.equals(aanvraag.getVoorbladBrief().getMergedBrieven().getGeprint());
+				var isFormulierenAfgedrukt = Boolean.TRUE.equals(aanvraag.getBrief().getMergedBrieven().getGeprint());
 				if (!isVoorbladIsAfgedrukt || !isFormulierenAfgedrukt)
 				{
 					isVolledigAfgedrukt = false;
@@ -513,7 +497,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 			}
 			if (isVolledigAfgedrukt)
 			{
-				for (CervixLabformulierAanvraag aanvraag : formulierAanvragen)
+				for (var aanvraag : formulierAanvragen)
 				{
 					aanvraag.setStatus(CervixLabformulierAanvraagStatus.AFGEDRUKT_EN_VERSTUURD);
 					aanvraag.setStatusDatum(currentDateSupplier.getDate());
@@ -528,9 +512,9 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	@Override
 	public void resetWachtwoord(CervixHuisarts huisarts, Account loggedInAccount)
 	{
-		Long huisartsID = huisarts.getScreenitId();
+		var huisartsID = huisarts.getScreenitId();
 
-		ResetDto resetDto = new ResetDto();
+		var resetDto = new ResetDto();
 		resetDto.setHuisarts_id(huisartsID);
 
 		cervixHuisartsSyncService.sendData(resetDto);
@@ -541,7 +525,7 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void inactiveerHuisarts(CervixHuisarts huisarts, InstellingGebruiker loggedInAccount)
 	{
-		Date nu = currentDateSupplier.getDate();
+		var nu = currentDateSupplier.getDate();
 		huisarts.setActief(false);
 		saveOrUpdateArts(huisarts, LogGebeurtenis.ORGANISATIE_INACTIVEERD, loggedInAccount);
 		huisarts.getHuisartsLocaties().forEach(locatie -> inactiveerLocatie(locatie, nu, loggedInAccount));

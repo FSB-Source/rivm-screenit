@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.verwerkingverslag.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,40 +30,28 @@ import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
+@Getter
+@Setter
 @Table(schema = "mamma", name = "ilm_beelden_status_rapportage")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class MammaIlmBeeldenStatusRapportage extends AbstractHibernateObject
 {
 	@Column(nullable = false)
-	private long aantalBeelden = 0;
+	private long aantalRetries = 0;
+
+	@Column(nullable = false)
+	private long aantalFailedRetries = 0;
 
 	@OneToMany(mappedBy = "rapportage", cascade = CascadeType.ALL)
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	private List<MammaIlmBeeldenStatusRapportageEntry> entries = new ArrayList<>();
-
-	public List<MammaIlmBeeldenStatusRapportageEntry> getEntries()
-	{
-		return entries;
-	}
-
-	public void setEntries(List<MammaIlmBeeldenStatusRapportageEntry> entries)
-	{
-		this.entries = entries;
-	}
-
-	public long getAantalBeelden()
-	{
-		return aantalBeelden;
-	}
-
-	public void setAantalBeelden(long aantalBeelden)
-	{
-		this.aantalBeelden = aantalBeelden;
-	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,8 @@ package nl.rivm.screenit.service.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import nl.rivm.screenit.model.Account;
@@ -51,11 +53,11 @@ import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonAfmeldService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +107,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 		{
 			briefType = BriefType.COLON_AFMELDING_HANDTEKENING;
 		}
-		afmelding.setAfmeldingAanvraag(briefService.maakColonBrief(afmelding, briefType, currentDateSupplier.getDate()));
+		afmelding.setAfmeldingAanvraag(briefService.maakBvoBrief(afmelding, briefType, currentDateSupplier.getDate()));
 		hibernateService.saveOrUpdate(afmelding);
 	}
 
@@ -171,7 +173,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 			if (!ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(afmelding.getReden()))
 			{
 				afmelding.setAfmeldingBevestiging(
-					briefService.maakColonBrief(afmelding, BriefType.COLON_AFMELDING_BEVESTIGING, currentDateSupplier.getDate()));
+					briefService.maakBvoBrief(afmelding, BriefType.COLON_AFMELDING_BEVESTIGING, currentDateSupplier.getDate()));
 				hibernateService.saveOrUpdate(afmelding);
 			}
 
@@ -191,14 +193,14 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 	{
 		ColonScreeningRonde ronde = getGeldigeRondeVoorHeraanmelding(herAanTeMeldenAfmelding);
 
-		DateTime nu = currentDateSupplier.getDateTime();
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 		if (herAanTeMeldenAfmelding.getType() == AfmeldingType.DEFINITIEF)
 		{
 			if (!ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(herAanTeMeldenAfmelding.getReden())
 				&& BooleanUtils.isNotTrue(herAanTeMeldenAfmelding.getHeraanmeldingBevestigingsBriefTegenhouden()))
 			{
 				herAanTeMeldenAfmelding.setHeraanmeldBevestiging(
-					briefService.maakColonBrief(herAanTeMeldenAfmelding, BriefType.COLON_HERAANMELDING_BEVESTIGING, nu.toDate()));
+					briefService.maakBvoBrief(herAanTeMeldenAfmelding, BriefType.COLON_HERAANMELDING_BEVESTIGING, DateUtil.toUtilDate(nu)));
 				hibernateService.saveOrUpdate(herAanTeMeldenAfmelding);
 			}
 		}
@@ -214,7 +216,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 			Client client = ronde.getDossier().getClient();
 			afspraak.setClient(client);
 			afspraak.setColonScreeningRonde(ronde);
-			afspraak.setDatumLaatsteWijziging(nu.plusMillis(100).toDate());
+			afspraak.setDatumLaatsteWijziging(DateUtil.toUtilDate(nu.plus(100, ChronoUnit.MILLIS)));
 
 			RoosterItem roosterItem = null;
 			if (Boolean.TRUE.equals(herAanTeMeldenAfmelding.getHeraanmeldingAfspraakUitRooster()))
@@ -240,7 +242,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 			{
 				afspraakBriefType = BriefType.COLON_UITNODIGING_INTAKE;
 			}
-			ColonBrief brief = briefService.maakColonBrief(ronde, afspraakBriefType, nu.plusMillis(150).toDate());
+			ColonBrief brief = briefService.maakBvoBrief(ronde, afspraakBriefType, DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
 
 			if (herAanTeMeldenAfmelding.getHeraanmeldingAfspraakBriefTegenhouden())
 			{
@@ -265,7 +267,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 						&& gekoppeldeTest.getStatus().magWijzigenNaarStatus(ifobtTestStatus, gekoppeldeTest))
 					{
 						gekoppeldeTest.setStatus(ifobtTestStatus);
-						gekoppeldeTest.setStatusDatum(nu.plusMillis(100).toDate());
+						gekoppeldeTest.setStatusDatum(DateUtil.toUtilDate(nu.plus(100, ChronoUnit.MILLIS)));
 						hibernateService.saveOrUpdate(gekoppeldeTest);
 					}
 				}
@@ -296,4 +298,9 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 		return ronde;
 	}
 
+	@Override
+	public String getAanvullendeHeraanmeldLogMelding(ColonAfmelding afmelding)
+	{
+		return "";
+	}
 }

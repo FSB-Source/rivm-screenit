@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.document.BaseDocumentCreator;
+import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.BriefDefinitie;
@@ -58,20 +59,14 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.batch.BvoZoekCriteria;
-import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
-import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaBrief;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
@@ -241,7 +236,8 @@ public class BaseBriefServiceImpl implements BaseBriefService
 			brief.setProjectBrief(pBrief);
 			brief.setVervangendeProjectBrief(true);
 			hibernateService.saveOrUpdate(brief);
-			LOG.info("Brief met type: " + brief.getBriefType() + " vervangen voor briefdefinitie " + actie.getId() + " voor clientId " + client.getId());
+			LOG.info("Brief met type " + brief.getBriefType() + " vervangen door briefdefinitie " + actie.getId() + " (clientId: " + client.getId() + ", projectId: "
+				+ pClient.getProject().getId() + ")");
 		}
 	}
 
@@ -278,57 +274,9 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
-	public boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief> briefClass)
+	public boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief<?, ?, ?>> briefClass)
 	{
 		return briefDao.clientHeeftOngegenereerdeBriefVanType(type, client, briefClass);
-	}
-
-	@Override
-	public ColonBrief maakColonBrief(ColonScreeningRonde ronde, BriefType type)
-	{
-		return maakColonBrief(ronde, type, null);
-	}
-
-	@Override
-	public ColonBrief maakColonBrief(ColonAfmelding afmelding, BriefType type, Date date)
-	{
-		ColonBrief colonBrief = maakColonBrief(afmelding.getDossier().getClient(), type, date);
-		colonBrief.setAfmelding(afmelding);
-		afmelding.getBrieven().add(colonBrief);
-
-		hibernateService.saveOrUpdate(colonBrief);
-		hibernateService.saveOrUpdate(afmelding);
-		return colonBrief;
-	}
-
-	@Override
-	public ColonBrief maakColonBrief(ColonScreeningRonde ronde, BriefType type, Date date)
-	{
-		ColonBrief colonBrief = maakColonBrief(ronde.getDossier().getClient(), type, date);
-		colonBrief.setScreeningRonde(ronde);
-		ronde.getBrieven().add(colonBrief);
-		ronde.setLaatsteBrief(colonBrief);
-		hibernateService.saveOrUpdate(ronde);
-		return colonBrief;
-	}
-
-	@Override
-	public ColonBrief maakColonBrief(Client client, BriefType type, Date date)
-	{
-		checkVoorDubbeleBrieven(type, client, ColonBrief.class);
-		ColonBrief colonBrief = new ColonBrief();
-		if (date == null)
-		{
-			date = currentDateSupplier.getDate();
-		}
-		colonBrief.setCreatieDatum(date);
-		colonBrief.setBriefType(type);
-		colonBrief.setClient(client);
-		colonBrief.setGegenereerd(false);
-		hibernateService.saveOrUpdate(colonBrief);
-		LOG.info("Brief klaargezet met type: " + type + " voor client met client(id: " + client.getId() + ")");
-		checkVoorProjectClient(colonBrief, client);
-		return colonBrief;
 	}
 
 	@Override
@@ -363,27 +311,10 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
-	public CervixBrief maakCervixBrief(CervixScreeningRonde ronde, BriefType type)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public <B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment)
 	{
-		return maakCervixBrief(ronde, type, null);
-	}
-
-	@Override
-	public CervixBrief maakCervixBrief(CervixScreeningRonde ronde, BriefType type, Date date)
-	{
-		CervixBrief brief = maakCervixBrief(ronde.getDossier().getClient(), type, date);
-		brief.setScreeningRonde(ronde);
-		ronde.getBrieven().add(brief);
-		ronde.setLaatsteBrief(brief);
-		hibernateService.saveOrUpdate(brief);
-		hibernateService.saveOrUpdate(ronde);
-		return brief;
-	}
-
-	@Override
-	public CervixBrief maakCervixBrief(CervixAfmelding afmelding, BriefType type, Date date)
-	{
-		CervixBrief brief = maakCervixBrief(afmelding.getDossier().getClient(), type, date);
+		B brief = maakBvoBrief(afmelding.getDossier().getClient(), type, creatieMoment, false);
 		brief.setAfmelding(afmelding);
 		afmelding.getBrieven().add(brief);
 
@@ -393,22 +324,73 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
-	public CervixBrief maakCervixBrief(Client client, BriefType type, Date date)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type)
 	{
-		checkVoorDubbeleBrieven(type, client, CervixBrief.class);
-		CervixBrief brief = new CervixBrief();
-		if (date == null)
+		return maakBvoBrief(ronde, type, null, false);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, boolean gegenereerd)
+	{
+		return maakBvoBrief(ronde, type, null, gegenereerd);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment)
+	{
+		return maakBvoBrief(ronde, type, creatieMoment, false);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment, boolean gegenereerd)
+	{
+		B brief = maakBvoBrief(ronde.getDossier().getClient(), type, creatieMoment, gegenereerd);
+		brief.setScreeningRonde(ronde);
+		ronde.getBrieven().add(brief);
+		ronde.setLaatsteBrief(brief);
+		hibernateService.saveOrUpdate(brief);
+		hibernateService.saveOrUpdate(ronde);
+		return brief;
+	}
+
+	private <B extends ClientBrief<?, ?, ?>> B maakBvoBrief(Client client, BriefType type, Date creatieMoment, boolean gegenereerd)
+	{
+		B brief = createBrief(type);
+		checkVoorDubbeleBrieven(type, client, brief.getClass());
+		if (creatieMoment == null)
 		{
-			date = currentDateSupplier.getDate();
+			creatieMoment = currentDateSupplier.getDate();
 		}
-		brief.setCreatieDatum(date);
+		brief.setCreatieDatum(creatieMoment);
 		brief.setBriefType(type);
 		brief.setClient(client);
-		brief.setGegenereerd(false);
+		brief.setGegenereerd(gegenereerd);
 		hibernateService.saveOrUpdate(brief);
-		LOG.info("Brief klaargezet met type: " + type + " voor client met client(id: " + client.getId() + ")");
+		LOG.info("Brief klaargezet met type " + type + " (clientId: " + client.getId() + ")");
 		checkVoorProjectClient(brief, client);
 		return brief;
+	}
+
+	private <B extends ClientBrief<?, ?, ?>> B createBrief(BriefType type)
+	{
+		List<Bevolkingsonderzoek> bevolkingsonderzoeken = Arrays.asList(type.getOnderzoeken());
+		if (bevolkingsonderzoeken.equals(List.of(Bevolkingsonderzoek.MAMMA)))
+		{
+			return (B) new MammaBrief();
+		}
+		else if (bevolkingsonderzoeken.equals(List.of(Bevolkingsonderzoek.COLON)))
+		{
+			return (B) new ColonBrief();
+		}
+		else if (bevolkingsonderzoeken.equals(List.of(Bevolkingsonderzoek.CERVIX)))
+		{
+			return (B) new CervixBrief();
+		}
+		throw new IllegalStateException("Deze methode is niet geschikt voor brieftype " + type);
 	}
 
 	@Override
@@ -425,69 +407,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		brief.setGegenereerd(false);
 		brief.setRegio(so);
 		hibernateService.saveOrUpdate(brief);
-		LOG.info("Brief klaargezet met type: " + type + " voor regio: " + so.getNaam());
-		return brief;
-	}
-
-	@Override
-	public MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType type)
-	{
-		return maakMammaBrief(ronde, type, null, false);
-	}
-
-	@Override
-	public MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType type, Date date)
-	{
-		return maakMammaBrief(ronde, type, date, false);
-	}
-
-	@Override
-	public MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType type, boolean briefGegenereerd)
-	{
-		return maakMammaBrief(ronde, type, null, briefGegenereerd);
-	}
-
-	@Override
-	public MammaBrief maakMammaBrief(MammaScreeningRonde ronde, BriefType type, Date date, boolean briefGegenereerd)
-	{
-		MammaBrief brief = maakMammaBrief(ronde.getDossier().getClient(), type, date);
-		brief.setScreeningRonde(ronde);
-		brief.setGegenereerd(briefGegenereerd);
-		ronde.getBrieven().add(brief);
-		ronde.setLaatsteBrief(brief);
-		hibernateService.saveOrUpdate(brief);
-		hibernateService.saveOrUpdate(ronde);
-		return brief;
-	}
-
-	@Override
-	public MammaBrief maakMammaBrief(MammaAfmelding afmelding, BriefType type, Date date)
-	{
-		MammaBrief brief = maakMammaBrief(afmelding.getDossier().getClient(), type, date);
-		brief.setAfmelding(afmelding);
-		afmelding.getBrieven().add(brief);
-
-		hibernateService.saveOrUpdate(brief);
-		hibernateService.saveOrUpdate(afmelding);
-		return brief;
-	}
-
-	@Override
-	public MammaBrief maakMammaBrief(Client client, BriefType type, Date date)
-	{
-		checkVoorDubbeleBrieven(type, client, MammaBrief.class);
-		MammaBrief brief = new MammaBrief();
-		if (date == null)
-		{
-			date = currentDateSupplier.getDate();
-		}
-		brief.setCreatieDatum(date);
-		brief.setBriefType(type);
-		brief.setClient(client);
-		brief.setGegenereerd(false);
-		hibernateService.saveOrUpdate(brief);
-		LOG.info("Brief klaargezet met type: " + type + " voor client met client(id: " + client.getId() + ")");
-		checkVoorProjectClient(brief, client);
+		LOG.info("Brief klaargezet met type " + type + " voor regio: " + so.getNaam());
 		return brief;
 	}
 
@@ -552,7 +472,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 						String onvolledigAdresMelding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken van: " + brief.getBriefType()
 							+ ". De volgende gegevens ontbreken: " + AdresUtil.bepaalMissendeAdresgegevensString(clientAdres) + ".";
 						int dagen = simplePreferenceService.getInteger(PreferenceKey.INTERNAL_HERINNERINGSPERIODE_LOGREGEL_ONVOLLEDIG_ADRES.name());
-						if (logService.heeftBestaandeLogregelBinnenPeriode(Arrays.asList(briefGenerator.getOnvolledigAdresLogGebeurtenis()), client.getPersoon().getBsn(),
+						if (logService.heeftBestaandeLogregelBinnenPeriode(List.of(briefGenerator.getOnvolledigAdresLogGebeurtenis()), client.getPersoon().getBsn(),
 							onvolledigAdresMelding, dagen))
 						{
 							List<Instelling> organisaties = new ArrayList<>();
@@ -579,14 +499,14 @@ public class BaseBriefServiceImpl implements BaseBriefService
 					String melding = "Door technische reden kon de brief(brieftype: " + mergedBrieven.getBriefType() + ") niet worden gegenereerd.";
 					LOG.error(melding);
 
-					logService.logGebeurtenis(briefGenerator.getMergeProbleemLogGebeurtenis(), Arrays.asList(org), client, melding, briefGenerator.getBevolkingsonderzoeken());
+					logService.logGebeurtenis(briefGenerator.getMergeProbleemLogGebeurtenis(), List.of(org), client, melding, briefGenerator.getBevolkingsonderzoeken());
 					continue;
 				}
 			}
 			if (chunkDocument != null && brievenAanwezig)
 			{
 				File nieuwePdfMetMergedBrievenVanChunk = File.createTempFile("mergedBrieven", "pdf");
-				try (FileOutputStream output = new FileOutputStream(nieuwePdfMetMergedBrievenVanChunk);)
+				try (FileOutputStream output = new FileOutputStream(nieuwePdfMetMergedBrievenVanChunk))
 				{
 					chunkDocument.save(output, asposeService.getPdfSaveOptions());
 					chunkDocument.setWarningCallback(warning -> LOG.warn("Warning converting to pdf: " + warning.getDescription()));
@@ -640,7 +560,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 			MailMergeContext context = getMailMergeContext(brief, client);
 			briefGenerator.additionalMergedContext(context);
 
-			Document document = null;
+			Document document;
 			BaseDocumentCreator creator = briefGenerator.getDocumentCreator(context);
 			if (creator == null)
 			{
@@ -741,7 +661,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		File copyHuidigePdfMetMergedBrieven = File.createTempFile("copyMergedBrieven", ".pdf");
 		FileUtils.copyFile(huidigePdfMetMergeBrieven, copyHuidigePdfMetMergedBrieven);
 
-		try (FileOutputStream outputStream = new FileOutputStream(huidigePdfMetMergeBrieven);)
+		try (FileOutputStream outputStream = new FileOutputStream(huidigePdfMetMergeBrieven))
 		{
 			PDFMergerUtility pdfMergerUtility = new PDFMergerUtility();
 			pdfMergerUtility.addSource(copyHuidigePdfMetMergedBrieven);
@@ -884,7 +804,8 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	public void setNietGegenereerdeBrievenOpTegenhouden(ScreeningRonde<?, ?, ?, ?> screeningRonde, Collection<BriefType> brieftypes)
 	{
 		screeningRonde.getBrieven().stream().filter(brief -> brieftypes.contains(brief.getBriefType()) && !brief.isGegenereerd())
-			.forEach(brief -> {
+			.forEach(brief ->
+			{
 				brief.setTegenhouden(true);
 				hibernateService.saveOrUpdate(brief);
 			});
@@ -909,7 +830,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
-	public List<ClientBrief> getClientBrieven(Client client)
+	public List<ClientBrief<?, ?, ?>> getClientBrieven(Client client)
 	{
 		return briefDao.getClientBrieven(client);
 	}

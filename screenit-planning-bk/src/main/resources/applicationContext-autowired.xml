@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-planning-bk
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -66,6 +66,7 @@
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="ClientServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseClientContactServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseScreeningRondeServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="ClientDoelgroepServiceImpl.class"/>
 
     
     
@@ -79,7 +80,8 @@
     <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl" resource-pattern="MammaBaseBeoordelingDaoImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl" resource-pattern="MammaBaseFollowUpDaoImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl" resource-pattern="MammaBaseUitwisselportaalDaoImpl.class"/>
-    <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl" resource-pattern="MammaBaseOnderzoekDaoImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl" resource-pattern="MammaBaseMammografieDaoImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.dao.mamma.impl" resource-pattern="MammaBaseIlmDaoImpl.class"/>
     
     <context:component-scan base-package="nl.rivm.screenit.service.mamma.impl" resource-pattern="MammaBaseKansberekeningServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.mamma.impl" resource-pattern="MammaBaseFactoryImpl.class"/>
@@ -100,15 +102,15 @@
     <context:component-scan base-package="nl.rivm.screenit.service.mamma.impl" resource-pattern="MammaBaseVerslagServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.mamma.impl" resource-pattern="MammaBaseUitwisselportaalServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.mamma.impl" resource-pattern="MammaBaseOnderzoekServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.mamma.impl" resource-pattern="MammaBaseIlmServiceImpl.class"/>
 
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BerichtToBatchServiceImpl.class"/>
     <bean id="berichtToSeRestBkServiceImpl" class="nl.rivm.screenit.service.impl.BerichtToSeRestBkServiceImpl"/>
 
-    <context:component-scan base-package="nl.rivm.screenit.util.mail" resource-pattern="LoggingJavaMailSender.class"/>
+	<context:component-scan base-package="nl.rivm.screenit.cache" resource-pattern="CacheMBeanRegistration.class"/>
 
     
     <context:component-scan base-package="nl.topicuszorg.documentupload.services.impl" resource-pattern="UploadDocumentServiceImpl.class"/>
-    <context:component-scan base-package="nl.topicuszorg.hibernate.schema.dao.impl"/>
 
     <context:annotation-config/>
     <mvc:annotation-driven/>

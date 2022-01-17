@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -229,7 +229,7 @@ public class LoggingTable extends ScreenitDataTable<LogRegel, String>
 				}
 				MammaIlmLogEvent mammaIlmLogEvent = (MammaIlmLogEvent) logEvent;
 				return ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(MammaIlmBeeldenStatusRapportagePage.class)
-					&& mammaIlmLogEvent.getRapportage().getAantalBeelden() > 0;
+					&& mammaIlmLogEvent.getRapportage().getAantalFailedRetries() > 0;
 			default:
 				Client client = logRegel.getClient();
 				if (client != null && !GbaStatus.BEZWAAR.equals(client.getGbaStatus()) && !GbaStatus.AFGEVOERD.equals(client.getGbaStatus()))

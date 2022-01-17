@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import nl.rivm.screenit.main.web.component.NaamChoiceRenderer;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestEnumRadioChoice;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.markup.html.form.RadioChoice;
@@ -40,13 +40,13 @@ public class TestCervixGeanalyseerdOpHpvPopup extends TestCervixUitnodigingenLab
 
 	private static final long serialVersionUID = 1L;
 
-	private IModel<CervixHpvUitslag> hpvUitslagModel = Model.of();
+	private IModel<CervixHpvBeoordelingWaarde> hpvUitslagModel = Model.of();
 
 	public TestCervixGeanalyseerdOpHpvPopup(String id, IModel<List<Client>> clientModel)
 	{
 		super(id, clientModel);
 
-		RadioChoice<CervixHpvUitslag> hpvUitslag = new TestEnumRadioChoice<>("hpvUitslag", hpvUitslagModel, Arrays.asList(CervixHpvUitslag.values()),
+		RadioChoice<CervixHpvBeoordelingWaarde> hpvUitslag = new TestEnumRadioChoice<>("hpvUitslag", hpvUitslagModel, Arrays.asList(CervixHpvBeoordelingWaarde.values()),
 			new NaamChoiceRenderer<>());
 		hpvUitslag.setPrefix("<label class=\"radio\">");
 		hpvUitslag.setSuffix("</label>");

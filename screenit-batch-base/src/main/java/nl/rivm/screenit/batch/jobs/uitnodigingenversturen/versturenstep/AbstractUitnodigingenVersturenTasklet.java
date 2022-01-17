@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.uitnodigingenversturen.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -61,6 +61,7 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.Level;
+import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
@@ -69,7 +70,6 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
-import nl.rivm.screenit.service.MailService.MailPriority;
 import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -306,7 +306,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			emailadressen.addAll(getEmails(preferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name())));
 
 			message.insert(0, "Na " + NR_OF_TRIES + " pogingen in het afgelopen uur is de Inpakcentrum WSDL " + url + " niet bereikbaar geweest. ");
-			mailService.sendEmail(emailadressen.toArray(new String[] {}), "Inpakcentrum WSDL niet bereikbaar", message.toString(), MailPriority.HIGH);
+			mailService.queueMail(String.join(";", emailadressen), "Inpakcentrum WSDL niet bereikbaar", message.toString(), MailPriority.HIGH);
 			throw new IllegalStateException(message.toString());
 		}
 	}

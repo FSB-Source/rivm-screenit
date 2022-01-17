@@ -1,0 +1,5 @@
+{
+  "auth-server-url": "https://idp-acc.topicuszorg.nl/auth",
+  "realm": "ScreenIT",
+  "resource": "screenit-frontend-local"
+}

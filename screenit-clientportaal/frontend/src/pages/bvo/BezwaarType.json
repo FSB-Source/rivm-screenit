@@ -1,0 +1,114 @@
+{
+  "page": {
+    "header": {
+      "title": "Bezwaar",
+      "description": "Wij hebben uw gegevens opgeslagen in een systeem. Dit systeem is beveiligd en uw privacy is goed beschermd. Uw gegevens kunnen worden gebruikt voor het verbeteren van het bevolkingsonderzoek en voor wetenschappelijk onderzoek. Wilt u dat niet, dan kunt u bezwaar maken.",
+      "hint": "U maakt bezwaar door het hokje voor het bezwaar aan te klikken. Er verschijnt een vinkje. Wilt u een bezwaar opheffen, klik dan op het vinkje. Het vinkje verdwijnt dan. Klik onderaan deze pagina op Opslaan om uw keuze vast te leggen. U krijgt een brief ter bevestiging."
+    }
+  },
+  "opslaan": {
+    "button": {
+      "label": "Opslaan"
+    }
+  },
+  "toast": {
+    "wijzigingen": {
+      "titel": "Uw wijzigingen zijn succesvol opgeslagen.",
+      "text": "U krijgt binnen een paar dagen een brief ter bevestiging."
+    },
+    "ongewijzigd": {
+      "titel": "Geen wijzigingen opgeslagen",
+      "text": "U heeft niets veranderd in uw bezwaaroverzicht."
+    }
+  },
+  "OVERIGE": {
+    "title": {
+      "default": "Overige bezwaren"
+    },
+    "abstract": {
+      "default": "Voor het maken van bezwaar tegen de opname van uw gegevens vanuit de Basisregistratie personen en tegen het bewaren van uw dossier moet u contact opnemen met onze informatielijn.",
+      "CERVIX": "Voor het maken van bezwaar tegen de opname van uw gegevens vanuit de Basisregistratie personen en tegen het bewaren van uw dossier moet u contact opnemen met onze informatielijn.<br/>Bezwaar maken tegen het uitwisselen van gegevens met PALGA kan via een formulier op onze website.",
+      "COLON": "Voor een aantal bezwaren (opname van uw gegevens vanuit de Basisregistratie personen, bewaren dossier, uitwisselen gegevens met coloscopiecentrum) moet u contact opnemen met onze informatielijn."
+    },
+    "meer": {
+      "default": ""
+    }
+  },
+  "GEEN_UITWISSELING_MET_DE_HUISARTS": {
+    "title": {
+      "default": "Geen uitwisseling van mijn gegevens met de huisarts"
+    },
+    "abstract": {
+      "default": "Met ingang van 13 december 2017 informeren wij de huisarts uitsluitend op verzoek van de cliënt als de uitslag van het bevolkingsonderzoek aanleiding geeft tot vervolgonderzoek. Het bezwaar 'Geen uitwisseling van mijn gegevens met de huisarts' is hierdoor vervallen. Heeft u eerder dit bezwaar gemaakt, dan blijft dit geregistreerd in ons systeem (tenzij u het bezwaar intrekt)."
+    },
+    "meer": {
+      "default": ""
+    }
+  },
+  "GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS": {
+    "title": {
+      "default": "Geen digitale uitwisseling van mijn uitslag en beelden met het ziekenhuis"
+    },
+    "abstract": {
+      "default": "Wij wisselen de uitslag en de beelden van uw onderzoek niet uit met het ziekenhuis. Bij een eventuele doorverwijzing kan het ziekenhuis uw uitslag en foto's van het bevolkingsonderzoek niet raadplegen."
+    },
+    "meer": {
+      "default": ""
+    }
+  },
+  "GEEN_KWALITEITSWAARBORGING": {
+    "title": {
+      "default": "Geen gebruik van mijn gegevens voor kwaliteitsborging"
+    },
+    "abstract": {
+      "default": "Wij wisselen uw gegevens niet uit met (zorg)instellingen voor verbetering van het bevolkingsonderzoek."
+    },
+    "meer": {
+      "default": ""
+    }
+  },
+  "GEEN_WETENSCHAPPELIJK_ONDERZOEK": {
+    "title": {
+      "default": "Geen gebruik van mijn gegevens voor evaluatie- en wetenschappelijk onderzoek"
+    },
+    "abstract": {
+      "default": ""
+    },
+    "meer": {
+      "default": "Wij gebruiken uw gegevens niet voor de evaluatie van effecten, processen en organisatorische vraagstukken van het bevolkingsonderzoek. Ook wisselen wij uw gegevens niet meer uit met zorg- en onderzoeksinstellingen voor wetenschappelijk onderzoek. Onderzoekers krijgen sowieso nooit uw naam en adres."
+    }
+  },
+  "GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK": {
+    "title": {
+      "default": "Geen gebruik van mijn lichaamsmateriaal voor wetenschappelijk onderzoek"
+    },
+    "abstract": {
+      "default": ""
+    },
+    "meer": {
+      "default": "De beoordeling van uitstrijkjes en zelfafnamesets vindt plaats in een screeningslaboratorium. Het lichaamsmateriaal wordt na beoordeling door het laboratorium vernietigd."
+    }
+  },
+  "GEEN_SIGNALERING_VERWIJSADVIES": {
+    "title": {
+      "default": "Geen controle vervolg verwijsadvies door laboratorium"
+    },
+    "abstract": {
+      "default": ""
+    },
+    "meer": {
+      "default": "Wanneer er HPV en afwijkende cellen in de baarmoederhals zijn gevonden, wordt u doorverwezen naar de gynaecoloog voor verder onderzoek. Na enkele maanden controleert het laboratorium in een landelijke databank of u bij de gynaecoloog bent geweest. Is dat niet het geval, dan informeert het laboratorium uw huisarts hierover. Als u hier bezwaar tegen maakt, wordt deze controle niet uitgevoerd."
+    }
+  },
+  "GEEN_REGISTRATIE_GEBOORTELAND": {
+    "title": {
+      "default": ""
+    },
+    "abstract": {
+      "default": ""
+    },
+    "meer": {
+      "default": ""
+    }
+  }
+}

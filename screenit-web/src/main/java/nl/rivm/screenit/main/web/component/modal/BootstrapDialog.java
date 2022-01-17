@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.modal;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -64,7 +64,7 @@ public class BootstrapDialog extends Panel implements IDialog
 		closeBehavior = new CloseBehavior();
 		add(closeBehavior);
 
-		setContent(content.setOutputMarkupId(true));
+		setContent(content);
 	}
 
 	@Override

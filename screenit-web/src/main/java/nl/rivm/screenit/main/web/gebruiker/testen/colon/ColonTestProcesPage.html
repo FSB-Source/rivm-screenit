@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,119 +20,118 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:extend>
-    <div class="span12">
-        <form wicket:id="form" class="form-container form-horizontal">
-            <div class="alert alert-danger" style="position: relative; left: 0px; width: 95%; margin-left: 0px; z-index: 0;">
-                <h4>Waarschuwing!</h4>
-                Bij het gebruiken van deze pagina kan geen garantie worden gegeven dat de clienten gegevens consistent blijven/zijn!
-            </div>
-            <h1>Testpagina DK:</h1>
-            <div class="span6">
-                <div class="control-group">
-                    <label for="bsn1" class="control-label span2">Burgerservicenummer (alleen valide bsn):<i class="icon-asterisk icon-purple"></i></label>
-                    <div class="controls">
-                        <div class="input-append">
-                            <input class="form-control" type="text" placeholder="123456789" wicket:id="bsn">
-                            <a class="add-on" wicket:id="bsnGenereren">Genereer BSN</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="control-group">
-                    <label for="" class="control-label span2">Geboortedatum (default: 1-1-1950):</label>
-                    <div class="controls">
-                        <input class="form-control" type="text" placeholder="dd-mm-yyyy" wicket:id="geboortedatum">
-                    </div>
-                </div>
-            </div>
-            <div class='span5'>
-                Bij bestaande burgers worden de gemeente en geboortedatum vervangen door hieronder ingevulde gegeven (mits ingevuld):
-                <div class="control-group">
-                    <label for="" class="control-label span2">Gemeente (default: eerst beste gemeente die gekoppeld is aan een SO):</label>
-                    <div class="controls">
-                        <select wicket:id="gbaAdres.gbaGemeente" class="form-control"></select>
-                    </div>
-                </div>
+	<div class="span12">
+		<form wicket:id="form" class="form-container form-horizontal">
+			<div class="alert alert-danger" style="position: relative; left: 0px; width: 95%; margin-left: 0px; z-index: 0;">
+				<h4>Waarschuwing!</h4>
+				Bij het gebruiken van deze pagina kan geen garantie worden gegeven dat de clienten gegevens consistent blijven/zijn!
+			</div>
+			<h1>Testpagina DK:</h1>
+			<div class="span6">
+				<div class="control-group">
+					<label for="bsn1" class="control-label span2">Burgerservicenummer (alleen valide bsn):<i class="icon-asterisk icon-purple"></i></label>
+					<div class="controls">
+						<div class="input-append">
+							<input class="form-control" type="text" placeholder="123456789" wicket:id="bsn">
+							<a class="add-on" wicket:id="bsnGenereren">Genereer BSN</a>
+						</div>
+					</div>
+				</div>
+				<div class="control-group">
+					<label for="" class="control-label span2">Geboortedatum (default: 1-1-1950):</label>
+					<div class="controls">
+						<input class="form-control" type="text" placeholder="dd-mm-yyyy" wicket:id="geboortedatum">
+					</div>
+				</div>
+			</div>
+			<div class='span5'>
+				Bij bestaande burgers worden de gemeente en geboortedatum vervangen door hieronder ingevulde gegeven (mits ingevuld):
+				<div class="control-group">
+					<label for="" class="control-label span2">Gemeente (default: eerst beste gemeente die gekoppeld is aan een SO):</label>
+					<div class="controls">
+						<select wicket:id="gbaAdres.gbaGemeente" class="form-control"></select>
+					</div>
+				</div>
 
-                <div class="control-group">
-                    <label for="geslacht" class="control-label span2">Geslacht</label>
+				<div class="control-group">
+					<label for="geslacht" class="control-label span2">Geslacht</label>
 
-                    <div class="controls">
-                        <select id="geslacht" wicket:id="geslacht" class="form-control"></select>
-                    </div>
-                </div>
+					<div class="controls">
+						<select id="geslacht" wicket:id="geslacht" class="form-control"></select>
+					</div>
+				</div>
 
-                <div class="control-group">
-                    <label for="overlijdensdatum" class="control-label span2">Datum overlijden (default: leeg):</label>
-                    <div class="controls">
-                        <input class="form-control" type="text" placeholder="dd-mm-yyyy" id="overlijdensdatum" wicket:id="overlijdensdatum">
-                    </div>
-                </div>
-            </div>
+				<div class="control-group">
+					<label for="overlijdensdatum" class="control-label span2">Datum overlijden (default: leeg):</label>
+					<div class="controls">
+						<input class="form-control" type="text" placeholder="dd-mm-yyyy" id="overlijdensdatum" wicket:id="overlijdensdatum">
+					</div>
+				</div>
+			</div>
 
-            <fieldset>
-                <div class='span5'>
-                    <h1>Client Status:</h1>
-                    <button class="btn" wicket:id="maakClient">Maak client</button>
-                    <button class="btn" wicket:id="voorRappeleren">Client klaarzetten voor Rappeleren.</button>
-                    <button class="btn" wicket:id="voorAfronden">Client klaarzetten voor afronden.</button>
-                    <h1>Intake afspraak:</h1>
-                    <button class="btn" wicket:id="afspraakAlleen">Maak afspraak.</button>
-                    <button class="btn" wicket:id="metConclusieColoscopie">Maak afspraak met ConclusieColoscopie</button>
-                    <h1>HuisartsBerichten</h1>
-                    <button class="btn" wicket:id="haBerichtOngunstig">Maak HuisartsBericht (Ongunstige uitslag)</button>
-                    <button class="btn" wicket:id="haBerichtWijzig">Maak HuisartsBericht (Wijziging intakeafspraak)</button>
-                    <button class="btn" wicket:id="haBerichtAnnuleer">Maak HuisartsBericht (Annuleren intakeafspraak)</button>
-                    <button class="btn" wicket:id="haBerichtNoShow">Maak HuisartsBericht (No show intake)</button>
-                </div>
-                <div class='span5'>
-                    <h1>Direction:</h1>
-                    <button class="btn" wicket:id="directNaarClientDossier">Direct naar het Clientdossier</button>
-                    <button class="btn" wicket:id="directNaarOudeClientportaal">Direct naar het (oude) Clientportaal</button>
-                    <h1>FIT status:</h1>
-                    <button class="btn" wicket:id="metIfobtGunstig">Met huidige FITTest gunstig.</button>
-                    <button class="btn" wicket:id="metIfobtOngunstig">Met huidige FITTest ongunstig.</button>
-                    <h1>FIT verloren uitzonderingen</h1>
-                    <button class="btn" wicket:id="HuidigeIFOBTvoorRapelDatum">Aanvraag Nieuwe FITTest accepteren.</button>
-                    <p>Situatie waarbij er een van de eerste uitnodiging gegevens word teruggestuurd! Dit om te verkomen dat er dan een rappel wordt gestuurd.</p>
-                    <button class="btn" wicket:id="VerlorenIfobtKrijgtUitslagGunstig">Verloren FIT krijgt gunstige uitslag.</button>
-                    <button class="btn" wicket:id="VerlorenIfobtKrijgtUitslagOngunstig">Verloren FIT krijgt ongunstige uitslag.</button>
+			<fieldset>
+				<div class='span5'>
+					<h1>Client Status:</h1>
+					<button class="btn" wicket:id="maakClient">Maak client</button>
+					<button class="btn" wicket:id="voorRappeleren">Client klaarzetten voor Rappeleren.</button>
+					<button class="btn" wicket:id="voorAfronden">Client klaarzetten voor afronden.</button>
+					<h1>Intake afspraak:</h1>
+					<button class="btn" wicket:id="afspraakAlleen">Maak afspraak.</button>
+					<button class="btn" wicket:id="metConclusieColoscopie">Maak afspraak met ConclusieColoscopie</button>
+					<h1>HuisartsBerichten</h1>
+					<button class="btn" wicket:id="haBerichtOngunstig">Maak HuisartsBericht (Ongunstige uitslag)</button>
+					<button class="btn" wicket:id="haBerichtWijzig">Maak HuisartsBericht (Wijziging intakeafspraak)</button>
+					<button class="btn" wicket:id="haBerichtAnnuleer">Maak HuisartsBericht (Annuleren intakeafspraak)</button>
+					<button class="btn" wicket:id="haBerichtNoShow">Maak HuisartsBericht (No show intake)</button>
+				</div>
+				<div class='span5'>
+					<h1>Direction:</h1>
+					<button class="btn" wicket:id="directNaarClientDossier">Direct naar het Clientdossier</button>
+					<h1>FIT status:</h1>
+					<button class="btn" wicket:id="metIfobtGunstig">Met huidige FITTest gunstig.</button>
+					<button class="btn" wicket:id="metIfobtOngunstig">Met huidige FITTest ongunstig.</button>
+					<h1>FIT verloren uitzonderingen</h1>
+					<button class="btn" wicket:id="HuidigeIFOBTvoorRapelDatum">Aanvraag Nieuwe FITTest accepteren.</button>
+					<p>Situatie waarbij er een van de eerste uitnodiging gegevens word teruggestuurd! Dit om te verkomen dat er dan een rappel wordt gestuurd.</p>
+					<button class="btn" wicket:id="VerlorenIfobtKrijgtUitslagGunstig">Verloren FIT krijgt gunstige uitslag.</button>
+					<button class="btn" wicket:id="VerlorenIfobtKrijgtUitslagOngunstig">Verloren FIT krijgt ongunstige uitslag.</button>
 
-                </div>
-            </fieldset>
-        </form>
-    </div>
-    <fieldset>
-        <form wicket:id="form2">
-            <div class="span5">
-                <h1>Gba</h1>
-                Burgerservicenummer (geen restricties):<input type="text" wicket:id="bsn">
-                <button class="btn" wicket:id="downloadVo107">Geef vo107 record</button>
-            </div>
-        </form>
-    </fieldset>
-    <fieldset>
-        <form wicket:id="form3">
-            <div class="span5">
-                <h1>BrievenStressTest</h1>
-                Aantal brieven:<input type="text" wicket:id="aantalBrieven">
-                <button class="btn" wicket:id="brievenKlaarzetten">Brieven klaarzetten</button>
-            </div>
-        </form>
-    </fieldset>
-    <fieldset>
-        <form wicket:id="form4">
-            <div class="span5">
-                <h1>Reset clienten</h1>
-                BSN's (kommaseperated)<textarea wicket:id="bsns"></textarea>
-                <button class="btn" wicket:id="resetten">Clienten resetten</button>
-            </div>
-        </form>
-    </fieldset>
-    <fieldset>
-        <div wicket:id="verwijderRoosterBlokkenContainer" class="span5">
-            <h1>Roosterblokken verwijderen</h1>
-            <button class="btn" wicket:id="verwijderRoosterBlokken">Verwijder roosterblokken</button>
-        </div>
-    </fieldset>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+	<fieldset>
+		<form wicket:id="form2">
+			<div class="span5">
+				<h1>Gba</h1>
+				Burgerservicenummer (geen restricties):<input type="text" wicket:id="bsn">
+				<button class="btn" wicket:id="downloadVo107">Geef vo107 record</button>
+			</div>
+		</form>
+	</fieldset>
+	<fieldset>
+		<form wicket:id="form3">
+			<div class="span5">
+				<h1>BrievenStressTest</h1>
+				Aantal brieven:<input type="text" wicket:id="aantalBrieven">
+				<button class="btn" wicket:id="brievenKlaarzetten">Brieven klaarzetten</button>
+			</div>
+		</form>
+	</fieldset>
+	<fieldset>
+		<form wicket:id="form4">
+			<div class="span5">
+				<h1>Reset clienten</h1>
+				BSN's (kommaseperated)<textarea wicket:id="bsns"></textarea>
+				<button class="btn" wicket:id="resetten">Clienten resetten</button>
+			</div>
+		</form>
+	</fieldset>
+	<fieldset>
+		<div wicket:id="verwijderRoosterBlokkenContainer" class="span5">
+			<h1>Roosterblokken verwijderen</h1>
+			<button class="btn" wicket:id="verwijderRoosterBlokken">Verwijder roosterblokken</button>
+		</div>
+	</fieldset>
 </wicket:extend>
 </html>

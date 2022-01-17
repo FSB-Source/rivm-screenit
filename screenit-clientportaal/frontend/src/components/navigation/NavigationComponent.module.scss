@@ -1,0 +1,53 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.navBar {
+  width: 100%;
+  min-height: 100px;
+  background-color: #FFFFFF;
+  border-radius: 10px;
+  box-shadow: 0 6px 30px -10px rgba(0, 0, 0, 0.25);
+}
+
+.hamburger {
+  span {
+    background-image: url('../../scss/media/hamburger.svg') !important;
+  }
+}
+
+.nav {
+
+  @include respond-below(md) {
+    padding: 30px 30px 20px 30px;
+  }
+}
+
+.navBarFixed {
+  margin: 0;
+  border-radius: 0;
+  min-height: 65px;
+
+  @include respond-above(xs) {
+    padding-left: 60px;
+    padding-right: 60px;
+  }
+}
+
+.clientLogout {
+
+  border-top: 2px solid $grijs-500;
+  margin-left: 25px;
+  margin-top: 10px;
+  padding-top: 20px;
+  font-size: 14px;
+
+  span {
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+
+  @include respond-above(md) {
+    display: none;
+  }
+
+}

@@ -1,0 +1,63 @@
+﻿.kpi-detail {
+
+  h2 {
+    margin-bottom: 20px;
+  }
+
+  p {
+    font-size: calc-em(16);
+    margin-left: 106px;
+
+    @include respond-below(sm) {
+      margin-left: 70px;
+    }
+  }
+
+  &--title {
+    border-top: 1px solid $link;
+    padding-top: 80px;
+    margin-top: 60px;
+
+    @include respond-below(sm) {
+      padding-top: 100px;
+      margin: 0;
+      border-top: none;
+    }
+
+    @include respond-between(sm, md) {
+      padding-top: 104px;
+    }
+  }
+
+  &--intro {
+    font-size: calc-em(16);
+    line-height: 1.8;
+    margin-bottom: 10px;
+    font-weight: 500;
+    margin-left: 106px;
+
+    @include respond-below(sm) {
+      margin-left: 70px;
+    }
+  }
+
+  &--body {
+    padding: 20px 0;
+    min-height: 1px;
+
+    @include respond-below(sm) {
+      padding: 20px 0;
+    }
+  }
+
+  &__icn {
+    float: left;
+    margin: 30px 36px 0 0;
+    width: 70px;
+
+    @include respond-below(sm) {
+      width: 50px;
+      margin: 20px 20px 0 0;
+    }
+  }
+}

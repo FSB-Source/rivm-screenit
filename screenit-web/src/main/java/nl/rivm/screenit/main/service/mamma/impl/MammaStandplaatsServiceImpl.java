@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,10 +22,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  */
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +63,7 @@ import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
@@ -77,6 +75,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
+import com.google.common.collect.TreeRangeSet;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
@@ -225,7 +227,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 
 	@Override
 	public boolean saveOrUpdateStandplaatsLocatie(MammaStandplaatsLocatie locatie, UploadDocument nieuweBijlage, MammaStandplaats standplaats,
-		InstellingGebruiker ingelogdeGebruiker, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum)
+		InstellingGebruiker ingelogdeGebruiker, String oudeAdres, Range<Date> oudePeriode)
 	{
 		if (nieuweBijlage != null)
 		{
@@ -261,35 +263,53 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 			melding += " voor standplaats '" + standplaats.getNaam() + "' gewijzigd.";
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_STANDPLAATS, ingelogdeGebruiker, melding, Bevolkingsonderzoek.MAMMA);
 			hibernateService.saveOrUpdate(locatie);
-			maakBrievenVoorGewijzigdeLocatieGegevens(standplaats, locatie, initieelAdres, DateUtil.toLocalDate(initieelStartDatum), DateUtil.toLocalDate(initieelEindDatum));
+			maakBrievenVoorGewijzigdeLocatieGegevens(standplaats, locatie, oudeAdres, oudePeriode);
 			return true;
 		}
 		return false;
 	}
 
-	private void maakBrievenVoorGewijzigdeLocatieGegevens(MammaStandplaats standplaats, MammaStandplaatsLocatie locatie, String initieelAdres, LocalDate initieelStartDatum,
-		LocalDate initieelEindDatum)
+	private void maakBrievenVoorGewijzigdeLocatieGegevens(MammaStandplaats standplaats, MammaStandplaatsLocatie locatie, String oudeAdres, Range<Date> oudePeriode)
 	{
-		LocalDate vandaag = dateSupplier.getLocalDate();
-		Set<MammaAfspraak> afsprakenInGewijzigdePeriodes = new HashSet<>();
 		if (locatie.getTijdelijk())
 		{
-			LocalDate nieuweStartDatum = DateUtil.toLocalDate(locatie.getStartDatum());
-			addAfsprakenVoorGewijzigdePeriodes(standplaats, afsprakenInGewijzigdePeriodes, initieelStartDatum, nieuweStartDatum);
+			Range<Date> nieuwePeriode = Range.closed(DateUtil.startDag(locatie.getStartDatum()), DateUtil.eindDag(locatie.getEindDatum()));
+			boolean adresGewijzigd = !AdresUtil.getVolledigeAdresString(locatie).equals(oudeAdres);
+			Set<MammaAfspraak> afsprakenInGewijzigdePeriodes = zoekAfsprakenInGewijzigdePeriode(standplaats, oudePeriode, nieuwePeriode, adresGewijzigd);
 
-			LocalDate nieuweEindDatum = DateUtil.toLocalDate(locatie.getEindDatum());
-			addAfsprakenVoorGewijzigdePeriodes(standplaats, afsprakenInGewijzigdePeriodes, initieelEindDatum, nieuweEindDatum);
-
-			if (!AdresUtil.getVolledigeAdresString(locatie).equals(initieelAdres) && (nieuweStartDatum.isAfter(vandaag) || nieuweEindDatum.isAfter(vandaag)))
+			if (!afsprakenInGewijzigdePeriodes.isEmpty())
 			{
-				addAfsprakenVoorGewijzigdePeriode(standplaats, afsprakenInGewijzigdePeriodes, nieuweStartDatum, nieuweEindDatum);
+				EXECUTOR_SERVICE
+					.submit(new GewijzigdeLocatieBrievenThread(standplaats.getId(),
+						afsprakenInGewijzigdePeriodes.stream().map(AbstractHibernateObject::getId).collect(Collectors.toList())));
 			}
+		}
+	}
 
-			EXECUTOR_SERVICE
-				.submit(new GewijzigdeLocatieBrievenThread(standplaats.getId(), afsprakenInGewijzigdePeriodes.stream().map(a -> a.getId()).collect(Collectors.toList())));
+	Set<MammaAfspraak> zoekAfsprakenInGewijzigdePeriode(MammaStandplaats standplaats, Range<Date> oudePeriode, Range<Date> nieuwePeriode, boolean adresGewijzigd)
+	{
+		RangeSet<Date> periodesVoorZoeken = TreeRangeSet.create();
+		periodesVoorZoeken.add(nieuwePeriode);
 
+		if (oudePeriode != null)
+		{
+			periodesVoorZoeken.add(oudePeriode);
+
+			if (!adresGewijzigd && oudePeriode.isConnected(nieuwePeriode))
+			{
+				periodesVoorZoeken.remove(oudePeriode.intersection(nieuwePeriode));
+			}
 		}
 
+		Date brievenGenererenVanaf = DateUtil.startDag(DateUtil.toUtilDate(dateSupplier.getLocalDate().plusDays(1)));
+		if (periodesVoorZoeken.span().lowerEndpoint().before(brievenGenererenVanaf))
+		{
+			periodesVoorZoeken.remove(Range.closed(periodesVoorZoeken.span().lowerEndpoint(), brievenGenererenVanaf));
+		}
+
+		Set<MammaAfspraak> afspraken = new HashSet<>();
+		periodesVoorZoeken.asRanges().forEach(range -> afspraken.addAll(baseAfspraakDao.getAfspraken(standplaats, range, MammaAfspraakStatus.GEPLAND)));
+		return afspraken;
 	}
 
 	private class GewijzigdeLocatieBrievenThread extends OpenHibernate5SessionInThread
@@ -317,37 +337,12 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 
 				if (afspraak.equals(MammaScreeningRondeUtil.getLaatsteAfspraak(afspraak.getUitnodiging().getScreeningRonde())))
 				{
-					brieven.add(baseBriefService.maakMammaBrief(afspraak.getUitnodiging().getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET));
+					brieven.add(baseBriefService.maakBvoBrief(afspraak.getUitnodiging().getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET));
 				}
 			}
 			baseStandplaatsService.zetBrievenKlaarVoorStandplaatsVoorAfdrukken(brieven, persistentStandplaats);
 		}
 
-	}
-
-	private void addAfsprakenVoorGewijzigdePeriodes(MammaStandplaats standplaats, Set<MammaAfspraak> afsprakenInGewijzigdePeriodes, LocalDate initieelDatum,
-		LocalDate nieuweDatum)
-	{
-		LocalDate vandaag = dateSupplier.getLocalDate();
-		if (initieelDatum != null && (initieelDatum.isAfter(vandaag) || nieuweDatum.isAfter(vandaag)))
-		{
-			if (initieelDatum.isAfter(nieuweDatum))
-			{
-				addAfsprakenVoorGewijzigdePeriode(standplaats, afsprakenInGewijzigdePeriodes, nieuweDatum, initieelDatum);
-			}
-			else if (nieuweDatum.isAfter(initieelDatum))
-			{
-				addAfsprakenVoorGewijzigdePeriode(standplaats, afsprakenInGewijzigdePeriodes, initieelDatum, nieuweDatum);
-			}
-		}
-	}
-
-	private void addAfsprakenVoorGewijzigdePeriode(MammaStandplaats standplaats, Set<MammaAfspraak> afsprakenInGewijzigdePeriodes, LocalDate startDatum, LocalDate eindDatum)
-	{
-		LocalDate vandaag = dateSupplier.getLocalDate();
-		Date vanaf = DateUtil.toUtilDate(Collections.max(Arrays.asList(startDatum, vandaag.plusDays(1))));
-		Date totEnMet = DateUtil.toUtilDate(eindDatum);
-		afsprakenInGewijzigdePeriodes.addAll(baseAfspraakDao.getAfspraken(standplaats, vanaf, totEnMet, MammaAfspraakStatus.GEPLAND));
 	}
 
 	@Override
@@ -380,7 +375,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats, String initieelAdres, Date initieelStartDatum, Date initieelEindDatum)
+	public String controleerUitnodigingenNaVeranderingLocatie(MammaStandplaats standplaats)
 	{
 		MammaStandplaatsLocatie tijdelijkAdres = standplaats.getTijdelijkeLocatie();
 		long aantalAfsprakenBinnenLocatie = 0;
@@ -402,33 +397,35 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public String controleerUitnodigingenNaVeranderingTijdelijkeLocatie(MammaStandplaats standplaats, String initieelAdres, Date oorsponkelijkeStartDatum,
-		Date oorspronkelijkeEindDatum)
+	public String controleerUitnodigingenNaVeranderingTijdelijkeLocatie(MammaStandplaats standplaats, String oudeAdres, Range<Date> oudePeriode)
 	{
 		MammaStandplaatsLocatie locatie = standplaats.getTijdelijkeLocatie();
-		Date nieuweEindDatum = locatie.getEindDatum();
-		Date dagNaNieuweEindDatum = DateUtil.toUtilDate(DateUtil.toLocalDate(nieuweEindDatum).plusDays(1));
-		Date nieuweStartDatum = locatie.getStartDatum();
-		if (oorsponkelijkeStartDatum != null)
+		Date nieuweStartDatum = locatie.getStartDatum() != null ? DateUtil.startDag(locatie.getStartDatum()) : null;
+		Date nieuweEindDatum = locatie.getEindDatum() != null ? DateUtil.eindDag(locatie.getEindDatum()) : null;
+
+		if (oudePeriode != null)
 		{
-			if (!DateUtil.compareEquals(nieuweStartDatum, oorsponkelijkeStartDatum) || !DateUtil.compareEquals(nieuweEindDatum, oorspronkelijkeEindDatum))
+			if (!DateUtil.compareEquals(nieuweStartDatum, oudePeriode.lowerEndpoint()) || !DateUtil.compareEquals(nieuweEindDatum, oudePeriode.upperEndpoint()))
 			{
-				Date dagNaOorspronkelijkeEindDatum = DateUtil.toUtilDate(DateUtil.toLocalDate(oorspronkelijkeEindDatum).plusDays(1));
-				long oorspronkelijkeAantalAfsprakenBinnenLocatie = baseAfspraakDao.countAfspraken(standplaats, oorsponkelijkeStartDatum, dagNaOorspronkelijkeEindDatum,
+				long aantalAfsprakenBinnenOudeLocatie = baseAfspraakDao.countAfspraken(standplaats, oudePeriode.lowerEndpoint(), oudePeriode.upperEndpoint(),
 					MammaAfspraakStatus.GEPLAND);
-				long nieuweAantalAfsprakenBinnenLocatie = baseAfspraakDao.countAfspraken(standplaats, nieuweStartDatum, dagNaNieuweEindDatum, MammaAfspraakStatus.GEPLAND);
-				if (oorspronkelijkeAantalAfsprakenBinnenLocatie > nieuweAantalAfsprakenBinnenLocatie)
+				long aantalAfsprakenBinnenNieuweLocatie = baseAfspraakDao.countAfspraken(standplaats, nieuweStartDatum, nieuweEindDatum, MammaAfspraakStatus.GEPLAND);
+
+				if (aantalAfsprakenBinnenOudeLocatie > 0 || aantalAfsprakenBinnenNieuweLocatie > 0)
 				{
-					return "zijn.al.uitnodigingen.oorspronkelijke.locatie";
-				}
-				else if (oorspronkelijkeAantalAfsprakenBinnenLocatie < nieuweAantalAfsprakenBinnenLocatie)
-				{
-					return "zijn.al.uitnodigingen.nieuwe.locatie.tijdelijk";
+					if (aantalAfsprakenBinnenOudeLocatie >= aantalAfsprakenBinnenNieuweLocatie)
+					{
+						return "zijn.al.uitnodigingen.oorspronkelijke.locatie";
+					}
+					else
+					{
+						return "zijn.al.uitnodigingen.nieuwe.locatie.tijdelijk";
+					}
 				}
 			}
-			if (!AdresUtil.getVolledigeAdresString(locatie).equals(initieelAdres))
+			if (!AdresUtil.getVolledigeAdresString(locatie).equals(oudeAdres))
 			{
-				if (baseAfspraakDao.countAfspraken(standplaats, oorsponkelijkeStartDatum, dagNaNieuweEindDatum, MammaAfspraakStatus.GEPLAND) > 0)
+				if (baseAfspraakDao.countAfspraken(standplaats, oudePeriode.lowerEndpoint(), oudePeriode.upperEndpoint(), MammaAfspraakStatus.GEPLAND) > 0)
 				{
 					return "zijn.al.uitnodigingen.locatie.change";
 				}
@@ -436,7 +433,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 		}
 		else
 		{
-			if (baseAfspraakDao.countAfspraken(standplaats, nieuweStartDatum, dagNaNieuweEindDatum, MammaAfspraakStatus.GEPLAND) > 0)
+			if (baseAfspraakDao.countAfspraken(standplaats, nieuweStartDatum, nieuweEindDatum, MammaAfspraakStatus.GEPLAND) > 0)
 			{
 				return "zijn.al.uitnodigingen.locatie.change";
 			}

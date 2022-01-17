@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.service.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -35,6 +34,7 @@ import java.util.concurrent.Executors;
 import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.SortState;
@@ -92,7 +92,7 @@ import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ProjectServiceImpl implements ProjectService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectServiceImpl.class);
@@ -207,122 +207,89 @@ public class ProjectServiceImpl implements ProjectService
 		return projectDao.getCountClientProjecten(client);
 	}
 
-	private Map<ProjectImportMelding, List<String>> putMeldingInHash(Map<ProjectImportMelding, List<String>> meldingen, ProjectImportMelding key, String value)
-	{
-		if (!meldingen.containsKey(key))
-		{
-			meldingen.put(key, new ArrayList<>());
-		}
-		meldingen.get(key).add(value);
-		return meldingen;
-	}
-
 	private Map<ProjectImportMelding, List<String>> putAllMeldingInHash(Map<ProjectImportMelding, List<String>> meldingen, List<String> nieuweMeldingen)
 	{
 		for (String melding : nieuweMeldingen)
 		{
-			putMeldingInHash(meldingen, ProjectImportMelding.ERROR, melding);
+			meldingen.computeIfAbsent(ProjectImportMelding.ERROR, s -> new ArrayList<>()).add(melding);
 		}
 		return meldingen;
 	}
 
-	private List<String> valideerImportOpFoutenClient(ProjectGroep groep, Client client, Date geboortedatum, int regelNummer)
+	private void valideerRulesPopulatie(ProjectGroep groep, Client client)
 	{
-		List<String> meldingen = new ArrayList<>();
-
-		if (client == null || client.getPersoon() == null || client.getPersoon().getGeboortedatum() == null)
-		{
-			meldingen.add("Regel " + regelNummer + ": Er is geen cliënt gevonden met dit BSN en geboortedatum.");
-			return meldingen;
-		}
-		Date geboorteDatumClient = client.getPersoon().getGeboortedatum();
-		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-		if (!formatter.format(geboorteDatumClient).equals(formatter.format(geboortedatum)))
-		{
-			meldingen.add("Regel " + regelNummer + ": Er is geen cliënt gevonden met dit BSN en geboortedatum.");
-			return meldingen;
-		}
 		if (client.getPersoon().getOverlijdensdatum() != null)
 		{
-			meldingen.add("Regel " + regelNummer + ": Deze cliënt is al overleden. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException("Deze cliënt is al overleden.");
 		}
 		if (client.getPersoon().getDatumVertrokkenUitNederland() != null)
 		{
-			meldingen.add("Regel " + regelNummer + ": Deze cliënt is reeds vertrokken uit Nederland. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException("Deze cliënt is reeds vertrokken uit Nederland.");
 		}
 		if (!GbaStatus.INDICATIE_AANWEZIG.equals(client.getGbaStatus()))
 		{
-			meldingen.add("Regel " + regelNummer + ": Deze cliënt heeft een verkeerde gba status. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException("Deze cliënt heeft een verkeerde gba status.");
 		}
 
 		Project project = groep.getProject();
 		List<Bevolkingsonderzoek> excludeerAfmeldingOnderzoeken = project.getExcludeerAfmelding();
-		List<Bevolkingsonderzoek> clientOnderzoeken = doelgroepService.totWelkeBevolkingsonderzoekenHoortDezeClient(client);
-		if (excludeerAfmeldingOnderzoeken.size() > 0 && clientOnderzoeken.size() > 0)
+		if (excludeerAfmeldingOnderzoeken.size() > 0)
 		{
 
 			for (Bevolkingsonderzoek excludeerOnderzoek : excludeerAfmeldingOnderzoeken)
 			{
-				if (clientOnderzoeken.contains(excludeerOnderzoek)
+				if (doelgroepService.behoortTotDoelgroep(client, excludeerOnderzoek)
 					&& AfmeldingUtil.isAfgemeld(clientService.getDossier(client, excludeerOnderzoek)))
 				{
-					meldingen.add("Regel " + regelNummer + ": Deze cliënt heeft zich afgemeld bij het onderzoek: " + excludeerOnderzoek.getAfkorting()
-						+ ", en deze is geëxcludeerd. Verwijder deze cliënt uit de xls.");
+					throw new IllegalStateException(
+						"Deze cliënt heeft zich afgemeld bij het onderzoek: " + excludeerOnderzoek.getAfkorting() + ", en deze is geëxcludeerd.");
 				}
 			}
 		}
 
 		if (groep.getProject().getType().equals(ProjectType.PROJECT))
 		{
-			if (ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false) != null)
+			ProjectClient huidigeProjectClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate(), false);
+			if (huidigeProjectClient != null)
 			{
-				meldingen.add("Regel " + regelNummer + ": Deze cliënt doet al mee aan het project. Verwijder deze cliënt uit de xls.");
+				throw new IllegalStateException("Deze cliënt doet al mee aan het project '" + huidigeProjectClient.getProject().getNaam() + "'");
 			}
 			else if (ProjectUtil.getProjectClientVanProject(client, project) != null)
 			{
-				meldingen.add("Regel " + regelNummer + ": Deze cliënt is al aan dit project gekoppeld of is al gekoppeld geweest. Verwijder deze cliënt uit de xls.");
+				throw new IllegalStateException("Deze cliënt is al aan dit project gekoppeld of is al gekoppeld geweest.");
 			}
 		}
 
-		if (Boolean.TRUE.equals(project.getExcludeerBezwaar()) && (BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, Bevolkingsonderzoek.COLON)
-			|| BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, Bevolkingsonderzoek.CERVIX)))
+		if (Boolean.TRUE.equals(project.getExcludeerBezwaar()) && (BezwaarUtil.isBezwaarActiefVoorEenVanDeOnderzoeken(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK)))
 		{
-			meldingen.add("Regel " + regelNummer + ": Deze cliënt heeft een bezwaar op wetenschappelijk onderzoek. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException("Deze cliënt heeft een bezwaar op wetenschappelijk onderzoek.");
 		}
-		if (Boolean.TRUE.equals(project.getExcludeerBezwaar()) && (BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_KWALITEITSWAARBORGING, Bevolkingsonderzoek.COLON)
-			|| BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, Bevolkingsonderzoek.CERVIX)))
+		if (Boolean.TRUE.equals(project.getExcludeerBezwaar()) && (BezwaarUtil.isBezwaarActiefVoorEenVanDeOnderzoeken(client, BezwaarType.GEEN_KWALITEITSWAARBORGING)))
 		{
-			meldingen.add("Regel " + regelNummer + ": Deze cliënt heeft een bezwaar op kwaliteitsborging. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException("Deze cliënt heeft een bezwaar op kwaliteitsborging.");
 		}
 
-		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.COLON)
-			&& client.getColonDossier().getLaatsteScreeningRonde() != null
-			&& DateUtil.compareBefore(client.getColonDossier().getLaatsteScreeningRonde().getCreatieDatum(), project.getStartDatum()))
+		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.COLON) && isLaatsteRondeGestartNietNaStartProject(client.getColonDossier(), project))
 		{
-			meldingen.add("Regel " + regelNummer
-				+ ": Deze cliënt is al gestart met een DK screeningronde terwijl dit project een excludeer op open ronde heeft. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException(
+				"Deze cliënt is al gestart met een DK screeningronde terwijl dit project een excludeer op open ronde heeft.");
 		}
-		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.CERVIX) && client.getCervixDossier() != null
-			&& client.getCervixDossier().getLaatsteScreeningRonde() != null
-			&& DateUtil.compareBefore(client.getCervixDossier().getLaatsteScreeningRonde().getCreatieDatum(), project.getStartDatum()))
+		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.CERVIX) && isLaatsteRondeGestartNietNaStartProject(client.getCervixDossier(), project))
 		{
-			meldingen.add("Regel " + regelNummer
-				+ ": Deze cliënt is al gestart met een BMHK screeningronde terwijl dit project een excludeer op open ronde heeft. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException(
+				"Deze cliënt is al gestart met een BMHK screeningronde terwijl dit project een excludeer op open ronde heeft.");
 		}
-		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.MAMMA) && client.getMammaDossier() != null
-			&& client.getMammaDossier().getLaatsteScreeningRonde() != null
-			&& DateUtil.compareBefore(client.getMammaDossier().getLaatsteScreeningRonde().getCreatieDatum(), project.getStartDatum()))
+		if (project.getExcludeerOpenRonde().contains(Bevolkingsonderzoek.MAMMA) && isLaatsteRondeGestartNietNaStartProject(client.getMammaDossier(), project))
 		{
-			meldingen.add("Regel " + regelNummer
-				+ ": Deze cliënt is al gestart met een BK screeningronde terwijl dit project een excludeer op open ronde heeft. Verwijder deze cliënt uit de xls.");
+			throw new IllegalStateException(
+				"Deze cliënt is al gestart met een BK screeningronde terwijl dit project een excludeer op open ronde heeft.");
 		}
-		return meldingen;
 	}
 
-	@Override
-	public boolean verwerkGroepClienten(List<Client> clienten, ProjectGroep groep)
+	private boolean isLaatsteRondeGestartNietNaStartProject(Dossier dossier, Project project)
 	{
-		return false;
+		return dossier != null && dossier.getLaatsteScreeningRonde() != null && dossier.getLaatsteScreeningRonde().getCreatieDatum() != null
+			&& !DateUtil.toLocalDate(dossier.getLaatsteScreeningRonde().getCreatieDatum()).isAfter(DateUtil.toLocalDate(project.getStartDatum()));
 	}
 
 	@Override
@@ -400,30 +367,6 @@ public class ProjectServiceImpl implements ProjectService
 	}
 
 	@Override
-	public ProjectBrief getProjectBriefFromVragenlijstKey(String vragenlijstKey)
-	{
-		if (vragenlijstKey != null && vragenlijstKey.length() > 4)
-		{
-			String key = vragenlijstKey.replaceAll("-", "");
-			String controleGetal = key.substring(key.length() - 4);
-			Long projectBriefId = Long.valueOf(key.substring(1, key.length() - 4));
-			if (key.startsWith("B"))
-			{
-				ProjectBrief projectBrief = hibernateService.get(ProjectBrief.class, projectBriefId);
-				if (projectBrief != null)
-				{
-					String projectClientId = projectBrief.getProjectClient().getClient().getId().toString();
-					if (projectClientId.substring(projectClientId.length() - 4).equals(controleGetal.substring(controleGetal.length() - 4)))
-					{
-						return projectBrief;
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	@Override
 	public boolean isVragenlijstGekoppeldAanNietBeeindigdProject(Long vragenlijstId)
 	{
 		return projectDao.isVragenlijstGekoppeldAanNietBeeindigdProject(vragenlijstId);
@@ -448,24 +391,19 @@ public class ProjectServiceImpl implements ProjectService
 	}
 
 	@Override
-	public Long getAantalProjectClientenVanProject(Project project)
-	{
-		return projectDao.getAantalInactieveProjectClientenVanProject(project);
-	}
-
-	@Override
-	public Long getAantalProjectClientenVanProjectGroep(ProjectGroep groep)
-	{
-		return projectDao.getAantalProjectClientenVanProjectGroep(groep);
-	}
-
-	@Override
 	public ProjectBriefActie getProjectBriefActie(Client client, BriefType briefType)
 	{
 		return projectDao.getProjectBriefActie(client, briefType);
 	}
 
 	@Override
+	public Long getAantalProjectClientenVanProject(Project project)
+	{
+		return projectDao.getAantalProjectClientenVanProject(project);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public boolean addVragenlijstAanTemplate(MailMergeContext context, Document chunkDocument, ProjectBriefActie actie, ProjectBrief projectBrief) throws Exception
 	{
 		ProjectVragenlijst vragenlijst = actie.getVragenlijst();
@@ -693,5 +631,81 @@ public class ProjectServiceImpl implements ProjectService
 	{
 		projectDao.resetWachtOpStartProject();
 		projectDao.setNieuwWachtOpStartProject(currentDateSupplier.getDate());
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, noRollbackFor = IllegalStateException.class)
+	public ProjectClient addClientToProjectGroep(ProjectGroep groep, Client client)
+	{
+		valideerRulesPopulatie(groep, client);
+
+		ProjectClient projectClient = new ProjectClient();
+		projectClient.setGroep(groep);
+		projectClient.setProject(groep.getProject());
+		projectClient.setClient(client);
+		projectClient.setToegevoegd(currentDateSupplier.getDate());
+		client.getProjecten().add(projectClient);
+
+		groep.setPopulatie(groep.getPopulatie() + 1);
+		groep.getClienten().add(projectClient);
+		hibernateService.saveOrUpdateAll(groep, projectClient);
+		return projectClient;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void verwijderProjectGroep(ProjectGroep groep, Account loggedInAccount)
+	{
+		Project project = groep.getProject();
+		project.getGroepen().remove(groep);
+		List<UploadDocument> documentenTeVerwijderen = new ArrayList<>();
+		if (groep.getProjectImport() != null && groep.getProjectImport().getUploadDocument() != null)
+		{
+			documentenTeVerwijderen.add(groep.getProjectImport().getUploadDocument());
+		}
+		groep.getProjectBestanden().stream()
+			.filter(b -> b.getUploadDocument() != null)
+			.forEach(b -> documentenTeVerwijderen.add(b.getUploadDocument()));
+		groep.getClienten().stream()
+			.filter(c -> c.getProjectInactiveerDocument() != null && c.getProjectInactiveerDocument().getUploadDocument() != null)
+			.forEach(c -> documentenTeVerwijderen.add(c.getProjectInactiveerDocument().getUploadDocument()));
+		hibernateService.delete(groep);
+		hibernateService.saveOrUpdate(project);
+
+		documentenTeVerwijderen.forEach(d -> fileService.delete(d, true));
+
+		if (project.getType().equals(ProjectType.BRIEFPROJECT))
+		{
+			logService.logGebeurtenis(LogGebeurtenis.BRIEFPROJECT_GROEP_VERWIJDERD, loggedInAccount,
+				"Briefproject: " + project.getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie());
+		}
+		else
+		{
+			logService.logGebeurtenis(LogGebeurtenis.PROJECT_GROEP_VERWIJDERD, loggedInAccount,
+				"Project: " + project.getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie());
+		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public String updateProjectGroepActiefStatus(ProjectGroep groep, Account loggedInAccount)
+	{
+		groep.setActiefDatum(currentDateSupplier.getDate());
+		hibernateService.saveOrUpdate(groep);
+
+		Project project = groep.getProject();
+		String melding = project.getNaam() + " Groep: " + groep.getNaam() + " Populatie: " + groep.getPopulatie()
+			+ " en is op " + (groep.getActief() ? "actief" : "inactief") + " gezet.";
+		if (project.getType().equals(ProjectType.BRIEFPROJECT))
+		{
+			melding = "Briefproject: " + melding;
+			logService.logGebeurtenis(LogGebeurtenis.BRIEFPROJECT_GROEP_GEWIJZIGD, loggedInAccount, melding);
+		}
+		else
+		{
+			melding = "Project: " + melding;
+			logService.logGebeurtenis(LogGebeurtenis.PROJECT_GROEP_GEWIJZIGD, loggedInAccount, melding);
+		}
+		return melding;
 	}
 }

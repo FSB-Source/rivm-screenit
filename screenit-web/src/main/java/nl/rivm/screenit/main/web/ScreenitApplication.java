@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,11 +45,6 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.service.ZorgIdSessieService;
 import nl.rivm.screenit.main.web.ScreenitSession.ScreenitSessionAccountResolverDelegate;
 import nl.rivm.screenit.main.web.base.BasePage;
-import nl.rivm.screenit.main.web.client.base.ClientBasePage;
-import nl.rivm.screenit.main.web.client.base.ClientFoutPage;
-import nl.rivm.screenit.main.web.client.digid.ClientportaalDigidLoginPage;
-import nl.rivm.screenit.main.web.client.digid.ScreenitDigidLoginPage;
-import nl.rivm.screenit.main.web.client.vragenlijst.ClientVragenlijstPage;
 import nl.rivm.screenit.main.web.component.LocalTimeConverter;
 import nl.rivm.screenit.main.web.component.MultiDateConverter;
 import nl.rivm.screenit.main.web.component.PollingAbstractAjaxTimerBehavior;
@@ -115,10 +109,6 @@ public class ScreenitApplication extends WebApplication
 {
 	public static final String CHECK_UZIPAS_MOUNT = "uzipas";
 
-	public static final String CLIENTPORTAAL_MOUNT = "clientportaal";
-
-	public static final String DIGID_MOUNT = "digid";
-
 	private static final int AANTAL_REQUESTS = 3000;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ScreenitApplication.class);
@@ -164,11 +154,8 @@ public class ScreenitApplication extends WebApplication
 		getSecuritySettings().setCryptFactory(new KeyInSessionSunJceCryptFactory());
 
 		mountPage("medewerkerportaal", MedewerkerLoginMethodPage.class);
-		mountPage("vragenlijst", ClientVragenlijstPage.class);
 		mountPage(CHECK_UZIPAS_MOUNT, CheckUzipas.class);
-		mountPage(CLIENTPORTAAL_MOUNT, ClientportaalDigidLoginPage.class);
 		mountPage("passwordchange", PasswordChangePage.class);
-		mountPage(DIGID_MOUNT, ScreenitDigidLoginPage.class);
 		mountPage(UITWISSELPORTAAL_MOUNT, UitwisselportaalLoginPage.class);
 
 		getAjaxRequestTargetListeners().add(new IListener()
@@ -238,11 +225,10 @@ public class ScreenitApplication extends WebApplication
 		}
 		else
 		{
-			getRequestCycleListeners().add(new EntityAndSerializableCheckerListener(new Class[] { ScreenitDigidLoginPage.class, OrganisatieSelectiePage.class }, true));
+			getRequestCycleListeners().add(new EntityAndSerializableCheckerListener(new Class[] { OrganisatieSelectiePage.class }, true));
 			WicketSource.configure(this);
 			allowUnsecureCookies();
 		}
-
 		List<CacheManager> cacheManagers = CacheManager.ALL_CACHE_MANAGERS;
 		for (CacheManager cacheManager : cacheManagers)
 		{
@@ -407,17 +393,8 @@ public class ScreenitApplication extends WebApplication
 						}
 						else if (ExceptionSettings.SHOW_INTERNAL_ERROR_PAGE.equals(unexpectedExceptionDisplay))
 						{
+							return createPageRequestHandler(new PageProvider(application.getApplicationSettings().getInternalErrorPage()));
 
-							Page currentPage = extractCurrentPage();
-							if (currentPage instanceof ClientBasePage)
-							{
-								return createPageRequestHandler(new PageProvider(ClientFoutPage.class));
-							}
-							else
-							{
-								return createPageRequestHandler(new PageProvider(
-									application.getApplicationSettings().getInternalErrorPage()));
-							}
 						}
 
 						return new ErrorCodeRequestHandler(500);

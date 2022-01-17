@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,6 +43,9 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.IBevolkingsonderzoek;
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.model.Instelling;
@@ -63,6 +66,8 @@ import org.hibernate.envers.NotAudited;
 @Table(schema = "algemeen", uniqueConstraints = @UniqueConstraint(name = "uc_project_naam", columnNames = "naam"))
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public class Project extends AbstractHibernateObject implements INaam, IBevolkingsonderzoek
 {
 
@@ -114,22 +119,22 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 
 	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project")
-	private List<ProjectClient> clienten;
+	private List<ProjectClient> clienten = new ArrayList<>();
 
 	private Boolean excludeerBezwaar = Boolean.FALSE;
 
 	@ElementCollection(fetch = FetchType.LAZY)
 	@CollectionTable(schema = "algemeen", name = "project_excludeer_afmelding")
-	private List<Bevolkingsonderzoek> ExcludeerAfmelding = new ArrayList<Bevolkingsonderzoek>();
+	private List<Bevolkingsonderzoek> excludeerAfmelding = new ArrayList<>();
 
 	@ElementCollection(fetch = FetchType.LAZY)
 	@CollectionTable(schema = "algemeen", name = "project_excludeer_open_ronde")
-	private List<Bevolkingsonderzoek> ExcludeerOpenRonde = new ArrayList<Bevolkingsonderzoek>();
+	private List<Bevolkingsonderzoek> excludeerOpenRonde = new ArrayList<>();
 
 	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
-	private List<ProjectGroep> groepen;
+	private List<ProjectGroep> groepen = new ArrayList<>();
 
 	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "project")
@@ -159,204 +164,6 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	private List<ProjectStatus> projectStatussen = new ArrayList<ProjectStatus>();
 
 	@Override
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public Date getStartDatum()
-	{
-		return startDatum;
-	}
-
-	public void setStartDatum(Date startDatum)
-	{
-		this.startDatum = startDatum;
-	}
-
-	public GroepSelectieType getGroepSelectieType()
-	{
-		return groepSelectieType;
-	}
-
-	public void setGroepSelectieType(GroepSelectieType groepSelectieType)
-	{
-		this.groepSelectieType = groepSelectieType;
-	}
-
-	public List<ProjectGroep> getGroepen()
-	{
-		return groepen;
-	}
-
-	public void setGroepen(List<ProjectGroep> groepen)
-	{
-		this.groepen = groepen;
-	}
-
-	public Instelling getOrganisatie()
-	{
-		return organisatie;
-	}
-
-	public void setOrganisatie(Instelling organisatie)
-	{
-		this.organisatie = organisatie;
-	}
-
-	public List<Instelling> getScreeningOrganisaties()
-	{
-		return screeningOrganisaties;
-	}
-
-	public void setScreeningOrganisaties(List<Instelling> screeningOrganisaties)
-	{
-		this.screeningOrganisaties = screeningOrganisaties;
-	}
-
-	public List<ProjectClient> getClienten()
-	{
-		return clienten;
-	}
-
-	public void setClienten(List<ProjectClient> clienten)
-	{
-		this.clienten = clienten;
-	}
-
-	public Boolean getAnoniem()
-	{
-		return anoniem;
-	}
-
-	public void setAnoniem(Boolean anoniem)
-	{
-		this.anoniem = anoniem;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public ProjectType getType()
-	{
-		return type;
-	}
-
-	public void setType(ProjectType type)
-	{
-		this.type = type;
-	}
-
-	@Transient
-	public List<ProjectType> getProjectTypes()
-	{
-		return projectTypes;
-	}
-
-	@Transient
-	public void setProjectTypes(List<ProjectType> projectTypes)
-	{
-		this.projectTypes = projectTypes;
-	}
-
-	public List<ProjectStatus> getProjectStatussen()
-	{
-		return projectStatussen;
-	}
-
-	public void setProjectStatussen(List<ProjectStatus> projectStatussen)
-	{
-		this.projectStatussen = projectStatussen;
-	}
-
-	public InstellingGebruiker getContactpersoon()
-	{
-		return contactpersoon;
-	}
-
-	public void setContactpersoon(InstellingGebruiker contactpersoon)
-	{
-		this.contactpersoon = contactpersoon;
-	}
-
-	public List<InstellingGebruiker> getMedewerkers()
-	{
-		return medewerkers;
-	}
-
-	public void setMedewerkers(List<InstellingGebruiker> medewerkers)
-	{
-		this.medewerkers = medewerkers;
-	}
-
-	public String getOpmerkingen()
-	{
-		return opmerkingen;
-	}
-
-	public void setOpmerkingen(String opmerkingen)
-	{
-		this.opmerkingen = opmerkingen;
-	}
-
-	public List<Bevolkingsonderzoek> getExcludeerAfmelding()
-	{
-		return ExcludeerAfmelding;
-	}
-
-	public void setExcludeerAfmelding(List<Bevolkingsonderzoek> excludeerAfmelding)
-	{
-		ExcludeerAfmelding = excludeerAfmelding;
-	}
-
-	public List<Bevolkingsonderzoek> getExcludeerOpenRonde()
-	{
-		return ExcludeerOpenRonde;
-	}
-
-	public void setExcludeerOpenRonde(List<Bevolkingsonderzoek> excludeerOpenRonde)
-	{
-		ExcludeerOpenRonde = excludeerOpenRonde;
-	}
-
-	public List<ProjectBriefActie> getProjectBriefActies()
-	{
-		return projectBriefActies;
-	}
-
-	public void setProjectBriefActies(List<ProjectBriefActie> projectBriefActies)
-	{
-		this.projectBriefActies = projectBriefActies;
-	}
-
-	public int getPopulatie()
-	{
-		int populatie = 0;
-		if (getGroepen() != null)
-		{
-			for (ProjectGroep groep : getGroepen())
-			{
-				populatie += groep.getPopulatie();
-			}
-		}
-		return populatie;
-	}
-
-	@Override
-	public List<Bevolkingsonderzoek> getBevolkingsonderzoeken()
-	{
-		return bevolkingsonderzoeken;
-	}
-
-	@Override
-	public void setBevolkingsonderzoeken(List<Bevolkingsonderzoek> bevolkingsonderzoeken)
-	{
-		this.bevolkingsonderzoeken = bevolkingsonderzoeken;
-	}
-
-	@Override
 	public Boolean getExactMatch()
 	{
 
@@ -367,56 +174,6 @@ public class Project extends AbstractHibernateObject implements INaam, IBevolkin
 	public void setExctMatch(Boolean exactMatch)
 	{
 
-	}
-
-	public Date getEindDatum()
-	{
-		return eindDatum;
-	}
-
-	public void setEindDatum(Date eindDatum)
-	{
-		this.eindDatum = eindDatum;
-	}
-
-	public Date getEindeInstroom()
-	{
-		return eindeInstroom;
-	}
-
-	public void setEindeInstroom(Date eindeInstroom)
-	{
-		this.eindeInstroom = eindeInstroom;
-	}
-
-	public Boolean getExcludeerBezwaar()
-	{
-		return excludeerBezwaar;
-	}
-
-	public void setExcludeerBezwaar(Boolean excludeerBezwaar)
-	{
-		this.excludeerBezwaar = excludeerBezwaar;
-	}
-
-	public List<ProjectAttribuut> getProjectAttributen()
-	{
-		return projectAttributen;
-	}
-
-	public void setProjectAttributen(List<ProjectAttribuut> projectAttributen)
-	{
-		this.projectAttributen = projectAttributen;
-	}
-
-	public List<ProjectParameter> getParameters()
-	{
-		return parameters;
-	}
-
-	public void setParameters(List<ProjectParameter> parameters)
-	{
-		this.parameters = parameters;
 	}
 
 }

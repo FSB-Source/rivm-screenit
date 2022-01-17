@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +29,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
 import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.IndicatingAjaxFormChoiceComponentUpdatingBehavior;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
@@ -41,9 +41,9 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.MammaConclusieReviewFilterOptie;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
+import nl.topicuszorg.wicket.input.behavior.IndicatingAjaxFormComponentUpdatingBehavior;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
 import org.apache.wicket.Component;
@@ -105,26 +105,18 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 
 		MammaReviewDataProvider onderzoekDataProvider = new MammaReviewDataProvider(zoekObjectModel);
 
-		List<IColumn<MammaScreeningRonde, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "laatsteOnderzoek.creatieDatum", Constants.getDateTimeSecondsFormat()));
-		columns.add(new ClientColumn<>("persoon.achternaam", "dossier.client"));
-		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "dossier.client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "dossier.client.persoon.bsn"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Conclusie"), "followUpConclusieStatus", "followUpConclusieStatus"));
-		columns.add(new PropertyColumn<>(Model.of("Gereviewd op"), "conclusieReviews")
-		{
-			@Override
-			public IModel<String> getDataModel(IModel<MammaScreeningRonde> screeningRondeModel)
-			{
-				LocalDateTime reviewMoment = conclusieReviewService.getReviewMoment(screeningRondeModel.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker());
-				return reviewMoment != null ? Model.of(reviewMoment.format(DateUtil.LOCAL_DATE_TIME_FORMAT_SECONDS)) : null;
-			}
-		});
+		List<IColumn<MammaConclusieReview, String>> columns = new ArrayList<>();
+		columns.add(new DateTimePropertyColumn<>(Model.of("Onderzoeksdatum"), "screeningRonde.laatsteOnderzoek.creatieDatum", Constants.getDateTimeSecondsFormat()));
+		columns.add(new ClientColumn<>("persoon.achternaam", "screeningRonde.dossier.client"));
+		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "screeningRonde.dossier.client.persoon"));
+		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "screeningRonde.dossier.client.persoon.bsn"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Conclusie"), "screeningRonde.followUpConclusieStatus", "screeningRonde.followUpConclusieStatus"));
+		columns.add(new PropertyColumn<>(Model.of("Gereviewd op"), "reviewMoment"));
 
 		tabelContainer.add(new ScreenitDataTable<>("resultaten", columns, onderzoekDataProvider, 10, Model.of("onderzoek(en)"))
 		{
 			@Override
-			public void onClick(AjaxRequestTarget target, IModel<MammaScreeningRonde> model)
+			public void onClick(AjaxRequestTarget target, IModel<MammaConclusieReview> model)
 			{
 				wijzigIDS7Role(conclusieReviewService.getMammobridgeRoleBijConclusieReviewFilter(zoekObjectModel.getObject().getFilterOptie()));
 
@@ -132,7 +124,7 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 
 				if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_REVIEW_WERKLIJST, Actie.AANPASSEN) && isHeeftImsKoppelingRecht())
 				{
-					setResponsePage(new MammaConclusieReviewenPage(model.getObject().getLaatsteOnderzoek().getLaatsteBeoordeling().getId(),
+					setResponsePage(new MammaConclusieReviewenPage(model.getObject().getScreeningRonde().getLaatsteOnderzoek().getLaatsteBeoordeling().getId(),
 						beoordelingIds, MammaReviewWerklijstPage.class));
 				}
 			}
@@ -159,7 +151,7 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 					zoekObject.setGezienTonen(zoekObjectModel.getObject().getGezienTonen());
 					zoekObject.setFilterOptie(filterOptie);
 					zoekObject.setInstellingGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
-					long aantalResultaten = conclusieReviewService.countScreeningRondesMetConclusie(zoekObject);
+					long aantalResultaten = conclusieReviewService.countConclusieReviewsVanRadioloog(zoekObject);
 					displayValue = displayValue.toString() + " (" + aantalResultaten + ")";
 					return displayValue;
 				}
@@ -169,12 +161,11 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 		conclusieOptieFilter.setSuffix("</label></div>\n" +
 			"</div>");
 
-		conclusieOptieFilter.add(new AjaxFormChoiceComponentUpdatingBehavior()
+		conclusieOptieFilter.add(new IndicatingAjaxFormChoiceComponentUpdatingBehavior(conclusieOptieFilter)
 		{
-			@Override
-			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget)
+			@Override protected void onComponentUpdate(AjaxRequestTarget target)
 			{
-				ajaxRequestTarget.add(tabelContainer);
+				target.add(tabelContainer);
 			}
 		});
 		filterContainer.add(conclusieOptieFilter);
@@ -182,13 +173,11 @@ public class MammaReviewWerklijstPage extends AbstractMammaBePage
 
 	private void createGezienCheckboxFilter()
 	{
-		Component gezienTonen = new CheckBox("gezienTonen");
+		CheckBox gezienTonen = new CheckBox("gezienTonen");
 
-		gezienTonen.add(new AjaxFormComponentUpdatingBehavior("click")
+		gezienTonen.add(new IndicatingAjaxFormComponentUpdatingBehavior("click", gezienTonen)
 		{
-
-			@Override
-			protected void onUpdate(AjaxRequestTarget target)
+			@Override protected void onComponentUpdate(AjaxRequestTarget target)
 			{
 				target.add(tabelContainer);
 				target.add(conclusieOptieFilter);

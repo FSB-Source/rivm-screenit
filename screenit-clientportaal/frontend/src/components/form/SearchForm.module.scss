@@ -1,0 +1,25 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.content {
+	border-radius: 10px;
+	padding: 40px;
+	margin-bottom: 20px;
+
+	@include respond-below(lg) {
+		padding: 30px;
+	}
+
+	@include respond-below(md) {
+		padding: 20px;
+	}
+
+	h2 {
+		margin-bottom: 20px;
+		color: white;
+
+		@include respond-below(xs) {
+			margin-bottom: 10px;
+		}
+	}
+}

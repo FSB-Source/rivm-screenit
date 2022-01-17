@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,8 @@ public class MammaConclusieReviewZoekObject implements IDetachable
 
     private Boolean gezienTonen = false;
 
+    private Boolean voorDashboard = false;
+
     public InstellingGebruiker getInstellingGebruiker()
     {
         return ModelUtil.nullSafeGet(instellingGebruiker);
@@ -63,6 +65,16 @@ public class MammaConclusieReviewZoekObject implements IDetachable
     public void setGezienTonen(boolean gezienTonen)
     {
         this.gezienTonen = gezienTonen;
+    }
+
+    public Boolean getVoorDashboard()
+    {
+        return voorDashboard;
+    }
+
+    public void setVoorDashboard(Boolean voorDashboard)
+    {
+        this.voorDashboard = voorDashboard;
     }
 
     @Override public void detach()

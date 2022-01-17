@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,7 +25,6 @@ package nl.rivm.screenit.main.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.dao.MedewerkerDao;
@@ -35,12 +34,13 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
+import nl.rivm.screenit.model.Mail;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rol;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.repository.MailRepository;
 import nl.rivm.screenit.service.AuthenticatieService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -116,7 +116,7 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	public void addOrganisatieMedewerker(Instelling organisatie, Gebruiker medewerker)
 	{
 
-		InstellingGebruiker organisatieMedewerker = medewerkerDao.getInstellingGebruiker(organisatie, medewerker);
+		var organisatieMedewerker = medewerkerDao.getInstellingGebruiker(organisatie, medewerker);
 
 		if (organisatieMedewerker != null)
 		{
@@ -154,7 +154,7 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	public void saveOrUpdateRollen(InstellingGebruiker instellingGebruiker)
 	{
 		medewerkerDao.saveOrUpdateInstellingGebruiker(instellingGebruiker);
-		for (InstellingGebruikerRol rol : instellingGebruiker.getRollen())
+		for (var rol : instellingGebruiker.getRollen())
 		{
 			hibernateService.saveOrUpdate(rol);
 		}
@@ -165,8 +165,8 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public boolean saveOrUpdateGebruiker(Gebruiker medewerker, boolean isBestaande, boolean wordGeblokkeerd)
 	{
-		boolean gelukt = true;
-		UploadDocument handtekening = medewerker.getHandtekening();
+		var gelukt = true;
+		var handtekening = medewerker.getHandtekening();
 		if (handtekening != null && !handtekening.getActief())
 		{
 			medewerker.setHandtekening(null);
@@ -212,34 +212,34 @@ public class MedewerkerServiceImpl implements MedewerkerService
 		{
 			if (StringUtils.isNotBlank(medewerker.getEmailextra()))
 			{
-				String inactiverenemail = preferenceService.getString(PreferenceKey.INACTIVERENEMAIL.name(), "Beste gebruiker, <br><br>"
+				var inactiverenemail = preferenceService.getString(PreferenceKey.INACTIVERENEMAIL.name(), "Beste gebruiker, <br><br>"
 					+ "U gebruiker account met de gebruikersnaam '{gebruikersnaam}' is ge&iuml;nactiveerd." + " <br><br>Met vriendelijke groeten, <br>Het ScreenIT team");
 				inactiverenemail = inactiverenemail.replaceAll("\\{gebruikersnaam\\}", medewerker.getGebruikersnaam());
-				String aanhef = "";
+				var aanhef = "";
 				if (medewerker.getAanhef() != null)
 				{
 					aanhef = " " + medewerker.getAanhef().getNaam();
 				}
 
-				String titel = "";
+				var titel = "";
 				if (medewerker.getTitel() != null)
 				{
 					titel = " " + medewerker.getTitel().getNaam();
 				}
 
-				String achternaam = "";
+				var achternaam = "";
 				if (StringUtils.isNotBlank(medewerker.getAchternaam()))
 				{
 					achternaam = " " + medewerker.getAchternaam();
 				}
 
-				String tussenvoegsel = "";
+				var tussenvoegsel = "";
 				if (StringUtils.isNotBlank(medewerker.getTussenvoegsel()))
 				{
 					tussenvoegsel = " " + medewerker.getTussenvoegsel();
 				}
 
-				String voorletters = "";
+				var voorletters = "";
 				if (StringUtils.isNotBlank(medewerker.getVoorletters()))
 				{
 					voorletters = " " + medewerker.getVoorletters();
@@ -249,8 +249,8 @@ public class MedewerkerServiceImpl implements MedewerkerService
 				inactiverenemail = inactiverenemail.replaceAll("\\{achternaam\\}", achternaam);
 				inactiverenemail = inactiverenemail.replaceAll("\\{tussenvoegsel\\}", tussenvoegsel);
 				inactiverenemail = inactiverenemail.replaceAll("\\{voorletters\\}", voorletters);
-				String inactiverensubject = preferenceService.getString(PreferenceKey.INACTIVERENSUBJECT.name(), "ScreenIT - Gebruiker account ge\u00EFnactiveerd");
-				mailService.sendEmail(medewerker.getEmailextra(), inactiverensubject, inactiverenemail);
+				var inactiverensubject = preferenceService.getString(PreferenceKey.INACTIVERENSUBJECT.name(), "ScreenIT - Gebruiker account ge\u00EFnactiveerd");
+				mailService.queueMail(medewerker.getEmailextra(), inactiverensubject, inactiverenemail);
 			}
 		}
 	}
@@ -261,15 +261,15 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	{
 		medewerker.setWachtwoord(null);
 		hibernateService.saveOrUpdate(medewerker);
-		Gebruiker requestMedewerker = new Gebruiker();
+		var requestMedewerker = new Gebruiker();
 		requestMedewerker.setGebruikersnaam(medewerker.getGebruikersnaam());
-		Map<Gebruiker, Boolean> medewerkerMap = authenticatieService.requestNewPassword(requestMedewerker);
-		boolean gelukt = false;
+		var medewerkerMap = authenticatieService.requestNewPassword(requestMedewerker);
+		var gelukt = false;
 
 		medewerker = null;
 		if (medewerkerMap.size() > 0)
 		{
-			Entry<Gebruiker, Boolean> entry = medewerkerMap.entrySet().iterator().next();
+			var entry = medewerkerMap.entrySet().iterator().next();
 			medewerker = entry.getKey();
 			gelukt = !Boolean.FALSE.equals(entry.getValue());
 		}
@@ -291,17 +291,17 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	@Override
 	public List<InstellingGebruikerRol> getInstellingGebruikersMetRolEnBvos(Rol rol, List<Bevolkingsonderzoek> onderzoeken)
 	{
-		List<InstellingGebruikerRol> rollen = new ArrayList<InstellingGebruikerRol>();
-		List<InstellingGebruikerRol> instellingGebruikersRollen = medewerkerDao.getInstellingGebruikersRollenMetRol(rol, currentDateSupplier.getDate());
+		var rollen = new ArrayList<InstellingGebruikerRol>();
+		var instellingGebruikersRollen = medewerkerDao.getInstellingGebruikersRollenMetRol(rol, currentDateSupplier.getDate());
 		if (onderzoeken == null)
 		{
 			rollen.addAll(instellingGebruikersRollen);
 		}
 		else
 		{
-			for (InstellingGebruikerRol igRol : instellingGebruikersRollen)
+			for (var igRol : instellingGebruikersRollen)
 			{
-				for (Bevolkingsonderzoek verwijderdeOnderzoek : onderzoeken)
+				for (var verwijderdeOnderzoek : onderzoeken)
 				{
 					if (igRol.getBevolkingsonderzoeken().contains(verwijderdeOnderzoek))
 					{

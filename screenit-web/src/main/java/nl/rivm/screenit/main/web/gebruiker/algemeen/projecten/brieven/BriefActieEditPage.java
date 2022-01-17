@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@ import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.main.comparator.ProjectVragenlijstComparator;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.NaamChoiceRenderer;
@@ -50,6 +49,7 @@ import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.VragenlijstBaseService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Organisatie;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
@@ -122,14 +122,14 @@ public class BriefActieEditPage extends ProjectBasePage
 		super(model);
 		Project project = model.getObject();
 		ProjectBriefActie actie = new ProjectBriefActie();
-		briefActieModel = ModelUtil.cModel(actie);
-		briefActieModel.getObject().setProject(model.getObject());
+		briefActieModel = ModelUtil.ccModel(actie);
+		briefActieModel.getObject().setProject(project);
 
 		ProjectBriefActie herinnerActie = new ProjectBriefActie();
-		briefHerinnerenVragenlijstModel = ModelUtil.cModel(herinnerActie);
-		briefHerinnerenVragenlijstModel.getObject().setProject(briefActieModel.getObject().getProject());
+		briefHerinnerenVragenlijstModel = ModelUtil.ccModel(herinnerActie);
+		briefHerinnerenVragenlijstModel.getObject().setProject(project);
 
-		form = new Form<ProjectBriefActie>("form", briefActieModel);
+		form = new Form<>("form", briefActieModel);
 		form.setMultiPart(true);
 		add(form);
 
@@ -141,7 +141,6 @@ public class BriefActieEditPage extends ProjectBasePage
 		fileUploadContainer.setOutputMarkupPlaceholderTag(true);
 		FileUploadField upload = new FileUploadField("fileUpload", fileUploads);
 		upload.setRequired(true);
-		upload.setLabel(Model.of("Template"));
 		upload.add(new FileValidator(FileType.WORD_NIEUW));
 		fileUploadContainer.add(upload);
 		form.add(fileUploadContainer);
@@ -462,7 +461,7 @@ public class BriefActieEditPage extends ProjectBasePage
 				&& nieuweActie.getBriefType().equals(actie.getBriefType()) && Boolean.TRUE.equals(actie.getActief());
 			boolean isGelijkAanDatum = ProjectBriefActieType.DATUM.equals(nieuweActie.getType()) && ProjectBriefActieType.DATUM.equals(actie.getType())
 				&& nieuweActie.getDatum().compareTo(actie.getDatum()) == 0 && Boolean.TRUE.equals(actie.getActief());
-			if (isGelijkAanVervangendeBrief || isGelijkAanXDAGENNAY || isGelijkAanDatum)
+			if (isGelijkAanVervangendeBrief || isGelijkAanXDAGENNAY || isGelijkAanDatum || isGelijkAanXMETY)
 			{
 				return true;
 			}
@@ -499,10 +498,6 @@ public class BriefActieEditPage extends ProjectBasePage
 		super.onDetach();
 		ModelUtil.nullSafeDetach(briefActieModel);
 		ModelUtil.nullSafeDetach(fileUploads);
-		ModelUtil.nullSafeDetach(getProjectModel());
-		if (briefHerinnerenVragenlijstModel != null)
-		{
-			ModelUtil.nullSafeDetach(briefHerinnerenVragenlijstModel);
-		}
+		ModelUtil.nullSafeDetach(briefHerinnerenVragenlijstModel);
 	}
 }

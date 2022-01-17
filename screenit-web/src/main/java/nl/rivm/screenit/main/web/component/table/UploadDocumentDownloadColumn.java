@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.component.table;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,9 +31,6 @@ import org.apache.wicket.model.IModel;
 
 public class UploadDocumentDownloadColumn<T, S> extends PropertyColumn<T, S> implements INotClickableColumn
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public UploadDocumentDownloadColumn(IModel<String> displayModel, String propertyExpression)
 	{
 		super(displayModel, propertyExpression);
@@ -44,7 +40,7 @@ public class UploadDocumentDownloadColumn<T, S> extends PropertyColumn<T, S> imp
 	@Override
 	public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel)
 	{
-		cellItem.add(new UploadDocumentDownloadLinkPanel(componentId, (IModel<UploadDocument>) getDataModel(rowModel))
+		cellItem.add(new UploadDocumentDownloadLinkPanel(componentId, (IModel<UploadDocument>) getDataModel(rowModel), getFileNameToLog(rowModel))
 		{
 			@Override
 			protected void onBeforeDownloadClick(AjaxRequestTarget target)
@@ -52,6 +48,11 @@ public class UploadDocumentDownloadColumn<T, S> extends PropertyColumn<T, S> imp
 				UploadDocumentDownloadColumn.this.onBeforeDownloadClick(target, rowModel);
 			}
 		});
+	}
+
+	protected IModel<String> getFileNameToLog(IModel<T> rowModel)
+	{
+		return null;
 	}
 
 	protected void onBeforeDownloadClick(AjaxRequestTarget target, IModel<T> rowModel)

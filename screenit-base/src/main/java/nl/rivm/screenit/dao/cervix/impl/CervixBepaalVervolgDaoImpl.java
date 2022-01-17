@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,7 +27,7 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
@@ -54,7 +54,7 @@ public class CervixBepaalVervolgDaoImpl extends AbstractAutowiredDao implements 
 		if (ongeldig)
 		{
 			criteria.alias("monster.laatsteHpvBeoordeling", "hpvBeoordeling", JoinType.LEFT_OUTER_JOIN);
-			disjunction.add(Restrictions.eq("hpvBeoordeling.hpvUitslag", CervixHpvUitslag.ONGELDIG));
+			disjunction.add(Restrictions.eq("hpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.ONGELDIG));
 		}
 		if (pap0)
 		{
@@ -74,24 +74,28 @@ public class CervixBepaalVervolgDaoImpl extends AbstractAutowiredDao implements 
 		return criteria;
 	}
 
+	@Override
 	public boolean andereZasOngeldig(CervixZas zas)
 	{
 		BaseCriteria<CervixZas> criteria = ontvangenMonsters(CervixZas.class, zas.getOntvangstScreeningRonde(), true, false, zas);
 		return criteria.count(getSession()) > 0;
 	}
 
+	@Override
 	public boolean anderUitstrijkjeOnbeoordeelbaar(CervixUitstrijkje uitstrijkje)
 	{
 		BaseCriteria<CervixUitstrijkje> criteria = ontvangenMonsters(CervixUitstrijkje.class, uitstrijkje.getOntvangstScreeningRonde(), true, true, uitstrijkje);
 		return criteria.count(getSession()) > 0;
 	}
 
+	@Override
 	public boolean anderUitstrijkjeOnbeoordeelbaarCytologie(CervixUitstrijkje uitstrijkje)
 	{
 		BaseCriteria<CervixUitstrijkje> criteria = ontvangenMonsters(CervixUitstrijkje.class, uitstrijkje.getOntvangstScreeningRonde(), false, true, uitstrijkje);
 		return criteria.count(getSession()) > 0;
 	}
 
+	@Override
 	public boolean uitstrijkjeOnbeoordeelbaarCytologie(CervixScreeningRonde ontvangstRonde)
 	{
 		BaseCriteria<CervixUitstrijkje> criteria = ontvangenMonsters(CervixUitstrijkje.class, ontvangstRonde, false, true, null);

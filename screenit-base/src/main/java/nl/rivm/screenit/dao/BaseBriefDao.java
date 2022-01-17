@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,7 +47,7 @@ public interface BaseBriefDao
 
 	List<CervixRegioBrief> getDubbeleAangemaakteBrieven(List<BriefType> vervangenTypes, CervixHuisarts arts);
 
-	boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief> briefClass);
+	boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief<?, ?, ?>> briefClass);
 
-	List<ClientBrief> getClientBrieven(Client client);
+	List<ClientBrief<?, ?, ?>> getClientBrieven(Client client);
 }

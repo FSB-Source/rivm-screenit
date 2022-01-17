@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
 
 import java.util.Date;
 
-import nl.rivm.screenit.main.service.mamma.MammaAfspraakService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -43,7 +41,6 @@ import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class MammaNieuwAfspraakStartPanel extends GenericPanel<MammaUitstel>
@@ -51,21 +48,26 @@ public abstract class MammaNieuwAfspraakStartPanel extends GenericPanel<MammaUit
 
 	private IModel<Client> clientModel;
 
-	@SpringBean
-	private MammaAfspraakService afspraakService;
-
 	public MammaNieuwAfspraakStartPanel(String id, IModel<Client> model)
 	{
 		super(id);
 		this.clientModel = model;
+	}
 
-		MammaDossier dossier = model.getObject().getMammaDossier();
+	@Override
+	protected void onInitialize()
+	{
+		super.onInitialize();
+
+		MammaDossier dossier = clientModel.getObject().getMammaDossier();
 		MammaScreeningRonde laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
 		MammaAfspraak laatsteAfspraak = laatsteScreeningRonde.getLaatsteUitnodiging().getLaatsteAfspraak();
 		MammaUitstel laatsteUitstel = laatsteScreeningRonde.getLaatsteUitstel();
 
 		boolean heeftUitstel = (laatsteAfspraak == null || MammaAfspraakStatus.UITGESTELD == laatsteAfspraak.getStatus()) && laatsteUitstel != null
 			&& laatsteUitstel.getGeannuleerdOp() == null && laatsteUitstel.getUitnodiging() == null;
+
+		add(new Label("rondeForcerenMelding", getString("uitlegRondeForceren")).setVisible(rondeForcerenMeldingTonen()));
 
 		setModel(ModelUtil.csModel(laatsteUitstel));
 		add(DateLabel.forDatePattern("streefDatum", "EEEE dd-MM-yyyy").setVisible(heeftUitstel));
@@ -80,7 +82,7 @@ public abstract class MammaNieuwAfspraakStartPanel extends GenericPanel<MammaUit
 			add(new EmptyPanel("standplaats"));
 		}
 
-		IndicatingAjaxLink<Void> aanmakenLink = new IndicatingAjaxLink<Void>("aanmaken")
+		IndicatingAjaxLink<Void> aanmakenLink = new IndicatingAjaxLink<>("aanmaken")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -91,7 +93,7 @@ public abstract class MammaNieuwAfspraakStartPanel extends GenericPanel<MammaUit
 
 		add(aanmakenLink);
 
-		IndicatingAjaxLink<Void> uitstellenLink = new IndicatingAjaxLink<Void>("uitstellen")
+		IndicatingAjaxLink<Void> uitstellenLink = new IndicatingAjaxLink<>("uitstellen")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -109,6 +111,11 @@ public abstract class MammaNieuwAfspraakStartPanel extends GenericPanel<MammaUit
 	public abstract void uitstellen(AjaxRequestTarget target, IModel<Client> clientModel);
 
 	protected abstract boolean magUitstellen();
+
+	protected boolean rondeForcerenMeldingTonen()
+	{
+		return false;
+	}
 
 	private class StandplaatsFragment extends Fragment
 	{

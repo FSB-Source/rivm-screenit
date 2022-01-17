@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -223,7 +223,7 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			ifobtRetourFactor = BigDecimal.valueOf(10000).divide(BigDecimal.valueOf(percIfobtRetour), 4, RoundingMode.HALF_UP);
 		}
 
-		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": IfobtRetour "
+		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": Fit Retour "
 			+ BigDecimalUtil.decimalToString(BigDecimal.valueOf(percIfobtRetour).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)) + "% => factor "
 			+ BigDecimalUtil.decimalToString(ifobtRetourFactor));
 
@@ -240,11 +240,14 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 			ifobtOngunstigFactor = BigDecimal.valueOf(10000).divide(BigDecimal.valueOf(percIfobtOngunstig), 4, RoundingMode.HALF_UP);
 		}
 
-		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": IfobtOngunstig "
+		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": Fit Ongunstig "
 			+ BigDecimalUtil.decimalToString(BigDecimal.valueOf(percIfobtOngunstig).divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)) + "% => factor "
 			+ BigDecimalUtil.decimalToString(ifobtOngunstigFactor));
 
-		return ifobtRetourFactor.multiply(ifobtOngunstigFactor);
+		BigDecimal gebiedsFactor = ifobtRetourFactor.multiply(ifobtOngunstigFactor);
+		LOG.info("Uitnodigingsgebied " + uitnodigingsGebied.getNaam() + ": Totaal factor " + BigDecimalUtil.decimalToString(gebiedsFactor));
+
+		return gebiedsFactor;
 	}
 
 	@Override
@@ -305,7 +308,8 @@ public class ColonUitnodigingsgebiedServiceImpl implements ColonUitnodigingsgebi
 	private ColoscopieCentrumColonCapaciteitVerdeling getVerdelingToChange(CapaciteitsPercWijziging wijziging, UitnodigingsGebied uitnodigingsgebied)
 	{
 		ColoscopieCentrumColonCapaciteitVerdeling verdelingToChange = null;
-		main: for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : uitnodigingsgebied.getVerdeling())
+		main:
+		for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : uitnodigingsgebied.getVerdeling())
 		{
 			verdelingToChange = getVerdelingToChange(wijziging, verdeling);
 			if (verdelingToChange != null)

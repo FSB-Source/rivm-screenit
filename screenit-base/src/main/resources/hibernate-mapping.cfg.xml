@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-base
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -41,6 +41,7 @@
         <mapping class="nl.rivm.screenit.model.ClientTooltip"/>
         <mapping class="nl.rivm.screenit.model.RegioBvoContactGegevens"/>
         <mapping class="nl.rivm.screenit.model.ProjectParameter"/>
+        <mapping class="nl.rivm.screenit.model.Mail"/>
 
         <mapping class="nl.rivm.screenit.model.Client"/>
         <mapping class="nl.rivm.screenit.model.EnovationHuisarts"/>
@@ -177,6 +178,7 @@
         <mapping class="nl.rivm.screenit.model.cervix.CervixZas"/>
         <mapping class="nl.rivm.screenit.model.cervix.CervixLabformulier"/>
         <mapping class="nl.rivm.screenit.model.cervix.CervixHpvBeoordeling"/>
+        <mapping class="nl.rivm.screenit.model.cervix.CervixHpvAnalyseresultaten"/>
         <mapping class="nl.rivm.screenit.model.cervix.CervixHuisartsBericht"/>
         <mapping class="nl.rivm.screenit.model.cervix.CervixLabformulierAanvraag"/>
         <mapping class="nl.rivm.screenit.model.cervix.CervixCytologieOrder"/>
@@ -254,7 +256,6 @@
         <mapping class="nl.rivm.screenit.model.project.Project"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectClient"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectClientAttribuut"/>
-        <mapping class="nl.rivm.screenit.model.project.ProjectCriteria"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectImport"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectBestand"/>
         <mapping class="nl.rivm.screenit.model.project.ProjectBestandVerwerking"/>
@@ -317,6 +318,7 @@
         <mapping class="nl.rivm.screenit.model.mamma.MammaUitnodiging"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaAfmelding"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaUitstel"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaIlmBezwaarPoging"/>
 
         <mapping class="nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaKansberekeningAfspraakEvent"/>

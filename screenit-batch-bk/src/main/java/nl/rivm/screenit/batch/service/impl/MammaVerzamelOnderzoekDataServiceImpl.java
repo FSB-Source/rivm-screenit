@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,12 +23,12 @@ package nl.rivm.screenit.batch.service.impl;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.MammaVerzamelOnderzoekDataService;
-import nl.rivm.screenit.batch.service.impl.dicom.DicomCMoveSCU;
+import nl.rivm.screenit.batch.service.impl.dicom.CMoveSCU;
 import nl.rivm.screenit.batch.service.impl.dicom.DicomDir;
 import nl.rivm.screenit.model.enums.BestandStatus;
-import nl.rivm.screenit.model.mamma.DicomCMoveConfig;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
+import nl.rivm.screenit.model.mamma.dicom.CMoveConfig;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -71,8 +71,8 @@ public class MammaVerzamelOnderzoekDataServiceImpl implements MammaVerzamelOnder
 		boolean success = true;
 
 		String connectionString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CMOVE_CONFIG.toString());
-		DicomCMoveConfig moveConfig = DicomCMoveConfig.parse(connectionString);
-		DicomCMoveSCU moveSCU = new DicomCMoveSCU();
+		CMoveConfig moveConfig = CMoveConfig.parse(connectionString);
+		CMoveSCU moveSCU = new CMoveSCU();
 		MammaOnderzoek onderzoek = downloadOnderzoek.getOnderzoek();
 		Long downloadOnderzoekId = downloadOnderzoek.getId();
 		Long uitnodigingsNr = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde().getUitnodigingsNr();
@@ -84,6 +84,7 @@ public class MammaVerzamelOnderzoekDataServiceImpl implements MammaVerzamelOnder
 		{
 			int status = result.getInt(Tag.Status, 0);
 			int nrOfCompeleteSuboperations = result.getInt(Tag.NumberOfCompletedSuboperations, 0);
+			LOG.info("Response van Sectra op CMove: \n" + result);
 			if (status > 0)
 			{
 				String errorComment = result.getString(Tag.ErrorComment);

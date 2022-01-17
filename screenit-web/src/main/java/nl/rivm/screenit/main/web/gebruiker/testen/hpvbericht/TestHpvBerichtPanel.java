@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.hpvbericht;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,10 +28,12 @@ import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
 import nl.rivm.screenit.main.service.cervix.HpvSendingMessageService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV251MessageWrapper;
-import nl.rivm.screenit.util.cervix.HpvBerichtGenerator.CervixHpvBerichtGenerator;
-import nl.rivm.screenit.util.cervix.HpvBerichtGenerator.CervixHpvBerichtGeneratorMonsterWrapper;
-import nl.rivm.screenit.util.cervix.HpvBerichtGenerator.CervixHpvBerichtGeneratorWrapper;
-import nl.rivm.screenit.util.cervix.HpvBerichtGenerator.CervixHpvBerichtWaarde;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvOrderCode;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultCode;
+import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGenerator;
+import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGeneratorMonsterWrapper;
+import nl.rivm.screenit.util.cervix.hpv_berichtgenerator.CervixHpvBerichtGeneratorWrapper;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -81,8 +83,6 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 
 		form.add(new IndicatingAjaxSubmitLink("verstuurHl7Bericht", form)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -95,11 +95,11 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 					alAangeleverd = ", Bericht al een keer aangeleverd met dit messageId. Dit bericht wordt daarom niet meer verwerkt door de batch maar levert wel een AA op!";
 				}
 
-				Message hl7bericht = CervixHpvBerichtGenerator.geefHl7Bericht(wrapper);
+				Message hl7bericht = CervixHpvBerichtGenerator.geefHL7Bericht(wrapper);
 
 				ScreenITResponseV251MessageWrapper result = hpvSendingMessageService.verstuurHpvBericht(hl7bericht);
 
-				String melding = "Bericht succesvol verstuurd, Code: ";
+				String melding = "Bericht verstuurd, Code: ";
 				if (result != null)
 				{
 					melding += result.getAcknowledgmentCode();
@@ -123,8 +123,6 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 
 		form.add(new IndicatingAjaxSubmitLink("uitslagToevoegen", form)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -144,24 +142,26 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 		PropertyListView<CervixHpvBerichtGeneratorMonsterWrapper> list = new PropertyListView<>("monsterWrappers",
 			new PropertyModel<>(getModel(), "monsterWrappers"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(final ListItem<CervixHpvBerichtGeneratorMonsterWrapper> item)
 			{
 				item.add(ComponentHelper.addTextField(this, "barcode", true, 100, false));
-				ListModel<CervixHpvBerichtWaarde> uitslagen = new ListModel<>(Arrays.asList(CervixHpvBerichtWaarde.values()));
-				item.add(new DropDownChoice<>("uitslag", uitslagen, new EnumChoiceRenderer<>()));
+				var orderCodes = new ListModel<>(Arrays.asList(CervixHpvOrderCode.values()));
+				var analyseCodes = new ListModel<>(Arrays.asList(CervixHpvResultCode.values()));
+				var resultaatWaardes = new ListModel<>(Arrays.asList(CervixHpvResultValue.values()));
+				item.add(new DropDownChoice<>("ordercode", orderCodes, new EnumChoiceRenderer<>()).setRequired(true));
+				item.add(new DropDownChoice<>("analysecode1", analyseCodes, new EnumChoiceRenderer<>()));
+				item.add(new DropDownChoice<>("analyseresultaat1", resultaatWaardes, new EnumChoiceRenderer<>()));
+				item.add(new DropDownChoice<>("analysecode2", analyseCodes, new EnumChoiceRenderer<>()));
+				item.add(new DropDownChoice<>("analyseresultaat2", resultaatWaardes, new EnumChoiceRenderer<>()));
+				item.add(new DropDownChoice<>("analysecode3", analyseCodes, new EnumChoiceRenderer<>()));
+				item.add(new DropDownChoice<>("analyseresultaat3", resultaatWaardes, new EnumChoiceRenderer<>()));
 
 				item.add(ComponentHelper.monthYearDatePicker("autorisatieDatum").setRequired(true));
 				item.add(ComponentHelper.monthYearDatePicker("analyseDatum").setRequired(true));
 
 				item.add(new IndicatingAjaxLink<CervixHpvBerichtGeneratorWrapper>("verwijderen")
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public void onClick(AjaxRequestTarget target)
 					{
@@ -177,7 +177,5 @@ public class TestHpvBerichtPanel extends GenericPanel<CervixHpvBerichtGeneratorW
 		};
 		container.add(list);
 		return container;
-
 	}
-
 }

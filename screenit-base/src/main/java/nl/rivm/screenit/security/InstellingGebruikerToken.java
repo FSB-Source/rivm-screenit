@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.security;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,16 +25,13 @@ import java.io.Serializable;
 
 import org.apache.shiro.authc.AuthenticationToken;
 
-public class InstellingGebruikerToken implements AuthenticationToken, BrowserOSToken
+public class InstellingGebruikerToken implements AuthenticationToken
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private final Serializable id;
 
-	private String browser;
-
-	private String os;
+	private String userAgent;
 
 	private String uzipasInlogMethode;
 
@@ -61,28 +57,14 @@ public class InstellingGebruikerToken implements AuthenticationToken, BrowserOST
 		return id;
 	}
 
-	@Override
-	public String getBrowser()
+	public String getUserAgent()
 	{
-		return browser;
+		return userAgent;
 	}
 
-	@Override
-	public void setBrowser(String browser)
+	public void setUserAgent(String userAgent)
 	{
-		this.browser = browser;
-	}
-
-	@Override
-	public String getOs()
-	{
-		return os;
-	}
-
-	@Override
-	public void setOs(String os)
-	{
-		this.os = os;
+		this.userAgent = userAgent;
 	}
 
 	public String getUzipasInlogMethode()

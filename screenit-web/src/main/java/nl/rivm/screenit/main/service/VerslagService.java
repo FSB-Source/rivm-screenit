@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.service;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,18 +31,16 @@ import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.MdlVerslag;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.verslag.VerslagContent;
 import nl.topicuszorg.formulieren2.api.resultaat.FormulierResultaat;
 import nl.topicuszorg.formulieren2.persistence.resultaat.FormulierResultaatImpl;
-
 public interface VerslagService
 {
 
 	void saveOrAfronden(VerslagContent<?> verslagContent, FormulierResultaat resultaat, boolean afronden, InstellingGebruiker instellingGebruiker);
 
 	boolean magAfronden(VerslagType verslagType, Client client);
-
-	void verwijderVerslag(Verslag verslag, InstellingGebruiker instellingGebruiker);
 
 	void preFillAntwoorden(Verslag verslag, FormulierResultaatImpl formulierResultaat, Gebruiker gebruiker);
 
@@ -60,4 +57,8 @@ public interface VerslagService
 	<V extends Verslag<?, ?>> List<V> zoekVerslagen(V zoekObject, int first, int count, String property, boolean ascending);
 
 	<V extends Verslag<?, ?>> long countVerslagen(V zoekObject);
+
+	void berichtenOpnieuwVerwerken(List<Long> ids, Bevolkingsonderzoek bvo);
+
+	void berichtOpnieuwVerwerken(OntvangenCdaBericht ontvangenCdaBericht);
 }

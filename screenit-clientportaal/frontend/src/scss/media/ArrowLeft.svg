@@ -1,0 +1,23 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-clientportaal
+  %%
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<svg width="14px" height="12px" viewBox="0 0 14 12" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5.37793 11.7391L0.240801 6.60201C0.200667 6.56187 0.16388 6.5184 0.130434 6.47157C0.0969889 6.42475 0.0802689 6.38127 0.0802689 6.34114C0.0267563 6.26087 0 6.16054 0 6.04014C0 5.91973 0.0267563 5.79264 0.0802689 5.65886C0.107025 5.63211 0.127833 5.60387 0.142696 5.57414L0.160532 5.52843C0.173911 5.48161 0.200667 5.43813 0.240801 5.39799L5.37793 0.26087C5.55184 0.0869557 5.75251 0 5.97993 0C6.20736 0 6.40803 0.0869557 6.58194 0.26087C6.75585 0.434784 6.84281 0.63545 6.84281 0.862876C6.84281 1.0903 6.75585 1.29097 6.58194 1.46488L2.88963 5.13713L13.1572 5.13712C13.4114 5.13712 13.6154 5.21739 13.7692 5.37793C13.9231 5.53846 14 5.74582 14 6C14 6.25418 13.9231 6.46154 13.7692 6.62207C13.6154 6.78261 13.4114 6.86287 13.1572 6.86287L2.88963 6.86287L6.58194 10.5351C6.66221 10.6288 6.72575 10.7324 6.77257 10.8462C6.8194 10.9599 6.84281 11.0569 6.84281 11.1371C6.84281 11.2174 6.8194 11.3144 6.77257 11.4281C6.72575 11.5418 6.66221 11.6455 6.58194 11.7391C6.40803 11.913 6.20736 12 5.97993 12C5.75251 12 5.55184 11.913 5.37793 11.7391Z"/>
+</svg>

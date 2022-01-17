@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,14 +26,12 @@ import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixSelectieWriter extends BaseWriter<Client>
 {
-
 	@Autowired
 	private CervixFactory factory;
 
@@ -42,7 +40,7 @@ public class CervixSelectieWriter extends BaseWriter<Client>
 	{
 		CervixDossier dossier = client.getCervixDossier();
 		CervixScreeningRonde ronde = factory.maakRonde(dossier);
-		factory.maakUitnodiging(ronde, BriefType.CERVIX_UITNODIGING, true, false);
+		factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 
 		aantalContextOphogen(CervixSelectieConstants.SELECTIE_AANTAL_KEY);
 	}

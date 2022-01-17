@@ -1,0 +1,80 @@
+app:
+  naam: ScreenIT
+  instance: Clientportaal
+  test_modus: false
+
+  environment: Development
+  filestoreLocation: /screenit/filestore
+  planningBkRestUrl: http://localhost:14830/
+  kansberekeningServiceUrl: http://localhost:14832/
+  messageQueues: tcp://localhost:61616
+
+  jgroups:
+    bind_ip: 127.0.0.1
+    ehcache:
+      bind_port: 7804
+      ip_ports: 127.0.0.1[7800],127.0.0.1[7801],127.0.0.1[7802],127.0.0.1[7803],127.0.0.1[7804],127.0.0.1[7805],127.0.0.1[7806],127.0.0.1[7807],127.0.0.1[7808],127.0.0.1[7809],127.0.0.1[7810],127.0.0.1[7811]
+    common:
+      bind_port: 7824
+      ip_ports: 127.0.0.1[7820],127.0.0.1[7821],127.0.0.1[7822],127.0.0.1[7823],127.0.0.1[7824],127.0.0.1[7825],127.0.0.1[7826],127.0.0.1[7827],127.0.0.1[7828],127.0.0.1[7829],127.0.0.1[7830],127.0.0.1[7831]
+
+edi:
+  mail:
+    relay:
+      ip: localhost
+      port: 1025
+  from_address: no-reply@mail.test.landelijkescreening.nl
+  application_id: Colonis
+  smtp:
+    over_ssl: false
+    auth:
+      username: screenit
+      password: screenit
+
+mail:
+  from_address: no-reply@mail.test.landelijkescreening.nl
+
+keycloak:
+  auth-server-url: https://idp-acc.topicuszorg.nl/auth
+  realm: ScreenIT
+  resource: screenit-frontend-local
+  public-client: true
+  principal-attribute: preferred_username
+  bearer-only: true
+  ssl-required: none
+  pkce: true
+  enable-basic-auth: false
+  cors: false
+  expose-token: false
+  always-refresh-token: false
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+    session:
+      cookie:
+        secure: true
+        http-only: true
+  error:
+    include-stacktrace: never
+
+spring:
+  profiles:
+    active:
+      - default
+  datasource:
+    hikari:
+      username: unionem
+      password: unionem
+      jdbc-url: jdbc:postgresql://localhost/screenit
+      driver-class-name: org.postgresql.Driver
+      max-lifetime: 1800000
+      maximum-pool-size: 5
+      pool-name: HikariPool-1
+      leak-detection-threshold: 10000
+      register-mbeans: false
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration
+  liquibase:
+    enabled: false

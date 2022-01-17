@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.mdl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -68,11 +67,7 @@ public class MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg
 		@DSValueSetValue(code = "73761001:408730004=64695001", codeSystem = "2.16.840.1.113883.6.96", deprecated = true),
 		@DSValueSetValue(code = "410410006:408730004=428119001", codeSystem = "2.16.840.1.113883.6.96", deprecated = true)
 	})
-	@VraagElement(
-		displayName = "Definitief vervolgbeleid voor bevolkingsonderzoek",
-		extraTekst = "Definitief te voeren vervolgbeleid vanuit het perspectief van het bevolkingsonderzoek.\u00a0\u00a0De waarde in dit veld moet consistent zijn met de eindconclusie.",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.140150",
-		isVerplicht = true)
+	@VraagElement(displayName = "Definitief vervolgbeleid voor bevolkingsonderzoek", extraTekst = "Definitief te voeren vervolgbeleid vanuit het perspectief van het bevolkingsonderzoek.\u00a0\u00a0De waarde in dit veld moet consistent zijn met de eindconclusie.", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140150", isVerplicht = true)
 	private DSValue definitiefVervolgbeleidVoorBevolkingsonderzoek;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -93,14 +88,10 @@ public class MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg
 		@DSValueSetValue(code = "14", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.226"),
 		@DSValueSetValue(code = "15", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.226")
 	})
-	@VraagElement(
-		displayName = "Periode vervolg surveillance/scopie",
-		extraTekst = "Periode waarna pati\u00ebnt weer terugkomt terug voor surveillance/vervolgcoloscopie. Bij screening wordt het interval elders bepaald en mag niet ingevuld worden.",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.140152",
-		useInCda = false)
+	@VraagElement(displayName = "Periode vervolg surveillance/scopie", extraTekst = "Periode waarna pati\u00ebnt weer terugkomt terug voor surveillance/vervolgcoloscopie. Bij screening wordt het interval elders bepaald en mag niet ingevuld worden.", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140152", useInCda = false)
 	private DSValue periodeVervolgSurveillancescopie;
 
-	@VraagElement(code = "2.16.840.1.113883.2.4.3.36.77.2.8.140152", displayName = "", useInFormulier = false)
+	@VraagElement(code = "2.16.840.1.113883.2.4.3.36.77.2.10.140152", displayName = "", useInFormulier = false)
 	@Embedded
 	@Nonnull
 	@AttributeOverrides({
@@ -110,10 +101,7 @@ public class MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg
 	private Quantity periodeVervolgSurveillancecoloscopieCda;
 
 	@Column(length = 4096)
-	@VraagElement(
-		displayName = "Locatie vervolgscopie",
-		extraTekst = "Aanduiding naar welk centrum de pati\u00ebnt is/wordt verwezen",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.140153")
+	@VraagElement(displayName = "Locatie vervolgscopie", extraTekst = "Aanduiding naar welk centrum de pati\u00ebnt is/wordt verwezen", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140153")
 	private String locatieVervolgscopie;
 
 	@Embedded
@@ -122,7 +110,7 @@ public class MdlDefinitiefVervolgbeleidVoorBevolkingsonderzoekg
 		@AttributeOverride(name = "value", column = @Column(name = "adenoomRiskScoretotalValue")),
 		@AttributeOverride(name = "unit", column = @Column(name = "adenoomRiskScoretotalUnit"))
 	})
-	@VraagElement(displayName = "Adenoom risk score (total)", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.8.290186", unit = {
+	@VraagElement(displayName = "Adenoom risk score (total)", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.290186", unit = {
 		@VraagElementUnit(unit = "", min = "0.0", max = "5.0")
 	})
 	private Quantity adenoomRiskScoretotal;

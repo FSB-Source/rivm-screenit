@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -43,7 +42,6 @@ import org.springframework.orm.hibernate5.SessionFactoryUtils;
 
 public abstract class AbstractClientSelectieReader implements ItemReader<ClientCategorieEntry>, ItemStream
 {
-
 	protected Session hibernateSession;
 
 	protected ClientSelectieItemIterator cursor;
@@ -90,16 +88,9 @@ public abstract class AbstractClientSelectieReader implements ItemReader<ClientC
 	protected final ClientCategorieEntry getNextEntry()
 	{
 		ClientCategorieEntry clientCategorieEntry = null;
-		try
+		while (clientCategorieEntry == null && cursor.hasNext())
 		{
-			while (clientCategorieEntry == null && cursor.hasNext())
-			{
-				clientCategorieEntry = cursor.next();
-			}
-		}
-		finally
-		{
-			DataSourceRouter.useReadWrite();
+			clientCategorieEntry = cursor.next();
 		}
 		return clientCategorieEntry;
 	}

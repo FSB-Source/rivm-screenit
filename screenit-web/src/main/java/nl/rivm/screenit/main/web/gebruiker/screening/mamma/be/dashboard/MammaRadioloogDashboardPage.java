@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dashboard;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.dashboard;
  */
 
 import nl.rivm.screenit.dto.mamma.MammaLezingRapportageDto;
+import nl.rivm.screenit.main.model.mamma.beoordeling.MammaConclusieReviewZoekObject;
+import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.service.mamma.MammaLezingService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.AbstractMammaBePage;
@@ -30,6 +32,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.MammaConclusieReviewFilterOptie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.Termijn;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -51,6 +54,9 @@ public class MammaRadioloogDashboardPage extends AbstractMammaBePage
 {
 	@SpringBean
 	private MammaLezingService lezingService;
+
+	@SpringBean
+	private MammaConclusieReviewService conclusieReviewService;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
@@ -76,27 +82,44 @@ public class MammaRadioloogDashboardPage extends AbstractMammaBePage
 
 	private void voegKolomMetWaardesToeAanTabel(MammaLezingRapportageDto lezingRapportage, Termijn termijn)
 	{
-		add(new Label("eersteLezingen" + getTermijnNaam(termijn) + "Label", Model.of(lezingRapportage.getAantalEersteLezingen())));
-		add(new Label("tweedeLezingen" + getTermijnNaam(termijn) + "Label", Model.of(lezingRapportage.getAantalTweedeLezingen())));
+		String termijnNaam = getTermijnNaam(termijn);
 
-		add(new Label("totaalLezingen" + getTermijnNaam(termijn) + "Label", Model.of(lezingRapportage.getTotaalAantalLezingen())));
+		add(new Label("eersteLezingen" + termijnNaam + "Label", Model.of(lezingRapportage.getAantalEersteLezingen())));
+		add(new Label("tweedeLezingen" + termijnNaam + "Label", Model.of(lezingRapportage.getAantalTweedeLezingen())));
 
-		add(new Label("beoordelingenMetDiscrepantie" + getTermijnNaam(termijn) + "Label", Model.of(lezingRapportage.getAantalDiscrepantieLezingen())));
+		add(new Label("totaalLezingen" + termijnNaam + "Label", Model.of(lezingRapportage.getTotaalAantalLezingen())));
+
+		add(new Label("beoordelingenMetDiscrepantie" + termijnNaam + "Label", Model.of(lezingRapportage.getAantalDiscrepantieLezingen())));
 
 		switch (termijn)
 		{
-			case VANDAAG:
-				add(new Label("lezingenVerwijzendEersteScreeningrondes" + getTermijnNaam(termijn) + "Label",
-						getString("percentageOnbekend")));
-				add(new Label("lezingenVerwijzendMeerdereScreeningrondes" + getTermijnNaam(termijn) + "Label",
-						getString("percentageOnbekend")));
-				break;
-			case KALENDERJAAR:
-				add(new Label("lezingenVerwijzendEersteScreeningrondes" + getTermijnNaam(termijn) + "Label",
-						Model.of(lezingRapportage.getPercentageVerwijzingenEersteRonde())));
-				add(new Label("lezingenVerwijzendMeerdereScreeningrondes" + getTermijnNaam(termijn) + "Label",
-						Model.of(lezingRapportage.getPercentageVerwijzingenMeerdereRondes())));
+		case VANDAAG:
+			add(new Label("lezingenVerwijzendEersteScreeningrondes" + termijnNaam + "Label",
+				getString("percentageOnbekend")));
+			add(new Label("lezingenVerwijzendMeerdereScreeningrondes" + termijnNaam + "Label",
+				getString("percentageOnbekend")));
+			add(new Label("conclusiesGereviewed" + termijnNaam + "Label", getString("aantalOnbekend")));
+			add(new Label("conclusiesOpenstaand" + termijnNaam + "Label", getString("aantalOnbekend")));
+			break;
+		case KALENDERJAAR:
+			add(new Label("lezingenVerwijzendEersteScreeningrondes" + termijnNaam + "Label",
+				Model.of(lezingRapportage.getPercentageVerwijzingenEersteRonde())));
+			add(new Label("lezingenVerwijzendMeerdereScreeningrondes" + termijnNaam + "Label",
+				Model.of(lezingRapportage.getPercentageVerwijzingenMeerdereRondes())));
+			add(new Label("conclusiesGereviewed" + termijnNaam + "Label", Model.of(countConclusieReviewsVanRadioloog(true))));
+			add(new Label("conclusiesOpenstaand" + termijnNaam + "Label", Model.of(countConclusieReviewsVanRadioloog(false))));
 		}
+	}
+
+	private long countConclusieReviewsVanRadioloog(boolean toonGereviewed)
+	{
+		MammaConclusieReviewZoekObject zoekObject = new MammaConclusieReviewZoekObject();
+		zoekObject.setInstellingGebruiker(ScreenitSession.get().getLoggedInInstellingGebruiker());
+		zoekObject.setFilterOptie(MammaConclusieReviewFilterOptie.ALLES);
+		zoekObject.setGezienTonen(toonGereviewed);
+		zoekObject.setVoorDashboard(true);
+
+		return conclusieReviewService.countConclusieReviewsVanRadioloog(zoekObject);
 	}
 
 	private String getTermijnNaam(Termijn termijn)

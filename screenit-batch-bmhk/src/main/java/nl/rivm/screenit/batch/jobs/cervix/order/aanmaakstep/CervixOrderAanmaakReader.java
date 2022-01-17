@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.order.aanmaakstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,11 +21,11 @@ package nl.rivm.screenit.batch.jobs.cervix.order.aanmaakstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -41,7 +41,7 @@ public class CervixOrderAanmaakReader extends BaseScrollableResultReader
 	{
 		Criteria crit = session.createCriteria(CervixUitstrijkje.class, "uitstrijkje");
 		crit.createAlias("uitstrijkje.labformulier", "labformulier");
-        crit.createAlias("laboratorium", "laboratorium");
+		crit.createAlias("laboratorium", "laboratorium");
 		crit.add(Restrictions.ne("uitstrijkje.uitstrijkjeStatus", CervixUitstrijkjeStatus.NIET_ONTVANGEN));
 		crit.add(Restrictions.ne("uitstrijkje.uitstrijkjeStatus", CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR));
 
@@ -49,9 +49,9 @@ public class CervixOrderAanmaakReader extends BaseScrollableResultReader
 		crit.add(Restrictions.eq("labformulier.status", CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE));
 
 		JobParameters jobParameters = getStepExecution().getJobExecution().getJobParameters();
-		if (jobParameters.toProperties().containsKey(Constants.CERVIX_ORDER_JOB_LABORATORIUM_PARAMETER))
+		if (jobParameters.toProperties().containsKey(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name()))
 		{
-			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(Constants.CERVIX_ORDER_JOB_LABORATORIUM_PARAMETER)));
+			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())));
 		}
 		return crit;
 	}

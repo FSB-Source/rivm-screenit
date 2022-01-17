@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.controller;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,22 +23,13 @@ package nl.rivm.screenit.mamma.se.controller;
 
 import java.time.LocalDate;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import nl.rivm.screenit.mamma.se.dto.DagAfsluitingDto;
-import nl.rivm.screenit.mamma.se.dto.DagProductieDto;
-import nl.rivm.screenit.mamma.se.dto.DagSynchronisatieDto;
 import nl.rivm.screenit.mamma.se.dto.DagverslagDto;
-import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
-import nl.rivm.screenit.mamma.se.service.OnderzoekService;
-import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.mamma.se.service.DagverslagService;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.NaamUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
 import org.slf4j.Logger;
@@ -59,13 +50,7 @@ public class DagverslagController extends AuthorizedController
 	private static final Logger LOG = LoggerFactory.getLogger(DagverslagController.class);
 
 	@Autowired
-	private MammaAfspraakService mammaAfspraakService;
-
-	@Autowired
-	private OnderzoekService mammaOnderzoekService;
-
-	@Autowired
-	private HibernateService hibernateService;
+	private DagverslagService dagverslagService;
 
 	@RequestMapping(value = "/{seCode}/{datum}", method = RequestMethod.GET)
 	public ResponseEntity getDagverslag(@PathVariable String seCode, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate datum)
@@ -89,73 +74,6 @@ public class DagverslagController extends AuthorizedController
 		}
 	}
 
-	private String getDisplayName(long instellingGebruikerId)
-	{
-		final InstellingGebruiker instellingGebruiker = hibernateService.get(InstellingGebruiker.class, instellingGebruikerId);
-		return NaamUtil.getNaamGebruiker(instellingGebruiker.getMedewerker());
-	}
-
-	private Map<String, DagProductieDto> getDagproductieVanSeMedewerkers(String seCode, Date datum)
-	{
-		Map<String, DagProductieDto> result = new HashMap<>();
-
-		mammaAfspraakService.getIngeschrevenByGebruikerOpDatumVoorSe(datum, seCode).entrySet().stream()
-			.filter(entry -> entry.getKey() != null)
-			.forEach(entry -> getOrCreateDagproductieDto(entry.getKey(), result).setIngeschrevenCount(entry.getValue()));
-
-		mammaOnderzoekService.getOnderzochtByGebruikerOpDatumVoorSe(datum, seCode).entrySet().stream()
-			.filter(entry -> entry.getKey() != null)
-			.forEach(entry -> getOrCreateDagproductieDto(entry.getKey(), result).setOnderzochtCount(entry.getValue()));
-
-		mammaOnderzoekService.getAfgerondByGebruikerOpDatumVoorSe(datum, seCode).entrySet().stream()
-			.filter(entry -> entry.getKey() != null)
-			.forEach(entry -> getOrCreateDagproductieDto(entry.getKey(), result).setAfgerondCount(entry.getValue()));
-
-		mammaOnderzoekService.getOnderbrokenByGebruikerOpDatumVoorSe(datum, seCode).entrySet().stream()
-			.filter(entry -> entry.getKey() != null)
-			.forEach(entry -> getOrCreateDagproductieDto(entry.getKey(), result).setOnderbrokenCount(entry.getValue()));
-
-		mammaOnderzoekService.getOnvolledigByGebruikerOpDatumVoorSe(datum, seCode).entrySet().stream()
-			.filter(entry -> entry.getKey() != null)
-			.forEach(entry -> getOrCreateDagproductieDto(entry.getKey(), result).setOnvolledigCount(entry.getValue()));
-
-		mammaOnderzoekService.getAfwijkingenByGebruikerOpDatumVoorSe(datum, seCode).entrySet().stream()
-			.filter(entry -> entry.getKey() != null)
-			.forEach(entry -> getOrCreateDagproductieDto(entry.getKey(), result).setAfwijkingenCount(entry.getValue()));
-		return result;
-	}
-
-	private DagProductieDto getOrCreateDagproductieDto(Long instellingGebruikerId, Map<String, DagProductieDto> result)
-	{
-		DagProductieDto dagproductieDto = result.get(getDisplayName(instellingGebruikerId));
-		if (dagproductieDto == null)
-		{
-			dagproductieDto = new DagProductieDto();
-			result.put(getDisplayName(instellingGebruikerId), dagproductieDto);
-		}
-		return dagproductieDto;
-	}
-
-	private DagSynchronisatieDto getSynchronisatieCountVanDag(String seCode, Date datum)
-	{
-		DagSynchronisatieDto synchronisatieDto = new DagSynchronisatieDto();
-		synchronisatieDto.setGemaakt(mammaOnderzoekService.getAantalOnderzoekenMetBeelden(datum, seCode));
-		synchronisatieDto.setVerwerkt(mammaOnderzoekService.getAantalOnderzoekenMetBeeldenBeschikbaarInIms(datum, seCode));
-		return synchronisatieDto;
-	}
-
-	private DagAfsluitingDto getDoorgevoerdCountVanDag(String seCode, Date datum)
-	{
-		DagAfsluitingDto dagAfsluitingDto = new DagAfsluitingDto();
-		dagAfsluitingDto.setAantalDoorgevoerd(mammaOnderzoekService.getAantalDoorgevoerdVanDag(datum, seCode));
-		return dagAfsluitingDto;
-	}
-
-	private LocalDate getDatumVanOudsteNietAfgeslotenOnderzoek(String seCode)
-	{
-		return mammaAfspraakService.getDatumVanOudsteNietAfgeslotenOnderzoek(seCode);
-	}
-
 	private class DagverslagOphaler extends OpenHibernate5SessionInThread
 	{
 		private final Date datum;
@@ -175,10 +93,11 @@ public class DagverslagController extends AuthorizedController
 		protected void runInternal()
 		{
 			dagverslagDto = new DagverslagDto();
-			dagverslagDto.setDagproductie(getDagproductieVanSeMedewerkers(seCode, datum));
-			dagverslagDto.setDagafsluiting(getDoorgevoerdCountVanDag(seCode, datum));
-			dagverslagDto.setDagSynchronisatie(getSynchronisatieCountVanDag(seCode, datum));
-			dagverslagDto.setNietAfgeslotenVanaf(getDatumVanOudsteNietAfgeslotenOnderzoek(seCode));
+			dagverslagDto.setDagproductie(dagverslagService.getDagproductieVanSeMedewerkers(seCode, datum));
+			dagverslagDto.setDagafsluiting(dagverslagService.getDoorgevoerdCountVanDag(seCode, datum));
+			dagverslagDto.setDagSynchronisatie(dagverslagService.getSynchronisatieCountVanDag(seCode, datum));
+			dagverslagDto.setNietAfgeslotenVanaf(dagverslagService.getDatumVanOudsteNietAfgeslotenOnderzoek(seCode));
+			dagverslagDto.setDagPlanningSamenvatting(dagverslagService.getPlanningSamenvattingVanDeDag(seCode, datum));
 		}
 
 		DagverslagDto getDagverslagDto()

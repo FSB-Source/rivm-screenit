@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -253,7 +253,7 @@ public class AfspraakServiceImpl implements AfspraakService
 			Client client = afspraak.getClient();
 			if (!client.getPersoon().getGbaAdres().getGbaGemeente().getCode().equals(Gemeente.RNI_CODE))
 			{
-				ColonBrief colonBrief = briefService.maakColonBrief(screeningRonde, BriefType.COLON_INTAKE_AFMELDING, DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
+				ColonBrief colonBrief = briefService.maakBvoBrief(screeningRonde, BriefType.COLON_INTAKE_AFMELDING, DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
 				colonBrief.setTegenhouden(briefTegenhouden);
 				hibernateService.saveOrUpdate(colonBrief);
 
@@ -364,7 +364,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		{
 			briefType = BriefType.COLON_INTAKE_GEWIJZIGD;
 		}
-		ColonBrief brief = briefService.maakColonBrief(colonScreeningRonde, briefType);
+		ColonBrief brief = briefService.maakBvoBrief(colonScreeningRonde, briefType);
 		brief.setIntakeAfspraak(nieuweAfspraak);
 		if (briefTegenhouden)
 		{
@@ -486,14 +486,14 @@ public class AfspraakServiceImpl implements AfspraakService
 		Date creatieDatumColonBrief = DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS));
 		if (openUitnodiging != null && !heefAlOpenUitnodigingsBriefGehad)
 		{
-			brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_BEVESTIGING_INTAKE_AFSRPAAK_NA_OPEN_UITNODIGING, creatieDatumColonBrief);
+			brief = briefService.maakBvoBrief(laatsteScreeningRonde, BriefType.COLON_BEVESTIGING_INTAKE_AFSRPAAK_NA_OPEN_UITNODIGING, creatieDatumColonBrief);
 			brief.setIntakeAfspraak(nieuweAfspraak);
 		}
 		else if (NieuweIntakeAfspraakMakenReden.HANDMATIG_INPLANNEN.equals(reden))
 		{
 			if (briefType != null)
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, briefType, creatieDatumColonBrief);
+				brief = briefService.maakBvoBrief(laatsteScreeningRonde, briefType, creatieDatumColonBrief);
 
 				if (BriefType.COLON_UITNODIGING_INTAKE.equals(briefType))
 				{
@@ -502,7 +502,7 @@ public class AfspraakServiceImpl implements AfspraakService
 			}
 			else
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_UITNODIGING_INTAKE, creatieDatumColonBrief);
+				brief = briefService.maakBvoBrief(laatsteScreeningRonde, BriefType.COLON_UITNODIGING_INTAKE, creatieDatumColonBrief);
 				brief.setIfobtTest(ColonScreeningRondeUtil.getEersteOngunstigeTest(laatsteScreeningRonde));
 			}
 			brief.setIntakeAfspraak(nieuweAfspraak);
@@ -512,12 +512,12 @@ public class AfspraakServiceImpl implements AfspraakService
 		{
 			if (briefType != null)
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, briefType, creatieDatumColonBrief);
+				brief = briefService.maakBvoBrief(laatsteScreeningRonde, briefType, creatieDatumColonBrief);
 				brief.setIntakeAfspraak(nieuweAfspraak);
 			}
 			else
 			{
-				brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_INTAKE_GEWIJZIGD, creatieDatumColonBrief);
+				brief = briefService.maakBvoBrief(laatsteScreeningRonde, BriefType.COLON_INTAKE_GEWIJZIGD, creatieDatumColonBrief);
 				brief.setIntakeAfspraak(nieuweAfspraak);
 
 			}

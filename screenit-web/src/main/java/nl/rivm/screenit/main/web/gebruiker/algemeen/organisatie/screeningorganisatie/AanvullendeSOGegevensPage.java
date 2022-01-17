@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.screeningorganisatie;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,19 +21,16 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.screeningorgani
  * =========================LICENSE_END==================================
  */
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.dto.mamma.planning.PlanningScreeningsOrganisatieDto;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.PercentageIntegerField;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
-import nl.rivm.screenit.main.web.component.form.BigDecimalField;
 import nl.rivm.screenit.main.web.component.pingpong.PingPongInput;
 import nl.rivm.screenit.main.web.component.validator.ScreenITIBANValidator;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.OrganisatieBeheer;
@@ -57,7 +53,6 @@ import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.GemeenteService;
 import nl.rivm.screenit.service.InstellingService;
-import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
@@ -72,18 +67,13 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.HiddenField;
-import org.apache.wicket.markup.html.form.NumberTextField;
 import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.validator.RangeValidator;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.wicketstuff.shiro.ShiroConstraint;
 
@@ -98,9 +88,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 		Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private GemeenteService gemeenteService;
 
@@ -109,9 +96,6 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 
 	@SpringBean
 	private InstellingService instellingService;
-
-	@SpringBean
-	private MammaBaseConceptPlanningsApplicatie baseConceptPlanningsApplicatie;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -172,24 +156,7 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 
 		WebMarkupContainer bkGroep = new WebMarkupContainer("borstkankerGegevens");
 		form.add(bkGroep);
-
-		TextField<Integer> afspraakDrempelBk = new TextField<>("afspraakDrempelBk");
-		bkGroep.add(afspraakDrempelBk);
-		afspraakDrempelBk.setRequired(true);
-		afspraakDrempelBk.setType(Integer.class);
-		afspraakDrempelBk.add(RangeValidator.range(0, 100));
-
-		bkGroep.add(new BigDecimalField("factorDubbeleTijdBk", 2, BigDecimal.ZERO, new BigDecimal("4.0")).setRequired(true).setEnabled(!inzien));
-		bkGroep.add(new BigDecimalField("factorMinderValideBk", 2, BigDecimal.ZERO, new BigDecimal("4.0")).setRequired(true).setEnabled(!inzien));
-		bkGroep.add(new BigDecimalField("factorEersteOnderzoekBk", 2, BigDecimal.ZERO, new BigDecimal("4.0")).setRequired(true).setEnabled(!inzien));
-		bkGroep.add(new NumberTextField<Integer>("wekenVanTevorenUitnodigen").setRequired(true).setEnabled(!inzien));
-		bkGroep.add(new NumberTextField<Integer>("vervallenCapaciteitsreserveringDagenBk").setMinimum(0).setRequired(true).setEnabled(!inzien));
-		bkGroep.add(new NumberTextField<Integer>("minimaleDagCapaciteitMinderValideAfspraken").setRequired(true).setEnabled(!inzien));
-
 		bkGroep.add(new GekoppeldeCeBeSePanel("ceBeSeOverzicht", model));
-		bkGroep.add(new HiddenField("applicationUrl", Model.of(applicationUrl)));
-		bkGroep.add(new HiddenField("subUrl", Model.of("/api/getAfspraakDrempelOverzichtScreeningsOrganisatie?screeningsOrganisatieId=" + model.getObject().getId() + "&")));
-
 		bkGroep.setVisible(ScreenitSession.get().getOnderzoeken().contains(Bevolkingsonderzoek.MAMMA));
 
 		FormComponent<String> ibanField = ComponentHelper.addTextField(form, "iban", true, 34, inzien);
@@ -201,9 +168,6 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 		SimpleListHibernateModel<Gemeente> choices = new SimpleListHibernateModel<>(allNietGekoppeldeGemeentes);
 		ChoiceRenderer<Gemeente> choiceRenderer = new ChoiceRenderer<Gemeente>("naam", "code")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Object getDisplayValue(Gemeente object)
 			{
@@ -227,9 +191,6 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 
 		final PingPongInput<Gemeente> gemeentes = new PingPongInput<Gemeente>("gemeentes", new PropertyModel<List<Gemeente>>(model, "gemeentes"), choices, choiceRenderer)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public IModel<Gemeente> model(Gemeente object)
 			{
@@ -245,24 +206,12 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 		addBmhkLabRetouradressen(form, organisatie, inzien);
 		form.add(new AjaxSubmitLink("submit")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				ScreeningOrganisatie screeningOrganisatie = (ScreeningOrganisatie) model.getObject();
 				instellingService.saveOrUpdateScreeningOrganisatie(screeningOrganisatie, gemeentes.getChoices().getObject(),
 					ScreenitSession.get().getLoggedInInstellingGebruiker());
-				PlanningScreeningsOrganisatieDto screeningsOrganisatieDto = new PlanningScreeningsOrganisatieDto();
-				screeningsOrganisatieDto.id = screeningOrganisatie.getId();
-				screeningsOrganisatieDto.factorMinderValideBk = screeningOrganisatie.getFactorMinderValideBk();
-				screeningsOrganisatieDto.factorDubbeleTijdBk = screeningOrganisatie.getFactorDubbeleTijdBk();
-				screeningsOrganisatieDto.factorEersteOnderzoekBk = screeningOrganisatie.getFactorEersteOnderzoekBk();
-				screeningsOrganisatieDto.wekenVanTevorenUitnodigen = screeningOrganisatie.getWekenVanTevorenUitnodigen();
-				screeningsOrganisatieDto.vervallenCapaciteitsreserveringDagenBk = screeningOrganisatie.getVervallenCapaciteitsreserveringDagenBk();
-				screeningsOrganisatieDto.minimaleDagCapaciteitMinderValideAfspraken = screeningOrganisatie.getMinimaleDagCapaciteitMinderValideAfspraken();
-				baseConceptPlanningsApplicatie.updateScreeningsOrganisatie(screeningsOrganisatieDto);
 				BasePage.markeerFormulierenOpgeslagen(target);
 				this.info("Gegevens zijn succesvol opgeslagen");
 			}
@@ -271,9 +220,6 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 
 		AjaxLink<Gebruiker> annuleren = new AjaxLink<Gebruiker>("annuleren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -313,9 +259,6 @@ public class AanvullendeSOGegevensPage extends OrganisatieBeheer
 		}
 		ListView<ZASRetouradres> retouradressenView = new ListView<ZASRetouradres>("retouradressen", retouradressenModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<ZASRetouradres> item)
 			{

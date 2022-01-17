@@ -1,0 +1,18 @@
+@charset "utf-8";
+.mergeveld-waarde-lijst{
+	ul{
+		padding: 0px;
+		margin: auto;
+		list-style-type: none;
+		li{
+			float: left;
+		}
+	}
+}
+
+.mergeveld-waarde{
+	padding: 5px;
+	textarea {
+		display: block;
+	}
+}

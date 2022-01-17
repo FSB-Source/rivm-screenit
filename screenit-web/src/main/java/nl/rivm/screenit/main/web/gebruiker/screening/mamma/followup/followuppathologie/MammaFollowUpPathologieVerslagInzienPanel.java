@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followuppat
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,8 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followuppat
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpFollowupPa;
+import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpMonstermateriaal;
+import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpPtnmEnGradering;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -62,20 +64,22 @@ public class MammaFollowUpPathologieVerslagInzienPanel extends GenericPanel<Mamm
 				MammaFollowUpFollowupPa verslag = followUpPaListItem.getModelObject();
 				WebMarkupContainer table = new WebMarkupContainer("table", new CompoundPropertyModel<>(followUpPaListItem.getModel()));
 
-				boolean verkrijgingsWijze = verslag.getMonstermateriaal().getVerkrijgingswijze() != null;
-				boolean locatietopologie = verslag.getMonstermateriaal().getLocatietopologie() != null;
-				boolean locatieUren = verslag.getMonstermateriaal().getLocatieuren() != null;
-				boolean zijdigheid = verslag.getMonstermateriaal().getZijdigheid() != null;
+				MammaFollowUpMonstermateriaal monstermateriaal = verslag.getMonstermateriaal();
+				boolean verkrijgingsWijze = monstermateriaal != null && monstermateriaal.getVerkrijgingswijze() != null;
+				boolean locatietopologie = monstermateriaal != null && monstermateriaal.getLocatietopologie() != null;
+				boolean locatieUren = monstermateriaal != null && monstermateriaal.getLocatieuren() != null;
+				boolean zijdigheid = monstermateriaal != null && monstermateriaal.getZijdigheid() != null;
 				boolean cclassificatiePuntie = verslag.getCclassificatiePunctie() != null;
 				boolean oestrogeenReceptorStatus = verslag.getOestrogeenReceptorStatus() != null;
 				boolean progesteronReceptorStatus = verslag.getProgesteronReceptorStatus() != null;
 				boolean her2Status = verslag.getHer2Status() != null;
 				boolean bclassificatieOpMammabiopt = verslag.getBclassificatieOpMammabiopt() != null;
 				boolean maligniteitsgraad = verslag.getMaligniteitsgraad() != null;
-				boolean ptnmbreastGradering = verslag.getPtnmEnGradering() != null && verslag.getPtnmEnGradering().getPtnmbreastGradering() != null;
-				boolean pt = verslag.getPtnmEnGradering() != null && verslag.getPtnmEnGradering().getPt() != null;
-				boolean pn = verslag.getPtnmEnGradering() != null && verslag.getPtnmEnGradering().getPn() != null;
-				boolean pm = verslag.getPtnmEnGradering() != null && verslag.getPtnmEnGradering().getPm() != null;
+				MammaFollowUpPtnmEnGradering ptnmEnGradering = verslag.getPtnmEnGradering();
+				boolean ptnmbreastGradering = ptnmEnGradering != null && ptnmEnGradering.getPtnmbreastGradering() != null;
+				boolean pt = ptnmEnGradering != null && ptnmEnGradering.getPt() != null;
+				boolean pn = ptnmEnGradering != null && ptnmEnGradering.getPn() != null;
+				boolean pm = ptnmEnGradering != null && ptnmEnGradering.getPm() != null;
 
 				table.add(new WebMarkupContainer("headerVerkrijgingswijze").setVisible(verkrijgingsWijze));
 				table.add(new WebMarkupContainer("headerLocatietopologie").setVisible(locatietopologie));

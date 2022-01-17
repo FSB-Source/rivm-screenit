@@ -1,0 +1,17 @@
+{
+  "page": {
+    "title": "Mijn telefoonnummer",
+    "description": "Als u uw telefoonnummer invult, kunnen wij u bellen als dat nodig is. Bijvoorbeeld als we een afspraak moeten afzeggen. Wij bellen u nooit over uw uitslag van het bevolkingsonderzoek. </br></br> U kunt twee telefoonnummers doorgeven.",
+    "hint": "Heeft u al eerder uw telefoonnummer ingevuld? Dan ziet u dat nummer hieronder. </br>Klopt het nummer nog? Dan hoeft u niets te doen. </br>Heeft u een ander telefoonnummer? Haal dan het oude nummer weg, vul het nieuwe nummer in en klik op Telefoonnummer opslaan."
+  },
+  "form": {
+    "title": "Mijn telefoonnummer:",
+    "placeholder": "Telefoonnummer %s",
+    "button": "Telefoonnummer opslaan",
+    "invalid": "Het telefoonnummer is ongeldig"
+  },
+  "toast": {
+    "title": "We hebben uw telefoonnummer opgeslagen.",
+    "description": "U ziet uw telefoonnummer(s) bij uw gegevens op de pagina ‘Profiel’."
+  }
+}

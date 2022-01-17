@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.screening.colon.verslagen;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,11 +35,9 @@ import nl.rivm.screenit.main.web.gebruiker.screening.colon.ColonScreeningBasePag
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
-import nl.rivm.screenit.model.berichten.enums.BerichtType;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -67,15 +64,9 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	Bevolkingsonderzoek.COLON })
 public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(VerwerkteBerichtenOverzichtPage.class);
 
-	private static final long serialVersionUID = 1L;
-
 	private final BootstrapDialog dialog;
-
-	@SpringBean
-	private BerichtToBatchService cdaBerichtToBatchService;
 
 	@SpringBean
 	private VerslagService verslagService;
@@ -125,29 +116,22 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 		columns.add(new AbstractColumn<OntvangenCdaBericht, String>(Model.of("Bekijk bericht"))
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<OntvangenCdaBericht>> cellItem, String componentId, IModel<OntvangenCdaBericht> rowModel)
 			{
 				cellItem.add(new AjaxImageCellPanel<OntvangenCdaBericht>(componentId, rowModel, "icon-info-sign")
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void onClick(AjaxRequestTarget target)
 					{
 						dialog.openWith(target, new VerwerktBerichtInzienPanel(IDialog.CONTENT_ID, getModel())
 						{
 
-							private static final long serialVersionUID = 1L;
-
 							@Override
 							protected void opnieuwAanbieden(IModel<OntvangenCdaBericht> model, AjaxRequestTarget target)
 							{
 								dialog.close(target);
-								berichtOpnieuwAanbieden(model.getObject().getId(), model.getObject().getBerichtType(), target);
+								berichtOpnieuwAanbieden(model.getObject(), target);
 							}
 
 						});
@@ -169,20 +153,15 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 			columns.add(new AbstractColumn<OntvangenCdaBericht, String>(Model.of("Opnieuw aanbieden"))
 			{
 
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void populateItem(Item<ICellPopulator<OntvangenCdaBericht>> cellItem, String componentId, final IModel<OntvangenCdaBericht> rowModel)
 				{
 					cellItem.add(new AjaxImageCellPanel<OntvangenCdaBericht>(componentId, rowModel, "icon-refresh")
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void onClick(AjaxRequestTarget target)
 						{
-							berichtOpnieuwAanbieden(getModelObject().getId(), getModelObject().getBerichtType(), target);
+							berichtOpnieuwAanbieden(getModelObject(), target);
 						}
 					});
 				}
@@ -217,9 +196,6 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 
 	private class FilterForm extends Form<BerichtZoekFilter>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		public FilterForm(String id, IModel<BerichtZoekFilter> model)
 		{
 			super(id, new CompoundPropertyModel<>(model));
@@ -242,9 +218,6 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 			add(new TextField<String>("text"));
 			add(new IndicatingAjaxButton("filter", this)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
@@ -254,9 +227,6 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 
 			add(new IndicatingAjaxButton("allesOpnieuwVerwerken", this)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
@@ -267,19 +237,10 @@ public class VerwerkteBerichtenOverzichtPage extends ColonScreeningBasePage
 		}
 	}
 
-	private void berichtOpnieuwAanbieden(Long ontvangenCdaBerichtId, BerichtType berichtType, AjaxRequestTarget target)
+	private void berichtOpnieuwAanbieden(OntvangenCdaBericht ontvangenCdaBericht, AjaxRequestTarget target)
 	{
-		switch (berichtType)
-		{
-		case MDL_VERSLAG:
-		case PA_LAB_VERSLAG:
-			cdaBerichtToBatchService.queueColonCDABericht(ontvangenCdaBerichtId);
-			break;
-		case CERVIX_CYTOLOGIE_VERSLAG:
-			cdaBerichtToBatchService.queueCervixCDABericht(ontvangenCdaBerichtId);
-			break;
-		}
-		LOG.info("Bericht met ID " + ontvangenCdaBerichtId + " wordt opnieuw aangeboden");
+		verslagService.berichtOpnieuwVerwerken(ontvangenCdaBericht);
+		LOG.info("Bericht met ID " + ontvangenCdaBericht.getId() + " wordt opnieuw aangeboden");
 		if (target != null)
 		{
 			info("Ontvangen bericht is opnieuw aangeboden ter verwerking door de batch applicatie.");

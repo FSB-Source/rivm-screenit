@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.cervix.CervixSelectiePartitioner;
+import nl.rivm.screenit.batch.jobs.cervix.CervixLabPartitioner;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -62,7 +62,7 @@ public class CervixSelectieReader extends BaseScrollableResultReader
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		ExecutionContext stepContext = getStepExecutionContext();
-		Long bmhkLabId = (Long) stepContext.get(CervixSelectiePartitioner.KEY_BMHK_LAB);
+		Long bmhkLabId = (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB);
 
 		Criteria crit = session.createCriteria(Client.class, "rootClient");
 		crit.createAlias("rootClient.persoon", "persoon");
@@ -94,8 +94,8 @@ public class CervixSelectieReader extends BaseScrollableResultReader
 	private Integer getMaxAantalClienten()
 	{
 		ExecutionContext stepContext = getStepExecutionContext();
-		BMHKLaboratorium bmhkLabId = hibernateService.get(BMHKLaboratorium.class, (Long) stepContext.get(CervixSelectiePartitioner.KEY_BMHK_LAB));
-		return instellingService.getOrganisatieParameter(bmhkLabId, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE);
+		BMHKLaboratorium bmhkLab = hibernateService.get(BMHKLaboratorium.class, (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB));
+		return instellingService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE);
 	}
 
 	@Override

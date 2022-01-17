@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.mamma;
 
 import java.util.stream.Stream;
 
+import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
@@ -55,6 +56,10 @@ public interface MammaBaseDossierService
 	boolean isAfspraakForcerenMogelijk(MammaDossier dossier);
 
 	boolean isRondeForcerenMogelijk(MammaDossier dossier);
+
+	void rondeForceren(Client client) throws MammaStandplaatsVanPostcodeOnbekendException;
+
+	boolean isAutomatischRondeForcerenNaHeraanmeldenMogelijk(MammaDossier dossier);
 
 	void verwijderMammaDossier(Client client);
 }

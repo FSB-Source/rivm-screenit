@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -54,6 +54,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.cervix.CervixTestService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
+import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
@@ -116,6 +117,9 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 
 	@Autowired
 	private MammaBaseHL7v24Dao baseHL7v24Dao;
+
+	@Autowired
+	private MammaBaseIlmService baseIlmService;
 
 	@Override
 	public MammaDossier geefDossier(GbaPersoon gbaPersoon)
@@ -216,6 +220,10 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 		kwaliteitscontroleService.verwijderKwaliteitscontroleOnderzoeken(dossier);
 
 		screeningrondeService.verwijderAlleScreeningRondes(dossier);
+
+		baseIlmService.verwijderIlmBezwaarPogingen(dossier);
+
+		baseIlmService.verwijderIlmRapportageEntriesVoorClient(client);
 
 		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))
 		{

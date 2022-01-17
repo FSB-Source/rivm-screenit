@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -26,8 +26,8 @@
     <title>Icons/Massa</title>
     <desc>Created with Sketch.</desc>
     <defs></defs>
-    <g id="Symbols" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
-        <g id="Icons/Massa" fill="#D0021B">
+    <g id="Symbols" stroke="red" stroke-width="2" fill="none" fill-rule="evenodd">
+        <g id="Icons/Massa">
             <circle id="Oval-2" cx="13.2511983" cy="13.2511983" r="10.9790243"></circle>
         </g>
     </g>

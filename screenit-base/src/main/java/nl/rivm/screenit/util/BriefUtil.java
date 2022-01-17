@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,6 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 public class BriefUtil
 {
-
 	private BriefUtil()
 	{
 
@@ -58,7 +57,8 @@ public class BriefUtil
 
 	public static boolean isUitslagBrief(ColonBrief bestaandeBrief)
 	{
-		return isOngunstigeUitslagBrief(bestaandeBrief) || bestaandeBrief.getBriefType().equals(BriefType.COLON_GUNSTIGE_UITSLAG);
+		BriefType briefType = bestaandeBrief.getBriefType();
+		return isOngunstigeUitslagBrief(bestaandeBrief) || briefType.equals(BriefType.COLON_GUNSTIGE_UITSLAG) || briefType.equals(BriefType.COLON_UITSLAGBRIEF_EXTRA_MONSTER);
 	}
 
 	public static Brief getOrigineleBrief(Brief brief)

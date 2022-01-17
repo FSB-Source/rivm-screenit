@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -207,6 +207,24 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 			{
 				uitwisselPortaalService.updateDownloadVerzoekInformatie(rowModel.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker());
 				target.add(werklijst);
+			}
+
+			@Override
+			protected IModel<String> getFileNameToLog(IModel<MammaDownloadOnderzoekenVerzoek> rowModel)
+			{
+				MammaDownloadOnderzoekenVerzoek downloadOnderzoekenVerzoek = rowModel.getObject();
+				List<MammaDownloadOnderzoek> onderzoeken = downloadOnderzoekenVerzoek.getOnderzoeken();
+				if (onderzoeken.isEmpty())
+				{
+					return super.getFileNameToLog(rowModel);
+				}
+				else
+				{
+					String fileNaam = downloadOnderzoekenVerzoek.getZipBestand().getNaam();
+					Client client = onderzoeken.get(0).getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient();
+					String fileNameToLog = fileNaam.replace(client.getPersoon().getBsn(), "id" + client.getId());
+					return Model.of(fileNameToLog);
+				}
 			}
 		});
 		columns.add(new DateTimePropertyColumn<>(Model.of("Gedownload op"), "gedownloadOp", "gedownloadOp", Constants.getDateTimeFormat()));

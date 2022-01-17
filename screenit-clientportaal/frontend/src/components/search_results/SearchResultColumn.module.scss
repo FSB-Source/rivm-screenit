@@ -1,0 +1,23 @@
+@import "src/scss/media-mixins";
+
+.content {
+	span {
+		display: block;
+	}
+
+	.head {
+		font-size: 13px;
+		line-height: 14px;
+	}
+
+	.largeSpan {
+		font-size: 22px;
+		line-height: 30px;
+
+		@include respond-below(xs) {
+			font-size: 1.25rem;
+			line-height: 1.4rem;
+			margin-bottom: 5px;
+		}
+	}
+}

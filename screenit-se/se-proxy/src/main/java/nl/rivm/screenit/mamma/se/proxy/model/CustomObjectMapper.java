@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.mamma.se.proxy.model;
 
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
@@ -30,9 +31,12 @@ import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 @Service
 public class CustomObjectMapper extends ObjectMapper
 {
+
 	public CustomObjectMapper()
 	{
 		configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 		registerModule(new JSR310Module());
+		setSerializationInclusion(JsonInclude.Include.NON_NULL);
 	}
+
 }

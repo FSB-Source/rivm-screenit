@@ -1,0 +1,108 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.topTaak {
+	min-width: 220px;
+	max-width: 320px;
+	background-color: $wit-base;
+	border-radius: 10px;
+	box-shadow: 0 20px 30px -19px rgba(0, 0, 0, 0.15);
+	padding-left: 30px;
+	padding-right: 30px;
+	padding-top: 20px;
+	transition: 0.3s;
+	font-size: 1.1rem;
+
+	@include respond-above(md) {
+		height: 260px;
+	}
+
+	@include respond-below(md) {
+		margin-bottom: 20px;
+		padding-bottom: 30px;
+	}
+
+	@include respond-below(xs) {
+		padding: 15px 20px;
+	}
+
+	&:hover {
+		cursor: pointer;
+		box-shadow: 5px 20px 30px 3px rgba(0, 0, 0, 0.2);
+	}
+
+	h1 {
+		font-size: 1.7rem;
+
+		@include respond-below(lg) {
+			font-size: 1.6rem;
+		}
+
+		@include respond-below(md) {
+			font-size: 1.5rem;
+		}
+
+		@include respond-below(xs) {
+			font-size: 1.3rem;
+		}
+	}
+
+	.subTitleContainer {
+		bottom: 1.5rem;
+
+		@include respond-below(lg) {
+			bottom: 2.5rem;
+		}
+
+		span {
+			display: block;
+
+			&:first-of-type {
+				color: $grijs-900;
+				font-size: 1rem;
+
+				@include respond-below(xs) {
+					font-size: 0.9rem;
+				}
+			}
+
+			&:last-of-type {
+				margin-top: 5px;
+				font-size: 1.25rem;
+				font-weight: 600;
+				text-overflow: ellipsis;
+				overflow: hidden;
+				display: -webkit-box;
+				-webkit-line-clamp: 3;
+				-webkit-box-orient: vertical;
+				word-break: break-word;
+
+				@include respond-below(xs) {
+					margin-top: 0;
+					font-size: 1.05rem;
+				}
+			}
+		}
+  }
+}
+
+.topTaakIcon {
+  align-self: center;
+  float: right;
+
+  svg {
+		height: 50px;
+		width: 50px;
+		background-color: $wit-base;
+
+		@include respond-below(lg) {
+			height: 40px;
+			width: 40px;
+		}
+
+		@include respond-below(xs) {
+			height: 35px;
+			width: 35px;
+		}
+	}
+}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,11 +27,11 @@ import nl.rivm.screenit.main.service.impl.zorgid.ClosedSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.InitializedSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.OpenCancelledSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.OpenedSessieState;
+import nl.rivm.screenit.main.service.impl.zorgid.SessieState;
 import nl.topicuszorg.cloud.distributedsessions.RedisConfig;
 import nl.topicuszorg.zorgid.model.ZorgidException;
 import nl.topicuszorg.zorgid.model.sessie.ClosedReason;
 import nl.topicuszorg.zorgid.model.sessie.OpenCancelledReason;
-import nl.topicuszorg.zorgid.model.sessie.SessieState;
 
 public interface ZorgIdSessieService
 {

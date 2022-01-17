@@ -1,0 +1,89 @@
+﻿.submenu-container {
+  display: block;
+  height: 112px;
+
+  @include respond-below(sm) {
+    height: 140px;
+  }
+}
+
+.content-sub {
+  display: grid;
+  min-height: 76px;
+  border: 1px solid #F0F1F1;
+  border-radius: 10px;
+  background-color: white;
+  box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  margin: 10px auto;
+  position: absolute;
+  z-index: 100;
+  width: 100%;
+
+  @include respond-below(md) {
+    width: 92%;
+  }
+
+
+  &--title {
+    color: $blue;
+    font-size: calc-em(30);
+    line-height: 1.2;
+    font-weight: 500;
+    text-transform: lowercase;
+    cursor: pointer;
+
+    @include respond-below(sm) {
+      font-size: calc-em(24);
+    }
+
+
+    .meer {
+      color: $black;
+      text-transform: none;
+    }
+
+    &:before {
+      content: "\f105";
+      font-family: FontAwesome;
+      font-size: calc-em(15);
+      color: $blue;
+      font-weight: 300;
+      float: right;
+    }
+
+    &[aria-expanded="true"] {
+      &:before {
+        content: "\f107";
+      }
+    }
+  }
+
+  &--list {
+    display: block;
+    margin: 8px -15px;
+
+    &__item {
+      border-bottom: 1px solid #D0D2D3;
+      display: inline-block;
+      min-height: 52px;
+      margin: 6px 0 0;
+      width: 100%;
+      padding-bottom: 12px;
+      text-indent: -1.2em;
+      padding-left: 1.2em;
+      cursor: pointer;
+      color: $black !important;
+
+      &:before {
+        content: "\f105" !important;
+        font-family: FontAwesome;
+        font-size: calc-em(26);
+        margin-right: 8px;
+        color: $blue;
+        position: relative;
+        top: 2px;
+      }
+    }
+  }
+}

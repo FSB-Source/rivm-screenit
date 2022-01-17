@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  */
 
 import nl.rivm.screenit.main.model.Parameterisatie;
+import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
 import org.apache.wicket.Component;
@@ -31,13 +32,9 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CervixPrimaireParametersPanel extends BasePrimaireParametersPanel
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixPrimaireParametersPanel.class);
 
 	private static final long serialVersionUID = 1L;
 
@@ -74,11 +71,19 @@ public class CervixPrimaireParametersPanel extends BasePrimaireParametersPanel
 		form.add(new TextField<>("cervixMaxZasAanvragenClient", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 
 		form.add(new TextField<>("cervixUitstelUitslagbriefPap3a2OfHoger", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(ComponentHelper.newDatePicker("cervixStartAanleveringGenotyperingEnInvoeringTriage", magAanpassen()).setRequired(true));
 
 		addTextAreaField(form, "cervixHerinneringTekst");
 		addTextAreaField(form, "cervixUitgesteldTekst");
 		addTextAreaField(form, "cervixEenmaligHeraanmeldenTekst");
 		addTextAreaField(form, "cervixDefinitiefHeraanmeldenTekst");
+
+		addTextAreaField(form, "cervixVervolgonderzoekNegatief65plusTekst");
+		addTextAreaField(form, "cervixVervolgonderzoekNegatief60plusTekst");
+		addTextAreaField(form, "cervixVervolgonderzoekNegatiefOverigeTekst");
+
+		addTextAreaField(form, "cervixCytologiePositief60plusTekst");
+		addTextAreaField(form, "cervixCytologiePositiefOverigeTekst");
 		return form;
 	}
 

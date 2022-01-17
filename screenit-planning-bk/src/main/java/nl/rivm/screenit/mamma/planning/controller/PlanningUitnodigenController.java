@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -43,6 +43,7 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
 import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
+import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
 import nl.rivm.screenit.mamma.planning.model.PlanningConstanten;
 import nl.rivm.screenit.mamma.planning.model.PlanningDag;
@@ -70,6 +71,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
+import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
@@ -128,6 +130,7 @@ public class PlanningUitnodigenController
 	{
 		try
 		{
+			PlanningStatusIndex.set(MammaPlanningStatus.UITNODIGEN);
 			uitnodigenService.clear();
 			uitnodigenVanafJaar = dateSupplier.getLocalDate().getYear();
 
@@ -149,6 +152,7 @@ public class PlanningUitnodigenController
 				hibernateService.saveOrUpdateAll(standplaatsRondeUitnodigenRapportage.getStandplaatsPeriodeUitnodigenRapportages());
 			}
 
+			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 			return rapportage.getId();
 		}
 		catch (Exception e)
@@ -159,6 +163,7 @@ public class PlanningUitnodigenController
 			instellingList.add(rivm);
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_UITNODIGEN_FOUT, instellingList, new LogEvent("Technische fout bij uitnodigen"),
 				Bevolkingsonderzoek.MAMMA);
+			PlanningStatusIndex.set(MammaPlanningStatus.ERROR);
 			return null;
 		}
 	}

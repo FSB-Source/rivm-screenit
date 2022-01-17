@@ -1,0 +1,40 @@
+{
+  "page": {
+    "title": "Uitstellen deelname",
+    "description": "U heeft een uitnodiging gekregen voor het bevolkingsonderzoek baarmoederhalskanker. </br>Wilt u wel meedoen, maar niet nu? Dan kunt u uw deelname uitstellen.</br></br>Wilt u later meedoen omdat u zwanger bent? Vul dan in wanneer u uitgerekend bent. U&nbsp;krijgt ongeveer zes maanden na de uitgerekende datum een nieuwe uitnodiging.</br>Wilt u later meedoen om een andere reden? Vul dan in wanneer u een nieuwe uitnodiging wilt hebben."
+  },
+  "form": {
+    "title": "Ik wil mijn deelname uitstellen:",
+    "radiobutton": {
+      "zwanger": "omdat ik zwanger ben.",
+      "anders": "om een andere reden."
+    },
+    "label": {
+      "zwanger": "Mijn uitgerekende datum is:",
+      "anders": "Ik wil graag een nieuwe uitnodiging krijgen rond:"
+    },
+    "placeholer": {
+      "zwanger": "Uitgerekende datum",
+      "anders": "Uitnodigingsdatum"
+    },
+    "button": "Deelname uitstellen",
+    "error": {
+      "verplicht": {
+        "radiobutton": "Maak uw keuze",
+        "datepicker": "Dit veld is verplicht"
+      },
+      "datum": {
+        "ongeldig": "Vul een geldige datum in",
+        "minimum": "Ongeldig - Kies een datum vanaf %s",
+        "maximum": "Ongeldig - Kies een datum voor %s"
+      }
+    }
+  },
+  "error": {
+    "zas": "U heeft een zelfafnameset aangevraagd. Als u later mee wilt doen, sturen we u nu geen zelfafnameset. U krijgt automatisch een nieuwe uitnodiging om mee te doen aan het bevolkingsonderzoek. Dan kunt u ook een nieuwe zelfafnameset aanvragen."
+  },
+  "toast": {
+    "title": "U heeft uw deelname uitgesteld tot %s.",
+    "description": "U krijgt dan een nieuwe uitnodiging voor het bevolkingsonderzoek."
+  }
+}

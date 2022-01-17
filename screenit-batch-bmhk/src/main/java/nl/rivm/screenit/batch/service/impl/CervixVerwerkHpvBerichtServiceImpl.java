@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import java.util.List;
 
 import nl.rivm.screenit.batch.dao.VerwerkHpvBerichtenDao;
 import nl.rivm.screenit.batch.model.HapiContextType;
+import nl.rivm.screenit.batch.service.CervixBepaalHpvBeoordelingService;
 import nl.rivm.screenit.batch.service.CervixVerwerkHpvBerichtService;
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -43,7 +44,7 @@ import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvBerichtWrapper;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvMonsterWrapper;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -54,7 +55,6 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
-import nl.rivm.screenit.util.cervix.HpvBerichtGenerator.CervixHpvBerichtWaarde;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -95,6 +95,11 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 	@Autowired
 	private CervixFactory factory;
 
+	@Autowired
+	private CervixBepaalHpvBeoordelingService bepaalHpvBeoordelingService;
+
+	private boolean isGenotyperingAnalyseGestart;
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public List<CervixHpvBericht> getAlleNietVerwerkteHpvBerichten()
@@ -115,8 +120,8 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 			HapiContext context = ScreenitHapiContext.getHapiContext(HapiContextType.UTF_8);
 			Parser p = context.getPipeParser();
 			Message hapiMsg = p.parse(hpvBericht);
-
 			CervixHpvBerichtWrapper bericht = new CervixHpvBerichtWrapper((OUL_R22) hapiMsg);
+
 			LOG.info("Bericht (" + bericht.getMessageId() + ") wordt verwerkt! Aantal: " + bericht.getResultaten().size());
 			for (CervixHpvMonsterWrapper sample : bericht.getResultaten())
 			{
@@ -126,56 +131,45 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 					validatieAnalyseDatumEnAutorisatieDatum(monster, sample, opDashboardVanOrganisaties);
 					validateStatusMonster(monster, sample, opDashboardVanOrganisaties);
 
-					CervixHpvBerichtWaarde berichtWaarde = sample.getUitslag();
-					Level onverwachteBerichtWaardeLogLevel = Level.ERROR;
-					String onverwachteBerichtWaardeMeldingPrefix = "Onverwachte ";
-					switch (berichtWaarde)
+					CervixHpvBeoordelingWaarde beoordelingWaarde = bepaalHpvBeoordelingService.getHpvBeoordelingWaarde(sample.getAnalyseresultaten());
+					if (beoordelingWaarde != null)
 					{
-					case NEG_HR_HPV:
-					case POS_HR_HPV:
-					case INVALID_HR_HPV:
 						if (magMonsterOverschrevenWorden(sample, monster, opDashboardVanOrganisaties))
 						{
 							CervixScreeningRonde ronde = monster.getOntvangstScreeningRonde();
-							factory.maakHpvBeoordeling(monster, ontvangenBericht, sample.getAnalyseDatum(), sample.getAutorisatieDatum(), berichtWaarde.getUitslag());
+							factory.maakHpvBeoordeling(monster, ontvangenBericht, sample.getAnalyseDatum(), sample.getAutorisatieDatum(), beoordelingWaarde,
+								sample.getAnalyseresultaten());
 
 							setMonsterInVolgendeStatus(monster);
 							hibernateService.saveOrUpdate(monster);
 
-							if (CervixHpvBerichtWaarde.INVALID_HR_HPV != berichtWaarde)
+							if (CervixHpvBeoordelingWaarde.ONGELDIG != beoordelingWaarde)
 							{
 								ronde.setMonsterHpvUitslag(monster);
 								hibernateService.saveOrUpdate(ronde);
 							}
-							if (monster.getHpvBeoordelingen().size() == 1 && CervixHpvBerichtWaarde.INVALID_HR_HPV == berichtWaarde)
+							else if (monster.getHpvBeoordelingen().size() == 1)
 							{
-								String melding = "Eerste Invalid hrHPV-uitslag van monster. Monster dient nogmaals op HPV beoordeeld te worden.";
+								String melding = "Eerste ongeldige hrHPV-analyseresultaat(en) van monster. Monster dient nogmaals op HPV beoordeeld te worden.";
 								logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_VERWERKT, opDashboardVanOrganisaties, Level.INFO, melding, sample, monster);
 							}
 						}
-						break;
-					case FAILURE:
-						onverwachteBerichtWaardeLogLevel = Level.WARNING; 
-						onverwachteBerichtWaardeMeldingPrefix = "";
-
-					case POS_OTHER_HR_HPV:
-					case NEG_OTHER_HR_HPV:
-					case INVALID_OTHER_HR:
-					case HPV:
-					case POS_HPV16:
-					case NEG_HPV16:
-					case INVALID_HPV16:
-					case POS_HPV18:
-					case NEG_HPV18:
-					case INVALID_HPV18:
-						String melding = onverwachteBerichtWaardeMeldingPrefix + "hrHPV-uitslag waarde ('" + berichtWaarde.getBerichtWaarde()
-							+ "') van monster ontvangen. Uitslag wordt genegeerd.";
+					}
+					else
+					{
+						Level onverwachteBerichtWaardeLogLevel = Level.ERROR;
+						String onverwachteBerichtWaardeMeldingPrefix = "Onverwachte ";
+						if (sample.isFailure())
+						{
+							onverwachteBerichtWaardeLogLevel = Level.WARNING; 
+							onverwachteBerichtWaardeMeldingPrefix = "";
+						}
+						String melding = onverwachteBerichtWaardeMeldingPrefix + "hrHPV-analyseresultaat(en) (" + sample.getAnalyseresultatenString()
+							+ ") van monster ontvangen. Aanlevering wordt genegeerd.";
 						melding = logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_GENEGEERD, opDashboardVanOrganisaties, onverwachteBerichtWaardeLogLevel, melding, sample, monster);
 						throw new IllegalStateException(melding);
-					default:
-						throw new IllegalStateException("Onbekende uitslag waarde niet herkend, neem contact op met de helpdesk. MonsterId: " + monster.getMonsterId()
-							+ ". Laboratorium: " + ontvangenBericht.getLaboratorium().getNaam());
 					}
+
 				}
 				catch (IllegalStateException e)
 				{
@@ -290,7 +284,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 		{
 			if (format.format(hpvBeoordeling.getAnalyseDatum()).equals(format.format(analyseDatum)))
 			{
-				String melding = "hrHPV-uitslag is dubbel ontvangen. Uitslag wordt genegeerd.";
+				String melding = "hrHPV-analyseresultaat(en) zijn dubbel ontvangen. Aanlevering wordt genegeerd.";
 				melding = logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_GENEGEERD, opDashboardVanOrganisaties, Level.WARNING, melding, sample, monster);
 				throw new IllegalStateException(melding);
 			}
@@ -303,7 +297,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 		if (hpvBeoordelingen.size() == 1)
 		{
 			CervixHpvBeoordeling beoordeling = hpvBeoordelingen.get(0);
-			if (CervixHpvUitslag.ONGELDIG == beoordeling.getHpvUitslag())
+			if (CervixHpvBeoordelingWaarde.ONGELDIG == beoordeling.getHpvUitslag())
 			{
 				return true;
 			}
@@ -324,13 +318,13 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 		if (eerderHpvUitslagIsZas && !isCommunicatieUitgestuurd)
 		{
 			CervixHpvBeoordeling beoordeling = ronde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling();
-			String oudeUitslag = beoordeling.getHpvUitslag().getNaam();
-			String melding = "hrHPV-uitslag van uitstrijkje overschrijft hrHPV-uitslag van ZAS, status veranderd van " + oudeUitslag + " naar "
-				+ sample.getUitslag().getUitslag().getNaam() + ".";
+			String oudeBeoordeling = beoordeling.getHpvUitslag().getNaam();
+			String melding = "hrHPV-analyseresultaat(en) van uitstrijkje overschrijft hrHPV-analyseresultaat(en) van ZAS, status veranderd van " + oudeBeoordeling + " naar "
+				+ bepaalHpvBeoordelingService.getHpvBeoordelingWaarde(sample.getAnalyseresultaten()).getNaam() + ".";
 			logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_OVERSCHREVEN, opDashboardVanOrganisaties, Level.INFO, melding, sample, monster);
 			return true;
 		}
-		String melding = "hrHPV-uitslag in een ronde, waar al een hrHPV-uitslag bestaat. Uitslag wordt genegeerd.";
+		String melding = "hrHPV-analyseresultaat(en) in een ronde, waar al een hrHPV-analyseresultaat(en) bestaat. Aanlevering wordt genegeerd.";
 		melding = logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_GENEGEERD, opDashboardVanOrganisaties, Level.WARNING, melding, sample, monster);
 		throw new IllegalStateException(melding);
 	}
@@ -344,7 +338,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 			return monster;
 		}
 
-		String melding = "hrHPV-uitslag van onbekend monster. Uitslag wordt genegeerd.";
+		String melding = "hrHPV-analyseresultaat(en) van onbekend monster. Aanlevering wordt genegeerd.";
 		melding = logging(LogGebeurtenis.CERVIX_HPV_ONBEKENDE_BARCODE, opDashboardVanOrganisaties, Level.WARNING, melding, sample);
 		throw new IllegalStateException(melding);
 	}
@@ -362,7 +356,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 				return;
 			}
 			status = uitstrijkje.getUitstrijkjeStatus().getNaam();
-			melding = "hrHPV-uitslag van uitstrijkje met onverwachte status: " + status + ". Uitslag wordt genegeerd.";
+			melding = "hrHPV-analyseresultaat(en) van uitstrijkje met onverwachte status: " + status + ". Aanlevering wordt genegeerd.";
 		}
 
 		if (CervixMonsterUtil.isZAS(monster))
@@ -373,11 +367,10 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 				return;
 			}
 			status = zas.getZasStatus().getNaam();
-			melding = "hrHPV-uitslag van ZAS met onverwachte status: " + status + ". Uitslag wordt genegeerd.";
+			melding = "hrHPV-analyseresultaat(en) van ZAS met onverwachte status: " + status + ". Aanlevering wordt genegeerd.";
 		}
 
 		melding = logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_GENEGEERD, opDashboardVanOrganisaties, Level.WARNING, melding, sample, monster);
 		throw new IllegalStateException(melding);
 	}
-
 }

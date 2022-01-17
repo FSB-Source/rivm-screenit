@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.verwerkingstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -111,7 +111,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 				}
 			}
 
-			if (ifobtTest != null && ifobtTest.getType().equals(IFOBTType.GOLD))
+			if (ifobtTest != null && !IFOBTTestStatus.NIETTEBEOORDELEN.equals(ifobtTest.getStatus()) && ifobtTest.getType().equals(IFOBTType.GOLD))
 			{
 				Client client = ifobtTest.getColonScreeningRonde().getDossier().getClient();
 
@@ -119,17 +119,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 				{
 					logService.logGebeurtenis(LogGebeurtenis.IFOBT_VERWERKT, client, "barcode: " + ifobtTest.getBarcode(), Bevolkingsonderzoek.COLON);
 
-					ifobtTest.setAnalyseDatum(ifobtResult.getAnalyseDatum());
-					ifobtTest.setVerwerkingsDatum(currentDateSupplier.getDate());
-
-					if (correctForInpakcentrumIncident(ifobtTest))
-					{
-						BigDecimal uitslag = ifobtResult.getUitslag();
-						ifobtTest.setUitslag(uitslag);
-					}
-
-					ifobtTest.setIfobtLaboratorium(bestand.getLaboratorium());
-					ifobtTest.setInstumentId(bestand.getInstumentId());
+					zetAnalysegegevensOverNaarFit(bestand, ifobtResult, ifobtTest);
 
 					iFobtService.uitslagFitOntvangen(ifobtTest);
 
@@ -141,9 +131,13 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 						+ " is al eerder een uitslag verwerkt. Niet nogmaals verwerkt.", Bevolkingsonderzoek.COLON);
 				}
 			}
+			else if (ifobtTest != null && IFOBTTestStatus.NIETTEBEOORDELEN.equals(ifobtTest.getStatus()))
+			{
+				LOG.warn("Barcode " + ifobtTest.getBarcode() + " hoort bij een onbeoordeelbare FIT.");
+			}
 			else
 			{
-				LOG.warn("De barcode is onbekend of hoort niet bij een FIT.");
+				LOG.warn("Barcode " + ifobtResult.getBarcode() + " is onbekend of hoort niet bij een FIT.");
 			}
 			bestand.setAantalVerwerkt(bestand.getAantalVerwerkt() + 1);
 			if (bestand.getAantalVerwerkt() >= bestand.getUitslagen().size())
@@ -157,6 +151,21 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 
 			hibernateService.saveOrUpdate(bestand);
 		}
+	}
+
+	private void zetAnalysegegevensOverNaarFit(IFOBTBestand bestand, IFOBTUitslag ifobtResult, IFOBTTest ifobtTest)
+	{
+		ifobtTest.setAnalyseDatum(ifobtResult.getAnalyseDatum());
+		ifobtTest.setVerwerkingsDatum(currentDateSupplier.getDate());
+
+		if (correctForInpakcentrumIncident(ifobtTest))
+		{
+			BigDecimal uitslag = ifobtResult.getUitslag();
+			ifobtTest.setUitslag(uitslag);
+		}
+
+		ifobtTest.setIfobtLaboratorium(bestand.getLaboratorium());
+		ifobtTest.setInstumentId(bestand.getInstumentId());
 	}
 
 	private boolean correctForInpakcentrumIncident(IFOBTTest ifobtTest)

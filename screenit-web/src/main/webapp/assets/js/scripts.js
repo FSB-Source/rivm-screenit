@@ -2,7 +2,7 @@
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -19,43 +19,35 @@
  * =========================LICENSE_END==================================
  */
 
-function changeInActief(id)
-{
+function changeInActief(id) {
 	var $button = $("#" + id);
 	$button.parent().find("a").removeClass("active");
 	$button.addClass("active");
 }
 
-function showDialog(markupId, closeCallBack)
-{
+function showDialog(markupId, closeCallBack) {
 	var $dialog = $('#' + markupId);
 
-	if ($dialog.hasClass('moveModalDialog'))
-	{
+	if ($dialog.hasClass('moveModalDialog')) {
 		var $modals = $('body>.modal#' + markupId);
-		if ($modals.length > 1)
-		{
+		if ($modals.length > 1) {
 			$modals.remove();
 		}
-		while ($dialog.hasClass('moveModalDialog'))
-		{
+		while ($dialog.hasClass('moveModalDialog')) {
 			$dialog.removeClass('moveModalDialog');
 		}
 		$dialog.appendTo($('body', document));
 	}
 
 	$backdrop = $('body>.modal-backdrop');
-	if ($backdrop.length >= 1)
-	{
+	if ($backdrop.length >= 1) {
 		$backdrop.remove();
 	}
 
 	$dialog.modal('show');
 
-	if ($.trim(closeCallBack).length > 0)
-	{
-		$dialog.on('hidden', function()
-		{
+	if ($.trim(closeCallBack).length > 0) {
+		$dialog.on('hidden', function () {
 			eval(closeCallBack);
 		})
 	}
@@ -64,82 +56,62 @@ function showDialog(markupId, closeCallBack)
 var oldFormValues;
 
 var copyOldFormValues;
-$(function()
-{
+$(function () {
 	resetFormValues();
 });
 
-function resetFormValues()
-{
-	if (bevatFormulieren)
-	{
+function resetFormValues() {
+	if (bevatFormulieren) {
 		oldFormValues = getFormValues();
 	}
-	if (window.huidigeLezingGewijzigd)
-	{
+	if (window.huidigeLezingGewijzigd) {
 		window.updateHuidigeLezingInitieeleValues();
 	}
 }
 
-function backupOldFormValues()
-{
-	if (bevatFormulieren)
-	{
+function backupOldFormValues() {
+	if (bevatFormulieren) {
 		copyOldFormValues = oldFormValues;
 	}
-	if (window.huidigeLezingGewijzigd)
-	{
+	if (window.huidigeLezingGewijzigd) {
 		window.backupHuidigeLezingInitieeleValues();
 	}
 }
 
-function zetBackupOldFormValuesTerug()
-{
-	if (bevatFormulieren)
-	{
+function zetBackupOldFormValuesTerug() {
+	if (bevatFormulieren) {
 		oldFormValues = copyOldFormValues;
 	}
-	if (window.huidigeLezingGewijzigd)
-	{
+	if (window.huidigeLezingGewijzigd) {
 		window.zetBackupHuidigeLezingInitieeleValuesTerug();
 	}
 }
 
 var bevatFormulieren;
 
-function checkForChangesBeforeClick(buttonMarkupId)
-{
-	if (formChanged())
-	{
+function checkForChangesBeforeClick(buttonMarkupId) {
+	if (formChanged()) {
 		var result = confirm('Site verlaten?\nWijzigingen die je hebt aangebracht, worden mogelijk niet opgeslagen.');
-		if(result)
-		{
+		if (result) {
 			triggerChangesConfirmed(buttonMarkupId);
 		}
-	}
-	else
-	{
+	} else {
 		triggerChangesConfirmed(buttonMarkupId);
 	}
 }
 
-function triggerChangesConfirmed(buttonMarkupId)
-{
+function triggerChangesConfirmed(buttonMarkupId) {
 	$("#" + buttonMarkupId + "").trigger('changesConfirmedEvent');
 }
 
-function formChanged()
-{
+function formChanged() {
 	return (bevatFormulieren && oldFormValues !== getFormValues())
 		|| (window.huidigeLezingGewijzigd && window.huidigeLezingGewijzigd());
 }
 
-window.onbeforeunload = function()
-{
-    if (formChanged())
-	{
-		setTimeout(function()
-		{
+window.onbeforeunload = function () {
+	if (formChanged()) {
+		setTimeout(function () {
 			$(".wicket-ajax-indicator").hide();
 		}, 2000);
 		return 'Er zijn wijzigingen aangebracht die niet zijn opgeslagen.';
@@ -148,10 +120,8 @@ window.onbeforeunload = function()
 
 function confirmUnsavedChanges() 
 {
-	if (formChanged())
-	{
-		if (confirm('Er zijn wijzigingen aangebracht die niet zijn opgeslagen. Doorgaan met wisselen organisatie?'))
-		{
+	if (formChanged()) {
+		if (confirm('Er zijn wijzigingen aangebracht die niet zijn opgeslagen. Doorgaan met wisselen organisatie?')) {
 			oldFormValues = getFormValues();
 			return true;
 		}
@@ -171,7 +141,7 @@ function getFormValues() {
 					json[heading] = {};
 				}
 				$(this)
-					.find('input[type=text]:not(.select2-input,.select2-focusser), input[type=radio]:checked, input[type=checkbox]:checked, textarea, select, form')
+					.find('input[type=text]:not(.select2-input,.select2-focusser),input[type=number]:not(.select2-input,.select2-focusser), input[type=radio]:checked, input[type=checkbox]:checked, textarea, select, form')
 					.each(function (x) {
 
 						if ($(this).hasClass('ui-autocomplete-input') == false && $(this).hasClass('not-tracked-for-changes-on-page') == false) {
@@ -188,19 +158,15 @@ function getFormValues() {
 	return formValues;
 }
 
-function syncColumnHeights(source, destination)
-{
+function syncColumnHeights(source, destination) {
 	var sourceHeight = $(source).height();
 	var destinationHeight = $(destination).height();
 
-	if (sourceHeight > destinationHeight)
-	{
+	if (sourceHeight > destinationHeight) {
 		$(destination).css({
 			'height': sourceHeight
 		});
-	}
-	else
-	{
+	} else {
 		$(source).css({
 			'height': destinationHeight
 		});
@@ -208,8 +174,7 @@ function syncColumnHeights(source, destination)
 
 }
 
-function toggleChevron()
-{
+function toggleChevron() {
 	var $accordionToggle = $('.accordion-toggle');
 	var $accordion = $accordionToggle.closest('.accordion');
 	var direction = $accordion.attr('data-chevron-direction');
@@ -217,48 +182,36 @@ function toggleChevron()
 	var $ChevronCollapsed = (direction === 'left') ? 'icon-chevron-left' : 'icon-chevron-right';
 	var $ChevronExpanded = 'icon-chevron-down';
 
-	$accordionToggle.on('click', function(e)
-	{
+	$accordionToggle.on('click', function (e) {
 		var $chevron = $(this).closest('.accordion-group').find('i.icon-purple');
 		var $chevrons = $accordion.find('i.icon-purple').not($chevron);
 		$chevrons.removeClass($ChevronExpanded).addClass($ChevronCollapsed);
 
-		if ($chevron.hasClass($ChevronCollapsed))
-		{
+		if ($chevron.hasClass($ChevronCollapsed)) {
 			$chevron.removeClass($ChevronCollapsed);
 			$chevron.addClass($ChevronExpanded);
-		}
-		else
-		{
+		} else {
 			$chevron.removeClass($ChevronExpanded);
 			$chevron.addClass($ChevronCollapsed);
 		}
 	});
 }
 
-function tNummerUpdate(serieSelector)
-{
-	$(serieSelector).each(function()
-	{
-		if ($(this).val().length > 0 && $(this).is(':enabled'))
-		{
+function tNummerUpdate(serieSelector) {
+	$(serieSelector).each(function () {
+		if ($(this).val().length > 0 && $(this).is(':enabled')) {
 			$(serieSelector).val($(this).val());
 		}
 		return false;
 	});
 }
 
-function vragenLijstToggle()
-{
-	$('.icon-collapse').click(function()
-	{
-		if ($('.icon-collapse img').attr('src') == '../assets/images/icons/icon-min.png')
-		{
+function vragenLijstToggle() {
+	$('.icon-collapse').click(function () {
+		if ($('.icon-collapse img').attr('src') == '../assets/images/icons/icon-min.png') {
 			$('.verslagbeoordeling').hide(300);
 			$('.icon-collapse img').attr("src", "../assets/images/icons/icon-plus.png");
-		}
-		else
-		{
+		} else {
 			$('.verslagbeoordeling').show(300);
 			$('.icon-collapse img').attr("src", "../assets/images/icons/icon-min.png");
 		}
@@ -267,12 +220,11 @@ function vragenLijstToggle()
 
 var matched, browser;
 
-jQuery.uaMatch = function(ua)
-{
+jQuery.uaMatch = function (ua) {
 	ua = ua.toLowerCase();
 
 	var match = /(chrome)[ \/]([\w.]+)/.exec(ua) || /(webkit)[ \/]([\w.]+)/.exec(ua) || /(opera)(?:.*version|)[ \/]([\w.]+)/.exec(ua)
-				|| /(msie) ([\w.]+)/.exec(ua) || ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua) || [];
+		|| /(msie) ([\w.]+)/.exec(ua) || ua.indexOf("compatible") < 0 && /(mozilla)(?:.*? rv:([\w.]+)|)/.exec(ua) || [];
 
 	return {
 		browser: match[1] || "",
@@ -283,25 +235,20 @@ jQuery.uaMatch = function(ua)
 matched = jQuery.uaMatch(navigator.userAgent);
 browser = {};
 
-if (matched.browser)
-{
+if (matched.browser) {
 	browser[matched.browser] = true;
 	browser.version = matched.version;
 }
 
-if (browser.chrome)
-{
+if (browser.chrome) {
 	browser.webkit = true;
-}
-else if (browser.webkit)
-{
+} else if (browser.webkit) {
 	browser.safari = true;
 }
 
 jQuery.browser = browser;
 
-function cervixUAFindOutAdressesEquals()
-{
+function cervixUAFindOutAdressesEquals() {
 	if (isGelijk('straat') && isGelijk('huisnummer') && isGelijk('huisnummerToevoeging') && isGelijk('postcode') && isGelijk('plaats')) {
 		$('.adressenGelijk').click();
 	}
@@ -313,8 +260,8 @@ function isGelijk(fieldClass) {
 
 var isVisible = false;
 
-var hideAllPopovers = function() {
-	$('.info-icon').each(function() {
+var hideAllPopovers = function () {
+	$('.info-icon').each(function () {
 		$(this).popover('hide');
 	});
 };
@@ -322,8 +269,28 @@ var hideAllPopovers = function() {
 function initInfoPopover(selector) {
 	$(selector).clickover({
 		content: $('#' + $(selector).attr('rel')).html(),
-		onShown: function() {
+		onShown: function () {
 			this.$tip.find('.popover-title').append('<button class="close" data-dismiss="clickover">&times;</button>');
 		},
 	});
+}
+
+function initToonWachtwoordToggle() {
+	$('i.toonWachtwoordToggle').mouseleave((e) => {
+		setWachtwoordVisibility(e, false)
+	});
+
+	$('i.toonWachtwoordToggle').mousedown((e) => {
+		setWachtwoordVisibility(e, true)
+	});
+
+	$('i.toonWachtwoordToggle').mouseup((e) => {
+		setWachtwoordVisibility(e, false)
+	});
+
+	function setWachtwoordVisibility(event, visible) {
+		const element = $(event.target)
+		element.attr('class', element.attr('class').replace(visible ? 'icon-eye-open' : 'icon-eye-close', visible ? 'icon-eye-close' : 'icon-eye-open'));
+		element.next('input').attr('type', visible ? 'text' : 'password')
+	}
 }

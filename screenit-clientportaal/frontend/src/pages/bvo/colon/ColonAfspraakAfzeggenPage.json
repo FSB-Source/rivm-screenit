@@ -1,0 +1,20 @@
+{
+  "page":{
+    "title": "Afzeggen afspraak",
+    "description": "U heeft een uitnodiging gekregen voor een gesprek over vervolgonderzoek. U heeft deze uitnodiging gekregen omdat wij bloed in uw ontlasting hebben gevonden. Om de oorzaak hiervan te vinden, is meer onderzoek nodig. </br></br>Wilt u de afspraak voor het gesprek over vervolgonderzoek afzeggen? </br>Dat betekent dat u nu geen verder onderzoek wilt of kunt laten doen. U krijgt twee jaar na de datum van de uitslag weer een uitnodiging om mee te doen aan het bevolkingsonderzoek. Wilt u dit niet? Dan kunt u zich afmelden voor het bevolkingsonderzoek.</br></br>Wilt u wel vervolgonderzoek, maar niet nu? Dan kunt u later een nieuwe afspraak maken. Hiervoor moet u dan contact opnemen met onze informatielijn. U kunt een afspraak maken totdat u een nieuwe uitnodiging heeft gekregen om weer mee te doen aan het bevolkingsonderzoek. Deze krijgt u automatisch."
+  },
+  "huidige_afspraak": "<b>Uw afspraak: <br> %s uur</b><br>%s <br> %s",
+  "form": {
+    "title": "Waarom zegt u uw afspraak af?",
+    "radiobutton": {
+      "niet_deelnemen": "Ik wil nu geen verder onderzoek laten doen.",
+      "huisarts_advies": "Mijn huisarts heeft me aangeraden om de afspraak af te zeggen."
+    },
+    "error": "Maak uw keuze",
+    "button": "Afspraak afzeggen"
+  },
+  "toast": {
+    "title": "U heeft het gesprek over vervolgonderzoek afgezegd.",
+    "description": "U krijgt automatisch een nieuwe uitnodiging voor het bevolkingsonderzoek wanneer u weer aan de beurt bent."
+  }
+}

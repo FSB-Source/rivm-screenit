@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.cervix.verslag.cytologie;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,29 +52,17 @@ public class CervixCytologieMonsterBmhk
 	private CervixCytologieCytologieUitslagBvoBmhk cytologieUitslagBvoBmhk;
 
 	@Column(length = 255)
-	@VraagElement(
-		displayName = "Monster identificatie",
-		extraTekst = "Het ID van het monster, dit is de code die gescand wordt bij het binnenboeken.",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.290172",
-		isVerplicht = true)
+	@VraagElement(displayName = "Monster identificatie", extraTekst = "Het ID van het monster, dit is de code die gescand wordt bij het binnenboeken.", code = "2.16.840.1.113883.2.4.3.36.77.2.10.290172", isVerplicht = true)
 	private String monsterIdentificatie;
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(
-		displayName = "Datum afname materiaal",
-		extraTekst = "Datum waarop het materiaal is afgenomen bij de cli\u00ebnt (uitstrijkje) of is afgenomen door de cli\u00ebnt (ZAS)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.290173",
-		isVerplicht = true)
+	@VraagElement(displayName = "Datum afname materiaal", extraTekst = "Datum waarop het materiaal is afgenomen bij de cli\u00ebnt (uitstrijkje) of is afgenomen door de cli\u00ebnt (ZAS)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.290173", isVerplicht = true)
 	private Date datumAfnameMateriaal;
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(
-		displayName = "Datum ontvangst materiaal",
-		extraTekst = "Datum waarop het materiaal is ontvangen in het laboratorium",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.290174",
-		isVerplicht = true)
+	@VraagElement(displayName = "Datum ontvangst materiaal", extraTekst = "Datum waarop het materiaal is ontvangen in het laboratorium", code = "2.16.840.1.113883.2.4.3.36.77.2.10.290174", isVerplicht = true)
 	private Date datumOntvangstMateriaal;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -83,20 +70,12 @@ public class CervixCytologieMonsterBmhk
 		@DSValueSetValue(code = "308728002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "ZAS", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.241")
 	})
-	@VraagElement(
-		displayName = "Type materiaal",
-		extraTekst = "Het soort monster dat is afgenomen en de reden.",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.290175",
-		isVerplicht = true)
+	@VraagElement(displayName = "Type materiaal", extraTekst = "Het soort monster dat is afgenomen en de reden.", code = "2.16.840.1.113883.2.4.3.36.77.2.10.290175", isVerplicht = true)
 	private DSValue typeMateriaal;
 
 	@Temporal(TemporalType.DATE)
 	@Column
-	@VraagElement(
-		displayName = "Datum autorisatie",
-		extraTekst = "Datum waarop het resultaat is geautoriseerd",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.290176",
-		isVerplicht = true)
+	@VraagElement(displayName = "Datum autorisatie", extraTekst = "Datum waarop het resultaat is geautoriseerd", code = "2.16.840.1.113883.2.4.3.36.77.2.10.290176", isVerplicht = true)
 	private Date datumAutorisatie;
 
 	public CervixCytologieCytologieUitslagBvoBmhk getCytologieUitslagBvoBmhk()

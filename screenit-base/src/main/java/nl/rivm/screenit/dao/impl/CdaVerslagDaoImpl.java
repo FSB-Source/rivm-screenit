@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,15 +21,20 @@ package nl.rivm.screenit.dao.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.dao.CdaVerslagDao;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
+import nl.rivm.screenit.model.berichten.enums.BerichtType;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -40,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CdaVerslagDaoImpl extends AbstractAutowiredDao implements CdaVerslagDao
 {
-
 	@Override
 	public boolean isBerichtReedsVerwerkt(String berichtId)
 	{
@@ -79,7 +82,7 @@ public class CdaVerslagDaoImpl extends AbstractAutowiredDao implements CdaVersla
 		Criteria criteria = getSession().createCriteria(clazz);
 		criteria.createAlias("ontvangenCdaBericht", "ontvangenCdaBericht");
 		criteria.add(Restrictions.eq("ontvangenCdaBericht.setId", setId));
-		criteria.add(Restrictions.eq("ontvangenCdaBericht.status", BerichtStatus.VERWERKT));
+		criteria.add(Restrictions.in("ontvangenCdaBericht.status", Arrays.asList(BerichtStatus.VERWERKT, BerichtStatus.VERWERKING)));
 
 		List<?> list = criteria.list();
 		if (list == null || list.isEmpty())
@@ -87,5 +90,17 @@ public class CdaVerslagDaoImpl extends AbstractAutowiredDao implements CdaVersla
 			return null;
 		}
 		return (Verslag) list.get(0);
+	}
+
+	@Override
+	public List<Long> getAlleNietVerwerkteCdaBerichten(Bevolkingsonderzoek bvo)
+	{
+		Criteria criteria = getSession().createCriteria(OntvangenCdaBericht.class, "main");
+		criteria.add(Restrictions.eq("status", BerichtStatus.VERWERKING));
+		criteria.add(
+			Restrictions.in("berichtType",
+				Arrays.stream(BerichtType.values()).filter(berichtType -> berichtType.getBevolkingsonderzoek() == bvo).collect(Collectors.toList())));
+		criteria.setProjection(Projections.id());
+		return criteria.list();
 	}
 }

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,19 +22,16 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.brieven;
  */
 
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.component.table.NavigeerNaarCellPanel;
 import nl.rivm.screenit.main.web.component.table.UploadDocumentDownloadLinkPanel;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
@@ -45,6 +42,8 @@ import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -65,11 +64,7 @@ import com.aspose.words.ImportFormatMode;
 public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(ProjectBriefActieTemplatePage.class);
-
-	private static final String DATUM_PATROON = "dd-MM-yyyy";
 
 	private IModel<ProjectBriefActie> briefactieModel;
 
@@ -98,10 +93,11 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 	@Override
 	protected List<ScreeningOrganisatie> getRegios()
 	{
-		List<ScreeningOrganisatie> soLijst = new ArrayList<ScreeningOrganisatie>();
-		if (briefactieModel.getObject().getProject() != null && briefactieModel.getObject().getProject().getScreeningOrganisaties() != null)
+		List<ScreeningOrganisatie> soLijst = new ArrayList<>();
+		Project project = briefactieModel.getObject().getProject();
+		if (project != null && project.getScreeningOrganisaties() != null)
 		{
-			for (Instelling instelling : briefactieModel.getObject().getProject().getScreeningOrganisaties())
+			for (Instelling instelling : project.getScreeningOrganisaties())
 			{
 				ScreeningOrganisatie organisatie = hibernateService.load(ScreeningOrganisatie.class, instelling.getId());
 				soLijst.add(organisatie);
@@ -114,21 +110,12 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 	{
 		add(new Link<Void>("terugViaTitle")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{
-				setResponsePage(new ProjectBriefActiePage(ProjectBriefActieTemplatePage.this.getModel()));
+				setResponsePage(new ProjectBriefActiePage(getProjectModel()));
 			}
 
-			@Override
-			protected void onDetach()
-			{
-				super.onDetach();
-				ModelUtil.nullSafeDetach(briefactieModel);
-			}
 		});
 	}
 
@@ -152,8 +139,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 		Date datum = projectBriefActie.getLaatstGewijzigd();
 		if (datum != null)
 		{
-			SimpleDateFormat format = new SimpleDateFormat(DATUM_PATROON);
-			laatstGewijzigd = format.format(datum);
+			laatstGewijzigd = DateUtil.formatShortDate(datum);
 		}
 		return laatstGewijzigd;
 	}
@@ -177,8 +163,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 
 		if (ProjectBriefActieType.DATUM.equals(type))
 		{
-			SimpleDateFormat format = new SimpleDateFormat(DATUM_PATROON);
-			momentTekst = format.format(projectBriefActie.getDatum());
+			momentTekst = DateUtil.formatShortDate(projectBriefActie.getDatum());
 		}
 		else if (ProjectBriefActieType.XDAGENNAY.equals(type))
 		{
@@ -209,12 +194,6 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 		return momentTekst;
 	}
 
-	@SuppressWarnings("unchecked")
-	private IModel<Project> getModel()
-	{
-		return (IModel<Project>) getDefaultModel();
-	}
-
 	@Override
 	protected void onDetach()
 	{
@@ -241,11 +220,8 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 		form.add(new Label("uitzettenVia", new PropertyModel<>(briefactieModel, "projectVragenlijstUitzettenVia")));
 		form.add(new Label("orionWerkbak", new PropertyModel<>(briefactieModel, "misluktBak")));
 		form.add(new Label("formulierNummer", new PropertyModel<>(briefactieModel, "formulierNummer")));
-		form.add(new NavigeerNaarCellPanel<ProjectBriefActie>("herrinneringPrinten", briefactieModel)
+		form.add(new NavigeerNaarCellPanel<>("herrinneringPrinten", briefactieModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected boolean magNavigerenNaar(IModel<ProjectBriefActie> rowModel)
 			{
@@ -259,7 +235,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 					ModelUtil.sModel(rowModel.getObject())));
 			}
 		});
-		form.add(new UploadDocumentDownloadLinkPanel("herrinneringDownloaden", new PropertyModel<UploadDocument>(briefactieModel, "herinneringsActie.document")));
+		form.add(new UploadDocumentDownloadLinkPanel("herrinneringDownloaden", new PropertyModel<>(briefactieModel, "herinneringsActie.document")));
 
 	}
 
@@ -279,7 +255,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 			vragenlijstInstantie = projectBriefActie.getVragenlijst().getFormulierInstantie();
 		}
 		Document mergedDocument = asposeService.processDocument(briefTemplate, context);
-		Document vragenlijst = null;
+		Document vragenlijst;
 		if (vragenlijstInstantie != null)
 		{
 			if (vragenlijstInstantie.getTemplateVanGebruiker() == null)
@@ -305,4 +281,5 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 	{
 		return fileService.load(briefactieModel.getObject().getDocument());
 	}
+
 }

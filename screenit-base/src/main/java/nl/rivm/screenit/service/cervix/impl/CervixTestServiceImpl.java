@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +23,9 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 
 import nl.rivm.screenit.dao.ClientDao;
@@ -39,7 +37,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
@@ -48,10 +45,8 @@ import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.CervixCytologieVerslag;
 import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling;
 import nl.rivm.screenit.model.cervix.CervixHpvBericht;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
@@ -63,9 +58,8 @@ import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
-import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -81,14 +75,13 @@ import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixTestService;
-import nl.rivm.screenit.service.impl.ImportBvoViaCsv;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.util.collections.CollectionUtils;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,7 +96,6 @@ import com.google.common.collect.ImmutableMap;
 @Transactional(propagation = Propagation.REQUIRED)
 public class CervixTestServiceImpl implements CervixTestService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(CervixTestServiceImpl.class);
 
 	@Autowired
@@ -161,7 +153,7 @@ public class CervixTestServiceImpl implements CervixTestService
 		if (ronde == null)
 		{
 			ronde = factory.maakRonde(dossier);
-			factory.maakUitnodiging(ronde, BriefType.CERVIX_UITNODIGING, true, false);
+			factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 			verzendLaatsteBrief(ronde);
 		}
 		if (inVervolgonderzoekDatum != null)
@@ -277,16 +269,16 @@ public class CervixTestServiceImpl implements CervixTestService
 	}
 
 	@Override
-	public CervixHpvUitslag geefHpvUitslag(GbaPersoon gbaPersoon, CervixHpvUitslag hpvUitslag, BMHKLaboratorium laboratorium)
+	public CervixHpvBeoordelingWaarde geefHpvUitslag(GbaPersoon gbaPersoon, CervixHpvBeoordelingWaarde hpvUitslag, BMHKLaboratorium laboratorium)
 	{
 		CervixHpvBericht hpvBericht = factory.maakHpvBericht(laboratorium, "instrumentId", "hl7Bericht", Long.toString(System.currentTimeMillis()));
 		hpvBericht.setStatus(BerichtStatus.VERWERKT);
 		hibernateService.saveOrUpdate(hpvBericht);
 
 		CervixUitnodiging uitnodiging = geefLaatsteUitnodiging(gbaPersoon);
-		factory.maakHpvBeoordeling(uitnodiging.getMonster(), hpvBericht, dateSupplier.getDate(), dateSupplier.getDate(), hpvUitslag);
+		factory.maakHpvBeoordeling(uitnodiging.getMonster(), hpvBericht, dateSupplier.getDate(), dateSupplier.getDate(), hpvUitslag, null);
 
-		if (hpvUitslag != CervixHpvUitslag.ONGELDIG)
+		if (hpvUitslag != CervixHpvBeoordelingWaarde.ONGELDIG)
 		{
 			CervixScreeningRonde ronde = geefScreeningRonde(gbaPersoon);
 			ronde.setMonsterHpvUitslag(uitnodiging.getMonster());
@@ -398,7 +390,7 @@ public class CervixTestServiceImpl implements CervixTestService
 		labformulier.setStatus(labformulierStatus);
 		labformulier.setStatusDatum(dateSupplier.getDate());
 		labformulier.setBarcode(uitstrijkje.getMonsterId());
-		labformulier.setDatumUitstrijkje(dateSupplier.getDateTime().minusDays(1).toDate());
+		labformulier.setDatumUitstrijkje(DateUtil.toUtilDate(dateSupplier.getLocalDate().minusDays(1)));
 		hibernateService.saveOrUpdate(labformulier);
 
 		uitstrijkje.setLabformulier(labformulier);
@@ -407,145 +399,10 @@ public class CervixTestServiceImpl implements CervixTestService
 	}
 
 	@Override
-	public CervixCytologieOrder geefCytologieOrder(GbaPersoon gbaPersoon)
-	{
-		CervixUitstrijkje uitstrijkje = geefUitstrijkje(gbaPersoon);
-		CervixCytologieOrder cytologieOrder = factory.maakCytologieOrder(uitstrijkje, CervixCytologieReden.INITIEEL_ZONDER_ZAS, "hl7Bericht");
-		return cytologieOrder;
-	}
-
-	@Override
 	public CervixHuisartsLocatie geefHuisartsLocatie()
 	{
 		return (CervixHuisartsLocatie) hibernateService.getHibernateSession().createCriteria(CervixHuisartsLocatie.class).setMaxResults(1)
 			.setFirstResult(0).uniqueResult();
-	}
-
-	@Transactional(propagation = Propagation.REQUIRED)
-	@Override
-	public void importCervixClientenViaCsv(File file) throws IOException, ParseException
-	{
-		testService.importClientenViaCsv(file, new ImportBvoViaCsv()
-		{
-			@Override
-			protected void importBvoViaCsv(Map<String, Integer> headersIndex, String[] columns, Client client)
-			{
-				BMHKLaboratorium laboratorium = hibernateService.loadAll(BMHKLaboratorium.class).get(0);
-				String creatieRonde = columns[headersIndex.get("CreatieRonde")];
-				if (StringUtils.isNotBlank(creatieRonde))
-				{
-					DateTime datumCreatieEersteRonde = dateSupplier.getDateTime().plusDays(Integer.parseInt(creatieRonde));
-
-					CervixDossier dossier = client.getCervixDossier();
-
-					CervixScreeningRonde screeningRonde = new CervixScreeningRonde();
-					screeningRonde.setCreatieDatum(datumCreatieEersteRonde.toDate());
-					screeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
-					screeningRonde.setAangemeld(Boolean.TRUE);
-					screeningRonde.setDossier(dossier);
-					ArrayList<CervixScreeningRonde> screeningRondes = new ArrayList<>();
-					screeningRondes.add(screeningRonde);
-					dossier.setScreeningRondes(screeningRondes);
-					dossier.setLaatsteScreeningRonde(screeningRonde);
-
-					CervixUitnodiging uitnodiging = new CervixUitnodiging();
-					uitnodiging.setUitnodigingsId(uitnodigingsDao.getNextUitnodigingsId());
-					uitnodiging.setCreatieDatum(datumCreatieEersteRonde.plusDays(1).toDate());
-					uitnodiging.setUitnodigingsDatum(datumCreatieEersteRonde.plusDays(2).toDate());
-					uitnodiging.setMonsterType(CervixMonsterType.UITSTRIJKJE);
-					uitnodiging.setScreeningRonde(screeningRonde);
-					List<CervixUitnodiging> uitnodigingen = new ArrayList<>();
-					uitnodigingen.add(uitnodiging);
-					screeningRonde.setUitnodigingen(uitnodigingen);
-
-					CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
-					mergedBrieven.setPrintDatum(datumCreatieEersteRonde.plusDays(2).toDate());
-					mergedBrieven.setCreatieDatum(datumCreatieEersteRonde.plusDays(2).toDate());
-					mergedBrieven.setBriefType(BriefType.CERVIX_UITNODIGING);
-					CervixBrief brief = new CervixBrief();
-					brief.setBriefType(BriefType.CERVIX_UITNODIGING);
-					brief.setCreatieDatum(datumCreatieEersteRonde.plusDays(2).toDate());
-					brief.setMergedBrieven(mergedBrieven);
-					brief.setClient(client);
-					hibernateService.saveOrUpdate(brief);
-					uitnodiging.setBrief(brief);
-
-					String uitstrijkjeStatus = columns[headersIndex.get("UitstrijkjeStatus")];
-					CervixUitstrijkje uitstrijkje = new CervixUitstrijkje();
-					if (StringUtils.isNotBlank(uitstrijkjeStatus))
-					{
-						uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.valueOf(uitstrijkjeStatus));
-						uitstrijkje.setLaboratorium(hibernateService.loadAll(BMHKLaboratorium.class).get(0));
-					}
-					else
-					{
-						uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.NIET_ONTVANGEN);
-					}
-					uitstrijkje.setStatusDatum(datumCreatieEersteRonde.plusDays(21).toDate());
-					uitstrijkje.setUitnodiging(uitnodiging);
-					uitnodiging.setMonster(uitstrijkje);
-					uitstrijkje.setMonsterId(Long.toString(Math.abs(new Random().nextInt())));
-
-					hibernateService.saveOrUpdate(uitstrijkje);
-
-					String hpvUitslag = columns[headersIndex.get("HPVUitslag")];
-					if (StringUtils.isNotBlank(hpvUitslag))
-					{
-						CervixHpvBeoordeling beoordeling = new CervixHpvBeoordeling();
-						beoordeling.setMonster(uitstrijkje);
-						beoordeling.setHpvUitslag(CervixHpvUitslag.valueOf(hpvUitslag));
-						beoordeling.setAnalyseDatum(datumCreatieEersteRonde.plus(23).toDate());
-						beoordeling.setAutorisatieDatum(datumCreatieEersteRonde.plus(23).toDate());
-						uitstrijkje.setLaatsteHpvBeoordeling(beoordeling);
-
-						uitstrijkje.setStatusDatum(datumCreatieEersteRonde.plusDays(22).toDate());
-						if (uitstrijkje.getLaatsteHpvBeoordeling().getHpvUitslag() != CervixHpvUitslag.ONGELDIG)
-						{
-							screeningRonde.setMonsterHpvUitslag(uitstrijkje);
-						}
-						hibernateService.saveOrUpdate(beoordeling);
-					}
-
-					String labformulierStatus = columns[headersIndex.get("LabformulierStatus")];
-					if (StringUtils.isNotBlank(labformulierStatus))
-					{
-						CervixLabformulierStatus cervixLabformulierStatus = CervixLabformulierStatus.valueOf(labformulierStatus);
-
-						CervixLabformulier labformulier = new CervixLabformulier();
-						Date scanDatum = datumCreatieEersteRonde.plusDays(20).toDate();
-						labformulier.setScanDatum(scanDatum);
-						labformulier.setStatusDatum(scanDatum);
-						labformulier.setObjid(columns[headersIndex.get("ObjId")]);
-						labformulier.setStatus(cervixLabformulierStatus);
-						labformulier.setLaboratorium(laboratorium);
-
-						String uitnodigingGevonden = columns[headersIndex.get("UitnodigingGevonden")];
-						if (!(cervixLabformulierStatus.equals(CervixLabformulierStatus.GESCAND)
-							|| cervixLabformulierStatus.equals(CervixLabformulierStatus.AFGEKEURD))
-							|| StringUtils.isNotBlank(uitnodigingGevonden))
-						{
-							labformulier.setBarcode("UITNODIGING_ID");
-							uitstrijkje.setLabformulier(labformulier);
-							labformulier.setUitstrijkje(uitstrijkje);
-						}
-						else
-						{
-
-							hibernateService.saveOrUpdate(labformulier);
-						}
-					}
-				}
-			}
-		});
-
-		List<CervixLabformulier> labformulieren = hibernateService.loadAll(CervixLabformulier.class);
-		for (CervixLabformulier labformulier : labformulieren)
-		{
-			if ("UITNODIGING_ID".equals(labformulier.getBarcode()))
-			{
-				labformulier.setBarcode(labformulier.getUitstrijkje().getMonsterId());
-			}
-		}
 	}
 
 	@Override
@@ -578,7 +435,7 @@ public class CervixTestServiceImpl implements CervixTestService
 
 		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
-		mergedBrieven.setBriefType(BriefType.CERVIX_UITNODIGING);
+		mergedBrieven.setBriefType(ronde.getLeeftijdcategorie().getUitnodigingsBrief());
 		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());
 		mergedBrieven.setVerwijderd(true);

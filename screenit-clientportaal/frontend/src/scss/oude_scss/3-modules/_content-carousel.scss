@@ -1,0 +1,37 @@
+﻿.carousel {
+  margin: 60px 0;
+
+  @include respond-below(sm) {
+    margin: 20px 0;
+  }
+
+  @include respond-between(sm, lg) {
+    margin: 30px 0;
+  }
+
+  .carousel-inner {
+    img {
+      border-radius: 10px;
+    }
+  }
+
+  .carousel-control {
+    background-image: none;
+    top: 36%;
+    width: 10%;
+
+    @include respond-below(sm) {
+      top: 28%;
+      width: 17%;
+    }
+  }
+
+  .left, .right {
+    color: white;
+
+    i {
+      font-size: calc-em(60);
+    }
+  }
+
+}

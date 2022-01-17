@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.mdl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -52,33 +51,23 @@ public class MdlVerslagContent
 	private MdlVerslag verslag;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "verslagContent", cascade = CascadeType.ALL)
-	@VraagElement(displayName = "Verrichting", extraTekst = "Verrichting", code = "2.16.840.1.113883.2.4.3.36.77.2.8.125000", isReference = true)
+	@VraagElement(displayName = "Verrichting", extraTekst = "Verrichting", code = "2.16.840.1.113883.2.4.3.36.77.2.10.125000", isReference = true)
 	private MdlVerrichting verrichting;
 
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "verslagContent", cascade = CascadeType.ALL)
-	@VraagElement(
-		displayName = "Coloscopie : medische observatie",
-		extraTekst = "Coloscopie : medische observatie",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.140000",
-		isReference = true)
+	@VraagElement(displayName = "Coloscopie : medische observatie", extraTekst = "Coloscopie : medische observatie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.140000", isReference = true)
 	private MdlColoscopieMedischeObservatie coloscopieMedischeObservatie;
 
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "verslagContent", cascade = CascadeType.ALL)
-	@VraagElement(
-		displayName = "Laesie (coloscopiecentrum)",
-		extraTekst = "Weggenomen materiaal, poliep, verdenking carcinoom (coloscopiecentrum)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.145000",
-		isReference = true)
+	@VraagElement(displayName = "Laesie (coloscopiecentrum)", extraTekst = "Weggenomen materiaal, poliep, verdenking carcinoom (coloscopiecentrum)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.145000", isReference = true)
 	@OrderBy("to_number(coalesce(nullif(volgnummerLaesie.value,''),to_char(id, '9999999999')), '9999999999')")
 	private List<MdlLaesiecoloscopiecentrum> laesiecoloscopiecentrum = new ArrayList<>();
 
-	@Override
 	public MdlVerslag getVerslag()
 	{
 		return verslag;
 	}
 
-	@Override
 	public void setVerslag(MdlVerslag verslag)
 	{
 		this.verslag = verslag;

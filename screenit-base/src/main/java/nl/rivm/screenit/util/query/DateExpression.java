@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.util.query;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,11 +22,16 @@ package nl.rivm.screenit.util.query;
  */
 
 import java.util.ArrayList;
+import java.util.List;
+
+import nl.rivm.screenit.ScreenITPostgreSQLDialect;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.criterion.CriteriaQuery;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.dialect.Dialect;
+import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.type.DateType;
 import org.slf4j.Logger;
@@ -56,18 +60,41 @@ public class DateExpression implements Criterion
 	@Override
 	public String toSqlString(Criteria criteria, CriteriaQuery criteriaQuery) throws HibernateException
 	{
-		String[] columns = criteriaQuery.getColumnsUsingProjection(criteria, propertyName);
+		Dialect dialect = criteriaQuery.getFactory().getDialect();
 		StringBuffer fragment = new StringBuffer();
 
-		fragment.append(" date_trunc('day', ");
-		fragment.append(columns[0]);
-		fragment.append(" ) ");
-		fragment.append(operator);
-		fragment.append(" ? ");
-
-		if (columns.length > 1)
+		if (dialect instanceof ScreenITPostgreSQLDialect)
 		{
-			LOG.warn("multi column fields not supported");
+			String[] columns = criteriaQuery.getColumnsUsingProjection(criteria, propertyName);
+
+			fragment.append(" date_trunc('day', ");
+			fragment.append(columns[0]);
+			fragment.append(" ) ");
+			fragment.append(operator);
+			fragment.append(" ? ");
+
+			if (columns.length > 1)
+			{
+				LOG.warn("multi column fields not supported");
+			}
+		}
+		else
+		{
+
+			String aggregateName = "trunc";
+			SQLFunction function = dialect.getFunctions().get(aggregateName);
+
+			if (function == null)
+			{
+				throw new HibernateException("Couldnt find function for aggregate: " + aggregateName + " in Dialect: " + dialect);
+			}
+
+			List<String> functionArgs = new ArrayList<>(1);
+			functionArgs.add(criteriaQuery.getColumn(criteria, propertyName));
+
+			fragment.append(function.render(new DateType(), functionArgs, criteriaQuery.getFactory()));
+			fragment.append(operator);
+			fragment.append(" ? ");
 		}
 		return fragment.toString();
 	}
@@ -75,7 +102,7 @@ public class DateExpression implements Criterion
 	@Override
 	public TypedValue[] getTypedValues(Criteria criteria, CriteriaQuery criteriaQuery) throws HibernateException
 	{
-		ArrayList<TypedValue> list = new ArrayList<TypedValue>();
+		List<TypedValue> list = new ArrayList<>();
 		list.add(new TypedValue(DateType.INSTANCE, value));
 		return list.toArray(new TypedValue[list.size()]);
 	}

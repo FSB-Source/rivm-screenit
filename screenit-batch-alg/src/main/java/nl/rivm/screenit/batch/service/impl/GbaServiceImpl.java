@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-alg
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -540,8 +540,6 @@ public class GbaServiceImpl implements GbaService
 					logService.logGebeurtenis(LogGebeurtenis.GBA_IMPORT_SKIP, clientService.getScreeningOrganisatieVan(otherClientWithSameAnummer), otherClientWithSameAnummer,
 						foutmelding);
 					createFout(null, verwerkingLog, foutmelding, GbaFoutCategorie.OVERIG);
-
-					LOG.error(foutmelding);
 					return;
 				}
 			}
@@ -574,8 +572,6 @@ public class GbaServiceImpl implements GbaService
 			logService.logGebeurtenis(LogGebeurtenis.GBA_IMPORT_SKIP, clientService.getScreeningOrganisatieVan(otherClientWithSameAnummer), otherClientWithSameAnummer,
 				foutmelding);
 			createFout(null, verwerkingLog, foutmelding, GbaFoutCategorie.OVERIG);
-
-			LOG.error(foutmelding);
 			return true;
 		}
 		return false;
@@ -1301,6 +1297,7 @@ public class GbaServiceImpl implements GbaService
 		gbaFoutRegel.setFout(fout);
 		gbaFoutRegel.setFoutCategorie(foutcat);
 		gbaFoutRegel.setVerwerkingsLog(verwerkingsLog);
+		LOG.error("GbaFoutRegel aangemaakt (cat:" + foutcat + ") " + (client != null ? "voor client met id " + client.getId() : ""));
 		verwerkingsLog.getFouten().add(gbaFoutRegel);
 	}
 

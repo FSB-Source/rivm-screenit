@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,33 +22,21 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
  */
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
-import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class MammaBeeldenStatusSignalerenWriter extends BaseWriter<MammaMammografie>
+public class MammaBeeldenStatusSignalerenWriter extends MammaAbstractBeeldenStatusSignalerenWriter<MammaMammografie>
 {
-	private final Logger LOG = LoggerFactory.getLogger(MammaBeeldenStatusSignalerenWriter.class);
-
 	@Override
 	protected void write(MammaMammografie mammografie)
 	{
-		long uitnodigingsNr = mammografie.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getUitnodigingsNr();
+		boolean isBezwaar = false;
+		boolean isUploaded = false;
+		long accessionNumber = mammografie.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getUitnodigingsNr();
 		Date statusDatum = mammografie.getIlmStatusDatum();
-		LOG.info("Gesignaleerd, uitnodigingsNr: {}, statusDatum: {}", uitnodigingsNr, statusDatum);
+		Client client = mammografie.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getDossier().getClient();
 
-		Map<Long, Date> map = (Map<Long, Date>) getJobExecution().getExecutionContext().get(MammaIlmJobListener.KEY_BEELDEN_STATUS_ENTRIES);
-		if (map == null)
-		{
-			map = new HashMap<>();
-			getExecutionContext().put(MammaIlmJobListener.KEY_BEELDEN_STATUS_ENTRIES, map);
-		}
-		map.put(uitnodigingsNr, statusDatum);
+		registreerSignalering(isBezwaar, isUploaded, accessionNumber, statusDatum, client);
 	}
 }

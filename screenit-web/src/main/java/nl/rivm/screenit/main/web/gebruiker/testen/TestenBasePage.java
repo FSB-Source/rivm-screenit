@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.main.web.client.dashboard.home.ClientHomeDashboardPage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerHoofdMenuItem;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
@@ -85,9 +84,6 @@ public class TestenBasePage extends GebruikerBasePage
 	@SpringBean
 	private ClientService clientService;
 
-	@SpringBean(name = "portaalUrl")
-	private String clientportaalUrl;
-
 	@SpringBean(name = "clientportaalUrl")
 	private String newClientportaalUrl;
 
@@ -115,9 +111,6 @@ public class TestenBasePage extends GebruikerBasePage
 	{
 		container.add(new IndicatingAjaxLink<TestTimelineModel>("bsnGenereren", model)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -136,9 +129,6 @@ public class TestenBasePage extends GebruikerBasePage
 
 		container.add(new IndicatingAjaxLink<TestTimelineModel>("bsnToevoegen", model)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -166,7 +156,6 @@ public class TestenBasePage extends GebruikerBasePage
 	protected void addGaNaarButtons(WebMarkupContainer container, Form<TestTimelineModel> form, IModel<TestTimelineModel> model)
 	{
 		container.add(getClientDossierButton(form, model));
-		container.add(getClientPortaalButton(form, model));
 		container.add(getClientportaalButton(form, model));
 	}
 
@@ -216,35 +205,12 @@ public class TestenBasePage extends GebruikerBasePage
 		}
 	}
 
-	private AjaxButton getClientPortaalButton(Form form, IModel<TestTimelineModel> model)
-	{
-		return new AjaxButton("directNaarOudeClientportaal", form)
-		{
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected void onSubmit(AjaxRequestTarget target)
-			{
-				if (model.getObject().getBsns().size() > 0)
-				{
-					ScreenitSession.get().setAfkomstigURLRegioCode(clientportaalUrl + "/");
-					ScreenitSession.get().signIn(model.getObject().getBsns().get(0));
-					setResponsePage(ClientHomeDashboardPage.class);
-				}
-				else
-				{
-					error("Geen bsn gevonden.");
-				}
-			}
-		};
-	}
-
 	private IndicatingAjaxSubmitLink getClientportaalButton(Form form, IModel<TestTimelineModel> model)
 	{
 		return new IndicatingAjaxSubmitLink("directNaarClientportaal", form)
 		{
-			@Override public void onSubmit(AjaxRequestTarget target)
+			@Override
+			public void onSubmit(AjaxRequestTarget target)
 			{
 				List<String> bsns = model.getObject().getBsns();
 				if (bsns.size() > 0)

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.security;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +20,8 @@ package nl.rivm.screenit.security;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
+
+import static nl.rivm.screenit.security.UserAgentUtil.getParsedUserAgentInfo;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -186,8 +187,7 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 			{
 				return null;
 			}
-			if (gebruiker != null && BooleanUtils.isNotFalse(gebruiker.getActief())
-				&& StringUtils.isNotBlank(gebruiker.getWachtwoord()))
+			if (BooleanUtils.isNotFalse(gebruiker.getActief()) && StringUtils.isNotBlank(gebruiker.getWachtwoord()))
 			{
 				if (authcToken instanceof YubikeyToken)
 				{
@@ -198,22 +198,11 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 					new SimpleByteSource(gebruiker.getId().toString()), this.getName());
 			}
 		}
-		else if (authcToken instanceof DigiDToken)
-		{
-			DigiDToken digiDToken = (DigiDToken) authcToken;
-			Client client = clientService.getClientZonderBezwaar(digiDToken.getBsn());
-			if (client == null)
-			{
-				return null;
-			}
-			logService.logGebeurtenis(LogGebeurtenis.INLOGGEN, client, getBrowserOSMelding(digiDToken));
-			return new SimpleAuthenticationInfo(new ScreenitPrincipal(Client.class, client.getId()), null, this.getName());
-		}
 		else if (authcToken instanceof InstellingGebruikerToken)
 		{
 			InstellingGebruikerToken igToken = (InstellingGebruikerToken) authcToken;
 			InstellingGebruiker instellingGebruiker = hibernateService.load(InstellingGebruiker.class, igToken.getId());
-			String melding = getBrowserOSMelding(igToken) + ", Organisatie: " + instellingGebruiker.getOrganisatie().getNaam();
+			String melding = getParsedUserAgentInfo(igToken.getUserAgent()) + ", Organisatie: " + instellingGebruiker.getOrganisatie().getNaam();
 			if (StringUtils.isNotBlank(igToken.getUzipasInlogMethode()))
 			{
 				melding += ". " + igToken.getUzipasInlogMethode();
@@ -233,24 +222,6 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 		}
 
 		return null;
-	}
-
-	private String getBrowserOSMelding(BrowserOSToken token)
-	{
-		String melding = "";
-		if (token.getBrowser() != null)
-		{
-			melding = "Browser: " + token.getBrowser();
-		}
-		if (token.getOs() != null)
-		{
-			if (StringUtils.isNotBlank(melding))
-			{
-				melding += ", ";
-			}
-			melding += "OS: " + token.getOs();
-		}
-		return melding;
 	}
 
 	@Override

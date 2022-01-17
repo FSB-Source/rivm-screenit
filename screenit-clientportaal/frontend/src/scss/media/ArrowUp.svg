@@ -1,0 +1,23 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-clientportaal
+  %%
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<svg width="12px" height="14px" viewBox="0 0 12 14" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <path d="M11.7391 5.37793L6.60201 0.240801C6.56187 0.200667 6.5184 0.16388 6.47157 0.130434C6.42475 0.0969889 6.38127 0.0802689 6.34114 0.0802689C6.26087 0.0267563 6.16054 0 6.04014 0C5.91973 0 5.79264 0.0267563 5.65886 0.0802689C5.61873 0.120403 5.57525 0.147154 5.52843 0.160532C5.48161 0.173911 5.43813 0.200667 5.39799 0.240801L0.26087 5.37793C0.0869557 5.55184 0 5.75251 0 5.97993C0 6.20736 0.0869557 6.40803 0.26087 6.58194C0.434784 6.75585 0.63545 6.84281 0.862876 6.84281C1.0903 6.84281 1.29097 6.75585 1.46488 6.58194L5.13713 2.88963L5.13712 13.1572C5.13712 13.4114 5.21739 13.6154 5.37793 13.7692C5.53846 13.9231 5.74582 14 6 14C6.25418 14 6.46154 13.9231 6.62207 13.7692C6.78261 13.6154 6.86287 13.4114 6.86287 13.1572L6.86287 2.88963L10.5351 6.58194C10.6288 6.66221 10.7324 6.72575 10.8462 6.77257C10.9599 6.8194 11.0569 6.84281 11.1371 6.84281C11.2174 6.84281 11.3144 6.8194 11.4281 6.77257C11.5418 6.72575 11.6455 6.66221 11.7391 6.58194C11.913 6.40803 12 6.20736 12 5.97993C12 5.75251 11.913 5.55184 11.7391 5.37793Z"/>
+</svg>

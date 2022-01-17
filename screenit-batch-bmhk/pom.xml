@@ -4,7 +4,7 @@
     <parent>
         <artifactId>screenit-parent</artifactId>
         <groupId>nl.rivm.screenit</groupId>
-        <relativePath>..</relativePath>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>screenit-batch-bmhk</artifactId>
@@ -94,6 +94,11 @@
                     <artifactId>aspectjweaver</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
         </dependency>
 
     </dependencies>

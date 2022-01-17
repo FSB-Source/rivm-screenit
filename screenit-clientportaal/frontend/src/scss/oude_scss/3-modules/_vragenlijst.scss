@@ -1,0 +1,93 @@
+﻿.vragenlijst-body {
+  max-width: 600px;
+  margin: auto;
+  height: 0;
+  display: flex;
+}
+
+.vragenlijst {
+  height: 0;
+  opacity: 0;
+  display: inline-block;
+  top: 84px;
+  position: fixed;
+  padding: 24px 20px;
+
+  &.vragenlijst-bar {
+    top: 84px;
+    width: 600px;
+
+    @include respond-below(sm) {
+      width: 100%;
+      display: inline-table;
+    }
+
+    opacity: 1;
+    border-radius: 0 0 10px 10px;
+    min-height: 90px !important;
+    background: $bmk;
+    z-index: 1000;
+    display: inline-table;
+    box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.4);
+    padding: 20px;
+
+    @include respond-below(sm) {
+      padding: 36px 20px 10px;
+      border-radius: 0;
+    }
+
+    & .vragenlijst-bar--text {
+      font-size: calc-em(16);
+      color: white;
+      line-height: 1.5;
+      text-align: center;
+      width: 95%;
+
+      @include respond-below(sm) {
+        width: 100%;
+      }
+
+      a {
+        text-decoration: underline;
+      }
+
+      p {
+        margin: 0 0 6px 0;
+      }
+    }
+
+    & .vragenlijst-bar--close {
+      font-size: calc-em(28);
+      float: right;
+      color: white;
+      font-weight: 400;
+      position: absolute;
+      top: 6px;
+      right: 20px;
+      cursor: pointer;
+
+      i {
+        &:hover {
+          font-weight: 700;
+          position: relative;
+          bottom: 1px;
+          text-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.2);
+        }
+      }
+    }
+  }
+
+  &.bottom {
+    top: auto;
+    bottom: 0;
+    opacity: 1 !important;
+    border-radius: 10px 10px 0 0;
+  }
+}
+
+.checkbox-cb {
+  &:checked + .vragenlijst-bar {
+    min-height: 0;
+    opacity: 0;
+  }
+}

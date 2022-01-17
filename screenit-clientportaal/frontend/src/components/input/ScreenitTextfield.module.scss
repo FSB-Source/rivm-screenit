@@ -1,0 +1,110 @@
+@import "src/scss/colors";
+@import "src/scss/mixins";
+@import "src/scss/media-mixins";
+
+.inputDiv {
+	transition: 0.2s;
+	position: relative;
+	display: inline-block;
+	border-radius: 4px;
+	width: 100%;
+	min-height: 64px;
+	border: 2px solid $grijs-700;
+	margin-right: 5px;
+	margin-bottom: 20px;
+	background-color: $wit-base;
+	box-sizing: border-box;
+	vertical-align: top;
+
+	&:hover {
+		cursor: pointer;
+	}
+
+	&.inputInvalid {
+		border: 2px solid $rood-base;
+	}
+
+	@include respond-below(xs) {
+		min-height: 50px;
+		margin-bottom: 15px;
+	}
+
+	.labelInactive {
+		transform: translate(0, 65%);
+		width: 95%;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+
+		&:hover {
+			cursor: pointer;
+		}
+
+		@include respond-below(xs) {
+			font-size: 0.8rem;
+			transform: translate(0, 50%);
+		}
+	}
+
+	.labelActive {
+		transform: translate(0, 2px);
+		font-size: 0.7rem;
+	}
+
+	.labelInactive,
+	.labelActive {
+		color: $grijs-900;
+		letter-spacing: 0;
+		margin-left: 20px;
+		margin-bottom: 0;
+
+		@include respond-below(md) {
+			margin-left: 14px;
+		}
+
+		@include respond-below(xs) {
+			margin-left: 10px;
+		}
+	}
+
+	.inputField {
+		display: block;
+		width: 100%;
+		background: transparent;
+		letter-spacing: 0;
+		margin-left: 18px;
+		border: none;
+		height: 17px;
+		font-weight: 500;
+
+		padding-right: 10%;
+
+		&:focus {
+			outline: none;
+		}
+
+		@include respond-below(md) {
+			margin-left: 12px;
+		}
+
+		@include respond-below(xs) {
+			margin-left: 8px;
+		}
+	}
+
+	.errorLabel {
+		color: $rood-base;
+		line-height: 10px;
+		font-size: 0.7rem;
+		margin-left: 17px;
+
+		@include respond-below(md) {
+			margin-left: 14px;
+		}
+
+		@include respond-below(xs) {
+			margin-left: 10px;
+		}
+	}
+}
+

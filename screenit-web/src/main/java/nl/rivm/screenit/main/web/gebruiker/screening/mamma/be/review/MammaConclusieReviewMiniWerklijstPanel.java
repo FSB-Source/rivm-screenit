@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.be.review;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -55,7 +55,7 @@ public class MammaConclusieReviewMiniWerklijstPanel extends MiniWerklijstPanel
 			{
 				MammaConclusieReview conclusieReview = conclusieReviewService.getConclusieReview(beoordelingModel.getObject().getOnderzoek().getAfspraak().getUitnodiging()
 					.getScreeningRonde(), ScreenitSession.get().getLoggedInInstellingGebruiker());
-				return conclusieReview != null ? Model.of(getString("conclusie.gezien.status")) : Model.of(getString("conclusie.niet.gezien.status"));
+				return conclusieReview.getReviewMoment() != null ? Model.of(getString("conclusie.gezien.status")) : Model.of(getString("conclusie.niet.gezien.status"));
 			}
 		};
 	}

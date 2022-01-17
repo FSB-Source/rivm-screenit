@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,8 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
@@ -50,9 +52,9 @@ import nl.rivm.screenit.service.cervix.CervixAfmeldService;
 import nl.rivm.screenit.service.colon.ColonAfmeldService;
 import nl.rivm.screenit.service.mamma.MammaAfmeldService;
 import nl.rivm.screenit.util.AfmeldingUtil;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,9 +104,9 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 		var dossier = koppelDefinitieveAfmelding(client, afmelding);
 
 		afmelding.setAfmeldingStatus(AanvraagBriefStatus.BRIEF);
-		DateTime nu = currentDateSupplier.getDateTime();
-		afmelding.setStatusAfmeldDatum(nu.plusMillis(20).toDate());
-		afmelding.setAfmeldDatum(nu.plusMillis(20).toDate());
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		afmelding.setStatusAfmeldDatum(DateUtil.toUtilDate(nu.plus(20, ChronoUnit.MILLIS)));
+		afmelding.setAfmeldDatum(DateUtil.toUtilDate(nu.plus(20, ChronoUnit.MILLIS)));
 
 		hibernateService.saveOrUpdate(afmelding);
 		hibernateService.saveOrUpdate(dossier);
@@ -155,14 +157,14 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 			+ afmelding.getScreeningRonde().getDossier().getClient().getId());
 
 		afmelding.setAfmeldingStatus(AanvraagBriefStatus.VERWERKT);
-		DateTime nu = currentDateSupplier.getDateTime();
-		afmelding.setAfmeldDatum(nu.toDate());
-		afmelding.setStatusAfmeldDatum(nu.toDate());
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		afmelding.setAfmeldDatum(DateUtil.toUtilDate(nu));
+		afmelding.setStatusAfmeldDatum(DateUtil.toUtilDate(nu));
 		afmelding.setRondeGesloten(true);
 
 		var ronde = afmelding.getScreeningRonde();
 		ronde.setStatus(ScreeningRondeStatus.AFGEROND);
-		ronde.setStatusDatum(nu.plusMillis(200).toDate());
+		ronde.setStatusDatum(DateUtil.toUtilDate(nu.plus(200, ChronoUnit.MILLIS)));
 		ronde.setAangemeld(false);
 
 		clientService.projectClientInactiveren(ronde.getDossier().getClient(), ProjectInactiefReden.AFMELDING, afmelding.getBevolkingsonderzoek());
@@ -235,13 +237,13 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 
 		var dossier = afmelding.getDossier();
 		dossier.setAangemeld(false);
-		DateTime nu = currentDateSupplier.getDateTime();
-		dossier.setInactiefVanaf(nu.toDate());
+		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		dossier.setInactiefVanaf(DateUtil.toUtilDate(nu));
 		dossier.setStatus(DossierStatus.INACTIEF);
 
 		afmelding.setAfmeldingStatus(AanvraagBriefStatus.VERWERKT);
-		afmelding.setStatusAfmeldDatum(nu.plusMillis(20).toDate());
-		afmelding.setAfmeldDatum(nu.plusMillis(20).toDate());
+		afmelding.setStatusAfmeldDatum(DateUtil.toUtilDate(nu.plus(20, ChronoUnit.MILLIS)));
+		afmelding.setAfmeldDatum(DateUtil.toUtilDate(nu.plus(20, ChronoUnit.MILLIS)));
 
 		if (handtekeningDocumentVerplicht)
 		{
@@ -272,14 +274,16 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	}
 
 	@Override
-	public void heraanmelden(Afmelding<?, ?, ?> herAanTeMeldenAfmelding, Account account)
+	public <A extends Afmelding<?, ?, ?>> void heraanmelden(A herAanTeMeldenAfmelding, Account account)
 	{
 		if (herAanTeMeldenAfmelding != null)
 		{
 			heraanmeldenZonderVervolg(herAanTeMeldenAfmelding);
 			vervolgHeraanmelden(herAanTeMeldenAfmelding, account);
+
 			logService.logGebeurtenis(LogGebeurtenis.HERAANMELDEN, account, AfmeldingUtil.getClientFromAfmelding(herAanTeMeldenAfmelding),
-				"Type: " + herAanTeMeldenAfmelding.getType().name().toLowerCase(),
+				"Type: " + herAanTeMeldenAfmelding.getType().name().toLowerCase() + bvoAfmeldService(herAanTeMeldenAfmelding).getAanvullendeHeraanmeldLogMelding(
+					herAanTeMeldenAfmelding),
 				herAanTeMeldenAfmelding.getBevolkingsonderzoek());
 		}
 	}
@@ -361,11 +365,11 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 
 		if (herAanTeMeldenAfmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT)
 		{
-			DateTime nu = currentDateSupplier.getDateTime();
+			LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 			herAanTeMeldenAfmelding.setRondeHeropend(true);
-			herAanTeMeldenAfmelding.setHeraanmeldDatum(nu.toDate());
+			herAanTeMeldenAfmelding.setHeraanmeldDatum(DateUtil.toUtilDate(nu));
 			herAanTeMeldenAfmelding.setHeraanmeldStatus(AanvraagBriefStatus.VERWERKT);
-			herAanTeMeldenAfmelding.setStatusHeraanmeldDatum(nu.toDate());
+			herAanTeMeldenAfmelding.setStatusHeraanmeldDatum(DateUtil.toUtilDate(nu));
 			herAanTeMeldenAfmelding.setImplicieteHeraanmelding(implicieteHeraanmelding);
 
 			hibernateService.saveOrUpdate(herAanTeMeldenAfmelding);

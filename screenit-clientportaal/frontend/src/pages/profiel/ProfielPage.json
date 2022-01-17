@@ -1,0 +1,31 @@
+{
+  "page": {
+    "title": "Mijn profiel",
+    "description": "Wij hebben uw gegevens ontvangen uit de Basisregistratie Personen (BRP). Wij gebruiken deze gegevens om u uit te nodigen voor de bevolkingsonderzoeken naar kanker.</br></br>U kunt uw adresgegevens niet wijzigen. Als u verhuist, geeft u dit door aan de gemeente. Wij krijgen uw nieuwe adres dan automatisch. </br>Wilt u de post over het bevolkingsonderzoek tijdelijk op een ander adres ontvangen? Dan kunt u een tijdelijk adres opgeven.</br></br>Als u uw telefoonnummer doorgeeft, kunnen wij u bellen als dat nodig is. Bijvoorbeeld als we een afspraak moeten afzeggen. Wij bellen u nooit over uw uitslag van het bevolkingsonderzoek."
+  },
+  "paspoort": {
+    "title": "Mijn gegevens",
+    "label": {
+      "geboortedatum": "Geboortedatum:",
+      "bsn": "BSN:",
+      "adres": "Mijn adres"
+    }
+  },
+  "toptaak": {
+    "title": {
+      "telefoonnummer": "mijn telefoonnummer doorgeven",
+      "adres": {
+        "opgeven": "een tijdelijk adres doorgeven",
+        "wijzigen": "mijn tijdelijke adres wijzigen"
+      }
+    },
+    "subtitle": {
+      "telefoonnummer": "Mijn telefoonnummer",
+      "adres": "Tijdelijk adres %s %s"
+    },
+    "geen": {
+      "telefoonnummer": "Geen telefoonnummer opgegeven",
+      "adres": "Geen adres"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.app {
+  min-height: 100vh;
+}
+
+.appBody {
+	min-height: calc(100vh - 100px);
+	width: 100%;
+	background-color: $grijs-base;
+	padding-bottom: 50px;
+	overflow: visible;
+
+	@include respond-below(xs) {
+		padding-bottom: 20px;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+}
+
+.appContent {
+  max-width: 1100px;
+
+  @include respond-above(lg) {
+    width: 75%;
+  }
+
+  @include respond-between(md, lg) {
+    width: 80%;
+  }
+
+  @include respond-between(sm, md) {
+    width: 85%;
+  }
+
+  @include respond-between(xs, sm) {
+    width: 90%;
+  }
+
+  @include respond-below(xs) {
+		width: 100%;
+		padding-left: 5px;
+		padding-right: 5px;
+	}
+
+}

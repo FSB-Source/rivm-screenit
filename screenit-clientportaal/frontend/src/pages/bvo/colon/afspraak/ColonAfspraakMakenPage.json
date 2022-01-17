@@ -1,0 +1,66 @@
+{
+  "page": {
+    "title": {
+      "verzetten": "Afspraak verzetten",
+      "maken": "Afspraak maken"
+    },
+    "description": {
+      "verzetten": "U bent uitgenodigd voor een gesprek over vervolgonderzoek. Wij hebben daarvoor een afspraak voor u gemaakt. <br> <br>Komt de afspraak voor het gesprek u niet uit? Of wilt u liever een afspraak in een ander ziekenhuis of behandelcentrum? Dan kunt u de afspraak verzetten.<br><br>Vul het zoekscherm hieronder in en kies uw afspraak.<br>U ontvangt een schriftelijke bevestiging van de nieuwe afspraak.",
+      "maken": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek darmkanker.<br><br>De laatste keer dat u meedeed, is er bloed in uw ontlasting gevonden. Om de oorzaak hiervan te vinden, is vervolgonderzoek nodig.<br>U kunt een afspraak maken voor een gesprek over vervolgonderzoek.<br><br>Vul het zoekscherm hieronder in en kies uw afspraak.<br>U ontvangt een schriftelijke bevestiging van de afspraak."
+    },
+    "bvo_name": "Bevolkingsonderzoek %s"
+  },
+  "blob": {
+    "title": "Mijn afspraak:",
+    "afspraak": {
+      "moment": "%s&nbsp;uur",
+      "locatie": "%s <br> %s <br>"
+    }
+  },
+  "searchitems": {
+    "datefrom": {
+      "error": {
+        "date_too_early": "Ongeldig - Kies een datum vanaf %s",
+        "verplicht": "Dit veld is verplicht",
+        "type": "Ongeldige datum"
+      },
+      "placeholder": "Datum van*"
+    },
+    "datetil": {
+      "error_date_too_early": "Ongeldig - Kies een datum vanaf %s",
+      "error_is_mandatory": "Dit veld is verplicht",
+      "placeholder": "Datum tot*"
+    },
+    "afstand": {
+      "placeholder": "Max. reisafstand vanaf woonplaats"
+    },
+    "plaats": {
+      "placeholder": "Plaats"
+    },
+    "ziekenhuis": {
+      "placeholder": "Ziekenhuis / behandelcentrum"
+    }
+  },
+  "search": {
+    "title": "Zoeken",
+    "hovertext": "Kies deze afspraak",
+    "before_search": "Vul in het zoekscherm de plaatsnaam en/of naam van het ziekenhuis of behandelcentrum in waar u een afspraak wilt maken.<br> <br>Vul in wanneer u de afspraak wilt maken. U&nbsp;moet de velden ‘Datum van’ en ‘Datum tot’ invullen. ",
+    "search_no_results": "Helaas, er zijn geen zoekresultaten. Vul een andere periode, plaats of ziekenhuis in en zoek opnieuw.",
+    "search_no_results_contact_header": "Hulp nodig?",
+    "search_no_results_contact_text": "U kunt ook bellen met onze informatielijn om een afspraak te maken.",
+    "navigation_more_results": "Toon meer mogelijkheden",
+    "do_search": "Zoeken",
+    "result": {
+      "tijdstip": "%s&nbsp;uur",
+      "locatie": "%s</br> %s %s"
+    }
+  },
+  "toast": {
+    "errors": {
+      "zoeken": {
+        "title": "Fout bij het zoeken naar tijdstippen/locaties",
+        "message": "Er is tijdens het zoeken van vervangende tijdstippen/locaties iets fout gegaan."
+      }
+    }
+  }
+}

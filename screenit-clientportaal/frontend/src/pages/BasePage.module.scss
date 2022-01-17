@@ -1,0 +1,25 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.content {
+	width: 100%;
+
+	&.slim {
+		max-width: 640px;
+	}
+
+	@include respond-below(xs) {
+		padding-left: 10px;
+		padding-right: 10px;
+		margin-bottom: 20px;
+	}
+
+	.childrenContainer {
+		width: 100%;
+		margin-top: 40px;
+
+		@include respond-below(xs) {
+			margin-top: 15px;
+		}
+	}
+}

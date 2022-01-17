@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -56,6 +55,8 @@ public class Constants
 
 	public static final String DEFAULT_DATE_TIME_FORMAT = "dd-MM-yyyy HH:mm";
 
+	public static final String DEFAULT_DATE_TIME_SECONDS_FORMAT = "dd-MM-yyyy HH:mm:ss";
+
 	public static final String DEFAULT_TIME_FORMAT = "HH:mm";
 
 	public static final String DATE_FORMAT_YYYYMMDDHHMMSS = "yyyyMMddHHmmss";
@@ -65,12 +66,6 @@ public class Constants
 	public static final String DATE_FORMAT_YYYYMMDD = "yyyyMMdd";
 
 	public static final String DATE_FORMAT_DDMMYYY = "ddMMyyyy";
-
-	public static final String JOB_PARAMETER_PREFIX = "SCREENIT_JOB_PARAM_";
-
-	public static final String XML_PARAMETER_KOPPEL_JOB = JOB_PARAMETER_PREFIX + "koppelXMLData";
-
-	public static final String CERVIX_ORDER_JOB_LABORATORIUM_PARAMETER = JOB_PARAMETER_PREFIX + "BMHKLabId";
 
 	public static final String END_OF_TIME = "TO_DATE('01-01-4000', 'DD-MM-YYYY')";
 
@@ -114,7 +109,7 @@ public class Constants
 
 	private static final ThreadLocalDateFormat DATE_DD_MM_YYYY_FORMAT = new ThreadLocalDateFormat(DATE_FORMAT_DDMMYYY);
 
-	private static final ThreadLocalDateFormat DATE_TIME_SECONDS_FORMAT = new ThreadLocalDateFormat("dd-MM-yyyy HH:mm:ss");
+	private static final ThreadLocalDateFormat DATE_TIME_SECONDS_FORMAT = new ThreadLocalDateFormat(DEFAULT_DATE_TIME_SECONDS_FORMAT);
 
 	public static final String VRAAG_INCIDENT_COMPLICATIE_JA_NEE = "incident_complicatie_ja_nee";
 
@@ -137,6 +132,8 @@ public class Constants
 	public static final String CONTACT_EXTRA_PARAMETER_VANUIT_BK_PLANNING = "bkVanuitPlanning";
 
 	public static final String CONTACT_EXTRA_PARAMETER_ALLEEN_CLIENT_CONTACT = "bkAlleenClientContact";
+
+	public static final String RONDE_FORCEREN_MELDING_BIJ_AFSPRAAK_MAKEN = "rondeForcerenMelding";
 
 	public static final int BK_HA_BERICHT_MAX_WAITTME = 5;
 
@@ -167,7 +164,7 @@ public class Constants
 	static
 	{
 
-		booleanWeergave = new HashMap<Boolean, String>();
+		booleanWeergave = new HashMap<>();
 		booleanWeergave.put(Boolean.TRUE, "Ja");
 		booleanWeergave.put(Boolean.FALSE, "Nee");
 		booleanWeergave = Collections.unmodifiableMap(booleanWeergave);

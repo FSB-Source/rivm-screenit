@@ -1,0 +1,20 @@
+{
+  "taak": {
+    "telefoonnummer": {
+      "doorgeven": "mijn telefoonnummer(s) doorgeven",
+      "wijzigen": "mijn telefoonnummer(s) wijzigen"
+    },
+    "bezwaar": {
+      "maken": "bezwaar maken",
+      "intrekken": "bezwaar maken en/of intrekken"
+    },
+    "afmelden": {
+      "algemeen": "afmelden",
+      "definitief": "definitief afmelden"
+    },
+    "adres": {
+      "doorgeven": "een tijdelijk adres doorgeven",
+      "wijzigen": "mijn tijdelijke adres wijzigen"
+    }
+  }
+}

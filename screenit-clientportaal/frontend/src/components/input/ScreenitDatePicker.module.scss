@@ -1,0 +1,41 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.errorLabel {
+	position: relative;
+	color: $rood-base;
+	font-size: 0.7rem;
+	line-height: 0.9rem;
+	width: 100%;
+	margin-top: 3px;
+	margin-bottom: 0;
+}
+
+.inputDiv {
+	display: inline-block;
+	border-radius: 4px;
+	height: 64px;
+	padding: 5px 12px 0 12px;
+	width: 100%;
+
+	border: 1px solid $grijs-700;
+	background-color: $wit-base;
+
+	box-sizing: border-box;
+
+	@include respond-below(xs) {
+		margin-bottom: 15px;
+	}
+}
+
+.inputDivError {
+  display: inline-block;
+  border-radius: 4px;
+  padding: 5px 12px 0 12px;
+  width: 100%;
+
+  border: 3px solid $rood-base;
+  background-color: $wit-base;
+
+  box-sizing: border-box;
+}

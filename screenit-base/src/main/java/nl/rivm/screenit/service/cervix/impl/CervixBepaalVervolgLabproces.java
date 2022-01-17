@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 
 class CervixBepaalVervolgLabproces
@@ -73,7 +73,7 @@ class CervixBepaalVervolgLabproces
 				{
 					if (context.monsterHpvUitslag != null && context.huidigeMonster.equals(context.monsterHpvUitslag))
 					{
-						if (CervixHpvUitslag.POSITIEF.equals(context.hpvUitslag))
+						if (CervixHpvBeoordelingWaarde.POSITIEF.equals(context.hpvUitslag))
 						{
 							vervolg.setVervolgTekst(CervixVervolgTekst.ZAS_HPV_POSITIEF_CLIENT_REEDS_GEINFORMEERD_BEWAAR);
 						}
@@ -164,7 +164,7 @@ class CervixBepaalVervolgLabproces
 
 	private void bepaalVervolgUitstrijkjeCytologie()
 	{
-		if (!CervixHpvUitslag.POSITIEF.equals(context.hpvUitslag) || context.hpvUitslagVanZasNogBriefVerstuurd)
+		if (!CervixHpvBeoordelingWaarde.POSITIEF.equals(context.hpvUitslag) || context.hpvUitslagVanZasNogBriefVerstuurd)
 		{
 			bepaalVervolgUitstrijkjeHpv();
 		}
@@ -303,7 +303,7 @@ class CervixBepaalVervolgLabproces
 
 	private void bepaalVervolgZasCytologie()
 	{
-		if (!CervixHpvUitslag.POSITIEF.equals(context.hpvUitslag))
+		if (!CervixHpvBeoordelingWaarde.POSITIEF.equals(context.hpvUitslag))
 		{
 			bepaalVervolgZasHpv();
 		}

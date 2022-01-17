@@ -1,0 +1,29 @@
+@import "src/scss/mixins";
+@import "src/scss/media-mixins";
+
+.container {
+	position: relative;
+	width: 100%;
+	padding: 20px;
+	margin-bottom: 30px;
+
+	border-radius: 10px;
+	background-color: rgba(228, 0, 67, 0.06);
+
+	@include respond-below(xs) {
+		padding: 15px;
+		margin-bottom: 20px;
+	}
+
+	i {
+		@include center-in-div-vertically(48%);
+		font-size: 1.7em;
+		color: #E40043;
+	}
+
+	span {
+		display: block;
+		margin-left: 40px;
+		font-size: 0.9em;
+	}
+}

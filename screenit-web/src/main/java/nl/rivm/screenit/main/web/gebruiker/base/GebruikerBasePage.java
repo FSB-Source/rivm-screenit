@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.base;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -144,6 +144,7 @@ public abstract class GebruikerBasePage extends BasePage
 
 	public GebruikerBasePage()
 	{
+		ScreenitSession.get().setInPlanningmodule(false);
 		heeftImsKoppelingRecht = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_IMS_KOPPELING, Actie.INZIEN);
 		isMammaBeoordelaar = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_BEOORDELING_WERKLIJST, Actie.AANPASSEN) &&
 			OrganisatieType.BEOORDELINGSEENHEID.equals(ScreenitSession.get().getInstelling().getOrganisatieType());
@@ -158,11 +159,12 @@ public abstract class GebruikerBasePage extends BasePage
 	protected void onInitialize()
 	{
 		super.onInitialize();
+
 		add(new ApplicatieInfoPanel("applicatieInfo"));
 		addMenu();
 		addBvoFilter();
 
-		dialog = new BootstrapDialog("afmeldenDialog");
+		dialog = new BootstrapDialog("baseDialog");
 		add(dialog);
 
 		feedbackPanel = new BootstrapFeedbackPanel("feedback");

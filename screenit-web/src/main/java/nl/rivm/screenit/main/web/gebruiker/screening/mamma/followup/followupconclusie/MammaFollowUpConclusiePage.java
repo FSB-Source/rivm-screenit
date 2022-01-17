@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.followup.followupcon
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.Arrays;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.mamma.MammaFollowUpConclusieChoice;
+import nl.rivm.screenit.main.service.mamma.MammaConclusieReviewService;
 import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.AjaxButtonGroup;
@@ -81,6 +82,9 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 	@SpringBean
 	private MammaFollowUpService followUpService;
 
+	@SpringBean
+	private MammaConclusieReviewService conclusieReviewService;
+
 	private IModel<MammaFollowUpConclusieChoice> conclusieEnumModel;
 
 	private IModel<MammaScreeningRonde> screeningRondeModel;
@@ -103,7 +107,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 		ScreenitForm<MammaScreeningRonde> conclusieForm = new ScreenitForm<>("conclusieForm");
 		add(conclusieForm);
 
-		MammaFollowUpConclusieChoice conclusieEnum = null;
+		MammaFollowUpConclusieChoice conclusieEnum;
 		MammaFollowUpConclusieStatus conclusieStatus = screeningRonde.getFollowUpConclusieStatus();
 		if (conclusieStatus == null)
 		{
@@ -135,7 +139,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 		statusContainer.setOutputMarkupId(true);
 		conclusieForm.add(statusContainer);
 
-		statusContainer.add(new AjaxButtonGroup<MammaFollowUpConclusieChoice>("conclusie", conclusieEnumModel,
+		statusContainer.add(new AjaxButtonGroup<>("conclusie", conclusieEnumModel,
 			new ListModel<>(Arrays.asList(MammaFollowUpConclusieChoice.values())), new EnumChoiceRenderer<>())
 		{
 			@Override
@@ -164,7 +168,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 						public boolean isEnabled(Component component)
 						{
 							return Objects.equal(getDefaultModelObject(), selection);
-						};
+						}
 					});
 				}
 			}
@@ -199,7 +203,6 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 					{
 						followUpService.saveFollowUpConclusieStatus(screeningRonde, conclusieStatus, ScreenitSession.get().getLoggedInAccount());
 					}
-
 					setResponsePage(MammaFollowUpConclusieWerklijst.class);
 				}
 			}
@@ -208,7 +211,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 
 	private void voegFollowUpVerslagenToe()
 	{
-		ListView<MammaFollowUpVerslag> followUpVerslagList = new ListView<MammaFollowUpVerslag>("followUpVerslagen")
+		ListView<MammaFollowUpVerslag> followUpVerslagList = new ListView<>("followUpVerslagen")
 		{
 			@Override
 			protected void populateItem(ListItem<MammaFollowUpVerslag> followUpVerslagListItem)
@@ -230,7 +233,7 @@ public class MammaFollowUpConclusiePage extends AbstractMammaFollowUpPage
 
 	private void voegRadiologieVerslagenToe()
 	{
-		ListView<MammaFollowUpRadiologieVerslag> radiologieVerslagList = new ListView<MammaFollowUpRadiologieVerslag>("followUpRadiologieVerslagen")
+		ListView<MammaFollowUpRadiologieVerslag> radiologieVerslagList = new ListView<>("followUpRadiologieVerslagen")
 		{
 			@Override
 			protected void populateItem(ListItem<MammaFollowUpRadiologieVerslag> listItem)

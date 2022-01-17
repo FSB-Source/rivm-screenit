@@ -1,25 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ========================LICENSE_START=================================
-  se-proxy
-  %%
-  Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
-  %%
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-  
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  =========================LICENSE_END==================================
-  -->
-
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
 <svg width="178px" height="296px" viewBox="0 0 178 296" version="1.1" xmlns="http://www.w3.org/2000/svg">
     <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
@@ -30,13 +9,17 @@
         <path d="M19.0457909,1 C32.1962514,29.9668444 57.6456736,57.2997204 95.3940578,82.9986282 C168.333549,132.655462 194.736855,203.657763 121.525672,255.134598 C70.1253945,291.275573 36.0493345,267.314516 14,295"
               id="Path-55" stroke="#000000" stroke-width="2"></path>
         <path d="M25,214 L1,180" id="Path-62" stroke="#000000" stroke-width="2"></path>
-        <path d="M177,196.999656 C167.666667,197.018222 163,191.826227 163,181.423671 C163,171.021115 167.666667,165.880593 177,166.002104" id="Path-56" stroke="#000000"
-              stroke-width="2" transform="translate(170.000000, 181.500000) scale(-1, 1) translate(-170.000000, -181.500000) "></path>
-        <path d="M2.14906064,110 C25.281857,110 36.2177745,139.883745 33.6265454,184.04317 C31.8990594,213.482787 21.0235443,229.80173 1,233" id="Path-57" stroke="#000000"
+        <path d="M177,196.999656 C167.666667,197.018222 163,191.826227 163,181.423671 C163,171.021115 167.666667,165.880593 177,166.002104"
+              id="Path-56" stroke="#000000"
+              stroke-width="2"
+              transform="translate(170.000000, 181.500000) scale(-1, 1) translate(-170.000000, -181.500000) "></path>
+        <path d="M2.14906064,110 C25.281857,110 36.2177745,139.883745 33.6265454,184.04317 C31.8990594,213.482787 21.0235443,229.80173 1,233"
+              id="Path-57" stroke="#000000"
               stroke-width="2"></path>
         <path d="M33,158 L2,114" id="Path-59" stroke="#000000" stroke-width="2"></path>
         <path d="M14,227 L2,212" id="Path-63" stroke="#000000" stroke-width="2"></path>
-        <polygon id="L" fill="#000000" points="143.578313 28.8926554 155 28.8926554 155 32 140 32 140 7 143.578313 7"></polygon>
+        <polygon id="L" fill="#000000"
+                 points="143.578313 28.8926554 155 28.8926554 155 32 140 32 140 7 143.578313 7"></polygon>
         <path d="M1,147 L33,190" id="Path-46" stroke="#070707" stroke-width="2"></path>
         <path d="M1,295.827821 L1,0" id="Path-48" stroke="#000000" stroke-width="2"></path>
     </g>

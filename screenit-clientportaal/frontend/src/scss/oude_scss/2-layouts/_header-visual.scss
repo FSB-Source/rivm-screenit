@@ -1,0 +1,43 @@
+﻿.header {
+  margin-top: 84px;
+  margin-bottom: 120px;
+
+  @include respond-below(lg) {
+    margin-bottom: 40px;
+  }
+
+  &--home {
+    font-size: calc-em(24);
+    line-height: 1.2;
+    color: $toptask-gray;
+    margin: 24px 0;
+    display: block;
+
+    @include respond-below(sm) {
+      margin: 52px 0 24px;
+    }
+  }
+
+  &--subheading {
+    font-size: calc-em(40);
+    font-weight: 400;
+    margin: 10px 0;
+
+    @include respond-below(sm) {
+      font-size: calc-em(28);
+    }
+  }
+
+  &--title {
+    margin: 0 0 100px;
+
+    @include respond-below(md) {
+      margin: 0 0 36px;
+    }
+
+    @include respond-below(sm) {
+      font-size: calc-em(32);
+    }
+  }
+}
+

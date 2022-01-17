@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.enums;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -71,6 +71,7 @@ import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -3210,6 +3211,58 @@ public enum MergeField
 		}
 
 	},
+
+	CERVIX_VERVOLGONDERZOEK_NEGATIEF(
+		"_CERVIX_VERVOLGONDERZOEK_NEGATIEF_TEKST",
+		MergeFieldTestType.OVERIGE,
+		String.class,
+		"Er is geen HPV (humaan papillomavirus) gevonden.",
+		NIET_NAAR_INPAKCENTRUM,
+		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CervixLeeftijdcategorie leeftijdcategorie = context.getCervixUitnodiging().getScreeningRonde().getLeeftijdcategorie();
+				if (CervixLeeftijdcategorie._70.equals(leeftijdcategorie) || CervixLeeftijdcategorie._65.equals(leeftijdcategorie))
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_VERVOLGONDERZOEK_NEGATIEF_65PLUS_TEKST);
+				}
+				else if (CervixLeeftijdcategorie._60.equals(leeftijdcategorie))
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_VERVOLGONDERZOEK_NEGATIEF_60PLUS_TEKST);
+				}
+				else
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_VERVOLGONDERZOEK_NEGATIEF_OVERIGE_TEKST);
+				}
+			}
+		},
+
+	CERVIX_CYTOLOGIE_POSITIEF(
+		"_CERVIX_CYTOLOGIE_POSITIEF_TEKST",
+		MergeFieldTestType.OVERIGE,
+		String.class,
+		"Er is HPV (humaan papillomavirus) gevonden. Ook zijn er afwijkende cellen gevonden.",
+		NIET_NAAR_INPAKCENTRUM,
+		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
+		{
+
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CervixLeeftijdcategorie leeftijdcategorie = context.getCervixUitnodiging().getScreeningRonde().getLeeftijdcategorie();
+				if (CervixLeeftijdcategorie._70.equals(leeftijdcategorie) || CervixLeeftijdcategorie._65.equals(leeftijdcategorie) || CervixLeeftijdcategorie._60.equals(leeftijdcategorie))
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_CYTOLOGIE_POSITIEF_60PLUS_TEKST);
+				}
+				else
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_CYTOLOGIE_POSITIEF_OVERIGE_TEKST);
+				}
+			}
+
+		},
 
 	CERVIX_HUISARTS_DOORGEVEN_TOT_DATUM(
 		"_CERVIX_HUISARTS_DOORGEVEN_TOT_DATUM",

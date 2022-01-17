@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@
 
     <div class="row-fluid">
         <div class="span6">
-            <table class="table table-striped table-bordered table-condensed">
+            <table class="table table-striped table-bordered table-condensed radioloog-dashboard-table">
                 <thead>
                 <tr class="headers">
                     <th>
@@ -37,7 +37,7 @@
                     <th>
                         <wicket:message key="table.header.aantalVandaag"/>
                     </th>
-                    <th style="text-align: right">
+                    <th class="dashboard-kalenderjaar-cel">
                         <wicket:message key="table.header.aantalJaar"/>
                     </th>
                 </tr>
@@ -49,7 +49,7 @@
                         </span>
                     </td>
                     <td><span wicket:id="eersteLezingenVandaagLabel"></span></td>
-                    <td style="text-align: right"><span wicket:id="eersteLezingenKalenderjaarLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="eersteLezingenKalenderjaarLabel"></span></td>
                 </tr>
                 <tr>
                     <td>
@@ -58,7 +58,7 @@
                         </span>
                     </td>
                     <td><span wicket:id="tweedeLezingenVandaagLabel"></span></td>
-                    <td style="text-align: right"><span wicket:id="tweedeLezingenKalenderjaarLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="tweedeLezingenKalenderjaarLabel"></span></td>
                 </tr>
                 <tr>
                     <td>
@@ -67,7 +67,7 @@
                         </span>
                     </td>
                     <td><span wicket:id="totaalLezingenVandaagLabel"></span></td>
-                    <td style="text-align: right"><span wicket:id="totaalLezingenKalenderjaarLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="totaalLezingenKalenderjaarLabel"></span></td>
                 </tr>
                 <tr>
                     <td>
@@ -76,7 +76,7 @@
                         </span>
                     </td>
                     <td><span wicket:id="beoordelingenMetDiscrepantieVandaagLabel"></span></td>
-                    <td style="text-align: right"><span wicket:id="beoordelingenMetDiscrepantieKalenderjaarLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="beoordelingenMetDiscrepantieKalenderjaarLabel"></span></td>
                 </tr>
                 <tr>
                     <td>
@@ -85,7 +85,7 @@
                         </span>
                     </td>
                     <td><span wicket:id="lezingenVerwijzendEersteScreeningrondesVandaagLabel"></span></td>
-                    <td style="text-align: right"><span wicket:id="lezingenVerwijzendEersteScreeningrondesKalenderjaarLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="lezingenVerwijzendEersteScreeningrondesKalenderjaarLabel"></span></td>
                 </tr>
                 <tr>
                     <td>
@@ -94,12 +94,33 @@
                         </span>
                     </td>
                     <td><span wicket:id="lezingenVerwijzendMeerdereScreeningrondesVandaagLabel"></span></td>
-                    <td style="text-align: right"><span wicket:id="lezingenVerwijzendMeerdereScreeningrondesKalenderjaarLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="lezingenVerwijzendMeerdereScreeningrondesKalenderjaarLabel"></span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="conclusieGereviewedLabel"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="conclusiesGereviewedVandaagLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="conclusiesGereviewedKalenderjaarLabel"></span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span>
+                            <wicket:message key="conclusiesOpenstaandLabel"/>
+                        </span>
+                    </td>
+                    <td><span wicket:id="conclusiesOpenstaandVandaagLabel"></span></td>
+                    <td class="dashboard-kalenderjaar-cel"><span wicket:id="conclusiesOpenstaandKalenderjaarLabel"></span></td>
                 </tr>
             </table>
-            <span>
-                <wicket:message key="uitlegPercentageOnbekend"/>
-            </span>
+            <div>
+                <span><wicket:message key="uitlegPercentageOnbekend"/></span>
+            </div>
+            <div>
+                <span><wicket:message key="uitlegAantalOnbekend"/></span>
+            </div>
         </div>
     </div>
 </wicket:extend>

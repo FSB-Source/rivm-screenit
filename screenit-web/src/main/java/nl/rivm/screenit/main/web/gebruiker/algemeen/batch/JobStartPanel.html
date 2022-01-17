@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -20,42 +20,46 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org/">
 <wicket:panel>
-    <div wicket:id="startJobDialog"></div>
-    <wicket:container wicket:id="bvoFilter"></wicket:container>
-    <div wicket:id="jobsContainer">
-        <table class="table table-bordered table-condensed organisatie">
-            <thead>
-            <tr>
-                <th>BVO</th>
-                <th wicket:id="startHeader"></th>
-                <th wicket:id="configHeader"></th>
-                <th>Naam</th>
-                <th>Omschrijving</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr class="control-group value" wicket:id="jobs">
-                <td><label class="control-label" wicket:id="bvoLabel">DK</label></td>
-                <wicket:enclosure child="start">
-                    <td>
-                        <div class="controls">
-                            <button class="btn btn-secondary" wicket:id="start">Start</button>
-                        </div>
-                    </td>
-                </wicket:enclosure>
-                <wicket:enclosure child="configButtonContainer">
-                    <td>
-                        <div class="controls" wicket:id="configButtonContainer">
-                            <button class="btn btn-secondary" wicket:id="config">Config</button>
-                        </div>
-                    </td>
-                </wicket:enclosure>
-                <td><label class="control-label" wicket:id="naam">Vooraankondigingsperiode</label></td>
+	<div wicket:id="startJobDialog"></div>
+	<wicket:container wicket:id="bvoFilter"></wicket:container>
+	<div wicket:id="jobsContainer">
+		<table class="table table-bordered table-condensed organisatie">
+			<thead>
+			<tr>
+				<th>BVO</th>
+				<th wicket:id="startHeader"></th>
+				<th wicket:id="configHeader"></th>
+				<th>Naam</th>
+				<th>Omschrijving</th>
+			</tr>
+			</thead>
+			<tbody>
+			<tr class="control-group value" wicket:id="jobs">
+				<td><label class="control-label" wicket:id="bvoLabel">DK</label></td>
+				<wicket:enclosure child="start">
+					<td>
+						<div class="controls">
+							<button class="btn btn-secondary" wicket:id="start">Start</button>
+						</div>
+					</td>
+				</wicket:enclosure>
+				<wicket:enclosure child="configButtonContainer">
+					<td>
+						<div class="controls" wicket:id="configButtonContainer">
+							<button class="btn btn-secondary" wicket:id="config">Config</button>
+						</div>
+					</td>
+				</wicket:enclosure>
+				<td><label class="control-label" wicket:id="naam">Vooraankondigingsperiode</label></td>
 
-                <td><span style="font-style: italic; color: grey;" wicket:id="beschrijving"></span></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
+				<td><span style="font-style: italic; color: grey;" wicket:id="beschrijving"></span></td>
+			</tr>
+			</tbody>
+		</table>
+	</div>
+	<wicket:fragment wicket:id="checkboxFragment">
+		<span wicket:id="parameterOmschrijving"></span>
+		<input class="checkbox-inline" style="margin-left: 10px;" type="checkbox" wicket:id="checkbox"/>
+	</wicket:fragment>
 </wicket:panel>
 </html>

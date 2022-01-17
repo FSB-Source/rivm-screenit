@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dto.onderzoek;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -72,7 +72,7 @@ public class OnderzoekSeDto extends SeDto
 		return extraMedewerkerId;
 	}
 
-	public void setExtraMedewerkerId(long extraMedewerkerId)
+	public void setExtraMedewerkerId(Long extraMedewerkerId)
 	{
 		this.extraMedewerkerId = extraMedewerkerId;
 	}

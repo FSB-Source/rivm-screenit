@@ -1,0 +1,99 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.bvoCard {
+	position: relative;
+	height: 300px;
+	max-width: 320px;
+	background-color: $wit-base;
+	border-radius: 10px;
+	box-shadow: 0 20px 30px -19px rgba(0, 0, 0, 0.15);
+	padding-left: 50px;
+	padding-top: 20px;
+	transition: 0.3s;
+
+	@include respond-below(md) {
+		margin-bottom: 25px;
+	}
+
+	@include respond-below(xs) {
+		height: 175px;
+		padding-left: 35px;
+	}
+
+	&:hover {
+		cursor: pointer;
+		box-shadow: 5px 20px 30px 3px rgba(0, 0, 0, 0.2);
+	}
+
+	&.bvoCardDisabled {
+		* {
+			opacity: 0.5;
+			color: $zwart;
+		}
+
+		&:hover {
+			box-shadow: 0 20px 30px -19px rgba(0, 0, 0, 0.15);
+			cursor: default;
+		}
+	}
+
+	.verticalRectangle {
+		position: absolute;
+		left: 25px;
+		top: 20px;
+		bottom: 20px;
+
+		@include respond-below(xs) {
+			left: 15px;
+		}
+	}
+
+	.huisartsIcon {
+		display: block;
+		margin-bottom: 15px;
+	}
+
+	.bvoNaam {
+		font-size: 28px;
+
+		@include respond-between(md, lg) {
+			font-size: 22px;
+		}
+
+		@include respond-below(xs) {
+			font-size: 21px;
+		}
+
+	}
+
+	.bvoEventContainer {
+		position: absolute;
+		width: 80%;
+		bottom: 30px;
+		padding-right: 10px;
+
+		@include respond-below(xs) {
+			bottom: 20px;
+		}
+
+		.bvoEventLabel {
+			color: $grijs-900;
+			font-size: 1rem;
+
+			@include respond-below(xs) {
+				font-size: 0.85rem;
+			}
+		}
+
+		.bvoDoelgroepUitleg {
+			color: $grijs-900;
+			font-size: 1rem;
+			font-style: italic;
+
+			@include respond-below(xs) {
+				font-size: 0.85rem;
+			}
+		}
+	}
+}

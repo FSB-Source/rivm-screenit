@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.herinneren.step;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,7 +47,7 @@ public class MammaHerinnerenWriter extends BaseWriter<MammaScreeningRonde>
 		laatsteUitnodiging.setHerinnered(true);
 		hibernateService.saveOrUpdate(laatsteUitnodiging);
 
-		briefService.maakMammaBrief(ronde, BriefType.MAMMA_HERINNERING);
+		briefService.maakBvoBrief(ronde, BriefType.MAMMA_HERINNERING);
 		aantalContextOphogen(MammaHerinnerenConstants.TOTAAL_AANTAL_BRIEVEN_KEY);
 	}
 

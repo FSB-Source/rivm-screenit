@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.cervix.berichten;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,13 +39,13 @@ public class CervixHpvBerichtWrapper
 {
 	private static final Logger LOG = LoggerFactory.getLogger(CervixHpvBerichtWrapper.class);
 
-	private static String POS = "POSCONTROL";
+	private static String POSCONTROL = "POSCONTROL";
 
-	private static String NEG = "NEGCONTROL";
+	private static String NEGCONTROL = "NEGCONTROL";
 
-	private OUL_R22 message;
+	private final OUL_R22 message;
 
-	private List<OUL_R22_SPECIMEN> controles = new ArrayList<OUL_R22_SPECIMEN>();
+	private List<OUL_R22_SPECIMEN> controles = new ArrayList<>();
 
 	private List<CervixHpvMonsterWrapper> results = new ArrayList<CervixHpvMonsterWrapper>();
 
@@ -72,7 +72,7 @@ public class CervixHpvBerichtWrapper
 
 	private boolean isControleWaarde(CervixHpvMonsterWrapper cervixHpvMonsterWrapper)
 	{
-		if (NEG.equals(cervixHpvMonsterWrapper.getControleWaarde()) || POS.equals(cervixHpvMonsterWrapper.getControleWaarde())
+		if (NEGCONTROL.equals(cervixHpvMonsterWrapper.getControleWaarde()) || POSCONTROL.equals(cervixHpvMonsterWrapper.getControleWaarde())
 			|| cervixHpvMonsterWrapper.getBarcode().toUpperCase().startsWith("Q"))
 		{
 			controles.add(cervixHpvMonsterWrapper.getSpecimen());
@@ -116,7 +116,7 @@ public class CervixHpvBerichtWrapper
 
 	public boolean isValid()
 	{
-		LOG.debug("Bericht gevalideerd");
+		LOG.debug("Start bericht validatie");
 		LOG.debug("MessageID: " + getMessageId());
 		LOG.debug("Labnaam: " + getLabnaam());
 		LOG.debug("Instrument ID: " + getInstrumentId());
@@ -127,11 +127,14 @@ public class CervixHpvBerichtWrapper
 			{
 				if (!sample.isValid())
 				{
+					LOG.debug("Bericht invalide");
 					return false;
 				}
 			}
+			LOG.debug("Bericht valide");
 			return true;
 		}
+		LOG.debug("Bericht invalide");
 		return false;
 	}
 

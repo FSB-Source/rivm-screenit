@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.security;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -69,9 +69,9 @@ public class SERealm extends AuthorizingRealm implements IScreenitRealm
 {
 	private static final Logger LOG = LoggerFactory.getLogger(ScreenitRealm.class);
 
-	private static final int YUBIKEY_SESSION_COUNTER_WRAP_AROUND_ALLOWED_RANGE = 100; 
+	private static final int YUBIKEY_SESSION_COUNTER_WRAP_AROUND_ALLOWED_RANGE = 200; 
 
-	private static final int YUBIKEY_MAX_SESSION_COUNTER_INCREASE = 500; 
+	private static final int YUBIKEY_MAX_SESSION_COUNTER_INCREASE = 1000; 
 
 	@Autowired
 	private GebruikersService gebruikersService;

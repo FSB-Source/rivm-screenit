@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import nl.rivm.screenit.main.dao.mamma.MammaConclusieReviewDao;
@@ -31,6 +30,7 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.MammaConclusieReviewFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaConclusieReview;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -54,28 +54,21 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 	private HibernateService hibernateService;
 
 	@Override
-	public long countScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject)
+	public long countConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject)
 	{
-		return conclusieReviewDao.countScreeningRondesMetConclusie(zoekObject);
+		return conclusieReviewDao.countConclusieReviewsVanRadioloog(zoekObject);
 	}
 
 	@Override
-	public List<MammaScreeningRonde> zoekScreeningRondesMetConclusie(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
+	public List<MammaConclusieReview> zoekConclusieReviewsVanRadioloog(MammaConclusieReviewZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
 	{
-		return conclusieReviewDao.zoekScreeningRondesMetConclusie(zoekObject, first, count, sortProperty, asc);
+		return conclusieReviewDao.zoekConclusieReviewsVanRadioloog(zoekObject, first, count, sortProperty, asc);
 	}
 
 	@Override
 	public List<Long> zoekBeoordelingIdsMetConclusie(MammaConclusieReviewZoekObject zoekObject, String sortProperty, boolean asc)
 	{
 		return conclusieReviewDao.zoekBeoordelingIdsMetConclusie(zoekObject, sortProperty, asc);
-	}
-
-	@Override
-	public LocalDateTime getReviewMoment(MammaScreeningRonde screeningRonde, InstellingGebruiker radioloog)
-	{
-		return screeningRonde.getConclusieReviews().stream().filter(review -> review.getRadioloog().equals(radioloog)).findFirst()
-			.map(MammaConclusieReview::getReviewMoment).orElse(null);
 	}
 
 	@Override
@@ -86,16 +79,33 @@ public class MammaConclusieReviewServiceImpl implements MammaConclusieReviewServ
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveConclusieReview(InstellingGebruiker gebruiker, MammaScreeningRonde screeningRonde, MammaConclusieReview conclusieReview)
+	public void maakConclusieReviewVoorBetrokkenRadiologen(MammaScreeningRonde screeningRonde)
 	{
-		conclusieReview.setReviewMoment(currentDateSupplier.getLocalDateTime());
-		if (conclusieReview.getScreeningRonde() == null)
+		if (MammaFollowUpConclusieStatus.conclusieReviewStatussen().contains(screeningRonde.getFollowUpConclusieStatus()))
 		{
+			conclusieReviewDao.getRadiologenMetLezingVanRondeEnZonderReview(screeningRonde).forEach(r -> maakConclusieReview(r, screeningRonde));
+		}
+	}
+
+	private void maakConclusieReview(InstellingGebruiker gebruiker, MammaScreeningRonde screeningRonde)
+	{
+		if (getConclusieReview(screeningRonde, gebruiker) == null)
+		{
+			MammaConclusieReview conclusieReview = new MammaConclusieReview();
 			conclusieReview.setScreeningRonde(screeningRonde);
 			conclusieReview.setRadioloog(gebruiker);
 			screeningRonde.getConclusieReviews().add(conclusieReview);
+
+			hibernateService.saveOrUpdateAll(conclusieReview, screeningRonde);
 		}
-		hibernateService.saveOrUpdateAll(conclusieReview, screeningRonde);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void conclusieReviewAfronden(MammaConclusieReview conclusieReview)
+	{
+		conclusieReview.setReviewMoment(currentDateSupplier.getLocalDateTime());
+		hibernateService.saveOrUpdate(conclusieReview);
 	}
 
 	@Override

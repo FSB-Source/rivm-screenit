@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.planning.capaciteit;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -73,9 +73,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.MAMMA })
 public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private MammaScreeningsEenheidDao screeningsEenheidDao;
 
@@ -85,25 +82,25 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
 
-	private IModel<MammaScreeningsEenheid> screeningsEenheidModel;
+	private final IModel<MammaScreeningsEenheid> screeningsEenheidModel;
 
-	private IModel<List<MammaScreeningsEenheid>> screeningsEenhedenModel;
+	private final IModel<List<MammaScreeningsEenheid>> screeningsEenhedenModel;
+
+	private final IModel<Boolean> isGrootOverzicht;
+
+	private final IModel<Date> datumModel;
 
 	private BootstrapDialog dialog;
 
 	private MammaCapaciteitOverviewPanel calenderPanel;
 
-	private AjaxLink weekHerhalenLink;
+	private AjaxLink<Void> weekHerhalenLink;
 
-	private Label herhalingsWeek;
+	private final Label herhalingsWeek;
 
-	private IModel<Boolean> isGrootOverzicht;
+	private final List<PlanningMeldingDto> meldingen = new ArrayList<>();
 
-	private List<PlanningMeldingDto> meldingen = new ArrayList<>();
-
-	private IModel<Date> datumModel;
-
-	private DatePicker<Date> datumField;
+	private final DatePicker<Date> datumField;
 
 	public MammaSECapaciteitEditPage(MammaScreeningsEenheid screeningsEenheidInit, Date startWeek)
 	{
@@ -119,7 +116,6 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 		add(screeningsEenheid);
 		screeningsEenheid.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -137,7 +133,7 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 		herhalingsWeek.setOutputMarkupId(true);
 		add(herhalingsWeek);
 
-		isGrootOverzicht = new Model<Boolean>(true);
+		isGrootOverzicht = new Model<>(true);
 
 		AjaxCheckBox grootOverzicht = new AjaxCheckBox("grootOverzicht", isGrootOverzicht)
 		{
@@ -214,9 +210,6 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 
 		weekHerhalenLink = new AjaxLink<Void>("weekHerhalen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -242,9 +235,6 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 
 		add(new AjaxLink<Void>("terug")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

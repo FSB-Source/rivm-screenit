@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ import java.util.Objects;
 import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpFollowupPa;
@@ -93,6 +94,10 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 
 	private boolean isZelfdeVerslag(MammaFollowUpVerslag nieuwVerslag, MammaFollowUpVerslag oudVerslag)
 	{
+		if (VerslagStatus.IN_BEWERKING == oudVerslag.getStatus())
+		{
+			return false;
+		}
 		MammaFollowUpVerslagContent nieuwVerslagContent = nieuwVerslag.getVerslagContent();
 		MammaFollowUpVerslagContent oudVerslagContent = oudVerslag.getVerslagContent();
 

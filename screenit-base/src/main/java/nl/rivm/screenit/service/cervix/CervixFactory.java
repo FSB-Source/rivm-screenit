@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.cervix;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -38,14 +39,14 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvAnalyseresultaat;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstelType;
 import nl.rivm.screenit.model.enums.BriefType;
 
 public interface CervixFactory
 {
-
 	CervixScreeningRonde maakRonde(CervixDossier dossier);
 
 	CervixScreeningRonde maakRonde(CervixDossier dossier, LocalDateTime creatieDatum);
@@ -60,7 +61,8 @@ public interface CervixFactory
 
 	CervixHpvBericht maakHpvBericht(BMHKLaboratorium laboratorium, String instrumentId, String hl7Bericht, String messageId);
 
-	CervixHpvBeoordeling maakHpvBeoordeling(CervixMonster monster, CervixHpvBericht hpvBericht, Date analyseDatum, Date autorisatieDatum, CervixHpvUitslag hpvUitslag);
+	CervixHpvBeoordeling maakHpvBeoordeling(CervixMonster monster, CervixHpvBericht hpvBericht, Date analyseDatum, Date autorisatieDatum, CervixHpvBeoordelingWaarde hpvUitslag,
+		List<CervixHpvAnalyseresultaat> analyseresultaten);
 
 	CervixCytologieOrder maakCytologieOrder(CervixUitstrijkje uitstrijkje, CervixCytologieReden cytologieReden, String hl7Bericht);
 

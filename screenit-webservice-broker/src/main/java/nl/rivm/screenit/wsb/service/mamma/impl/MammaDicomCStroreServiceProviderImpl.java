@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,9 +34,9 @@ import javax.annotation.PostConstruct;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.enums.BestandStatus;
-import nl.rivm.screenit.model.mamma.DicomCMoveConfig;
-import nl.rivm.screenit.model.mamma.DicomSCPConfig;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
+import nl.rivm.screenit.model.mamma.dicom.CMoveConfig;
+import nl.rivm.screenit.model.mamma.dicom.SCPConfig;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -98,11 +98,11 @@ public class MammaDicomCStroreServiceProviderImpl
 	{
 		String connectionString = preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CMOVE_CONFIG.toString(),
 			"DICOM_QR_SCP@localhost:11114,SIT_STORE_SCP@localhost:11113");
-		DicomCMoveConfig moveConfig = DicomCMoveConfig.parse(connectionString);
+		CMoveConfig moveConfig = CMoveConfig.parse(connectionString);
 		startWachtenOpDicomBeelden(moveConfig.getStore());
 	}
 
-	private void startWachtenOpDicomBeelden(DicomSCPConfig storeSCPConfig)
+	private void startWachtenOpDicomBeelden(SCPConfig storeSCPConfig)
 	{
 		ApplicationEntity ae = new ApplicationEntity("*");
 		Connection server = new Connection();
@@ -119,14 +119,14 @@ public class MammaDicomCStroreServiceProviderImpl
 		}
 	}
 
-	private static void configureApplicationEntity(ApplicationEntity ae, Connection server, DicomSCPConfig storeSCPConfig)
+	private static void configureApplicationEntity(ApplicationEntity ae, Connection server, SCPConfig storeSCPConfig)
 	{
 		ae.setAssociationAcceptor(true);
 		ae.addConnection(server);
 		ae.setAETitle(storeSCPConfig.getAeTitle());
 	}
 
-	private void configureAndStartServer(Connection server, ApplicationEntity ae, DicomSCPConfig storeSCPConfig) throws IOException, GeneralSecurityException
+	private void configureAndStartServer(Connection server, ApplicationEntity ae, SCPConfig storeSCPConfig) throws IOException, GeneralSecurityException
 	{
 		server.setPort(storeSCPConfig.getPoort());
 		server.setHostname("0.0.0.0");
@@ -184,7 +184,7 @@ public class MammaDicomCStroreServiceProviderImpl
 					String instanceNumber = null;
 					try (DicomInputStream din = new DicomInputStream(file))
 					{
-						Attributes attribs = din.readDataset(-1, Tag.PatientOrientation);
+						Attributes attribs = din.readDataset(-1, o -> Integer.compareUnsigned(o.tag(), Tag.PatientOrientation) >= 0);
 						accessionNumber = attribs.getString(Tag.AccessionNumber);
 						seriesNumber = attribs.getString(Tag.SeriesNumber);
 						instanceNumber = attribs.getString(Tag.InstanceNumber);

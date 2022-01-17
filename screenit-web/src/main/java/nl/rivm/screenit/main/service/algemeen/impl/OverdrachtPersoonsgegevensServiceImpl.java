@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.algemeen.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,6 @@ import java.util.Map;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixRondeDao;
-import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.main.service.algemeen.OverdrachtPersoonsgegevensService;
 import nl.rivm.screenit.main.util.CervixCisHistoryUtil;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
@@ -66,6 +65,7 @@ import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -92,6 +92,7 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseLaesieService;
 import nl.rivm.screenit.util.AdresUtil;
@@ -470,18 +471,9 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 			if (afspraak.getStatus() == AfspraakStatus.UITGEVOERD && conclusie != null)
 			{
 				addRow(sheet, "Conclusie intake afspraak", conclusie.getType(), conclusie.getDatum(), workbook, cellStyleDateTime);
-				switch (conclusie.getType())
+				if (conclusie.getType() == ColonConclusieType.COLOSCOPIE)
 				{
-				case COLOSCOPIE:
 					addRow(sheet, "Datum coloscopie", conclusie.getDatumColoscopie(), conclusie.getDatum(), workbook, cellStyleDate, cellStyleDateTime);
-					break;
-				case CT_COLOGRAFIE:
-					addRow(sheet, "Reden CT-colografie", conclusie.getRedenCTColografie(), conclusie.getDatum(), workbook, cellStyleDateTime);
-					if (StringUtils.isNotBlank(conclusie.getTekstCTColografieAnders()))
-					{
-						addRow(sheet, "Reden CT-colografie (anders)", conclusie.getTekstCTColografieAnders(), conclusie.getDatum(), workbook, cellStyleDateTime);
-					}
-					break;
 				}
 			}
 		}
@@ -632,7 +624,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 		{
 			String label = "Ontvangen follow-up radiologie verslag";
 			Date ingevoerdOp = radiologieVerslag.getIngevoerdOp();
-			List<String> rowStrings = new ArrayList<String>();
+			List<String> rowStrings = new ArrayList<>();
 			if (radiologieVerslag.getConclusieBirads() != null)
 			{
 				rowStrings.add(StringUtil.kvp2String("Birads", StringUtil.enumName2readableString(radiologieVerslag.getConclusieBirads().name())));

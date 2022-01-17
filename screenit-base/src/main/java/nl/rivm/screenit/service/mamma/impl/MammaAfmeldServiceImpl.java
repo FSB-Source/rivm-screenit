@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,14 +21,11 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.model.AfmeldingType.DEFINITIEF;
-
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.AfmeldingType;
@@ -49,6 +46,7 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaAfmeldService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
+import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
 import nl.rivm.screenit.util.DateUtil;
@@ -61,6 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.model.AfmeldingType.DEFINITIEF;
 
 @Component
 @Transactional(propagation = Propagation.REQUIRED)
@@ -86,6 +86,9 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 	@Autowired
 	private MammaBaseScreeningrondeService screeningRondeService;
 
+	@Autowired
+	private MammaBaseDossierService dossierService;
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaAfmelding maakAfmelding()
@@ -101,7 +104,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 		{
 			briefType = BriefType.MAMMA_AFMELDING_HANDTEKENING;
 		}
-		afmelding.setAfmeldingAanvraag(briefService.maakMammaBrief(afmelding, briefType, currentDateSupplier.getDate()));
+		afmelding.setAfmeldingAanvraag(briefService.maakBvoBrief(afmelding, briefType, currentDateSupplier.getDate()));
 		hibernateService.saveOrUpdate(afmelding);
 	}
 
@@ -138,7 +141,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 		if (afmelding.getType() == DEFINITIEF)
 		{
 			afmelding.setAfmeldingBevestiging(
-				briefService.maakMammaBrief(afmelding, BriefType.MAMMA_BEVESTIGING_DEFINITIEVE_AFMELDING, currentDateSupplier.getDate()));
+				briefService.maakBvoBrief(afmelding, BriefType.MAMMA_BEVESTIGING_DEFINITIEVE_AFMELDING, currentDateSupplier.getDate()));
 			hibernateService.saveOrUpdate(afmelding);
 		}
 	}
@@ -149,8 +152,13 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 		if (herAanTeMeldenAfmelding.getType() == DEFINITIEF)
 		{
 			herAanTeMeldenAfmelding.setHeraanmeldBevestiging(
-				briefService.maakMammaBrief(herAanTeMeldenAfmelding, BriefType.MAMMA_HERAANMELDING_BEVESTIGING, millisecondenNaNu(200)));
+				briefService.maakBvoBrief(herAanTeMeldenAfmelding, BriefType.MAMMA_HERAANMELDING_BEVESTIGING, millisecondenNaNu(200)));
 			hibernateService.saveOrUpdate(herAanTeMeldenAfmelding);
+
+			if (dossierService.isAutomatischRondeForcerenNaHeraanmeldenMogelijk(herAanTeMeldenAfmelding.getDossier()))
+			{
+				dossierService.rondeForceren(herAanTeMeldenAfmelding.getDossier().getClient());
+			}
 		}
 	}
 
@@ -179,14 +187,7 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 
 	private boolean magLaatsteRondeHeropenen(MammaScreeningRonde laatsteRonde)
 	{
-		return laatsteRonde != null && isRondeNogGeldig(laatsteRonde) && !heeftOfKrijgtUitslag(laatsteRonde);
-	}
-
-	private boolean isRondeNogGeldig(MammaScreeningRonde laatsteRonde)
-	{
-		var creatieDatum = DateUtil.toLocalDate(laatsteRonde.getCreatieDatum());
-		var minimaleCreatieDatum = currentDateSupplier.getLocalDate().minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN);
-		return !creatieDatum.isBefore(minimaleCreatieDatum);
+		return laatsteRonde != null && screeningRondeService.isRondeNogGeldig(laatsteRonde) && !heeftOfKrijgtUitslag(laatsteRonde);
 	}
 
 	private boolean heeftOfKrijgtUitslag(MammaScreeningRonde ronde)
@@ -282,5 +283,12 @@ public class MammaAfmeldServiceImpl implements MammaAfmeldService
 			return !laatsteRonde.getAangemeld() && dossier.getAangemeld();
 		}
 		return false;
+	}
+
+	@Override
+	public String getAanvullendeHeraanmeldLogMelding(MammaAfmelding definitieveAfmelding)
+	{
+		return definitieveAfmelding.getDossier() != null && definitieveAfmelding.getDossier().getLaatsteScreeningRonde() != null
+			&& definitieveAfmelding.getDossier().getLaatsteScreeningRonde().getIsGeforceerd() ? ". Ronde geforceerd" : "";
 	}
 }

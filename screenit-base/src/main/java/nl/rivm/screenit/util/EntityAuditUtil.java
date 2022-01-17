@@ -5,7 +5,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -191,7 +191,7 @@ public final class EntityAuditUtil
 			String fieldName = field.getName();
 			SkipFieldForDiff skipField = field.getAnnotation(SkipFieldForDiff.class);
 			if ((specifiekFieldName == null || specifiekFieldName.equals(fieldName)) && !fieldName.equals("id") && !fieldName.equals("serialVersionUID")
-				&& !fieldName.equals("PROPERTY_ID") && skipField == null
+				&& !fieldName.startsWith("$j") && !fieldName.equals("PROPERTY_ID") && skipField == null
 				&& (skipFieldsForDiff == null || !Arrays.asList(skipFieldsForDiff.value()).contains(fieldName)))
 			{
 				DiffSpecs diffSpec = field.getAnnotation(DiffSpecs.class);

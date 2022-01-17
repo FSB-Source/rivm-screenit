@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.BerichtStatus;
@@ -59,7 +58,7 @@ import nl.rivm.screenit.model.cervix.cis.CervixCISHistorieOngestructureerdRegel;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -169,7 +168,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 	}
 
 	@Override
-	public CervixBaseTestTimelineService geanalyseerdOpHpv(CervixUitnodiging uitnodiging, CervixHpvUitslag hpvUitslag, BMHKLaboratorium laboratorium)
+	public CervixBaseTestTimelineService geanalyseerdOpHpv(CervixUitnodiging uitnodiging, CervixHpvBeoordelingWaarde hpvUitslag, BMHKLaboratorium laboratorium)
 	{
 		testTimelineTimeService.rekenDossierTerug(uitnodiging.getScreeningRonde().getDossier(), CervixTestTimeLineDossierTijdstip.GEANALYSEERD_OP_HPV);
 
@@ -178,9 +177,9 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		CervixHpvBericht hpvBericht = factory.maakHpvBericht(laboratorium, "instrumentId", "hl7Bericht", Long.toString(System.currentTimeMillis()));
 		hpvBericht.setStatus(BerichtStatus.VERWERKT);
 		hibernateService.saveOrUpdate(hpvBericht);
-		factory.maakHpvBeoordeling(monster, hpvBericht, dateSupplier.getDate(), dateSupplier.getDate(), hpvUitslag);
+		factory.maakHpvBeoordeling(monster, hpvBericht, dateSupplier.getDate(), dateSupplier.getDate(), hpvUitslag, null);
 
-		if (hpvUitslag != CervixHpvUitslag.ONGELDIG)
+		if (hpvUitslag != CervixHpvBeoordelingWaarde.ONGELDIG)
 		{
 			ronde.setMonsterHpvUitslag(monster);
 			hibernateService.saveOrUpdate(ronde);
@@ -325,7 +324,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		labformulier.setStatus(CervixLabformulierStatus.GESCAND);
 		labformulier.setStatusDatum(dateSupplier.getDate());
 		labformulier.setBarcode(uitstrijkje.getMonsterId());
-		labformulier.setDatumUitstrijkje(dateSupplier.getDateTime().minusDays(1).toDate());
+		labformulier.setDatumUitstrijkje(DateUtil.toUtilDate(dateSupplier.getLocalDate().minusDays(1)));
 
 		uitstrijkje.setLabformulier(labformulier);
 
@@ -375,7 +374,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		CervixDossier dossier = client.getCervixDossier();
 		testTimelineTimeService.rekenDossierTerug(dossier, CervixTestTimeLineDossierTijdstip.NIEUWE_RONDE);
 		CervixScreeningRonde ronde = factory.maakRonde(dossier);
-		CervixUitnodiging uitnodiging = factory.maakUitnodiging(ronde, BriefType.CERVIX_UITNODIGING, true, false);
+		CervixUitnodiging uitnodiging = factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 		verzendLaatsteBrief(ronde);
 
 		return uitnodiging;
@@ -491,7 +490,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
-		mergedBrieven.setBriefType(BriefType.CERVIX_UITNODIGING);
+		mergedBrieven.setBriefType(ronde.getLeeftijdcategorie().getUitnodigingsBrief());
 		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setGeprint(true);
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());
@@ -561,7 +560,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 		CervixMergedBrieven mergedBrieven = new CervixMergedBrieven();
 		mergedBrieven.setCreatieDatum(dateSupplier.getDate());
-		mergedBrieven.setBriefType(BriefType.CERVIX_UITNODIGING);
+		mergedBrieven.setBriefType(uitnodiging.getScreeningRonde().getLeeftijdcategorie().getUitnodigingsBrief());
 		mergedBrieven.setBrieven(new ArrayList<>());
 		mergedBrieven.setGeprint(true);
 		mergedBrieven.setPrintDatum(dateSupplier.getDate());

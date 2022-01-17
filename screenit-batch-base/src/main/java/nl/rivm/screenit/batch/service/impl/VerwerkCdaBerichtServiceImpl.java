@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -77,6 +77,7 @@ import nl.rivm.screenit.model.colon.PaLaboratorium;
 import nl.rivm.screenit.model.colon.PaVerslag;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlVerslagContent;
 import nl.rivm.screenit.model.colon.verslag.pa.PaVerslagContent;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.BerichtOntvangenLogEvent;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
@@ -146,115 +147,112 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void verwerkBericht(Long berichtID) throws Exception
 	{
-
-		LOG.info("Bericht " + berichtID + ": verwerking gestart.");
+		LOG.info("Bericht " + berichtID + ": start verwerking.");
 		OntvangenCdaBericht ontvangenCdaBericht = hibernateService.load(OntvangenCdaBericht.class, berichtID);
+		ontvangenCdaBericht.setStatus(BerichtStatus.VERWERKT);
+		hibernateService.saveOrUpdate(ontvangenCdaBericht);
 		ClinicalDocument cdaDocument = ExtractCDA.getCDADocument(ontvangenCdaBericht.getXmlBericht());
 		BerichtType berichtType = ontvangenCdaBericht.getBerichtType();
-		if (BerichtStatus.VERWERKT.equals(ontvangenCdaBericht.getStatus()))
+		try
 		{
-			LOG.info("Verwerkt bericht " + berichtID + " opnieuw verwerken.");
-			if (BerichtType.CERVIX_CYTOLOGIE_VERSLAG.equals(berichtType))
+			Verslag bestaandeVerslag = getVerslagVoorSetID(ontvangenCdaBericht, cdaDocument);
+			if (bestaandeVerslag != null)
 			{
-				LOG.warn("Bericht " + berichtID + " nogmaals verwerken niet mogelijk. Geskipped.");
+				berichtOpnieuwVerwerken(berichtID, cdaDocument, berichtType, bestaandeVerslag);
 			}
 			else
 			{
-				Verslag bestaandeVerslag = getVerslagVoorSetID(ontvangenCdaBericht, cdaDocument);
-				if (bestaandeVerslag != null)
-				{
-					switch (berichtType)
-					{
-					case MDL_VERSLAG:
-						MdlVerslag mdlVerslag = (MdlVerslag) bestaandeVerslag;
-						verwerkVerslagService.ontkoppelOfVerwijderComplicaties(mdlVerslag);
-						verwerkMdlVerslagContent(cdaDocument, mdlVerslag);
-						break;
-					case PA_LAB_VERSLAG:
-						verwerkPaLabVerslagContent((PaVerslag) bestaandeVerslag);
-						break;
-					case CERVIX_CYTOLOGIE_VERSLAG:
-
-						break;
-					case MAMMA_PA_FOLLOW_UP_VERSLAG:
-						verwerkMammaFollowUpPaVerslagContent((MammaFollowUpVerslag) bestaandeVerslag);
-						break;
-					}
-					bestaandeVerslag.setDatumVerwerkt(currentDateSupplier.getDate());
-					hibernateService.saveOrUpdate(bestaandeVerslag);
-					verwerkVerslagService.verwerkInDossier(bestaandeVerslag);
-					verwerkVerslagService.onAfterVerwerkVerslagContent(bestaandeVerslag);
-					LOG.warn("Bericht " + berichtID + " opnieuw verwerkt.");
-				}
-				else
-				{
-					LOG.warn("Bericht " + berichtID + " bestond niet eerder. Geskipped.");
-				}
+				verwerkBericht(ontvangenCdaBericht, cdaDocument);
 			}
 		}
-		else
+		catch (OngeldigCdaException e)
 		{
-			List<Instelling> instellingen = new ArrayList<>();
-			instellingen.add(hibernateService.loadAll(Rivm.class).get(0));
-			try
-			{
-				Verslag verslag = null;
-				switch (berichtType)
-				{
-				case MDL_VERSLAG:
-					verslag = new MdlVerslag();
-					break;
-				case PA_LAB_VERSLAG:
-					verslag = new PaVerslag();
-					break;
-				case CERVIX_CYTOLOGIE_VERSLAG:
-					verslag = new CervixCytologieVerslag();
-					break;
-				case MAMMA_PA_FOLLOW_UP_VERSLAG:
-					verslag = new MammaFollowUpVerslag();
-					break;
-				}
-				verslag.setType(berichtType.getVerslagType());
-				verslag.setOntvangenBericht(ontvangenCdaBericht);
-				verslag.setDatumVerwerkt(currentDateSupplier.getDate());
-				verslag.setStatus(VerslagStatus.AFGEROND);
-
-				verwerkUitvoerderInVerslag(verslag, cdaDocument);
-				verslag = verwerkBvoSpecifiekeGegevens(verslag, cdaDocument);
-
-				saveOrReplaceVerslag(verslag, cdaDocument);
-				ontvangenCdaBericht.setStatus(BerichtStatus.VERWERKT);
-				hibernateService.saveOrUpdate(ontvangenCdaBericht);
-				verwerkVerslagService.verwerkInDossier(verslag);
-				verwerkVerslagService.onAfterVerwerkVerslagContent(verslag);
-
-				Instelling uitvoerendeInstelling = verslag.getUitvoerderOrganisatie();
-				String melding = "CDA met berichtId " + ontvangenCdaBericht.getBerichtId() + ", setId " + ontvangenCdaBericht.getSetId() + " en versie "
-					+ ontvangenCdaBericht.getVersie() + " is verwerkt. Uitvoerder: "
-					+ (uitvoerendeInstelling != null ? uitvoerendeInstelling.getNaam() : ((MammaVerslag) verslag).getLabCode());
-				BerichtOntvangenLogEvent logEvent = new BerichtOntvangenLogEvent();
-				logEvent.setBericht(ontvangenCdaBericht);
-				logEvent.setMelding(melding);
-
-				if (uitvoerendeInstelling != null)
-				{
-					instellingen.add(uitvoerendeInstelling);
-				}
-				logService.logGebeurtenis(berichtType.getLbBerichtVerwerkt(), instellingen, logEvent, null, verslag.getScreeningRonde().getDossier().getClient(),
-					verslag.getType().getBevolkingsonderzoek());
-				LOG.info("Bericht " + berichtID + ": verwerkt.");
-			}
-			catch (OngeldigCdaException e)
-			{
-				String melding = "CDA met berichtId " + ontvangenCdaBericht.getBerichtId() + ", setId " + ontvangenCdaBericht.getSetId() + " en versie "
-					+ ontvangenCdaBericht.getVersie() + " moet handmatig verwerkt worden. Reden: " + e.getMessage();
-				BerichtOntvangenLogEvent logEvent = new BerichtOntvangenLogEvent();
-				logEvent.setBericht(ontvangenCdaBericht);
-				logEvent.setMelding(melding);
-				LOG.warn("Bericht " + berichtID + ": verwerkt met melding (zie logevent)");
-				logService.logGebeurtenis(berichtType.getLbBerichtVerwerktMetMelding(), logEvent, berichtType.getBevolkingsonderzoek());
-			}
+			String melding = "CDA met berichtId " + ontvangenCdaBericht.getBerichtId() + ", setId " + ontvangenCdaBericht.getSetId() + " en versie "
+				+ ontvangenCdaBericht.getVersie() + " moet handmatig verwerkt worden. Reden: " + e.getMessage();
+			BerichtOntvangenLogEvent logEvent = new BerichtOntvangenLogEvent();
+			logEvent.setBericht(ontvangenCdaBericht);
+			logEvent.setMelding(melding);
+			LOG.warn("Bericht " + berichtID + ": verwerkt met melding (zie logevent)");
+			logService.logGebeurtenis(berichtType.getLbBerichtVerwerktMetMelding(), logEvent, berichtType.getBevolkingsonderzoek());
 		}
+	}
+
+	private void berichtOpnieuwVerwerken(Long berichtID, ClinicalDocument cdaDocument, BerichtType berichtType, Verslag bestaandeVerslag) throws OngeldigCdaException
+	{
+		LOG.warn("Bericht " + berichtID + ": opnieuw verwerken. Vervang content in bestaande verslag (id: " + bestaandeVerslag.getId() + ")");
+		switch (berichtType)
+		{
+		case MDL_VERSLAG:
+			MdlVerslag mdlVerslag = (MdlVerslag) bestaandeVerslag;
+			verwerkVerslagService.ontkoppelOfVerwijderComplicaties(mdlVerslag);
+			verwerkMdlVerslagContent(cdaDocument, mdlVerslag);
+			break;
+		case PA_LAB_VERSLAG:
+			verwerkPaLabVerslagContent((PaVerslag) bestaandeVerslag);
+			break;
+		case CERVIX_CYTOLOGIE_VERSLAG:
+			LOG.warn("Bericht " + berichtID + ": nogmaals verwerken niet mogelijk. Geskipped.");
+			return;
+		case MAMMA_PA_FOLLOW_UP_VERSLAG:
+			verwerkMammaFollowUpPaVerslagContent((MammaFollowUpVerslag) bestaandeVerslag);
+			break;
+		}
+		bestaandeVerslag.setDatumVerwerkt(currentDateSupplier.getDate());
+		hibernateService.saveOrUpdate(bestaandeVerslag);
+		verwerkVerslagService.verwerkInDossier(bestaandeVerslag);
+		verwerkVerslagService.onAfterVerwerkVerslagContent(bestaandeVerslag);
+		LOG.warn("Bericht " + berichtID + ": opnieuw verwerkt.");
+	}
+
+	private void verwerkBericht(OntvangenCdaBericht ontvangenCdaBericht, ClinicalDocument cdaDocument) throws OngeldigCdaException
+	{
+		List<Instelling> instellingen = new ArrayList<>();
+		instellingen.add(hibernateService.loadAll(Rivm.class).get(0));
+		Verslag verslag = null;
+		BerichtType berichtType = ontvangenCdaBericht.getBerichtType();
+		switch (berichtType)
+		{
+		case MDL_VERSLAG:
+			verslag = new MdlVerslag();
+			break;
+		case PA_LAB_VERSLAG:
+			verslag = new PaVerslag();
+			break;
+		case CERVIX_CYTOLOGIE_VERSLAG:
+			verslag = new CervixCytologieVerslag();
+			break;
+		case MAMMA_PA_FOLLOW_UP_VERSLAG:
+			verslag = new MammaFollowUpVerslag();
+			break;
+		}
+		verslag.setType(berichtType.getVerslagType());
+		verslag.setOntvangenBericht(ontvangenCdaBericht);
+		verslag.setDatumVerwerkt(currentDateSupplier.getDate());
+		verslag.setStatus(VerslagStatus.AFGEROND);
+
+		verwerkUitvoerderInVerslag(verslag, cdaDocument);
+		verslag = verwerkBvoSpecifiekeGegevens(verslag, cdaDocument);
+
+		saveOrReplaceVerslag(verslag, cdaDocument);
+		verwerkVerslagService.verwerkInDossier(verslag);
+		verwerkVerslagService.onAfterVerwerkVerslagContent(verslag);
+
+		Instelling uitvoerendeInstelling = verslag.getUitvoerderOrganisatie();
+		String melding = "CDA met berichtId " + ontvangenCdaBericht.getBerichtId() + ", setId " + ontvangenCdaBericht.getSetId() + " en versie "
+			+ ontvangenCdaBericht.getVersie() + " is verwerkt. Uitvoerder: "
+			+ (uitvoerendeInstelling != null ? uitvoerendeInstelling.getNaam() : ((MammaVerslag) verslag).getLabCode());
+		BerichtOntvangenLogEvent logEvent = new BerichtOntvangenLogEvent();
+		logEvent.setBericht(ontvangenCdaBericht);
+		logEvent.setMelding(melding);
+
+		if (uitvoerendeInstelling != null)
+		{
+			instellingen.add(uitvoerendeInstelling);
+		}
+		logService.logGebeurtenis(berichtType.getLbBerichtVerwerkt(), instellingen, logEvent, null, verslag.getScreeningRonde().getDossier().getClient(),
+			verslag.getType().getBevolkingsonderzoek());
+		LOG.info("Bericht " + ontvangenCdaBericht.getId() + ": verwerkt.");
+
 	}
 
 	private Verslag getVerslagVoorSetID(OntvangenCdaBericht ontvangenCdaBericht, ClinicalDocument cdaDocument) throws OngeldigCdaException
@@ -301,12 +299,21 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 
 		if (ontvangenCdaBericht != null)
 		{
+			ontvangenCdaBericht.setStatus(BerichtStatus.VERWERKT);
+			hibernateService.saveOrUpdate(ontvangenCdaBericht);
 			BerichtOntvangenLogEvent logEvent = new BerichtOntvangenLogEvent();
 			logEvent.setBericht(ontvangenCdaBericht);
 			logEvent.setMelding(melding);
 			BerichtType berichtType = ontvangenCdaBericht.getBerichtType();
 			logService.logGebeurtenis(berichtType.getLbBerichtVerwerktMetError(), logEvent, berichtType.getBevolkingsonderzoek());
 		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public List<Long> getAlleNietVerwerkteCdaBerichten(Bevolkingsonderzoek bvo)
+	{
+		return cdaVerslagDao.getAlleNietVerwerkteCdaBerichten(bvo);
 	}
 
 	private boolean saveOrReplaceVerslag(Verslag verslag, ClinicalDocument cdaDocument) throws OngeldigCdaException
@@ -334,7 +341,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 					ColonScreeningRonde screeningRonde = colonVerslag.getScreeningRonde();
 					screeningRonde.getVerslagen().remove(bestaandeVerslag);
 					hibernateService.saveOrUpdate(screeningRonde);
-					colonVerslag.setScreeningRonde(null);
+					bestaandeVerslag.setScreeningRonde(null);
 					hibernateService.delete(bestaandeVerslag);
 
 					verwijderd = true;
@@ -605,7 +612,7 @@ public class VerwerkCdaBerichtServiceImpl implements VerwerkCdaBerichtService
 		verwerkCdaBerichtContentService.verwerkVerslagContent(verslag, MdlVerslagContent.class);
 	}
 
-	private void verwerkCervixCytologieVerslagContent(ClinicalDocument cdaDocument, CervixCytologieVerslag cytologieVerslag) throws OngeldigCdaException
+	private void verwerkCervixCytologieVerslagContent(ClinicalDocument cdaDocument, CervixCytologieVerslag cytologieVerslag)
 	{
 		verwerkCdaBerichtContentService.verwerkVerslagContent(cytologieVerslag, CervixCytologieVerslagContent.class);
 	}

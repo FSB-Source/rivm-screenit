@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.service.impl;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.NavigableMap;
 import java.util.Set;
 
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.exceptions.DryRunException;
 import nl.rivm.screenit.exceptions.OpslaanAfsprakenBuitenStandplaatsPeriodeException;
 import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
@@ -177,8 +176,6 @@ public class PlanningConceptServiceImpl implements PlanningConceptService
 	@Override
 	public void opslaan()
 	{
-		DataSourceRouter.useReadWrite();
-
 		PlanningDoorrekenenManager.run();
 
 		for (PlanningScreeningsOrganisatie screeningsOrganisatie : PlanningScreeningsOrganisatieIndex.getScreeningsOrganisaties())

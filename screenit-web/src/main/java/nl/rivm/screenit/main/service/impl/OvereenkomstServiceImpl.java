@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,10 +22,10 @@ package nl.rivm.screenit.main.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.dao.OvereenkomstDao;
@@ -37,6 +37,7 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
@@ -48,26 +49,22 @@ import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.hibernate.Hibernate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class OvereenkomstServiceImpl implements OvereenkomstService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(OvereenkomstServiceImpl.class);
 
 	@Autowired
 	private FileService fileService;
@@ -106,7 +103,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 			overeenkomst.setOrganisatieType(OrganisatieType.HUISARTS);
 		}
 
-		boolean nieuwUploadDocument = false;
+		var nieuwUploadDocument = false;
 		if (overeenkomst.getDocument() == null)
 		{
 			nieuwUploadDocument = true;
@@ -116,10 +113,9 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 		if (fileUpload != null)
 		{
-			File tempFile = null;
 			try
 			{
-				tempFile = fileUpload.writeToTempFile();
+				var tempFile = fileUpload.writeToTempFile();
 				overeenkomst.setLaatsteUpdateDocument(currentDateSupplier.getDate());
 				overeenkomst.getDocument().setContentType(fileUpload.getContentType());
 				overeenkomst.getDocument().setNaam(fileUpload.getClientFileName());
@@ -148,7 +144,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 		{
 			logService.logGebeurtenis(LogGebeurtenis.OVEREENKOMST_MODEL_GEWIJZIGD, account);
 
-			for (AbstractAfgeslotenOvereenkomst afgeslotenOvereenkomst : overeenkomst.getAfgeslotenOvereenkomsten())
+			for (var afgeslotenOvereenkomst : overeenkomst.getAfgeslotenOvereenkomsten())
 			{
 				afgeslotenOvereenkomst.setNieuwereOvereenkomst(true);
 				afgeslotenOvereenkomst.setAkkoordDatum(null);
@@ -185,7 +181,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 		{
 			logService.logGebeurtenis(LogGebeurtenis.OVEREENKOMST_MODEL_GEACTIVEERD, account);
 
-			for (AbstractAfgeslotenOvereenkomst afgeslotenOvereenkomst : overeenkomst.getAfgeslotenOvereenkomsten())
+			for (var afgeslotenOvereenkomst : overeenkomst.getAfgeslotenOvereenkomsten())
 			{
 				afgeslotenOvereenkomst.setEindDatum(currentDateSupplier.getDate());
 				hibernateService.saveOrUpdate(afgeslotenOvereenkomst);
@@ -223,8 +219,8 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void saveOrUpdateOvereenkomst(AbstractAfgeslotenOvereenkomst overeenkomst, FileUpload fileUpload, Account account)
 	{
-		boolean genereerCode = false;
-		boolean verstuurMail = false;
+		var genereerCode = false;
+		var verstuurMail = false;
 		if (overeenkomst.getId() == null)
 		{
 			logService.logGebeurtenis(LogGebeurtenis.OVEREENKOMST_TOEGEVOEGD, account);
@@ -236,7 +232,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 		{
 			logService.logGebeurtenis(LogGebeurtenis.OVEREENKOMST_GEWIJZIGD, account);
 			hibernateService.getHibernateSession().evict(overeenkomst);
-			AbstractAfgeslotenOvereenkomst oudeAbstractAfgeslotenOvereenkomst = (AbstractAfgeslotenOvereenkomst) hibernateService.load(Hibernate.getClass(overeenkomst),
+			var oudeAbstractAfgeslotenOvereenkomst = (AbstractAfgeslotenOvereenkomst) hibernateService.load(Hibernate.getClass(overeenkomst),
 				overeenkomst.getId());
 			if (!oudeAbstractAfgeslotenOvereenkomst.getOvereenkomst().equals(overeenkomst.getOvereenkomst())
 				|| !oudeAbstractAfgeslotenOvereenkomst.getStartDatum().equals(overeenkomst.getStartDatum()))
@@ -255,7 +251,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 		if (genereerCode)
 		{
-			StringBuilder code = new StringBuilder();
+			var code = new StringBuilder();
 			code.append(overeenkomst.getOvereenkomst().getNaam());
 			code.append(".");
 			if (overeenkomst.getScreeningOrganisatie().getRegioCode() != null)
@@ -266,12 +262,12 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 			if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
 			{
-				AfgeslotenMedewerkerOvereenkomst afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
+				var afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
 				code.append(afgeslotenKwaliteitsOvereenkomst.getGebruiker().getId());
 			}
 			else if (overeenkomst instanceof AfgeslotenInstellingOvereenkomst)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) overeenkomst;
+				var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) overeenkomst;
 				code.append(afgeslotenOvereenkomst.getInstelling().getId());
 			}
 
@@ -284,12 +280,11 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 		if (fileUpload != null)
 		{
-			File tempFile = null;
 			try
 			{
-				tempFile = fileUpload.writeToTempFile();
+				var tempFile = fileUpload.writeToTempFile();
 				overeenkomst.setGescandDocument(new UploadDocument());
-				UploadDocument gescandDocument = overeenkomst.getGescandDocument();
+				var gescandDocument = overeenkomst.getGescandDocument();
 				gescandDocument.setContentType(fileUpload.getContentType());
 				gescandDocument.setNaam(fileUpload.getClientFileName());
 				gescandDocument.setFile(tempFile);
@@ -317,22 +312,22 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 		String emailUA = null;
 		if (overeenkomst instanceof AfgeslotenInstellingOvereenkomst)
 		{
-			AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) overeenkomst;
-			Instelling instelling = afgeslotenOvereenkomst.getInstelling();
+			var afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) overeenkomst;
+			var instelling = afgeslotenOvereenkomst.getInstelling();
 			emailUA = instelling.getEmail();
 			gebruiker = instelling.getGemachtigde();
 		}
 		else if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
 		{
-			AfgeslotenMedewerkerOvereenkomst afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
+			var afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
 			gebruiker = afgeslotenKwaliteitsOvereenkomst.getGebruiker();
 		}
 
 		if (gebruiker != null)
 		{
 
-			String content = null;
-			boolean isUitstrijkendArts = overeenkomst.getOvereenkomst().getOrganisatieType() == OrganisatieType.HUISARTS;
+			var content = "";
+			var isUitstrijkendArts = overeenkomst.getOvereenkomst().getOrganisatieType() == OrganisatieType.HUISARTS;
 			if (isUitstrijkendArts)
 			{
 				content = preferenceService.getString(PreferenceKey.OVEREEENKOMSTMAIL_ZVUA.name(), "{link}");
@@ -341,32 +336,32 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 			{
 				content = preferenceService.getString(PreferenceKey.OVEREEENKOMSTMAIL.name(), "{link}");
 			}
-			String link = applicationUrl;
-			String aanhef = "";
+			var link = applicationUrl;
+			var aanhef = "";
 			if (gebruiker.getAanhef() != null)
 			{
 				aanhef = " " + gebruiker.getAanhef().getNaam();
 			}
 
-			String titel = "";
+			var titel = "";
 			if (gebruiker.getTitel() != null)
 			{
 				titel = " " + gebruiker.getTitel().getNaam();
 			}
 
-			String achternaam = "";
+			var achternaam = "";
 			if (StringUtils.isNotBlank(gebruiker.getAchternaam()))
 			{
 				achternaam = " " + gebruiker.getAchternaam();
 			}
 
-			String tussenvoegsel = "";
+			var tussenvoegsel = "";
 			if (StringUtils.isNotBlank(gebruiker.getTussenvoegsel()))
 			{
 				tussenvoegsel = " " + gebruiker.getTussenvoegsel();
 			}
 
-			String voorletters = "";
+			var voorletters = "";
 			if (StringUtils.isNotBlank(gebruiker.getVoorletters()))
 			{
 				voorletters = " " + gebruiker.getVoorletters();
@@ -379,7 +374,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 			content = content.replaceAll("\\{tussenvoegsel\\}", tussenvoegsel);
 			content = content.replaceAll("\\{voorletters\\}", voorletters);
 
-			String emailAdres = gebruiker.getEmailwerk();
+			var emailAdres = gebruiker.getEmailwerk();
 			if (StringUtils.isNotBlank(gebruiker.getEmailextra()))
 			{
 				emailAdres = gebruiker.getEmailextra();
@@ -391,7 +386,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 			if (StringUtils.isNotBlank(emailAdres))
 			{
-				String onderwerp = null;
+				var onderwerp = "";
 				if (isUitstrijkendArts)
 				{
 					onderwerp = preferenceService.getString(PreferenceKey.OVEREENKOMSTSUBJECT_ZVUA.name(), "Zakelijke voorwaarden gewijzigd");
@@ -400,7 +395,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 				{
 					onderwerp = preferenceService.getString(PreferenceKey.OVEREENKOMSTSUBJECT.name(), "Overeenkomst gewijzigd");
 				}
-				mailService.sendEmail(emailAdres, onderwerp, content);
+				mailService.queueMail(emailAdres, onderwerp, content);
 			}
 		}
 	}
@@ -421,7 +416,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void accodeerOvereenkomsten(InstellingGebruiker instellingGebruiker, Account account)
 	{
-		for (AbstractAfgeslotenOvereenkomst afgeslotenOvereenkomst : getTeAccoderenOvereenkomsten(instellingGebruiker))
+		for (var afgeslotenOvereenkomst : getTeAccoderenOvereenkomsten(instellingGebruiker))
 		{
 			afgeslotenOvereenkomst.setAkkoordDatum(currentDateSupplier.getDate());
 			hibernateService.saveOrUpdate(afgeslotenOvereenkomst);

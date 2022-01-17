@@ -1,25 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ========================LICENSE_START=================================
-  se-proxy
-  %%
-  Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
-  %%
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU Affero General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-  
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  
-  You should have received a copy of the GNU Affero General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  =========================LICENSE_END==================================
-  -->
-
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20010904//EN" "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd">
 <svg width="178px" height="296px" viewBox="0 0 178 296" version="1.1" xmlns="http://www.w3.org/2000/svg">
     <!-- Generator: Sketch 49 (51002) - http://www.bohemiancoding.com/sketch -->
@@ -31,11 +10,15 @@
         <path d="M176,148 L144,195" id="Path-60" stroke="#000000" stroke-width="2"></path>
         <path d="M165,229 L177,211" id="Path-64" stroke="#000000" stroke-width="2"></path>
         <path d="M18.0457909,1 C31.1962514,29.9668444 56.6456736,57.2997204 94.3940578,82.9986282 C167.333549,132.655462 193.736855,203.657763 120.525672,255.134598 C69.1253945,291.275573 35.0493345,267.314516 13,295"
-              id="Path-55" stroke="#000000" stroke-width="2" transform="translate(88.500000, 148.000000) scale(-1, 1) translate(-88.500000, -148.000000) "></path>
-        <path d="M15,196.999656 C5.66666667,197.018222 1,191.826227 1,181.423671 C1,171.021115 5.66666667,165.880593 15,166.002104" id="Path-56" stroke="#000000"
+              id="Path-55" stroke="#000000" stroke-width="2"
+              transform="translate(88.500000, 148.000000) scale(-1, 1) translate(-88.500000, -148.000000) "></path>
+        <path d="M15,196.999656 C5.66666667,197.018222 1,191.826227 1,181.423671 C1,171.021115 5.66666667,165.880593 15,166.002104"
+              id="Path-56" stroke="#000000"
               stroke-width="2"></path>
-        <path d="M143,110 C166.152291,110 178.247453,139.66516 175.65404,183.928247 C173.925099,213.436972 163.040418,229.794223 143,233" id="Path-57" stroke="#000000"
-              stroke-width="2" transform="translate(159.500000, 171.500000) scale(-1, 1) translate(-159.500000, -171.500000) "></path>
+        <path d="M143,110 C166.152291,110 178.247453,139.66516 175.65404,183.928247 C173.925099,213.436972 163.040418,229.794223 143,233"
+              id="Path-57" stroke="#000000"
+              stroke-width="2"
+              transform="translate(159.500000, 171.500000) scale(-1, 1) translate(-159.500000, -171.500000) "></path>
         <path d="M152,218 L177,180" id="Path-61" stroke="#000000" stroke-width="2"></path>
         <path d="M31.5287129,32 L28,32 L28,7 L36.0910891,7 C37.3029764,7 38.4554401,7.12358633 39.5485149,7.37076271 C40.6415896,7.61793909 41.5980157,8.01223835 42.4178218,8.55367232 C43.2376279,9.09510629 43.8851461,9.80719898 44.360396,10.6899718 C44.8356459,11.5727445 45.0732673,12.6497112 45.0732673,13.920904 C45.0732673,15.7570713 44.502976,17.2401073 43.3623762,18.3700565 C42.2217765,19.5000056 40.7485239,20.2179834 38.9425743,20.5240113 L46,32 L41.7227723,32 L35.3069307,20.8771186 L31.5287129,20.8771186 L31.5287129,32 Z M31.5287129,17.9463277 L35.5920792,17.9463277 C36.4237665,17.9463277 37.196036,17.8757069 37.9089109,17.7344633 C38.6217857,17.5932196 39.2455419,17.3637022 39.780198,17.045904 C40.3148542,16.7281058 40.7366321,16.3161513 41.0455446,15.8100282 C41.354457,15.3039052 41.5089109,14.6742034 41.5089109,13.920904 C41.5089109,13.1676045 41.354457,12.5379027 41.0455446,12.0317797 C40.7366321,11.5256566 40.3267352,11.1195872 39.8158416,10.8135593 C39.3049479,10.5075314 38.7049539,10.2897841 38.0158416,10.1603107 C37.3267292,10.0308374 36.601984,9.96610169 35.8415842,9.96610169 L31.5287129,9.96610169 L31.5287129,17.9463277 Z"
               id="R" fill="#000000"></path>

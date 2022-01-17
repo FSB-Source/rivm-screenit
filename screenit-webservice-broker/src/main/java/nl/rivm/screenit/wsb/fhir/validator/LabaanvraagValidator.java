@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.fhir.validator;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -301,7 +301,7 @@ public class LabaanvraagValidator
 	private void validateTekstMapping(String inputTekst, String mappedTekst, CodeSystem codeSystem)
 	{
 		if (inputTekst != null
-			&& (!inputTekst.equalsIgnoreCase(mappedTekst)
+			&& (!inputTekst.equalsIgnoreCase(mappedTekst.trim())
 				|| inputTekst.length() > 240))
 		{
 			addQuestionIssue(codeSystem);

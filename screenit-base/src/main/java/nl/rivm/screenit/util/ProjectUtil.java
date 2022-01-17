@@ -4,7 +4,7 @@ package nl.rivm.screenit.util;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -58,13 +58,13 @@ public class ProjectUtil
 		return clientActief && groepActief && projectActief;
 	}
 
-	public static ProjectStatus getStatus(Project project, Date date)
+	public static ProjectStatus getStatus(Project project, Date referentieDatum)
 	{
-		if (date.before(project.getStartDatum()))
+		if (referentieDatum.before(project.getStartDatum()))
 		{
 			return ProjectStatus.NOG_TE_STARTEN;
 		}
-		else if (date.after(project.getStartDatum()) && date.before(project.getEindDatum()))
+		else if (referentieDatum.after(project.getStartDatum()) && referentieDatum.before(project.getEindDatum()))
 		{
 			return ProjectStatus.ACTIEF;
 		}
@@ -134,10 +134,10 @@ public class ProjectUtil
 		return getHuidigeProjectClient(client, date, true);
 	}
 
-	public static ProjectClient getHuidigeProjectClient(Client client, Date date, boolean groepActiefCheck)
+	public static ProjectClient getHuidigeProjectClient(Client client, Date referentieDatum, boolean groepActiefCheck)
 	{
 		ProjectClient projectClient = null;
-		if (date != null && client != null && client.getProjecten() != null)
+		if (referentieDatum != null && client != null && client.getProjecten() != null)
 		{
 			for (ProjectClient pClient : client.getProjecten())
 			{
@@ -145,10 +145,10 @@ public class ProjectUtil
 				if (ProjectType.PROJECT.equals(project.getType()))
 				{
 					if (pClient.getActief() && (pClient.getGroep().getActief() || !groepActiefCheck)
-						&& !ProjectStatus.BEEINDIGD.equals(getStatus(project, date)))
+						&& !ProjectStatus.BEEINDIGD.equals(getStatus(project, referentieDatum)))
 					{
-						if (projectClient == null || projectClient.getActief() && ProjectStatus.NOG_TE_STARTEN.equals(getStatus(projectClient.getProject(), date))
-							&& ProjectStatus.ACTIEF.equals(getStatus(project, date)))
+						if (projectClient == null || projectClient.getActief() && ProjectStatus.NOG_TE_STARTEN.equals(getStatus(projectClient.getProject(), referentieDatum))
+							&& ProjectStatus.ACTIEF.equals(getStatus(project, referentieDatum)))
 						{
 							projectClient = pClient;
 						}

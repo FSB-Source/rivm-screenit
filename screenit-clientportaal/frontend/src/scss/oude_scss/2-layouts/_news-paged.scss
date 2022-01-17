@@ -1,0 +1,16 @@
+﻿.news-paged {
+  &--title {
+    color: $blue;
+    font-size: calc-em(60);
+    font-weight: 500;
+    line-height: 1.2;
+    width: 75%;
+    margin: 20px 0;
+
+    @include respond-below(sm) {
+      width: 100%;
+      font-size: calc-em(42);
+      margin: 20px 0 30px;
+    }
+  }
+}

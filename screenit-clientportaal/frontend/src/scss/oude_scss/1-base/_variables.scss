@@ -1,0 +1,22 @@
+$black: #231F20;
+$gray: #F7F8F8;
+$line: #D0D2D3;
+$link: #9c9a9b;
+$border: #F0F1F1;
+$blue: #1F5FBF;
+$blue-tint: #1f6fbf;
+$disclaimer: #1f529e;
+$bk: #FFAA30;
+$dk: #44195E;
+$bmk: #D3007E;
+$toptask-gray: #918f8f;
+
+@function calc-em($pixels, $context: $base-font-size) {
+  @return #{$pixels/$context}em;
+}
+
+$sans: 'Roboto', Helvetica, Arial, sans-serif !default;
+
+
+$font-size-base: 18px !default;
+$base-font-size: 18;

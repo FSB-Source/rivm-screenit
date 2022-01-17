@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ========================LICENSE_START=================================
+  se-mammograaf-stub
+  %%
+  Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+
+<NativeDicomModel xml:space="preserve">
+	<DicomAttribute keyword="ProcedureCodeSequence" tag="00081032" vr="SQ"/>
+	<DicomAttribute keyword="AnatomicStructureSpaceOrRegionSequence" tag="00082229" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH">
+				<Value number="1">T-04000</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="CodingSchemeDesignator" tag="00080102" vr="SH">
+				<Value number="1">SNM3</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO">
+				<Value number="1">Breast</Value>
+			</DicomAttribute>
+		</Item>
+	</DicomAttribute>
+	<DicomAttribute keyword="DistanceSourceToDetector" tag="00181110" vr="DS">
+		<Value number="1">700</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProcedureStepStatus" tag="00400252" vr="CS">
+		<Value number="1">COMPLETED</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProcedureStepDescription" tag="00400254" vr="LO">
+		<Value number="1">Screening</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProcedureTypeDescription" tag="00400255" vr="LO">
+		<Value number="1">Screening</Value>
+	</DicomAttribute>
+	<DicomAttribute keyword="PerformedProtocolCodeSequence" tag="00400260" vr="SQ">
+		<Item number="1">
+			<DicomAttribute keyword="CodeValue" tag="00080100" vr="SH">
+				<Value number="1">std</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="CodingSchemeDesignator" tag="00080102" vr="SH">
+				<Value number="1">99HOLX</Value>
+			</DicomAttribute>
+			<DicomAttribute keyword="CodeMeaning" tag="00080104" vr="LO">
+				<Value number="1">Standard Screening - Conventional</Value>
+			</DicomAttribute>
+		</Item>
+	</DicomAttribute>
+    <DicomAttribute keyword="EntranceDose" tag="00400302" vr="US">
+        <Value number="1">0</Value>
+    </DicomAttribute>
+    <DicomAttribute keyword="DistanceSourceToEntrance" tag="00400306" vr="US"/>
+    <DicomAttribute keyword="ExposureDoseSequence" tag="0040030E" vr="SQ"/>
+    <DicomAttribute keyword="OrganDose" tag="00400316" vr="DS">
+        <Value number="1">0.3650</Value>
+    </DicomAttribute>
+    <DicomAttribute keyword="OrganExposed" tag="00400318" vr="CS">
+        <Value number="1">BREAST</Value>
+    </DicomAttribute>
+    <DicomAttribute keyword="PerformedSeriesSequence" tag="00400340" vr="SQ"/>
+    <DicomAttribute keyword="EntranceDoseInmGy" tag="00408302" vr="DS">
+        <Value number="1">98.60</Value>
+    </DicomAttribute>
+</NativeDicomModel>

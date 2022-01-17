@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-se-rest-bk
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -73,6 +73,7 @@
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="CoordinatenServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseClientContactServiceImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseScreeningRondeServiceImpl.class"/>
+    <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BaseTestTimelineServiceImpl.class"/>
 
     <context:component-scan base-package="nl.rivm.screenit.service.impl" resource-pattern="BerichtToBatchServiceImpl.class"/>
 
@@ -94,6 +95,7 @@
     <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="HuisartsBerichtTemplateDaoImpl.class"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.impl" resource-pattern="VerslagDaoImpl.class"/>
 
+    <context:component-scan base-package="nl.rivm.screenit.cache" resource-pattern="CacheMBeanRegistration.class"/>
     <context:component-scan base-package="nl.rivm.screenit.factory.impl"/>
 
     
@@ -103,9 +105,6 @@
 
     
     <context:component-scan base-package="nl.rivm.screenit.mamma.se.websocket"/>
-
-    
-    <context:component-scan base-package="nl.topicuszorg.hibernate.schema.dao"/>
 
     <jpa:repositories base-package="nl.rivm.screenit.repository"/>
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.main.dao.mamma.MammaBeoordelingDao;
@@ -46,11 +48,11 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaLezing;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaBIRADSWaarde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeLezerSoort;
@@ -66,7 +68,6 @@ import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DistributedLockService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
-import nl.rivm.screenit.service.MailService.MailPriority;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingReserveringService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
@@ -74,28 +75,23 @@ import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsBerichtService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.rivm.screenit.service.mamma.be.verslag.MammaVerslagDocumentCreator;
-import nl.rivm.screenit.service.mamma.impl.MammaBaseBeoordelingServiceImpl;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
-import org.hibernate.envers.query.AuditQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseBeoordelingServiceImpl.class);
 
 	@Autowired
 	private MammaBeoordelingDao beoordelingDao;
@@ -152,7 +148,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	public List<MammaScreeningsEenheid> zoekScreeningsEenhedenMetBeWerklijstBeoordeling(InstellingGebruiker loggedInInstellingGebruiker,
 		List<MammaBeoordelingStatus> beschikbarePaginaStatussen)
 	{
-		MammaBeWerklijstZoekObject beWerklijstZoekObject = new MammaBeWerklijstZoekObject();
+		var beWerklijstZoekObject = new MammaBeWerklijstZoekObject();
 		beWerklijstZoekObject.setInstellingGebruiker(loggedInInstellingGebruiker);
 		beWerklijstZoekObject.setBeoordelingStatussen(beschikbarePaginaStatussen);
 		if (loggedInInstellingGebruiker.getOrganisatie().getOrganisatieType().equals(OrganisatieType.BEOORDELINGSEENHEID))
@@ -171,7 +167,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 			return new ArrayList<>();
 		}
 
-		MammaCeWerklijstZoekObject ceWerklijstZoekObject = new MammaCeWerklijstZoekObject();
+		var ceWerklijstZoekObject = new MammaCeWerklijstZoekObject();
 		ceWerklijstZoekObject.setBeoordelingStatussen(beschikbareBeoordelingStatussen);
 		ceWerklijstZoekObject.setBeoordelingsEenheden(beoordelingsEenheden);
 
@@ -205,13 +201,13 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Override
 	public List<MammaBeoordeling> getVorigeTweeTeTonenBeoordelingen(MammaBeoordeling beoordeling)
 	{
-		final List<MammaBeoordeling> laatsteTweeBeoordelingen = beoordelingDao.getVorigeBeoordelingen(beoordeling, 2, true);
+		final var laatsteTweeBeoordelingen = beoordelingDao.getVorigeBeoordelingen(beoordeling, 2, true);
 		if (laatsteTweeBeoordelingen.size() < 2 || isVerwijzing(laatsteTweeBeoordelingen.get(0)) || isVerwijzing(laatsteTweeBeoordelingen.get(1)))
 		{
 			return laatsteTweeBeoordelingen;
 		}
 
-		final List<MammaBeoordeling> verwijzendeBeoordeling = beoordelingDao.getVorigeBeoordelingen(beoordeling, 1, false);
+		final var verwijzendeBeoordeling = beoordelingDao.getVorigeBeoordelingen(beoordeling, 1, false);
 		if (verwijzendeBeoordeling.isEmpty())
 		{
 			return laatsteTweeBeoordelingen;
@@ -240,11 +236,11 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Override
 	public void bevestig1eEn2eLezingen(InstellingGebruiker instellingGebruiker)
 	{
-		MammaBeWerklijstZoekObject zoekObject = new MammaBeWerklijstZoekObject();
+		var zoekObject = new MammaBeWerklijstZoekObject();
 		zoekObject.setInstellingGebruiker(instellingGebruiker);
 		zoekObject.setBeoordelingStatussen(Arrays.asList(MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN, MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN));
-		List<MammaBeoordeling> beoordelingen = beoordelingDao.zoekBeBeoordelingen(zoekObject, 0, 0, null, false);
-		for (MammaBeoordeling beoordeling : beoordelingen)
+		var beoordelingen = beoordelingDao.zoekBeBeoordelingen(zoekObject, 0, 0, null, false);
+		for (var beoordeling : beoordelingen)
 		{
 			baseBeoordelingService.bevestigLezing(beoordeling);
 		}
@@ -321,7 +317,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Override
 	public boolean is1eOf2eLezingenTeBevestigen(InstellingGebruiker instellingGebruiker)
 	{
-		MammaBeWerklijstZoekObject zoekObject = new MammaBeWerklijstZoekObject();
+		var zoekObject = new MammaBeWerklijstZoekObject();
 		zoekObject.setInstellingGebruiker(instellingGebruiker);
 		zoekObject.setBeoordelingStatussen(Arrays.asList(MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN, MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN));
 		return beoordelingDao.getAantalBeoordeeld(zoekObject) > 0;
@@ -330,7 +326,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Override
 	public Long getVolgendeBeoordelingId(Long huidigeBeoordelingId, List<Long> beoordelingenIds)
 	{
-		int huidigeBeoordelingIndex = beoordelingenIds.indexOf(huidigeBeoordelingId);
+		var huidigeBeoordelingIndex = beoordelingenIds.indexOf(huidigeBeoordelingId);
 		return huidigeBeoordelingIndex + 1 < beoordelingenIds.size() ? beoordelingenIds.get(huidigeBeoordelingIndex + 1) : null;
 	}
 
@@ -349,9 +345,9 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 		}
 		else
 		{
-			List<Long> komendeGereserveerdeBeoordelingen = reserveerBeoordelingenBinnenLock(startBeoordelingId, beoordelingenIds, ingelogdeGebruiker, lezerSoort);
+			var komendeGereserveerdeBeoordelingen = reserveerBeoordelingenBinnenLock(startBeoordelingId, beoordelingenIds, ingelogdeGebruiker, lezerSoort);
 
-			BeoordelingenReserveringResult reserveringResult = new BeoordelingenReserveringResult(komendeGereserveerdeBeoordelingen);
+			var reserveringResult = new BeoordelingenReserveringResult(komendeGereserveerdeBeoordelingen);
 
 			if (reserveringResult.getEersteGereserveerdeBeoordelingId() == null)
 			{
@@ -367,7 +363,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 
 	private List<Long> reserveerBeoordelingenBinnenLock(Long startBeoordelingId, List<Long> beoordelingenIds, InstellingGebruiker ingelogdeGebruiker, MammaBeLezerSoort lezerSoort)
 	{
-		String locknaam = "BeoordelingenVoorBe/" + ingelogdeGebruiker.getOrganisatie().getId();
+		var locknaam = "BeoordelingenVoorBe/" + ingelogdeGebruiker.getOrganisatie().getId();
 		try
 		{
 
@@ -383,17 +379,18 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Override
 	public void radioloogHeeftGeenHandtekening(Gebruiker medewerker)
 	{
-		String email = preferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
-		mailService.sendEmail(email, "Handtekening van radioloog (BK) mist!!!", 
+		var email = preferenceService.getString(PreferenceKey.DASHBOARDEMAIL.name());
+		mailService.queueMail(email,
+			"Handtekening van radioloog (BK) mist!!!",
 			"De radioloog met gebruikersnaam '" + medewerker.getGebruikersnaam()
-				+ "' wilde gaan screenen/beoordelen. Echter mist de handtekening en kan derhalve nu niet aan het werk. Dit moet zsm. opgelost worden iom. de regio.", 
+				+ "' wilde gaan screenen/beoordelen. Echter mist de handtekening en kan derhalve nu niet aan het werk. Dit moet zsm. opgelost worden iom. de regio.",
 			MailPriority.HIGH);
 	}
 
 	@Override
 	public MammaLezing[] getLezingenVoorVerslag(MammaBeoordeling beoordeling)
 	{
-		MammaLezing lezingen[] = new MammaLezing[2];
+		var lezingen = new MammaLezing[2];
 		if (baseBeoordelingService.isLezingVerwijzen(beoordeling.getEersteLezing()) && baseBeoordelingService.isLezingVerwijzen(beoordeling.getTweedeLezing()))
 		{
 			lezingen[0] = beoordeling.getEersteLezing();
@@ -431,8 +428,8 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 
 	private void verstuurHuisartsbericht(MammaBeoordeling beoordeling, EnovationHuisarts alternativeHuisarts, HuisartsBerichtType berichtType)
 	{
-		MammaScreeningRonde ronde = baseBeoordelingService.getScreeningRonde(beoordeling);
-		EnovationHuisarts huisarts = ronde.getHuisarts();
+		var ronde = baseBeoordelingService.getScreeningRonde(beoordeling);
+		var huisarts = ronde.getHuisarts();
 		if (huisarts != null)
 		{
 			huisartsBerichtService.verstuurHuisartsBericht(beoordeling, huisarts, berichtType);
@@ -458,16 +455,16 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 		}
 
 		hl7BerichtenToBatchService.queueMammaHL7v24BerichtUitgaand(baseBeoordelingService.getClientVanBeoordeling(beoordeling), MammaHL7v24ORMBerichtStatus.AUTHORISED);
-		MammaScreeningRonde screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);
-		EnovationHuisarts huisarts = screeningRonde.getHuisarts();
-		BriefType type = getOngunstigeUitslagBriefType(beoordeling, huisarts);
-		HuisartsBerichtType berichtType = HuisartsBerichtType.MAMMA_VERSLAG_UITSLAG_ONGUNSTIG;
+		var screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);
+		var huisarts = screeningRonde.getHuisarts();
+		var type = getOngunstigeUitslagBriefType(beoordeling, huisarts);
+		var berichtType = HuisartsBerichtType.MAMMA_VERSLAG_UITSLAG_ONGUNSTIG;
 		if (BriefType.getMammaFotobesprekingOngunstigeUitslagen().contains(type))
 		{
 			berichtType = HuisartsBerichtType.MAMMA_VERSLAG_UITSLAG_FOTOBESPREKING_ONGUNSTIG;
 		}
 		verstuurHuisartsbericht(beoordeling, alternatieveHuisarts, berichtType);
-		MammaBrief brief = briefService.maakMammaBrief(screeningRonde, type);
+		var brief = briefService.maakBvoBrief(screeningRonde, type);
 		if (directPrinten)
 		{
 			return maakBriefKlaarVoorAfdrukken(brief, getMammaVerslagDocumentCreator(beoordeling));
@@ -508,7 +505,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_CE_ONBEOORDEELBAAR_AFGEHANDELD, ingelogdeGebruiker, baseBeoordelingService.getClientVanBeoordeling(beoordeling), "",
 			Bevolkingsonderzoek.MAMMA);
 		kansberekeningService.dossierEventHerzien(baseBeoordelingService.getScreeningRonde(beoordeling).getDossier());
-		MammaScreeningRonde ronde = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde();
+		var ronde = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde();
 		baseScreeningRondeService.screeningRondeAfronden(ronde);
 	}
 
@@ -521,7 +518,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 				+ exceptionExtension + ".");
 		}
 
-		MammaScreeningRonde screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);
+		var screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);
 		huisartsService.koppelHuisarts(screeningRonde.getHuisarts(), screeningRonde, ingelogdeGebruiker);
 		if (MammaBeoordelingStatus.UITSLAG_ONGUNSTIG == nieuweStatus)
 		{
@@ -536,16 +533,16 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 
 	private BriefType getOngunstigeUitslagBriefType(MammaBeoordeling beoordeling, EnovationHuisarts huisarts)
 	{
-		MammaBIRADSWaarde hoogsteBirads = baseBeoordelingService.getHoogsteBirads(beoordeling.getVerslagLezing());
+		var hoogsteBirads = baseBeoordelingService.getHoogsteBirads(beoordeling.getVerslagLezing());
 		if (MammaBIRADSWaarde.EEN.equals(hoogsteBirads) || MammaBIRADSWaarde.TWEE.equals(hoogsteBirads))
 		{
-			String errorMelding = "Hoogste birads is gunstige uitslag, brieftype kan alleen bepaald worden voor verwijzende brieven.";
+			var errorMelding = "Hoogste birads is gunstige uitslag, brieftype kan alleen bepaald worden voor verwijzende brieven.";
 			LOG.error(errorMelding);
 			throw new IllegalStateException(errorMelding);
 		}
-		boolean clientHeeftGunstigeUitslagbriefOntvangen = briefService.briefTypeAlVerstuurdInDezeRonde(baseBeoordelingService.getScreeningRonde(beoordeling),
+		var clientHeeftGunstigeUitslagbriefOntvangen = briefService.briefTypeAlVerstuurdInDezeRonde(baseBeoordelingService.getScreeningRonde(beoordeling),
 			BriefType.getMammaGunstigeUitslagBriefTypen());
-		BriefType type = (clientHeeftGunstigeUitslagbriefOntvangen ? BriefType.MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_4_5 : BriefType.MAMMA_ONGUNSTIGE_UITSLAG_BIRADS_4_5);
+		var type = (clientHeeftGunstigeUitslagbriefOntvangen ? BriefType.MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_4_5 : BriefType.MAMMA_ONGUNSTIGE_UITSLAG_BIRADS_4_5);
 		if (hoogsteBirads == MammaBIRADSWaarde.NUL)
 		{
 			type = (clientHeeftGunstigeUitslagbriefOntvangen ? BriefType.MAMMA_FOTOBESPREKING_ONGUNSTIGE_UITSLAG_BIRADS_0 : BriefType.MAMMA_ONGUNSTIGE_UITSLAG_BIRADS_0);
@@ -596,8 +593,8 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Override
 	public File genereerPdfVoorOngunstigeUitslagBrief(MammaBeoordeling beoordeling)
 	{
-		MammaScreeningRonde screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);
-		MammaBrief brief = screeningRonde.getBrieven().stream()
+		var screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);
+		var brief = screeningRonde.getBrieven().stream()
 			.filter(b -> BriefType.getMammaOngunstigeUitslagBriefTypen().contains(b.getBriefType())).findFirst()
 			.orElse(null);
 		if (brief != null)
@@ -610,8 +607,8 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	@Override
 	public List<Object[]> beoordelingGeschiedenis(MammaBeoordeling beoordeling)
 	{
-		AuditReader reader = AuditReaderFactory.get(hibernateService.getHibernateSession());
-		AuditQuery query = reader.createQuery().forRevisionsOfEntity(MammaBeoordeling.class, false, true);
+		var reader = AuditReaderFactory.get(hibernateService.getHibernateSession());
+		var query = reader.createQuery().forRevisionsOfEntity(MammaBeoordeling.class, false, true);
 
 		query.add(AuditEntity.id().eq(beoordeling.getId()));
 		query.add(AuditEntity.revisionType().eq(RevisionType.MOD));

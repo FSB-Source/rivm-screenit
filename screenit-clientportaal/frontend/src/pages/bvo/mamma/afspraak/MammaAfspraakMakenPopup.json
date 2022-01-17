@@ -1,0 +1,31 @@
+{
+  "bevestiging": {
+    "title": "Afspraak bevestigen",
+    "description": "Hieronder ziet u de gegevens van uw afspraak. Wilt u deze afspraak definitief maken? Klik dan op de blauwe knop. Wilt u uw onderzoek toch liever op een ander moment? Kies dan voor ‘Andere afspraak maken’."
+  },
+  "failure": {
+    "title": "Gekozen afspraak niet meer beschikbaar",
+    "description": "U heeft een datum en tijd gekozen voor uw afspraak (zie hieronder). Deze afspraak is net gereserveerd voor een andere cliënt en is niet meer beschikbaar.<br>Klik op ‘Andere afspraak maken’. U ziet dan welke afspraken beschikbaar zijn."
+  },
+  "headers": {
+    "datumtijd": "Datum en tijd",
+    "locatie": "Locatie"
+  },
+  "checkbox": {
+    "bevestigingsbrief": "Stuur mij een brief met de gegevens van mijn afspraak"
+  },
+  "button": {
+    "bevestigen": "Ja, ik bevestig deze afspraak",
+    "andere_afspraak": "Andere afspraak maken"
+  },
+  "toast": {
+    "title": "U heeft een afspraak gemaakt voor het bevolkingsonderzoek borstkanker.",
+    "brief_melding": "U krijgt binnen een paar dagen een brief met de gegevens van uw afspraak.",
+    "geen_brief": "U heeft zelf de afspraak genoteerd.",
+    "geen_wijzigingen": "Geen wijzigingen opgeslagen",
+    "error": {
+      "algemeen": "Helaas, er is iets fout gegaan. Probeer het nog een keer.<br/>Krijgt u steeds deze foutmelding? Bel dan met onze informatielijn.",
+      "niet_beschikbaar": "Dit tijdstip is niet meer beschikbaar."
+    }
+  }
+}

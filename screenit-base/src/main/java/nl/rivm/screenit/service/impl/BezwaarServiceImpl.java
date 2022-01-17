@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -20,9 +20,6 @@ package nl.rivm.screenit.service.impl;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-
-import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK;
-import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -59,7 +56,6 @@ import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColonVooraankondiging;
 import nl.rivm.screenit.model.colon.Complicatie;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
@@ -104,6 +100,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_GEBRUIK_LICHAAMSMATERIAAL_WETENSCHAPPELIJK_ONDERZOEK;
+import static nl.rivm.screenit.model.enums.BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES;
 
 @Component
 @Transactional(propagation = Propagation.SUPPORTS)
@@ -701,15 +700,6 @@ public class BezwaarServiceImpl implements BezwaarService
 		{
 			for (ColonScreeningRonde ronde : rondes)
 			{
-				List<ColonVerslag> verslagen = ronde.getVerslagen();
-				if (CollectionUtils.isNotEmpty(verslagen))
-				{
-					hibernateService.deleteAll(verslagen);
-				}
-				if (ronde.getOpenUitnodiging() != null)
-				{
-					hibernateService.delete(ronde.getOpenUitnodiging());
-				}
 				hibernateService.delete(ronde);
 			}
 		}

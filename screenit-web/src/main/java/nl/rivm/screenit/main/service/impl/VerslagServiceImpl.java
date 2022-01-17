@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,36 +26,26 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.VerslagDao;
-import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
 import nl.rivm.screenit.main.service.FormulierService;
 import nl.rivm.screenit.main.service.VerslagService;
 import nl.rivm.screenit.model.BerichtZoekFilter;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.Functie;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningRonde;
-import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.berichten.enums.BerichtType;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
-import nl.rivm.screenit.model.colon.ColonDossier;
-import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.MdlVerslag;
-import nl.rivm.screenit.model.colon.PaVerslag;
-import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlIncidentcomplicatie;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlLaesiecoloscopiecentrum;
 import nl.rivm.screenit.model.colon.verslag.mdl.MdlMedicatie;
@@ -70,16 +60,13 @@ import nl.rivm.screenit.model.formulieren.IdentifierElement;
 import nl.rivm.screenit.model.formulieren.PalgaNumber;
 import nl.rivm.screenit.model.formulieren.PalgaNumberAntwoord;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.VerslagContent;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.VerwerkVerslagService;
-import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
-import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.RomanNumeral;
 import nl.topicuszorg.formulieren2.api.definitie.VraagDefinitie;
 import nl.topicuszorg.formulieren2.api.resultaat.Antwoord;
@@ -140,20 +127,10 @@ public class VerslagServiceImpl implements VerslagService
 	private BerichtToBatchService cdaBerichtToBatchService;
 
 	@Autowired(required = false)
-	private ColonDossierBaseService colonDossierService;
-
-	@Autowired(required = false)
-	private MammaBaseBeoordelingDao mammaBeoordelingDao;
-
-	@Autowired(required = false)
 	private MammaBaseFollowUpService followUpService;
 
-	private ExecutorService executorService;
-
-	public VerslagServiceImpl()
-	{
-		executorService = Executors.newSingleThreadExecutor();
-	}
+	@Autowired
+	private BaseVerslagService baseVerslagService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -346,7 +323,7 @@ public class VerslagServiceImpl implements VerslagService
 	private void logAction(Verslag verslag, boolean afgerond, InstellingGebruiker instellingGebruiker)
 	{
 		Client client = verslag.getScreeningRonde().getDossier().getClient();
-		String createMelding = createLogMelding(verslag);
+		String createMelding = baseVerslagService.createLogMelding(verslag);
 		if (verslag.getType() == VerslagType.MDL)
 		{
 			if (afgerond)
@@ -428,162 +405,21 @@ public class VerslagServiceImpl implements VerslagService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwijderVerslag(Verslag verslag, InstellingGebruiker instellingGebruiker)
-	{
-		VerslagType verslagType = verslag.getType();
-		Class<? extends Verslag<?, ?>> verslagClazz = verslagType.getClazz();
-		verslag = hibernateService.load(verslagClazz, verslag.getId());
-
-		heropenRondeEnDossier(verslag, true);
-
-		String melding = createLogMelding(verslag);
-		ScreeningRonde screeningRonde = verslag.getScreeningRonde();
-		Client client = screeningRonde.getDossier().getClient();
-		logService.logGebeurtenis(verslagType.getVerwijderdVerslagLogGebeurtenis(), instellingGebruiker, client, melding, verslagType.getBevolkingsonderzoek());
-
-		verslag.setScreeningRonde(null);
-		verslag.setUitvoerderMedewerker(null);
-		verslag.setUitvoerderOrganisatie(null);
-		verslag.setOntvangenBericht(null);
-
-		hibernateService.saveOrUpdate(screeningRonde);
-		hibernateService.delete(verslag);
-		hibernateService.delete(verslag.getVerslagContent());
-
-		if (verslag.getType().equals(VerslagType.MAMMA_PA_FOLLOW_UP))
-		{
-			followUpService.refreshUpdateFollowUpConclusie(client.getMammaDossier());
-		}
-	}
-
-	private void heropenRondeEnDossier(Verslag verslag, boolean verwijderd)
-	{
-		VerslagType type = verslag.getType();
-		if (type == VerslagType.MDL && VerslagStatus.AFGEROND.equals(verslag.getStatus()))
-		{
-			MdlVerslag mdlVerslag = (MdlVerslag) HibernateHelper.deproxy(verslag);
-			MdlVervolgbeleid vervolgbeleidHuidigVerslag = mdlVerslag.getVervolgbeleid();
-			MdlVerslag nieuweLaatsteAfgerondVerslag = null;
-			ColonScreeningRonde screeningRonde = mdlVerslag.getScreeningRonde();
-			boolean geenAnderVerslagMetDefinitiefVervolgbeleid = true;
-			for (ColonVerslag<?> oneOfAllVerslagen : screeningRonde.getVerslagen())
-			{
-				if (VerslagType.MDL.equals(oneOfAllVerslagen.getType()) && VerslagStatus.AFGEROND.equals(oneOfAllVerslagen.getStatus()) && !oneOfAllVerslagen.equals(mdlVerslag))
-				{
-					MdlVerslag anderMdlVerslag = (MdlVerslag) HibernateHelper.deproxy(oneOfAllVerslagen);
-					if (MdlVervolgbeleid.isDefinitief(anderMdlVerslag.getVervolgbeleid()))
-					{
-						geenAnderVerslagMetDefinitiefVervolgbeleid = false;
-					}
-					if (nieuweLaatsteAfgerondVerslag == null || DateUtil.compareAfter(nieuweLaatsteAfgerondVerslag.getDatumOnderzoek(), anderMdlVerslag.getDatumOnderzoek()))
-					{
-						nieuweLaatsteAfgerondVerslag = anderMdlVerslag;
-					}
-				}
-			}
-			ColonDossier dossier = screeningRonde.getDossier();
-			if (MdlVervolgbeleid.isDefinitief(vervolgbeleidHuidigVerslag) && geenAnderVerslagMetDefinitiefVervolgbeleid)
-			{
-
-				if (ScreeningRondeStatus.AFGEROND.equals(screeningRonde.getStatus()))
-				{
-					screeningRonde.setStatus(ScreeningRondeStatus.LOPEND);
-					screeningRonde.setAfgerondReden(null);
-					hibernateService.saveOrUpdate(screeningRonde);
-
-					if (DossierStatus.INACTIEF.equals(dossier.getStatus()))
-					{
-						dossier.setStatus(DossierStatus.ACTIEF);
-						dossier.setInactiveerReden(null);
-						dossier.setInactiefVanaf(null);
-						dossier.setInactiefTotMet(null);
-						hibernateService.saveOrUpdate(dossier);
-					}
-				}
-			}
-			if (nieuweLaatsteAfgerondVerslag != null)
-			{
-				colonDossierService.setVolgendeUitnodigingVoorVerslag(nieuweLaatsteAfgerondVerslag);
-			}
-			else
-			{
-				ColonIntakeAfspraak laatsteAfspraak = screeningRonde.getLaatsteAfspraak();
-				if (laatsteAfspraak != null)
-				{
-					colonDossierService.setVolgendeUitnodingVoorConclusie(laatsteAfspraak);
-				}
-			}
-			verwerkVerslagService.ontkoppelOfVerwijderComplicaties(mdlVerslag);
-			if (verwijderd)
-			{
-				screeningRonde.getVerslagen().remove(mdlVerslag);
-			}
-		}
-		else if (type == VerslagType.PA_LAB && verwijderd)
-		{
-			PaVerslag paVerslag = (PaVerslag) HibernateHelper.deproxy(verslag);
-			ColonScreeningRonde screeningRonde = paVerslag.getScreeningRonde();
-			screeningRonde.getVerslagen().remove(paVerslag);
-		}
-		else if (type == VerslagType.MAMMA_PA_FOLLOW_UP)
-		{
-			MammaFollowUpVerslag followupVerslag = (MammaFollowUpVerslag) HibernateHelper.deproxy(verslag);
-			MammaScreeningRonde screeningRonde = followupVerslag.getScreeningRonde();
-			MammaScreeningRonde screeningrondeVoorFollowUp = mammaBeoordelingDao.getScreeningrondeVoorFollowUp(screeningRonde.getDossier().getClient(), null);
-			if (screeningRonde.equals(screeningrondeVoorFollowUp))
-			{
-				screeningRonde.setFollowUpConclusieStatus(null);
-				screeningRonde.setFollowUpConclusieStatusGewijzigdOp(null);
-			}
-			if (verwijderd)
-			{
-				screeningRonde.getFollowUpVerslagen().remove(followupVerslag);
-			}
-		}
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
 	public <V extends Verslag<?, ?>> V heropenVerslag(V verslag, InstellingGebruiker instellingGebruiker)
 	{
 		VerslagType verslagType = verslag.getType();
 		Class<? extends Verslag<?, ?>> verslagClazz = verslagType.getClazz();
 		verslag = (V) hibernateService.load(verslagClazz, verslag.getId());
-		heropenRondeEnDossier(verslag, false);
+		baseVerslagService.heropenRondeEnDossier(verslag);
 
 		verslag.setStatus(VerslagStatus.IN_BEWERKING);
 		hibernateService.saveOrUpdate(verslag);
 		refreshUpdateFollowUpConclusie(verslag);
 
 		Client client = verslag.getScreeningRonde().getDossier().getClient();
-		String melding = createLogMelding(verslag);
+		String melding = baseVerslagService.createLogMelding(verslag);
 		logService.logGebeurtenis(verslagType.getHeropendVerslagLogGebeurtenis(), instellingGebruiker, client, melding, verslagType.getBevolkingsonderzoek());
 		return verslag;
-	}
-
-	private String createLogMelding(Verslag verslag)
-	{
-		String melding = "";
-		OntvangenCdaBericht ontvangenBericht = verslag.getOntvangenBericht();
-		if (ontvangenBericht != null)
-		{
-			melding = "Electronisch bericht: berichtId: " + ontvangenBericht.getBerichtId() + ", setId: " + ontvangenBericht.getSetId() + ", versie: "
-				+ ontvangenBericht.getVersie() + ",";
-		}
-		else
-		{
-			melding = "Handmatige invoer: ";
-		}
-		Date datumOnderzoek = verslag.getDatumOnderzoek();
-		if (datumOnderzoek != null)
-		{
-			melding += " datum onderzoek " + Constants.getDateFormat().format(datumOnderzoek);
-		}
-		if (verslag.getId() == null)
-		{
-			melding = "Nieuw. " + melding;
-		}
-		return melding;
 	}
 
 	@Override
@@ -765,46 +601,17 @@ public class VerslagServiceImpl implements VerslagService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void herverwerkAlleBerichten(BerichtZoekFilter filter)
 	{
 		final List<Object> idsEnBerichtTypen = verslagDao.getIdsEnBerichtTypen(filter);
 
-		executorService.submit(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				try
-				{
-					for (Object stiekumEenArray : idsEnBerichtTypen)
-					{
-						Object[] idEnBerichtType = (Object[]) stiekumEenArray;
-						Long id = (Long) idEnBerichtType[0];
-						BerichtType berichtType = BerichtType.valueOf((String) idEnBerichtType[1]);
-						switch (berichtType)
-						{
-						case MDL_VERSLAG:
-						case PA_LAB_VERSLAG:
-							cdaBerichtToBatchService.queueColonCDABericht(id);
-							break;
-						case CERVIX_CYTOLOGIE_VERSLAG:
-							cdaBerichtToBatchService.queueCervixCDABericht(id);
-							break;
-						case MAMMA_PA_FOLLOW_UP_VERSLAG:
-							cdaBerichtToBatchService.queueMammaCDABericht(id);
-							break;
-						}
-						Thread.sleep(1000);
-						LOG.info("Bericht met ID " + id + " wordt opnieuw aangeboden");
-					}
-				}
-				catch (Exception e) 
-				{
-					LOG.error("Er is een onvoorziene crash geweest in de herverwerkAlleBerichten Thread, deze is nu gesloten. " + e.getMessage(), e);
-				}
-			}
-		});
-
+		Arrays.stream(BerichtType.values()).forEach(berichtType -> berichtenOpnieuwVerwerken(
+			idsEnBerichtTypen.stream()
+				.filter(o -> (((Object[]) o)[1]) == berichtType)
+				.map(o -> ((Long) ((Object[]) o)[0]))
+				.collect(Collectors.toList()),
+			berichtType.getBevolkingsonderzoek()));
 	}
 
 	@Override
@@ -817,6 +624,22 @@ public class VerslagServiceImpl implements VerslagService
 	public <V extends Verslag<?, ?>> long countVerslagen(V zoekObject)
 	{
 		return verslagDao.countVerslagen(ModelProxyHelper.deproxy(zoekObject));
+	}
+
+	@Override
+	public void berichtenOpnieuwVerwerken(List<Long> ids, Bevolkingsonderzoek bvo)
+	{
+		if (ids.size() > 0)
+		{
+			verslagDao.setBerichtenOpnieuwVerwerken(ids);
+			cdaBerichtToBatchService.queueCDABericht(bvo);
+		}
+	}
+
+	@Override
+	public void berichtOpnieuwVerwerken(OntvangenCdaBericht ontvangenCdaBericht)
+	{
+		berichtenOpnieuwVerwerken(Arrays.asList(ontvangenCdaBericht.getId()), ontvangenCdaBericht.getBerichtType().getBevolkingsonderzoek());
 	}
 
 	private void refreshUpdateFollowUpConclusie(Verslag verslag)

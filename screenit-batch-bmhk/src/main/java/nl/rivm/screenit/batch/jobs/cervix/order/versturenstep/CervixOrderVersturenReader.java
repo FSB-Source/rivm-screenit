@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.order.versturenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,10 @@ package nl.rivm.screenit.batch.jobs.cervix.order.versturenstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieOrderStatus;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -47,9 +47,9 @@ public class CervixOrderVersturenReader extends BaseScrollableResultReader
 				Restrictions.eq("status", CervixCytologieOrderStatus.MISLUKT)));
 
 		JobParameters jobParameters = getStepExecution().getJobExecution().getJobParameters();
-		if (jobParameters.toProperties().containsKey(Constants.CERVIX_ORDER_JOB_LABORATORIUM_PARAMETER))
+		if (jobParameters.toProperties().containsKey(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name()))
 		{
-			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(Constants.CERVIX_ORDER_JOB_LABORATORIUM_PARAMETER)));
+			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())));
 		}
 
 		return crit;

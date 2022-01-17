@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -103,9 +103,11 @@ public class MammaBaseUitstelServiceImpl implements MammaBaseUitstelService
 			baseAfspraakService.afspraakAnnuleren(afspraak, MammaAfspraakStatus.UITGESTELD, null);
 		}
 
+		baseBriefService.setNietGegenereerdeBrievenOpTegenhouden(screeningRonde, BriefType.MAMMA_OPEN_UITNODIGINGEN);
+
 		if (briefAanmaken)
 		{
-			baseBriefService.maakMammaBrief(screeningRonde, BriefType.MAMMA_UITSTEL);
+			baseBriefService.maakBvoBrief(screeningRonde, BriefType.MAMMA_UITSTEL);
 		}
 
 		StringBuilder sb = new StringBuilder();
@@ -177,7 +179,7 @@ public class MammaBaseUitstelServiceImpl implements MammaBaseUitstelService
 			else
 			{
 				LocalDate minStreefDatum = Collections
-						.max(Arrays.asList(DateUtil.toLocalDate(vrijgegevenTotEnMet).plusDays(1), DateUtil.toLocalDate(standplaatsPeriode.getVanaf())));
+					.max(Arrays.asList(DateUtil.toLocalDate(vrijgegevenTotEnMet).plusDays(1), DateUtil.toLocalDate(standplaatsPeriode.getVanaf())));
 				String minStreefdatumText = DateUtil.LOCAL_DATE_FORMAT.format(minStreefDatum);
 				String maxStreefdatumText = DateUtil.LOCAL_DATE_FORMAT.format(DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet()));
 				return (MessageFormat.format("De uitstel streefdatum in de gekozen standplaats moet tussen {0} en {1} liggen.", minStreefdatumText, maxStreefdatumText));

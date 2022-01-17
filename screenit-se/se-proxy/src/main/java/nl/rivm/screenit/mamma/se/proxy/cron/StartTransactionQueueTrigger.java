@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.cron;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by

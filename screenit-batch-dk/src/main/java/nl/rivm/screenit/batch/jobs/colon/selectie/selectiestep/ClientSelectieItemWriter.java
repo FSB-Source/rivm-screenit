@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,7 +23,6 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -136,7 +135,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 			}
 			else
 			{
-				briefService.maakColonBrief(ronde, BriefType.COLON_UITNODIGING_ZONDER_FIT, currentDateSupplier.getDate());
+				briefService.maakBvoBrief(ronde, BriefType.COLON_UITNODIGING_ZONDER_FIT, currentDateSupplier.getDate());
 			}
 
 			rapportageBijwerken(selectieRapportage, categorieEntry, client);
@@ -195,7 +194,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 	{
 		ProjectClient pClient = ProjectUtil.getHuidigeProjectClient(client, currentDateSupplier.getDate());
 
-		ColonScreeningRonde laatsteScreeningRonde = null;
+		ColonScreeningRonde laatsteScreeningRonde;
 		ColonDossier dossier = client.getColonDossier();
 		if (categorie == ColonUitnodigingCategorie.U1 || categorie == ColonUitnodigingCategorie.U2)
 		{
@@ -238,7 +237,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 				if (ProjectStatus.NOG_TE_STARTEN.equals(status)
 					|| ProjectStatus.ACTIEF.equals(status))
 				{
-					pClient.setUitgenodigdInProjectPeriode(Boolean.TRUE);
+					pClient.setIsUitgenodigdInProjectPeriode(Boolean.TRUE);
 					hibernateService.saveOrUpdate(pClient);
 				}
 			}
@@ -257,7 +256,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 			vooraankondiging.setClient(client);
 			vooraankondiging.setCreatieDatum(currentDateSupplier.getDate());
 
-			ColonBrief brief = briefService.maakColonBrief(laatsteScreeningRonde, BriefType.COLON_VOORAANKONDIGING);
+			ColonBrief brief = briefService.maakBvoBrief(laatsteScreeningRonde, BriefType.COLON_VOORAANKONDIGING);
 			vooraankondiging.setBrief(brief);
 
 			dossier.setColonVooraankondiging(vooraankondiging);
@@ -344,7 +343,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 		List<ColonUitnodiging> uitnodigingen = laatsteScreeningRonde.getUitnodigingen();
 		int totaalAantalVerstuurdeUitnodigingen = uitnodigingen.size();
 
-		List<Instelling> dashboardOrganisaties = Arrays.asList(client.getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
+		List<Instelling> dashboardOrganisaties = List.of(client.getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
 		if (totaalAantalVerstuurdeUitnodigingen >= waarschuwingAantalIfobts && totaalAantalVerstuurdeUitnodigingen < maximaalAantalIfobts)
 		{
 			LogEvent logEvent = new LogEvent();
@@ -425,7 +424,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 			Set<Integer> alleGeboortejarenVanActiveCohorten = uitnodigingService.getAlleGeboortejarenTotMetHuidigJaar();
 
 			Criteria criteria = ColonRestrictions.getQueryVooraankondigen(hibernateService.getHibernateSession(), null, new ArrayList<>(alleGeboortejarenVanActiveCohorten),
-				true, minimaleLeeftijd, maximaleLeeftijd, projectGroep.getId(), null);
+				true, minimaleLeeftijd, maximaleLeeftijd, projectGroep.getId(), null, currentDateSupplier.getLocalDate());
 			criteria.setProjection(Projections.rowCount());
 			Long aantalNogTeGaan = (Long) criteria.uniqueResult();
 			int aantalWerkDagen = 0;

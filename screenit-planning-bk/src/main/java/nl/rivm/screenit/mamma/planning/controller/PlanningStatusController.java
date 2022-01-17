@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,8 +22,9 @@ package nl.rivm.screenit.mamma.planning.controller;
  */
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
+import nl.rivm.screenit.dto.mamma.planning.PlanningStatusDto;
+import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,8 +34,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlanningStatusController
 {
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity status()
+	public PlanningStatusDto status()
 	{
-		return ResponseEntity.ok("status"); 
+		return new PlanningStatusDto(PlanningStatusIndex.get(), PlanningStatusIndex.getSoId());
 	}
 }

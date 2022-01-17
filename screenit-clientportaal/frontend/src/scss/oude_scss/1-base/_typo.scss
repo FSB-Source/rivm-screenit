@@ -1,0 +1,88 @@
+body {
+  font-family: $sans;
+  color: $black;
+  font-size: $font-size-base;
+}
+
+.center {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: calc-em(60);
+  font-weight: 500;
+
+  @include respond-below(sm) {
+    margin-top: 0;
+  }
+}
+
+h2 {
+  font-size: calc-em(40);
+  font-weight: 500;
+  margin-bottom: 40px;
+
+  @include respond-below(sm) {
+    text-align: left !important;
+    margin-top: 0;
+    font-size: calc-em(30);
+    margin-bottom: 20px;
+  }
+}
+
+h3 {
+  font-size: calc-em(30);
+  font-weight: 500;
+  line-height: 1.2;
+  margin-bottom: 24px;
+
+  @include respond-below(sm) {
+    margin-top: 0;
+  }
+}
+
+.intro {
+  text-align: center;
+  line-height: 1.6;
+
+  @include respond-below(sm) {
+    text-align: left;
+  }
+}
+
+.borstkanker {
+  h1, h2 {
+    color: $bk;
+  }
+
+  .content {
+    a {
+      color: $bk;
+    }
+  }
+}
+
+.baarmoederhalskanker {
+  h1, h2 {
+    color: $bmk;
+  }
+
+  .content {
+    a {
+      color: $bmk;
+    }
+  }
+}
+
+.darmkanker {
+  h1, h2, {
+    color: $dk;
+  }
+
+  .content {
+    a {
+      color: $dk;
+    }
+  }
+}

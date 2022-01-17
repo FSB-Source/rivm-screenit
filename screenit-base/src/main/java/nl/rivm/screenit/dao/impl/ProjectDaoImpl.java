@@ -5,7 +5,7 @@ package nl.rivm.screenit.dao.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,6 @@ package nl.rivm.screenit.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -80,10 +79,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.primitives.Ints;
-import org.hibernate.Criteria;
-import org.hibernate.NullPrecedence;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.type.Type;
 
 @Repository
 public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
@@ -104,7 +99,6 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		String select = "SELECT p.id ";
 		String from = "from algemeen.project p ";
 		String where = "";
-		String groupby = "";
 		String orderby = "";
 
 		if (zoekObject.getProjectStatussen() != null && !zoekObject.getProjectStatussen().isEmpty())
@@ -152,6 +146,20 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 			parameters.putAll(paramsBriefproject);
 		}
 
+		if (StringUtils.isNotBlank(zoekObject.getNaam()))
+		{
+			where = SQLQueryUtil.whereOrAnd(where);
+			where += "p.naam = :naam";
+			parameters.put("naam", zoekObject.getNaam());
+		}
+
+		if (zoekObject.getGroepSelectieType() != null)
+		{
+			where = SQLQueryUtil.whereOrAnd(where);
+			where += "p.groep_selectie_type = :groep_selectie_type";
+			parameters.put("groep_selectie_type", zoekObject.getGroepSelectieType().name());
+		}
+
 		if (StringUtils.isNotEmpty(whereProject) || StringUtils.isNotEmpty(whereBriefproject))
 		{
 			from += "inner join algemeen.org_organisatie oop on p.organisatie = oop.id ";
@@ -168,8 +176,8 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 			{
 				where += whereBriefproject;
 			}
-			where += " ";
 		}
+		where += " ";
 
 		if (order != null)
 		{
@@ -207,7 +215,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 			}
 		}
 
-		String loggingSql = select + from + where + groupby + orderby;
+		String loggingSql = select + from + where + orderby;
 		LOG.debug(loggingSql);
 		SQLQuery criteria = getSession().createSQLQuery(loggingSql);
 		for (Entry<String, Object> param : parameters.entrySet())
@@ -902,7 +910,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	public void setNieuwWachtOpStartProject(Date nu)
 	{
 		String sql = "update gedeeld.pat_patient set wacht_op_start_project = true WHERE id in "
-			+ "(select projectClient_.client as y0_ from gedeeld.project_client projectClient_ inner join algemeen.project_groep groep1_ on projectClient_.groep=groep1_.id inner join algemeen.project project2_ on groep1_.project=project2_.id where project2_.type='PROJECT' and (project2_.start_datum>:startDatum or (project2_.eind_datum>:eindDatum and groep1_.actief=false)) and projectClient_.actief=true)";
+			+ "(select projectClient_.client as y0_ from gedeeld.project_client projectClient_ inner join gedeeld.project_groep groep1_ on projectClient_.groep=groep1_.id inner join algemeen.project project2_ on groep1_.project=project2_.id where project2_.type='PROJECT' and (project2_.start_datum>:startDatum or (project2_.eind_datum>:eindDatum and groep1_.actief=false)) and projectClient_.actief=true)";
 		Query query = getSession().createSQLQuery(sql);
 		query.setDate("startDatum", nu);
 		query.setDate("eindDatum", nu);

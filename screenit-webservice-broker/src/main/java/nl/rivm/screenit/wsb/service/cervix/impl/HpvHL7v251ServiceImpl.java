@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -77,7 +77,7 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 				if (screenitMessage.getResultaten().size() == 0)
 				{
 					String foutmelding = "Dit bericht bevat alleen controlemonsters. Bericht-ID: "
-						+ screenitMessage.getMessageId() + " Laboratorium:" + screenitMessage.getLabnaam() + " InstrumentId: " + screenitMessage.getInstrumentId();
+						+ screenitMessage.getMessageId() + " Laboratorium:" + screenitMessage.getLabnaam() + " ZInstrumentName: " + screenitMessage.getInstrumentId();
 					saveLogGebeurtenis(LogGebeurtenis.CERVIX_HPV_BERICHT_REJECTED, foutmelding);
 				}
 
@@ -85,8 +85,8 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 			}
 			else
 			{
-				String foutmelding = "Dit bericht voldoet niet aan de juiste syntax en/of er ontbreken velden in het bericht. Bericht-ID: "
-					+ screenitMessage.getMessageId() + " Laboratorium:" + screenitMessage.getLabnaam() + " InstrumentId: " + screenitMessage.getInstrumentId();
+				String foutmelding = "Dit bericht voldoet niet aan de juiste syntax, er ontbreken velden in het bericht en/of velden zijn niet goed gevuld. Bericht-ID: "
+					+ screenitMessage.getMessageId() + " Laboratorium: " + screenitMessage.getLabnaam() + " ZInstrumentName: " + screenitMessage.getInstrumentId();
 				saveLogGebeurtenis(LogGebeurtenis.CERVIX_HPV_BERICHT_REJECTED, foutmelding);
 				throw new HL7Exception(foutmelding);
 			}
@@ -156,8 +156,8 @@ public class HpvHL7v251ServiceImpl extends BaseHL7v2Service<OUL_R22> implements 
 			return laboratorium;
 		}
 		logging(LogGebeurtenis.CERVIX_HPV_BERICHT_BINNENGEKOMEN, Level.ERROR, null,
-			"Bericht (messageID: " + message.getMessageId() + ") binnengekomen, geen lab gevonden met instrumentID: " + instrumentId, Bevolkingsonderzoek.CERVIX);
-		throw new HL7Exception("Geen lab gevonden met dit instrumentID");
+			"Bericht (messageID: " + message.getMessageId() + ") binnengekomen, geen lab gevonden met ZInstrumentName: " + instrumentId, Bevolkingsonderzoek.CERVIX);
+		throw new HL7Exception("Geen lab gevonden met dit ZInstrumentName");
 	}
 
 	private void saveLogGebeurtenis(LogGebeurtenis logGebeurtenis, String message)

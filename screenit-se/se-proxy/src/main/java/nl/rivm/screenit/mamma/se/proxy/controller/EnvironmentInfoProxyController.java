@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.controller;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,8 @@ import javax.servlet.http.HttpSession;
 
 import nl.rivm.screenit.mamma.se.proxy.SeProxyApplication;
 import nl.rivm.screenit.mamma.se.proxy.model.EnvironmentInfoDto;
+import nl.rivm.screenit.mamma.se.proxy.model.SeConfiguratieKey;
+import nl.rivm.screenit.mamma.se.proxy.services.ConfiguratieService;
 import nl.rivm.screenit.mamma.se.proxy.services.LogischeSessieService;
 import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeDaglijstService;
@@ -57,6 +59,9 @@ public class EnvironmentInfoProxyController
 	@Autowired
 	private ProxyService proxyService;
 
+	@Autowired
+	private ConfiguratieService configuratieService;
+
 	@RequestMapping(method = RequestMethod.GET)
 	public ResponseEntity<EnvironmentInfoDto> readBuildinfo(HttpSession httpSession, HttpServletRequest request)
 	{
@@ -66,6 +71,7 @@ public class EnvironmentInfoProxyController
 		environmentInfo.setMagUpdaten(!logischeSessieService.zijnErNietVerlopenSessies() && !transactionQueueService.zijnErWachtendeTransacties());
 		environmentInfo.setDagenInDaglijstCache(seDaglijstService.dagenInCache());
 		environmentInfo.setCacheVulling(proxyService.cacheVullingInfo());
+		environmentInfo.setDagenDaglijstOphalenLimiet(configuratieService.getConfiguratieIntegerValue(SeConfiguratieKey.SE_DAGLIJST_OPHALEN_VOOR_DAGEN));
 		return ResponseEntity.ok(environmentInfo);
 	}
 }

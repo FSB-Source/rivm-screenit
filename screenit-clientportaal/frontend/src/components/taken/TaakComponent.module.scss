@@ -1,0 +1,50 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.topTaak {
+	height: 140px;
+	min-width: 220px;
+	max-width: 320px;
+	border-radius: 10px;
+	border: 1px solid #D5D5D5;
+	padding-left: 30px;
+	padding-right: 30px;
+	padding-top: 20px;
+	margin-bottom: 20px;
+
+	transition: 0.3s;
+	font-size: 1.1rem;
+
+	&:hover {
+		cursor: pointer;
+		box-shadow: 5px 20px 30px 3px rgba(0, 0, 0, 0.2);
+	}
+
+	@include respond-below(xs) {
+		padding-left: 15px;
+		padding-right: 15px;
+		padding-top: 10px;
+		height: 100px;
+	}
+}
+
+.icon {
+  display: inline-flex;
+  float: right;
+
+  svg {
+		height: 40px;
+		width: 40px;
+		background-color: $grijs-500;
+
+		@include respond-below(lg) {
+			height: 35px;
+			width: 35px;
+		}
+
+		@include respond-below(xs) {
+			height: 30px;
+			width: 30px;
+		}
+	}
+}

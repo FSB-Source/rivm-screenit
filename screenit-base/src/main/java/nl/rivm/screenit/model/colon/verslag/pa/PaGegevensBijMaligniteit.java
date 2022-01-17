@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.colon.verslag.pa;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -60,7 +59,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "103679000", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Vorm van de laesie", extraTekst = "Vorm is poliepeus of sessiel", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155059", isVerplicht = true)
+	@VraagElement(displayName = "Vorm van de laesie", extraTekst = "Vorm is poliepeus of sessiel", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155059", isVerplicht = true)
 	private DSValue vormVanDeLaesie;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -69,7 +68,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "1959", codeSystem = "1.3.6.1.4.1.19376.1.8.5.50"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Differentiatie", extraTekst = "Differentiatie", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155060", isVerplicht = true)
+	@VraagElement(displayName = "Differentiatie", extraTekst = "Differentiatie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155060", isVerplicht = true)
 	private DSValue differentiatie;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -78,7 +77,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "370060008", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Invasiediepte", extraTekst = "Invasiediepte", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155070", isVerplicht = true)
+	@VraagElement(displayName = "Invasiediepte", extraTekst = "Invasiediepte", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155070", isVerplicht = true)
 	private DSValue invasiediepte;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -89,11 +88,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "4", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.11"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(
-		displayName = "Haggitt level",
-		extraTekst = "Haggitt level is een maat voor de invasiediepte",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155080",
-		isVerplicht = true)
+	@VraagElement(displayName = "Haggitt level", extraTekst = "Haggitt level is een maat voor de invasiediepte", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155080")
 	private DSValue haggittLevel;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -103,16 +98,19 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "3", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.12"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Kikuchi level", extraTekst = "Kikuchi level", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155090", isVerplicht = true)
+	@VraagElement(displayName = "Kikuchi level", extraTekst = "Kikuchi level", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155090", isVerplicht = true)
 	private DSValue kikuchiLevel;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@DSValueSet(name = "vs_invasion_lv", values = {
-		@DSValueSetValue(code = "395553001", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "395553001", codeSystem = "2.16.840.1.113883.6.96", deprecated = true),
 		@DSValueSetValue(code = "395552006", codeSystem = "2.16.840.1.113883.6.96"),
-		@DSValueSetValue(code = "395554007", codeSystem = "2.16.840.1.113883.6.96")
+		@DSValueSetValue(code = "395554007", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "395717001", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "369733002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "369734008", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(displayName = "(Lymf-)angioinvasie", extraTekst = "(Lymf-)angioinvasie", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155100", isVerplicht = true)
+	@VraagElement(displayName = "(Lymf-)angioinvasie", extraTekst = "(Lymf-)angioinvasie", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155100", isVerplicht = true)
 	private DSValue lymfangioinvasie;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -122,11 +120,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "370109009", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(
-		displayName = "Snijvlak vrij/niet vrij",
-		extraTekst = "Of snijvlak vrij/niet vrij/niet te beoordelen is",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155110",
-		isVerplicht = true)
+	@VraagElement(displayName = "Snijvlak vrij/niet vrij", extraTekst = "Of snijvlak vrij/niet vrij/niet te beoordelen is", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155110", isVerplicht = true)
 	private DSValue snijvlakVrijnietVrij;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -142,11 +136,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "9", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.79"),
 		@DSValueSetValue(code = "10", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.79")
 	})
-	@VraagElement(
-		displayName = "Afstand tot snijvlak (categorie\u00ebn)",
-		extraTekst = "Afstand tot snijvlak (in cm categorie\u00ebn)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155120",
-		isVerplicht = true)
+	@VraagElement(displayName = "Afstand tot snijvlak (categorie\u00ebn)", extraTekst = "Afstand tot snijvlak (in cm categorie\u00ebn)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155120", isVerplicht = true)
 	private DSValue afstandTotSnijvlakcategorieen;
 
 	@Embedded
@@ -156,7 +146,7 @@ public class PaGegevensBijMaligniteit
 		@AttributeOverride(name = "unit", column = @Column(name = "afstandTotSnijvlakexactUnit")),
 		@AttributeOverride(name = "nullFlavour", column = @Column(name = "afstandTotSnijvlakexactNf"))
 	})
-	@VraagElement(displayName = "Afstand tot snijvlak (exact)", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155121", isVerplicht = true, unit = {
+	@VraagElement(displayName = "Afstand tot snijvlak (exact)", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155121", isVerplicht = true, unit = {
 		@VraagElementUnit(unit = "cm")
 	})
 	private NullFlavourQuantity afstandTotSnijvlakexact;
@@ -182,15 +172,11 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "31396002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "Type tumor", extraTekst = "Vastgestelde laesie per poliep", code = "2.16.840.1.113883.2.4.3.36.77.2.8.155150", isVerplicht = true)
+	@VraagElement(displayName = "Type tumor", extraTekst = "Vastgestelde laesie per poliep", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155150", isVerplicht = true)
 	private DSValue typeTumor;
 
 	@Column(length = 4096)
-	@VraagElement(
-		displayName = "Type tumor overige",
-		extraTekst = "Ander soort tumor, als Type tumor =\"overige\"",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155151",
-		isVerplicht = true)
+	@VraagElement(displayName = "Type tumor overige", extraTekst = "Ander soort tumor, als Type tumor =\"overige\"", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155151", isVerplicht = true)
 	private String typeTumorOverige;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -199,11 +185,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "g2", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.107"),
 		@DSValueSetValue(code = "g3", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.107")
 	})
-	@VraagElement(
-		displayName = "Proliferatie KI-67",
-		extraTekst = "Proliferatie van de KI-67 marker (bij neuro-endocriene tumor)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155155",
-		isVerplicht = true)
+	@VraagElement(displayName = "Proliferatie KI-67", extraTekst = "Proliferatie van de KI-67 marker (bij neuro-endocriene tumor)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155155", isVerplicht = true)
 	private DSValue proliferatieKi67;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -212,11 +194,7 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "g2", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.108"),
 		@DSValueSetValue(code = "g3", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.108")
 	})
-	@VraagElement(
-		displayName = "Mitosen per 2mm2",
-		extraTekst = "Aantal mitosen per 2 mm2 (bij neuro-endocriene tumor)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155160",
-		isVerplicht = true)
+	@VraagElement(displayName = "Mitosen per 2mm2", extraTekst = "Aantal mitosen per 2 mm2 (bij neuro-endocriene tumor)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155160", isVerplicht = true)
 	private DSValue mitosenPer2mm2;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -225,12 +203,18 @@ public class PaGegevensBijMaligniteit
 		@DSValueSetValue(code = "443506002", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "80898003", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(
-		displayName = "Invasie diepte (NET)",
-		extraTekst = "Invasie diepte (Neuroendocriene tumor)",
-		code = "2.16.840.1.113883.2.4.3.36.77.2.8.155165",
-		isVerplicht = true)
+	@VraagElement(displayName = "Invasie diepte (NET)", extraTekst = "Invasie diepte (Neuroendocriene tumor)", code = "2.16.840.1.113883.2.4.3.36.77.2.10.155165", isVerplicht = true)
 	private DSValue invasieDieptenet;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@DSValueSet(name = "perineuralgrowth", values = {
+		@DSValueSetValue(code = "260415000", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "260373001", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "720735008", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "1156316003", codeSystem = "2.16.840.1.113883.6.96")
+	})
+	@VraagElement(displayName = "Perineurale groei", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.2.10.290191")
+	private DSValue perineuraleGroei;
 
 	public PaPathologieProtocolColonbioptperPoliep getPathologieProtocolColonbioptperPoliep()
 	{
@@ -380,6 +364,16 @@ public class PaGegevensBijMaligniteit
 	public void setInvasieDieptenet(DSValue invasieDieptenet)
 	{
 		this.invasieDieptenet = invasieDieptenet;
+	}
+
+	public DSValue getPerineuraleGroei()
+	{
+		return perineuraleGroei;
+	}
+
+	public void setPerineuraleGroei(DSValue perineuraleGroei)
+	{
+		this.perineuraleGroei = perineuraleGroei;
 	}
 
 }

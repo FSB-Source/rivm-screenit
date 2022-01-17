@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,8 @@ import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.mamma.MammaAdhocMeekijkverzoek;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -65,6 +67,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
+import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -262,24 +265,35 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 		String melding = null;
 		try
 		{
-			MammaBeoordeling beoordeling = getBeoordeling(visitatie.getBeoordelingsEenheid(), null, client);
-			if (!kwaliteitscontroleDao.isBeoordelingInVisitatieOnderdeel(beoordeling, visitatie, visitatieOnderdeel))
+			if (!BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_WETENSCHAPPELIJK_ONDERZOEK, Bevolkingsonderzoek.MAMMA)
+				&& !BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_KWALITEITSWAARBORGING, Bevolkingsonderzoek.MAMMA))
 			{
-				List<MammaVisitatieOnderzoek> onderzoeken = visitatie.getOnderzoeken();
-				MammaVisitatieOnderzoek visitatieOnderzoek = new MammaVisitatieOnderzoek();
-				visitatieOnderzoek.setVisitatie(visitatie);
-				visitatieOnderzoek.setBeoordeling(beoordeling);
-				visitatieOnderzoek.setStatus(MammaVisitatieOnderzoekStatus.NIET_GEZIEN);
-				visitatieOnderzoek.setOnderdeel(visitatieOnderdeel);
-				int volgnummer = onderzoeken.stream().filter(o -> o.getOnderdeel() == visitatieOnderdeel).mapToInt(MammaVisitatieOnderzoek::getVolgnummer).max().orElse(0) + 1;
-				visitatieOnderzoek.setVolgnummer(volgnummer);
-				onderzoeken.add(visitatieOnderzoek);
-				hibernateService.saveOrUpdateAll(visitatieOnderzoek, visitatie);
+				MammaBeoordeling beoordeling = getBeoordeling(visitatie.getBeoordelingsEenheid(), null, client);
+				if (!kwaliteitscontroleDao.isBeoordelingInVisitatieOnderdeel(beoordeling, visitatie, visitatieOnderdeel))
+				{
+					List<MammaVisitatieOnderzoek> onderzoeken = visitatie.getOnderzoeken();
+					MammaVisitatieOnderzoek visitatieOnderzoek = new MammaVisitatieOnderzoek();
+					visitatieOnderzoek.setVisitatie(visitatie);
+					visitatieOnderzoek.setBeoordeling(beoordeling);
+					visitatieOnderzoek.setStatus(MammaVisitatieOnderzoekStatus.NIET_GEZIEN);
+					visitatieOnderzoek.setOnderdeel(visitatieOnderdeel);
+					int volgnummer = onderzoeken.stream().filter(o -> o.getOnderdeel() == visitatieOnderdeel).mapToInt(MammaVisitatieOnderzoek::getVolgnummer).max().orElse(0) + 1;
+					visitatieOnderzoek.setVolgnummer(volgnummer);
+					onderzoeken.add(visitatieOnderzoek);
+					hibernateService.saveOrUpdateAll(visitatieOnderzoek, visitatie);
+				}
+				else
+				{
+					throw new IllegalStateException(
+						String.format("Onderzoek van cliënt met bsn %s en geboortedatum %s kan niet worden toegevoegd: Onderzoek staat al in de werklijst",
+							client.getPersoon().getBsn(), DateUtil.getGeboortedatum(client)));
+				}
 			}
 			else
 			{
-				throw new IllegalStateException(String.format("Onderzoek van cliënt met bsn %s en geboortedatum %s kan niet worden toegevoegd: Onderzoek staat al in de werklijst",
-					client.getPersoon().getBsn(), DateUtil.getGeboortedatum(client)));
+				throw new IllegalStateException(
+					String.format("Onderzoek van cliënt met bsn %s en geboortedatum %s kan niet worden toegevoegd: Cliënt heeft actief bezwaar",
+						client.getPersoon().getBsn(), DateUtil.getGeboortedatum(client)));
 			}
 		}
 		catch (Exception e)

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.batch.jms.listener;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,64 +21,46 @@ package nl.rivm.screenit.batch.jms.listener;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
 import javax.jms.JMSException;
 import javax.jms.Session;
 
 import nl.rivm.screenit.batch.service.VerwerkCdaBerichtService;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
-import org.apache.activemq.command.ActiveMQObjectMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.activemq.command.ActiveMQMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 
-public class JMSVerwerkCdaBerichtListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
+public class JMSVerwerkCdaBerichtListener implements SessionAwareMessageListener<ActiveMQMessage>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(JMSVerwerkCdaBerichtListener.class);
 
 	@Autowired
 	private VerwerkCdaBerichtService verwerkCdaBerichtService;
 
+	private Bevolkingsonderzoek bvo;
+
 	@Override
-	public void onMessage(ActiveMQObjectMessage message, Session session) throws JMSException
+	public void onMessage(ActiveMQMessage message, Session session) throws JMSException
 	{
-		boolean rollback = false;
-		Long berichtID = null;
-		try
+		List<Long> berichten = verwerkCdaBerichtService.getAlleNietVerwerkteCdaBerichten(bvo);
+		for (Long berichtId : berichten)
 		{
-			LOG.trace("ActiveMQ bericht " + message.getJMSMessageID() + " is ontvangen");
-
-			Object object = message.getObject();
-
-			if (object instanceof Long)
+			try
 			{
-
-				berichtID = (Long) object;
-
-				if (LOG.isTraceEnabled())
-				{
-					LOG.trace("ActiveMQ bericht " + message.getJMSMessageID() + " met berichtID: " + berichtID);
-				}
-				verwerkCdaBerichtService.verwerkBericht(berichtID);
+				verwerkCdaBerichtService.verwerkBericht(berichtId);
+			}
+			catch (Exception e)
+			{
+				verwerkCdaBerichtService.verwerkError(berichtId, e);
 			}
 		}
-		catch (Exception e)
-		{
-			verwerkCdaBerichtService.verwerkError(berichtID, e);
-			LOG.error("Exception bij verwerken van activeMQ bericht " + message.getJMSMessageID(), e);
-			rollback = true;
-		}
+		session.commit();
+	}
 
-		if (rollback)
-		{
-			LOG.trace("ActiveMQ bericht " + message.getJMSMessageID() + " zal worden gerollbacked.");
-			session.rollback();
-		}
-		else if (LOG.isTraceEnabled())
-		{
-			LOG.trace("ActiveMQ bericht " + message.getJMSMessageID() + " is succesvol verwerkt.");
-		}
-
+	public void setBvo(Bevolkingsonderzoek bvo)
+	{
+		this.bvo = bvo;
 	}
 }

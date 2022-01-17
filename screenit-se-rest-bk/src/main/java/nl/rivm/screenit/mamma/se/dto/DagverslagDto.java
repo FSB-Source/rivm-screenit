@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.dto;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,14 @@ package nl.rivm.screenit.mamma.se.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDate;
 import java.util.Map;
 
+@Getter
+@Setter
 public class DagverslagDto
 {
 	private Map<String, DagProductieDto> Dagproductie;
@@ -34,43 +39,5 @@ public class DagverslagDto
 
 	private LocalDate nietAfgeslotenVanaf;
 
-	public Map<String, DagProductieDto> getDagproductie()
-	{
-		return Dagproductie;
-	}
-
-	public void setDagproductie(Map<String, DagProductieDto> dagproductie)
-	{
-		Dagproductie = dagproductie;
-	}
-
-	public DagSynchronisatieDto getDagSynchronisatie()
-	{
-		return dagSynchronisatie;
-	}
-
-	public void setDagSynchronisatie(DagSynchronisatieDto dagSynchronisatie)
-	{
-		this.dagSynchronisatie = dagSynchronisatie;
-	}
-
-	public DagAfsluitingDto getDagafsluiting()
-	{
-		return dagafsluiting;
-	}
-
-	public void setDagafsluiting(DagAfsluitingDto dagafsluiting)
-	{
-		this.dagafsluiting = dagafsluiting;
-	}
-
-	public LocalDate getNietAfgeslotenVanaf()
-	{
-		return nietAfgeslotenVanaf;
-	}
-
-	public void setNietAfgeslotenVanaf(LocalDate nietAfgeslotenVanaf)
-	{
-		this.nietAfgeslotenVanaf = nietAfgeslotenVanaf;
-	}
+	private DagPlanningSamenvattingDto dagPlanningSamenvatting;
 }

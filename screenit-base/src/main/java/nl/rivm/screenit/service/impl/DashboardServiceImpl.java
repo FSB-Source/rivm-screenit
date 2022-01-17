@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,12 +38,12 @@ import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.dashboard.DashboardType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
+import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
-import nl.rivm.screenit.service.MailService.MailPriority;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -229,7 +229,7 @@ public class DashboardServiceImpl implements DashboardService
 			DashboardType type = dashboardStatus.getType();
 			String content = "Dashboard " + type.getNaam() + " van " + dashboardStatus.getOrganisatie().getNaam() + " heeft een rode status gekregen.";
 
-			mailService.sendEmail(emailadressen,
+			mailService.queueMail(emailadressen,
 				"ScreenIT " + type.getNaam() + "(" + Bevolkingsonderzoek.getAfkortingen(type.getBevolkingsOnderzoek()) + ")" + " gefaald op " + applicationEnvironment, content,
 				MailPriority.HIGH);
 		}

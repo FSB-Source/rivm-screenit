@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,7 @@ import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
+import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.slf4j.Logger;
@@ -76,6 +77,9 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 
 	@Autowired
 	private MammaCStoreService uploadBeeldenService;
+
+	@Autowired
+	private MammaBaseUitwisselportaalService baseUitwisselportaalService;
 
 	@Override
 	public List<MammaIMSBericht> getAlleNietVerwerkteIMSBerichten()
@@ -132,7 +136,7 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 		}
 		else
 		{
-			MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenService.getUploadPoging(bericht.getAccessionNumber());
+			MammaUploadBeeldenPoging uploadBeeldenPoging = baseUitwisselportaalService.getUploadPoging(bericht.getAccessionNumber());
 			if (uploadBeeldenPoging == null)
 			{
 				throw new HL7Exception(
@@ -145,7 +149,7 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 	private void verwerkBerichtBeeldenVerwijderd(MammaIMSBericht bericht, Client client)
 	{
 		String melding = "Beelden verwijderd voor ";
-		MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenService.getUploadPoging(bericht.getAccessionNumber());
+		MammaUploadBeeldenPoging uploadBeeldenPoging = baseUitwisselportaalService.getUploadPoging(bericht.getAccessionNumber());
 		if (uploadBeeldenPoging != null)
 		{
 			uploadBeeldenService.beeldenVerwijderdUploadVerzoek(uploadBeeldenPoging, bericht, client, false);
@@ -163,7 +167,7 @@ public class MammaIMSBerichtInlezenServiceImpl implements MammaIMSBerichtInlezen
 	private void verwerkBerichtBeeldenVerwijderenError(MammaIMSBericht bericht, Client client)
 	{
 		String melding = "Error tijdens verwijderen beelden ";
-		MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenService.getUploadPoging(bericht.getAccessionNumber());
+		MammaUploadBeeldenPoging uploadBeeldenPoging = baseUitwisselportaalService.getUploadPoging(bericht.getAccessionNumber());
 		if (uploadBeeldenPoging != null)
 		{
 			uploadBeeldenService.beeldenVerwijderdUploadVerzoek(uploadBeeldenPoging, bericht, client, true);

@@ -1,0 +1,50 @@
+{
+  "page": {
+    "title": {
+      "bvo": "Bevolkingsonderzoek %s",
+      "afspraak_verzetten": "Afspraak verzetten",
+      "afspraak_maken": "Afspraak maken"
+    },
+    "description": {
+      "afspraak_verzetten": "U bent uitgenodigd voor het bevolkingsonderzoek borstkanker. U gaat naar een van onze onderzoekscentra voor het onderzoek. </br></br>Komt de afspraak voor het onderzoek u niet uit? Dan kunt u uw afspraak verzetten.</br>Hieronder ziet u waar en wanneer er afspraken beschikbaar zijn (dit kan even duren).</br>In de kalender ziet u op welke dagen u een afspraak kunt maken. U kunt ook een andere plaats kiezen.",
+      "afspraak_maken": "U bent uitgenodigd voor het bevolkingsonderzoek borstkanker. U gaat naar een van onze onderzoekscentra voor het onderzoek. </br></br>Hieronder ziet u waar en wanneer er afspraken beschikbaar zijn (dit kan even duren).</br>In de kalender ziet u op welke dagen u een afspraak kunt maken. U kunt ook een andere plaats kiezen."
+    }
+  },
+  "blob": {
+    "title": "Mijn afspraak",
+    "afspraak_moment": "%s&nbsp;uur",
+    "afspraak_locatie": "%s <br> %s"
+  },
+  "form": {
+    "titel": "Zoeken",
+    "placeholder": {
+      "afstand": "Maximale reisafstand",
+      "plaats": "Plaats",
+      "datum": "Datum*"
+    },
+    "error": {
+      "beschikbaarheid": "Geen afspraken beschikbaar",
+      "type": "Ongeldige datum",
+      "verplicht": "Maak uw keuze"
+    },
+    "button": "Zoeken"
+  },
+  "searchresult": {
+    "hovertext": "Kies deze afspraak",
+    "no_results": "Helaas, er zijn geen afspraken (meer) beschikbaar in het onderzoekscentrum waarvoor u bent uitgenodigd.</br></br>Klik op ‘Plaats’ om te zien in welke plaatsen u een afspraak kunt maken.</br>Selecteer de plaats waar u naar toe wilt en kies uw afspraak.",
+    "button": {
+      "header": {
+        "contact": "Hulp nodig?",
+        "uitstellen": "Onderzoek uitstellen"
+      },
+      "text": {
+        "contact": "U kunt ook bellen met onze informatielijn om een afspraak te maken.",
+        "uitstellen": "Ik wil wel meedoen, maar op een later moment."
+      }
+    }
+  },
+  "navigation": {
+    "daybutton": "dag",
+    "more_results": "Toon meer mogelijkheden"
+  }
+}

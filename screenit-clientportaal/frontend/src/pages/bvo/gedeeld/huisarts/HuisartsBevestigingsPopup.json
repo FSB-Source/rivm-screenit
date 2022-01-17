@@ -1,0 +1,14 @@
+{
+  "bevestigen": {
+    "title": "Huisarts bevestigen",
+    "description": "Hieronder ziet u de gegevens van de huisarts die u heeft gekozen. Is dit uw huisarts? Kies dan ‘Dit is mijn huisarts’. Wilt u een andere huisarts doorgeven? Kies dan voor ‘Andere huisarts kiezen’.",
+    "button_bevestigen": "Dit is mijn huisarts",
+    "button_annuleren": "Andere huisarts kiezen"
+  },
+  "verwijderen": {
+    "title": "Huisarts verwijderen",
+    "description": "Hieronder ziet u de gegevens van de huisarts die u heeft gekozen. Is dit uw huisarts? Kies dan ‘Dit is mijn huisarts’. Wilt u een andere huisarts doorgeven? Kies dan voor ‘Andere huisarts kiezen’.",
+    "button_bevestigen": "Huisarts verwijderen",
+    "button_annuleren": "Gegevens laten staan"
+  }
+}

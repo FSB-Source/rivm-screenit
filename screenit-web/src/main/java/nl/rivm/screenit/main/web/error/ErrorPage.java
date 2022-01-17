@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.error;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.base.ScreenitContext;
-import nl.rivm.screenit.main.web.client.digid.ClientportaalDigidRedirectPage;
 import nl.rivm.screenit.main.web.component.panels.ApplicatieInfoPanel;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
@@ -52,8 +51,6 @@ public class ErrorPage extends BasePage
 {
 
 	private static final Logger LOG = LoggerFactory.getLogger(ErrorPage.class);
-
-	private static final long serialVersionUID = 1L;
 
 	private final Model<String> errorId;
 
@@ -111,9 +108,6 @@ public class ErrorPage extends BasePage
 
 		Form<Void> form = new Form<Void>("feedbackForm")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit()
 			{
@@ -126,14 +120,7 @@ public class ErrorPage extends BasePage
 				Account loggedInAccount = ScreenitSession.get().getLoggedInAccount();
 				if (loggedInAccount != null)
 				{
-					if (loggedInAccount instanceof Client)
-					{
-						setResponsePage(ClientportaalDigidRedirectPage.class);
-					}
-					else
-					{
-						setResponsePage(Application.get().getHomePage());
-					}
+					setResponsePage(Application.get().getHomePage());
 				}
 			}
 		};
@@ -165,6 +152,5 @@ public class ErrorPage extends BasePage
 	@Override
 	public void refreshFeedback(AjaxRequestTarget target)
 	{
-
 	}
 }

@@ -1,0 +1,98 @@
+﻿.cookie-body {
+  max-width: 992px;
+  margin: auto;
+  height: 0;
+  display: flex;
+}
+
+.cookie {
+  height: 0;
+  opacity: 0;
+  display: inline-block;
+  top: 84px;
+  position: fixed;
+  padding: 24px 20px;
+
+  &.storing {
+    position: fixed;
+    left: 50%;
+    top: 160px !important;
+    transform: translate(-50%, -50%);
+    width: 50%;
+  }
+
+  &.cookie-bar {
+    top: 84px;
+    width: 992px;
+
+    @include respond-below(md) {
+      width: 100%;
+      display: inline-table;
+    }
+
+    opacity: 1;
+    border-radius: 0 0 10px 10px;
+    height: 160px !important;
+    background: $blue;
+    transition: .3s;
+    -webkit-animation: .3s slideIn;
+    -moz-animation: .3s slideIn;
+    animation: .3s slideIn;
+    z-index: 10000;
+    display: inline-block;
+    box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.2);
+    padding: 20px;
+
+    @include respond-below(sm) {
+      padding: 50px 20px 10px;
+    }
+
+    @include respond-below(md) {
+      border-radius: 0;
+    }
+
+
+    & .cookie-bar--text {
+      font-size: calc-em(16);
+      color: white;
+      line-height: 1.5;
+      text-align: center;
+      width: 95%;
+
+      @include respond-below(sm) {
+        width: 100%;
+      }
+
+      a {
+        text-decoration: underline;
+      }
+    }
+
+    & .cookie-bar--close {
+      font-size: calc-em(28);
+      float: right;
+      color: white;
+      font-weight: 400;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      cursor: pointer;
+
+      i {
+        &:hover {
+          font-weight: 700;
+          position: relative;
+          bottom: 1px;
+          text-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.2);
+        }
+      }
+    }
+  }
+}
+
+.checkbox-cb {
+  &:checked + .cookie-bar {
+    min-height: 0;
+    opacity: 0;
+  }
+}

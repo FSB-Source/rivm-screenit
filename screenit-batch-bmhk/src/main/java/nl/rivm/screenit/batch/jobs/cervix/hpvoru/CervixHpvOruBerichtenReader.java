@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.hpvoru;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,17 @@ package nl.rivm.screenit.batch.jobs.cervix.hpvoru;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.KEY_LABORATORIUMID;
-
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixZas;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+
+import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.KEY_LABORATORIUMID;
 
 public class CervixHpvOruBerichtenReader extends BaseScrollableResultReader
 {
@@ -47,7 +47,7 @@ public class CervixHpvOruBerichtenReader extends BaseScrollableResultReader
 		criteria.add(Restrictions.eq("laboratorium.oruBerichtenVerwerken", Boolean.TRUE));
 		criteria.add(Restrictions.isNotNull("monster.brief"));
 		criteria.add(Restrictions.or(
-			Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvUitslag.NEGATIEF),
+			Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.NEGATIEF),
 			Restrictions.eq("monster.class", CervixZas.class)));
 		criteria.add(Restrictions.isNull("monster.datumOruVerstuurd"));
 		criteria.add(Restrictions.eq("laboratorium.id", getStepExecutionContext().getLong(KEY_LABORATORIUMID)));

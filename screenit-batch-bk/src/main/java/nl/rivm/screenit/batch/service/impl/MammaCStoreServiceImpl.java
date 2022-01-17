@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,19 +36,19 @@ import javax.persistence.Column;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.MammaCStoreService;
-import nl.rivm.screenit.batch.service.impl.dicom.DicomCStoreSCU;
+import nl.rivm.screenit.batch.service.impl.dicom.CStoreSCU;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.MammaHl7v24BerichtLogEvent;
-import nl.rivm.screenit.model.mamma.DicomCStoreConfig;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoekStatus;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
+import nl.rivm.screenit.model.mamma.dicom.CStoreConfig;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
@@ -57,6 +57,7 @@ import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
+import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.rivm.screenit.util.DateUtil;
@@ -122,6 +123,9 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 	@Autowired
 	private MammaBaseUitwisselportaalService uitwisselportaalService;
 
+	@Autowired
+	private MammaBaseIlmService baseIlmService;
+
 	private static int STATUS_MELDING_COLUMN_SIZE;
 
 	static
@@ -134,12 +138,6 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 		{
 			LOG.error("Fout bij initialiseren van statusmelding kolom size", e);
 		}
-	}
-
-	@Override
-	public MammaUploadBeeldenPoging getUploadPoging(Long accessionNumber)
-	{
-		return hibernateService.getUniqueByParameters(MammaUploadBeeldenPoging.class, ImmutableMap.of("accessionNumber", accessionNumber));
 	}
 
 	@Override
@@ -179,6 +177,10 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_HL7_BERICHT_ERROR_ONTVANGEN, logEvent, null, client, Bevolkingsonderzoek.MAMMA);
 		}
+		else
+		{
+			baseIlmService.verwijderIlmBezwaarPoging(uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier(), uploadBeeldenPoging.getAccessionNumber());
+		}
 	}
 
 	@Override
@@ -204,6 +206,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 			uploadBeeldenVerzoek = hibernateService.getBoundObject(uploadBeeldenVerzoek);
 			hibernateService.reload(uploadBeeldenVerzoek);
 			MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenVerzoek.getLaatsteUploadPoging();
+			LOG.info("Start verstuur beelden voor uploadpoging " + uploadBeeldenPoging.getId());
 			List<UploadDocument> beeldenTeUploaden = valideerBeelden(uploadBeeldenPoging, errorBestanden, sopClasses);
 			succes = beeldenTeUploaden != null;
 
@@ -215,7 +218,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 				for (UploadDocument uploadDocument : beeldenTeUploaden)
 				{
 					File dicomFile = fileService.load(uploadDocument);
-					DicomCStoreSCU dicomCStoreSCU = new DicomCStoreSCU(DicomCStoreConfig.parse(
+					CStoreSCU dicomCStoreSCU = new CStoreSCU(CStoreConfig.parse(
 						preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CSTORE_CONFIG.toString(),
 							"SIT_STORE2_SCU@localhost:11114,DICOM_Store_SCP@localhost:14843")));
 					succes &= dicomCStoreSCU.store(dicomFile, sopClasses, accessionNumber, uploadBeeldenVerzoek.getScreeningRonde().getDossier().getClient().getPersoon().getBsn());
@@ -245,17 +248,19 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 					}
 				}
 			}
+			LOG.info("Klaar met uploadpoging " + uploadBeeldenPoging.getId());
 		}
 		catch (Exception e)
 		{
 			succes = false;
-			LOG.error("Fout bij afwerken van uploadverzoek: " + uploadBeeldenVerzoek.getId(), e);
+			LOG.error("Fout bij afwerken van uploadpoging " + uploadBeeldenVerzoek.getId(), e);
 		}
 		finally
 		{
 			if (session != null)
 			{
 				MammaUploadBeeldenPoging uploadBeeldenPoging = uploadBeeldenVerzoek.getLaatsteUploadPoging();
+				LOG.info("Start afronden uploadpoging " + uploadBeeldenPoging.getId() + ". Succes: " + succes);
 				if (!succes)
 				{
 					String errorBestandNamen = String.join(", ", errorBestanden);
@@ -290,7 +295,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 
 				TransactionSynchronizationManager.unbindResource(sessionFactory);
 				session.close();
-
+				LOG.info("Einde afronden uploadpoging " + uploadBeeldenPoging.getId());
 			}
 		}
 	}
@@ -314,7 +319,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 
 				File file = fileService.load(uploadDocument);
 				DicomInputStream dis = new DicomInputStream(file);
-				Attributes attributes = dis.readDataset(-1, Tag.PixelData);
+				Attributes attributes = dis.readDatasetUntilPixelData();
 				Date date = attributes.getDate(Tag.StudyDate, null, new DatePrecision());
 				if (date == null)
 				{

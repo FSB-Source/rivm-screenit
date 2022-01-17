@@ -1,0 +1,22 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.content {
+	padding-bottom: 30px;
+
+	@include respond-below(xs) {
+		padding-bottom: 10px;
+		padding-left: 10px;
+		padding-right: 10px;
+	}
+}
+
+.topTaak {
+	margin-bottom: 30px;
+	max-width: 1100px;
+
+	@include respond-below(xs) {
+		padding-top: 20px;
+		margin-bottom: 10px;
+	}
+}

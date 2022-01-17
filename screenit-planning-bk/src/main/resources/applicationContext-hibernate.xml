@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-planning-bk
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,8 +21,9 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns="http://www.springframework.org/schema/beans"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns="http://www.springframework.org/schema/beans"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+						  	http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="hibernateConfigLocations" class="java.util.ArrayList">
         <constructor-arg>
@@ -37,19 +38,4 @@
             </list>
         </constructor-arg>
     </bean>
-
-    
-    <bean id="dataSource" class="nl.rivm.screenit.datasource.DataSourceRouter">
-        <property name="targetDataSources">
-            <map key-type="java.lang.String">
-                <entry key="RO" value="jdbc/screenit-ro"/>
-                <entry key="RW" value="jdbc/screenit"/>
-            </map>
-        </property>
-        <property name="defaultTargetDataSource" value="jdbc/screenit"/>
-    </bean>
-    <alias name="dataSource" alias="hibernateDatasource"/>
-
-    <alias name="hibernateSessionFactory" alias="entityManagerFactory"/>
-
 </beans>

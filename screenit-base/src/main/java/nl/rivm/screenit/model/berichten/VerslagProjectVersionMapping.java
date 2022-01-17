@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.model.berichten;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -49,6 +48,7 @@ public class VerslagProjectVersionMapping
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2017-11-16T22:49:21", VerslagGeneratie.V6, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2018-12-19T11:16:40", VerslagGeneratie.V7, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2019-11-17T20:43:52", VerslagGeneratie.V8, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
+		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2021-12-07T13:10:09", VerslagGeneratie.V10, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2019-04-03T11:23:47", VerslagGeneratie.V2, VerslagType.MAMMA_PA_FOLLOW_UP);
 
 	}
@@ -60,7 +60,8 @@ public class VerslagProjectVersionMapping
 		{
 
 			List<String> teRemove = new ArrayList<>();
-			mapping.entrySet().forEach(e -> {
+			mapping.entrySet().forEach(e ->
+			{
 				if (e.getValue().values().contains(generatie))
 				{
 					teRemove.add(e.getKey());

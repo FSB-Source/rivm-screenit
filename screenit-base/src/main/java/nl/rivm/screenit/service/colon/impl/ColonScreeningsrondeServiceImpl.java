@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -122,11 +122,9 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 		{
 			IFOBTTest gekoppeldeTest = uitnodiging.getGekoppeldeTest();
 			IFOBTTest gekoppeldeTestExtra = uitnodiging.getGekoppeldeExtraTest();
-			if (gekoppeldeTestExtra != null && gekoppeldeTestExtra.getUitslag() != null || gekoppeldeTest != null && gekoppeldeTest.getUitslag() != null
-				|| uitnodiging.getAntwoordFormulier() != null)
-			{
-				return true;
-			}
+
+			return gekoppeldeTestExtra != null && gekoppeldeTestExtra.getUitslag() != null || gekoppeldeTest != null && gekoppeldeTest.getUitslag() != null
+				|| uitnodiging.getAntwoordFormulier() != null;
 		}
 		return false;
 	}
@@ -227,7 +225,7 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 			maximaleLeeftijd, uitnodigingsInterval);
 		Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
 		boolean andereClientMetZelfdeAdresHeeftActiveIfobt = clientenOpAdres.size() == 2 && ColonRestrictions.isIfobtActief(andereClient, new ArrayList<>())
-			&& !ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket);
+			&& !ColonRestrictions.isWachttijdOpPakketVerstreken(andereClient, wachttijdVerzendenPakket, new ArrayList<>(), currentDateSupplier.getLocalDate());
 
 		if (andereClientMetZelfdeAdresHeeftActiveIfobt)
 		{
@@ -250,7 +248,7 @@ public class ColonScreeningsrondeServiceImpl implements ColonScreeningsrondeServ
 		IFOBTTest eersteGunstigeUitslag = ColonScreeningRondeUtil.getEersteGunstigeTest(csr);
 		if (eersteGunstigeUitslag != null && !ColonScreeningRondeUtil.zijnErOngunstigeIfobts(csr))
 		{
-			ColonBrief brief = briefService.maakColonBrief(csr, BriefType.COLON_GUNSTIGE_UITSLAG);
+			ColonBrief brief = briefService.maakBvoBrief(csr, BriefType.COLON_GUNSTIGE_UITSLAG);
 			brief.setIfobtTest(eersteGunstigeUitslag);
 			hibernateService.saveOrUpdate(brief);
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.attributen;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -67,12 +67,13 @@ public abstract class ProjectAttribuutEditPanel extends GenericPanel<ProjectAttr
 		attributeModel = model;
 		oudeNaamAttribuut = model.getObject().getNaam();
 
-		Form<ProjectAttribuut> form = new Form<ProjectAttribuut>("form", attributeModel);
+		Form<ProjectAttribuut> form = new Form<>("form", attributeModel);
 		add(form);
 
 		ComponentHelper.addTextField(form, "naam", true, 50, false);
 
 		form.add(ComponentHelper.newCheckBox("nietZichtbaarInClientDossier").setEnabled(attributeModel.getObject().getId() == null));
+		form.add(ComponentHelper.newCheckBox("barcode"));
 
 		add(new IndicatingAjaxSubmitLink("opslaan", form)
 		{
@@ -82,9 +83,8 @@ public abstract class ProjectAttribuutEditPanel extends GenericPanel<ProjectAttr
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				ProjectAttribuut attribuut = (ProjectAttribuut) form.getModelObject();
+				ProjectAttribuut attribuut = form.getModelObject();
 				LogGebeurtenis logGebeurtenis = attribuut.getId() == null ? LogGebeurtenis.PROJECT_ATTRIBUUT_TOEGEVOEGD : LogGebeurtenis.PROJECT_ATTRIBUUT_GEWIJZIGD;
-				boolean isNieuwToegevoegd = attribuut.getId() == null;
 
 				String naamAttribuut = attribuut.getNaam();
 				naamAttribuut = naamAttribuut.replaceAll(" ", "").toLowerCase();
@@ -95,7 +95,6 @@ public abstract class ProjectAttribuutEditPanel extends GenericPanel<ProjectAttr
 				String mergeField = "_" + projectNaam + "_" + naamAttribuut;
 
 				attribuut.setMergeField(mergeField);
-
 				if (projectDao.getProjectAttribuut(attribuut) == null)
 				{
 					hibernateService.saveOrUpdate(attribuut);

@@ -1,0 +1,43 @@
+{
+  "page": {
+    "title": "Onderzoek uitstellen",
+    "description": "U heeft een uitnodiging gekregen voor het bevolkingsonderzoek borstkanker. Wilt u wel meedoen, maar niet nu? Dan kunt u doorgeven dat u later mee wilt doen."
+  },
+  "searchresult": {
+    "title": {
+      "locatie": "Locatie",
+      "periode": "Periode"
+    },
+    "periode_text": {
+      "vanaf": "van %s",
+      "tot": "tot %s"
+    },
+    "hovertext": "Deelname uitstellen",
+    "no_results": "Helaas, er zijn geen zoekresultaten voor %s.<br> Dit kan komen omdat u op de opgegeven datum nu al een afspraak kunt maken voor het onderzoek. U kunt proberen een afspraak te maken door hieronder op ‘Toch liever eerder meedoen?’ te klikken. <br>Het kan ook zijn dat voor de opgegeven datum nog niet bekend is waar onze onderzoekscentra staan."
+  },
+  "form": {
+    "placeholder": "Datum*",
+    "button": "Zoeken",
+    "error": {
+      "verplicht": "Dit veld is verplicht",
+      "ongeldig": "Ongeldige datum",
+      "minimum": "Ongeldig - Kies een datum vanaf %s"
+    }
+  },
+  "navigation": {
+    "afspraak": {
+      "header": "Toch liever eerder meedoen?",
+      "text": "Maak dan nu een afspraak."
+    },
+    "contact": {
+      "header": "Hulp nodig?",
+      "text": "U kunt ook bellen met onze informatielijn."
+    }
+  },
+  "beforesearching_text": "Vul in het zoekscherm in rond welke datum u een nieuwe uitnodiging wilt ontvangen. Het invullen van een datum is verplicht. </br></br>U krijgt een lijstje met plaatsen waar u rond die datum naar toe kunt voor het onderzoek. </br>Kies waar u wilt meedoen. </br></br>Het kan zijn dat u toch in een andere plaats wordt uitgenodigd. Dat komt omdat de planning van de onderzoekscentra nog niet definitief is.",
+  "toast": {
+    "title": "U heeft uw deelname uitgesteld tot %s.",
+    "description": "U krijgt rond deze datum een nieuwe uitnodiging.",
+    "error": "Wijzigingen zijn niet opgeslagen."
+  }
+}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.planning.controller;
  * ========================LICENSE_START=================================
  * screenit-planning-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,9 @@ package nl.rivm.screenit.mamma.planning.controller;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Date;
+import java.util.Map;
+
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto.PlanningMeldingDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto.PlanningMeldingenPerSeDto;
@@ -31,9 +34,11 @@ import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
 import nl.rivm.screenit.exceptions.SeTijdBlokOverlapException;
 import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
+import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
+import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +52,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Date;
-import java.util.Map;
 
 @RestController()
 @RequestMapping("/" + PlanningRestConstants.C_ACTIE)
@@ -67,9 +69,18 @@ public class PlanningActieController
 	@RequestMapping(value = "/readModel", method = RequestMethod.POST)
 	public void readModel()
 	{
-		readModelDao.readDataModel();
-
-		PlanningDoorrekenenManager.run();
+		PlanningStatusIndex.set(MammaPlanningStatus.RESET_MODEL);
+		try
+		{
+			readModelDao.readDataModel();
+			PlanningDoorrekenenManager.run();
+			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
+		}
+		catch (Exception e)
+		{
+			PlanningStatusIndex.set(MammaPlanningStatus.ERROR);
+			throw e;
+		}
 	}
 
 	@RequestMapping(value = "/conceptOpslaan/{screeningOrganisatieId}/{runDry}", method = RequestMethod.GET)
@@ -78,7 +89,17 @@ public class PlanningActieController
 	{
 		try
 		{
-			return conceptOpslaanService.opslaan(screeningOrganisatieId, runDry);
+			if (runDry)
+			{
+				PlanningStatusIndex.set(MammaPlanningStatus.CONCEPT_WIJZIGINGEN_BEPALEN, screeningOrganisatieId);
+			}
+			else
+			{
+				PlanningStatusIndex.set(MammaPlanningStatus.CONCEPT_WIJZIGINGEN_OPSLAAN, screeningOrganisatieId);
+			}
+			PlanningConceptMeldingenDto opslaanMeldingenDto = conceptOpslaanService.opslaan(screeningOrganisatieId, runDry);
+			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
+			return opslaanMeldingenDto;
 		}
 		catch (OpslaanVerwijderenTijdBlokException e)
 		{
@@ -93,10 +114,12 @@ public class PlanningActieController
 			meldingenPerSeDto.niveau = MammaMeldingNiveau.PROBLEEM;
 			meldingenPerSeDto.meldingen.add(meldingDto);
 			meldingenDto.seMeldingen.put(seTijdBlokOverlapException.getScreeningsEenheidId(), meldingenPerSeDto);
+			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 			return meldingenDto;
 		}
 		catch (DryRunException e)
 		{
+			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 			return e.getMeldingen();
 		}
 		catch (OpslaanAfsprakenBuitenStandplaatsPeriodeException e)
@@ -115,7 +138,13 @@ public class PlanningActieController
 				meldingenPerSeDto.meldingen.add(meldingDto);
 				meldingenDto.seMeldingen.put(entry.getKey(), meldingenPerSeDto);
 			}
+			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 			return meldingenDto;
+		}
+		catch (Exception e)
+		{
+			PlanningStatusIndex.set(MammaPlanningStatus.ERROR);
+			throw e;
 		}
 	}
 
@@ -123,7 +152,17 @@ public class PlanningActieController
 	@RequestMapping(value = "/conceptAnnuleren/{screeningOrganisatieId}", method = RequestMethod.POST)
 	public void conceptAnnueleren(@PathVariable Long screeningOrganisatieId)
 	{
-		readModelDao.reset(PlanningScreeningsOrganisatieIndex.get(screeningOrganisatieId));
+		try
+		{
+			PlanningStatusIndex.set(MammaPlanningStatus.CONCEPT_ANNULEREN, screeningOrganisatieId);
+			readModelDao.reset(PlanningScreeningsOrganisatieIndex.get(screeningOrganisatieId));
+			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
+		}
+		catch (Exception e)
+		{
+			PlanningStatusIndex.set(MammaPlanningStatus.ERROR);
+			throw e;
+		}
 	}
 
 	@RequestMapping(value = "/conceptGewijzigdDoor/{instellingGebruikerId}/{screeningOrganisatieId}", method = RequestMethod.POST)

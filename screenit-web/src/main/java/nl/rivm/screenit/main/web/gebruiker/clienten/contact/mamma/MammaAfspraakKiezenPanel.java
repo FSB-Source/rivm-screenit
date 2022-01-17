@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,26 +22,20 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma;
  */
 
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
-import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -56,7 +49,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Client>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private Panel nieuweAfspraakPanel;
@@ -69,10 +61,7 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 	@SpringBean
 	private MammaBaseFactory baseFactory;
 
-	@SpringBean
-	private ICurrentDateSupplier currentDateSupplier;
-
-	public MammaAfspraakKiezenPanel(String id, IModel<Client> clientModel, boolean rondeForceren)
+	public MammaAfspraakKiezenPanel(String id, IModel<Client> clientModel)
 	{
 		super(id, clientModel);
 
@@ -82,7 +71,6 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 
 		afspraakZoekenPanel = new MammaAfspraakZoekenPanel("afspraakZoekenPanel", clientModel)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -94,37 +82,12 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 				}
 				MammaCapaciteitBlok capaciteitBlok = hibernateService.load(MammaCapaciteitBlok.class, kandidaatAfspraakDto.getCapaciteitBlokId());
 				MammaStandplaatsPeriode standplaatsPeriode = hibernateService.load(MammaStandplaatsPeriode.class, kandidaatAfspraakDto.getStandplaatsPeriodeId());
-				MammaUitnodiging uitnodiging;
-				if (rondeForceren)
-				{
-					MammaDossier dossier = getModelObject().getMammaDossier();
-					MammaScreeningRonde tempScreeningRonde = new MammaScreeningRonde();
-					tempScreeningRonde.setIsGeforceerd(true);
-					tempScreeningRonde.setMinderValideOnderzoekZiekenhuis(false);
-					tempScreeningRonde.setDossier(dossier);
-					tempScreeningRonde.setStandplaatsRonde(standplaatsPeriode.getStandplaatsRonde());
-					tempScreeningRonde.setCreatieDatum(currentDateSupplier.getDate());
-					uitnodiging = new MammaUitnodiging();
-					uitnodiging.setScreeningRonde(tempScreeningRonde);
-					uitnodiging.setCreatieDatum(currentDateSupplier.getDate());
-					uitnodiging.setHerinnered(false);
+				MammaUitnodiging uitnodiging = getModelObject().getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
 
-					MammaBrief brief = new MammaBrief();
-					brief.setCreatieDatum(currentDateSupplier.getDate());
-					brief.setBriefType(BriefType.MAMMA_AFSPRAAK_UITNODIGING);
-					brief.setClient(clientModel.getObject());
-					brief.setGegenereerd(false);
-
-					uitnodiging.setBrief(brief);
-				}
-				else
-				{
-					uitnodiging = getModelObject().getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
-				}
 				Date vanaf = DateUtil.toUtilDate(kandidaatAfspraakDto.getTijd(), kandidaatAfspraakDto.getDatum());
 				MammaAfspraak dummyAfspraak = baseFactory.maakDummyAfspraak(uitnodiging, vanaf, capaciteitBlok, standplaatsPeriode, verzettenReden);
 
-				MammaAfspraakPanel afspraakPanel = new MammaAfspraakPanel("nieuweAfspraakPanel", dummyAfspraak, true, rondeForceren)
+				MammaAfspraakPanel afspraakPanel = new MammaAfspraakPanel("nieuweAfspraakPanel", dummyAfspraak, true)
 				{
 					@Override
 					protected void wijzigMoment(AjaxRequestTarget target)
@@ -165,7 +128,7 @@ public class MammaAfspraakKiezenPanel extends AbstractClientContactActiePanel<Cl
 	{
 		MammaAfspraak afspraak = getNieuweAfspraak();
 		SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE dd-MM-yyyy HH:mm");
-		return Arrays.asList(String.format("De afspraak wordt verzet naar %s in %s met %s", dateFormat.format(afspraak.getVanaf()),
+		return List.of(String.format("De afspraak wordt verzet naar %s in %s met %s", dateFormat.format(afspraak.getVanaf()),
 			afspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getNaam(),
 			afspraak.getCapaciteitBlok().getScreeningsEenheid().getNaam()));
 	}

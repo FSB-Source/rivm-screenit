@@ -4,7 +4,7 @@ package nl.rivm.screenit.dto.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,41 +24,25 @@ package nl.rivm.screenit.dto.mamma;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@RequiredArgsConstructor
 public class MammaHL7v24OrmBerichtTriggerUploadBeeldenDto extends MammaAbstractHL7v24OrmBerichtTriggerDto implements Serializable
 {
+	@NonNull
 	private Long accessionNumber;
 
+	@NonNull
 	private Long clientId;
 
 	private Date onderzoeksDatum;
-
-	public Long getAccessionNumber()
-	{
-		return accessionNumber;
-	}
-
-	public void setAccessionNumber(Long accessionNumber)
-	{
-		this.accessionNumber = accessionNumber;
-	}
-
-	public Date getOnderzoeksDatum()
-	{
-		return onderzoeksDatum;
-	}
-
-	public void setOnderzoeksDatum(Date onderzoeksDatum)
-	{
-		this.onderzoeksDatum = onderzoeksDatum;
-	}
-
-	public Long getClientId()
-	{
-		return clientId;
-	}
-
-	public void setClientId(Long clientId)
-	{
-		this.clientId = clientId;
-	}
 }

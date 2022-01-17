@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,9 @@ import java.util.Set;
 import nl.rivm.screenit.dao.colon.ColonUitnodigingsgebiedDao;
 import nl.rivm.screenit.model.PostcodeGebied;
 import nl.rivm.screenit.model.UitnodigingsGebied;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
@@ -36,6 +39,7 @@ import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +48,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonUitnodigingsgebiedDaoImpl extends AbstractAutowiredDao implements ColonUitnodigingsgebiedDao
 {
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public List<PostcodeGebied> findOverlappendePostcodeGebieden(PostcodeGebied postcode)
@@ -82,8 +88,8 @@ public class ColonUitnodigingsgebiedDaoImpl extends AbstractAutowiredDao impleme
 
 			crit.add( 
 				Restrictions.or(
-					ColonRestrictions.getU1BaseCriteria(laatsteDagVanHuidigJaar, new ArrayList<>(geboortejaren)), 
-					ColonRestrictions.getU2BaseCriteria(laatsteDagVanHuidigJaar)) 
+					ColonRestrictions.getU1BaseCriteria(laatsteDagVanHuidigJaar, new ArrayList<>(geboortejaren), currentDateSupplier.getLocalDate()), 
+					ColonRestrictions.getU2BaseCriteria(laatsteDagVanHuidigJaar, currentDateSupplier.getLocalDate())) 
 			);
 		}
 
@@ -98,4 +104,16 @@ public class ColonUitnodigingsgebiedDaoImpl extends AbstractAutowiredDao impleme
 		return countPersonenInUitnodigingsGebied(uitnodigingsGebied, null, null, null, null, null);
 	}
 
+	@Override
+	public long countClientenInUitnodigingsgebiedMetUitnodigingOpDatum(UitnodigingsGebied uitnodigingsGebied, LocalDate uitnodigingsDatum)
+	{
+		Criteria crit = ColonRestrictions.getBaseCriteria(getSession(), uitnodigingsGebied, null, null, null);
+
+		crit.createAlias("colonDossier", "dossier");
+		crit.createAlias("dossier.laatsteScreeningRonde", "laatsteScreeningRonde");
+
+		crit.add(DateRestrictions.eq("laatsteScreeningRonde.creatieDatum", DateUtil.toUtilDate(uitnodigingsDatum)));
+
+		return crit.list().size();
+	}
 }

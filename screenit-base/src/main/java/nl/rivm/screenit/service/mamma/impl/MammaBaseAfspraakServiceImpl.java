@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -164,8 +164,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 				LocalDate standplaatsPeriodeVanaf = DateUtil.toLocalDate(standplaatsPeriode.getVanaf());
 				LocalDate standplaatsPeriodeTotEnMet = DateUtil.toLocalDate(standplaatsPeriode.getTotEnMet());
 
-				LocalDate vanafDatum = Collections.max(Arrays.asList(new LocalDate[] { filter.getVanaf(), standplaatsPeriodeVanaf }));
-				LocalDate totEnMetDatum = Collections.min(Arrays.asList(new LocalDate[] { filter.getTotEnMet(), vrijgegevenTotEnMetDatum, standplaatsPeriodeTotEnMet }));
+				LocalDate vanafDatum = Collections.max(Arrays.asList(filter.getVanaf(), standplaatsPeriodeVanaf));
+				LocalDate totEnMetDatum = Collections.min(Arrays.asList(filter.getTotEnMet(), vrijgegevenTotEnMetDatum, standplaatsPeriodeTotEnMet));
 
 				MammaBaseKandidaatAfsprakenDeterminatiePeriode baseKandidaatAfsprakenDeterminatiePeriode = SpringBeanProvider.getInstance()
 					.getBean(MammaBaseKandidaatAfsprakenDeterminatiePeriode.class);
@@ -173,7 +173,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 				List<MammaKandidaatAfspraak> kandidaatAfsprakenStandplaatsPeriode = baseKandidaatAfsprakenDeterminatiePeriode.getKandidaatAfspraken(dossier, standplaatsPeriode,
 					vroegstMogelijkeUitnodigingsDatum(dossier, vanafDatum, minimaleIntervalMammografieOnderzoeken), totEnMetDatum, filter.getExtraOpties(), voorlopigeOpkomstkans,
 					capaciteitVolledigBenutTotEnMetAantalWerkdagen, true);
-				kandidaatAfsprakenStandplaatsPeriode.forEach(kandidaatAfspraak -> {
+				kandidaatAfsprakenStandplaatsPeriode.forEach(kandidaatAfspraak ->
+				{
 					if (kandidaatAfspraak.getDatum().isAfter(dateSupplier.getLocalDate()) || !kandidaatAfspraak.getVanaf().isBefore(nu))
 					{
 						kandidaatAfspraakDtos
@@ -284,6 +285,8 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		{
 			uitstelService.uitstelAfzeggen(screeningRonde.getLaatsteUitstel(), MammaUitstelGeannuleerdReden.NIEUWE_AFSPRAAK, dateSupplier.getDate());
 		}
+
+		baseBriefService.setNietGegenereerdeBrievenOpTegenhouden(screeningRonde, BriefType.MAMMA_OPEN_UITNODIGINGEN);
 
 		MammaAfspraak afspraak = baseFactory.maakAfspraak(screeningRonde, capaciteitBlok, vanaf, standplaatsPeriode, verzettenReden, notificeerBetrokkenSe, stuurBerichtNaarSectra,
 			isGeforceerdeAfspraak);

@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.component.table;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import nl.rivm.screenit.main.web.component.AjaxDownload;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.topicuszorg.documentupload.services.UploadDocumentService;
+import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -49,12 +50,20 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 
 	private static final long serialVersionUID = 1L;
 
+	private final IModel<String> fileNameToLog;
+
 	@SpringBean
 	private UploadDocumentService uploadDocumentService;
 
 	public UploadDocumentDownloadLinkPanel(String id, IModel<UploadDocument> model)
 	{
+		this(id, model, null);
+	}
+
+	public UploadDocumentDownloadLinkPanel(String id, IModel<UploadDocument> model, IModel<String> fileNameToLog)
+	{
 		super(id, model);
+		this.fileNameToLog = fileNameToLog;
 	}
 
 	@Override
@@ -77,7 +86,7 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 						{
 							File file = uploadDocumentService.load(UploadDocumentDownloadLinkPanel.this.getModelObject());
 
-							try (FileInputStream fis = new FileInputStream(file);)
+							try (FileInputStream fis = new FileInputStream(file))
 							{
 								IOUtils.copy(fis, output);
 							}
@@ -116,6 +125,13 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 			{
 				return getModelObject().getNaam();
 			}
+
+			@Override
+			protected String getFileNameToLog()
+			{
+				return ModelUtil.nullSafeGet(fileNameToLog);
+			}
+
 		};
 		getPage().add(download);
 		add(new IndicatingAjaxLink<UploadDocument>("download", getModel())
@@ -141,4 +157,5 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 		UploadDocument document = getModelObject();
 		setVisible(document != null && !Boolean.FALSE.equals(document.getActief()));
 	}
+
 }

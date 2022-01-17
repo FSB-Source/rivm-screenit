@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitslagverwijderen;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.jobs.cervix.uitslagverwijderen;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
@@ -44,7 +44,7 @@ public class CervixHpvMinFormulierVerwijderenReader extends BaseScrollableResult
 		criteria.createAlias("ontvangstRonde.monsterHpvUitslag", "monsterHpvUitslag");
 		criteria.createAlias("monsterHpvUitslag.laatsteHpvBeoordeling", "laatsteHpvBeoordeling");
 
-		criteria.add(Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvUitslag.NEGATIEF));
+		criteria.add(Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.NEGATIEF));
 
 		criteria.add(Restrictions.eq("ontvangstRonde.status", ScreeningRondeStatus.AFGEROND));
 		criteria.add(Restrictions.eq("ontvangstRonde.aangemeld", Boolean.TRUE));

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.project;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.project;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -36,6 +37,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.IActief;
 import nl.rivm.screenit.model.INaam;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -48,14 +52,13 @@ import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
-@Table(schema = "algemeen")
+@Table(schema = "gedeeld")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public class ProjectGroep extends AbstractHibernateObject implements INaam, IActief
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private String naam;
 
 	private Boolean actief;
@@ -69,21 +72,20 @@ public class ProjectGroep extends AbstractHibernateObject implements INaam, IAct
 	private GroepInvoer groepInvoer;
 
 	@NotAudited
-	@Cascade({ CascadeType.ALL })
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "groep")
+	@Cascade(CascadeType.DELETE)
 	private ProjectImport projectImport;
 
-	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "groep")
-	private List<ProjectBestand> projectBestanden;
+	@Cascade(CascadeType.DELETE)
+	private List<ProjectBestand> projectBestanden = new ArrayList<>();
 
-	@Cascade({ CascadeType.SAVE_UPDATE })
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Project project;
 
-	@Cascade({ CascadeType.ALL })
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "groep")
-	private List<ProjectClient> clienten;
+	@Cascade(CascadeType.DELETE)
+	private List<ProjectClient> clienten = new ArrayList<>();
 
 	@Temporal(TemporalType.DATE)
 	private Date uitnodigenVoorDKvoor;
@@ -92,115 +94,4 @@ public class ProjectGroep extends AbstractHibernateObject implements INaam, IAct
 	@Temporal(TemporalType.DATE)
 	private Date uitnodigingenPushenNa;
 
-	public ProjectGroep()
-	{
-	}
-
-	public ProjectGroep(Project project)
-	{
-		this.project = project;
-	}
-
-	@Override
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	@Override
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	@Override
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public GroepInvoer getGroepInvoer()
-	{
-		return groepInvoer;
-	}
-
-	public void setGroepInvoer(GroepInvoer groepInvoer)
-	{
-		this.groepInvoer = groepInvoer;
-	}
-
-	public Project getProject()
-	{
-		return project;
-	}
-
-	public void setProject(Project project)
-	{
-		this.project = project;
-	}
-
-	public List<ProjectClient> getClienten()
-	{
-		return clienten;
-	}
-
-	public void setClienten(List<ProjectClient> clienten)
-	{
-		this.clienten = clienten;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public ProjectImport getProjectImport()
-	{
-		return projectImport;
-	}
-
-	public void setProjectImport(ProjectImport projectImport)
-	{
-		this.projectImport = projectImport;
-	}
-
-	public Integer getPopulatie()
-	{
-		return populatie;
-	}
-
-	public void setPopulatie(Integer populatie)
-	{
-		this.populatie = populatie;
-	}
-
-	public Date getActiefDatum()
-	{
-		return actiefDatum;
-	}
-
-	public void setActiefDatum(Date actiefDatum)
-	{
-		this.actiefDatum = actiefDatum;
-	}
-
-	public Date getUitnodigenVoorDKvoor()
-	{
-		return uitnodigenVoorDKvoor;
-	}
-
-	public void setUitnodigenVoorDKvoor(Date uitnodigenVoorDKvoor)
-	{
-		this.uitnodigenVoorDKvoor = uitnodigenVoorDKvoor;
-	}
-
-	public Date getUitnodigingenPushenNa()
-	{
-		return uitnodigingenPushenNa;
-	}
-
-	public void setUitnodigingenPushenNa(Date uitnodigingenPushenNa)
-	{
-		this.uitnodigingenPushenNa = uitnodigingenPushenNa;
-	}
 }

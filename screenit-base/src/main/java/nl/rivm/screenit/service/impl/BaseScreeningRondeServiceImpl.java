@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,13 +21,16 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -49,8 +52,8 @@ public class BaseScreeningRondeServiceImpl implements BaseScreeningRondeService
 		if (ronde != null && ScreeningRondeStatus.AFGEROND.equals(ronde.getStatus()))
 		{
 			ronde.setStatus(ScreeningRondeStatus.LOPEND);
-			DateTime nu = currentDateSupplier.getDateTime();
-			ronde.setStatusDatum(nu.plusMillis(200).toDate());
+			LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+			ronde.setStatusDatum(DateUtil.toUtilDate(nu.plus(200, ChronoUnit.MILLIS)));
 			ronde.setAangemeld(true);
 			ronde.setAfgerondReden(null);
 

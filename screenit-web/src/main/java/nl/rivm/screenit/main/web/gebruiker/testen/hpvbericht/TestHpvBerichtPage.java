@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.hpvbericht;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,29 +22,22 @@ package nl.rivm.screenit.main.web.gebruiker.testen.hpvbericht;
  */
 
 import nl.rivm.screenit.main.web.gebruiker.testen.TestenBasePage;
-import nl.rivm.screenit.main.web.gebruiker.testen.barcode.TestBarcodePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(actie = Actie.INZIEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = Recht.TESTEN, bevolkingsonderzoekScopes = {
 	Bevolkingsonderzoek.CERVIX })
 public class TestHpvBerichtPage extends TestenBasePage
 {
-
 	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(TestHpvBerichtPage.class);
 
 	public TestHpvBerichtPage()
 	{
 		add(new TestHpvBerichtPanel("hpvBerichtForm"));
-		add(new TestHpvCsvUploadPanel("hpvCsvForm"));
 	}
 
 }

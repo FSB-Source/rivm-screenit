@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,10 +24,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback;
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback.DelegatedReadOnlyDBActions;
 import nl.rivm.screenit.batch.jobs.BatchConstants;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.enums.Level;
 
 import org.hibernate.HibernateException;
@@ -56,7 +53,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 public abstract class BaseSqlScrollableResultReader implements ItemReader<Long>, ItemStream
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(BaseSqlScrollableResultReader.class);
 
 	protected final ThreadLocal<ScrollableResults> resultSet = new ThreadLocal<>();
@@ -97,15 +93,7 @@ public abstract class BaseSqlScrollableResultReader implements ItemReader<Long>,
 			SQLQuery crit = createCriteria(criteriaSession);
 			processedIds.clear();
 
-			ReadOnlyDBActionsWithFallback.runReadOnlyDBActions(new DelegatedReadOnlyDBActions()
-			{
-
-				@Override
-				public void doActions()
-				{
-					resultSet.set(crit.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY));
-				}
-			});
+			resultSet.set(crit.setFetchSize(fetchSize).scroll(ScrollMode.FORWARD_ONLY));
 		}
 		catch (IllegalStateException e)
 		{
@@ -119,7 +107,6 @@ public abstract class BaseSqlScrollableResultReader implements ItemReader<Long>,
 		}
 		finally
 		{
-			DataSourceRouter.useReadWrite();
 			if (unbindSessionFromThread)
 			{
 				TransactionSynchronizationManager.unbindResource(sessionFactory);

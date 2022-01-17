@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,37 +21,27 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.text.SimpleDateFormat;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaDossier;
+import nl.rivm.screenit.model.mamma.MammaIlmBezwaarPoging;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.MammaUitstel;
+import nl.rivm.screenit.service.BaseTestTimelineService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineTimeService;
 import nl.rivm.screenit.service.mamma.enums.MammaTestTimeLineDossierTijdstip;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.slf4j.Logger;
@@ -75,6 +65,9 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
+	@Autowired
+	private BaseTestTimelineService baseTestTimelineService;
+
 	@Override
 	public boolean rekenDossierTerug(MammaDossier dossier, MammaTestTimeLineDossierTijdstip tijdstip)
 	{
@@ -87,9 +80,13 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 	public boolean rekenDossierTerug(MammaDossier dossier, int aantalDagen)
 	{
 		LOG.debug("Dossier aantal dagen terug gezet: " + aantalDagen);
-		rekenObjectTerug(dossier, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(dossier, aantalDagen);
 		hibernateService.saveOrUpdate(dossier);
 
+		for (MammaIlmBezwaarPoging bezwaarPoging : dossier.getIlmBezwaarPogingen())
+		{
+			baseTestTimelineService.rekenObjectTerug(bezwaarPoging, aantalDagen);
+		}
 		for (MammaScreeningRonde ronde : dossier.getScreeningRondes())
 		{
 			rekenRondeTerug(ronde, aantalDagen);
@@ -99,33 +96,16 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 			rekenAfmeldingTerug(afmelding, aantalDagen);
 		}
 
-		rekenAllePersoonsDatumTerug(dossier.getClient().getPersoon(), aantalDagen);
+		baseTestTimelineService.rekenAllePersoonsDatumTerug(dossier.getClient().getPersoon(), aantalDagen);
 		return true;
-	}
-
-	private void rekenAllePersoonsDatumTerug(GbaPersoon persoon, int aantalDagen)
-	{
-		if (persoon.getOverlijdensdatum() != null)
-		{
-			persoon.setOverlijdensdatum(new DateTime(persoon.getOverlijdensdatum()).minusDays(aantalDagen).toDate());
-		}
-		if (persoon.getDatumVertrokkenUitNederland() != null)
-		{
-			persoon.setDatumVertrokkenUitNederland(new DateTime(persoon.getDatumVertrokkenUitNederland()).minusDays(aantalDagen).toDate());
-		}
-		if (persoon.getDatumVestigingNederland() != null)
-		{
-			persoon.setDatumVestigingNederland(new DateTime(persoon.getDatumVestigingNederland()).minusDays(aantalDagen).toDate());
-		}
-		hibernateService.saveOrUpdate(persoon);
 	}
 
 	private void rekenRondeTerug(MammaScreeningRonde ronde, int aantalDagen)
 	{
-		rekenObjectTerug(ronde, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(ronde, aantalDagen);
 		hibernateService.saveOrUpdate(ronde);
 
-		ronde.getFollowUpRadiologieVerslagen().forEach(mammaFollowUpRadiologieVerslag -> rekenObjectTerug(mammaFollowUpRadiologieVerslag, aantalDagen));
+		ronde.getFollowUpRadiologieVerslagen().forEach(mammaFollowUpRadiologieVerslag -> baseTestTimelineService.rekenObjectTerug(mammaFollowUpRadiologieVerslag, aantalDagen));
 
 		for (MammaUitstel uitstel : ronde.getUitstellen())
 		{
@@ -149,31 +129,31 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 
 	private void rekenUitstelTerug(MammaUitstel uitstel, int aantalDagen)
 	{
-		rekenObjectTerug(uitstel, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(uitstel, aantalDagen);
 		hibernateService.saveOrUpdate(uitstel);
 	}
 
 	private void rekenUitnodigingTerug(MammaUitnodiging uitnodiging, int aantalDagen)
 	{
-		rekenObjectTerug(uitnodiging, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(uitnodiging, aantalDagen);
 		hibernateService.saveOrUpdate(uitnodiging);
 
 		for (MammaAfspraak afspraak : uitnodiging.getAfspraken())
 		{
-			rekenObjectTerug(afspraak, aantalDagen);
+			baseTestTimelineService.rekenObjectTerug(afspraak, aantalDagen);
 
 			MammaOnderzoek onderzoek = afspraak.getOnderzoek();
 			if (onderzoek != null)
 			{
-				rekenObjectTerug(onderzoek, aantalDagen);
-				rekenObjectTerug(onderzoek.getMammografie(), aantalDagen);
+				baseTestTimelineService.rekenObjectTerug(onderzoek, aantalDagen);
+				baseTestTimelineService.rekenObjectTerug(onderzoek.getMammografie(), aantalDagen);
 				for (MammaBeoordeling beoordeling : onderzoek.getBeoordelingen())
 				{
-					rekenObjectTerug(beoordeling, aantalDagen);
-					rekenObjectTerug(beoordeling.getDiscrepantieLezing(), aantalDagen);
-					rekenObjectTerug(beoordeling.getArbitrageLezing(), aantalDagen);
-					rekenObjectTerug(beoordeling.getTweedeLezing(), aantalDagen);
-					rekenObjectTerug(beoordeling.getEersteLezing(), aantalDagen);
+					baseTestTimelineService.rekenObjectTerug(beoordeling, aantalDagen);
+					baseTestTimelineService.rekenObjectTerug(beoordeling.getDiscrepantieLezing(), aantalDagen);
+					baseTestTimelineService.rekenObjectTerug(beoordeling.getArbitrageLezing(), aantalDagen);
+					baseTestTimelineService.rekenObjectTerug(beoordeling.getTweedeLezing(), aantalDagen);
+					baseTestTimelineService.rekenObjectTerug(beoordeling.getEersteLezing(), aantalDagen);
 					hibernateService.saveOrUpdate(onderzoek);
 				}
 			}
@@ -184,7 +164,7 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 
 	private void rekenBriefTerug(MammaBrief brief, int aantalDagen)
 	{
-		rekenObjectTerug(brief, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(brief, aantalDagen);
 		hibernateService.saveOrUpdate(brief);
 
 		MammaMergedBrieven mergedBrieven = brief.getMergedBrieven();
@@ -197,13 +177,13 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 
 	private void rekenMergedBrievenTerug(MammaMergedBrieven mergedBrieven, int aantalDagen)
 	{
-		rekenObjectTerug(mergedBrieven, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(mergedBrieven, aantalDagen);
 		hibernateService.saveOrUpdate(mergedBrieven);
 	}
 
 	private void rekenAfmeldingTerug(MammaAfmelding afmelding, int aantalDagen)
 	{
-		rekenObjectTerug(afmelding, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(afmelding, aantalDagen);
 		hibernateService.saveOrUpdate(afmelding);
 	}
 
@@ -232,55 +212,4 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 		return dagen.getDays() > 0 ? dagen.getDays() : 0;
 	}
 
-	private boolean rekenObjectTerug(HibernateObject object, int aantalDagen)
-	{
-		try
-		{
-			if (object != null)
-			{
-				for (Field dateField : getAllDateFieldsFrom(object))
-				{
-					SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-					DateConverter dateConverter = new DateConverter();
-					dateConverter.setPattern("dd-MM-yyyy");
-					ConvertUtils.register(dateConverter, Date.class);
-
-					Date oudeDatum = (Date) PropertyUtils.getProperty(object, dateField.getName());
-					if (oudeDatum != null)
-					{
-						Date nieuweDatum = new DateTime(oudeDatum).minusDays(aantalDagen).toDate();
-						BeanUtils.setProperty(object, dateField.getName(), nieuweDatum);
-						hibernateService.saveOrUpdate(object);
-						LOG.debug("--- " + object.getClass().getName() + "." + dateField.getName() + " van datum " + format.format(oudeDatum) + ", naar datum "
-							+ format.format(nieuweDatum) + " ---");
-					}
-				}
-			}
-		}
-		catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
-		{
-			LOG.error("Er is een fout opgetreden in de reflection voor het terug zetten van het dossier", e);
-			return false;
-		}
-
-		return true;
-	}
-
-	private List<Field> getAllDateFieldsFrom(Object object)
-	{
-		Class<?> clazz = HibernateHelper.deproxy(object).getClass();
-		List<Field> dateFields = new ArrayList<Field>();
-		for (Class<?> c = clazz; c != null; c = c.getSuperclass())
-		{
-			for (Field field : c.getDeclaredFields())
-			{
-				if (Date.class == field.getType())
-				{
-					dateFields.add(field);
-					LOG.debug("--- DateField geregistreerd van inherited class: " + c.getName() + ", field: " + field.getName() + " ---");
-				}
-			}
-		}
-		return dateFields;
-	}
 }

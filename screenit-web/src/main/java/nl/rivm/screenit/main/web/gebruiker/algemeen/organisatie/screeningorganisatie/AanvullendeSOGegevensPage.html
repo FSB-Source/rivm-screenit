@@ -2,7 +2,7 @@
   ========================LICENSE_START=================================
   screenit-web
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -137,115 +137,7 @@
                     </div>
                     <div class="row-fluid">
                         <div class="span12">
-                            <div class="control-group">
-                                <label class="control-label">Afspraakdrempel </label>
-                                <div class="controls">
-                                    <input wicket:id="afspraakDrempelBk"
-                                           class="afspraakDrempel input-large" type="text" maxlength="3"
-                                           onchange="deVoorspellingsgrafiekenDeelnamekans.onAfspraakDrempelChange()"/> %
-                                </div>
-                            </div>
-                            <div id="voorspellingsgrafiekDeelnamekansDiv">
-                                <input type="hidden" wicket:id="applicationUrl" class="applicationUrl"/>
-                                <input type="hidden" wicket:id="subUrl" class="subUrl"/>
-                                <svg id="voorspellingsgrafiekDeelnamekans"/>
-                                <svg id="voorspellingsGrafiekMatrix1"/>
-                                <svg id="voorspellingsGrafiekMatrix2"/>
-                            </div>
-                            <script src="assets/js/voorspellingsgrafiek/util.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/data.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/rij.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/matrix.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/voorspellingsgrafiek.js"></script>
-
-                            <fieldset>
-                                <div class="row-fluid">
-                                    <div class="span12">
-                                        <legend>Factoren</legend>
-                                    </div>
-                                </div>
-                                <div class="row-fluid">
-                                    <div class="span4">
-                                        <div class="control-group">
-                                            <label class="control-label">Eerste onderzoek</label>
-                                            <div class="controls">
-                                                <input wicket:id="factorEersteOnderzoekBk" class="input-large" type="text" maxlength="4">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="span4">
-                                        <div class="control-group">
-                                            <label class="control-label">Dubbele tijd (incl. tehuis)</label>
-                                            <div class="controls">
-                                                <input wicket:id="factorDubbeleTijdBk" class="input-large" type="text" maxlength="4">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="span4">
-                                        <div class="control-group">
-                                            <label class="control-label">Mindervalide (incl. tehuis)</label>
-                                            <div class="controls">
-                                                <input wicket:id="factorMinderValideBk" class="input-large" type="text" maxlength="4">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </fieldset>
-                            <fieldset>
-                                <div class="row-fluid">
-                                    <div class="span12">
-                                        <p>
-                                            In de planning worden intervallen geprognotiseerd. Daarvoor moet bekend zijn hoeveel weken voor de afspraak mensen gemiddeld worden
-                                            uitgenodigd.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="row-fluid">
-                                    <div class="span6">
-                                        <div class="control-group">
-                                            <label class="control-label">Uitnodigen</label>
-                                            <div class="controls">
-                                                <input wicket:id="wekenVanTevorenUitnodigen" type="number" maxlength="1"/> weken van tevoren
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </fieldset>
-                            <fieldset>
-                                <div class="row-fluid">
-                                    <div class="span12">
-                                        <p>
-                                            De reservering van capaciteit voor het uitnodigen vervalt bij open uitnodigen na de hieronder ingestelde termijn. Er wordt gerekend
-                                            vanaf de datum waarop de uitnodiging is aangemaakt.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="row-fluid">
-                                    <div class="span6">
-                                        <div class="control-group">
-                                            <label class="control-label">Vervallen capaciteitsreservering na</label>
-                                            <div class="controls">
-                                                <input wicket:id="vervallenCapaciteitsreserveringDagenBk" type="number"/> kalenderdagen
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </fieldset>
-                            <fieldset>
-                                <div class="row-fluid">
-                                    <div class="span6">
-                                        <div class="control-group">
-                                            <label class="control-label">Minimale dagcapaciteit voor mindervalide afspraken</label>
-                                            <div class="controls">
-                                                <input wicket:id="minimaleDagCapaciteitMinderValideAfspraken" type="number"/>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </fieldset>
-
                             <wicket:container wicket:id="ceBeSeOverzicht"/>
-
                         </div>
                     </div>
                 </fieldset>

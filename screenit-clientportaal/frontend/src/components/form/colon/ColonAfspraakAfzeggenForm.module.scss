@@ -1,0 +1,24 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.bevestigenRadioButton {
+  padding-right: 70px;
+}
+
+.errorLabel {
+  position: relative;
+  color: $rood-base;
+  font-size: 0.7rem;
+  width: 100%;
+  margin-bottom: 0;
+  margin-left: 40px;
+}
+
+.radiobuttons {
+	margin-left: -35px;
+}
+
+
+
+
+

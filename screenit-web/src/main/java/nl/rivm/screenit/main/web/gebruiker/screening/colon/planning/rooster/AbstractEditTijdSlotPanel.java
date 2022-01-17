@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.planning.rooster;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -89,7 +89,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> extends GenericPanel<T>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(AbstractEditTijdSlotPanel.class);
@@ -137,7 +136,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 		{
 			abstractAppointment.setRecurrence(new NoRecurrence());
 		}
-		this.recurrence = new PropertyModel<AbstractRecurrence>(model, "recurrence");
+		this.recurrence = new PropertyModel<>(model, "recurrence");
 	}
 
 	protected String getTitle()
@@ -150,7 +149,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 	{
 		super.onInitialize();
 
-		final NonValidateForm<T> editForm = new NonValidateForm<T>("editForm", getModel());
+		final NonValidateForm<T> editForm = new NonValidateForm<>("editForm", getModel());
 		add(editForm);
 
 		initForm(editForm);
@@ -166,7 +165,6 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 	{
 		IndicatingAjaxSubmitLink opslaanLink = new IndicatingAjaxSubmitLink("opslaanLink", editForm)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -212,7 +210,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 								recurrenceService.changeHerhalingChainVanafEnTot(unsavedObject, eind, null);
 							}
 
-							onClose(target, new CalendarRefresher<T>(false, unsavedObject, getRecurrenceOption()));
+							onClose(target, new CalendarRefresher<>(false, unsavedObject, getRecurrenceOption()));
 						}
 						else if (unsavedObject.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(unsavedObject.getRecurrence().getClass()))
 						{
@@ -225,12 +223,12 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 							{
 								hibernateService.saveOrUpdate(transformedTijdSlot);
 							}
-							onClose(target, new CalendarRefresher<T>(false, transformedTijdSloten, null));
+							onClose(target, new CalendarRefresher<>(false, transformedTijdSloten, null));
 						}
 						else
 						{
 							hibernateService.saveOrUpdate(unsavedObject);
-							onClose(target, new CalendarRefresher<T>(false, unsavedObject, null));
+							onClose(target, new CalendarRefresher<>(false, unsavedObject, null));
 						}
 					}
 				}
@@ -243,7 +241,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 				{
 					roosterService.toevoegenHerhaling(transformedTijdSlot);
 				}
-				onClose(target, new CalendarRefresher<T>(false, transformedTijdSloten, null));
+				onClose(target, new CalendarRefresher<>(false, transformedTijdSloten, null));
 			}
 
 			@Override
@@ -270,7 +268,6 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 	{
 		final IndicatingAjaxSubmitLink deleteSubmit = new IndicatingAjaxSubmitLink("deleteSubmit", editForm)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -288,7 +285,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 				Kamer kamer = (Kamer) abstractAppointmentToDelete.getLocation();
 				String melding = Constants.getDateTimeFormat().format(abstractAppointmentToDelete.getStartTime()) + ", " + kamer.getName() + ", "
 					+ kamer.getColoscopieCentrum().getNaam();
-				CalendarRefresher<T> refresher = new CalendarRefresher<T>(true, abstractAppointmentToDelete, getRecurrenceOption());
+				CalendarRefresher<T> refresher = new CalendarRefresher<>(true, abstractAppointmentToDelete, getRecurrenceOption());
 
 				if (abstractAppointmentToDelete.getRecurrence() != null && !NoRecurrence.class.isAssignableFrom(abstractAppointmentToDelete.getRecurrence().getClass()))
 				{
@@ -335,9 +332,8 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 		};
 		add(deleteSubmit);
 
-		IndicatingAjaxLink<T> deleteLink = new ConfirmingIndicatingAjaxLink<T>("deleteLink", confirmPopup, getConfirmPopupKey())
+		IndicatingAjaxLink<T> deleteLink = new ConfirmingIndicatingAjaxLink<>("deleteLink", confirmPopup, getConfirmPopupKey())
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -389,24 +385,28 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 	{
 		WebMarkupContainer recurrenceOptionContainer = new WebMarkupContainer("recurrenceOptionContainer");
 		form.add(recurrenceOptionContainer);
-		final DatePicker<Date> datePicker = ComponentHelper.newYearDatePicker("recurrenceEditEnd", new PropertyModel<Date>(this, "recurrenceEditEnd"));
+		final DatePicker<Date> datePicker = ComponentHelper.newYearDatePicker("recurrenceEditEnd", new PropertyModel<>(this, "recurrenceEditEnd"));
 		T modelObject = getModelObject();
 		Date startTime = modelObject.getStartTime();
 		if (startTime == null)
 		{
-			startTime = new Date();
+			startTime = currentDateSupplier.getDate();
 		}
 		datePicker.add(DateValidator.minimum(DateUtil.toUtilDateMidnight(startTime)));
 		final WebMarkupContainer recurrenceEditEndContainer = new WebMarkupContainer("recurrenceEditEndContainer");
 		recurrenceEditEndContainer.setVisible(RecurrenceOption.WIJZIG_OF_VERWIJDER_TOT.equals(getRecurrenceOption()));
 		recurrenceEditEndContainer.setOutputMarkupPlaceholderTag(true);
-		setRecurrenceEditEnd(DateUtil.eindDag(getModelObject().getEndTime()));
+		Date endTime = modelObject.getEndTime();
+		if (endTime == null)
+		{
+			endTime = currentDateSupplier.getDate();
+		}
+		setRecurrenceEditEnd(DateUtil.eindDag(endTime));
 
 		recurrenceEditEndContainer.add(datePicker);
 		recurrenceOptionContainer.add(recurrenceEditEndContainer);
 		datePicker.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -423,8 +423,8 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 		});
 		List<RecurrenceOption> choices = new ArrayList<>(Arrays.asList(RecurrenceOption.values()));
 		choices.remove(RecurrenceOption.WIJZIG_OF_VERWIJDER_HELE_SERIE);
-		RadioChoice<RecurrenceOption> radioChoice = new RadioChoice<RecurrenceOption>("recurrenceOption", new PropertyModel<RecurrenceOption>(this, "recurrenceOption"), choices,
-			new IChoiceRenderer<RecurrenceOption>()
+		RadioChoice<RecurrenceOption> radioChoice = new RadioChoice<>("recurrenceOption", new PropertyModel<>(this, "recurrenceOption"), choices,
+			new IChoiceRenderer<>()
 			{
 
 				private static final long serialVersionUID = 1L;
@@ -631,7 +631,7 @@ public abstract class AbstractEditTijdSlotPanel<T extends AbstractAppointment> e
 				activeKamers.add(kamer);
 			}
 		}
-		Collections.sort(activeKamers, new PropertyComparator<>("name", false, true));
+		activeKamers.sort(new PropertyComparator<>("name", false, true));
 		return activeKamers;
 	}
 

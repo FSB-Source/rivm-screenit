@@ -1,0 +1,133 @@
+﻿.toptasks-title {
+  font-weight: 500;
+  line-height: 1.2;
+  font-size: calc-em(30);
+  margin: 30px 0;
+}
+
+.o-toptasks {
+  border: 1px solid #D0D2D3;
+  border-radius: 10px;
+  background-color: #FFFFFF;
+  box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: center;
+
+  @include respond-below(md) {
+    @include size(100%, auto);
+    flex-wrap: wrap;
+    flex-direction: row;
+    align-content: space-around;
+  }
+
+  &--items {
+    flex-grow: 6;
+    flex-basis: auto;
+    display: block;
+    border-right: 1px solid #F0F1F1;
+    padding: 24px 18px;
+    font-size: calc-em(18);
+    font-weight: 500;
+    line-height: 1.6;
+    text-align: center;
+    min-width: 132px;
+    height: 132px;
+
+    a {
+      max-width: 190px;
+      display: inline-block;
+
+      @include respond-below(md) {
+        max-width: inherit;
+        display: unset;
+      }
+    }
+
+    @include respond-below(md) {
+      width: 100%;
+      height: 60px;
+      text-align: left;
+      border-bottom: 1px solid #F0F1F1;
+      font-weight: 400;
+      padding: 20px 30px;
+    }
+
+    @include respond-between(sm, md) {
+      padding: 20px 30px;
+    }
+
+    @include respond-below(sm) {
+      padding: 10px 0 0 20px;
+      font-size: calc-em(16);
+    }
+
+
+    &.borstkanker {
+      &:hover {
+        border-bottom: 10px solid $bk;
+
+        @include respond-below(md) {
+          border-bottom: none;
+          border-left: 10px solid $bk;
+        }
+      }
+    }
+
+    &.baarmoederhalskanker {
+      &:hover {
+        border-bottom: 10px solid $bmk;
+
+
+        @include respond-below(md) {
+          border-bottom: none;
+          border-left: 10px solid $bmk;
+        }
+      }
+    }
+
+    &.darmkanker {
+      &:hover {
+        border-bottom: 10px solid $dk;
+
+
+        @include respond-below(md) {
+          border-bottom: none;
+          border-left: 10px solid $dk;
+        }
+      }
+    }
+
+    &:hover {
+      height: 132px;
+
+      @include respond-below(md) {
+        border: none;
+        height: 60px;
+      }
+
+      @include respond-between(sm, md) {
+        padding: 20px;
+      }
+
+      @include respond-below(sm) {
+        padding: 10px;
+      }
+    }
+
+    &:first-child:hover {
+      border-radius: 0 0 0 10px;
+
+      @include respond-below(md) {
+        border-radius: 10px 0 0 0;
+      }
+    }
+
+    &:last-child:hover {
+      border-radius: 0 0 10px 0;
+
+      @include respond-below(md) {
+        border-radius: 0 0 0 10px;
+      }
+    }
+  }
+}

@@ -5,7 +5,7 @@ package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-dk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -22,14 +22,13 @@ package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback;
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback.DelegatedReadOnlyDBActions;
 import nl.rivm.screenit.batch.jobs.colon.intake.IntakeAfsprakenMakenConstants;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.batch.service.IntakeAfpraakService;
@@ -43,7 +42,6 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.joda.time.DateTime;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
@@ -58,7 +56,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, ItemStream
 {
-
 	@Autowired
 	private IntakeAfpraakService intakeAfspraakService;
 
@@ -101,107 +98,97 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 	@Override
 	public void open(ExecutionContext executionContext)
 	{
-		ReadOnlyDBActionsWithFallback.runReadOnlyDBActions(new DelegatedReadOnlyDBActions()
+		boolean unbindSessionFromThread = false;
+		try
 		{
-
-			@Override
-			public void doActions()
+			hibernateSession = sessionFactory.openSession();
+			if (!TransactionSynchronizationManager.hasResource(sessionFactory))
 			{
-				boolean unbindSessionFromThread = false;
-				try
-				{
-					hibernateSession = sessionFactory.openSession();
-					if (!TransactionSynchronizationManager.hasResource(sessionFactory))
-					{
-						TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(hibernateSession));
-						unbindSessionFromThread = true;
-					}
-
-					ExecutionContext innerExecutionContext = stepExecution.getJobExecution().getExecutionContext();
-					IntakeMakenLogEvent intakeMelding = (IntakeMakenLogEvent) innerExecutionContext.get(IntakeAfsprakenMakenConstants.RAPPORTAGEKEYINTAKE);
-					int ronde = innerExecutionContext.getInt(IntakeAfsprakenMakenConstants.HUIDIGE_RONDE, 0);
-					Integer maxRonde = preferenceService.getInteger(PreferenceKey.COLON_MAX_EXTRA_POGINGEN_PLANNING_INTAKE.name());
-					List<ClientAfspraak> clientAfspraken;
-					StringBuilder foutmeldingTextUitJobContext = new StringBuilder();
-					if (innerExecutionContext.containsKey(IntakeAfsprakenMakenConstants.FOUT_BIJ_INTAKE_VASTLEGGEN))
-					{
-						foutmeldingTextUitJobContext.append(innerExecutionContext.get(IntakeAfsprakenMakenConstants.FOUT_BIJ_INTAKE_VASTLEGGEN));
-					}
-					if (ronde != 0 && ronde <= maxRonde)
-					{
-						clientAfspraken = intakeAfspraakService.getClientenVoorIntakeAfspraakMaken(afstandFactorRetry, 100 - afstandFactorRetry, foutmeldingTextUitJobContext);
-					}
-					else
-					{
-						clientAfspraken = intakeAfspraakService.getClientenVoorIntakeAfspraakMaken(foutmeldingTextUitJobContext);
-					}
-					innerExecutionContext.put(IntakeAfsprakenMakenConstants.FOUT_BIJ_INTAKE_VASTLEGGEN, foutmeldingTextUitJobContext.toString());
-
-					if (intakeMelding.getAantalClienten() == null)
-					{
-						intakeMelding.setAantalClienten(String.valueOf(clientAfspraken.size()));
-					}
-					else
-					{
-						intakeMelding.setAantalClienten(String.format("%s,%s", intakeMelding.getAantalClienten(), clientAfspraken.size()));
-					}
-
-					AtomicInteger aantalExtraDagen = new AtomicInteger();
-					List<VrijSlot> vrijeSloten = getVrijeSloten(clientAfspraken.size(), aantalExtraDagen, intakeMelding);
-
-					if (intakeMelding.getAantalVrijesloten() == null)
-					{
-						intakeMelding.setAantalVrijesloten(String.valueOf(vrijeSloten.size()));
-					}
-					else
-					{
-						intakeMelding.setAantalVrijesloten(String.format("%s,%s", intakeMelding.getAantalVrijesloten(), vrijeSloten.size()));
-					}
-					intakeMelding.setAantalExtraDagen(intakeMelding.getAantalExtraDagen() + aantalExtraDagen.get());
-
-					if (aantalExtraDagen.get() > 0)
-					{
-						intakeMelding.setLevel(Level.WARNING);
-					}
-					if (vrijeSloten.size() < clientAfspraken.size())
-					{
-						intakeMelding.setLevel(Level.ERROR);
-					}
-					StringBuilder planningResultaat = new StringBuilder();
-
-					innerExecutionContext.put(IntakeAfsprakenMakenConstants.ALLE_INTAKES_VERWERKT, Boolean.TRUE);
-
-					if (ronde == 0)
-					{
-						clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat).iterator();
-					}
-					else
-					{
-						clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat, maximumRetrySecondsSpend).iterator();
-					}
-					intakeMelding.setAantalRondes(ronde);
-					intakeMelding.setPlannerResultaat(planningResultaat.toString());
-				}
-				finally
-				{
-					if (unbindSessionFromThread)
-					{
-						TransactionSynchronizationManager.unbindResource(sessionFactory);
-						SessionFactoryUtils.closeSession(hibernateSession);
-					}
-				}
-
+				TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(hibernateSession));
+				unbindSessionFromThread = true;
 			}
-		});
+
+			ExecutionContext innerExecutionContext = stepExecution.getJobExecution().getExecutionContext();
+			IntakeMakenLogEvent intakeMelding = (IntakeMakenLogEvent) innerExecutionContext.get(IntakeAfsprakenMakenConstants.RAPPORTAGEKEYINTAKE);
+			int ronde = innerExecutionContext.getInt(IntakeAfsprakenMakenConstants.HUIDIGE_RONDE, 0);
+			Integer maxRonde = preferenceService.getInteger(PreferenceKey.COLON_MAX_EXTRA_POGINGEN_PLANNING_INTAKE.name());
+			List<ClientAfspraak> clientAfspraken;
+			StringBuilder foutmeldingTextUitJobContext = new StringBuilder();
+			if (innerExecutionContext.containsKey(IntakeAfsprakenMakenConstants.FOUT_BIJ_INTAKE_VASTLEGGEN))
+			{
+				foutmeldingTextUitJobContext.append(innerExecutionContext.get(IntakeAfsprakenMakenConstants.FOUT_BIJ_INTAKE_VASTLEGGEN));
+			}
+			if (ronde != 0 && ronde <= maxRonde)
+			{
+				clientAfspraken = intakeAfspraakService.getClientenVoorIntakeAfspraakMaken(afstandFactorRetry, 100 - afstandFactorRetry, foutmeldingTextUitJobContext);
+			}
+			else
+			{
+				clientAfspraken = intakeAfspraakService.getClientenVoorIntakeAfspraakMaken(foutmeldingTextUitJobContext);
+			}
+			innerExecutionContext.put(IntakeAfsprakenMakenConstants.FOUT_BIJ_INTAKE_VASTLEGGEN, foutmeldingTextUitJobContext.toString());
+
+			if (intakeMelding.getAantalClienten() == null)
+			{
+				intakeMelding.setAantalClienten(String.valueOf(clientAfspraken.size()));
+			}
+			else
+			{
+				intakeMelding.setAantalClienten(String.format("%s,%s", intakeMelding.getAantalClienten(), clientAfspraken.size()));
+			}
+
+			AtomicInteger aantalExtraDagen = new AtomicInteger();
+			List<VrijSlot> vrijeSloten = getVrijeSloten(clientAfspraken.size(), aantalExtraDagen, intakeMelding);
+
+			if (intakeMelding.getAantalVrijesloten() == null)
+			{
+				intakeMelding.setAantalVrijesloten(String.valueOf(vrijeSloten.size()));
+			}
+			else
+			{
+				intakeMelding.setAantalVrijesloten(String.format("%s,%s", intakeMelding.getAantalVrijesloten(), vrijeSloten.size()));
+			}
+			intakeMelding.setAantalExtraDagen(intakeMelding.getAantalExtraDagen() + aantalExtraDagen.get());
+
+			if (aantalExtraDagen.get() > 0)
+			{
+				intakeMelding.setLevel(Level.WARNING);
+			}
+			if (vrijeSloten.size() < clientAfspraken.size())
+			{
+				intakeMelding.setLevel(Level.ERROR);
+			}
+			StringBuilder planningResultaat = new StringBuilder();
+
+			innerExecutionContext.put(IntakeAfsprakenMakenConstants.ALLE_INTAKES_VERWERKT, Boolean.TRUE);
+
+			if (ronde == 0)
+			{
+				clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat).iterator();
+			}
+			else
+			{
+				clienten = planIntakeAfsprakenService.planIntakeAfspraken(clientAfspraken, vrijeSloten, planningResultaat, maximumRetrySecondsSpend).iterator();
+			}
+			intakeMelding.setAantalRondes(ronde);
+			intakeMelding.setPlannerResultaat(planningResultaat.toString());
+		}
+		finally
+		{
+			if (unbindSessionFromThread)
+			{
+				TransactionSynchronizationManager.unbindResource(sessionFactory);
+				SessionFactoryUtils.closeSession(hibernateSession);
+			}
+		}
 	}
 
 	private List<VrijSlot> getVrijeSloten(int aantalGeselecteerdeClienten, AtomicInteger aantalExtraDagen, IntakeMakenLogEvent intakeMelding)
 	{
-		Date laatsteEindDatum = (Date) stepExecution.getJobExecution().getExecutionContext().get(IntakeAfsprakenMakenConstants.LAATSTE_EIND_DATUM);
-		Date begintijd;
-		Date eindtijd;
+		var laatsteEindDatum = (Date) stepExecution.getJobExecution().getExecutionContext().get(IntakeAfsprakenMakenConstants.LAATSTE_EIND_DATUM);
+		LocalDate eindDatum;
 
-		DateTime nu = currentDateSupplier.getDateTime();
+		var vandaag = currentDateSupplier.getLocalDate();
 
 		Integer ongunstigeUitslagWachtPeriode = preferenceService.getInteger(PreferenceKey.ONGUNSTIGE_UITSLAG_WACHT_PERIODE.name());
 		if (ongunstigeUitslagWachtPeriode == null)
@@ -216,22 +203,22 @@ public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, I
 			intakeafspraakperiode = Integer.valueOf(14); 
 		}
 
-		begintijd = DateUtil.plusWerkdagen(nu, ongunstigeUitslagWachtPeriode).withTimeAtStartOfDay().toDate();
+		var beginDatum = DateUtil.plusWerkdagen(vandaag, ongunstigeUitslagWachtPeriode);
 
 		if (laatsteEindDatum == null)
 		{
-			eindtijd = nu.plusDays(intakeafspraakperiode).withTimeAtStartOfDay().toDate();
+			eindDatum = vandaag.plusDays(intakeafspraakperiode);
 		}
 		else
 		{
-			eindtijd = new DateTime(laatsteEindDatum).plusDays(1).withTimeAtStartOfDay().toDate();
+			eindDatum = DateUtil.toLocalDate(laatsteEindDatum).plusDays(1);
 		}
 
-		intakeMelding.setBeginTijd(begintijd);
+		intakeMelding.setBeginTijd(DateUtil.toUtilDate(beginDatum));
 
-		List<VrijSlot> vrijeSloten = intakeAfspraakService.getAllVrijeSlotenIntakeafspraakperiode(aantalGeselecteerdeClienten, begintijd, eindtijd, aantalExtraDagen);
+		List<VrijSlot> vrijeSloten = intakeAfspraakService.getAllVrijeSlotenIntakeafspraakperiode(aantalGeselecteerdeClienten, beginDatum, eindDatum, aantalExtraDagen);
 
-		Date newLaatsteEindDatum = new DateTime(eindtijd).plusDays(aantalExtraDagen.get()).withTimeAtStartOfDay().toDate();
+		Date newLaatsteEindDatum = DateUtil.toUtilDate(eindDatum.plusDays(aantalExtraDagen.get()));
 		intakeMelding.setEindTijd(newLaatsteEindDatum);
 
 		stepExecution.getJobExecution().getExecutionContext().put(IntakeAfsprakenMakenConstants.LAATSTE_EIND_DATUM, newLaatsteEindDatum);

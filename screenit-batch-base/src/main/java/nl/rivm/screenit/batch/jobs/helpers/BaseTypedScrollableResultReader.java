@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
  * ========================LICENSE_START=================================
  * screenit-batch-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,10 +24,7 @@ package nl.rivm.screenit.batch.jobs.helpers;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback;
-import nl.rivm.screenit.batch.datasource.ReadOnlyDBActionsWithFallback.DelegatedReadOnlyDBActions;
 import nl.rivm.screenit.batch.jobs.BatchConstants;
-import nl.rivm.screenit.datasource.DataSourceRouter;
 import nl.rivm.screenit.model.enums.Level;
 
 import org.hibernate.Criteria;
@@ -57,7 +54,6 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T>, ItemStream
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(BaseTypedScrollableResultReader.class);
 
 	protected final ThreadLocal<ScrollableResults> resultSet = new ThreadLocal<>();
@@ -98,20 +94,11 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 			Criteria crit = createCriteria(criteriaSession);
 			processedIds.clear();
 
-			ReadOnlyDBActionsWithFallback.runReadOnlyDBActions(new DelegatedReadOnlyDBActions()
+			if (Integer.valueOf(0).equals(((CriteriaImpl) crit).getMaxResults()))
 			{
-
-				@Override
-				public void doActions()
-				{
-
-					if (Integer.valueOf(0).equals(((CriteriaImpl) crit).getMaxResults()))
-					{
-						crit.add(Restrictions.sqlRestriction("1 = 0"));
-					}
-					resultSet.set(crit.setFetchSize(fetchSize).setProjection(getProjection()).scroll(ScrollMode.FORWARD_ONLY));
-				}
-			});
+				crit.add(Restrictions.sqlRestriction("1 = 0"));
+			}
+			resultSet.set(crit.setFetchSize(fetchSize).setProjection(getProjection()).scroll(ScrollMode.FORWARD_ONLY));
 		}
 		catch (IllegalStateException e)
 		{
@@ -125,7 +112,6 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 		}
 		finally
 		{
-			DataSourceRouter.useReadWrite();
 			if (unbindSessionFromThread)
 			{
 				TransactionSynchronizationManager.unbindResource(sessionFactory);

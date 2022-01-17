@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,14 +21,8 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
@@ -47,17 +41,11 @@ import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.verslag.CervixVerslag;
-import nl.rivm.screenit.model.colon.ColonDossier;
+import nl.rivm.screenit.service.BaseTestTimelineService;
 import nl.rivm.screenit.service.cervix.CervixTestTimelineTimeService;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
-import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.slf4j.Logger;
@@ -71,16 +59,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTimeService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(CervixTestTimelineTimeService.class);
 
 	@Autowired
 	private HibernateService hibernateService;
 
+	@Autowired
+	private BaseTestTimelineService baseTestTimelineService;
+
 	@Override
 	public boolean rekenDossierTerug(CervixDossier dossier, CervixTestTimeLineDossierTijdstip tijdstip)
 	{
-		int dagen = aantalDagenCalculator(dossier, tijdstip);
+		int dagen = aantalDagenCalculator(tijdstip);
 		rekenDossierTerug(dossier, dagen);
 		return true;
 	}
@@ -89,7 +79,7 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 	public boolean rekenDossierTerug(CervixDossier dossier, int aantalDagen)
 	{
 		LOG.debug("Dossier aantal dagen terug gezet: " + aantalDagen);
-		rekenObjectTerug(dossier, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(dossier, aantalDagen);
 		hibernateService.saveOrUpdate(dossier);
 
 		for (CervixScreeningRonde ronde : dossier.getScreeningRondes())
@@ -101,30 +91,13 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 			rekenAfmeldingTerug(afmelding, aantalDagen);
 		}
 
-		rekenAllePersoonsDatumTerug(dossier.getClient().getPersoon(), aantalDagen);
+		baseTestTimelineService.rekenAllePersoonsDatumTerug(dossier.getClient().getPersoon(), aantalDagen);
 		return true;
-	}
-
-	private void rekenAllePersoonsDatumTerug(GbaPersoon persoon, int aantalDagen)
-	{
-		if (persoon.getOverlijdensdatum() != null)
-		{
-			persoon.setOverlijdensdatum(new DateTime(persoon.getOverlijdensdatum()).minusDays(aantalDagen).toDate());
-		}
-		if (persoon.getDatumVertrokkenUitNederland() != null)
-		{
-			persoon.setDatumVertrokkenUitNederland(new DateTime(persoon.getDatumVertrokkenUitNederland()).minusDays(aantalDagen).toDate());
-		}
-		if (persoon.getDatumVestigingNederland() != null)
-		{
-			persoon.setDatumVestigingNederland(new DateTime(persoon.getDatumVestigingNederland()).minusDays(aantalDagen).toDate());
-		}
-		hibernateService.saveOrUpdate(persoon);
 	}
 
 	private void rekenRondeTerug(CervixScreeningRonde ronde, int aantalDagen)
 	{
-		rekenObjectTerug(ronde, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(ronde, aantalDagen);
 		hibernateService.saveOrUpdate(ronde);
 
 		for (CervixUitnodiging uitnodiging : ronde.getUitnodigingen())
@@ -157,7 +130,7 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 
 	private void rekenUitnodigingTerug(CervixUitnodiging uitnodiging, int aantalDagen)
 	{
-		rekenObjectTerug(uitnodiging, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(uitnodiging, aantalDagen);
 		hibernateService.saveOrUpdate(uitnodiging);
 
 		rekenMonsterTerug(uitnodiging.getMonster(), aantalDagen);
@@ -165,7 +138,7 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 
 	private void rekenBriefTerug(CervixBrief brief, int aantalDagen)
 	{
-		rekenObjectTerug(brief, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(brief, aantalDagen);
 		hibernateService.saveOrUpdate(brief);
 
 		CervixMergedBrieven mergedBrieven = brief.getMergedBrieven();
@@ -178,13 +151,13 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 
 	private void rekenMergedBrievenTerug(CervixMergedBrieven mergedBrieven, int aantalDagen)
 	{
-		rekenObjectTerug(mergedBrieven, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(mergedBrieven, aantalDagen);
 		hibernateService.saveOrUpdate(mergedBrieven);
 	}
 
 	private void rekenHuisartsberichtTerug(CervixHuisartsBericht huisartsBericht, int aantalDagen)
 	{
-		rekenObjectTerug(huisartsBericht, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(huisartsBericht, aantalDagen);
 		hibernateService.saveOrUpdate(huisartsBericht);
 	}
 
@@ -212,27 +185,27 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 
 	private void rekenHpvBeoordelingTerug(CervixHpvBeoordeling hpvBeoordeling, int aantalDagen)
 	{
-		rekenObjectTerug(hpvBeoordeling, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(hpvBeoordeling, aantalDagen);
 		hibernateService.saveOrUpdate(hpvBeoordeling);
 		rekenHpvBerichtTerug(hpvBeoordeling.getHpvBericht(), aantalDagen);
 	}
 
 	private void rekenHpvBerichtTerug(CervixHpvBericht hpvBericht, int aantalDagen)
 	{
-		rekenObjectTerug(hpvBericht, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(hpvBericht, aantalDagen);
 		hibernateService.saveOrUpdate(hpvBericht);
 
 	}
 
 	private void rekenZasTerug(CervixZas zas, int aantalDagen)
 	{
-		rekenObjectTerug(zas, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(zas, aantalDagen);
 		hibernateService.saveOrUpdate(zas);
 	}
 
 	private void rekenUitstrijkjeTerug(CervixUitstrijkje uitstrijkje, int aantalDagen)
 	{
-		rekenObjectTerug(uitstrijkje, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(uitstrijkje, aantalDagen);
 		hibernateService.saveOrUpdate(uitstrijkje);
 
 		CervixLabformulier labformulier = uitstrijkje.getLabformulier();
@@ -249,13 +222,13 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 
 	private void rekenLabformulierTerug(CervixLabformulier labformulier, int aantalDagen)
 	{
-		rekenObjectTerug(labformulier, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(labformulier, aantalDagen);
 		hibernateService.saveOrUpdate(labformulier);
 	}
 
 	private void rekenCytologieOrderTerug(CervixCytologieOrder cytologieOrder, int aantalDagen)
 	{
-		rekenObjectTerug(cytologieOrder, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(cytologieOrder, aantalDagen);
 		hibernateService.saveOrUpdate(cytologieOrder);
 	}
 
@@ -267,29 +240,29 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 
 	private void rekenCdaBerichtTerug(OntvangenCdaBericht cdaBericht, int aantalDagen)
 	{
-		rekenObjectTerug(cdaBericht, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(cdaBericht, aantalDagen);
 		hibernateService.saveOrUpdate(cdaBericht);
 	}
 
 	private void rekenCytologieVerslagTerug(CervixCytologieVerslag cytologieVerslag, int aantalDagen)
 	{
-		rekenObjectTerug(cytologieVerslag, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(cytologieVerslag, aantalDagen);
 		hibernateService.saveOrUpdate(cytologieVerslag);
 	}
 
 	private void rekenAfmeldingTerug(CervixAfmelding afmelding, int aantalDagen)
 	{
-		rekenObjectTerug(afmelding, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(afmelding, aantalDagen);
 		hibernateService.saveOrUpdate(afmelding);
 	}
 
 	private void rekenUitstelTerug(CervixUitstel uitstel, int aantalDagen)
 	{
-		rekenObjectTerug(uitstel, aantalDagen);
+		baseTestTimelineService.rekenObjectTerug(uitstel, aantalDagen);
 		hibernateService.saveOrUpdate(uitstel);
 	}
 
-	private int aantalDagenCalculator(CervixDossier dossier, CervixTestTimeLineDossierTijdstip tijdstip)
+	private int aantalDagenCalculator(CervixTestTimeLineDossierTijdstip tijdstip)
 	{
 		switch (tijdstip)
 		{
@@ -311,55 +284,4 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 		return dagen.getDays() > 0 ? dagen.getDays() : 0;
 	}
 
-	private boolean rekenObjectTerug(HibernateObject object, int aantalDagen)
-	{
-		try
-		{
-			if (object != null)
-			{
-				for (Field dateField : getAllDateFieldsFrom(object))
-				{
-					SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-					DateConverter dateConverter = new DateConverter();
-					dateConverter.setPattern("dd-MM-yyyy");
-					ConvertUtils.register(dateConverter, Date.class);
-
-					Date oudeDatum = (Date) PropertyUtils.getProperty(object, dateField.getName());
-					if (oudeDatum != null)
-					{
-						Date nieuweDatum = new DateTime(oudeDatum).minusDays(aantalDagen).toDate();
-						BeanUtils.setProperty(object, dateField.getName(), nieuweDatum);
-						hibernateService.saveOrUpdate(object);
-						LOG.debug("--- " + object.getClass().getName() + "." + dateField.getName() + " van datum " + format.format(oudeDatum) + ", naar datum "
-							+ format.format(nieuweDatum) + " ---");
-					}
-				}
-			}
-		}
-		catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
-		{
-			LOG.error("Er is een fout opgetreden in de reflection voor het terug zetten van het dossier", e);
-			return false;
-		}
-
-		return true;
-	}
-
-	private List<Field> getAllDateFieldsFrom(Object object)
-	{
-		Class<?> clazz = HibernateHelper.deproxy(object).getClass();
-		List<Field> dateFields = new ArrayList<Field>();
-		for (Class<?> c = clazz; c != null; c = c.getSuperclass())
-		{
-			for (Field field : c.getDeclaredFields())
-			{
-				if (Date.class == field.getType())
-				{
-					dateFields.add(field);
-					LOG.debug("--- DateField geregistreerd van inherited class: " + c.getName() + ", field: " + field.getName() + " ---");
-				}
-			}
-		}
-		return dateFields;
-	}
 }

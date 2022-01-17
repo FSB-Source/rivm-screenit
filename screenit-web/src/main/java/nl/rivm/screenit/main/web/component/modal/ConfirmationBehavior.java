@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component.modal;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,19 +21,20 @@ package nl.rivm.screenit.main.web.component.modal;
  * =========================LICENSE_END==================================
  */
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxCallListener;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 public abstract class ConfirmationBehavior extends AjaxEventBehavior implements IConfirmCallback
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private final IDialog popup;
@@ -68,12 +69,25 @@ public abstract class ConfirmationBehavior extends AjaxEventBehavior implements 
 		return new ConfirmPanel(IDialog.CONTENT_ID, 
 			getHeaderStringModel(), 
 			getContentStringModel(), 
-			this, popup);
+			this, popup)
+		{
+
+			@Override
+			protected Component createCustomComponent(String id)
+			{
+				return ConfirmationBehavior.this.createCustomComponent(id);
+			}
+		};
 	}
 
 	protected abstract IModel<String> getContentStringModel();
 
 	protected abstract IModel<String> getHeaderStringModel();
+
+	protected Component createCustomComponent(String id)
+	{
+		return new WebMarkupContainer(id).setVisible(false);
+	}
 
 	@Override
 	public void onYesClick(AjaxRequestTarget target)
@@ -121,5 +135,4 @@ public abstract class ConfirmationBehavior extends AjaxEventBehavior implements 
 	{
 		return null;
 	}
-
 }

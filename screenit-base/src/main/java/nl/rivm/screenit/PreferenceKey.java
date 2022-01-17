@@ -4,7 +4,7 @@ package nl.rivm.screenit;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -158,6 +158,12 @@ public enum PreferenceKey
 
 	CERVIX_DEFINITIEF_HERAANMELDEN_TEKST("Definitief heraanmelden tekst", String.class),
 
+	CERVIX_VERVOLGONDERZOEK_NEGATIEF_65PLUS_TEKST("Tekst wanneer vervolgonderzoek negatief is en doelgroep 65 plus", String.class),
+	CERVIX_VERVOLGONDERZOEK_NEGATIEF_60PLUS_TEKST("Tekst wanneer vervolgonderzoek negatief is en doelgroep 60 plus", String.class),
+	CERVIX_VERVOLGONDERZOEK_NEGATIEF_OVERIGE_TEKST("Tekst wanneer vervolgonderzoek negatief is en bedoelt voor alle overige doelgroepen", String.class),
+	CERVIX_CYTOLOGIE_POSITIEF_60PLUS_TEKST("Tekst wanneer de cytologie uitslag positief is en doelgroep 60 plus", String.class),
+	CERVIX_CYTOLOGIE_POSITIEF_OVERIGE_TEKST("Tekst wanneer de cytologie uitslag positief is en bedoelt voor alle overige doelgroepen", String.class),
+
 	COLON_EENMALIG_HERAANMELDEN_TEKST("Eenmalig heraanmelden tekst", String.class),
 
 	COLON_DEFINITIEF_HERAANMELDEN_TEKST("Definitief heraanmelden tekst", String.class),
@@ -223,6 +229,10 @@ public enum PreferenceKey
 	CERVIX_CLIENTPORTAAL_VERVANGENDE_TEKST("BMHK clientportaal: Vervangende tekst", String.class),
 
 	CERVIX_CLIENTPORTAAL_TIJDELIJKE_MELDING("BMHK clientportaal: Tijdelijke melding", String.class),
+
+	BMHK_LABEL_PRINTEN_ZONDER_PDF("BMHK label printen zonder PDF", Boolean.class),
+
+	CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE("Startdatum aanlevering genotypering analyseresultaten en invoering triage BMHK", Date.class),
 
 	MAMMA_MINIMALE_LEEFTIJD("Minimale leeftijd", Integer.class),
 
@@ -380,13 +390,13 @@ public enum PreferenceKey
 
 	ILM_BEZWAARTERMIJN_BEELDEN_VERWIJDERD("Bezwaartermijn beelden verwijderd", Integer.class),
 
+	ILM_BEWAARTERMIJN_PALGA("Bewaartermijn palga verslagen", Integer.class),
+
 	MAMMA_SE_MAX_OFFLINE_INLOGPERIODE("SE offline inloggen", Integer.class),
 
 	MAMMA_SE_DAGLIJST_OPHALEN_DAGEN("SE daglijst ophalen dagen", Integer.class),
 
 	MAMMA_ANNOTEER_EERSTE_RONDE("Eerste ronde uitnodiging apart afdrukken", Boolean.class),
-
-	BMHK_LABEL_PRINTEN_ZONDER_PDF("BMHK label printen zonder PDF", Boolean.class),
 
 	;
 

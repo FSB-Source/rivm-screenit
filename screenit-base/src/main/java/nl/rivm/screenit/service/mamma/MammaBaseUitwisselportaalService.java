@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,11 +24,13 @@ package nl.rivm.screenit.service.mamma;
 import java.io.File;
 import java.io.IOException;
 
+import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 
 public interface MammaBaseUitwisselportaalService
 {
@@ -48,4 +50,10 @@ public interface MammaBaseUitwisselportaalService
 	void verwijderUploadVerzoeken(MammaScreeningRonde screeningRonde);
 
 	void verwijderBeelden(MammaUploadBeeldenPoging uploadBeeldenPoging);
+
+	void setIlmStatus(MammaUploadBeeldenPoging uploadBeeldenPoging, MammaMammografieIlmStatus ilmStatus);
+
+	boolean forceerUploadPogingIlmStatus(long accessionNumber, MammaMammografieIlmStatus status, Account account);
+
+	MammaUploadBeeldenPoging getUploadPoging(Long accessionNumber);
 }

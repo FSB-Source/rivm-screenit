@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.main.web.error;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,13 +36,8 @@ public class PageExpiredPage extends BasePage
 	@SpringBean(name = "applicationUrl")
 	private String applicationUrl;
 
-	@SpringBean(name = "portaalUrl")
-	private String portaalUrl;
-
 	public PageExpiredPage()
 	{
-		add(new WebMarkupContainer("opnieuwInloggenAlsClient").add(new AttributeAppender("href", portaalUrl + "/" + ScreenitApplication.CLIENTPORTAAL_MOUNT)));
-
 		add(new WebMarkupContainer("opnieuwInloggen").add(new AttributeAppender("href", applicationUrl)));
 
 		String uitwisselportaalUrl = applicationUrl;

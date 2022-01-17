@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.inpakcentrum;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +40,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.algemeen.KoppelData;
 import nl.rivm.screenit.model.batch.BatchJob;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.model.enums.JobType;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -161,7 +162,7 @@ public class InpakcentrumKoppelServiceImpl implements InpakcentrumKoppelService
 				koppelDataResponse.setAantalFouten(BigInteger.valueOf(0));
 			}
 
-			batchJob.getJobParameters().put(Constants.XML_PARAMETER_KOPPEL_JOB, koppelData2.getId());
+			batchJob.getJobParameters().put(JobStartParameter.KOPPEL_XML.name(), koppelData2.getId());
 			batchJob.getJobParameters().put(Constants.ALLEEN_VALIDATIE, onlyValidation);
 			LOG.info("Geen fouten bij verwerking koppeldata, dus doorzetten naar batch voor verdere validatie.");
 			jobService.startJob(batchJob, null);

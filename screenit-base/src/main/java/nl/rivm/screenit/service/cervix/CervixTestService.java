@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.cervix;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,16 +21,12 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
@@ -40,7 +36,7 @@ import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
@@ -71,7 +67,7 @@ public interface CervixTestService
 
 	CervixZas geefZas(GbaPersoon gbaPersoon, CervixZasStatus zasStatus, String monsterId, BMHKLaboratorium bmhkLaboratorium);
 
-	CervixHpvUitslag geefHpvUitslag(GbaPersoon gbaPersoon, CervixHpvUitslag hpvUitslag, BMHKLaboratorium laboratorium);
+	CervixHpvBeoordelingWaarde geefHpvUitslag(GbaPersoon gbaPersoon, CervixHpvBeoordelingWaarde hpvUitslag, BMHKLaboratorium laboratorium);
 
 	CervixUitstrijkje geefCytologieUitslag(GbaPersoon gbaPersoon, CervixCytologieUitslag cytologieUitslag, BMHKLaboratorium laboratorium);
 
@@ -79,11 +75,7 @@ public interface CervixTestService
 
 	CervixLabformulier geefLabformulier(GbaPersoon gbaPersoon, CervixLabformulierStatus labformulierStatus, BMHKLaboratorium laboratorium, CervixHuisartsLocatie huisartsLocatie);
 
-	CervixCytologieOrder geefCytologieOrder(GbaPersoon gbaPersoon);
-
 	CervixHuisartsLocatie geefHuisartsLocatie();
-
-	void importCervixClientenViaCsv(File file) throws IOException, ParseException;
 
 	Document geefBarcodeUitnodigingsIdTestPdf(CervixUitnodiging uitnodiging);
 

@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.bestanden;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -51,16 +51,11 @@ public class ProjectBestandVerwerkingPage extends ProjectBasePage
 
 	private IModel<ProjectBestand> bestandModel;
 
-	private IModel<ProjectBestandVerwerkingEntry> entryModel;
-
 	public ProjectBestandVerwerkingPage(IModel<Project> model, IModel<ProjectBestand> bestandModel)
 	{
 		super(model);
-		setDefaultModel(ModelUtil.cModel(bestandModel.getObject().getVerwerking()));
+		setDefaultModel(ModelUtil.ccModel(bestandModel.getObject().getVerwerking()));
 		this.bestandModel = bestandModel;
-		this.entryModel = ModelUtil.cModel(new ProjectBestandVerwerkingEntry());
-		ProjectBestandVerwerkingEntry entry = entryModel.getObject();
-		entry.setVerwerking((ProjectBestandVerwerking) getDefaultModelObject());
 
 		add(new Label("bestandsNaam", bestandModel.getObject().getUploadDocument().getNaam()));
 
@@ -113,7 +108,7 @@ public class ProjectBestandVerwerkingPage extends ProjectBasePage
 		columns.add(new PropertyColumn<>(Model.of("Reden regel niet verwerkt"), "melding", "melding"));
 
 		ScreenitDataTable<ProjectBestandVerwerkingEntry, String> dataTable = new ScreenitDataTable<ProjectBestandVerwerkingEntry, String>("meldingen", columns,
-			new ProjectBestandVerwerkingDataProvider(entryModel), 10, Model.of("Meldingen"))
+			new ProjectBestandVerwerkingDataProvider((IModel<ProjectBestandVerwerking>) getDefaultModel()), 10, Model.of("Meldingen"))
 		{
 			private static final long serialVersionUID = 1L;
 
@@ -143,7 +138,6 @@ public class ProjectBestandVerwerkingPage extends ProjectBasePage
 	{
 		super.onDetach();
 		ModelUtil.nullSafeDetach(bestandModel);
-		ModelUtil.nullSafeDetach(entryModel);
 	}
 
 	@Override

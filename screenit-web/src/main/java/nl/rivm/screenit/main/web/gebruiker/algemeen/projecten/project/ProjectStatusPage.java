@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.project;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.util.OrganisatieUtil;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.projecten.ProjectBasePage;
@@ -40,6 +39,7 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.MedewerkerUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.BooleanLabel;
@@ -66,12 +66,9 @@ public class ProjectStatusPage extends ProjectBasePage
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
-	private IModel<Project> projectModel;
-
 	public ProjectStatusPage(IModel<Project> model)
 	{
 		super(new CompoundPropertyModel<>(model));
-		projectModel = model;
 		Project project = model.getObject();
 		List<Bevolkingsonderzoek> bevolkingsonderzoeken = model.getObject().getBevolkingsonderzoeken();
 
@@ -103,17 +100,18 @@ public class ProjectStatusPage extends ProjectBasePage
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				setResponsePage(new ProjectEditPage(projectModel));
+				setResponsePage(new ProjectEditPage(getProjectModel()));
 			}
 
 			@Override
-			public boolean isVisible()
+			public void onConfigure()
 			{
-				Project project = projectModel.getObject();
+				super.onConfigure();
+				Project project = getProjectModel().getObject();
 				Date eindDatum = project.getEindDatum();
 				Date nu = currentDateSupplier.getDate();
 				boolean level = getToegangsLevel(Recht.GEBRUIKER_PROJECT_OVERZICHT, Actie.AANPASSEN) != null;
-				return !eindDatum.before(nu) && level;
+				setVisible(!eindDatum.before(nu) && level);
 			}
 
 		});
@@ -189,12 +187,5 @@ public class ProjectStatusPage extends ProjectBasePage
 			}
 		});
 		return onderzoeksvariantLabel;
-	}
-
-	@Override
-	protected void onDetach()
-	{
-		super.onDetach();
-		ModelUtil.nullSafeDetach(projectModel);
 	}
 }

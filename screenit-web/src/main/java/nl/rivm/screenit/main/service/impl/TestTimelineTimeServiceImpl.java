@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.service.impl;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,12 @@ package nl.rivm.screenit.main.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
 import nl.rivm.screenit.main.service.TestTimelineTimeService;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonConclusie;
@@ -43,16 +38,10 @@ import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColonVooraankondiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.service.BaseTestTimelineService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.slf4j.Logger;
@@ -66,17 +55,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED)
 public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(TestTimelineTimeService.class);
-
-	@Autowired
-	private HibernateService hibernateService;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired
+	private BaseTestTimelineService baseTestTimelineService;
 
 	@Override
 	public boolean calculateBackwards(ColonDossier dossier, TestTimeLineDossierTijdstip tijdstip)
@@ -90,29 +78,12 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 	public boolean calculateBackwards(ColonDossier dossier, int dagen)
 	{
 		LOG.debug("Dossier aantal dagen terug gezet: " + dagen);
-		rekenObjectTerug(dossier, dagen);
-		rekenObjectTerug(dossier.getColonVooraankondiging(), dagen);
-		rekenObjectTerug(dossier.getVolgendeUitnodiging(), dagen);
+		baseTestTimelineService.rekenObjectTerug(dossier, dagen);
+		baseTestTimelineService.rekenObjectTerug(dossier.getColonVooraankondiging(), dagen);
+		baseTestTimelineService.rekenObjectTerug(dossier.getVolgendeUitnodiging(), dagen);
 		rekenAlleColonScreeningRondesTerug(dossier, dagen);
-		rekenAllePersoonsDatumTerug(dossier.getClient().getPersoon(), dagen);
+		baseTestTimelineService.rekenAllePersoonsDatumTerug(dossier.getClient().getPersoon(), dagen);
 		return true;
-	}
-
-	private void rekenAllePersoonsDatumTerug(GbaPersoon persoon, int aantalDagen)
-	{
-		if (persoon.getOverlijdensdatum() != null)
-		{
-			persoon.setOverlijdensdatum(new DateTime(persoon.getOverlijdensdatum()).minusDays(aantalDagen).toDate());
-		}
-		if (persoon.getDatumVertrokkenUitNederland() != null)
-		{
-			persoon.setDatumVertrokkenUitNederland(new DateTime(persoon.getDatumVertrokkenUitNederland()).minusDays(aantalDagen).toDate());
-		}
-		if (persoon.getDatumVestigingNederland() != null)
-		{
-			persoon.setDatumVestigingNederland(new DateTime(persoon.getDatumVestigingNederland()).minusDays(aantalDagen).toDate());
-		}
-		hibernateService.saveOrUpdate(persoon);
 	}
 
 	@Override
@@ -186,12 +157,10 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 
 	private void rekenAlleColonScreeningRondesTerug(ColonDossier dossier, int dagen)
 	{
-
 		List<ColonScreeningRonde> rondes = dossier.getScreeningRondes();
 		for (ColonScreeningRonde ronde : rondes)
 		{
-
-			rekenObjectTerug(ronde, dagen);
+			baseTestTimelineService.rekenObjectTerug(ronde, dagen);
 
 			rekenAlleColonUitnodigingenTerug(ronde, dagen);
 			rekenAlleColonBrievenTerug(ronde, dagen);
@@ -206,7 +175,7 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 		for (ColonHuisartsBericht bericht : ronde.getHuisartsBerichten())
 		{
 
-			rekenObjectTerug(bericht, dagen);
+			baseTestTimelineService.rekenObjectTerug(bericht, dagen);
 		}
 	}
 
@@ -216,11 +185,11 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 		{
 			if (VerslagType.MDL.equals(verslag.getType()))
 			{
-				rekenObjectTerug(verslag, dagen);
+				baseTestTimelineService.rekenObjectTerug(verslag, dagen);
 			}
 			else if (VerslagType.PA_LAB.equals(verslag.getType()))
 			{
-				rekenObjectTerug(verslag, dagen);
+				baseTestTimelineService.rekenObjectTerug(verslag, dagen);
 			}
 		}
 	}
@@ -232,9 +201,9 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 			ColonConclusie conclusie = afspraak.getConclusie();
 			if (conclusie != null)
 			{
-				rekenObjectTerug(conclusie, dagen);
+				baseTestTimelineService.rekenObjectTerug(conclusie, dagen);
 			}
-			rekenObjectTerug(afspraak, dagen);
+			baseTestTimelineService.rekenObjectTerug(afspraak, dagen);
 		}
 	}
 
@@ -242,7 +211,7 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 	{
 		for (ColonBrief brief : ronde.getBrieven())
 		{
-			rekenObjectTerug(brief, dagen);
+			baseTestTimelineService.rekenObjectTerug(brief, dagen);
 
 		}
 	}
@@ -251,62 +220,10 @@ public class TestTimelineTimeServiceImpl implements TestTimelineTimeService
 	{
 		for (ColonUitnodiging uitnodiging : ronde.getUitnodigingen())
 		{
-			rekenObjectTerug(uitnodiging, dagen);
-			rekenObjectTerug(uitnodiging.getGekoppeldeTest(), dagen);
-			rekenObjectTerug(uitnodiging.getGekoppeldeExtraTest(), dagen);
-			rekenObjectTerug(uitnodiging.getAntwoordFormulier(), dagen);
+			baseTestTimelineService.rekenObjectTerug(uitnodiging, dagen);
+			baseTestTimelineService.rekenObjectTerug(uitnodiging.getGekoppeldeTest(), dagen);
+			baseTestTimelineService.rekenObjectTerug(uitnodiging.getGekoppeldeExtraTest(), dagen);
+			baseTestTimelineService.rekenObjectTerug(uitnodiging.getAntwoordFormulier(), dagen);
 		}
-	}
-
-	private boolean rekenObjectTerug(HibernateObject object, int aantalDagen)
-	{
-		try
-		{
-			if (object != null)
-			{
-				for (Field dateField : getAllDateFieldsFrom(object))
-				{
-					SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
-					DateConverter dateConverter = new DateConverter();
-					dateConverter.setPattern("dd-MM-yyyy");
-					ConvertUtils.register(dateConverter, java.util.Date.class);
-
-					Date oudeDatum = (Date) PropertyUtils.getProperty(object, dateField.getName());
-					if (oudeDatum != null)
-					{
-						Date nieuweDatum = new DateTime(oudeDatum).minusDays(aantalDagen).toDate();
-						BeanUtils.setProperty(object, dateField.getName(), nieuweDatum);
-						hibernateService.saveOrUpdate(object);
-						LOG.debug("--- " + object.getClass().getName() + "." + dateField.getName() + " van datum " + format.format(oudeDatum) + ", naar datum "
-							+ format.format(nieuweDatum) + " ---");
-					}
-				}
-			}
-		}
-		catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e)
-		{
-			LOG.error("Er is een fout opgetreden in de reflection voor het terug zetten van het dossier", e);
-			return false;
-		}
-
-		return true;
-	}
-
-	private List<Field> getAllDateFieldsFrom(Object object)
-	{
-		Class<?> clazz = HibernateHelper.deproxy(object).getClass();
-		List<Field> dateFields = new ArrayList<Field>();
-		for (Class<?> c = clazz; c != null; c = c.getSuperclass())
-		{
-			for (Field field : c.getDeclaredFields())
-			{
-				if (Date.class == field.getType())
-				{
-					dateFields.add(field);
-					LOG.debug("--- DateField geregistreerd van inherited class: " + c.getName() + ", field: " + field.getName() + " ---");
-				}
-			}
-		}
-		return dateFields;
 	}
 }

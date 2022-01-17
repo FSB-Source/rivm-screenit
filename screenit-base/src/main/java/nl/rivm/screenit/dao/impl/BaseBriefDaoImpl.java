@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.dao.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -115,7 +114,7 @@ public class BaseBriefDaoImpl extends AbstractAutowiredDao implements BaseBriefD
 	}
 
 	@Override
-	public boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief> briefClass)
+	public boolean clientHeeftOngegenereerdeBriefVanType(BriefType type, Client client, Class<? extends ClientBrief<?, ?, ?>> briefClass)
 	{
 		Criteria crit = getSession().createCriteria(briefClass);
 		crit.add(Restrictions.eq("client", client));
@@ -128,7 +127,7 @@ public class BaseBriefDaoImpl extends AbstractAutowiredDao implements BaseBriefD
 	}
 
 	@Override
-	public List<ClientBrief> getClientBrieven(Client client)
+	public List<ClientBrief<?, ?, ?>> getClientBrieven(Client client)
 	{
 		Criteria crit = this.getSession().createCriteria(ClientBrief.class);
 		crit.add(Restrictions.eq("client", client));

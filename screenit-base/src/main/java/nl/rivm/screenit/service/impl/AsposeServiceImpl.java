@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -31,9 +31,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -51,7 +51,6 @@ import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.FileService;
-
 import org.apache.commons.lang.StringUtils;
 import org.ghost4j.Ghostscript;
 import org.ghost4j.GhostscriptException;
@@ -64,6 +63,7 @@ import org.ghost4j.renderer.AbstractRemoteRenderer;
 import org.ghost4j.renderer.RendererException;
 import org.ghost4j.util.DiskStore;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
+import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +89,6 @@ import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 @Service
 public class AsposeServiceImpl implements AsposeService
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(AsposeServiceImpl.class);
 
 	@Autowired
@@ -130,7 +129,7 @@ public class AsposeServiceImpl implements AsposeService
 	public Document processDocument(File file, MailMergeContext context) throws Exception
 	{
 		Document document = null;
-		try (InputStream stream = new FileInputStream(file);)
+		try (InputStream stream = new FileInputStream(file))
 		{
 			document = new Document(stream);
 			processDocument(document, context, true);
@@ -151,11 +150,11 @@ public class AsposeServiceImpl implements AsposeService
 		return document;
 	}
 
-	private Document processDocument(Document document, MailMergeContext context, boolean replaceMergeFieldIfNull) throws Exception
+	private void processDocument(Document document, MailMergeContext context, boolean replaceMergeFieldIfNull) throws Exception
 	{
 		setFontsFolder();
 
-		String mergeVeldNaam = null;
+		String veldnaam = null;
 		try
 		{
 			document.getMailMerge().setFieldMergingCallback(new MailMergeImageCallback(context));
@@ -163,21 +162,31 @@ public class AsposeServiceImpl implements AsposeService
 			Map<String, Object> mergeValues = new HashMap<>();
 			for (String fieldName : document.getMailMerge().getFieldNames())
 			{
-				mergeVeldNaam = fieldName;
-				Object mergeFieldValue = getMergeFieldValue(fieldName, context);
-				if (mergeFieldValue != null || replaceMergeFieldIfNull)
+				veldnaam = fieldName;
+				Object afdrukObject = getAfdrukObject(fieldName, context);
+				if (afdrukObject instanceof Entry)
 				{
-					mergeValues.put(fieldName, mergeFieldValue);
+					mergeValues.put(fieldName, ((Entry<?, ?>) afdrukObject).getValue());
 				}
+				if (afdrukObject instanceof MergeField)
+				{
+					mergeValues.put(fieldName, ((MergeField) afdrukObject).getValue(context));
+				}
+				if (mergeValues.get(fieldName) == null && !replaceMergeFieldIfNull)
+				{
+					mergeValues.remove(fieldName);
+				}
+
 			}
-			document.getMailMerge().execute(mergeValues.keySet().toArray(new String[mergeValues.size()]), mergeValues.values().toArray());
+			String[] fieldNames = mergeValues.keySet().toArray(new String[0]);
+			Object[] values = mergeValues.values().toArray();
+			document.getMailMerge().execute(fieldNames, values);
 		}
 		catch (Exception e)
 		{
-			LOG.error("Error creating word doc, merge niet gelukt van " + mergeVeldNaam, e);
+			LOG.error("Error creating word doc, merge niet gelukt van " + veldnaam, e);
 			throw e;
 		}
-		return document;
 	}
 
 	@Override
@@ -220,7 +229,7 @@ public class AsposeServiceImpl implements AsposeService
 		return pdfSaveOptions;
 	}
 
-	private Object getMergeFieldValue(String fieldName, MailMergeContext context)
+	private Object getAfdrukObject(String fieldName, MailMergeContext context)
 	{
 		MergeField mergeField = MergeField.getByFieldname(fieldName);
 		if (mergeField == null && !context.getProjectAttributen().isEmpty())
@@ -229,15 +238,11 @@ public class AsposeServiceImpl implements AsposeService
 			{
 				if (fieldName.equals(entry.getKey().getMergeField()) && entry.getValue() != null)
 				{
-					return entry.getValue();
+					return entry;
 				}
 			}
 		}
-		if (mergeField == null)
-		{
-			return null;
-		}
-		return mergeField.getValue(context);
+		return mergeField;
 	}
 
 	private void setFontsFolder()
@@ -336,9 +341,8 @@ public class AsposeServiceImpl implements AsposeService
 		}
 	}
 
-	final private class MailMergeImageCallback implements IFieldMergingCallback
+	private final class MailMergeImageCallback implements IFieldMergingCallback
 	{
-
 		private final MailMergeContext context;
 
 		private MailMergeImageCallback(MailMergeContext context)
@@ -358,156 +362,149 @@ public class AsposeServiceImpl implements AsposeService
 		}
 
 		@Override
-		public void imageFieldMerging(ImageFieldMergingArgs field) throws IOException, InstantiationException, IllegalAccessException, RendererException, DocumentException
+		public void imageFieldMerging(ImageFieldMergingArgs field)
+			throws IOException, InstantiationException, IllegalAccessException, RendererException, DocumentException, NoSuchMethodException, InvocationTargetException
 		{
-			final int dpi = 300;
-			if (MergeField.getByFieldname(field.getFieldName()) == null)
+			Object afdrukObject = getAfdrukObject(field.getFieldName(), context);
+			if (afdrukObject instanceof Entry)
 			{
-				return;
-			}
-			if (getMergeFieldValue(field.getFieldName(), context) == null)
-			{
-				return;
-			}
-
-			if (MergeField.getByFieldname(field.getFieldName()).isBarcode())
-			{
-
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-				String msg = getMergeFieldValue(field.getFieldName(), context).toString();
-
-				if (StringUtils.isNotBlank(msg))
+				Entry<ProjectAttribuut, String> entry = (Entry<ProjectAttribuut, String>) afdrukObject;
+				if (entry.getKey().isBarcode())
 				{
-					BitmapCanvasProvider canvas = new BitmapCanvasProvider(outputStream, "image/x-png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
-					AbstractBarcodeBean barcodeBean = getBarcodeBean(field.getFieldName());
-					try
-					{
-						barcodeBean.generateBarcode(canvas, msg);
-						canvas.finish();
-					}
-					catch (IllegalArgumentException iae)
-					{
-						LOG.error(iae.getMessage(), iae);
-					}
+					barcodeMerger(field, (entry).getValue(), null, new Code128Bean());
 				}
-
-				InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-				field.setImageStream(inputStream);
-
 			}
-			else if (MergeField.getByFieldname(field.getFieldName()).isQRcode())
+			if (afdrukObject instanceof MergeField)
 			{
-				String msg = getMergeFieldValue(field.getFieldName(), context).toString();
+				MergeField mergeField = (MergeField) afdrukObject;
+				Object mergeFieldValue = mergeField.getValue(context);
 
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-				if (StringUtils.isNotBlank(msg))
+				if (mergeField.isBarcode())
 				{
-					msg = Constants.LOCATIEID + "=" + msg;
-
-					int size = 100;
-					String fileType = "png";
-					try
-					{
-						Map<EncodeHintType, ErrorCorrectionLevel> hintMap = new Hashtable<>();
-						hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
-						QRCodeWriter qrCodeWriter = new QRCodeWriter();
-						BitMatrix byteMatrix = qrCodeWriter.encode(msg, BarcodeFormat.QR_CODE, size, size, hintMap);
-						int crunchifyWidth = byteMatrix.getWidth();
-						BufferedImage image = new BufferedImage(crunchifyWidth, crunchifyWidth, BufferedImage.TYPE_INT_RGB);
-						image.createGraphics();
-
-						Graphics2D graphics = (Graphics2D) image.getGraphics();
-						graphics.setColor(Color.WHITE);
-						graphics.fillRect(0, 0, crunchifyWidth, crunchifyWidth);
-						graphics.setColor(Color.BLACK);
-
-						for (int i = 0; i < crunchifyWidth; i++)
-						{
-							for (int j = 0; j < crunchifyWidth; j++)
-							{
-								if (byteMatrix.get(i, j))
-								{
-									graphics.fillRect(i, j, 1, 1);
-								}
-							}
-						}
-						ImageIO.write(image, fileType, outputStream);
-					}
-					catch (WriterException e)
-					{
-						LOG.error(e.getMessage());
-					}
-					catch (IOException e)
-					{
-						LOG.error(e.getMessage());
-					}
+					AbstractBarcodeBean abstractBarcodeBean = mergeField.getBarcodeType().getConstructor().newInstance();
+					barcodeMerger(field, mergeFieldValue.toString(), mergeField.getBarcodeHeight(), abstractBarcodeBean);
 				}
+				else if (mergeField.isQRcode())
+				{
+					qrcodeMerger(field, mergeFieldValue.toString());
+				}
+				else if (mergeFieldValue instanceof UploadDocument)
+				{
+					imageMerger(field, (UploadDocument) mergeFieldValue);
+				}
+			}
+		}
 
-				InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-				field.setImageStream(inputStream);
+		private void imageMerger(ImageFieldMergingArgs field, UploadDocument uploadDocument) throws IOException, RendererException, DocumentException
+		{
+			File mergeFieldFile = fileService.load(uploadDocument);
+			if (uploadDocument.getContentType().equals("image/x-eps") || uploadDocument.getContentType().equals("application/postscript"))
+			{
+				PSDocument document = new PSDocument();
+				document.load(mergeFieldFile);
+				EPSRenderer renderer = new EPSRenderer();
+				renderer.setResolution(100);
+
+				List<Image> images = renderer.render(document);
+				BufferedImage image = (BufferedImage) images.get(0);
+
+				File png = File.createTempFile("image", ".png");
+				LOG.info("png image: " + png);
+				ImageIO.write(image, "png", png);
+				field.setImage(image);
+				field.setImageHeight(new MergeFieldImageDimension(40, MergeFieldImageDimensionUnit.POINT));
+				field.setImageWidth(new MergeFieldImageDimension(160, MergeFieldImageDimensionUnit.POINT));
 			}
 			else
 			{
-				Object mergeFieldValue = MergeField.getByFieldname(field.getFieldName()).getValue(context);
-				if (mergeFieldValue instanceof UploadDocument)
+				try (InputStream inputStream = new FileInputStream(mergeFieldFile))
 				{
-					UploadDocument uploadDocument = (UploadDocument) mergeFieldValue;
-					File mergeFieldFile = fileService.load(uploadDocument);
+					field.setImageStream(inputStream);
+				}
+				catch (Exception e)
+				{
+					LOG.error(e.getMessage(), e);
+				}
+			}
 
-					if (uploadDocument.getContentType().equals("image/x-eps") || uploadDocument.getContentType().equals("application/postscript"))
+		}
+
+		private void qrcodeMerger(ImageFieldMergingArgs field, String message)
+		{
+
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+			if (StringUtils.isNotBlank(message))
+			{
+				message = Constants.LOCATIEID + "=" + message;
+
+				int size = 100;
+				String fileType = "png";
+				try
+				{
+					Map<EncodeHintType, ErrorCorrectionLevel> hintMap = new HashMap<>();
+					hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+					QRCodeWriter qrCodeWriter = new QRCodeWriter();
+					BitMatrix byteMatrix = qrCodeWriter.encode(message, BarcodeFormat.QR_CODE, size, size, hintMap);
+					int crunchifyWidth = byteMatrix.getWidth();
+					BufferedImage image = new BufferedImage(crunchifyWidth, crunchifyWidth, BufferedImage.TYPE_INT_RGB);
+					image.createGraphics();
+
+					Graphics2D graphics = (Graphics2D) image.getGraphics();
+					graphics.setColor(Color.WHITE);
+					graphics.fillRect(0, 0, crunchifyWidth, crunchifyWidth);
+					graphics.setColor(Color.BLACK);
+
+					for (int x = 0; x < crunchifyWidth; x++)
 					{
-						PSDocument document = new PSDocument();
-						document.load(mergeFieldFile);
-						EPSRenderer renderer = new EPSRenderer();
-						renderer.setResolution(100);
-
-						List<Image> images = renderer.render(document);
-						BufferedImage image = (BufferedImage) images.get(0);
-
-						File png = File.createTempFile("image", ".png");
-						LOG.info("png image: " + png);
-						ImageIO.write(image, "png", png);
-						field.setImage(image);
-						field.setImageHeight(new MergeFieldImageDimension(40, MergeFieldImageDimensionUnit.POINT));
-						field.setImageWidth(new MergeFieldImageDimension(160, MergeFieldImageDimensionUnit.POINT));
-					}
-					else
-					{
-						InputStream inputStream = null;
-						try
+						for (int y = 0; y < crunchifyWidth; y++)
 						{
-							inputStream = new FileInputStream(mergeFieldFile);
-							field.setImageStream(inputStream);
-						}
-						catch (Exception e)
-						{
-							LOG.error(e.getMessage(), e);
-						}
-						finally
-						{
-							if (inputStream != null)
+							if (byteMatrix.get(x, y))
 							{
-								inputStream.close();
+								graphics.fillRect(x, y, 1, 1);
 							}
 						}
 					}
+					ImageIO.write(image, fileType, outputStream);
+				}
+				catch (WriterException | IOException e)
+				{
+					LOG.error(e.getMessage());
 				}
 			}
+
+			InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+			field.setImageStream(inputStream);
 		}
 
-		private AbstractBarcodeBean getBarcodeBean(String fieldName) throws InstantiationException, IllegalAccessException
+		private void barcodeMerger(ImageFieldMergingArgs field, String message, Double barcodeHeight, AbstractBarcodeBean barcodeBean) throws IOException
 		{
-			MergeField mergeField = MergeField.getByFieldname(fieldName);
-			Double mergeFieldBarcodeHeight = mergeField.getBarcodeHeight();
-			AbstractBarcodeBean newInstance = mergeField.getBarcodeType().newInstance();
-			if (mergeFieldBarcodeHeight != null)
+
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			if (StringUtils.isNotBlank(message))
 			{
-				newInstance.setBarHeight(mergeFieldBarcodeHeight);
+				BitmapCanvasProvider canvas = new BitmapCanvasProvider(outputStream, "image/x-png", 300, BufferedImage.TYPE_BYTE_BINARY, false, 0);
+				if (barcodeBean == null)
+				{
+					barcodeBean = new Code128Bean();
+				}
+				if (barcodeHeight != null)
+				{
+					barcodeBean.setBarHeight(barcodeHeight);
+				}
+				try
+				{
+					barcodeBean.generateBarcode(canvas, message);
+					canvas.finish();
+				}
+				catch (IllegalArgumentException iae)
+				{
+					LOG.error(iae.getMessage(), iae);
+				}
 			}
-			return newInstance;
+
+			InputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
+			field.setImageStream(inputStream);
 		}
 	}
-
 }

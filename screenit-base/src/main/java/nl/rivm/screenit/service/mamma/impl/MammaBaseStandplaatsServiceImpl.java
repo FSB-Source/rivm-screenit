@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -48,6 +48,7 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
+import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
@@ -327,8 +328,7 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 			{
 				naam += brieven.getBriefType().name().toLowerCase();
 			}
-			String naamPlusExtensie = naam += ".pdf";
-			return naamPlusExtensie;
+			return naam += ".pdf";
 		}
 
 		@Override
@@ -398,5 +398,27 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 			.max(Comparator.comparing(standplaatsPeriode -> standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet()))
 			.map(standplaatsPeriode -> standplaatsPeriode.getScreeningsEenheid().getVrijgegevenTotEnMet())
 			.orElse(null);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public MammaStandplaatsRonde getStandplaatsRondeVanStandplaats(MammaStandplaats standplaats)
+	{
+		LocalDate vandaag = dateSupplier.getLocalDate();
+		MammaStandplaatsPeriode eerstvolgendePeriodeStandplaats = getEerstvolgendeStandplaatsPeriode(standplaats);
+		MammaScreeningsEenheid screeningsEenheid = eerstvolgendePeriodeStandplaats.getScreeningsEenheid();
+		List<MammaStandplaatsPeriode> gefilterdeStandplaatsPeriodes = screeningsEenheid.getStandplaatsPerioden().stream()
+			.filter(p -> p.getTotEnMet().after(DateUtil.toUtilDate(vandaag)) || DateUtil.compareEquals(p.getTotEnMet(), DateUtil.toUtilDate(vandaag)))
+			.collect(Collectors.toList());
+
+		for (MammaStandplaatsPeriode periode : gefilterdeStandplaatsPeriodes)
+		{
+			if (DateUtil.isWithinRange(DateUtil.toLocalDate(periode.getVanaf()), DateUtil.toLocalDate(periode.getTotEnMet()), vandaag))
+			{
+				return periode.getStandplaatsRonde();
+			}
+		}
+
+		return null;
 	}
 }

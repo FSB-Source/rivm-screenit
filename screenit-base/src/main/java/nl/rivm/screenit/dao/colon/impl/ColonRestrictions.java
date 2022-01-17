@@ -4,7 +4,7 @@ package nl.rivm.screenit.dao.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -45,11 +45,9 @@ import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.DateYearRestrictions;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -69,24 +67,20 @@ import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class ColonRestrictions
 {
 
-	@Autowired
-	private static ICurrentDateSupplier currentDateSupplier;
-
 	public static Criteria getQueryVooraankondigen(Session session, UitnodigingsGebied uitnodigingsGebied, List<Integer> geboortejaren, boolean count, Integer minimaleLeeftijd,
-		Integer maximaleLeeftijd, Long projectGroupId, List<Long> exclusieGroepIds)
+		Integer maximaleLeeftijd, Long projectGroupId, List<Long> exclusieGroepIds, LocalDate vandaag)
 	{
-		Criteria crit = getBaseCriteria(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd);
+		Criteria crit = getBaseCriteria(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, vandaag);
 
 		crit.createAlias("colonDossier", "dossier", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("volgendeUitnodiging.interval", "interval", JoinType.LEFT_OUTER_JOIN);
 
-		crit.add(getU1BaseCriteria(getCurrentDateSupplier().getLocalDate(), geboortejaren));
+		crit.add(getU1BaseCriteria(vandaag, geboortejaren));
 
 		ScreenitRestrictions.addExcludeProjectClientenMetProjectStatusNogTeStarten(crit);
 
@@ -116,6 +110,11 @@ public abstract class ColonRestrictions
 
 	public static Criterion getU1BaseCriteria(LocalDate peildatum, List<Integer> geboortejaren)
 	{
+		return getU1BaseCriteria(peildatum, geboortejaren, peildatum);
+	}
+
+	public static Criterion getU1BaseCriteria(LocalDate peildatum, List<Integer> geboortejaren, LocalDate vandaag)
+	{
 		Conjunction conjunction = Restrictions.conjunction();
 		conjunction.add(
 			Restrictions.or(
@@ -126,7 +125,7 @@ public abstract class ColonRestrictions
 				) 
 			)); 
 		conjunction.add(Restrictions.or(Restrictions.isNull("volgendeUitnodiging.id"),
-			createReferentieCriteria(peildatum)));
+			createReferentieCriteria(peildatum, vandaag)));
 
 		if (!CollectionUtils.isEmpty(geboortejaren))
 		{
@@ -135,15 +134,15 @@ public abstract class ColonRestrictions
 		return conjunction;
 	}
 
-	public static Criteria getQueryU2(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd)
+	public static Criteria getQueryU2(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, LocalDate vandaag)
 	{
-		Criteria crit = getCriteriaUitnodigen(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd);
+		Criteria crit = getCriteriaUitnodigen(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, vandaag);
 
 		crit.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging", JoinType.INNER_JOIN);
 		crit.createAlias("volgendeUitnodiging.interval", "interval", JoinType.INNER_JOIN);
 		crit.createAlias("laatsteScreeningRonde.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
 
-		crit.add(getU2BaseCriteria(getCurrentDateSupplier().getLocalDate()));
+		crit.add(getU2BaseCriteria(vandaag));
 
 		ScreenitRestrictions.addExcludeProjectClientenMetProjectStatusNogTeStarten(crit);
 
@@ -156,17 +155,22 @@ public abstract class ColonRestrictions
 
 	public static Conjunction getU2BaseCriteria(LocalDate peildatum)
 	{
+		return getU2BaseCriteria(peildatum, peildatum);
+	}
+
+	public static Conjunction getU2BaseCriteria(LocalDate peildatum, LocalDate vandaag)
+	{
 		return Restrictions.and(
-			createReferentieCriteria(peildatum),
+			createReferentieCriteria(peildatum, vandaag),
 			Restrictions.eq("dossier.aangemeld", Boolean.TRUE),
 			Restrictions.or(Restrictions.isNull("afspraak.id"),
 				Restrictions.ne("afspraak.status", AfspraakStatus.GEPLAND),
 				Restrictions.le("afspraak.startTime", DateUtil.toUtilDate(DateUtil.minusWerkdagen(peildatum, 5)))));
 	}
 
-	private static Criterion createReferentieCriteria(LocalDate peildatum)
+	private static Criterion createReferentieCriteria(LocalDate peildatum, LocalDate vandaag)
 	{
-		long afwijking = ChronoUnit.DAYS.between(getCurrentDateSupplier().getLocalDate(), peildatum);
+		long afwijking = ChronoUnit.DAYS.between(vandaag, peildatum);
 		Criterion referentieCriteria = Restrictions.leProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum");
 		if (afwijking != 0)
 		{
@@ -272,9 +276,9 @@ public abstract class ColonRestrictions
 		return critOpenUitnodigingNa2jaar;
 	}
 
-	public static Criteria getQueryU3(Session session)
+	public static Criteria getQueryU3(Session session, LocalDate vandaag)
 	{
-		Criteria crit = getCriteriaUitnodigen(session);
+		Criteria crit = getCriteriaUitnodigen(session, vandaag);
 
 		IFOBTTestStatus ifobtStatus = IFOBTTestStatus.NIETTEBEOORDELEN;
 
@@ -287,9 +291,9 @@ public abstract class ColonRestrictions
 		return crit;
 	}
 
-	public static Criteria getQueryU4(Session session)
+	public static Criteria getQueryU4(Session session, LocalDate vandaag)
 	{
-		Criteria crit = getCriteriaUitnodigen(session);
+		Criteria crit = getCriteriaUitnodigen(session, vandaag);
 
 		IFOBTTestStatus ifobtStatus = IFOBTTestStatus.VERLOREN;
 
@@ -307,9 +311,9 @@ public abstract class ColonRestrictions
 		return crit;
 	}
 
-	public static Criteria getQueryU6(Session session)
+	public static Criteria getQueryU6(Session session, LocalDate vandaag)
 	{
-		Criteria crit = getCriteriaUitnodigen(session);
+		Criteria crit = getCriteriaUitnodigen(session, vandaag);
 
 		IFOBTTestStatus ifobtStatus = IFOBTTestStatus.VERVALDATUMVERLOPEN;
 
@@ -333,23 +337,18 @@ public abstract class ColonRestrictions
 			Restrictions.in("laatsteIFOBTTestExtra.status", Arrays.asList(IFOBTTestStatus.UNMUTABLE_EIND_STATUSSEN))));
 	}
 
-	private static Criteria getCriteriaUitnodigen(Session session)
+	private static Criteria getCriteriaUitnodigen(Session session, LocalDate vandaag)
 	{
-		Criteria crit = getBaseCriteria(session, null, null, null);
+		Criteria crit = getBaseCriteria(session, null, null, null, vandaag);
 		addCriteriaUitnodigen(crit);
 		return crit;
 	}
 
-	private static Criteria getCriteriaUitnodigen(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd)
+	private static Criteria getCriteriaUitnodigen(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, LocalDate vandaag)
 	{
-		Criteria crit = getBaseCriteria(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd);
+		Criteria crit = getBaseCriteria(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, vandaag);
 		addCriteriaUitnodigen(crit);
 		return crit;
-	}
-
-	public static Criteria getBaseCriteria(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd)
-	{
-		return getBaseCriteria(session, uitnodigingsGebied, minimaleLeeftijd, maximaleLeeftijd, getCurrentDateSupplier().getLocalDate());
 	}
 
 	public static Criteria getBaseCriteria(Session session, UitnodigingsGebied uitnodigingsGebied, Integer minimaleLeeftijd, Integer maximaleLeeftijd, LocalDate peildatum)
@@ -367,15 +366,6 @@ public abstract class ColonRestrictions
 		addCriteriaUitnodigingsGebied(uitnodigingsGebied, crit);
 
 		return crit;
-	}
-
-	private static ICurrentDateSupplier getCurrentDateSupplier()
-	{
-		if (currentDateSupplier == null)
-		{
-			currentDateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
-		}
-		return currentDateSupplier;
 	}
 
 	private static void addCriteriaUitnodigen(Criteria crit)
@@ -486,11 +476,6 @@ public abstract class ColonRestrictions
 		return postcode;
 	}
 
-	public static void setCurrentDateSupplier(ICurrentDateSupplier currentDateSupplier)
-	{
-		ColonRestrictions.currentDateSupplier = currentDateSupplier;
-	}
-
 	public static String getUniekIdOf(ColoscopieCentrumColonCapaciteitVerdeling verdeling)
 	{
 		if (verdeling.getId() != null)
@@ -518,13 +503,10 @@ public abstract class ColonRestrictions
 
 	public static boolean isIfobtActief(Client andereClient, List<Long> uitgenodigdeClientIds)
 	{
-		synchronized (uitgenodigdeClientIds)
-		{
 
-			if (uitgenodigdeClientIds.contains(andereClient.getId()))
-			{
-				return true;
-			}
+		if (uitgenodigdeClientIds.contains(andereClient.getId()))
+		{
+			return true;
 		}
 
 		if (andereClient.getColonDossier().getLaatsteScreeningRonde() == null
@@ -542,18 +524,21 @@ public abstract class ColonRestrictions
 		return ifobtTest.getStatus() == IFOBTTestStatus.ACTIEF;
 	}
 
-	public static boolean isWachttijdOpPakketVerstreken(Client andereClient, Integer wachttijdVerzendenPakket)
+	public static boolean isWachttijdOpPakketVerstreken(Client andereClient, Integer wachttijdVerzendenPakket, List<Long> uitgenodigdeClientIds, LocalDate vandaag)
 	{
 		if (andereClient.getColonDossier().getLaatsteScreeningRonde() != null
 			&& andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
 			&& andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getCreatieDatum() != null)
 		{
+
+			if (uitgenodigdeClientIds.contains(andereClient.getId()))
+			{
+				return false;
+			}
+
 			LocalDate createDatumUitnodiging = DateUtil.toLocalDate(andereClient.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getCreatieDatum());
 			createDatumUitnodiging = createDatumUitnodiging.plusDays(wachttijdVerzendenPakket);
-			if (!createDatumUitnodiging.isAfter(getCurrentDateSupplier().getLocalDate()))
-			{
-				return true;
-			}
+			return !createDatumUitnodiging.isAfter(vandaag);
 		}
 		return false;
 	}

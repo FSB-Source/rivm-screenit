@@ -1,0 +1,47 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.navItem {
+  padding-top: 25px;
+  padding-bottom: 25px;
+  font-size: 18px;
+  line-height: 20px;
+  margin-left: 25px;
+  color: $zwart !important;
+  transition: all 0.2s;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  @include respond-below(md) {
+    padding: 0;
+    margin-bottom: 15px;
+    margin-top: 15px;
+
+    &:hover {
+      color: $grijs-900 !important;
+      transform: none;
+    }
+  }
+}
+
+.navItemBvo {
+  font-weight: 500;
+}
+
+.navItemActive {
+  padding-bottom: 22px;
+  border-bottom: 3px solid;
+
+  @include respond-below(md) {
+    padding-bottom: 0;
+    border-bottom: none;
+    margin-left: 10px;
+    padding-left: 10px !important;
+    border-left: 3px solid;
+    transform: none;
+  }
+
+}
+

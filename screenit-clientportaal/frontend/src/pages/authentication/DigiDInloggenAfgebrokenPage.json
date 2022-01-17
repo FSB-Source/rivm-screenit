@@ -1,0 +1,28 @@
+{
+  "login": {
+    "button": {
+      "title": "Inloggen met DigiD"
+    },
+    "digid": {
+      "error": {
+        "tekst": "Er is een fout opgetreden in de communicatie met DigiD. Probeer het later nogmaals. Indien deze fout blijft aanhouden, kijk dan op de website <a href='https://www.digid.nl'>https://www.digid.nl</a> voor de laatste informatie.<br><br>Of maak hier uw keuze:",
+        "title": "Fout bij inloggen"
+      },
+      "cancelled": {
+        "tekst": "Het inloggen via DigiD is geannuleerd. Als u naar Mijn Bevolkingsonderzoek wilt gaan, moet u inloggen met uw DigiD.<br><br>Maak uw keuze:",
+        "title": "Inloggen geannuleerd"
+      },
+      "sofi": {
+        "tekst": "Het inloggen via DigiD is mislukt. We hebben geen BSN ontvangen. Indien u geen BSN heeft, kunt u niet inloggen via DigiD. Login via een andere methode.",
+        "title": "Inloggen mislukt"
+      },
+      "bsn": {
+        "tekst": "Het inloggen via DigiD is mislukt, we hebben geen BSN ontvangen.",
+        "title": "Inloggen mislukt"
+      }
+    }
+  },
+  "terug": {
+    "naar": "Terug naar %s"
+  }
+}

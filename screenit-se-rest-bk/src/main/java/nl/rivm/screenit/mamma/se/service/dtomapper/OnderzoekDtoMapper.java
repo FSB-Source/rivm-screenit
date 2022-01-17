@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.service.dtomapper;
  * ========================LICENSE_START=================================
  * screenit-se-rest-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,10 +21,10 @@ package nl.rivm.screenit.mamma.se.service.dtomapper;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+
 import nl.rivm.screenit.mamma.se.dto.onderzoek.OnderzoekSeDto;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
-
-import java.util.ArrayList;
 
 class OnderzoekDtoMapper
 {
@@ -38,10 +38,11 @@ class OnderzoekDtoMapper
 			onderzoekDto.setEerderMammogramZorginstellingId(onderzoek.getEerderMammogramZorginstelling() != null ? onderzoek.getEerderMammogramZorginstelling().getId() : null);
 			onderzoekDto.setSuboptimaleInsteltechniek(onderzoek.getSuboptimaleInsteltechniek());
 			onderzoekDto.setRedenFotobespreking(onderzoek.getRedenFotobespreking());
+			onderzoekDto.setExtraMedewerkerId(onderzoek.getExtraMedewerker() != null ? onderzoek.getExtraMedewerker().getId() : null);
 			onderzoekDto.setOpmerkingMbber(onderzoek.getOpmerkingMbber());
 			onderzoekDto.setOpmerkingVoorRadioloog(onderzoek.getOpmerkingVoorRadioloog());
-			onderzoekDto.setOperatieRechts(onderzoek.getOperatieRechts());
-			onderzoekDto.setOperatieLinks(onderzoek.getOperatieLinks());
+			onderzoekDto.setOperatieRechts(onderzoek.getOperatieRechts() != null && onderzoek.getOperatieRechts());
+			onderzoekDto.setOperatieLinks(onderzoek.getOperatieLinks() != null && onderzoek.getOperatieLinks());
 			onderzoekDto.setAmputatie(onderzoek.getAmputatie());
 			onderzoekDto.setAanvullendeInformatieOperatie(onderzoek.getAanvullendeInformatieOperatie());
 			onderzoekDto.setStatus(onderzoek.getStatus());

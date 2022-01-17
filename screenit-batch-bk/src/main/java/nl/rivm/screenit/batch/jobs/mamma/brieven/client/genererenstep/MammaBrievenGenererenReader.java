@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
  * ========================LICENSE_START=================================
  * screenit-batch-bk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -190,7 +190,7 @@ public class MammaBrievenGenererenReader extends AbstractBrievenGenererenReader<
 			}
 			else
 			{
-				criteria.add(Subqueries.gt(1L, subQuery));
+				criteria.add(Subqueries.lt(1L, subQuery));
 			}
 		}
 	}

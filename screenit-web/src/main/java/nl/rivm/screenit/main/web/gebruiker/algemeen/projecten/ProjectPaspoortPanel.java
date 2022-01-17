@@ -5,7 +5,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projecten;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -70,15 +70,20 @@ public class ProjectPaspoortPanel extends GenericPanel<Project>
 		add(new Label("passpoortNaam", Model.of(getProjectNaamEnBvo(model))));
 		add(new EnumLabel("passpoortStatus", ProjectUtil.getStatus(model.getObject(), currentDateSupplier.getDate())));
 		add(new EnumLabel<ProjectType>("passpoortType", projectType));
-		add(new Label("passpoortGroepSelectieType", new PropertyModel<String>(model, "groepSelectieType.naam")));
+		add(new EnumLabel("passpoortGroepSelectieType", new PropertyModel<String>(model, "groepSelectieType")));
 		add(new Label("passpoortInactief", Model.of(getTotaalInactieveClientenProject(model.getObject()))));
-		add(new Label("passpoortPopulatie", Model.of(model.getObject().getPopulatie())));
+		add(new Label("passpoortPopulatie", Model.of(getTotaalClientenProject(model.getObject()))));
 		add(new Label("passpoortExcludeerAfmelding", Model.of(Bevolkingsonderzoek.getAfkortingen(model.getObject().getExcludeerAfmelding())))
 			.setVisible(!ProjectType.BRIEFPROJECT.equals(projectType)));
 		add(new Label("passpoortExcludeerOpenRonde", Model.of(Bevolkingsonderzoek.getAfkortingen(model.getObject().getExcludeerOpenRonde())))
 			.setVisible(!ProjectType.BRIEFPROJECT.equals(projectType)));
 		add(new Label("passpoortExcludeerBezwaarmakers", Model.of(getProjectExcludeerBezwaar(model.getObject())))
 			.setVisible(!ProjectType.BRIEFPROJECT.equals(projectType)));
+	}
+
+	private Long getTotaalClientenProject(Project project)
+	{
+		return projectService.getAantalProjectClientenVanProject(project);
 	}
 
 	private int getTotaalInactieveClientenProject(Project project)

@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.mamma.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseScreeningrondeDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -35,12 +36,15 @@ import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
 import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
+import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
+import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
@@ -78,6 +82,12 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	@Autowired
 	private BerichtToBatchService berichtToBatchService;
 
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired
+	private MammaBaseIlmService baseIlmService;
+
 	@Override
 	public boolean heeftGeprinteOfTegengehoudenUitslagBrief(MammaScreeningRonde screeningRonde)
 	{
@@ -114,6 +124,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 			{
 				berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.GOINGTODELETE, MammaHL7BerichtType.IMS_ORM_ILM);
 				berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE, MammaHL7BerichtType.IMS_ORM_ILM);
+				baseIlmService.maakIlmBezwaarPoging(screeningRonde.getDossier(), screeningRonde.getUitnodigingsNr(), false);
 			}
 			else
 			{
@@ -122,7 +133,6 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		}
 		if (forceerBeeldenVerwijderen)
 		{
-
 			baseUitwisselportaalService.verwijderUploadVerzoeken(screeningRonde);
 		}
 		baseUitwisselportaalService.verwijderDownloadVerzoeken(screeningRonde);
@@ -183,12 +193,15 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 
 	private void verwijderAlleUitnodigingen(List<MammaUitnodiging> uitnodigingen)
 	{
-		uitnodigingen.forEach(uitnodiging -> {
-			uitnodiging.getAfspraken().forEach(afspraak -> {
+		uitnodigingen.forEach(uitnodiging ->
+		{
+			uitnodiging.getAfspraken().forEach(afspraak ->
+			{
 				if (afspraak.getOnderzoek() != null)
 				{
 					afspraak.getOnderzoek().getBeoordelingen()
-						.forEach(beoordeling -> {
+						.forEach(beoordeling ->
+						{
 							hibernateService.deleteAll(beoordeling.getHuisartsBerichten());
 							if (beoordeling.getVerslagPdf() != null)
 							{
@@ -261,4 +274,29 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		return baseScreeningrondeDao.getLaatsteScreeningRondeMetPositieveUitslag(client, voorDatum);
 	}
 
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS)
+	public BriefType bepaalBriefTypeVoorOpenUitnodiging(boolean isSuspect, MammaDoelgroep doelgroep)
+	{
+		if (isSuspect)
+		{
+			return BriefType.MAMMA_UITNODIGING_SUSPECT;
+		}
+		else if (MammaDoelgroep.MINDER_VALIDE.equals(doelgroep))
+		{
+			return BriefType.MAMMA_UITNODIGING_MINDER_VALIDE;
+		}
+		else
+		{
+			return BriefType.MAMMA_OPEN_UITNODIGING;
+		}
+	}
+
+	@Override
+	public boolean isRondeNogGeldig(MammaScreeningRonde ronde)
+	{
+		var creatieDatum = DateUtil.toLocalDate(ronde.getCreatieDatum());
+		var minimaleCreatieDatum = currentDateSupplier.getLocalDate().minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN);
+		return !creatieDatum.isBefore(minimaleCreatieDatum);
+	}
 }

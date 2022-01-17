@@ -32,6 +32,7 @@
 @import "beheer/sections/contacten";
 @import "beheer/sections/client";
 @import "beheer/sections/werklijst";
+@import "beheer/sections/parameterisatie";
 @import "beheer/sections/gebieden";
 @import "beheer/sections/uitnodigingen_versturen";
 @import "beheer/sections/locaties";
@@ -545,4 +546,10 @@ textarea:disabled ~ i.icon-asterisk.icon-purple {
 .fotobespreking-multiselect-label {
   text-align: left;
   min-height: initial;
+}
+
+.radioloog-dashboard-table {
+  .dashboard-kalenderjaar-cel {
+    text-align: right;
+  }
 }

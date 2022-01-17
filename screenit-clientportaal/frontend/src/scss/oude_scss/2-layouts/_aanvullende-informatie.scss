@@ -1,0 +1,71 @@
+﻿.aanvul-info {
+  margin-top: 100px;
+  display: block !important;
+
+  @include respond-below(sm) {
+    margin-top: 40px;
+  }
+
+  &--item {
+    border-bottom: 1px solid #D0D2D3;
+    display: table;
+    height: 100px;
+    margin: 20px 0;
+    font-size: calc-em(18);
+    line-height: 1.6;
+    padding-left: 22px;
+    width: 100%;
+  }
+
+  a {
+    margin: 0 0 0 -22px;
+    text-indent: -1px;
+
+    &:before {
+      content: "\f105" !important;
+      font-family: FontAwesome;
+      font-size: calc-em(26);
+      margin-right: 8px;
+      display: inline-block;
+    }
+
+    &.submenu {
+      &:before {
+        color: $blue;
+        position: relative;
+        top: 2px;
+      }
+    }
+  }
+}
+
+.borst {
+  .aanvul-info {
+    a {
+      &:before {
+        color: $bk;
+      }
+    }
+  }
+}
+
+.baarmoederhals {
+  .aanvul-info {
+    a {
+      &:before {
+        color: $bmk;
+      }
+    }
+  }
+}
+
+.darm {
+  .aanvul-info {
+    a {
+      &:before {
+        color: $dk;
+      }
+    }
+  }
+}
+

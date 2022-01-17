@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.config;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,14 +36,14 @@ import org.springframework.core.annotation.Order;
 		"classpath:applicationContext-autowired.xml",
 		"classpath:applicationContext-shiro.xml",
 		"classpath:applicationContext-shiro-web.xml",
+		"classpath:applicationContext-hibernate-base.xml",
 		"classpath:applicationContext-hibernate.xml",
 		"classpath:applicationContext-jms.xml",
 		"classpath:applicationContext-jms-web.xml",
 		"classpath:applicationContext-jndi.xml",
 		"classpath:applicationContext-jndi-web.xml",
-		"classpath:applicationContext-mail.xml",
+		"classpath:applicationContext-mailfrom.xml",
 		"classpath:applicationContext-preference-module.xml",
-		"classpath:applicationContext-digid.xml",
 		"classpath:applicationContext-wicket-planning.xml",
 		"classpath:applicationContext-factories.xml",
 		"classpath:applicationContext-edi.xml",

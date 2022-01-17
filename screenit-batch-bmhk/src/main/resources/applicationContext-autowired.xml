@@ -3,7 +3,7 @@
   ========================LICENSE_START=================================
   screenit-batch-bmhk
   %%
-  Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
   %%
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Affero General Public License as published by
@@ -21,17 +21,16 @@
   -->
 
 <beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:context="http://www.springframework.org/schema/context"
-       xmlns:task="http://www.springframework.org/schema/task"
-       xmlns:tx="http://www.springframework.org/schema/tx"
-       xmlns:aop="http://www.springframework.org/schema/aop"
-       xmlns="http://www.springframework.org/schema/beans" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:task="http://www.springframework.org/schema/task"
+	   xmlns:tx="http://www.springframework.org/schema/tx"
+	   xmlns="http://www.springframework.org/schema/beans" xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 
     http://www.springframework.org/schema/context  http://www.springframework.org/schema/context/spring-context-4.1.xsd
     http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.1.xsd
     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
-    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
+      http://www.springframework.org/schema/data/jpa http://www.springframework.org/schema/data/jpa/spring-jpa.xsd">
 
     
     <context:annotation-config/>
@@ -58,13 +57,11 @@
     <context:component-scan base-package="nl.rivm.screenit.factory.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.service.cervix.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.dao.cervix.impl"/>
+	<context:component-scan base-package="nl.rivm.screenit.cache" resource-pattern="CacheMBeanRegistration.class"/>
 
     
     <context:component-scan base-package="nl.rivm.screenit.batch.service.impl"/>
     <context:component-scan base-package="nl.rivm.screenit.batch.dao.impl"/>
-
-    
-    <context:component-scan base-package="nl.topicuszorg.hibernate.schema.dao.impl"/>
 
     
     <context:component-scan base-package="nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.step">

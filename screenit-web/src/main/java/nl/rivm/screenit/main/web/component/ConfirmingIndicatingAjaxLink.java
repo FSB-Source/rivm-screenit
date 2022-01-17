@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,16 +24,17 @@ package nl.rivm.screenit.main.web.component;
 import nl.rivm.screenit.main.web.component.modal.ConfirmationBehavior;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
 public abstract class ConfirmingIndicatingAjaxLink<T> extends IndicatingAjaxLink<T>
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private final IDialog popup;
@@ -62,7 +63,6 @@ public abstract class ConfirmingIndicatingAjaxLink<T> extends IndicatingAjaxLink
 	{
 		return new ConfirmationBehavior(popup)
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -123,7 +123,19 @@ public abstract class ConfirmingIndicatingAjaxLink<T> extends IndicatingAjaxLink
 				super.updateAjaxAttributes(attributes);
 				ConfirmingIndicatingAjaxLink.this.updateAjaxAttributes(attributes);
 			}
+
+			@Override
+			protected Component createCustomComponent(String id)
+			{
+				return ConfirmingIndicatingAjaxLink.this.createCustomComponent(id);
+
+			}
 		};
+	}
+
+	protected Component createCustomComponent(String id)
+	{
+		return new WebMarkupContainer(id).setVisible(false);
 	}
 
 	protected void onClose(AjaxRequestTarget target)

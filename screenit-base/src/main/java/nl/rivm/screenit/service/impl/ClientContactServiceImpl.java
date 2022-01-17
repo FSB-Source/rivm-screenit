@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,6 +41,7 @@ import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningVerzetClientenDto;
+import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
@@ -70,7 +71,7 @@ import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -254,7 +255,8 @@ public class ClientContactServiceImpl implements ClientContactService
 	private MammaAfmeldService mammaAfmeldService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { HibernateJdbcException.class, MammaTijdNietBeschikbaarException.class, GenericJDBCException.class })
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { HibernateJdbcException.class, MammaTijdNietBeschikbaarException.class, GenericJDBCException.class,
+		MammaStandplaatsVanPostcodeOnbekendException.class })
 	public void saveClientContact(ClientContact contact, Map<ClientContactActieType, Map<ExtraOpslaanKey, Object>> extraOpslaanObjecten, Account account)
 	{
 		@SuppressWarnings("unchecked")
@@ -319,12 +321,13 @@ public class ClientContactServiceImpl implements ClientContactService
 			case MAMMA_HUISARTS_WIJZIGEN:
 				actie = null;
 				break;
-			case MAMMA_AFSPRAAK_MAKEN_FORCEREN:
 			case MAMMA_RONDE_FORCEREN:
+				mammaBaseDossierService.rondeForceren(client);
+				break;
+			case MAMMA_AFSPRAAK_MAKEN_FORCEREN:
 			case MAMMA_AFSPRAAK_MAKEN:
 			case MAMMA_AFSPRAAK_WIJZIGEN:
-				actie = mammaAfspraakMakenWijzigen(actie, client, extraOpslaanParams, account,
-					ClientContactActieType.MAMMA_AFSPRAAK_MAKEN.equals(actie.getType()) || ClientContactActieType.MAMMA_RONDE_FORCEREN.equals(actie.getType()),
+				actie = mammaAfspraakMakenWijzigen(actie, client, extraOpslaanParams, account, ClientContactActieType.MAMMA_AFSPRAAK_MAKEN.equals(actie.getType()),
 					ClientContactActieType.MAMMA_AFSPRAAK_MAKEN_FORCEREN.equals(actie.getType()));
 				break;
 			case MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS:
@@ -382,7 +385,7 @@ public class ClientContactServiceImpl implements ClientContactService
 
 	private void mammaStuurVerzoekOmContact(Client client)
 	{
-		briefService.maakMammaBrief(client.getMammaDossier().getLaatsteScreeningRonde(), BriefType.MAMMA_OPROEP_OPNEMEN_CONTACT);
+		briefService.maakBvoBrief(client.getMammaDossier().getLaatsteScreeningRonde(), BriefType.MAMMA_OPROEP_OPNEMEN_CONTACT);
 	}
 
 	private void mammaClientWilGeenVervolgOnderzoek(Client client)
@@ -393,13 +396,13 @@ public class ClientContactServiceImpl implements ClientContactService
 
 	private ClientContactActie cervixAanvraagVerwijderenUitslagBrief(ClientContactActie actie, Client client)
 	{
-		baseBriefService.maakCervixBrief(client.getCervixDossier().getLaatsteScreeningRonde(), BriefType.CERVIX_VERWIJDER_UITSLAG);
+		baseBriefService.maakBvoBrief(client.getCervixDossier().getLaatsteScreeningRonde(), BriefType.CERVIX_VERWIJDER_UITSLAG);
 		return actie;
 	}
 
 	private ClientContactActie colonAanvraagVerwijderenUitslagBrief(ClientContactActie actie, Client client)
 	{
-		baseBriefService.maakColonBrief(client.getColonDossier().getLaatsteScreeningRonde(), BriefType.COLON_VERWIJDER_UITSLAG);
+		baseBriefService.maakBvoBrief(client.getColonDossier().getLaatsteScreeningRonde(), BriefType.COLON_VERWIJDER_UITSLAG);
 		return actie;
 	}
 
@@ -446,19 +449,6 @@ public class ClientContactServiceImpl implements ClientContactService
 					beoordelingService.annuleerBeoordeling(laatsteBeoordeling);
 				}
 			}
-			MammaUitnodiging laatsteUitnodiging = afspraak.getUitnodiging().getScreeningRonde().getLaatsteUitnodiging();
-			if (laatsteUitnodiging == null && afspraak.getUitnodiging().getScreeningRonde().getIsGeforceerd() && isNieuweAfspraak)
-			{
-				MammaUitnodiging tempUitnodiging = afspraak.getUitnodiging();
-				MammaScreeningRonde screeningRonde = mammaBaseFactory.maakRonde(tempUitnodiging.getScreeningRonde().getDossier(),
-					tempUitnodiging.getScreeningRonde().getStandplaatsRonde(), true);
-				MammaUitnodiging uitnodiging = mammaBaseFactory.maakUitnodiging(screeningRonde, afspraak.getStandplaatsPeriode().getStandplaatsRonde(),
-					BriefType.MAMMA_AFSPRAAK_UITNODIGING);
-				boolean briefTegenhouden = Boolean.TRUE.equals(extraOpslaanParams.get(ExtraOpslaanKey.AFSPRAAK_BRIEF_TEGENHOUDEN));
-				uitnodiging.getBrief().setTegenhouden(briefTegenhouden);
-
-				afspraak.setUitnodiging(uitnodiging);
-			}
 
 			if (!isTijdBeschikbaar(afspraak, (IMammaAfspraakWijzigenFilter) extraOpslaanParams.get(ExtraOpslaanKey.MAMMA_AFSPRAAK_FILTER)))
 			{
@@ -468,7 +458,8 @@ public class ClientContactServiceImpl implements ClientContactService
 			beoordelingService
 				.zoekOpgeschorteBeoordelingInRonde(client.getMammaDossier().getLaatsteScreeningRonde(),
 					MammaBeoordelingOpschortenReden.AANVULLENDE_BEELDEN_NODIG_SE, MammaBeoordelingOpschortenReden.PRIORS_VAN_BUITEN_BVO)
-				.ifPresent(beoordeling -> {
+				.ifPresent(beoordeling ->
+				{
 					beoordelingService.setStatus(beoordeling, MammaBeoordelingStatus.OPGESCHORT_MET_AFSPRAAK);
 					hibernateService.saveOrUpdate(beoordeling);
 				});
@@ -483,7 +474,7 @@ public class ClientContactServiceImpl implements ClientContactService
 
 			if (briefAanmaken || MammaVerzettenReden.briefVerplicht(afspraak.getVerzettenReden()))
 			{
-				briefService.maakMammaBrief(afspraak.getUitnodiging().getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET);
+				briefService.maakBvoBrief(afspraak.getUitnodiging().getScreeningRonde(), BriefType.MAMMA_AFSPRAAK_VERZET);
 			}
 
 			PlanningVerzetClientenDto verzetClientenDto = new PlanningVerzetClientenDto();
@@ -508,7 +499,8 @@ public class ClientContactServiceImpl implements ClientContactService
 	private void valideerToekomstigeAfspraken(MammaAfspraak afspraak)
 	{
 		AtomicBoolean heeftGeplandeAfspraak = new AtomicBoolean(false);
-		afspraak.getUitnodiging().getScreeningRonde().getUitnodigingen().forEach(uitnodiging -> uitnodiging.getAfspraken().forEach(af -> {
+		afspraak.getUitnodiging().getScreeningRonde().getUitnodigingen().forEach(uitnodiging -> uitnodiging.getAfspraken().forEach(af ->
+		{
 			if (af.getStatus() == MammaAfspraakStatus.GEPLAND && af.getVanaf().compareTo(currentDateSupplier.getDate()) > 0)
 			{
 				if (heeftGeplandeAfspraak.get())
@@ -554,10 +546,8 @@ public class ClientContactServiceImpl implements ClientContactService
 			LocalTime tijd = DateUtil.toLocalTime(nieuweVanaf);
 			LocalDate datum = DateUtil.toLocalDate(nieuweVanaf);
 
-			return kandidaatAfspraken.stream().anyMatch(kandidaatAfspraakDto -> {
-				return tijd.equals(kandidaatAfspraakDto.getTijd()) && datum.equals(kandidaatAfspraakDto.getDatum())
-					&& capaciteitBlok.getId().equals(kandidaatAfspraakDto.getCapaciteitBlokId());
-			});
+			return kandidaatAfspraken.stream().anyMatch(kandidaatAfspraakDto -> tijd.equals(kandidaatAfspraakDto.getTijd()) && datum.equals(kandidaatAfspraakDto.getDatum())
+				&& capaciteitBlok.getId().equals(kandidaatAfspraakDto.getCapaciteitBlokId()));
 		}
 		else if (LOG.isTraceEnabled())
 		{
@@ -604,7 +594,7 @@ public class ClientContactServiceImpl implements ClientContactService
 
 		laatsteScreeningRonde.setMinderValideOnderzoekZiekenhuis(true);
 
-		baseBriefService.maakMammaBrief(laatsteScreeningRonde, BriefType.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS);
+		baseBriefService.maakBvoBrief(laatsteScreeningRonde, BriefType.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS);
 		hibernateService.saveOrUpdate(laatsteScreeningRonde);
 
 		return actie;
@@ -612,7 +602,7 @@ public class ClientContactServiceImpl implements ClientContactService
 
 	private ClientContactActie mammaInfobriefProthesen(ClientContactActie actie, Client client, Account account)
 	{
-		baseBriefService.maakMammaBrief(client.getMammaDossier().getLaatsteScreeningRonde(), BriefType.MAMMA_INFOBRIEF_PROTHESEN);
+		baseBriefService.maakBvoBrief(client.getMammaDossier().getLaatsteScreeningRonde(), BriefType.MAMMA_INFOBRIEF_PROTHESEN);
 
 		return actie;
 	}
@@ -652,9 +642,8 @@ public class ClientContactServiceImpl implements ClientContactService
 		{
 			ClientContactActie actie = huisartsWijzigenActie.get();
 			Map<ExtraOpslaanKey, Object> extraOpslaanParams = extraOpslaanObjecten.get(ClientContactActieType.COLON_HUISARTS_WIJZIGEN);
-			boolean isAfspraakActieAanwezig = contact.getActies().stream().filter(
-				c -> (ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN.equals(c.getType()) || ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN.equals(c.getType())))
-				.findFirst().isPresent();
+			boolean isAfspraakActieAanwezig = contact.getActies().stream().anyMatch(
+				c -> (ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN.equals(c.getType()) || ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN.equals(c.getType())));
 			actie = wijzigColonHuisarts(account, actie, contact.getClient(), actiesToDelete, extraOpslaanParams, isAfspraakActieAanwezig);
 
 			if (actie != null && isInstellingGebruiker)
@@ -718,7 +707,7 @@ public class ClientContactServiceImpl implements ClientContactService
 			cervixBaseScreeningrondeService.annuleerUitstel(laatsteRonde);
 			LOG.info("Uitstel geannuleerd nav frisse start voor clientId: {}", client.getId());
 		}
-		factory.maakUitnodiging(laatsteRonde, BriefType.CERVIX_UITNODIGING);
+		factory.maakUitnodiging(laatsteRonde, laatsteRonde.getLeeftijdcategorie().getUitnodigingsBrief());
 		return actie;
 	}
 
@@ -925,7 +914,7 @@ public class ClientContactServiceImpl implements ClientContactService
 			&& preferenceService.getBoolean(PreferenceKey.MAMMA_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST.name(), false);
 		boolean toonVervangendeTekstCervixOpClientPortaal = viaClientportaal
 			&& preferenceService.getBoolean(PreferenceKey.CERVIX_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST.name(),
-				false);
+			false);
 		boolean toonVervangendeTekstColonOpClientPortaal = viaClientportaal
 			&& preferenceService.getBoolean(PreferenceKey.COLON_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST.name(), false);
 
@@ -1140,11 +1129,11 @@ public class ClientContactServiceImpl implements ClientContactService
 				boolean laatsteMonsterKanUitslagVerwijderdWorden = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
 					&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getMonster() != null
 					&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getMonster().equals(cervixUitnodigingService.getUitnodigingMagVerwijderdWorden(
-						dossier.getLaatsteScreeningRonde()));
+					dossier.getLaatsteScreeningRonde()));
 				boolean laatsteZasKanVerwijderdWorden = dossier.getLaatsteScreeningRonde().getLaatsteZasUitnodiging() != null
 					&& dossier.getLaatsteScreeningRonde().getLaatsteZasUitnodiging().getMonster() != null
 					&& dossier.getLaatsteScreeningRonde().getLaatsteZasUitnodiging().getMonster().equals(cervixUitnodigingService.getUitnodigingMagVerwijderdWorden(
-						dossier.getLaatsteScreeningRonde()));
+					dossier.getLaatsteScreeningRonde()));
 				return laatsteMonsterKanUitslagVerwijderdWorden || laatsteZasKanVerwijderdWorden;
 			}
 			return false;
@@ -1177,7 +1166,7 @@ public class ClientContactServiceImpl implements ClientContactService
 			{
 				minderValideOnderzoekZiekenhuis = dossier.getDoelgroep() == MammaDoelgroep.MINDER_VALIDE && laatsteUitnodiging != null
 					&& !laatsteRonde.getMinderValideOnderzoekZiekenhuis() && (laatsteAfspraak == null || laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND
-						|| MammaAfspraakStatus.isGeannuleerd(laatsteAfspraak.getStatus()));
+					|| MammaAfspraakStatus.isGeannuleerd(laatsteAfspraak.getStatus()));
 				minderValideNietMeerOnderzoekZiekenhuis = laatsteRonde.getMinderValideOnderzoekZiekenhuis();
 				MammaBrief vorigeInfobriefProthesen = laatsteRonde.getBrieven().stream().filter(brief -> BriefType.MAMMA_INFOBRIEF_PROTHESEN.equals(brief.getBriefType()))
 					.max(Comparator.comparing(Brief::getCreatieDatum))
@@ -1298,7 +1287,7 @@ public class ClientContactServiceImpl implements ClientContactService
 		boolean magNieuweUitnodigingAanvragen = eenmaligeAfmelding != null && Boolean.TRUE.equals(eenmaligeAfmelding.getRondeGesloten())
 			&& Boolean.FALSE.equals(eenmaligeAfmelding.getRondeHeropend())
 			|| definitiefAfmelding != null && Boolean.TRUE.equals(definitiefAfmelding.getRondeGesloten())
-				&& Boolean.FALSE.equals(definitiefAfmelding.getRondeHeropend());
+			&& Boolean.FALSE.equals(definitiefAfmelding.getRondeHeropend());
 
 		if (laatsteScreeningRonde.getStatus() != ScreeningRondeStatus.LOPEND && !isHeraanmelding || !magNieuweUitnodigingAanvragen && isHeraanmelding)
 		{
@@ -1374,8 +1363,8 @@ public class ClientContactServiceImpl implements ClientContactService
 
 		if (Boolean.TRUE.equals(colonDossier.getAangemeld()) && (laatsteScreeningRonde == null || heeftNietVerlopenLaatsteScreeningRonde)
 			&& (laatsteDefinitieveAfmelding == null || isLaatsteAfmelding && (laatsteDefinitieveAfmelding.getHeraanmeldStatus() == null && !islaatsteAfmeldingVerwerkt
-				&& (viaPortaalGevraagd || !islaatsteAfmeldingBrief)
-				|| AanvraagBriefStatus.VERWERKT == laatsteDefinitieveAfmelding.getHeraanmeldStatus())))
+			&& (viaPortaalGevraagd || !islaatsteAfmeldingBrief)
+			|| AanvraagBriefStatus.VERWERKT == laatsteDefinitieveAfmelding.getHeraanmeldStatus())))
 		{
 			afmeldTypes.add(AfmeldingType.DEFINITIEF);
 		}
@@ -1480,10 +1469,7 @@ public class ClientContactServiceImpl implements ClientContactService
 					CervixMonster monsterHpvUitslagHpvUitslag = ronde.getMonsterHpvUitslag();
 					if (monsterHpvUitslagHpvUitslag != null)
 					{
-						if (monsterHpvUitslagHpvUitslag.getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvUitslag.POSITIEF)
-						{
-							return true;
-						}
+						return monsterHpvUitslagHpvUitslag.getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.POSITIEF;
 					}
 					else
 					{
@@ -1554,7 +1540,7 @@ public class ClientContactServiceImpl implements ClientContactService
 	@Override
 	public boolean heeftOpenMammaAfspraak(Client client)
 	{
-		MammaAfspraak laatsteAfspraak = null;
+		MammaAfspraak laatsteAfspraak;
 		if (client != null && client.getMammaDossier().getLaatsteScreeningRonde() != null
 			&& client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
 			&& client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak() != null)

@@ -1,11 +1,10 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,24 +22,21 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.GebruikerDao;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.service.GebruikersService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.apache.shiro.crypto.hash.Sha512Hash;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.Assert;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
@@ -49,6 +45,9 @@ public class GebruikersServiceImpl implements GebruikersService
 
 	@Autowired
 	private GebruikerDao gebruikerDao;
+
+	@Autowired
+	private HibernateService hibernateService;
 
 	@Override
 	public Gebruiker getGebruikerByGebruikersnaam(String gebruikersnaam)
@@ -86,26 +85,6 @@ public class GebruikersServiceImpl implements GebruikersService
 	public Gebruiker getGebruikerByUzinummer(String uzinummer)
 	{
 		return getGebruikerBy("uzinummer", uzinummer);
-	}
-
-	@Override
-	public String hashWachtwoord(Gebruiker gebruiker, String plainWachtwoord)
-	{
-		Sha512Hash hash = new Sha512Hash(plainWachtwoord, gebruiker.getId().toString(), Constants.PASSWORDHASHINGITERATIONS);
-		String hashedWachtwoord = hash.toHex();
-		return hashedWachtwoord;
-	}
-
-	@Override
-	@Transactional(propagation = Propagation.SUPPORTS)
-	public void setWachtwoord(Gebruiker medewerker, String uncryptedWachtwoord)
-	{
-		if (medewerker != null)
-		{
-			Assert.isTrue(medewerker.getId() != null, "Medewerker moet opgeslagen zijn.");
-			medewerker.setWachtwoord(hashWachtwoord(medewerker, uncryptedWachtwoord));
-			medewerker.setLaatsteKeerWachtwoordGewijzigd(new Date());
-		}
 	}
 
 	@Override

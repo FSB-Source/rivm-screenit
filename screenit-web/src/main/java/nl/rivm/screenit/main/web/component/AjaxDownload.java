@@ -4,7 +4,7 @@ package nl.rivm.screenit.main.web.component;
  * ========================LICENSE_START=================================
  * screenit-web
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.http.WebResponse;
@@ -67,7 +68,19 @@ public abstract class AjaxDownload extends AbstractAjaxBehavior
 	public void onRequest()
 	{
 		String fileName = getFileName();
-		ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(getResourceStream(), fileName);
+		ResourceStreamRequestHandler handler = new ResourceStreamRequestHandler(getResourceStream(), fileName)
+		{
+			@Override
+			public void detach(IRequestCycle requestCycle)
+			{
+				String fileNameToLog = getFileNameToLog();
+				if (StringUtils.isNotBlank(fileNameToLog))
+				{
+					super.setFileName(fileNameToLog);
+				}
+				super.detach(requestCycle);
+			}
+		};
 		handler.setContentDisposition(ContentDisposition.ATTACHMENT);
 		handler.setCacheDuration(Duration.minutes(30));
 		String contentType = getContentType();
@@ -89,6 +102,11 @@ public abstract class AjaxDownload extends AbstractAjaxBehavior
 	}
 
 	protected String getFileName()
+	{
+		return null;
+	}
+
+	protected String getFileNameToLog()
 	{
 		return null;
 	}

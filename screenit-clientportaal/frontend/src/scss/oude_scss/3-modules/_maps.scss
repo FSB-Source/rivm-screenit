@@ -1,0 +1,119 @@
+﻿.map_venue {
+  display: block;
+  height: 750px;
+  width: 100%;
+  background-color: #ddd;
+  top: -9em;
+  margin-bottom: -9em;
+
+  @include respond-below(md) {
+    height: 600px;
+  }
+}
+
+.infoWindowHidden {
+  display: none;
+}
+
+.gm-fullscreen-control {
+  top: 60px !important;
+
+  @include respond-below(lg) {
+    top: 90px !important;
+  }
+
+}
+
+.gm-style-mtc {
+  margin-top: 150px;
+
+  @include respond-below(lg) {
+    margin-top: 90px !important;
+  }
+
+  @include respond-below(sm) {
+    margin-top: 66px !important;
+  }
+}
+
+
+.gm-bundled-control-on-bottom {
+  bottom: 500px !important;
+
+  @include respond-below(lg) {
+    bottom: 400px !important;
+  }
+
+  @include respond-below(sm) {
+    bottom: 200px !important;
+  }
+}
+
+.gm-style .gm-style-iw {
+  font-weight: 400;
+  font-size: 16px;
+  overflow: hidden;
+  font-family: $sans;
+  min-width: 200px;
+
+  h3 {
+    font-size: 24px;
+    color: $blue;
+    margin: 5px 0px;
+  }
+
+  .gm-ui-hover-effect {
+    right: 0 !important;
+    top: 0 !important;
+  }
+
+  img {
+    float: right;
+    margin: 0;
+    width: 60%;
+  }
+
+  .map-date {
+    font-weight: 600;
+    font-size: calc-em(14);
+  }
+
+  a {
+    color: $blue;
+    float: right;
+    font-size: 16px;
+    margin: 14px 0 4px;
+  }
+}
+
+.iwContent {
+  width: 400px;
+}
+
+.borstkanker {
+  .gm-style .gm-style-iw {
+    h3, a {
+      color: $bk;
+    }
+  }
+}
+
+.baarmoederhalskanker {
+  .gm-style .gm-style-iw {
+    h3, a {
+      color: $bmk;
+    }
+  }
+}
+
+.darmkanker {
+  .gm-style .gm-style-iw {
+    h3, a {
+      color: $dk;
+    }
+  }
+}
+
+
+.gmnoprint {
+}

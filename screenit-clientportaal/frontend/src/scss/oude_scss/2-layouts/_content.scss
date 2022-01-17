@@ -1,0 +1,189 @@
+﻿.content {
+  margin-bottom: 50px;
+  margin-top: 84px;
+
+  @include respond-below(md) {
+    margin-bottom: 10px;
+  }
+
+  @include respond-between(sm, lg) {
+    margin-bottom: 140px;
+  }
+
+  a {
+    color: $blue;
+  }
+
+  p {
+    img {
+      margin: 30px 0;
+    }
+  }
+
+  &.process {
+    margin-top: 40px;
+
+    @include respond-below(sm) {
+      margin-top: 0;
+    }
+  }
+
+  &--date {
+    font-size: calc-em(16);
+    color: $blue;
+    margin: 0 0 50px;
+    display: block;
+  }
+
+  &--title {
+    color: $black !important;
+    font-size: calc-em(60);
+    font-weight: 500;
+    line-height: 1.2;
+    width: 75%;
+
+
+    @include respond-below(sm) {
+      width: 100%;
+      font-size: calc-em(42);
+      margin: 20px 0 30px;
+    }
+  }
+
+  &--intro {
+    color: $black;
+    font-size: calc-em(18);
+    line-height: 1.6;
+
+    @include respond-below(sm) {
+      font-size: calc-em(16);
+    }
+  }
+
+  &--img {
+    height: 400px;
+    width: 100%;
+    margin: 30px 0 46px;
+    border-radius: 10px;
+
+    @include respond-below(sm) {
+      width: 110vw;
+      margin: 20px -10vw;
+      height: auto;
+      border-radius: 0;
+      height: 200px;
+    }
+  }
+
+  &--header {
+    max-width: 100%;
+    margin: 30px auto;
+    display: block;
+  }
+
+  &--body {
+    font-size: calc-em(16);
+    line-height: 1.6;
+    z-index: 10;
+    margin-bottom: 26px;
+
+    img {
+      @media only screen and (max-width: 780px) {
+        width: 100% !important;
+        height: auto !important;
+      }
+    }
+
+    @include respond-above(sm) {
+      margin-bottom: 60px;
+    }
+
+    @include respond-above(md) {
+      padding: 20px 0 0;
+    }
+
+    h2 {
+      color: $black !important;
+      font-size: calc-em(40);
+      font-weight: 500;
+      line-height: 1.2;
+      margin-top: 30px;
+
+      @include respond-below(sm) {
+        font-size: calc-em(32);
+        margin: 20px 0;
+      }
+    }
+
+    h3 {
+      @extend h2;
+      font-size: calc-em(30);
+      margin-bottom: 24px;
+
+      @include respond-below(sm) {
+        font-size: calc-em(26);
+      }
+    }
+
+    h4 {
+      @extend h2;
+      font-size: calc-em(24);
+      font-weight: 400;
+      margin: 35px 0 15px;
+
+      @include respond-below(sm) {
+        font-size: calc-em(18);
+        margin: 20px 0;
+      }
+    }
+
+    ul {
+      list-style-type: none;
+
+      li {
+        line-height: 2;
+        &:before {
+          content: "\f111";
+          font-family: FontAwesome;
+          font-size: calc-em(10);
+          margin-right: 12px;
+          color: $blue;
+          position: absolute;
+          left: 15px;
+          margin: 8px 0 0 0;
+        }
+      }
+    }
+  }
+
+  a {
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+.borstkanker {
+  .content {
+    a {
+      color: $bk;
+    }
+  }
+}
+
+.baarmoederhalskanker {
+  .content {
+    a {
+      color: $bmk;
+    }
+  }
+}
+
+
+.darmkanker {
+  .content {
+    a {
+      color: $dk;
+    }
+  }
+}

@@ -4,7 +4,7 @@ package nl.rivm.screenit.model.mamma;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@ package nl.rivm.screenit.model.mamma;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -38,16 +39,19 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.util.SkipFieldForDiff;
+
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
+
 import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 @Entity
@@ -66,7 +70,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Audited
 public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding>
 {
-
 	@OneToOne(mappedBy = "mammaDossier", optional = false, fetch = FetchType.LAZY)
 	private Client client;
 
@@ -126,6 +129,10 @@ public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding>
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private XdsStatus xdsStatus;
+
+	@OneToMany(mappedBy = "dossier", fetch = FetchType.LAZY)
+	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
+	private List<MammaIlmBezwaarPoging> ilmBezwaarPogingen = new ArrayList<>();
 
 	@Override
 	public Client getClient()
@@ -297,5 +304,15 @@ public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding>
 	public void setUpdateFollowUpConclusie(Boolean updateFollowUpConclusie)
 	{
 		this.updateFollowUpConclusie = updateFollowUpConclusie;
+	}
+
+	public void setIlmBezwaarPogingen(List<MammaIlmBezwaarPoging> bezwaarIlmPogingen)
+	{
+		this.ilmBezwaarPogingen = bezwaarIlmPogingen;
+	}
+
+	public List<MammaIlmBezwaarPoging> getIlmBezwaarPogingen()
+	{
+		return this.ilmBezwaarPogingen;
 	}
 }

@@ -1,0 +1,17 @@
+.svg_icon {
+  display: inline-flex;
+  align-self: center;
+
+  svg {
+    padding-top: 2px;
+    height: 0.75rem;
+    width: 0.75rem;
+    fill: currentColor !important;
+    position: relative;
+  }
+}
+
+.icon {
+  display: inline-flex;
+  vertical-align: middle;
+}

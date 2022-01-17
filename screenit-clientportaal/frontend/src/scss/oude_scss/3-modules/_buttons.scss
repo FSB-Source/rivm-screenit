@@ -1,0 +1,142 @@
+﻿.btn-meer {
+  font-size: calc-em(16);
+  color: $link;
+  display: block;
+
+  &:after {
+    content: "";
+    @include bg-image-url(url(/images/svg/meer.svg));
+    @include size(20px, 14px);
+    position: relative;
+    bottom: 17px;
+    left: 86px;
+  }
+}
+
+.btn-main {
+  background: $blue;
+  border-radius: 22px;
+  padding: 10px 30px;
+  color: white !important;
+  display: table;
+  margin: 30px auto;
+  box-shadow: 0 5px 15px 0 rgba(0, 0, 0, 0.05);
+  -webkit-transition: all .1s ease-in-out;
+  transition: all .1s ease-in-out;
+  border: none;
+  position: relative;
+  top: 30px;
+
+  &:hover, &:focus {
+    color: white;
+    text-decoration: none;
+    background: $blue-tint;
+    box-shadow: 0 4px 3px 0 rgba(0, 0, 0, 0.3);
+    position: relative;
+    bottom: 0.4px;
+  }
+
+  &:after {
+    content: "";
+    @include bg-image-url(url(/images/svg/arrow-white.svg));
+    @include size(20px, 14px);
+    float: right;
+    position: relative;
+    top: 6px;
+    margin-left: 12px;
+  }
+
+  &.mijn-bo {
+    &:after {
+      @include bg-image-url(url(/images/svg/mijn-onderzoek.svg));
+    }
+
+    top: 0;
+    margin: 15px auto;
+  }
+
+  &.menu {
+    background: white;
+    color: $blue !important;
+    padding: 12px 12px 12px 16px;
+    @include size(240px, 50px);
+    font-weight: 500;
+    position: relative;
+    margin: 60px 0;
+
+    @media screen and (max-width: 1280px) and (max-height: 800px) {
+      margin: 30px 0;
+    }
+
+    @include respond-below(sm) {
+      margin: 30px 0;
+    }
+
+    &:after {
+      @include bg-image-url(url(/images/svg/btn-menu.svg));
+      right: 10px;
+      top: 7px;
+    }
+
+    @media only screen and (min-device-width: 0px) and (max-device-width: 374px) {
+      margin: 10px auto;
+    }
+  }
+
+  &.news-landing {
+    margin-bottom: 100px;
+
+    @include respond-between(sm, md) {
+      margin: 100px auto 110px;
+    }
+  }
+
+  &.faq {
+    color: white !important;
+  }
+
+  &.ok-cookies {
+    background: white;
+    color: $blue !important;
+    margin: 14px auto;
+    padding: 4px 12px;
+    font-size: calc-em(16);
+    top: 0;
+
+    @include respond-below(md) {
+      margin: 20px auto;
+    }
+
+
+    &:after {
+      content: none;
+    }
+  }
+
+  &.ok-vragenlijst {
+    background: transparent;
+    color: white;
+    margin: 0 auto;
+    padding: 0;
+    top: 0;
+    font-weight: 500;
+
+    &:hover, &:focus {
+      color: white;
+      text-decoration: none;
+      background: transparent;
+      box-shadow: none;
+      position: relative;
+      bottom: 0.4px;
+    }
+
+    &:after {
+      width: 18px;
+      height: 13px;
+      float: right;
+      position: relative;
+      top: 8px;
+      margin-left: 10px;
+    }
+  }
+}

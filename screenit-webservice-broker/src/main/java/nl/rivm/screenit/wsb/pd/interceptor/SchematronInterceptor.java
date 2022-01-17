@@ -4,7 +4,7 @@ package nl.rivm.screenit.wsb.pd.interceptor;
  * ========================LICENSE_START=================================
  * screenit-webservice-broker
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -100,7 +100,7 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 
 	public SchematronInterceptor()
 	{
-		super(Phase.INVOKE);
+		super(Phase.PRE_INVOKE);
 		transformers.add(mdlTransformers);
 		transformers.add(paTransformers);
 		transformers.add(cervixCytologieTransformers);
@@ -111,6 +111,7 @@ public class SchematronInterceptor extends AbstractSoapInterceptor
 	@Override
 	public void handleMessage(SoapMessage message) throws Fault
 	{
+		LOG.info("SchematronInterceptor");
 		List<?> messageContentsList = message.getContent(List.class);
 		DocumentMetaData metaData = null;
 		String cda = null;

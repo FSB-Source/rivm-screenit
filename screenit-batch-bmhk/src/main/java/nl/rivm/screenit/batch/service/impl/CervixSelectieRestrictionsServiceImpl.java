@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.service.impl;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,14 +21,19 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
-import nl.rivm.screenit.model.cervix.enums.CervixHpvUitslag;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
@@ -37,10 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
@@ -59,6 +60,7 @@ public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRest
 		addClientSelectieRestrictions(criteria, 0);
 	}
 
+	@Override
 	public void addClientSelectieRestrictions(Criteria criteria, int daysToAddToToday)
 	{
 		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde", JoinType.LEFT_OUTER_JOIN);
@@ -78,45 +80,53 @@ public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRest
 		LocalDate geboortedatumMinimaal = vandaag.minusYears(CervixLeeftijdcategorie._65.getLeeftijd());
 		LocalDate geboortedatumMinimaalVervolgonderzoekNegatief = vandaag.minusYears(CervixLeeftijdcategorie._70.getLeeftijd());
 
-		String startdatumBMHKString = preferenceService.getString(PreferenceKey.STARTDATUM_BMHK.name());
-		LocalDate startdatumBMHK = LocalDate.parse(startdatumBMHKString, DateTimeFormatter.ofPattern("yyyyMMdd"));
+		if (vandaag.isBefore(LocalDate.parse("2022-01-01", DateTimeFormatter.ofPattern("yyyy-MM-dd"))))
+		{
+			String startdatumBMHKString = preferenceService.getString(PreferenceKey.STARTDATUM_BMHK.name());
+			LocalDate startdatumBMHK = LocalDate.parse(startdatumBMHKString, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-		long daysBetween = ChronoUnit.DAYS.between(startdatumBMHK, vandaag);
-		LocalDate geboortedatumMinimaal30 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
-		LocalDate geboortedatumMinimaal35 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._35.getLeeftijd());
-		LocalDate geboortedatumMinimaal40 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._40.getLeeftijd());
-		LocalDate geboortedatumMinimaal45 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._45.getLeeftijd());
-		LocalDate geboortedatumMinimaal50 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._50.getLeeftijd());
-		LocalDate geboortedatumMinimaal55 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._55.getLeeftijd());
-		LocalDate geboortedatumMinimaal60 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._60.getLeeftijd());
+			long daysBetween = ChronoUnit.DAYS.between(startdatumBMHK, vandaag);
+			LocalDate geboortedatumMinimaal30 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
+			LocalDate geboortedatumMinimaal35 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._35.getLeeftijd());
+			LocalDate geboortedatumMinimaal40 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._40.getLeeftijd());
+			LocalDate geboortedatumMinimaal45 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._45.getLeeftijd());
+			LocalDate geboortedatumMinimaal50 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._50.getLeeftijd());
+			LocalDate geboortedatumMinimaal55 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._55.getLeeftijd());
+			LocalDate geboortedatumMinimaal60 = startdatumBMHK.minusYears(CervixLeeftijdcategorie._60.getLeeftijd());
 
-		LocalDate geboortedatumMaximaal30 = geboortedatumMinimaal30.plusDays(daysBetween);
-		LocalDate geboortedatumMaximaal35 = geboortedatumMinimaal35.plusDays(daysBetween);
-		LocalDate geboortedatumMaximaal40 = geboortedatumMinimaal40.plusDays(daysBetween);
-		LocalDate geboortedatumMaximaal45 = geboortedatumMinimaal45.plusDays(daysBetween);
-		LocalDate geboortedatumMaximaal50 = geboortedatumMinimaal50.plusDays(daysBetween);
-		LocalDate geboortedatumMaximaal55 = geboortedatumMinimaal55.plusDays(daysBetween);
-		LocalDate geboortedatumMaximaal60 = geboortedatumMinimaal60.plusDays(daysBetween);
+			LocalDate geboortedatumMaximaal30 = geboortedatumMinimaal30.plusDays(daysBetween);
+			LocalDate geboortedatumMaximaal35 = geboortedatumMinimaal35.plusDays(daysBetween);
+			LocalDate geboortedatumMaximaal40 = geboortedatumMinimaal40.plusDays(daysBetween);
+			LocalDate geboortedatumMaximaal45 = geboortedatumMinimaal45.plusDays(daysBetween);
+			LocalDate geboortedatumMaximaal50 = geboortedatumMinimaal50.plusDays(daysBetween);
+			LocalDate geboortedatumMaximaal55 = geboortedatumMinimaal55.plusDays(daysBetween);
+			LocalDate geboortedatumMaximaal60 = geboortedatumMinimaal60.plusDays(daysBetween);
 
-		Disjunction disjunction = Restrictions.disjunction();
-		disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal30), DateUtil.toUtilDate(geboortedatumMaximaal30)));
-		disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal35), DateUtil.toUtilDate(geboortedatumMaximaal35)));
-		disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal40), DateUtil.toUtilDate(geboortedatumMaximaal40)));
-		disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal45), DateUtil.toUtilDate(geboortedatumMaximaal45)));
-		disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal50), DateUtil.toUtilDate(geboortedatumMaximaal50)));
-		disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal55), DateUtil.toUtilDate(geboortedatumMaximaal55)));
-		disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal60), DateUtil.toUtilDate(geboortedatumMaximaal60)));
+			Disjunction disjunction = Restrictions.disjunction();
+			disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal30), DateUtil.toUtilDate(geboortedatumMaximaal30)));
+			disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal35), DateUtil.toUtilDate(geboortedatumMaximaal35)));
+			disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal40), DateUtil.toUtilDate(geboortedatumMaximaal40)));
+			disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal45), DateUtil.toUtilDate(geboortedatumMaximaal45)));
+			disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal50), DateUtil.toUtilDate(geboortedatumMaximaal50)));
+			disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal55), DateUtil.toUtilDate(geboortedatumMaximaal55)));
+			disjunction.add(Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal60), DateUtil.toUtilDate(geboortedatumMaximaal60)));
 
+			criteria.add(Restrictions.or(Restrictions.and(Restrictions.isNull("dossier.volgendeRondeVanaf"), disjunction),
+				Restrictions.le("dossier.volgendeRondeVanaf", DateUtil.toUtilDate(vandaag))));
+		}
+		else
+		{
+			criteria.add(Restrictions.or(Restrictions.isNull("dossier.volgendeRondeVanaf"),
+				Restrictions.le("dossier.volgendeRondeVanaf", DateUtil.toUtilDate(vandaag))));
+		}
 		LocalDate geboortedatumMaximaal = vandaag.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
 		criteria.add(Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMaximaal)));
-		criteria.add(Restrictions.or(Restrictions.and(Restrictions.isNull("dossier.volgendeRondeVanaf"), disjunction),
-			Restrictions.le("dossier.volgendeRondeVanaf", DateUtil.toUtilDate(vandaag))));
 
 		criteria.add(Restrictions.or(
 			Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal)),
 			Restrictions.and(
 				Restrictions.eq("ronde.leeftijdcategorie", CervixLeeftijdcategorie._60),
-				Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvUitslag.POSITIEF),
+				Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.POSITIEF),
 				Restrictions.or(
 					Restrictions.isNull("cytologieVerslag.cytologieUitslag"),
 					Restrictions.eq("cytologieVerslag.cytologieUitslag", CervixCytologieUitslag.PAP1)),

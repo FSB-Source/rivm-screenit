@@ -4,7 +4,7 @@ package nl.rivm.screenit.mamma.se.proxy.dicom.worklist;
  * ========================LICENSE_START=================================
  * se-proxy
  * %%
- * Copyright (C) 2017 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2017 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -46,7 +46,7 @@ public class WorklistProvider extends BasicCFindSCP
 
 	public WorklistProvider(WerklijstStoreService werklijstStore, MammografenStatusService mammografenStatusService)
 	{
-		super(UID.ModalityWorklistInformationModelFIND);
+		super(UID.ModalityWorklistInformationModelFind);
 		this.werklijstStore = werklijstStore;
 		this.mammografenStatusService = mammografenStatusService;
 	}

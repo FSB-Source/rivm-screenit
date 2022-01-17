@@ -5,7 +5,7 @@ package nl.rivm.screenit.model.logging;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -50,6 +50,8 @@ import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(schema = "gedeeld", indexes = { @Index(name = "logGebeurtenis", columnList = "logGebeurtenis"), @Index(name = "gebeurtenisDatum", columnList = "gebeurtenisDatum") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -62,15 +64,19 @@ public class LogRegel extends AbstractHibernateObject
 	private Date gebeurtenisDatum;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore 
 	private Gebruiker gebruiker;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore 
 	private MammaScreeningsEenheid screeningsEenheid;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore 
 	private InstellingGebruiker ingelogdeGebruiker;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@JsonIgnore 
 	private Client client;
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)

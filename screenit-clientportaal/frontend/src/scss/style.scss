@@ -1,0 +1,106 @@
+@import "colors";
+@import "font/fonts";
+@import "media-mixins";
+
+body {
+  font-family: 'Roboto', Helvetica, Arial, 'sans-serif';
+  color: $zwart;
+}
+
+a {
+	color: $blauw-base;
+}
+
+h1 {
+	font-size: 2.1rem;
+	font-weight: 500;
+
+	@include respond-below(lg) {
+		font-size: 1.9rem;
+	}
+
+	@include respond-below(md) {
+		font-size: 1.8rem;
+	}
+
+	@include respond-below(xs) {
+		font-size: 1.6rem;
+	}
+}
+
+h2 {
+	font-size: 1.8rem;
+	font-weight: 500;
+
+	@include respond-below(lg) {
+		font-size: 1.75rem;
+	}
+
+	@include respond-below(md) {
+		font-size: 1.6rem;
+	}
+
+	@include respond-below(xs) {
+		font-size: 1.3rem;
+	}
+}
+
+h3 {
+	font-size: 1.4rem;
+
+	@include respond-below(lg) {
+		font-size: 1.35rem;
+	}
+
+	@include respond-below(md) {
+		font-size: 1.3rem;
+	}
+
+	@include respond-below(xs) {
+		font-size: 1.2rem;
+	}
+}
+
+h4 {
+	font-weight: 400;
+	font-size: 1.15rem;
+
+	@include respond-below(lg) {
+		font-size: 1.1rem;
+	}
+
+	@include respond-below(md) {
+		font-size: 1.05rem;
+	}
+
+	@include respond-below(xs) {
+		font-size: 1rem;
+	}
+}
+
+h5 {
+	font-size: 1.3rem;
+
+	@include respond-below(lg) {
+		font-size: 1.25rem;
+	}
+
+	@include respond-below(md) {
+		font-size: 1.2rem;
+	}
+
+	@include respond-below(xs) {
+		font-size: 1.1rem;
+	}
+}
+
+span, p, label {
+	font-size: $min-font-size;
+	line-height: 26px;
+
+	@include respond-below(xs) {
+		font-size: $min-font-size-mobile;
+		line-height: 24px;
+	}
+}
+

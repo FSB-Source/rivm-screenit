@@ -4,7 +4,7 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * ========================LICENSE_START=================================
  * screenit-batch-bmhk
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -47,7 +47,7 @@ public class CervixHeroverwegersWriter extends BaseWriter<CervixCISHistorie>
 	@Override
 	protected void write(CervixCISHistorie item) throws Exception
 	{
-		briefService.maakCervixBrief(item.getAfmelding(), BriefType.CERVIX_HEROVERWEGERS, dateSupplier.getDate());
+		briefService.maakBvoBrief(item.getAfmelding(), BriefType.CERVIX_HEROVERWEGERS, dateSupplier.getDate());
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_HEROVERWEGERSBRIEF_AANGEMAAKT, item.getDossier().getClient(), Bevolkingsonderzoek.CERVIX);
 		aantalContextOphogen(BriefType.CERVIX_HEROVERWEGERS.name());
 	}

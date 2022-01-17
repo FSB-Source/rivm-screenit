@@ -1,0 +1,42 @@
+@import "src/scss/colors";
+@import "src/scss/media-mixins";
+
+.style {
+	.results {
+		.showMoreResultsButtonArea {
+			text-align: center;
+		}
+		.navigationButtons {
+			.left {
+				float: left;
+			}
+			.right {
+				float: right;
+			}
+			.left svg, .right svg {
+				fill: $blauw-base
+			}
+		}
+	}
+
+	.datepicker {
+		width: 100%;
+	}
+
+	.searchbutton {
+		width: 100%;
+		color: white;
+		text-align: center;
+	}
+
+	.advancedSearchButton {
+		margin-top: 15px;
+		margin-bottom: 15px;
+		display: block;
+		cursor: pointer;
+		-webkit-user-select: none;
+		-moz-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	}
+}

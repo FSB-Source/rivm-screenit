@@ -4,7 +4,7 @@ package nl.rivm.screenit.service.colon.impl;
  * ========================LICENSE_START=================================
  * screenit-base
  * %%
- * Copyright (C) 2012 - 2021 Facilitaire Samenwerking Bevolkingsonderzoek
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -189,7 +189,7 @@ public class ColonTestServiceImpl implements ColonTestService
 		hibernateService.saveOrUpdate(dossier);
 		hibernateService.saveOrUpdate(screeningRonde);
 
-		ColonBrief b2 = maakColonBrief(client, screeningRonde, BriefType.COLON_UITNODIGING_INTAKE);
+		ColonBrief b2 = maakBrief(client, screeningRonde, BriefType.COLON_UITNODIGING_INTAKE);
 
 		ColonUitnodiging uitnodiging = geefUitnodiging(screeningRonde);
 		IFOBTTest fit = null;
@@ -267,7 +267,7 @@ public class ColonTestServiceImpl implements ColonTestService
 	}
 
 	@Override
-	public ColonBrief maakColonBrief(Client client, ColonScreeningRonde screeningRonde, BriefType briefType)
+	public ColonBrief maakBrief(Client client, ColonScreeningRonde screeningRonde, BriefType briefType)
 	{
 		ColonBrief brief = new ColonBrief();
 		brief.setTemplateNaam("testBrief.doc");
@@ -734,7 +734,7 @@ public class ColonTestServiceImpl implements ColonTestService
 			hibernateService.getHibernateSession().flush();
 			Client client = geefClient(persoon.getBsn(), null, null);
 			ColonScreeningRonde ronde = geefScreeningRonde(client.getColonDossier());
-			briefService.maakColonBrief(ronde, BriefType.COLON_HERINNERING, currentDateSupplier.getDate());
+			briefService.maakBvoBrief(ronde, BriefType.COLON_HERINNERING, currentDateSupplier.getDate());
 		}
 	}
 
@@ -1001,12 +1001,6 @@ public class ColonTestServiceImpl implements ColonTestService
 				hibernateService.saveOrUpdate(brief);
 			}
 			verwijderIFOBTestVoorUitnodigingen(ronde.getUitnodigingen());
-
-			hibernateService.deleteAll(ronde.getVerslagen());
-			if (ronde.getOpenUitnodiging() != null)
-			{
-				hibernateService.delete(ronde.getOpenUitnodiging());
-			}
 		}
 		hibernateService.deleteAll(rondes);
 	}
