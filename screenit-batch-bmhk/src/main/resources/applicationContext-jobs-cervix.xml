@@ -59,7 +59,9 @@
     <beans:bean id="cervixLaatsteRondeSluitenWriter" class="nl.rivm.screenit.batch.jobs.cervix.selectie.laatsterondesluitenstep.CervixLaatsteRondeSluitenWriter"/>
     <beans:bean id="cervixSelectieJobListener" class="nl.rivm.screenit.batch.jobs.cervix.selectie.CervixSelectieJobListener"/>
 
-    <beans:bean id="preSelectieStepTasklet" class="nl.rivm.screenit.batch.jobs.preselectie.ClientPreSelectieTasklet"/>
+    <beans:bean id="preSelectieStepTasklet" class="nl.rivm.screenit.batch.jobs.preselectie.ClientPreSelectieTasklet">
+        <beans:property name="bvo" value="CERVIX"/>
+    </beans:bean>
 
     <job id="cervix_selectie" restartable="true">
         <step id="pre_selectie_step" next="cervix.clientselectie.master">
@@ -82,13 +84,13 @@
             <listener ref="cervixSelectieJobListener"/>
         </listeners>
     </job>
-    
+
     <step id="cervix.clientselectie">
-         <tasklet transaction-manager="transactionManager">
-             <chunk reader="cervixSelectieReader"
-                    writer="cervixSelectieWriter" commit-interval="10">
-             </chunk>
-         </tasklet>
+        <tasklet transaction-manager="transactionManager">
+            <chunk reader="cervixSelectieReader"
+                   writer="cervixSelectieWriter" commit-interval="10">
+            </chunk>
+        </tasklet>
     </step>
 
     
@@ -458,9 +460,20 @@
     
     <beans:bean id="retourzendingReader" class="nl.rivm.screenit.batch.jobs.cervix.aftergba.retourzendingstep.RetourzendingReader"/>
     <beans:bean id="retourzendingWriter" class="nl.rivm.screenit.batch.jobs.cervix.aftergba.retourzendingstep.RetourzendingWriter"/>
+    <beans:bean id="deelnamemodusReader" class="nl.rivm.screenit.batch.jobs.cervix.aftergba.deelnamemodus.CervixDeelnamemodusReader"/>
+    <beans:bean id="deelnamemodusWriter" class="nl.rivm.screenit.batch.jobs.cervix.aftergba.deelnamemodus.CervixDeelnamemodusWriter"/>
     <beans:bean id="afterGbaListener" class="nl.rivm.screenit.batch.jobs.cervix.aftergba.AfterGbaListener"/>
 
     <job id="cervix_na_gba">
+        <step id="deelnamemodusBijwerken">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="deelnamemodusReader"
+                       writer="deelnamemodusWriter" commit-interval="50">
+                </chunk>
+            </tasklet>
+            <next on="*" to="retourzending"/>
+            <next on="FAILED" to="retourzending"/>
+        </step>
         <step id="retourzending">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="retourzendingReader"

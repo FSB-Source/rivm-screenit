@@ -47,7 +47,6 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,11 +57,57 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/" + PlanningRestConstants.C_ROUTE)
 public class PlanningRouteController
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private MammaBaseAfspraakService baseAfspraakService;
+	private final MammaBaseAfspraakService baseAfspraakService;
+
+	public PlanningRouteController(ICurrentDateSupplier dateSupplier, MammaBaseAfspraakService baseAfspraakService)
+	{
+		this.dateSupplier = dateSupplier;
+		this.baseAfspraakService = baseAfspraakService;
+	}
+
+	public static PlanningStandplaatsPeriode decrementIndex(int index, int movedItemVolgNr, PlanningScreeningsEenheid screeningsEenheid)
+	{
+		List<PlanningStandplaatsPeriode> updatedPeriodes = new ArrayList<>();
+		NavigableSet<PlanningStandplaatsPeriode> standplaatsPeriodeNavigableSet = screeningsEenheid.getStandplaatsPeriodeNavigableSet();
+		for (PlanningStandplaatsPeriode periode : standplaatsPeriodeNavigableSet)
+		{
+			if (periode.getScreeningsEenheidVolgNr() <= index && periode.getScreeningsEenheidVolgNr() > movedItemVolgNr)
+			{
+				periode.setScreeningsEenheidVolgNr(periode.getScreeningsEenheidVolgNr() - 1);
+				updatedPeriodes.add(periode);
+			}
+		}
+		return getHighestPeriode(updatedPeriodes, null);
+	}
+
+	private static PlanningStandplaatsPeriode incrementIndex(int index, int movedItemVolgNr, PlanningScreeningsEenheid screeningsEenheid)
+	{
+		List<PlanningStandplaatsPeriode> updatedPeriodes = new ArrayList<>();
+		for (PlanningStandplaatsPeriode periode : screeningsEenheid.getStandplaatsPeriodeNavigableSet())
+		{
+			if (periode.getScreeningsEenheidVolgNr() < movedItemVolgNr && periode.getScreeningsEenheidVolgNr() >= index)
+			{
+				periode.setScreeningsEenheidVolgNr(periode.getScreeningsEenheidVolgNr() + 1);
+				updatedPeriodes.add(periode);
+			}
+		}
+		return getHighestPeriode(updatedPeriodes, null);
+	}
+
+	private static PlanningStandplaatsPeriode getHighestPeriode(List<PlanningStandplaatsPeriode> updatedPeriodes, PlanningStandplaatsPeriode currentHighestPeriode)
+	{
+		PlanningStandplaatsPeriode highestPeriode = currentHighestPeriode;
+		for (PlanningStandplaatsPeriode periode : updatedPeriodes)
+		{
+			if (highestPeriode == null || highestPeriode.getScreeningsEenheidVolgNr() > periode.getScreeningsEenheidVolgNr())
+			{
+				highestPeriode = periode;
+			}
+		}
+		return highestPeriode;
+	}
 
 	@RequestMapping(value = "/{screeningsEenheidId}", method = RequestMethod.GET)
 	public List<PlanningStandplaatsPeriodeDto> get(@PathVariable Long screeningsEenheidId)
@@ -210,48 +255,6 @@ public class PlanningRouteController
 			.findFirst();
 
 		return eersteStandplaatsPeriodeMetPrognoseOptional;
-	}
-
-	public static PlanningStandplaatsPeriode decrementIndex(int index, int movedItemVolgNr, PlanningScreeningsEenheid screeningsEenheid)
-	{
-		List<PlanningStandplaatsPeriode> updatedPeriodes = new ArrayList<>();
-		NavigableSet<PlanningStandplaatsPeriode> standplaatsPeriodeNavigableSet = screeningsEenheid.getStandplaatsPeriodeNavigableSet();
-		for (PlanningStandplaatsPeriode periode : standplaatsPeriodeNavigableSet)
-		{
-			if (periode.getScreeningsEenheidVolgNr() <= index && periode.getScreeningsEenheidVolgNr() > movedItemVolgNr)
-			{
-				periode.setScreeningsEenheidVolgNr(periode.getScreeningsEenheidVolgNr() - 1);
-				updatedPeriodes.add(periode);
-			}
-		}
-		return getHighestPeriode(updatedPeriodes, null);
-	}
-
-	private static PlanningStandplaatsPeriode incrementIndex(int index, int movedItemVolgNr, PlanningScreeningsEenheid screeningsEenheid)
-	{
-		List<PlanningStandplaatsPeriode> updatedPeriodes = new ArrayList<>();
-		for (PlanningStandplaatsPeriode periode : screeningsEenheid.getStandplaatsPeriodeNavigableSet())
-		{
-			if (periode.getScreeningsEenheidVolgNr() < movedItemVolgNr && periode.getScreeningsEenheidVolgNr() >= index)
-			{
-				periode.setScreeningsEenheidVolgNr(periode.getScreeningsEenheidVolgNr() + 1);
-				updatedPeriodes.add(periode);
-			}
-		}
-		return getHighestPeriode(updatedPeriodes, null);
-	}
-
-	private static PlanningStandplaatsPeriode getHighestPeriode(List<PlanningStandplaatsPeriode> updatedPeriodes, PlanningStandplaatsPeriode currentHighestPeriode)
-	{
-		PlanningStandplaatsPeriode highestPeriode = currentHighestPeriode;
-		for (PlanningStandplaatsPeriode periode : updatedPeriodes)
-		{
-			if (highestPeriode == null || highestPeriode.getScreeningsEenheidVolgNr() > periode.getScreeningsEenheidVolgNr())
-			{
-				highestPeriode = periode;
-			}
-		}
-		return highestPeriode;
 	}
 
 }

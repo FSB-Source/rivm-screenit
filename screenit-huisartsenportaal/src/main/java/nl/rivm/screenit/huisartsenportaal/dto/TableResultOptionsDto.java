@@ -23,6 +23,13 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
 public class TableResultOptionsDto
 {
 	private Map<String, String> sortOptions;
@@ -31,45 +38,10 @@ public class TableResultOptionsDto
 
 	private int count = 10;
 
-	public TableResultOptionsDto()
-	{
-
-	}
-
 	public TableResultOptionsDto(int first, int count)
 	{
 		this.first = first;
 		this.count = count;
-	}
-
-	public int getFirst()
-	{
-		return first;
-	}
-
-	public void setFirst(int first)
-	{
-		this.first = first;
-	}
-
-	public int getCount()
-	{
-		return count;
-	}
-
-	public void setCount(int count)
-	{
-		this.count = count;
-	}
-
-	public Map<String, String> getSortOptions()
-	{
-		return sortOptions;
-	}
-
-	public void setSortOptions(Map<String, String> sortOptions)
-	{
-		this.sortOptions = sortOptions;
 	}
 
 }

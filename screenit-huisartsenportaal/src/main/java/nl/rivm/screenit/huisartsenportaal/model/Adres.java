@@ -26,14 +26,17 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class Adres extends AbstractReferenceObject
 {
-	private static final long serialVersionUID = 1L;
-
 	@Column(length = 43)
 	private String straat;
 
@@ -47,54 +50,4 @@ public class Adres extends AbstractReferenceObject
 
 	@ManyToOne(fetch = FetchType.EAGER)
 	private Woonplaats woonplaats;
-
-	public String getStraat()
-	{
-		return straat;
-	}
-
-	public void setStraat(String straat)
-	{
-		this.straat = straat;
-	}
-
-	public Integer getHuisnummer()
-	{
-		return huisnummer;
-	}
-
-	public void setHuisnummer(Integer huisnummer)
-	{
-		this.huisnummer = huisnummer;
-	}
-
-	public String getHuisnummertoevoeging()
-	{
-		return huisnummertoevoeging;
-	}
-
-	public void setHuisnummertoevoeging(String huisnummertoevoeging)
-	{
-		this.huisnummertoevoeging = huisnummertoevoeging;
-	}
-
-	public String getPostcode()
-	{
-		return postcode;
-	}
-
-	public void setPostcode(String postcode)
-	{
-		this.postcode = postcode;
-	}
-
-	public Woonplaats getWoonplaats()
-	{
-		return woonplaats;
-	}
-
-	public void setWoonplaats(Woonplaats woonplaats)
-	{
-		this.woonplaats = woonplaats;
-	}
 }

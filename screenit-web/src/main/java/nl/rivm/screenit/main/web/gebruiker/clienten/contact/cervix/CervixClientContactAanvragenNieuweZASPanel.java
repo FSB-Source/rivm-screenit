@@ -161,13 +161,6 @@ public class CervixClientContactAanvragenNieuweZASPanel extends AbstractClientCo
 		{
 			meldingen.add("De cli\u00EBnt ontvangt de zelfafnameset binnen 14 dagen per post");
 		}
-		CervixScreeningRonde laatsteScreeningRonde = clientModel.getObject().getCervixDossier().getLaatsteScreeningRonde();
-		if (screeningrondeBaseService.isFrisseStart(laatsteScreeningRonde))
-		{
-			meldingen
-				.add(
-					"De vorige uitnodiging was nog in een CIS screeningsronde. Indien naast de ZAS ook een uitnodigingsbrief klaar staat, dan moet deze NIET tegengehouden worden.");
-		}
 		return meldingen;
 	}
 

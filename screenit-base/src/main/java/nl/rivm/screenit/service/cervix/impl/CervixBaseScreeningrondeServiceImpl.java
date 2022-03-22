@@ -41,7 +41,6 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
-import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -132,7 +131,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 		annuleerNietVerstuurdeZAS(ronde);
 
 		logService.logGebeurtenis(wijziging ? LogGebeurtenis.UITSTEL_GEWIJZIGD : LogGebeurtenis.UITSTEL_AANGEVRAAGD, account, client,
-				maakCervixUitstelMelding(uitstel, wijziging), Bevolkingsonderzoek.CERVIX);
+			maakCervixUitstelMelding(uitstel, wijziging), Bevolkingsonderzoek.CERVIX);
 
 	}
 
@@ -307,7 +306,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 					CervixLabformulier labformulier = uitstrijkje.getLabformulier();
 					if (uitstrijkje.getUitstrijkjeStatus() != CervixUitstrijkjeStatus.NIET_ONTVANGEN
 						|| labformulier != null && (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD
-							|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE))
+						|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE))
 					{
 						return true; 
 					}
@@ -325,26 +324,9 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	}
 
 	@Override
-	public boolean isFrisseStart(CervixScreeningRonde ronde)
+	public boolean heeftValideScreeningRondeVoorDigitaalLabformulier(CervixMonster monster)
 	{
-		CervixCISHistorie cisHistorie = ronde.getDossier().getCisHistorie();
-		return cisHistorie != null
-			&& ronde.equals(cisHistorie.getScreeningRonde())
-			&& !cisHistorie.isHeeftPap0()
-			&& cisHistorie.getAfmelding() == null
-			&& ronde.getUitstel() == null;
-	}
-
-	@Override
-	public boolean kanFrisseStartMaken(CervixScreeningRonde ronde)
-	{
-		return ronde.getLaatsteUitnodiging() == null && isFrisseStart(ronde);
-	}
-
-	@Override
-	public boolean hasValidScreeningRonde(CervixMonster monster)
-	{
-		CervixVervolgTekst cervixVervolg = vervolgService.bepaalVervolg(monster).getVervolgTekst();
+		CervixVervolgTekst cervixVervolg = vervolgService.bepaalVervolg(monster, null, true).getVervolgTekst();
 		return cervixVervolg == CervixVervolgTekst.UITSTRIJKJE_REGISTREER_ONTVANGST
 			|| cervixVervolg == CervixVervolgTekst.UITSTRIJKJE_ONTVANGEN_NAAR_HPV
 			|| cervixVervolg == CervixVervolgTekst.UITSTRIJKJE_GEANALYSEERD_OP_HPV_POGING_1_ONGELDIG_NAAR_HPV
@@ -377,7 +359,7 @@ public class CervixBaseScreeningrondeServiceImpl implements CervixBaseScreeningr
 	@Override
 	public Integer getMaxAantalZASAanvragen(boolean aangevraagdDoorClient)
 	{
-		Integer maxAantalZASaanvragen = null;
+		Integer maxAantalZASaanvragen;
 		if (aangevraagdDoorClient)
 		{
 			maxAantalZASaanvragen = preferenceService.getInteger(PreferenceKey.CERVIX_MAX_ZAS_AANVRAGEN_CLIENT.name());

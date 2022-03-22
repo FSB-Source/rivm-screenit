@@ -41,7 +41,7 @@ public class DossierReader extends BaseScrollableResultReader
 		crit.add(Restrictions.or(
 			Restrictions.isNull("client.colonDossier"),
 			Restrictions.and(
-				Restrictions.eq("persoon.geslacht", Geslacht.VROUW),
+				Restrictions.in("persoon.geslacht", Geslacht.VROUW, Geslacht.ONBEKEND),
 				Restrictions.or(
 					Restrictions.isNull("client.cervixDossier"),
 					Restrictions.isNull("client.mammaDossier")))));

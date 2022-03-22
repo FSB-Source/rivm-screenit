@@ -23,6 +23,11 @@ const ClientenReducer: Reducer<Map<number, Client>, ClientReducerActions | Clear
 			return new Map([...stateSlice, ...result])
 		case INSCHRIJVEN:
 		case CLIENTGEGEVENS_OPSLAAN:
+			if (stateSlice.size === 0) {
+				console.warn(`${action.type} ontvangen terwijl de daglijst nog leeg is`)
+				return stateSlice
+			}
+
 			const clientGegevens: Client = getMandatory(stateSlice, action.clientId)
 
 			if (action.tijdelijkAdres) {

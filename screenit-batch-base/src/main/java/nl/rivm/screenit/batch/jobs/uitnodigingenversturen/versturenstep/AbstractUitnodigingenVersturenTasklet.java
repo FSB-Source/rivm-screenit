@@ -43,6 +43,8 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.dm_ict.photo._358.MERGEDATA;
 import nl.dm_ict.photo._358.MERGEDATA.UITNODIGING;
 import nl.dm_ict.photo._358.MERGEDATA.UITNODIGING.MERGEFIELDS;
@@ -67,10 +69,10 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
@@ -81,8 +83,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.neethi.Policy;
 import org.apache.neethi.PolicyComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -101,6 +101,7 @@ import com.aspose.words.Document;
 import com.aspose.words.SaveFormat;
 import com.google.common.collect.Lists;
 
+@Slf4j
 public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareUitnodiging<?>> implements Tasklet
 {
 	private static final int MINUTES_TO_WAIT_FOR_NEXT_TRY = 10;
@@ -108,8 +109,6 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 	private static final int NR_OF_TRIES = 7;
 
 	private static final String WSDL_QUESTION = "?wsdl";
-
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractUitnodigingenVersturenTasklet.class);
 
 	private StepExecution stepExecution;
 
@@ -122,7 +121,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 	private BaseBriefDao briefDao;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private WebserviceInpakcentrumOpzettenService webserviceOpzettenService;
@@ -212,7 +211,8 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 			long startMetGenererenTijd = System.currentTimeMillis();
 			for (Long uitnodigingId : uitnodigingIds)
 			{
-				forkJoinPool.submit(() -> OpenHibernate5Session.withCommittedTransaction().run(() -> {
+				forkJoinPool.submit(() -> OpenHibernate5Session.withCommittedTransaction().run(() ->
+				{
 					genereerUitnodiging(uitnodigingId);
 				}));
 			}
@@ -343,7 +343,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 					String inpakcentrumTemplateNaam = maakInpakcentrumTemplateNaam(briefActie);
 					inpakcentrumUitnodiging.setTEMPLATE(inpakcentrumTemplateNaam);
 					uitnodiging.setTemplateNaam(briefActie.getProject().getNaam() + ": " + briefActie.getDocument().getNaam());
-					briefTemplate = fileService.load(briefActie.getDocument());
+					briefTemplate = uploadDocumentService.load(briefActie.getDocument());
 				}
 				else
 				{
@@ -351,7 +351,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 					inpakcentrumUitnodiging.setTEMPLATE(inpakcentrumTemplateNaam);
 					UploadDocument document = briefDefinitie.getDocument();
 					uitnodiging.setTemplateNaam(document.getNaam());
-					briefTemplate = fileService.load(document);
+					briefTemplate = uploadDocumentService.load(document);
 				}
 
 				MailMergeContext mailMergeContext = new MailMergeContext();
@@ -383,7 +383,7 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 				uploadDocument.setFile(uitnodigingFile);
 
 				Long timestamp = currentDateSupplier.getDate().getTime();
-				fileService.saveOrUpdateUploadDocument(uploadDocument, getFileStoreLocation(), timestamp, true);
+				uploadDocumentService.saveOrUpdate(uploadDocument, getFileStoreLocation(), timestamp, true);
 
 				inpakcentrumBrieven.add(uploadDocument);
 

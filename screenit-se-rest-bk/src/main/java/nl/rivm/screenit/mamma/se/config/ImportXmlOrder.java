@@ -44,7 +44,6 @@ import org.springframework.core.annotation.Order;
 		"classpath:applicationContext-jms.xml",
 		"classpath:applicationContext-mailfrom.xml",
 		"classpath:applicationContext-preference-module.xml",
-		"classpath:applicationContext-documentupload.xml",
 	})
 public class ImportXmlOrder
 {

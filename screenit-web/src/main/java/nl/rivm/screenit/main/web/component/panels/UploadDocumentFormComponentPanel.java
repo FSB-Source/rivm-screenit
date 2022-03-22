@@ -24,9 +24,11 @@ package nl.rivm.screenit.main.web.component.panels;
 import java.io.File;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,31 +41,24 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class UploadDocumentFormComponentPanel extends GenericPanel<UploadDocument>
 {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(UploadDocumentFormComponentPanel.class);
-
-	private static final long serialVersionUID = 1L;
-
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	private boolean verwijderd = false;
 
 	public UploadDocumentFormComponentPanel(String id, IModel<UploadDocument> model, FileValidator validator)
 	{
-		super(id, new CompoundPropertyModel<UploadDocument>(model));
+		super(id, new CompoundPropertyModel<>(model));
 
 		Label naamLabel = new Label("naam")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onConfigure()
 			{
@@ -84,9 +79,6 @@ public class UploadDocumentFormComponentPanel extends GenericPanel<UploadDocumen
 
 		add(new IndicatingAjaxLink<Void>("verwijderen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -102,7 +94,7 @@ public class UploadDocumentFormComponentPanel extends GenericPanel<UploadDocumen
 				super.onConfigure();
 				UploadDocument document = UploadDocumentFormComponentPanel.this.getModelObject();
 				setVisible(document != null && !Boolean.FALSE.equals(document.getActief()));
-			};
+			}
 
 		}.setOutputMarkupId(true));
 	}
@@ -125,7 +117,7 @@ public class UploadDocumentFormComponentPanel extends GenericPanel<UploadDocumen
 			}
 			catch (Exception e)
 			{
-				LOGGER.error("Bestand kon niet worden geupload", e);
+				LOG.error("Bestand kon niet worden geupload", e);
 				error(getString("bestand.upload.fout"));
 			}
 		}

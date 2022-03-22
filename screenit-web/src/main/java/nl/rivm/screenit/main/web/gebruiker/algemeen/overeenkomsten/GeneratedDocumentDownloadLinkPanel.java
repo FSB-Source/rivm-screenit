@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.overeenkomsten;
 
 /*-
@@ -26,14 +25,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
 import nl.rivm.screenit.service.AsposeService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -45,27 +44,20 @@ import com.aspose.words.Document;
 import com.aspose.words.OoxmlSaveOptions;
 import com.aspose.words.SaveFormat;
 
+@Slf4j
 public class GeneratedDocumentDownloadLinkPanel extends Panel
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(GeneratedDocumentDownloadLinkPanel.class);
-
 	@SpringBean
 	private AsposeService asposeService;
 
 	@SpringBean
-	private FileService fileService;
-
-	private static final long serialVersionUID = 1L;
+	private UploadDocumentService uploadDocumentService;
 
 	public GeneratedDocumentDownloadLinkPanel(String id, final IModel<AbstractAfgeslotenOvereenkomst> model)
 	{
 		super(id, model);
 		add(new ResourceLink<>("download", new AbstractResource()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected ResourceResponse newResourceResponse(Attributes attributes)
 			{
@@ -77,13 +69,12 @@ public class GeneratedDocumentDownloadLinkPanel extends Panel
 
 				response.setWriteCallback(new WriteCallback()
 				{
-
 					@Override
 					public void writeData(Attributes attributes)
 					{
 						try (OutputStream outputStream = attributes.getResponse().getOutputStream();)
 						{
-							File file = fileService.load(model.getObject().getOvereenkomst().getDocument());
+							File file = uploadDocumentService.load(model.getObject().getOvereenkomst().getDocument());
 							MailMergeContext mailMergeContext = new MailMergeContext();
 							mailMergeContext.setOvereenkomst(model.getObject());
 							Document document = asposeService.processDocument(FileUtils.readFileToByteArray(file), mailMergeContext);

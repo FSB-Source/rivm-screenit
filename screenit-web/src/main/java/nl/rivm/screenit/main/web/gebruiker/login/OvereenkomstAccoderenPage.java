@@ -26,16 +26,17 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.OvereenkomstService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.overeenkomsten.AbstractAfgeslotenOvereenkomst;
-import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.model.overeenkomsten.OvereenkomstType;
 import nl.rivm.screenit.service.AsposeService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.documentupload.wicket.UploadDocumentLink;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 
@@ -55,24 +56,19 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aspose.words.Document;
 import com.aspose.words.PdfSaveOptions;
 
+@Slf4j
 public class OvereenkomstAccoderenPage extends LoginBasePage
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(OvereenkomstAccoderenPage.class);
-
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private OvereenkomstService overeenkomstService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private AsposeService asposeService;
@@ -89,11 +85,8 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 			add(new Label("accoderenTekst", getString("label.accoderentekst.organisatie")));
 		}
 
-		add(new ListView<AbstractAfgeslotenOvereenkomst>("overeenkomsten", new SimpleListHibernateModel<>(accoLijst))
+		add(new ListView<>("overeenkomsten", new SimpleListHibernateModel<>(accoLijst))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(final ListItem<AbstractAfgeslotenOvereenkomst> item)
 			{
@@ -106,9 +99,6 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 				{
 					item.add(new ResourceLink<>("download", new AbstractResource()
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected ResourceResponse newResourceResponse(Attributes attributes)
 						{
@@ -120,13 +110,12 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 
 							response.setWriteCallback(new WriteCallback()
 							{
-
 								@Override
 								public void writeData(Attributes attributes)
 								{
 									try (OutputStream outputStream = attributes.getResponse().getOutputStream())
 									{
-										File file = fileService.load(item.getModelObject().getOvereenkomst().getDocument());
+										File file = uploadDocumentService.load(item.getModelObject().getOvereenkomst().getDocument());
 										MailMergeContext mailMergeContext = new MailMergeContext();
 										mailMergeContext.setOvereenkomst(item.getModelObject());
 										Document document = asposeService.processDocument(FileUtils.readFileToByteArray(file), mailMergeContext);
@@ -151,9 +140,6 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 		});
 		add(new Link<Void>("naarInlog")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{
@@ -162,11 +148,8 @@ public class OvereenkomstAccoderenPage extends LoginBasePage
 				setResponsePage(homePage);
 			}
 		});
-		add(new Link<InstellingGebruiker>("akkoord", instellingGebruiker)
+		add(new Link<>("akkoord", instellingGebruiker)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick()
 			{

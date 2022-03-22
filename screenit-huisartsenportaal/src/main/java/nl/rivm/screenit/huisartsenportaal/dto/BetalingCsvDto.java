@@ -21,6 +21,11 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BetalingCsvDto
 {
 	private String huisartsLocatieNaam;
@@ -36,74 +41,4 @@ public class BetalingCsvDto
 	private String betalingsKenmerk;
 
 	private String screeningsorganisatie;
-
-	public String getBetalingsdatum()
-	{
-		return betalingsdatum;
-	}
-
-	public void setBetalingsdatum(String betalingsdatum)
-	{
-		this.betalingsdatum = betalingsdatum;
-	}
-
-	public String getScreeningsorganisatie()
-	{
-		return screeningsorganisatie;
-	}
-
-	public void setScreeningsorganisatie(String screeningsorganisatie)
-	{
-		this.screeningsorganisatie = screeningsorganisatie;
-	}
-
-	public String getHuisartsLocatieNaam()
-	{
-		return huisartsLocatieNaam;
-	}
-
-	public void setHuisartsLocatieNaam(String huisartsLocatieNaam)
-	{
-		this.huisartsLocatieNaam = huisartsLocatieNaam;
-	}
-
-	public String getClientNaam()
-	{
-		return clientNaam;
-	}
-
-	public void setClientNaam(String clientNaam)
-	{
-		this.clientNaam = clientNaam;
-	}
-
-	public String getMonsterId()
-	{
-		return monsterId;
-	}
-
-	public void setMonsterId(String monsterId)
-	{
-		this.monsterId = monsterId;
-	}
-
-	public String getBedrag()
-	{
-		return bedrag;
-	}
-
-	public void setBedrag(String bedrag)
-	{
-		this.bedrag = bedrag;
-	}
-
-	public String getBetalingsKenmerk()
-	{
-		return betalingsKenmerk;
-	}
-
-	public void setBetalingsKenmerk(String betalingsKenmerk)
-	{
-		this.betalingsKenmerk = betalingsKenmerk;
-	}
 }

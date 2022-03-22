@@ -24,6 +24,8 @@ package nl.rivm.screenit.mamma.planning.wijzigingen;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.planning.model.PlanningBenodigd;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
 import nl.rivm.screenit.mamma.planning.model.PlanningConstanten;
@@ -33,14 +35,10 @@ import nl.rivm.screenit.mamma.planning.model.PlanningStandplaats;
 import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
 public enum PlanningDoorrekenen
 {
 	;
-
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningDoorrekenen.class);
 
 	static void run(PlanningClient client)
 	{

@@ -22,7 +22,6 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.onderbrokenonderzoeken;
  */
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
-import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -50,10 +49,7 @@ public class MammaVervolgTeOudeOnderbrokenOnderzoekenReader extends BaseScrollab
 		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde");
 		criteria.createAlias("ronde.laatsteOnderzoek", "onderzoek");
 		criteria.add(Restrictions.lt("onderzoek.creatieDatum", DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusMonths(6))));
-		criteria.createAlias("ronde.brieven", "brief");
 		criteria.add(Restrictions.eq("onderzoek.status", MammaOnderzoekStatus.ONDERBROKEN));
-		criteria.add(Restrictions.eq("brief.briefType", BriefType.MAMMA_OPROEP_OPNEMEN_CONTACT));
-		criteria.add(Restrictions.gtProperty("brief.creatieDatum", "onderzoek.creatieDatum"));
 		criteria.add(Restrictions.eq("onderzoek.isDoorgevoerd", true));
 
 		return criteria;

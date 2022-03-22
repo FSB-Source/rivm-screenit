@@ -31,16 +31,12 @@ import org.apache.wicket.model.IModel;
 public abstract class AjaxImageCellPanel<T> extends GenericPanel<T>
 {
 
-	private static final long serialVersionUID = 1L;
-
 	public AjaxImageCellPanel(String id, IModel<T> rowModel, final String imageClass)
 	{
 		super(id, rowModel);
 		setOutputMarkupId(true);
 		final AjaxLink<T> ajaxLink = new AjaxLink<T>("imageLink")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

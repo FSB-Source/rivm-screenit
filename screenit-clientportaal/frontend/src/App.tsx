@@ -23,7 +23,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import "./scss/style.scss"
 import styles from "./App.module.scss"
 import {Container} from "react-bootstrap"
-import {AppRouter} from "./routes"
+import {AppRoutes} from "./routes"
 import HeaderComponent from "./components/header/HeaderComponent"
 import FooterComponent from "./components/footer/FooterComponent"
 import ActiveToastsComponent from "./components/toast/ActiveToastsComponent"
@@ -40,20 +40,14 @@ const App = () => {
 		<div className={styles.app}>
 			<Container className={styles.appBody} fluid>
 				<ActiveToastsComponent/>
-
 				<HeaderComponent/>
-
 				<Container fluid className={styles.appContent}>
-					<AppRouter/>
+					<AppRoutes/>
 				</Container>
-
 			</Container>
-
 			<FooterComponent/>
-
 		</div>
 	)
-
 }
 
 export default App

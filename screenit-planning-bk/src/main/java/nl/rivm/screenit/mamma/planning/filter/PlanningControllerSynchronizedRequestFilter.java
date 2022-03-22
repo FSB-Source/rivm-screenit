@@ -34,24 +34,23 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
 import nl.rivm.screenit.util.EnvironmentUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
+@Slf4j
 public class PlanningControllerSynchronizedRequestFilter implements Filter
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningControllerSynchronizedRequestFilter.class);
 
 	private static final Integer MAX_WACHTTIJD_LANGE_PLANNING_ACTIES = EnvironmentUtil.getIntegerEnvironmentVariable("MAX_WACHTTIJD_LANGE_PLANNING_ACTIES", 50);
 
 	private Semaphore semaphore = new Semaphore(1);
 
 	@Override
-	public void init(FilterConfig filterConfig) throws ServletException
+	public void init(FilterConfig filterConfig)
 	{
 	}
 

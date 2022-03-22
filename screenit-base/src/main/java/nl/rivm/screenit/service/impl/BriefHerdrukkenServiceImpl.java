@@ -23,6 +23,8 @@ package nl.rivm.screenit.service.impl;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.ClientBrief;
+import nl.rivm.screenit.model.ScreeningRonde;
+import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
@@ -35,12 +37,14 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaBrief;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -82,7 +86,7 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		LOG.info("Kopieer brief " + brief.getBriefType() + " (clientId: " + brief.getClient().getId() + ")");
 		if (ProjectBrief.class.equals(briefClass))
 		{
-			opnieuwAanmakenProjectBrief(brief);
+			opnieuwAanmakenProjectBrief((ProjectBrief) brief);
 		}
 		else if (ColonBrief.class.equals(briefClass))
 		{
@@ -131,21 +135,20 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		hibernateService.saveOrUpdate(nieuweBrief);
 	}
 
-	private void opnieuwAanmakenProjectBrief(ClientBrief<?, ?, ?> brief)
+	private void opnieuwAanmakenProjectBrief(ProjectBrief oudeProjectBrief)
 	{
-		ProjectBrief oudeProjectBrief = (ProjectBrief) brief;
-		ClientBrief oudeBrief = oudeProjectBrief.getBrief();
+		ClientBrief<?, ?, ?> oudeBrief = (ClientBrief<?, ?, ?>) BriefUtil.getOrigineleBrief(oudeProjectBrief);
 
 		ProjectBrief nieuweProjectBrief = new ProjectBrief();
 		nieuweProjectBrief.setDefinitie(oudeProjectBrief.getDefinitie());
 		nieuweProjectBrief.setProjectClient(oudeProjectBrief.getProjectClient());
 		nieuweProjectBrief.setTeHerinnerenBrief(oudeProjectBrief.getTeHerinnerenBrief());
-		nieuweProjectBrief.setTemplateNaam(brief.getTemplateNaam());
-		nieuweProjectBrief.setClient(brief.getClient());
+		nieuweProjectBrief.setTemplateNaam(oudeProjectBrief.getTemplateNaam());
+		nieuweProjectBrief.setClient(oudeProjectBrief.getClient());
 		nieuweProjectBrief.setGegenereerd(false);
 		nieuweProjectBrief.setHerdruk(oudeProjectBrief);
 		nieuweProjectBrief.setCreatieDatum(currentDateSupplier.getDate());
-		nieuweProjectBrief.setBriefType(brief.getBriefType());
+		nieuweProjectBrief.setBriefType(oudeProjectBrief.getBriefType());
 
 		if (oudeBrief instanceof CervixBrief)
 		{
@@ -227,4 +230,50 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		return nieuwBrief;
 	}
 
+	@Override
+	public boolean magHerdrukken(ClientBrief<?, ?, ?> brief)
+	{
+		ScreeningRonde<?, ?, ?, ?> ronde = brief.getScreeningRonde();
+		if (ronde != null && !ronde.equals(ronde.getDossier().getLaatsteScreeningRonde()))
+		{
+			return false;
+		}
+
+		ClientBrief<?, ?, ?> origineleBrief = (ClientBrief<?, ?, ?>) BriefUtil.getOrigineleBrief(brief);
+		boolean magHerdrukken = true;
+		if (origineleBrief instanceof CervixBrief)
+		{
+			CervixBrief cervixBrief = (CervixBrief) origineleBrief;
+			CervixScreeningRonde screeningRonde = cervixBrief.getScreeningRonde();
+			if (screeningRonde.getStatus() == ScreeningRondeStatus.AFGEROND && cervixBrief.getUitnodiging() != null)
+			{
+				magHerdrukken = false;
+			}
+			if (magHerdrukken)
+			{
+				magHerdrukken = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(cervixBrief);
+			}
+		}
+		else if (origineleBrief instanceof MammaBrief)
+		{
+			MammaBrief mammaBrief = (MammaBrief) origineleBrief;
+			MammaScreeningRonde screeningRonde = mammaBrief.getScreeningRonde();
+			if (mammaBrief.getUitnodiging() != null && screeningRonde.getStatus() == ScreeningRondeStatus.AFGEROND)
+			{
+				magHerdrukken = false;
+			}
+			if (magHerdrukken)
+			{
+				magHerdrukken = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(mammaBrief);
+			}
+		}
+		else if (origineleBrief instanceof ColonBrief)
+		{
+			magHerdrukken = BriefUtil.isGegenereerd(brief);
+		}
+
+		magHerdrukken &= !BriefUtil.isHerdruk(brief);
+
+		return magHerdrukken;
+	}
 }

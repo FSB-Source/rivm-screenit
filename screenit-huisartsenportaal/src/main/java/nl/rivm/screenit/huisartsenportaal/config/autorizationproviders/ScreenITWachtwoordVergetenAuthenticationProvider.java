@@ -57,10 +57,10 @@ public class ScreenITWachtwoordVergetenAuthenticationProvider extends AbstractAu
 		Huisarts huisarts = (Huisarts) userDetails;
 		if (!huisarts.getInlogCode().equals(authentication.getCredentials()))
 		{
-			Integer remainingAttempts = huisartsService.increaseAttemps(huisarts);
+			Integer remainingAttempts = huisartsService.incrementAttempts(huisarts);
 			throw new BadCredentialsException("U heeft een foutieve inlogcode ingevoerd. U heeft nog " + remainingAttempts + " pogingen.");
 		}
-		huisartsService.resetAttemps(huisarts);
+		huisartsService.resetAttempts(huisarts);
 	}
 
 	@Override

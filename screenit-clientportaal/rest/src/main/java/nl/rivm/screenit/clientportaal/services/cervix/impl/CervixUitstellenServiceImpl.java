@@ -107,13 +107,13 @@ public class CervixUitstellenServiceImpl implements CervixUitstellenService
 	{
 		Integer uitstelBijZwangerschap = preferenceService.getInteger(PreferenceKey.UITSTEL_BIJ_ZWANGERSCHAP_CERVIX.name());
 
-		LocalDate minDatum = currentDateSupplier.getLocalDate().minusMonths(uitstelBijZwangerschap);
+		LocalDate minDatum = currentDateSupplier.getLocalDate().minusDays(uitstelBijZwangerschap);
 		if (uitstellenTotDatum.isBefore(minDatum))
 		{
 			throw new NotValidException("Datum ligt te ver in het verleden");
 		}
 
-		LocalDate maxDatum = currentDateSupplier.getLocalDate().plusMonths(DUUR_ZWANGERSCHAP + uitstelBijZwangerschap);
+		LocalDate maxDatum = currentDateSupplier.getLocalDate().plusMonths(DUUR_ZWANGERSCHAP).plusDays(uitstelBijZwangerschap);
 		if (uitstellenTotDatum.isAfter(maxDatum))
 		{
 			throw new NotValidException("Datum ligt te ver in de toekomst");

@@ -37,6 +37,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -84,12 +85,11 @@ public class LocatieController extends BaseController
 		{
 			return ResponseEntity.badRequest().body(result.getAllErrors());
 		}
-
-		Huisarts arts = getIngelogdeHuisarts();
-		Locatie locatie = locatieService.setLocatie(arts, locatieDto);
+		var arts = getIngelogdeHuisarts();
+		var allLocatiesFromHuisartsInDto = locatieService.getAllLocatiesFromHuisartsInDto(arts);
+		var locatie = locatieService.setLocatie(arts, locatieDto);
 		syncService.syncLocatie(arts, locatie, locatieDto.getHerzendVerificatieMail());
-		List<LocatieDto> locatieDtos = locatieService.getAllLocatiesFromHuisartsInDto(arts);
-		return new ResponseEntity<>(locatieDtos, HttpStatus.OK);
+		return new ResponseEntity<>(allLocatiesFromHuisartsInDto, HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)

@@ -36,13 +36,11 @@ import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
+import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
 import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Propagation;
@@ -57,13 +55,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/" + PlanningRestConstants.C_ACTIE)
 public class PlanningActieController
 {
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningActieController.class);
 
-	@Autowired
-	PlanningReadModelDao readModelDao;
+	private final PlanningReadModelDao readModelDao;
 
-	@Autowired
-	private PlanningConceptOpslaanService conceptOpslaanService;
+	private final PlanningConceptService conceptService;
+
+	private final PlanningConceptOpslaanService conceptOpslaanService;
+
+	public PlanningActieController(PlanningReadModelDao readModelDao, PlanningConceptService planningConceptService,
+		PlanningConceptOpslaanService planningConceptOpslaanService)
+	{
+		this.readModelDao = readModelDao;
+		this.conceptService = planningConceptService;
+		this.conceptOpslaanService = planningConceptOpslaanService;
+	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
 	@RequestMapping(value = "/readModel", method = RequestMethod.POST)
@@ -73,6 +78,8 @@ public class PlanningActieController
 		try
 		{
 			readModelDao.readDataModel();
+			conceptService.herhalen(readModelDao.getHerhalenVanafDatum());
+			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 			PlanningDoorrekenenManager.run();
 			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 		}
@@ -97,7 +104,7 @@ public class PlanningActieController
 			{
 				PlanningStatusIndex.set(MammaPlanningStatus.CONCEPT_WIJZIGINGEN_OPSLAAN, screeningOrganisatieId);
 			}
-			PlanningConceptMeldingenDto opslaanMeldingenDto = conceptOpslaanService.opslaan(screeningOrganisatieId, runDry);
+			PlanningConceptMeldingenDto opslaanMeldingenDto = conceptOpslaanService.slaConceptOpVoorScreeningsOrganisatie(screeningOrganisatieId, runDry);
 			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 			return opslaanMeldingenDto;
 		}
@@ -156,6 +163,8 @@ public class PlanningActieController
 		{
 			PlanningStatusIndex.set(MammaPlanningStatus.CONCEPT_ANNULEREN, screeningOrganisatieId);
 			readModelDao.reset(PlanningScreeningsOrganisatieIndex.get(screeningOrganisatieId));
+			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
+
 			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 		}
 		catch (Exception e)

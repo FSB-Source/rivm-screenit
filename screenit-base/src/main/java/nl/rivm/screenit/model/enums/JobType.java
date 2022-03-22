@@ -70,6 +70,9 @@ public enum JobType
 
 	COLON_ILM(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
+	COLON_CONTROLE_MISSENDE_UITSLAGEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN }),
+
 	CERVIX_NA_GBA(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
 	CERVIX_SELECTIE(
@@ -173,6 +176,8 @@ public enum JobType
 	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 
 	ENOVATION_HUISARTSEN_BATCH(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, MAMMA }),
+
+	SIGNALERING_GENDER(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { CERVIX, MAMMA }),
 	;
 
 	private static Set<JobType> getJobTypes(BatchApplicationType batchApplicationType)

@@ -26,7 +26,7 @@ import {formatDateText, formatTime} from "../../../../utils/DateUtil"
 import bvoStyles from "../../../../components/BvoStyle.module.scss"
 import styles from "./ColonAfspraakMakenBevestigingsPopup.module.scss"
 import {useSelectedBvo} from "../../../../utils/Hooks"
-import {BevolkingsonderzoekStyle} from "../../../../datatypes/Bevolkingsonderzoek"
+import {Bevolkingsonderzoek, BevolkingsonderzoekStyle} from "../../../../datatypes/Bevolkingsonderzoek"
 import {getString} from "../../../../utils/TekstPropertyUtil"
 import VerticalDividerComponent from "../../../../components/vectors/VerticalDividerComponent"
 import {VrijSlotZonderKamer} from "./ColonAfspraakMakenPage"
@@ -35,23 +35,26 @@ import {afspraakVerplaatsen, nieuweAfspraak} from "../../../../api/ColonAfspraak
 import {useThunkDispatch} from "../../../../index"
 import {ArrowType} from "../../../../components/vectors/ArrowIconComponent"
 import SubmitButton from "../../../../components/input/SubmitButton"
+import {getBvoBaseUrl} from "../../../../utils/UrlUtil"
+import {useNavigate} from "react-router-dom"
 
 export type ColonAfspraakMakenBevestigingsPopupProps = {
-    afspraak: VrijSlotZonderKamer
-    heraanmelding: boolean
-    onClose: () => void
+	afspraak: VrijSlotZonderKamer
+	heraanmelding: boolean
+	onClose: () => void
 }
 
 const ColonAfspraakMakenBevestigingsPopup = (props: ColonAfspraakMakenBevestigingsPopupProps) => {
-    const bvo = useSelectedBvo()
-    const dispatch = useThunkDispatch()
+	const bvo = useSelectedBvo()
+	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 
-    return (
-        <BasePopup title={getString(properties.page.title)}
-                   description={getString(properties.page.description)}
-                   children={
-                       <div>
-                           <div className={classNames(BevolkingsonderzoekStyle[bvo!], styles.afspraakDiv)}>
+	return (
+		<BasePopup title={getString(properties.page.title)}
+				   description={getString(properties.page.description)}
+				   children={
+					   <div>
+						   <div className={classNames(BevolkingsonderzoekStyle[bvo!], styles.afspraakDiv)}>
 							   <VerticalDividerComponent className={styles.verticalRectangle} heightSubtraction={15}/>
 							   <Row className={styles.afspraakGegevensRow}>
 								   <Col sm={6}>
@@ -74,17 +77,17 @@ const ColonAfspraakMakenBevestigingsPopup = (props: ColonAfspraakMakenBevestigin
 											 displayArrow={ArrowType.ARROW_RIGHT}
 											 onClick={() => {
 												 if (props.heraanmelding) {
-													 dispatch(nieuweAfspraak(props.afspraak, props.onClose))
+													 dispatch(nieuweAfspraak(props.afspraak, props.onClose)).then(() => navigate(getBvoBaseUrl(Bevolkingsonderzoek.COLON)))
 												 } else {
-													 dispatch(afspraakVerplaatsen(props.afspraak, props.onClose))
+													 dispatch(afspraakVerplaatsen(props.afspraak, props.onClose)).then(() => navigate(getBvoBaseUrl(Bevolkingsonderzoek.COLON)))
 												 }
 											 }}/>
 							   <NavLink onClick={props.onClose} className={styles.andereOptie}>
 								   {getString(properties.buttons.differentappointment)}</NavLink>
 						   </div>
 					   </div>
-                   }/>
-    )
+				   }/>
+	)
 }
 
 export default ColonAfspraakMakenBevestigingsPopup

@@ -36,7 +36,6 @@ import nl.rivm.screenit.model.enums.Recht;
 
 public interface MedewerkerService
 {
-
 	List<Gebruiker> searchMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen,
 		Map<OrganisatieType, List<Instelling>> hierarchieCriteria, List<Bevolkingsonderzoek> bevolkingsonderzoeken, int first, int count, String sortProperty, boolean ascending);
 
@@ -61,8 +60,8 @@ public interface MedewerkerService
 
 	boolean zijnErInstellingGebruikersMetRol(Rol rol);
 
-	List<InstellingGebruikerRol> getInstellingGebruikersMetRolEnBvos(Rol rol, List<Bevolkingsonderzoek> onderzoeken);
+	List<Gebruiker> getActieveGebruikersMetRecht(Recht recht);
 
-	List<InstellingGebruiker> getActieveInstellingGebruikersVanInstellingMetRecht(Instelling instelling, Recht recht);
+	List<InstellingGebruikerRol> getInstellingGebruikersMetRolEnBvos(Rol rol, List<Bevolkingsonderzoek> onderzoeken);
 
 }

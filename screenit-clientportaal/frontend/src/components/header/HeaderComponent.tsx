@@ -28,24 +28,25 @@ import {useKeycloak} from "@react-keycloak/web"
 import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNaam} from "../../utils/UrlUtil"
 import {State} from "../../datatypes/State"
 import {Persoon} from "../../datatypes/Persoon"
-import {navigate} from "../../routes/routes"
+import {useNavigate} from "react-router-dom"
 
 const HeaderComponent = () => {
-    const {keycloak} = useKeycloak()
-    const persoon = useSelector((state: State) => state.client.persoon)
+	const {keycloak} = useKeycloak()
+	const persoon = useSelector((state: State) => state.client.persoon)
+	const navigate = useNavigate()
 
-    return (
-        <section id={"page-header"} className={styles.header}>
-            <Row className={classNames(styles.headerTopLinks, "align-items-center")}>
-                <Col md={6} className={"text-left"}>
-                    <a href={getBevolkingsonderzoekNederlandUrl()}>
-                        <i className="material-icons">arrow_back</i><span>Terug naar {getBevolkingsonderzoekNederlandUrlNaam()}</span>
-                    </a>
+	return (
+		<section id={"page-header"} className={styles.header}>
+			<Row className={classNames(styles.headerTopLinks, "align-items-center")}>
+				<Col md={6} className={"text-left"}>
+					<a href={getBevolkingsonderzoekNederlandUrl()}>
+						<i className="material-icons">arrow_back</i><span>Terug naar {getBevolkingsonderzoekNederlandUrlNaam()}</span>
+					</a>
 				</Col>
 				<Col md={6} className={"text-right"}>
 					{persoon.id !== undefined && (
 						<><span>{getPersoonNaam(persoon)}</span>
-							{!!keycloak?.authenticated && getLogoutLink()}
+							{!!keycloak?.authenticated && getLogoutLink(() => navigate("/logout"))}
 						</>
 					)}
 				</Col>
@@ -55,16 +56,16 @@ const HeaderComponent = () => {
 				<NavigationComponent/>
 			</div>
 		</section>
-    )
+	)
 
 }
 
 export const getPersoonNaam = (persoon: Persoon) => {
-    return `${persoon.voorletters} ${persoon.aanspreekTussenvoegselEnAchternaam}`
+	return `${persoon.voorletters} ${persoon.aanspreekTussenvoegselEnAchternaam}`
 }
 
-export const getLogoutLink = () => {
-    return <span className={styles.logout} onClick={() => navigate("/logout")}>
+export const getLogoutLink = (onClick: () => void) => {
+	return <span className={styles.logout} onClick={onClick}>
         Uitloggen
     </span>
 }

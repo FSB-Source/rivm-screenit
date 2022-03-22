@@ -29,16 +29,18 @@ import javax.persistence.InheritanceType;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.envers.Audited;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Audited
+@Getter
+@Setter
 public class Overeenkomst extends AbstractReferenceObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private String path;
 
 	private String fileName;
@@ -46,33 +48,4 @@ public class Overeenkomst extends AbstractReferenceObject
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date laatsteWijzigDatum;
 
-	public String getPath()
-	{
-		return path;
-	}
-
-	public void setPath(String path)
-	{
-		this.path = path;
-	}
-
-	public Date getLaatsteWijzigDatum()
-	{
-		return laatsteWijzigDatum;
-	}
-
-	public void setLaatsteWijzigDatum(Date laatsteWijzigDatum)
-	{
-		this.laatsteWijzigDatum = laatsteWijzigDatum;
-	}
-
-	public String getFileName()
-	{
-		return fileName;
-	}
-
-	public void setFileName(String fileName)
-	{
-		this.fileName = fileName;
-	}
 }

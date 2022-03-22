@@ -21,9 +21,14 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
+@Getter
+@Setter
 public class BuildDto
 {
 	private String environment;
@@ -33,44 +38,4 @@ public class BuildDto
 	private String version;
 
 	private String timestamp;
-
-	public String getEnvironment()
-	{
-		return environment;
-	}
-
-	public void setEnvironment(String environment)
-	{
-		this.environment = environment;
-	}
-
-	public String getInstance()
-	{
-		return instance;
-	}
-
-	public void setInstance(String instance)
-	{
-		this.instance = instance;
-	}
-
-	public String getVersion()
-	{
-		return version;
-	}
-
-	public void setVersion(String version)
-	{
-		this.version = version;
-	}
-
-	public String getTimestamp()
-	{
-		return timestamp;
-	}
-
-	public void setTimestamp(String timestamp)
-	{
-		this.timestamp = timestamp;
-	}
 }

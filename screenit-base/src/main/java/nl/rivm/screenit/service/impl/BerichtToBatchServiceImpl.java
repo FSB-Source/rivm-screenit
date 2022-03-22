@@ -27,17 +27,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dto.mamma.MammaAbstractHL7v24OrmBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.dto.mamma.se.MammaKwaliteitsopnameDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -53,6 +48,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.activemq.command.ActiveMQMessage;
@@ -61,7 +57,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -167,57 +162,74 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	}
 
 	@Override
-	public void queueMammaIlmHl7v24BerichtUitgaand(Long uitnodigingsNr, Long clientId, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
+	public void queueMammaHl7v24RetryDeleteBerichtUitgaand(Long uitnodigingsNr, Long clientId)
 	{
-		MammaHL7v24OrmBerichtTriggerIlmDto triggerDto = new MammaHL7v24OrmBerichtTriggerIlmDto();
-		triggerDto.setAccessionNumber(uitnodigingsNr);
-		triggerDto.setClientId(clientId);
-		queueHL7(status, triggerDto, berichtType);
-	}
-
-	@Override
-	public void queueMammaIlmHL7v24BerichtUitgaand(MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
-	{
-		MammaHL7v24OrmBerichtTriggerIlmDto triggerDto = new MammaHL7v24OrmBerichtTriggerIlmDto();
-		MammaAfspraak laatsteAfspraak = ronde.getLaatsteUitnodiging().getLaatsteAfspraak();
-		MammaOnderzoek laatsteOnderzoek = ronde.getLaatsteOnderzoek();
-		triggerDto.setRondeId(ronde.getId());
-		triggerDto.setClientId(ronde.getDossier().getClient().getId());
-		triggerDto.setAccessionNumber(ronde.getUitnodigingsNr());
-		triggerDto.setLaatsteAfspraakDatum(laatsteAfspraak.getVanaf());
-		triggerDto.setLaatsteOnderzoekAfgerondOpDatum(laatsteOnderzoek.getAfgerondOp());
-		triggerDto.setScreeningsEenheidCode(laatsteOnderzoek.getScreeningsEenheid().getCode());
-		queueHL7(status, triggerDto, berichtType);
-		LOG.debug("Sending client message to batch BK HL7 queue");
+		queueMammaHL7v24BerichtUitgaand(MammaHL7v24ORMBerichtStatus.DELETE, clientId, uitnodigingsNr, null, null);
 	}
 
 	@Override
 	public void queueMammaHL7v24BerichtUitgaand(Client client, MammaHL7v24ORMBerichtStatus status)
 	{
+		if (status == MammaHL7v24ORMBerichtStatus.DELETE)
+		{
+			throw new IllegalArgumentException("" + status);
+		}
+		queueMammaHL7v24BerichtUitgaand(client.getMammaDossier().getLaatsteScreeningRonde(), status);
+	}
+
+	@Override
+	public void queueMammaHL7v24BerichtUitgaand(MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status)
+	{
+		queueMammaHL7v24BerichtUitgaand(status, ronde.getDossier().getClient().getId(), ronde.getUitnodigingsNr(), ronde.getLaatsteUitnodiging().getLaatsteAfspraak(),
+			ronde.getLaatsteOnderzoek());
+	}
+
+	private void queueMammaHL7v24BerichtUitgaand(MammaHL7v24ORMBerichtStatus status, Long clientId, Long accessionNumber, MammaAfspraak laatsteAfspraak,
+		MammaOnderzoek laatsteOnderzoek)
+	{
 		MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
-		triggerDto.setClientId(client.getId());
-		queueHL7(status, triggerDto, MammaHL7BerichtType.IMS_ORM);
+		triggerDto.setClientId(clientId);
+		triggerDto.setAccessionNumber(accessionNumber.toString());
+		if (status != MammaHL7v24ORMBerichtStatus.CANCELLED && status != MammaHL7v24ORMBerichtStatus.DELETE && status != MammaHL7v24ORMBerichtStatus.GOINGTODELETE)
+		{
+			triggerDto.setLaatsteAfspraakDatum(DateUtil.toLocalDateTime(laatsteAfspraak.getVanaf()));
+			triggerDto.setScreeningseenheidCode(laatsteAfspraak.getStandplaatsPeriode().getScreeningsEenheid().getCode());
+		}
+		if (laatsteOnderzoek != null &&
+			(status == MammaHL7v24ORMBerichtStatus.COMPLETED || status == MammaHL7v24ORMBerichtStatus.AUTHORISED || status == MammaHL7v24ORMBerichtStatus.REPORTED))
+		{
+			triggerDto.setLaatsteOnderzoekAfgerondOpDatum(DateUtil.toLocalDateTime(laatsteOnderzoek.getAfgerondOp()));
+			triggerDto.setScreeningseenheidCode(laatsteOnderzoek.getScreeningsEenheid().getCode());
+		}
+		triggerDto.setUploaded(false);
+		queueHL7(status, triggerDto, status == MammaHL7v24ORMBerichtStatus.DELETE ? MammaHL7BerichtType.IMS_ORM_ILM : MammaHL7BerichtType.IMS_ORM);
 
 		LOG.debug("Sending client message to batch BK HL7 queue");
 	}
 
 	@Override
-	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, Date onderzoeksDatum, MammaHL7v24ORMBerichtStatus status,
-		MammaHL7BerichtType berichtType)
+	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(MammaUploadBeeldenPoging uploadBeeldenPoging, MammaHL7v24ORMBerichtStatus status, Date onderzoeksDatum)
 	{
-		Client client = uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier().getClient();
-		MammaHL7v24OrmBerichtTriggerUploadBeeldenDto triggerDto = new MammaHL7v24OrmBerichtTriggerUploadBeeldenDto(uploadBeeldenPoging.getAccessionNumber(), client.getId(),
-			onderzoeksDatum);
-		queueHL7(status, triggerDto, berichtType);
-
-		LOG.debug("Sending client message to batch BK HL7 queue");
+		queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging.getAccessionNumber(),
+			uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier().getClient().getId(), status, onderzoeksDatum);
 	}
 
 	@Override
-	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(Long accessionNumber, Long clientId, MammaHL7v24ORMBerichtStatus status, MammaHL7BerichtType berichtType)
+	public void queueMammaUploadBeeldenHL7v24BerichtUitgaand(Long accessionNumber, Long clientId, MammaHL7v24ORMBerichtStatus status, Date onderzoeksDatum)
 	{
-		MammaHL7v24OrmBerichtTriggerUploadBeeldenDto triggerDto = new MammaHL7v24OrmBerichtTriggerUploadBeeldenDto(accessionNumber, clientId);
-		queueHL7(status, triggerDto, berichtType);
+		MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetClientDto();
+		triggerDto.setClientId(clientId);
+		triggerDto.setAccessionNumber(accessionNumber.toString());
+		if (status == MammaHL7v24ORMBerichtStatus.SCHEDULED || status == MammaHL7v24ORMBerichtStatus.COMPLETED)
+		{
+			triggerDto.setLaatsteOnderzoekAfgerondOpDatum(DateUtil.toLocalDateTime(onderzoeksDatum));
+		}
+		if (status == MammaHL7v24ORMBerichtStatus.SCHEDULED || status == MammaHL7v24ORMBerichtStatus.STARTED || status == MammaHL7v24ORMBerichtStatus.COMPLETED)
+		{
+			triggerDto.setScreeningseenheidCode("ZHOND");
+		}
+		triggerDto.setUploaded(true);
+		queueHL7(status, triggerDto, status == MammaHL7v24ORMBerichtStatus.DELETE ? MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN : MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN);
 
 		LOG.debug("Sending client message to batch BK HL7 queue");
 	}
@@ -227,7 +239,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 	{
 		MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto triggerDto = new MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto();
 		triggerDto.setType(kwaliteitsopname.getType());
-		triggerDto.setSeCode(kwaliteitsopname.getSeCode());
+		triggerDto.setScreeningseenheidCode(kwaliteitsopname.getSeCode());
 		triggerDto.setReden(kwaliteitsopname.getReden());
 		triggerDto.setPatientID(kwaliteitsopname.getPatientID());
 		triggerDto.setAccessionNumber(kwaliteitsopname.getAccessionNumber());
@@ -271,9 +283,9 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 			triggerDto.setClientId(client.getId());
 			triggerDto.setStatus(MammaHL7ADTBerichtType.PERSOONS_GEGEVENS_GEWIJZIGD);
 			queueItem.setDtoJson(objectMapper.writeValueAsString(triggerDto));
-			queueItem.setCreateTime(this.currentDateSupplier.getDate());
+			queueItem.setCreateTime(currentDateSupplier.getDate());
 			queueItem.setHl7BerichtType(MammaHL7BerichtType.IMS_ADT);
-			this.hibernateService.save(queueItem);
+			hibernateService.save(queueItem);
 			LOG.debug("Sending message to batch BK HL7 queue");
 			client.getGbaMutaties()
 				.stream()
@@ -299,10 +311,6 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 				String oudBsn = matcher.group(2);
 				String nieuweBsn = matcher.group(3);
 
-				LOG.debug(String.format("Oud/nieuw BSN gevonden! " +
-					"oudBsn: %s " +
-					"Nieuw bsn: %s", matcher.group(2), matcher.group(3)));
-
 				MammaHL7v24Message queueItem = new MammaHL7v24Message();
 				MammaHL7v24AdtBerichtTriggerDto triggerDto = new MammaHL7v24AdtBerichtTriggerDto();
 				triggerDto.setOudBsn(oudBsn);
@@ -311,7 +319,7 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 				triggerDto.setClientId(client.getId());
 
 				queueItem.setDtoJson(objectMapper.writeValueAsString(triggerDto));
-				queueItem.setCreateTime(this.currentDateSupplier.getDate());
+				queueItem.setCreateTime(currentDateSupplier.getDate());
 				queueItem.setHl7BerichtType(MammaHL7BerichtType.IMS_ADT);
 				LOG.debug("Sending message to batch BK HL7 queue");
 				String mammaBsnMarkerMetBsnNummers = String.format("|%s:%s,%s|", Constants.MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER, oudBsn, nieuweBsn);
@@ -331,55 +339,21 @@ public class BerichtToBatchServiceImpl implements BerichtToBatchService
 
 	private void queueBericht(Destination destination, final Long id)
 	{
-		jmsTemplate.send(destination, new MessageCreator()
-		{
-			@Override
-			public Message createMessage(Session session) throws JMSException
-			{
-				return ActiveMQHelper.getActiveMqObjectMessage(id);
-			}
-
-		});
-	}
-
-	private void queueBericht(Destination destination)
-	{
-		jmsTemplate.send(destination, new MessageCreator()
-		{
-			@Override
-			public Message createMessage(Session session) throws JMSException
-			{
-				return new ActiveMQMessage();
-			}
-
-		});
-	}
-
-	private <T extends Serializable> void queueTextBericht(Destination destination, final T object)
-	{
-		jmsTemplate.send(destination, new MessageCreator()
-		{
-
-			@Override
-			public Message createMessage(Session session) throws JMSException
-			{
-				return ActiveMQHelper.getActiveMqTextMessage(object);
-			}
-
-		});
+		jmsTemplate.send(destination, session -> ActiveMQHelper.getActiveMqObjectMessage(id));
 	}
 
 	private void queueBericht(Destination destination, final String id)
 	{
-		jmsTemplate.send(destination, new MessageCreator()
-		{
+		jmsTemplate.send(destination, session -> ActiveMQHelper.getActiveMqObjectMessage(id));
+	}
 
-			@Override
-			public Message createMessage(Session session) throws JMSException
-			{
-				return ActiveMQHelper.getActiveMqObjectMessage(id);
-			}
+	private void queueBericht(Destination destination)
+	{
+		jmsTemplate.send(destination, session -> new ActiveMQMessage());
+	}
 
-		});
+	private <T extends Serializable> void queueTextBericht(Destination destination, final T object)
+	{
+		jmsTemplate.send(destination, session -> ActiveMQHelper.getActiveMqTextMessage(object));
 	}
 }

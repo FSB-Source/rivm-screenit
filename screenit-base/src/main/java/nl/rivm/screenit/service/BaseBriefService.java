@@ -47,7 +47,6 @@ import nl.rivm.screenit.model.batch.BvoZoekCriteria;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
@@ -97,7 +96,7 @@ public interface BaseBriefService
 
 	<B extends Brief> File maakPdfVanBrief(B brief, BaseDocumentCreator documentCreator, Consumer<MailMergeContext> mergeContextConsumer) throws Exception;
 
-	<B extends Brief> File maakPdfVanBrief(MammaBrief brief, Consumer<MailMergeContext> context) throws Exception;
+	<B extends Brief> File maakPdfVanBrief(B brief, Consumer<MailMergeContext> context) throws Exception;
 
 	File genereerPdf(Document document, String fileNaam, boolean autoShowPrintdialog) throws FileNotFoundException, Exception;
 

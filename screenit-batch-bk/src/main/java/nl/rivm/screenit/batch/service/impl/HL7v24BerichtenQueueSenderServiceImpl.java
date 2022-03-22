@@ -39,10 +39,8 @@ import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7v24SendService;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24BerichtTriggerDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
@@ -219,21 +217,15 @@ public class HL7v24BerichtenQueueSenderServiceImpl
 				switch (hl7v24Message.getHl7BerichtType())
 				{
 				case IMS_ORM:
+				case IMS_ORM_ILM:
+				case IMS_ORM_UPLOAD_BEELDEN:
+				case IMS_ORM_ILM_UPLOAD_BEELDEN:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerMetClientDto.class);
 					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerMetClientDto) triggerDto, messageConnection);
-					break;
-				case IMS_ORM_ILM:
-					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerIlmDto.class);
-					hl7SendService.sendClientORMMessage((MammaHL7v24OrmBerichtTriggerIlmDto) triggerDto, messageConnection);
 					break;
 				case IMS_ORM_KWALITEITSOPNAME:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto.class);
 					hl7SendService.sendKwaliteitsopnameORMMessage((MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto) triggerDto, messageConnection);
-					break;
-				case IMS_ORM_UPLOAD_BEELDEN:
-				case IMS_ORM_ILM_UPLOAD_BEELDEN:
-					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24OrmBerichtTriggerUploadBeeldenDto.class);
-					hl7SendService.sendUploadBeeldenORMMessage((MammaHL7v24OrmBerichtTriggerUploadBeeldenDto) triggerDto, messageConnection);
 					break;
 				case IMS_ADT:
 					triggerDto = objectMapper.readValue(hl7v24Message.getDtoJson(), MammaHL7v24AdtBerichtTriggerDto.class);

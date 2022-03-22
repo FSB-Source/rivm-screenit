@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao.colon.impl;
 
 /*-
@@ -22,14 +21,21 @@ package nl.rivm.screenit.dao.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
 import nl.rivm.screenit.dao.colon.IFobtDao;
+import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.IFOBTBestand;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.IFOBTBestandStatus;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
-import org.hibernate.Criteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +48,7 @@ public class IFobtDaoImpl extends AbstractAutowiredDao implements IFobtDao
 	@Override
 	public IFOBTTest getIfobtTest(String barcode)
 	{
-		Criteria crit = this.getSession().createCriteria(IFOBTTest.class);
+		var crit = getSession().createCriteria(IFOBTTest.class);
 		crit.add(Restrictions.eq("barcode", barcode));
 		return (IFOBTTest) crit.uniqueResult();
 	}
@@ -50,9 +56,31 @@ public class IFobtDaoImpl extends AbstractAutowiredDao implements IFobtDao
 	@Override
 	public IFOBTBestand getIfobtBestand(String bestandsNaam)
 	{
-		Criteria crit = this.getSession().createCriteria(IFOBTBestand.class);
+		var crit = getSession().createCriteria(IFOBTBestand.class);
 		crit.add(Restrictions.eq("naamBestand", bestandsNaam));
 		crit.add(Restrictions.or(Restrictions.eq("status", IFOBTBestandStatus.NIEUW), Restrictions.eq("status", IFOBTBestandStatus.KAN_ORIG_BESTAND_VERWIJDEREN)));
 		return (IFOBTBestand) crit.uniqueResult();
+	}
+
+	@Override
+	public IFOBTTest getLaatsteIfobtTestMetMissendeUitslagVanDossier(ColonDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
+	{
+		var crit = getSession().createCriteria(IFOBTTest.class, "ifobt");
+		ColonRestrictions.addIfobtMissendeUitslagRestrictions(crit, signalerenVanaf, minimaleSignaleringsDatum);
+		crit.add(Restrictions.eq("ronde.dossier", dossier));
+		crit.addOrder(Order.desc("analyseDatum"));
+		crit.setMaxResults(1);
+		return (IFOBTTest) crit.uniqueResult();
+	}
+
+	@Override
+	public boolean isVerwijderdeBarcode(String barcode)
+	{
+		AuditReader reader = AuditReaderFactory.get(getSession());
+		AuditQuery auditQuery = reader.createQuery().forRevisionsOfEntity(IFOBTTest.class, false, true)
+			.add(AuditEntity.property("barcode").eq(barcode))
+			.addProjection(AuditEntity.id().count());
+
+		return ((Long) auditQuery.getSingleResult()) > 0;
 	}
 }

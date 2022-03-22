@@ -48,7 +48,7 @@ public abstract class EditBatchJobParametersPopup extends GenericPanel<JobType>
 	{
 		super(id, Model.of(jobType));
 
-		add(new EnumLabel<JobType>("jobType", jobType));
+		add(new EnumLabel<>("jobType", jobType));
 		add(new Label("bvos", Bevolkingsonderzoek.getAfkortingen(jobType.getBevolkingsOnderzoeken())));
 		add(new EditOrganisatieParametersPanel("parameters", Arrays.asList(jobType.getJobParameters()), true)
 		{

@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.BaseUitnodigingDao;
 import nl.rivm.screenit.main.service.RetourzendingService;
@@ -61,16 +63,15 @@ import nl.rivm.screenit.model.logging.RetourzendingLogEvent;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BaseUitnodigingService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.service.colon.IFobtService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
-import nl.topicuszorg.documentupload.services.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
@@ -80,22 +81,18 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class RetourzendingServiceImpl implements RetourzendingService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(RetourzendingServiceImpl.class);
-
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -131,9 +128,6 @@ public class RetourzendingServiceImpl implements RetourzendingService
 	private HibernateService hibernateService;
 
 	@Autowired
-	private UploadDocumentService uploadDocumentService;
-
-	@Autowired
 	private IFobtService ifobtService;
 
 	@Autowired
@@ -150,7 +144,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 		uploadDocument.setFile(file);
 		uploadDocument.setNaam(fileName);
 
-		fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.COLON_RETOURZENDING);
+		uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.COLON_RETOURZENDING);
 
 		logEvent.setSanddBestand(uploadDocument);
 

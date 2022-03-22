@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.bezwaar;
  */
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.comparator.BriefCreatieDatumComparator;
@@ -38,7 +37,8 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.io.FilenameUtils;
@@ -63,10 +63,9 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment>
 {
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private BezwaarService bezwaarService;
@@ -126,7 +125,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 				@Override
 				protected File load()
 				{
-					return fileService.load(upload.getObject());
+					return uploadDocumentService.load(upload.getObject());
 				}
 			}, "Bezwaarformulier met Handtekening." + FilenameUtils.getExtension(upload.getObject().getNaam())));
 		}
@@ -149,13 +148,10 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && laatsteBrief != null && !laatsteBrief.isTegenhouden() && laatsteBrief.getMergedBrieven() == null));
+		}.setVisible(magTegenhouden && laatsteBrief != null && !BriefUtil.isTegengehouden(laatsteBrief) && BriefUtil.getMergedBrieven(laatsteBrief) == null));
 
 		add(new AjaxLink<Void>("doorvoeren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -164,12 +160,9 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 				info(getString("info.briefactiveren"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && laatsteBrief != null && laatsteBrief.isTegenhouden()));
+		}.setVisible(magTegenhouden && BriefUtil.isTegengehouden(laatsteBrief)));
 		add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -181,9 +174,6 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 		}.setVisible(getModelObject().getBevestigingsbrief() != null));
 		add(new AjaxLink<Void>("vervangen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -221,7 +211,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 	private BezwaarBrief getLaatsteBrief()
 	{
 		List<BezwaarBrief> brieven = briefService.getBrievenVanBezwaar(getModelObject());
-		Collections.sort(brieven, new BriefCreatieDatumComparator().reversed());
+		brieven.sort(new BriefCreatieDatumComparator().reversed());
 		if (!CollectionUtils.isEmpty(brieven))
 		{
 			return brieven.get(0);

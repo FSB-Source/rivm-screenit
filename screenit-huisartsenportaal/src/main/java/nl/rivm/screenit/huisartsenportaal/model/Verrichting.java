@@ -35,11 +35,16 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
 @Table(name = "verrichting", indexes = { @Index(name = "idx_VERRICHTING_VERRICHTINGS_DATUM", columnList = "verrichtingsDatum") })
+@Getter
+@Setter
 public class Verrichting extends AbstractReferenceObject
 {
 	@Column(nullable = false)
@@ -71,94 +76,4 @@ public class Verrichting extends AbstractReferenceObject
 
 	@OneToMany(mappedBy = "verrichting", fetch = FetchType.LAZY)
 	private List<Betaling> betalingen = new ArrayList<>();
-
-	public List<Betaling> getBetalingen()
-	{
-		return betalingen;
-	}
-
-	public void setBetalingen(List<Betaling> betalingen)
-	{
-		this.betalingen = betalingen;
-	}
-
-	public String getRegio()
-	{
-		return regio;
-	}
-
-	public void setRegio(String regio)
-	{
-		this.regio = regio;
-	}
-
-	public String getMonsterId()
-	{
-		return monsterId;
-	}
-
-	public void setMonsterId(String monsterId)
-	{
-		this.monsterId = monsterId;
-	}
-
-	public Date getVerrichtingsDatum()
-	{
-		return verrichtingsDatum;
-	}
-
-	public void setVerrichtingsDatum(Date verrichtingsDatum)
-	{
-		this.verrichtingsDatum = verrichtingsDatum;
-	}
-
-	public Locatie getHuisartsLocatie()
-	{
-		return huisartsLocatie;
-	}
-
-	public void setHuisartsLocatie(Locatie huisartsLocatie)
-	{
-		this.huisartsLocatie = huisartsLocatie;
-	}
-
-	public String getClientNaam()
-	{
-		return clientNaam;
-	}
-
-	public void setClientNaam(String clientNaam)
-	{
-		this.clientNaam = clientNaam;
-	}
-
-	public Date getDatumUitstrijkje()
-	{
-		return datumUitstrijkje;
-	}
-
-	public void setDatumUitstrijkje(Date datumUitstrijkje)
-	{
-		this.datumUitstrijkje = datumUitstrijkje;
-	}
-
-	public Date getFormulierOntvangstDatum()
-	{
-		return formulierOntvangstDatum;
-	}
-
-	public void setFormulierOntvangstDatum(Date formulierOntvangstDatum)
-	{
-		this.formulierOntvangstDatum = formulierOntvangstDatum;
-	}
-
-	public Huisarts getHuisarts()
-	{
-		return huisarts;
-	}
-
-	public void setHuisarts(Huisarts huisarts)
-	{
-		this.huisarts = huisarts;
-	}
 }

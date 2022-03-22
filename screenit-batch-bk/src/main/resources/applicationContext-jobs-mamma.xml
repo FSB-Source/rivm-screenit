@@ -210,9 +210,21 @@
     </beans:bean>
     <beans:bean id="mammaAdresGewijzigdMarkerResetWriter" class="nl.rivm.screenit.batch.jobs.mamma.aftergba.adresgewijzigdmarkerreset.MammaAdresGewijzigdMarkerResetWriter"/>
 
+    <beans:bean id="deelnamemodusReader" class="nl.rivm.screenit.batch.jobs.mamma.aftergba.deelnamemodus.MammaDeelnamemodusReader"/>
+    <beans:bean id="deelnamemodusWriter" class="nl.rivm.screenit.batch.jobs.mamma.aftergba.deelnamemodus.MammaDeelnamemodusWriter"/>
+
     <beans:bean id="afterGbaListener" class="nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaListener"/>
 
     <job id="mamma_na_gba" restartable="true">
+        <step id="deelnamemodusBijwerken">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="deelnamemodusReader"
+                       writer="deelnamemodusWriter" commit-interval="50">
+                </chunk>
+            </tasklet>
+            <next on="*" to="ontkoppelentehuis"/>
+            <next on="FAILED" to="ontkoppelentehuis"/>
+        </step>
         <step id="ontkoppelentehuis">
             <tasklet transaction-manager="transactionManager">
                 <chunk reader="mammaOntkoppelenTehuisReader"

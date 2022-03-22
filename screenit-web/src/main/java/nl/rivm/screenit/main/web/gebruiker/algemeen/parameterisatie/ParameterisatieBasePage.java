@@ -25,20 +25,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.main.web.gebruiker.algemeen.AlgemeenPage;
+import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.algemeen.AlgemeenParameterisatiePage;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie.huisartsberichten.HuisartsBerichtTemplateEditPage;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerMenuItem;
 import nl.rivm.screenit.model.enums.Actie;
 
 public abstract class ParameterisatieBasePage extends AlgemeenPage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
 
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.darmkanker", ColonParameterisatiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.baarmoederhalskanker", CervixParameterisatiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.borstkanker", MammaParameterisatiePage.class));
@@ -47,7 +45,7 @@ public abstract class ParameterisatieBasePage extends AlgemeenPage
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.medewerkerconfiguratie", EmailConfiguratiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.overeenkomstconfiguratie", OvereenkomstConfiguratiePage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.huisartsberichttemplate", HuisartsBerichtTemplateEditPage.class));
-		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.bewaartermijnen", BewaartermijnenParameterisatiePage.class));
+		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.parameterisatie.algemeen", AlgemeenParameterisatiePage.class));
 		return contextMenuItems;
 	}
 

@@ -35,9 +35,11 @@ import {State} from "../../../datatypes/State"
 import {ArrowType} from "../../../components/vectors/ArrowIconComponent"
 import LadenComponent from "../../../components/laden/LadenComponent"
 import SubmitButton from "../../../components/input/SubmitButton"
+import {useNavigate} from "react-router-dom"
 
 const ZasAanvragenPage = () => {
 	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 	const zasStatus = useSelector((state: State) => state.client.cervixDossier.zasStatus)
 	const formUitstelZichtbaar = !!zasStatus.uitstellenTotDatum && !zasStatus.maxAantalAanvragenBereikt
 	const aanvraagButtonZichtbaar = !zasStatus.maxAantalAanvragenBereikt && !formUitstelZichtbaar
@@ -58,7 +60,7 @@ const ZasAanvragenPage = () => {
 
 			{zasStatus.isInSync && formUitstelZichtbaar && <ZasNaUitstelForm uitstellenTotDatum={zasStatus.uitstellenTotDatum}
 																			 onSubmitSucces={(zasNaUitstel) => {
-																				 dispatch(saveZasAanvraagMetUitstel(zasNaUitstel, zasStatus.uitstellenTotDatum))
+																				 dispatch(saveZasAanvraagMetUitstel(zasNaUitstel, zasStatus.uitstellenTotDatum)).then(() => navigate("/cervix"))
 																			 }}/>}
 
 			{zasStatus.isInSync && aanvraagButtonZichtbaar &&
@@ -66,7 +68,7 @@ const ZasAanvragenPage = () => {
 							  label={getString(properties.form.button)}
 							  displayArrow={ArrowType.ARROW_RIGHT}
 							  onClick={() => {
-								  dispatch(saveZasAanvraag())
+								  dispatch(saveZasAanvraag()).then(() => navigate("/cervix"))
 							  }}/>}
 
 		</ActieBasePage>

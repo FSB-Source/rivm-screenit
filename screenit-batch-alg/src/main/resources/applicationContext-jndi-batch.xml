@@ -37,8 +37,5 @@
     <jee:jndi-lookup id="gbaDownloadFolder" jndi-name="gba/downloadfolder"/>
     <jee:jndi-lookup id="gbaUploadFolder" jndi-name="gba/uploadfolder"/>
     <jee:jndi-lookup id="voFileStorePath" jndi-name="gba/voFileStorePath"/>
-    <jee:jndi-lookup id="sftpConnectionTimeout" jndi-name="gba/sftpConnectionTimeout"/>
-    <jee:jndi-lookup id="tryInterval" jndi-name="gba/tryInterval" default-value="#{new Long(60000)}" expected-type="java.lang.Long"/>
-    <jee:jndi-lookup id="maxNoTries" jndi-name="gba/maxNoTries" default-value="#{new Integer(5)}" expected-type="java.lang.Integer"/>
 
 </beans>

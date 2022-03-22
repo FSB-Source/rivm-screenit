@@ -38,6 +38,8 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.document.BaseDocumentCreator;
@@ -72,11 +74,12 @@ import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.AdresUtil;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.JavaScriptPdfHelper;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -91,8 +94,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
 import org.hibernate.Hibernate;
 import org.hibernate.ScrollableResults;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -104,11 +105,11 @@ import com.aspose.words.PdfSaveOptions;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class BaseBriefServiceImpl implements BaseBriefService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(BaseBriefServiceImpl.class);
 
 	private static final int BYTES_TO_MBS = 1024 * 1024;
 
@@ -116,7 +117,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	private BaseBriefDao briefDao;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -208,7 +209,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		uploadDocument.setFile(uploadFile);
 		uploadDocument.setNaam(filename);
 
-		fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.BRIEF_TEMPLATES);
+		uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.BRIEF_TEMPLATES);
 
 		definitie.setDocument(uploadDocument);
 
@@ -430,7 +431,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	{
 		try
 		{
-			File file = fileService.load(mergedBrieven.getMergedBrieven());
+			File file = uploadDocumentService.load(mergedBrieven.getMergedBrieven());
 			PDDocument pdfBoxDocument = PDDocument.load(file);
 			PDActionJavaScript javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());
 			pdfBoxDocument.getDocumentCatalog().setOpenAction(javaScript);
@@ -493,11 +494,10 @@ public class BaseBriefServiceImpl implements BaseBriefService
 				}
 				catch (Exception e)
 				{
-					LOG.error("Error bij aanmaken brief", e);
+					LOG.error("Error bij aanmaken brief (brieftype: {})", brief.getBriefType(), e);
 					Client client = getClientFromBrief(brief);
 					ScreeningOrganisatie org = mergedBrieven.getScreeningOrganisatie();
-					String melding = "Door technische reden kon de brief(brieftype: " + mergedBrieven.getBriefType() + ") niet worden gegenereerd.";
-					LOG.error(melding);
+					String melding = "Door technische reden kon de brief (brieftype: " + brief.getBriefType() + ") niet worden gegenereerd.";
 
 					logService.logGebeurtenis(briefGenerator.getMergeProbleemLogGebeurtenis(), List.of(org), client, melding, briefGenerator.getBevolkingsonderzoeken());
 					continue;
@@ -553,7 +553,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		FileOutputStream output = null;
 		try
 		{
-			File briefTemplate = fileService.load(briefTemplateDocument);
+			File briefTemplate = uploadDocumentService.load(briefTemplateDocument);
 			byte[] briefTemplateBytes = FileUtils.readFileToByteArray(briefTemplate);
 
 			Client client = getClientFromBrief(brief);
@@ -625,7 +625,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		mergedBrievenPdfContainer.setNaam(briefGenerator.getMergedBrievenNaam(mergedBrieven));
 		mergedBrievenPdfContainer.setFile(nieuwPdfMetMergedBrieven);
 
-		fileService.saveOrUpdateUploadDocument(mergedBrievenPdfContainer, briefGenerator.getFileStoreLocation(), briefGenerator.getFileStoreId());
+		uploadDocumentService.saveOrUpdate(mergedBrievenPdfContainer, briefGenerator.getFileStoreLocation(), briefGenerator.getFileStoreId());
 		mergedBrieven.setMergedBrieven(mergedBrievenPdfContainer);
 		nieuwPdfMetMergedBrieven.delete();
 		LOG.info("Mergedocument(id = " + mergedBrieven.getId() + ") nieuw aangemaakt op filestore: " + mergedBrievenPdfContainer.getPath());
@@ -636,7 +636,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		throws IOException
 	{
 		UploadDocument huidigePdfMetMergedBrievenContainer = mergedBrieven.getMergedBrieven();
-		File huidigePdfMetMergedBrieven = fileService.load(huidigePdfMetMergedBrievenContainer);
+		File huidigePdfMetMergedBrieven = uploadDocumentService.load(huidigePdfMetMergedBrievenContainer);
 		Integer maxMergedBrievenPdfSizeMB = instellingService.getOrganisatieParameter(mergedBrieven.getScreeningOrganisatie(),
 			OrganisatieParameterKey.MAX_MERGED_BRIEVEN_PDF_SIZE_MB);
 		if (maxMergedBrievenPdfSizeMB != null && huidigePdfMetMergedBrieven.length() + nieuwPdfMetMergedBrieven.length() > maxMergedBrievenPdfSizeMB * BYTES_TO_MBS)
@@ -657,7 +657,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	private <MB extends MergedBrieven<?>> void joinPdfs(MB huidigeMergedBrieven, File nieuwPdfMetMergedBrieven) throws IOException, FileNotFoundException
 	{
 		UploadDocument huidigePdfMetMergeBrievenContainer = huidigeMergedBrieven.getMergedBrieven();
-		File huidigePdfMetMergeBrieven = fileService.load(huidigePdfMetMergeBrievenContainer);
+		File huidigePdfMetMergeBrieven = uploadDocumentService.load(huidigePdfMetMergeBrievenContainer);
 		File copyHuidigePdfMetMergedBrieven = File.createTempFile("copyMergedBrieven", ".pdf");
 		FileUtils.copyFile(huidigePdfMetMergeBrieven, copyHuidigePdfMetMergedBrieven);
 
@@ -718,7 +718,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
-	public <B extends Brief> File maakPdfVanBrief(MammaBrief brief, Consumer<MailMergeContext> mergeContextConsumer) throws Exception
+	public <B extends Brief> File maakPdfVanBrief(B brief, Consumer<MailMergeContext> mergeContextConsumer) throws Exception
 	{
 		Client client = getClientFromBrief(brief);
 		File briefTemplate = getBriefDefinitieFile(brief);
@@ -736,7 +736,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	{
 		IDocument briefDefinitie = getDefinitiveBriefDefinitie(brief);
 		UploadDocument uploadDocument = briefDefinitie.getDocument();
-		return fileService.load(uploadDocument);
+		return uploadDocumentService.load(uploadDocument);
 	}
 
 	private <B extends Brief> MailMergeContext getMailMergeContext(B brief, Client client)
@@ -752,7 +752,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		Client client = null;
 		if (ClientBrief.class.isAssignableFrom(Hibernate.getClass(brief)))
 		{
-			ClientBrief clientBrief = (ClientBrief) HibernateHelper.deproxy(brief);
+			ClientBrief<?, ?, ?> clientBrief = (ClientBrief<?, ?, ?>) HibernateHelper.deproxy(brief);
 			client = clientBrief.getClient();
 		}
 		return client;
@@ -761,7 +761,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	private <B extends Brief> IDocument getDefinitiveBriefDefinitie(B brief)
 	{
 		IDocument briefDefinitie = getNieuwsteBriefDefinitie(brief.getBriefType());
-		Class briefClass = Hibernate.getClass(brief);
+		Class<B> briefClass = Hibernate.getClass(brief);
 		if (ProjectBrief.class.isAssignableFrom(briefClass))
 		{
 			ProjectBrief projectBrief = (ProjectBrief) HibernateHelper.deproxy(brief);
@@ -796,18 +796,17 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	public <B extends Brief> List<B> getNietGegenereerdeBrievenVanBriefTypes(List<B> brieven, List<BriefType> brieftypes)
 	{
 		return brieven.stream()
-			.filter(brief -> brieftypes.contains(brief.getBriefType()) && !brief.isGegenereerd()).collect(Collectors.toList());
+			.filter(brief -> brieftypes.contains(brief.getBriefType()) && !BriefUtil.isGegenereerd(brief)).collect(Collectors.toList());
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void setNietGegenereerdeBrievenOpTegenhouden(ScreeningRonde<?, ?, ?, ?> screeningRonde, Collection<BriefType> brieftypes)
 	{
-		screeningRonde.getBrieven().stream().filter(brief -> brieftypes.contains(brief.getBriefType()) && !brief.isGegenereerd())
+		screeningRonde.getBrieven().stream().filter(brief -> brieftypes.contains(brief.getBriefType()) && !BriefUtil.isGegenereerd(brief))
 			.forEach(brief ->
 			{
-				brief.setTegenhouden(true);
-				hibernateService.saveOrUpdate(brief);
+				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 			});
 	}
 
@@ -820,13 +819,14 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	@Override
 	public boolean briefTypeWachtOpKlaarzettenInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes)
 	{
-		return ronde.getBrieven().stream().anyMatch(brief -> brieftypes.contains(brief.getBriefType()) && !brief.isGegenereerd());
+		return ronde.getBrieven().stream().anyMatch(
+			brief -> brieftypes.contains(brief.getBriefType()) && !BriefUtil.isGegenereerd(brief));
 	}
 
 	@Override
 	public boolean briefTypeAlVerstuurdInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes)
 	{
-		return ronde.getBrieven().stream().anyMatch(brief -> brieftypes.contains(brief.getBriefType()) && brief.isGegenereerd());
+		return ronde.getBrieven().stream().anyMatch(brief -> brieftypes.contains(brief.getBriefType()) && BriefUtil.isGegenereerd(brief));
 	}
 
 	@Override

@@ -21,33 +21,18 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
+@Getter
+@Setter
 public class WachtwoordVergetenDto
 {
 
 	private String gebruikersnaam;
 
 	private String email;
-
-	public String getGebruikersnaam()
-	{
-		return gebruikersnaam;
-	}
-
-	public void setGebruikersnaam(String gebruikersnaam)
-	{
-		this.gebruikersnaam = gebruikersnaam;
-	}
-
-	public String getEmail()
-	{
-		return email;
-	}
-
-	public void setEmail(String email)
-	{
-		this.email = email;
-	}
 }

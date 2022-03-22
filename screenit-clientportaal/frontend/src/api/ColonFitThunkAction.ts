@@ -20,27 +20,26 @@
  */
 import {Dispatch} from "redux"
 import ScreenitBackend from "../utils/Backend"
-import {createShowToastAction} from "../actions/ToastAction"
 import {getString} from "../utils/TekstPropertyUtil"
 import {AxiosResponse} from "axios"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import {ResetFitStatus, setHuidigeFitStatusAction} from "../actions/ColonDossierAction"
-import {navigateAndShowToast} from "../utils/NavigationUtil"
-import properties from "../pages/bvo/colon/ColonFitAanvragenPage.json";
+import properties from "../pages/bvo/colon/ColonFitAanvragenPage.json"
+import {showToast} from "../utils/ToastUtil"
 
-export const getHuidigeFitStatus = () => async (dispatch: Dispatch<ResetFitStatus>) => {
-    return ScreenitBackend.get("/colon/fit/status")
-        .then(response => dispatch(setHuidigeFitStatusAction(response.data)))
+export const getHuidigeFitStatus = () => (dispatch: Dispatch<ResetFitStatus>) => {
+	return ScreenitBackend.get("/colon/fit/status")
+		.then(response => dispatch(setHuidigeFitStatusAction(response.data)))
 }
 
-export const saveFitAanvraag = () => (dispatch: Dispatch) => {
-    return ScreenitBackend.put("/colon/fit/aanvragen")
-        .then(() => {
-            navigateAndShowToast("/colon", getString(properties.toast.title), getString(properties.toast.description))
-        })
-        .catch((error: AxiosResponse) => {
-            if (error.status === 409) {
-                dispatch(createShowToastAction({description: getString(properties.error.request), type: ToastMessageType.ERROR}))
-            }
-        })
+export const saveFitAanvraag = () => () => {
+	return ScreenitBackend.put("/colon/fit/aanvragen")
+		.then(() => {
+			showToast(getString(properties.toast.title), getString(properties.toast.description))
+		})
+		.catch((error: AxiosResponse) => {
+			if (error.status === 409) {
+				showToast(undefined, getString(properties.error.request), ToastMessageType.ERROR)
+			}
+		})
 }

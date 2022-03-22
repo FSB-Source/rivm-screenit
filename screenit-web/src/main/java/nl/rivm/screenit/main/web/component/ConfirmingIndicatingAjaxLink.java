@@ -35,8 +35,6 @@ import org.apache.wicket.model.StringResourceModel;
 
 public abstract class ConfirmingIndicatingAjaxLink<T> extends IndicatingAjaxLink<T>
 {
-	private static final long serialVersionUID = 1L;
-
 	private final IDialog popup;
 
 	private final String resourceKey;
@@ -63,8 +61,6 @@ public abstract class ConfirmingIndicatingAjaxLink<T> extends IndicatingAjaxLink
 	{
 		return new ConfirmationBehavior(popup)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected IModel<T> getModel()
 			{

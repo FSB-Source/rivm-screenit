@@ -29,6 +29,7 @@ import java.util.List;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
@@ -105,7 +106,7 @@ public interface ProjectDao
 
 	ProjectAttribuut getProjectAttribuut(ProjectAttribuut attribuut);
 
-	void resetWachtOpStartProject();
+	void resetWachtOpStartProject(Bevolkingsonderzoek bvo);
 
-	void setNieuwWachtOpStartProject(Date nu);
+	void setNieuwWachtOpStartProject(Bevolkingsonderzoek bvo, Date nu);
 }

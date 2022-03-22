@@ -24,6 +24,8 @@ package nl.rivm.screenit.main.web.gebruiker.testen.barcode;
 import java.io.File;
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.gebruiker.testen.TestenBasePage;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
 import nl.rivm.screenit.model.BagAdres;
@@ -37,10 +39,9 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.TestService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixTestService;
 import nl.rivm.screenit.util.TestBsnGenerator;
-import nl.topicuszorg.documentupload.services.UploadDocumentService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import org.apache.commons.io.FileUtils;
@@ -57,28 +58,19 @@ import org.apache.wicket.util.encoding.UrlEncoder;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 
+@Slf4j
 @SecurityConstraint(actie = Actie.INZIEN, checkScope = true, constraint = ShiroConstraint.HasPermission, recht = Recht.TESTEN, bevolkingsonderzoekScopes = {
 	Bevolkingsonderzoek.CERVIX })
-
 public class TestBarcodePage extends TestenBasePage
 {
 
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(TestBarcodePage.class);
-
 	@SpringBean
 	private CervixTestService cervixTestService;
-
-	@SpringBean
-	private TestService testService;
 
 	@SpringBean
 	private AsposeService asposeService;
@@ -93,14 +85,11 @@ public class TestBarcodePage extends TestenBasePage
 
 	public TestBarcodePage()
 	{
-		barcodes = new CompoundPropertyModel<String>("");
+		barcodes = new CompoundPropertyModel<>("");
 		Form<Void> form = new Form<>("form");
-		form.add(new TextField<String>("barcodes", barcodes));
+		form.add(new TextField<>("barcodes", barcodes));
 		form.add(new SubmitLink("printen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit()
 			{
@@ -161,9 +150,6 @@ public class TestBarcodePage extends TestenBasePage
 		});
 		form.add(new SubmitLink("printenTemplate")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit()
 			{

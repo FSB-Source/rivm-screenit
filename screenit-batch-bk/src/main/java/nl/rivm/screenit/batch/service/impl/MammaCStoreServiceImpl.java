@@ -34,6 +34,8 @@ import java.util.Set;
 
 import javax.persistence.Column;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.MammaCStoreService;
 import nl.rivm.screenit.batch.service.impl.dicom.CStoreSCU;
@@ -49,13 +51,12 @@ import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoekStatus;
 import nl.rivm.screenit.model.mamma.berichten.MammaIMSBericht;
 import nl.rivm.screenit.model.mamma.dicom.CStoreConfig;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
@@ -73,8 +74,6 @@ import org.dcm4che3.io.DicomInputStream;
 import org.dcm4che3.net.Status;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.stereotype.Service;
@@ -86,13 +85,11 @@ import com.google.common.collect.ImmutableMap;
 
 import ca.uhn.hl7v2.HL7Exception;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class MammaCStoreServiceImpl implements MammaCStoreService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(MammaCStoreServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -106,7 +103,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private MammaBaseFactory baseFactory;
@@ -217,7 +214,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 
 				for (UploadDocument uploadDocument : beeldenTeUploaden)
 				{
-					File dicomFile = fileService.load(uploadDocument);
+					File dicomFile = uploadDocumentService.load(uploadDocument);
 					CStoreSCU dicomCStoreSCU = new CStoreSCU(CStoreConfig.parse(
 						preferenceService.getString(PreferenceKey.INTERNAL_MAMMA_IMS_DICOM_CSTORE_CONFIG.toString(),
 							"SIT_STORE2_SCU@localhost:11114,DICOM_Store_SCP@localhost:14843")));
@@ -279,19 +276,16 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 					uploadBeeldenVerzoek.setStatus(MammaUploadBeeldenVerzoekStatus.VERWERKT);
 					logService.logGebeurtenis(LogGebeurtenis.MAMMA_UPLOAD_VERZOEK, uploadBeeldenVerzoek.getScreeningRonde().getDossier().getClient(),
 						"Beelden zijn succesvol verstuurd naar Sectra", Bevolkingsonderzoek.MAMMA);
-					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.SCHEDULED,
-						MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN);
-					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.STARTED,
-						MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN);
-					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, laatsteOnderzoeksDatum, MammaHL7v24ORMBerichtStatus.COMPLETED,
-						MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN);
+					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, MammaHL7v24ORMBerichtStatus.SCHEDULED, laatsteOnderzoeksDatum);
+					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, MammaHL7v24ORMBerichtStatus.STARTED, null);
+					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, MammaHL7v24ORMBerichtStatus.COMPLETED, laatsteOnderzoeksDatum);
 				}
 				uploadBeeldenVerzoek.setStatusDatum(dateSupplier.getDate());
 				List<UploadDocument> bestanden = uploadBeeldenPoging.getBestanden();
 				uploadBeeldenPoging.setBestanden(null);
 				hibernateService.saveOrUpdateAll(uploadBeeldenPoging, uploadBeeldenVerzoek);
 
-				bestanden.forEach(uploadDocument -> fileService.delete(uploadDocument, true));
+				bestanden.forEach(uploadDocument -> uploadDocumentService.delete(uploadDocument, true));
 
 				TransactionSynchronizationManager.unbindResource(sessionFactory);
 				session.close();
@@ -317,7 +311,7 @@ public class MammaCStoreServiceImpl implements MammaCStoreService
 			for (UploadDocument uploadDocument : uploadBeeldenPoging.getBestanden())
 			{
 
-				File file = fileService.load(uploadDocument);
+				File file = uploadDocumentService.load(uploadDocument);
 				DicomInputStream dis = new DicomInputStream(file);
 				Attributes attributes = dis.readDatasetUntilPixelData();
 				Date date = attributes.getDate(Tag.StudyDate, null, new DatePrecision());

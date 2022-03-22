@@ -68,10 +68,10 @@ import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.DateUtil;
@@ -81,8 +81,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -95,11 +93,9 @@ import com.aspose.words.ImportFormatMode;
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ProjectServiceImpl implements ProjectService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectServiceImpl.class);
-
 	private static final String VRAGENLIJST_PREFIX = "vragenlijst/";
 
-	private ExecutorService executerService;
+	private final ExecutorService executerService;
 
 	@Autowired
 	private AutorisatieService autorisatieService;
@@ -123,7 +119,7 @@ public class ProjectServiceImpl implements ProjectService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private AsposeService asposeService;
@@ -421,7 +417,7 @@ public class ProjectServiceImpl implements ProjectService
 				}
 				else
 				{
-					File vragenlijstTemplate = fileService.load(vragenlijstFormulierInstantie.getTemplateVanGebruiker());
+					File vragenlijstTemplate = uploadDocumentService.load(vragenlijstFormulierInstantie.getTemplateVanGebruiker());
 					byte[] vragenlijstTemplateBytes = FileUtils.readFileToByteArray(vragenlijstTemplate);
 					vragenlijstDocument = asposeService.processDocument(vragenlijstTemplateBytes, context);
 				}
@@ -498,7 +494,7 @@ public class ProjectServiceImpl implements ProjectService
 		upload.setNaam(filenaam);
 		upload.setFile(file);
 		upload.setActief(true);
-		fileService.saveOrUpdateUploadDocument(upload, FileStoreLocation.PROJECT_BESTAND, project.getId());
+		uploadDocumentService.saveOrUpdate(upload, FileStoreLocation.PROJECT_BESTAND, project.getId());
 
 		bestand.setType(ProjectBestandType.ATTRIBUTEN);
 		bestand.setUploadDocument(upload);
@@ -525,7 +521,7 @@ public class ProjectServiceImpl implements ProjectService
 		upload.setNaam(filenaam);
 		upload.setFile(file);
 		upload.setActief(true);
-		fileService.saveOrUpdateUploadDocument(upload, FileStoreLocation.PROJECT_BESTAND, project.getId());
+		uploadDocumentService.saveOrUpdate(upload, FileStoreLocation.PROJECT_BESTAND, project.getId());
 
 		uitslagenBestand.setType(ProjectBestandType.UITSLAGEN);
 		uitslagenBestand.setUploadDocument(upload);
@@ -546,7 +542,7 @@ public class ProjectServiceImpl implements ProjectService
 		File file, Account loggedInAccount) throws IOException
 	{
 		Date nu = currentDateSupplier.getDate();
-		fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.PROJECT_INACTIVEREN, project.getId());
+		uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.PROJECT_INACTIVEREN, project.getId());
 
 		projectBestand.setUploadDocument(uploadDocument);
 		projectBestand.setUploadDatum(nu);
@@ -570,7 +566,7 @@ public class ProjectServiceImpl implements ProjectService
 		upload.setNaam(filenaam);
 		upload.setFile(file);
 		upload.setActief(true);
-		fileService.saveOrUpdateUploadDocument(upload, FileStoreLocation.PROJECT_BESTAND, groep.getProject().getId());
+		uploadDocumentService.saveOrUpdate(upload, FileStoreLocation.PROJECT_BESTAND, groep.getProject().getId());
 
 		ProjectBestand bestand = new ProjectBestand();
 		bestand.setType(ProjectBestandType.POPULATIE);
@@ -627,10 +623,10 @@ public class ProjectServiceImpl implements ProjectService
 	}
 
 	@Override
-	public void updateWachtOpStartProject()
+	public void updateWachtOpStartProject(Bevolkingsonderzoek bvo)
 	{
-		projectDao.resetWachtOpStartProject();
-		projectDao.setNieuwWachtOpStartProject(currentDateSupplier.getDate());
+		projectDao.resetWachtOpStartProject(bvo);
+		projectDao.setNieuwWachtOpStartProject(bvo, currentDateSupplier.getDate());
 	}
 
 	@Override
@@ -672,7 +668,7 @@ public class ProjectServiceImpl implements ProjectService
 		hibernateService.delete(groep);
 		hibernateService.saveOrUpdate(project);
 
-		documentenTeVerwijderen.forEach(d -> fileService.delete(d, true));
+		documentenTeVerwijderen.forEach(d -> uploadDocumentService.delete(d, true));
 
 		if (project.getType().equals(ProjectType.BRIEFPROJECT))
 		{

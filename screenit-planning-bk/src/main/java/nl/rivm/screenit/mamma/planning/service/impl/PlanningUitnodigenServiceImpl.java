@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.NavigableSet;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.planning.index.PlanningClientIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
@@ -40,8 +42,6 @@ import nl.rivm.screenit.mamma.planning.model.rapportage.PlanningUitnodigenRappor
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigenService;
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigingContext;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.Instelling;
-import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -72,51 +72,53 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningUitnodigenServiceImpl.class);
-
-	@Autowired
-	private LogService logService;
-
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private MammaBaseFactory baseFactory;
-
-	@Autowired
-	private MammaBaseUitstelService baseUitstelService;
-
-	@Autowired
-	private MammaBaseKansberekeningService baseKansberekeningService;
-
-	@Autowired
-	private MammaBaseAfspraakService baseAfspraakService;
-
-	@Autowired
-	private InstellingService instellingService;
-
-	@Autowired
-	private MammaBaseScreeningrondeService screeningrondeService;
 
 	private final Map<Long, Integer> screeningsEenheidLaatsteVolgNrMap = new HashMap<>();
+
+	private final MammaBaseScreeningrondeService screeningrondeService;
+
+	private final LogService logService;
+
+	private final HibernateService hibernateService;
+
+	private final MammaBaseFactory baseFactory;
+
+	private final MammaBaseUitstelService baseUitstelService;
+
+	private final MammaBaseKansberekeningService baseKansberekeningService;
+
+	private final MammaBaseAfspraakService baseAfspraakService;
+
+	private final InstellingService instellingService;
+
+	public PlanningUitnodigenServiceImpl(MammaBaseScreeningrondeService screeningrondeService, LogService logService,
+		HibernateService hibernateService, MammaBaseFactory baseFactory,
+		MammaBaseUitstelService baseUitstelService, MammaBaseKansberekeningService baseKansberekeningService,
+		MammaBaseAfspraakService baseAfspraakService, InstellingService instellingService)
+	{
+		this.screeningrondeService = screeningrondeService;
+		this.logService = logService;
+		this.hibernateService = hibernateService;
+		this.baseFactory = baseFactory;
+		this.baseUitstelService = baseUitstelService;
+		this.baseKansberekeningService = baseKansberekeningService;
+		this.baseAfspraakService = baseAfspraakService;
+		this.instellingService = instellingService;
+	}
 
 	@Override
 	public void uitnodigen(PlanningStandplaatsRonde standplaatsRonde, Set<PlanningClient> openUitnodigingClientSet, NavigableSet<PlanningClient> afspraakUitnodigingClientSet,
 		PlanningUitnodigenRapportageDto rapportageDto, PlanningUitnodigingContext context)
 	{
-		Instelling rivm = instellingService.getActieveInstellingen(Rivm.class).get(0);
-
 		MammaStandplaatsRonde mammaStandplaatsRonde = hibernateService.get(MammaStandplaatsRonde.class, standplaatsRonde.getId());
 
 		MammaStandplaatsPeriode eersteMammaStandplaatsPeriode = hibernateService.get(MammaStandplaatsPeriode.class,
@@ -126,8 +128,10 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 
 		for (PlanningClient client : openUitnodigingClientSet)
 		{
-			voegToe(getStandplaatsPeriodeUitnodigenRapportage(rapportageDto, eersteMammaStandplaatsPeriode),
-				screeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(client.isSuspect(), client.getDoelgroep()), client);
+			BriefType briefType = screeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(client.isSuspect(), client.getDoelgroep());
+
+			maakRondeEnUitnodiging(getDossier(client), briefType, mammaStandplaatsRonde, false);
+			voegToe(getStandplaatsPeriodeUitnodigenRapportage(rapportageDto, eersteMammaStandplaatsPeriode), briefType , client);
 		}
 
 		for (PlanningClient client : afspraakUitnodigingClientSet)
@@ -201,6 +205,41 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 	public void clear()
 	{
 		screeningsEenheidLaatsteVolgNrMap.clear();
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public PlanningStandplaatsPeriodeUitnodigenRapportageDto getStandplaatsPeriodeUitnodigenRapportage(PlanningUitnodigenRapportageDto rapportageDto,
+		MammaStandplaatsPeriode standplaatsPeriode)
+	{
+		synchronized (rapportageDto)
+		{
+			MammaStandplaatsRonde standplaatsRonde = standplaatsPeriode.getStandplaatsRonde();
+			PlanningStandplaatsRondeUitnodigenRapportageDto standplaatsRondeUitnodigenRapportage = rapportageDto.getStandplaatsRondeUitnodigenRapportages().stream()
+				.filter(element -> element.getStandplaatsRondeId().equals(standplaatsRonde.getId())).findAny().orElse(null);
+			if (standplaatsRondeUitnodigenRapportage == null)
+			{
+				standplaatsRondeUitnodigenRapportage = new PlanningStandplaatsRondeUitnodigenRapportageDto();
+				standplaatsRondeUitnodigenRapportage.setStandplaatsRondeId(standplaatsRonde.getId());
+
+				standplaatsRondeUitnodigenRapportage.setStatus(MammaStandplaatsRondeRapportageStatus.FOUT);
+				rapportageDto.getStandplaatsRondeUitnodigenRapportages().add(standplaatsRondeUitnodigenRapportage);
+			}
+
+			PlanningStandplaatsPeriodeUitnodigenRapportageDto standplaatsPeriodeUitnodigenRapportage = standplaatsRondeUitnodigenRapportage
+				.getStandplaatsPeriodeUitnodigenRapportages()
+				.stream()
+				.filter(element -> element.getStandplaatsPeriodeId().equals(standplaatsPeriode.getId())).findAny().orElse(null);
+			if (standplaatsPeriodeUitnodigenRapportage == null)
+			{
+				standplaatsPeriodeUitnodigenRapportage = new PlanningStandplaatsPeriodeUitnodigenRapportageDto();
+				standplaatsPeriodeUitnodigenRapportage.setStandplaatsPeriodeId(standplaatsPeriode.getId());
+				standplaatsPeriodeUitnodigenRapportage.setUitnodigenTotEnMet(standplaatsPeriode.getScreeningsEenheid().getUitnodigenTotEnMet());
+
+				standplaatsRondeUitnodigenRapportage.getStandplaatsPeriodeUitnodigenRapportages().add(standplaatsPeriodeUitnodigenRapportage);
+			}
+			return standplaatsPeriodeUitnodigenRapportage;
+		}
 	}
 
 	private void uitstellen(MammaStandplaatsRonde standplaatsRonde, Set<PlanningClient> uitTeStellenClientSet, MammaStandplaats uitstellenNaar, MammaUitstelReden uitstelReden)
@@ -322,40 +361,6 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 		{
 			client.setUitgenodigdNaUitstel(true);
 			standplaatsPeriodeUitnodigenRapportage.setUitgenodigdNaUitstel(standplaatsPeriodeUitnodigenRapportage.getUitgenodigdNaUitstel() + 1);
-		}
-	}
-
-	@Override
-	public PlanningStandplaatsPeriodeUitnodigenRapportageDto getStandplaatsPeriodeUitnodigenRapportage(PlanningUitnodigenRapportageDto rapportageDto,
-		MammaStandplaatsPeriode standplaatsPeriode)
-	{
-		synchronized (rapportageDto)
-		{
-			MammaStandplaatsRonde standplaatsRonde = standplaatsPeriode.getStandplaatsRonde();
-			PlanningStandplaatsRondeUitnodigenRapportageDto standplaatsRondeUitnodigenRapportage = rapportageDto.getStandplaatsRondeUitnodigenRapportages().stream()
-				.filter(element -> element.getStandplaatsRondeId().equals(standplaatsRonde.getId())).findAny().orElse(null);
-			if (standplaatsRondeUitnodigenRapportage == null)
-			{
-				standplaatsRondeUitnodigenRapportage = new PlanningStandplaatsRondeUitnodigenRapportageDto();
-				standplaatsRondeUitnodigenRapportage.setStandplaatsRondeId(standplaatsRonde.getId());
-
-				standplaatsRondeUitnodigenRapportage.setStatus(MammaStandplaatsRondeRapportageStatus.FOUT);
-				rapportageDto.getStandplaatsRondeUitnodigenRapportages().add(standplaatsRondeUitnodigenRapportage);
-			}
-
-			PlanningStandplaatsPeriodeUitnodigenRapportageDto standplaatsPeriodeUitnodigenRapportage = standplaatsRondeUitnodigenRapportage
-				.getStandplaatsPeriodeUitnodigenRapportages()
-				.stream()
-				.filter(element -> element.getStandplaatsPeriodeId().equals(standplaatsPeriode.getId())).findAny().orElse(null);
-			if (standplaatsPeriodeUitnodigenRapportage == null)
-			{
-				standplaatsPeriodeUitnodigenRapportage = new PlanningStandplaatsPeriodeUitnodigenRapportageDto();
-				standplaatsPeriodeUitnodigenRapportage.setStandplaatsPeriodeId(standplaatsPeriode.getId());
-				standplaatsPeriodeUitnodigenRapportage.setUitnodigenTotEnMet(standplaatsPeriode.getScreeningsEenheid().getUitnodigenTotEnMet());
-
-				standplaatsRondeUitnodigenRapportage.getStandplaatsPeriodeUitnodigenRapportages().add(standplaatsPeriodeUitnodigenRapportage);
-			}
-			return standplaatsPeriodeUitnodigenRapportage;
 		}
 	}
 }

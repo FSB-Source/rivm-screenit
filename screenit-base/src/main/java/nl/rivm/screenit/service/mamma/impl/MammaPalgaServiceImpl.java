@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import lombok.extern.slf4j.Slf4j;
+
 import net.lingala.zip4j.exception.ZipException;
 
 import nl.rivm.screenit.Constants;
@@ -55,9 +57,9 @@ import nl.rivm.screenit.model.mamma.verslag.followup.MammaFollowUpVerslagContent
 import nl.rivm.screenit.model.verslag.DSValue;
 import nl.rivm.screenit.model.verslag.DSValueSet;
 import nl.rivm.screenit.model.verslag.DSValueSetValue;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaCsvImportMapping;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 import nl.rivm.screenit.service.mamma.MammaVerwerkVerslagService;
@@ -66,19 +68,16 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaPalgaServiceImpl implements MammaPalgaService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaPalgaService.class);
-
 	@Autowired
 	private String locatieFilestore;
 
@@ -89,7 +88,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	private LogService logService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -137,7 +136,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void saveOrUpdateExport(UploadDocument zipDocument) throws IOException
 	{
-		fileService.saveOrUpdateUploadDocument(zipDocument, FileStoreLocation.MAMMA_PALGA_CSV_EXPORT, null, true);
+		uploadDocumentService.saveOrUpdate(zipDocument, FileStoreLocation.MAMMA_PALGA_CSV_EXPORT, null, true);
 	}
 
 	@Override
@@ -147,7 +146,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		if (importDocument != getImport())
 		{
 			deleteImports();
-			fileService.saveOrUpdateUploadDocument(importDocument, FileStoreLocation.MAMMA_PALGA_CSV_IMPORT, null, true);
+			uploadDocumentService.saveOrUpdate(importDocument, FileStoreLocation.MAMMA_PALGA_CSV_IMPORT, null, true);
 		}
 	}
 
@@ -173,7 +172,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		}
 		catch (Exception e)
 		{
-			LOG.error("ongebekende fout", e);
+			LOG.error("Onbekende fout", e);
 			return e.getMessage();
 		}
 		return null;
@@ -462,8 +461,8 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		MammaFollowUpVerslagContent verslagContent = verslag.getVerslagContent();
 		return verslag.getScreeningRonde() == null ? "screeningsronde"
 			: !isValideMedischeObservatie(verslagContent.getPathologieMedischeObservatie()) ? "medische observatie"
-				: !isValideVerrichting(verslagContent.getVerrichting()) ? "verrichting"
-					: valideerFollowUpPa(verslagContent.getFollowupPa().get(0), isProtocol, skipPtnm);
+			: !isValideVerrichting(verslagContent.getVerrichting()) ? "verrichting"
+			: valideerFollowUpPa(verslagContent.getFollowupPa().get(0), isProtocol, skipPtnm);
 	}
 
 	private boolean isValideVerrichting(MammaFollowUpVerrichting verrichting)

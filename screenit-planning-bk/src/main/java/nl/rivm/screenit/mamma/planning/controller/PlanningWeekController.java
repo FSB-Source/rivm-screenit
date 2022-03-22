@@ -41,7 +41,6 @@ import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.util.DateUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,8 +52,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/" + PlanningRestConstants.C_WEEK)
 public class PlanningWeekController
 {
-	@Autowired
-	private PlanningConceptService conceptService;
+	private final PlanningConceptService conceptService;
+
+	public PlanningWeekController(PlanningConceptService conceptService)
+	{
+		this.conceptService = conceptService;
+	}
 
 	@RequestMapping(value = "/{screeningsEenheidId}/{maandag}", method = RequestMethod.GET)
 	@ResponseBody

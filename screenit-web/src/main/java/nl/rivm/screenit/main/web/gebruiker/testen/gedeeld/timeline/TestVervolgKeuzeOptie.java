@@ -24,10 +24,11 @@ package nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixCISHistorieAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixHerdrukAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixNieuweRondeAction;
+import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixVerstuurUitnodigingAction;
+import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixAanvraagPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixBeoordeeldDoorCytologiePopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixGeanalyseerdOpHpvPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixHuisartsKoppelenPopup;
-import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixAanvraagPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixLabformulierGecontroleerdPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixLabformulierGecontroleerdVoorCytologiePopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixLabformulierGescandPopup;
@@ -105,6 +106,8 @@ public enum TestVervolgKeuzeOptie implements INaam
 	CERVIX_AANVRAAG("Aanvraag doen", TestCervixAanvraagPopup.class),
 
 	CERVIX_NIEUWE_RONDE("Nieuwe Ronde", TestCervixNieuweRondeAction.class),
+
+	CERVIX_VERSTUUR_UITNODIGING("Verstuur uitnodiging", TestCervixVerstuurUitnodigingAction.class),
 
 	CERVIX_NIEUWE_CISHISTORIE("CIS historisch dossier toevoegen", TestCervixCISHistorieAction.class),
 

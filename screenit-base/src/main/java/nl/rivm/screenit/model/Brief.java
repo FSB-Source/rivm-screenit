@@ -34,6 +34,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -50,9 +53,10 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public abstract class Brief extends TablePerClassHibernateObject
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = true, fetch = FetchType.LAZY)
@@ -74,66 +78,6 @@ public abstract class Brief extends TablePerClassHibernateObject
 	private boolean tegenhouden = false;
 
 	private String templateNaam;
-
-	public Date getCreatieDatum()
-	{
-		return creatieDatum;
-	}
-
-	public void setCreatieDatum(Date creatieDatum)
-	{
-		this.creatieDatum = creatieDatum;
-	}
-
-	public boolean isGegenereerd()
-	{
-		return gegenereerd;
-	}
-
-	public void setGegenereerd(boolean gegenereerd)
-	{
-		this.gegenereerd = gegenereerd;
-	}
-
-	public String getTemplateNaam()
-	{
-		return templateNaam;
-	}
-
-	public void setTemplateNaam(String templateNaam)
-	{
-		this.templateNaam = templateNaam;
-	}
-
-	public boolean isVervangen()
-	{
-		return vervangen;
-	}
-
-	public void setVervangen(boolean vervangen)
-	{
-		this.vervangen = vervangen;
-	}
-
-	public boolean isTegenhouden()
-	{
-		return tegenhouden;
-	}
-
-	public void setTegenhouden(boolean tegenhouden)
-	{
-		this.tegenhouden = tegenhouden;
-	}
-
-	public BriefType getBriefType()
-	{
-		return briefType;
-	}
-
-	public void setBriefType(BriefType briefType)
-	{
-		this.briefType = briefType;
-	}
 
 	public abstract MergedBrieven getMergedBrieven();
 
@@ -159,13 +103,4 @@ public abstract class Brief extends TablePerClassHibernateObject
 		return bevolkingsonderzoek;
 	}
 
-	public BriefDefinitie getBriefDefinitie()
-	{
-		return briefDefinitie;
-	}
-
-	public void setBriefDefinitie(BriefDefinitie briefDefinitie)
-	{
-		this.briefDefinitie = briefDefinitie;
-	}
 }

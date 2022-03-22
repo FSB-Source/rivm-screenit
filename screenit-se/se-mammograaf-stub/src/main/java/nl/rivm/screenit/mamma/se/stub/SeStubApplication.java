@@ -22,7 +22,6 @@ package nl.rivm.screenit.mamma.se.stub;
  */
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 import nl.rivm.screenit.mamma.se.stub.model.BuildinfoDto;
@@ -52,14 +51,14 @@ public class SeStubApplication
 		{
 			buildinfo = new BuildinfoDto();
 			var applicationProperties = new Properties();
-			try (InputStream resourceAsStream = SeStubApplication.class.getResourceAsStream("/application.properties"))
+			try (var resourceAsStream = SeStubApplication.class.getResourceAsStream("/build-info.properties"))
 			{
 				applicationProperties.load(resourceAsStream);
-				buildinfo.setVersion(applicationProperties.getProperty("application.version"));
+				buildinfo.setVersion(applicationProperties.getProperty("build.version"));
 			}
 			catch (IOException e)
 			{
-				LOG.error("Could not load application.properties (for buildinformation)");
+				LOG.error("Fout bij laden van build-info.properties (voor versienummer)");
 			}
 		}
 		return buildinfo;

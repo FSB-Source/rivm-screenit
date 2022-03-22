@@ -27,8 +27,6 @@ import java.util.List;
 import nl.rivm.screenit.main.web.component.validator.FileValidator;
 import nl.rivm.screenit.model.IDocument;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.service.FileService;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -45,9 +43,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public abstract class UploadDocumentPanel<T extends IDocument> extends GenericPanel<T>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private FileValidator fileValidator;
 
 	private IModel<List<FileUpload>> files = new ListModel<>();
@@ -55,13 +50,7 @@ public abstract class UploadDocumentPanel<T extends IDocument> extends GenericPa
 	@SpringBean
 	private HibernateService hibernateService;
 
-	@SpringBean
-	private FileService fileService;
-
-	private WebMarkupContainer refreshContainer;
-
-	@SpringBean
-	private ICurrentDateSupplier dateSupplier;
+	private final WebMarkupContainer refreshContainer;
 
 	public UploadDocumentPanel(String id, IModel<T> model, WebMarkupContainer refreshContainer, FileValidator validator)
 	{
@@ -80,9 +69,6 @@ public abstract class UploadDocumentPanel<T extends IDocument> extends GenericPa
 		}
 		uploadForm.add(new AjaxSubmitLink("uploaden")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{

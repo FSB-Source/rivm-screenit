@@ -21,88 +21,95 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <fieldset class="hero-unit">
-        <div class="row-fluid">
-            <div class="span11">
-                <legend>
+	<fieldset class="hero-unit">
+		<div class="row-fluid">
+			<div class="span11">
+				<legend>
 					<span class="clearfix"><strong
-                            wicket:id="persoon.achternaam">Achternaam</strong></span> <span
-                        class="clearfix"><wicket:container
-                        wicket:id="persoon.voornaam">Voornaam
+							wicket:id="persoon.achternaam">Achternaam</strong></span> <span
+						class="clearfix"><wicket:container
+						wicket:id="persoon.voornaam">Voornaam
                 </wicket:container></span>
-                </legend>
-                <hr>
-            </div>
-            <div class="span1">
-                <wicket:container wicket:id="doelgroep"></wicket:container>
-                <hr>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Burgerservicenummer: <strong wicket:id="persoon.bsn">9000000001</strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Geslacht: <strong wicket:id="persoon.geslacht">Man</strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Geboortenaam: <strong wicket:id="geboortenaam">geboortenaam</strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Geboortedatum: <strong wicket:id="persoon.geboortedatum">dd-mm-jaar</strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Straat/Loc.: <strong wicket:id="gbaLocatiebeschrijving">Straatlaan 12</strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Postcode: <strong wicket:id="persoon.gbaAdres.postcode">1234AA</strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Woonplaats: <strong wicket:id="persoon.gbaAdres.plaats">Amsterdam</strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Tijdelijk adres: <strong wicket:id="tijdelijkadres">Nee</strong>
-            </div>
-        </div>
-        <wicket:enclosure child="persoon.overlijdensdatum">
-            <div class="row-fluid">
-                <div class="span12">
-                    Overlijdensdatum: <strong wicket:id="persoon.overlijdensdatum">dd-mm-jaar</strong>
-                </div>
-            </div>
-        </wicket:enclosure>
-        <div class="row-fluid">
-            <div class="span12">
-                Telefoonnummer: <strong wicket:id="persoon.telefoonnummer1"></strong>
-            </div>
-        </div>
-        <div class="row-fluid">
-            <div class="span12">
-                Mobiel nummer: <strong wicket:id="persoon.telefoonnummer2"></strong>
-            </div>
-        </div>
-        <wicket:enclosure child="mammaDossier.dubbeleTijdReden">
-            <div class="row-fluid">
-                <div class="span12">
-                    Dubbele tijd reden: <strong wicket:id="mammaDossier.dubbeleTijdReden"></strong>
-                </div>
-            </div>
-        </wicket:enclosure>
-    </fieldset>
+				</legend>
+				<hr>
+			</div>
+			<div class="span1">
+				<wicket:container wicket:id="doelgroep"></wicket:container>
+				<hr>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Burgerservicenummer: <strong wicket:id="persoon.bsn">9000000001</strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Geslacht: <strong wicket:id="persoon.geslacht">Man</strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Geboortenaam: <strong wicket:id="geboortenaam">geboortenaam</strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Geboortedatum: <strong wicket:id="persoon.geboortedatum">dd-mm-jaar</strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Straat/Loc.: <strong wicket:id="gbaLocatiebeschrijving">Straatlaan 12</strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Postcode: <strong wicket:id="persoon.gbaAdres.postcode">1234AA</strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Woonplaats: <strong wicket:id="persoon.gbaAdres.plaats">Amsterdam</strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Tijdelijk adres: <strong wicket:id="tijdelijkadres">Nee</strong>
+			</div>
+		</div>
+		<wicket:enclosure child="selectieblokkade">
+			<div class="row-fluid">
+				<div class="span12">
+					Selectieblokkade: <strong wicket:id="selectieblokkade"/>
+				</div>
+			</div>
+		</wicket:enclosure>
+		<wicket:enclosure child="persoon.overlijdensdatum">
+			<div class="row-fluid">
+				<div class="span12">
+					Overlijdensdatum: <strong wicket:id="persoon.overlijdensdatum">dd-mm-jaar</strong>
+				</div>
+			</div>
+		</wicket:enclosure>
+		<div class="row-fluid">
+			<div class="span12">
+				Telefoonnummer: <strong wicket:id="persoon.telefoonnummer1"></strong>
+			</div>
+		</div>
+		<div class="row-fluid">
+			<div class="span12">
+				Mobiel nummer: <strong wicket:id="persoon.telefoonnummer2"></strong>
+			</div>
+		</div>
+		<wicket:enclosure child="mammaDossier.dubbeleTijdReden">
+			<div class="row-fluid">
+				<div class="span12">
+					Dubbele tijd reden: <strong wicket:id="mammaDossier.dubbeleTijdReden"></strong>
+				</div>
+			</div>
+		</wicket:enclosure>
+	</fieldset>
 
 </wicket:panel>
 </html>

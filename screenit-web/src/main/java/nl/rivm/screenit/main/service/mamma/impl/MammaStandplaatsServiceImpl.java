@@ -31,6 +31,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.mamma.MammaBaseAfspraakDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsDao;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
@@ -52,9 +54,9 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.CoordinatenService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.impl.PersoonCoordinaten;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
@@ -69,8 +71,6 @@ import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThre
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -80,12 +80,11 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 import com.google.common.collect.TreeRangeSet;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaStandplaatsServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -102,7 +101,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 	private BaseBriefService baseBriefService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -240,7 +239,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 			locatie.setStandplaatsLocatieBijlage(nieuweBijlage);
 			try
 			{
-				fileService.saveOrUpdateUploadDocument(nieuweBijlage, FileStoreLocation.MAMMA_STANDPLAATS_LOCATIE_BIJLAGE, standplaats.getId(), true);
+				uploadDocumentService.saveOrUpdate(nieuweBijlage, FileStoreLocation.MAMMA_STANDPLAATS_LOCATIE_BIJLAGE, standplaats.getId(), true);
 			}
 			catch (IllegalStateException | IOException e)
 			{

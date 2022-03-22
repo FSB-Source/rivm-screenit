@@ -35,10 +35,10 @@ import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -56,8 +56,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ProjectAttributenBestandEditPage extends ProjectBasePage
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
 
@@ -65,7 +63,7 @@ public class ProjectAttributenBestandEditPage extends ProjectBasePage
 	private ProjectService projectService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -75,7 +73,7 @@ public class ProjectAttributenBestandEditPage extends ProjectBasePage
 
 	private IModel<ProjectBestand> bestandModel;
 
-	private IModel<List<FileUpload>> bestanden = new ListModel<>();
+	private final IModel<List<FileUpload>> bestanden = new ListModel<>();
 
 	public ProjectAttributenBestandEditPage(IModel<Project> model)
 	{

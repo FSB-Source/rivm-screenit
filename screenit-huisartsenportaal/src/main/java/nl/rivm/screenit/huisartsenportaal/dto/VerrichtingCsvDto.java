@@ -21,6 +21,11 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class VerrichtingCsvDto
 {
 	private String huisartsLocatieNaam;
@@ -37,73 +42,4 @@ public class VerrichtingCsvDto
 
 	private String regio;
 
-	public String getHuisartsLocatieNaam()
-	{
-		return huisartsLocatieNaam;
-	}
-
-	public void setHuisartsLocatieNaam(String huisartsLocatieNaam)
-	{
-		this.huisartsLocatieNaam = huisartsLocatieNaam;
-	}
-
-	public String getClientNaam()
-	{
-		return clientNaam;
-	}
-
-	public void setClientNaam(String clientNaam)
-	{
-		this.clientNaam = clientNaam;
-	}
-
-	public String getMonsterId()
-	{
-		return monsterId;
-	}
-
-	public void setMonsterId(String monsterId)
-	{
-		this.monsterId = monsterId;
-	}
-
-	public String getDatumUitstrijkje()
-	{
-		return datumUitstrijkje;
-	}
-
-	public void setDatumUitstrijkje(String datumUitstrijkje)
-	{
-		this.datumUitstrijkje = datumUitstrijkje;
-	}
-
-	public String getVerrichtingsDatum()
-	{
-		return verrichtingsDatum;
-	}
-
-	public void setVerrichtingsDatum(String verrichtingsDatum)
-	{
-		this.verrichtingsDatum = verrichtingsDatum;
-	}
-
-	public String getFormulierOntvangstDatum()
-	{
-		return formulierOntvangstDatum;
-	}
-
-	public void setFormulierOntvangstDatum(String formulierOntvangstDatum)
-	{
-		this.formulierOntvangstDatum = formulierOntvangstDatum;
-	}
-
-	public String getRegio()
-	{
-		return regio;
-	}
-
-	public void setRegio(String regio)
-	{
-		this.regio = regio;
-	}
 }

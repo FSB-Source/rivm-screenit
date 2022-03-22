@@ -19,7 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import authenticationStyle from "./AuthenticationPage.module.scss"
-import React, {useCallback, useEffect} from "react"
+import React, {useCallback} from "react"
 import {Col, Row} from "react-bootstrap"
 import {getString} from "../../utils/TekstPropertyUtil"
 import SpanWithHtml from "../../components/span/SpanWithHtml"
@@ -28,47 +28,31 @@ import blob_personen from "../../scss/media/blob-personen.jpg"
 import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNaam} from "../../utils/UrlUtil"
 import properties from "./NietInBevolkingsonderzoekPage.json"
 import Button from "../../components/input/Button"
-import {useKeycloak} from "@react-keycloak/web"
-import {useDispatch, useSelector} from "react-redux"
-import {State} from "../../datatypes/State"
-import {navigate} from "../../routes/routes"
-import {logout} from "../../utils/LogoutUtil"
 import {ArrowType} from "../../components/vectors/ArrowIconComponent"
+import {useNavigate} from "react-router-dom"
 
 const NietInBevolkingsonderzoekPage = () => {
-    const {keycloak} = useKeycloak()
-    const dispatch = useDispatch()
-    const isLoggingIn = useSelector((state: State) => state.authenticatie.isLoggingIn)
+	const navigate = useNavigate()
 
-    const logoutCallback = useCallback(() => {
-        logout(keycloak, dispatch, false)
-    }, [keycloak, dispatch])
+	const logoutCallback = useCallback(() => {
+		navigate("/logout")
+	}, [navigate])
 
-    useEffect(() => {
-        if (!isLoggingIn) {
-            navigate("/login")
-        }
-    }, [isLoggingIn])
-
-    return <div className={authenticationStyle.style}>
-        <Row>
-            <Col sm={8}>
-                <div className={authenticationStyle.introTextContainer}>
-                    <SpanWithHtml
-                        value={getString(properties.description, [getBevolkingsonderzoekNederlandUrl(), getBevolkingsonderzoekNederlandUrlNaam()])}/>
-                </div>
-                <div>
-                    <Button label={properties.uitloggen}
-                            onClick={logoutCallback}
-                            arrowBeforeLabel={true}
-                            displayArrow={ArrowType.ARROW_LEFT}/>
-                </div>
-            </Col>
-            <Col sm={4}>
-                <ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
-            </Col>
-        </Row>
-    </div>
+	return <div className={authenticationStyle.style}>
+		<Row>
+			<Col sm={8}>
+				<div className={authenticationStyle.introTextContainer}>
+					<SpanWithHtml value={getString(properties.description, [getBevolkingsonderzoekNederlandUrl(), getBevolkingsonderzoekNederlandUrlNaam()])}/>
+				</div>
+				<div>
+					<Button label={properties.uitloggen} onClick={logoutCallback} arrowBeforeLabel={true} displayArrow={ArrowType.ARROW_LEFT}/>
+				</div>
+			</Col>
+			<Col sm={4}>
+				<ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
+			</Col>
+		</Row>
+	</div>
 
 }
 

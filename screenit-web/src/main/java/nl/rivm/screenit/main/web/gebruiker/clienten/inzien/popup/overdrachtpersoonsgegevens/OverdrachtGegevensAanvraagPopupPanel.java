@@ -31,6 +31,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.algemeen.OverdrachtPersoonsgegevensService;
 import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
@@ -49,7 +51,7 @@ import nl.rivm.screenit.model.algemeen.OverdrachtPersoonsgegevens;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -76,25 +78,20 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<OverdrachtPersoonsgegevens>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(OverdrachtGegevensAanvraagPopupPanel.class);
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private OverdrachtPersoonsgegevensService overdrachtPersoonsgegevensService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private HibernateService hibernateService;
 
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
 	private Form<OverdrachtPersoonsgegevens> form;
 
@@ -242,7 +239,7 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 				@Override
 				protected File load()
 				{
-					return fileService.load(upload.getObject());
+					return uploadDocumentService.load(upload.getObject());
 				}
 			}, "Aanvraagformulier overdracht persoonsgegevens met Handtekening." + FilenameUtils.getExtension(upload.getObject().getNaam())));
 		}

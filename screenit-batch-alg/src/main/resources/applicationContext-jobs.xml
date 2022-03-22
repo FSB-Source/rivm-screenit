@@ -117,9 +117,6 @@
         <beans:property name="password" ref="gbaFtpPassword"/>
         <beans:property name="knownHostPath" ref="gbaFtpKnownHostFile"/>
         <beans:property name="downloadPath" ref="gbaDownloadFolder"/>
-        <beans:property name="sftpConnectionTimeout" ref="sftpConnectionTimeout"/>
-        <beans:property name="tryInterval" ref="tryInterval"/>
-        <beans:property name="maxNoTries" ref="maxNoTries"/>
     </beans:bean>
     
 
@@ -129,7 +126,6 @@
                 class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step.Vo105ItemProcessor"/>
     <beans:bean id="vo105ItemWriter"
                 class="nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step.Vo105ItemWriter">
-        <beans:property name="voFileStorePath" ref="voFileStorePath"></beans:property>
     </beans:bean>
 
     <beans:bean id="vo105UploadTasklet"
@@ -141,9 +137,6 @@
         <beans:property name="knownHostPath" ref="gbaFtpKnownHostFile"/>
         <beans:property name="uploadPath" ref="gbaUploadFolder"/>
         <beans:property name="voFileStorePath" ref="voFileStorePath"></beans:property>
-        <beans:property name="sftpConnectionTimeout" ref="sftpConnectionTimeout"/>
-        <beans:property name="tryInterval" ref="tryInterval"/>
-        <beans:property name="maxNoTries" ref="maxNoTries"/>
     </beans:bean>
     <beans:bean id="dossierReader" class="nl.rivm.screenit.batch.jobs.generalis.gba.dossiers.DossierReader"/>
     <beans:bean id="dossierWriter" class="nl.rivm.screenit.batch.jobs.generalis.gba.dossiers.DossierWriter"/>
@@ -152,7 +145,7 @@
                 class="org.springframework.batch.core.listener.ExecutionContextPromotionListener">
         <beans:property name="keys">
             <beans:list>
-                <beans:value>key.bestandenmap</beans:value>
+                <beans:value>key.vo105bestand</beans:value>
                 <beans:value>key.verwerkingslogid</beans:value>
             </beans:list>
         </beans:property>
@@ -460,12 +453,14 @@
 
     
     <beans:bean id="ilmApplicatieLoggingVerwijderenReader" class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenReader">
-    	<beans:property name="bvo" value=""/>
+        <beans:property name="bvo" value=""/>
     </beans:bean>
     <beans:bean id="ilmApplicatieLoggingVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.ilm.applicatielogging.IlmApplicatieLoggingVerwijderenWriter"/>
     
-    <beans:bean id="ilmTechnischeBerichtenLoggingVerwijderenReader" class="nl.rivm.screenit.batch.jobs.generalis.ilm.technischelogging.IlmTechnischeBerichtenLoggingVerwijderenReader"/>    	
-    <beans:bean id="ilmTechnischeBerichtenLoggingVerwijderenWriter" class="nl.rivm.screenit.batch.jobs.generalis.ilm.technischelogging.IlmTechnischeBerichtenLoggingVerwijderenWriter"/>
+    <beans:bean id="ilmTechnischeBerichtenLoggingVerwijderenReader"
+                class="nl.rivm.screenit.batch.jobs.generalis.ilm.technischelogging.IlmTechnischeBerichtenLoggingVerwijderenReader"/>
+    <beans:bean id="ilmTechnischeBerichtenLoggingVerwijderenWriter"
+                class="nl.rivm.screenit.batch.jobs.generalis.ilm.technischelogging.IlmTechnischeBerichtenLoggingVerwijderenWriter"/>
     <beans:bean id="ilmAlgemeneGegevensVerwijderenListener" class="nl.rivm.screenit.batch.jobs.generalis.ilm.IlmAlgemeneGegevensVerwijderenListener"/>
 
     <job id="ilm_algemene_gegevens_verwijderen">
@@ -490,5 +485,22 @@
         </listeners>
     </job>
 
+    
+    <beans:bean id="gendersignaleringReader" class="nl.rivm.screenit.batch.jobs.generalis.gendersignalering.SignaleringGenderReader"/>
+    <beans:bean id="gendersignaleringWriter" class="nl.rivm.screenit.batch.jobs.generalis.gendersignalering.SignaleringGenderWriter"/>
+    <beans:bean id="gendersignaleringListener" class="nl.rivm.screenit.batch.jobs.generalis.gendersignalering.SignaleringGenderListener"/>
+
+    <job id="signalering_gender">
+        <step id="signalering_gender_step">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="gendersignaleringReader"
+                       writer="gendersignaleringWriter" commit-interval="250">
+                </chunk>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="gendersignaleringListener"/>
+        </listeners>
+    </job>
 
 </beans:beans>

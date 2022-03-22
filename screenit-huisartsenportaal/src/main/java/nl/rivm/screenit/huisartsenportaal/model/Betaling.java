@@ -33,11 +33,16 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
 @Table(name = "betaling", indexes = { @Index(name = "idx_BETALING_BETALINGS_DATUM", columnList = "betalingsdatum") })
+@Getter
+@Setter
 public class Betaling extends AbstractReferenceObject
 {
 
@@ -55,53 +60,4 @@ public class Betaling extends AbstractReferenceObject
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Verrichting verrichting;
 
-	public BigDecimal getBedrag()
-	{
-		return bedrag;
-	}
-
-	public void setBedrag(BigDecimal bedrag)
-	{
-		this.bedrag = bedrag;
-	}
-
-	public String getBetalingsKenmerk()
-	{
-		return betalingsKenmerk;
-	}
-
-	public void setBetalingsKenmerk(String betalingsKenmerk)
-	{
-		this.betalingsKenmerk = betalingsKenmerk;
-	}
-
-	public boolean isDebet()
-	{
-		return debet;
-	}
-
-	public void setDebet(boolean debet)
-	{
-		this.debet = debet;
-	}
-
-	public Verrichting getVerrichting()
-	{
-		return verrichting;
-	}
-
-	public void setVerrichting(Verrichting verrichting)
-	{
-		this.verrichting = verrichting;
-	}
-
-	public Date getBetalingsdatum()
-	{
-		return betalingsdatum;
-	}
-
-	public void setBetalingsdatum(Date betalingsdatum)
-	{
-		this.betalingsdatum = betalingsdatum;
-	}
 }

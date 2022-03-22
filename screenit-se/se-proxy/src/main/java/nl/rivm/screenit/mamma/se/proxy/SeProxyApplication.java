@@ -91,14 +91,14 @@ public class SeProxyApplication implements ApplicationListener<ContextRefreshedE
 		{
 			environmentInfo = new EnvironmentInfoDto();
 			var applicationProperties = new Properties();
-			try (InputStream resourceAsStream = SeProxyApplication.class.getResourceAsStream("/application.properties"))
+			try (InputStream resourceAsStream = SeProxyApplication.class.getResourceAsStream("/build-info.properties"))
 			{
 				applicationProperties.load(resourceAsStream);
-				environmentInfo.setVersion(applicationProperties.getProperty("application.version"));
+				environmentInfo.setVersion(applicationProperties.getProperty("build.version"));
 				LOG.info("SE-Proxy versie: " + environmentInfo.getVersion());
 				environmentInfo.setEnvironment(environmentName);
 				environmentInfo.setMagUpdaten(false);
-				String timestampString = applicationProperties.getProperty("application.timestamp").replace('T', ' ').replace('Z', ' ').trim();
+				String timestampString = applicationProperties.getProperty("build.time").replace('T', ' ').replace('Z', ' ').trim();
 				SimpleDateFormat inputformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				inputformat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				Date timestamp = inputformat.parse(timestampString, new ParsePosition(0));
@@ -112,7 +112,7 @@ public class SeProxyApplication implements ApplicationListener<ContextRefreshedE
 			}
 			catch (IOException e)
 			{
-				LOG.error("Could not load application.properties (for environmentInformation) {}", e.getMessage());
+				LOG.error("Fout bij laden van build-info.properties (voor environmentInfo)");
 			}
 		}
 		return environmentInfo;

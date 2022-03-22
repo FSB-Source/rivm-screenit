@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.dao;
 
 /*-
@@ -38,7 +37,6 @@ import nl.rivm.screenit.model.enums.Recht;
 
 public interface MedewerkerDao
 {
-
 	List<Gebruiker> searchMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen,
 		Map<OrganisatieType, List<Instelling>> hierarchieCriteria, List<Bevolkingsonderzoek> bevolkingsonderzoeken, int first, int count, String sortProperty, boolean ascending);
 
@@ -57,6 +55,6 @@ public interface MedewerkerDao
 
 	List<InstellingGebruikerRol> getInstellingGebruikersRollenMetRol(Rol rol, Date nu);
 
-	List<InstellingGebruiker> getActieveInstellingGebruikersVanInstellingMetRecht(Instelling instelling, Recht recht);
+	List<Gebruiker> getActieveGebruikersMetRecht(Recht recht);
 
 }

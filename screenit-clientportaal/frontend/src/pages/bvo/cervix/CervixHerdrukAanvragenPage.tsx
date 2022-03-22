@@ -27,32 +27,35 @@ import {saveNieuwHerdrukAanvraag} from "../../../api/HerdrukkenThunkAction"
 import {useThunkDispatch} from "../../../index"
 import {getString} from "../../../utils/TekstPropertyUtil"
 import {ArrowType} from "../../../components/vectors/ArrowIconComponent"
-import {navigateAndShowToast} from "../../../utils/NavigationUtil"
 import properties from "./CervixHerdrukAanvragenPage.json"
 import SubmitButton from "../../../components/input/SubmitButton"
+import {useNavigate} from "react-router-dom"
+import {showToast} from "../../../utils/ToastUtil"
 
 const CervixHerdrukAanvragenPage = () => {
-    const dispatch = useThunkDispatch()
+	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 
-    return (
-        <ActieBasePage
-            bvoName={BevolkingsonderzoekNaam[Bevolkingsonderzoek.CERVIX]}
-            title={getString(properties.title)}
-            description={getString(properties.description)}>
+	return (
+		<ActieBasePage
+			bvoName={BevolkingsonderzoekNaam[Bevolkingsonderzoek.CERVIX]}
+			title={getString(properties.title)}
+			description={getString(properties.description)}>
 
-            <SubmitButton
-                className={classNames(bvoStyle.baseBackgroundColor)}
-                label={getString(properties.button)}
-                displayArrow={ArrowType.ARROW_RIGHT}
-                onClick={() => {
-                    dispatch(saveNieuwHerdrukAanvraag())
-                        .then(() => {
-                            navigateAndShowToast("/cervix", getString(properties.toast.title), getString(properties.toast.description))
-                        })
-                }}/>
+			<SubmitButton
+				className={classNames(bvoStyle.baseBackgroundColor)}
+				label={getString(properties.button)}
+				displayArrow={ArrowType.ARROW_RIGHT}
+				onClick={() => {
+					dispatch(saveNieuwHerdrukAanvraag())
+						.then(() => {
+							showToast(getString(properties.toast.title), getString(properties.toast.description))
+							navigate("/cervix")
+						})
+				}}/>
 
-        </ActieBasePage>
-    )
+		</ActieBasePage>
+	)
 
 }
 

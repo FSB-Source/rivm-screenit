@@ -75,8 +75,8 @@ public class LocatieServiceImpl implements LocatieService
 	@Override
 	public List<LocatieDto> getAllLocatiesFromHuisartsInDto(Huisarts huisarts)
 	{
-		List<LocatieDto> locatieDtos = new ArrayList<LocatieDto>();
-		List<Locatie> locaties = locatieRepository.findByHuisarts(huisarts);
+		var locatieDtos = new ArrayList<LocatieDto>();
+		var locaties = locatieRepository.findByHuisarts(huisarts);
 		if (!CollectionUtils.isEmpty(locaties))
 		{
 			locaties.forEach(locatie -> {

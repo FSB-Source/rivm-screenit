@@ -53,6 +53,7 @@ import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonAfmeldService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -246,7 +247,7 @@ public class ColonAfmeldServiceImpl implements ColonAfmeldService
 
 			if (herAanTeMeldenAfmelding.getHeraanmeldingAfspraakBriefTegenhouden())
 			{
-				brief.setTegenhouden(true);
+				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 			}
 			brief.setIntakeAfspraak(afspraak);
 			hibernateService.saveOrUpdate(brief);

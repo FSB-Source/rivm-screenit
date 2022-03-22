@@ -35,6 +35,8 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dao.InstellingDao;
@@ -62,10 +64,10 @@ import nl.rivm.screenit.model.colon.planning.TypeAfspraak;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseConceptPlanningsApplicatie;
 import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -80,8 +82,6 @@ import nl.topicuszorg.wicket.planning.model.schedule.ScheduleSet;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Criteria;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -89,12 +89,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.util.StringUtil;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class InstellingServiceImpl implements InstellingService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(InstellingServiceImpl.class);
-
 	@Autowired
 	private InstellingDao instellingDao;
 
@@ -105,7 +104,7 @@ public class InstellingServiceImpl implements InstellingService
 	private CoordinatenDao coordinatenDao;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -369,7 +368,7 @@ public class InstellingServiceImpl implements InstellingService
 		List<UploadDocument> documents = instelling.getDocuments();
 		try
 		{
-			fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.INSTELLING_DOCUMENTEN, instelling.getId());
+			uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.INSTELLING_DOCUMENTEN, instelling.getId());
 			documents.add(uploadDocument);
 			instelling.setDocuments(documents);
 			hibernateService.saveOrUpdate(instelling);
@@ -385,7 +384,7 @@ public class InstellingServiceImpl implements InstellingService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void deleteDocumentForInstelling(UploadDocument document, Instelling instelling)
 	{
-		fileService.deleteDocumentFromList(document, instelling.getDocuments());
+		uploadDocumentService.deleteDocumentFromList(document, instelling.getDocuments());
 
 	}
 

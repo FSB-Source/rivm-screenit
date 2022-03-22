@@ -30,26 +30,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
 public enum PlanningDoorrekenenManager
 {
 	;
 
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningDoorrekenenManager.class);
+	private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(0, 100, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
-	private static ThreadPoolExecutor executor = new ThreadPoolExecutor(0, 100, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+	private static final AtomicBoolean exceptionOccured = new AtomicBoolean();
 
 	private static CyclicBarrier barrier;
 
 	private static CountDownLatch countDownLatch;
-
-	private static AtomicBoolean exceptionOccured = new AtomicBoolean();
 
 	public static void run()
 	{
@@ -58,11 +56,11 @@ public enum PlanningDoorrekenenManager
 		try
 		{
 			exceptionOccured.set(false);
-			PlanningWijzigingen.getClientSet().forEach(client -> PlanningDoorrekenen.run(client));
-			PlanningWijzigingen.getPostcodeReeksRegioSet().forEach(postcodeRegio -> PlanningDoorrekenen.run(postcodeRegio));
-			PlanningWijzigingen.getPostcodeReeksSet().forEach(postcodeReeks -> PlanningDoorrekenen.run(postcodeReeks));
-			PlanningWijzigingen.getTehuisSet().forEach(tehuis -> PlanningDoorrekenen.run(tehuis));
-			PlanningWijzigingen.getStandplaatsSet().parallelStream().forEach(standplaats -> PlanningDoorrekenen.run(standplaats));
+			PlanningWijzigingen.getClientSet().forEach(PlanningDoorrekenen::run);
+			PlanningWijzigingen.getPostcodeReeksRegioSet().forEach(PlanningDoorrekenen::run);
+			PlanningWijzigingen.getPostcodeReeksSet().forEach(PlanningDoorrekenen::run);
+			PlanningWijzigingen.getTehuisSet().forEach(PlanningDoorrekenen::run);
+			PlanningWijzigingen.getStandplaatsSet().parallelStream().forEach(PlanningDoorrekenen::run);
 
 			Collection<PlanningWijzigingenRoute> wijzigingenRoutes = PlanningWijzigingen.getWijzigingenRoutes();
 			if (!wijzigingenRoutes.isEmpty())
@@ -71,7 +69,7 @@ public enum PlanningDoorrekenenManager
 				barrier = new CyclicBarrier(wijzigingenRoutes.size());
 				countDownLatch = new CountDownLatch(wijzigingenRoutes.size());
 
-				wijzigingenRoutes.forEach(wijzigingenRoute -> run(wijzigingenRoute));
+				wijzigingenRoutes.forEach(PlanningDoorrekenenManager::run);
 
 				if (!countDownLatch.await(10, TimeUnit.SECONDS))
 				{
@@ -107,9 +105,9 @@ public enum PlanningDoorrekenenManager
 
 				barrier.await(10, TimeUnit.SECONDS);
 
-				wijzigingenRoute.getBlokSet().forEach(blok -> PlanningDoorrekenenRoute.run(blok));
-				wijzigingenRoute.getDagSet().forEach(dag -> PlanningDoorrekenenRoute.run(dag));
-				wijzigingenRoute.getWeekSet().forEach(week -> PlanningDoorrekenenRoute.run(week));
+				wijzigingenRoute.getBlokSet().forEach(PlanningDoorrekenenRoute::run);
+				wijzigingenRoute.getDagSet().forEach(PlanningDoorrekenenRoute::run);
+				wijzigingenRoute.getWeekSet().forEach(PlanningDoorrekenenRoute::run);
 
 				PlanningStandplaatsPeriode vanafStandplaatsPeriode = wijzigingenRoute.getVanafStandplaatsPeriode();
 				if (vanafStandplaatsPeriode != null)
@@ -125,7 +123,7 @@ public enum PlanningDoorrekenenManager
 					screeningsEenheid.getStandplaatsPeriodeNavigableSet().tailSet(vanafStandplaatsPeriode, true).stream()
 						.filter(standplaatsPeriode -> !standplaatsPeriode.gesplitst())
 						.map(PlanningStandplaatsPeriode::getStandplaatsRonde)
-						.forEach(standplaatsRonde -> PlanningDoorrekenenRoute.run(standplaatsRonde));
+						.forEach(PlanningDoorrekenenRoute::run);
 				}
 
 				barrier.await(10, TimeUnit.SECONDS);

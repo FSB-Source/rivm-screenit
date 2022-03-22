@@ -52,8 +52,6 @@ import {concatWithSpace} from "../../../../utils/StringUtil"
 import {HuisartsBevestigingsPopup, HuisartsBevestigingsPopupType} from "./HuisartsBevestigingsPopup"
 import {REGEX_POSTCODE_SEARCH} from "../../../../validators/AdresValidator"
 import ScreenitTextfield from "../../../../components/input/ScreenitTextfield"
-import {navigateAndShowToast} from "../../../../utils/NavigationUtil"
-import {navigate} from "../../../../routes/routes"
 import {FormErrorComponent} from "../../../../components/form_error/FormErrorComponent"
 import BigUrlButton from "../../../../components/bigUrlButton/BigUrlButton"
 import AdvancedSearchLinkComponent from "../../../../components/form/AdvancedSearchLinkComponent"
@@ -62,13 +60,15 @@ import SubmitForm from "../../../../components/form/SubmitForm"
 import {FormControl, FormControlLabel, Radio} from "@material-ui/core"
 import {RadioGroup} from "formik-material-ui"
 import SearchForm from "../../../../components/form/SearchForm"
+import {useNavigate} from "react-router-dom"
+import {showToast} from "../../../../utils/ToastUtil"
 
 const HuisartsPage = () => {
-
 	const dispatch = useThunkDispatch()
 	const bvo = useSelectedBvo()
 	const regio = useRegio()
 	const properties = require("./HuisartsPage.json")
+	const navigate = useNavigate()
 
 	const [gekozenHuisarts, setGekozenHuisarts] = useState<Huisarts | undefined>(undefined)
 	const [wiltHuisartsVerwijderen, setWiltHuisartsVerwijderen] = useState<boolean>(false)
@@ -159,10 +159,10 @@ const HuisartsPage = () => {
 	function bevestigHuisartsActieKeuze(keuze: HuisartsActieKeuze) {
 		switch (keuze) {
 			case HuisartsActieKeuze.BEVESTIGEN: {
-				dispatch(bevestigVorige(vorigeHuisarts, mammaVorigeGeenHuisartsOptie, bvo)).then(
-					() => {
-						navigateAndShowToast(getBvoBaseUrl(bvo), getString(properties.gedeeld.toasts.opgeslagen.title), getString(properties.gedeeld.toasts.opgeslagen.description))
-					})
+				dispatch(bevestigVorige(vorigeHuisarts, mammaVorigeGeenHuisartsOptie, bvo)).then(() => {
+					showToast(getString(properties.gedeeld.toasts.opgeslagen.title), getString(properties.gedeeld.toasts.opgeslagen.description))
+					navigate(getBvoBaseUrl(bvo))
+				})
 				break
 			}
 			case HuisartsActieKeuze.ZOEKEN: {
@@ -233,7 +233,6 @@ const HuisartsPage = () => {
 							</FormControl>
 						</SubmitForm>)}
 					</Formik>
-
 				</ActieBasePage>
 			)
 		} else {
@@ -256,10 +255,7 @@ const HuisartsPage = () => {
 				blobAdresLocatie={huidigeHuisarts && getString(properties.gedeeld.blob.locatie, huidigeHuisarts && [huidigeHuisarts.praktijknaam, concatWithSpace(huidigeHuisarts.adres.straat, huidigeHuisarts.adres.huisnummer), concatWithSpace(huidigeHuisarts.adres.postcode, huidigeHuisarts.adres.plaats)])}
 				onBlobLinkClick={() => {
 					if (!magHuisartsOntkoppelen) {
-						dispatch(createShowToastAction({
-							title: getString(properties.gedeeld.toasts.geen.title),
-							description: getString(properties.gedeeld.toasts.geen.description),
-						}))
+						showToast(getString(properties.gedeeld.toasts.geen.title), getString(properties.gedeeld.toasts.geen.description))
 					} else if (huidigeHuisarts || mammaHuidigeGeenHuisartsOptie) {
 						setWiltHuisartsVerwijderen(true)
 					}
@@ -354,7 +350,8 @@ const HuisartsPage = () => {
 							huisarts={gekozenHuisarts}
 							type={HuisartsBevestigingsPopupType.BEVESTIGEN}
 							onSuccess={() => {
-								navigateAndShowToast(getBvoBaseUrl(bvo), getString(properties.gedeeld.toasts.opgeslagen.title), getString(properties.gedeeld.toasts.opgeslagen.description))
+								showToast(getString(properties.gedeeld.toasts.opgeslagen.title), getString(properties.gedeeld.toasts.opgeslagen.description))
+								navigate(getBvoBaseUrl(bvo))
 							}}
 							onClose={() => setGekozenHuisarts(undefined)}
 						/>)
@@ -364,7 +361,8 @@ const HuisartsPage = () => {
 							geenHuisartsOpie={mammaHuidigeGeenHuisartsOptie ? properties[mammaHuidigeGeenHuisartsOptie] : undefined}
 							type={HuisartsBevestigingsPopupType.VERWIJDEREN}
 							onSuccess={() => {
-								navigateAndShowToast(getBvoBaseUrl(bvo), getString(properties.gedeeld.toasts.geen.title), getString(properties.gedeeld.toasts.geen.description))
+								showToast(getString(properties.gedeeld.toasts.geen.title), getString(properties.gedeeld.toasts.geen.description))
+								navigate(getBvoBaseUrl(bvo))
 							}}
 							onClose={() => setWiltHuisartsVerwijderen(false)}
 						/>)

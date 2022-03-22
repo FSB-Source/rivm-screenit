@@ -65,6 +65,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
@@ -254,8 +255,7 @@ public class AfspraakServiceImpl implements AfspraakService
 			if (!client.getPersoon().getGbaAdres().getGbaGemeente().getCode().equals(Gemeente.RNI_CODE))
 			{
 				ColonBrief colonBrief = briefService.maakBvoBrief(screeningRonde, BriefType.COLON_INTAKE_AFMELDING, DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
-				colonBrief.setTegenhouden(briefTegenhouden);
-				hibernateService.saveOrUpdate(colonBrief);
+				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(colonBrief, briefTegenhouden));
 
 				MailMergeContext context = new MailMergeContext();
 				context.setClient(client);
@@ -368,7 +368,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		brief.setIntakeAfspraak(nieuweAfspraak);
 		if (briefTegenhouden)
 		{
-			brief.setTegenhouden(true);
+			hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 		}
 		hibernateService.saveOrUpdate(brief);
 
@@ -524,7 +524,7 @@ public class AfspraakServiceImpl implements AfspraakService
 		}
 		if (briefTegenhouden)
 		{
-			brief.setTegenhouden(true);
+			hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 		}
 		hibernateService.saveOrUpdate(brief);
 

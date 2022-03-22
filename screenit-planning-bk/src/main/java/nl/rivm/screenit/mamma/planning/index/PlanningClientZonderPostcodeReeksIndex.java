@@ -50,12 +50,7 @@ public enum PlanningClientZonderPostcodeReeksIndex
 
 	public static void putClient(PlanningClient client)
 	{
-		Set<PlanningClient> clienten = clientNavigableMap.get(client.getPostcode());
-		if (clienten == null)
-		{
-			clienten = new HashSet<>();
-			clientNavigableMap.put(client.getPostcode(), clienten);
-		}
+		Set<PlanningClient> clienten = clientNavigableMap.computeIfAbsent(client.getPostcode(), k -> new HashSet<>());
 		clienten.add(client);
 
 		uncoveredPostcodesPerSoMap.get(client.getScreeningsOrganisatie()).add(client.getPostcode());

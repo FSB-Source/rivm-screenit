@@ -74,6 +74,7 @@ import nl.rivm.screenit.service.BaseClientGebeurtenisService;
 import nl.rivm.screenit.service.BaseDossierAuditService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.BezwaarUtil;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
 
@@ -132,15 +133,12 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 				}
 
 				ColonConclusie conclusie = afspraak.getConclusie();
-				if (conclusie != null)
+				if (conclusie != null && ColonConclusieType.NO_SHOW.equals(conclusie.getType()))
 				{
-					if (ColonConclusieType.NO_SHOW.equals(conclusie.getType()))
-					{
-						gebeurtenis = new ClientGebeurtenis();
-						gebeurtenis.setDatum(conclusie.getDatum());
-						gebeurtenis.setType(ClientGebeurtenisType.INTAKE_AFSPRAAK_NO_SHOW);
-						gebeurtenissen.add(gebeurtenis);
-					}
+					gebeurtenis = new ClientGebeurtenis();
+					gebeurtenis.setDatum(conclusie.getDatum());
+					gebeurtenis.setType(ClientGebeurtenisType.INTAKE_AFSPRAAK_NO_SHOW);
+					gebeurtenissen.add(gebeurtenis);
 				}
 			}
 			for (ColonUitnodiging colonUitnodiging : colonScreeningRonde.getUitnodigingen())
@@ -187,9 +185,9 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 
 					ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
 					gebeurtenis.setType(ClientGebeurtenisType.UITSLAG_GECOMMUNICEERD);
-					if (brief.isGegenereerd())
+					MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
+					if (BriefUtil.isGegenereerd(brief) && mergedBrieven != null)
 					{
-						MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
 						if (mergedBrieven.getPrintDatum() != null)
 						{
 							gebeurtenis.setDatum(mergedBrieven.getPrintDatum());
@@ -283,13 +281,16 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 
 	private void uitslagClientGebeurtenissen(List<ClientGebeurtenis> gebeurtenissen, CervixMonster monster)
 	{
-		if (monster != null && monster.getBrief() != null && monster.getBrief().isGegenereerd() && monster.getBrief().getMergedBrieven() != null
-			&& Boolean.TRUE.equals(monster.getBrief().getMergedBrieven().getGeprint()))
+		if (monster != null && BriefUtil.isGegenereerd(monster.getBrief()))
 		{
-			ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
-			gebeurtenis.setDatum(monster.getBrief().getMergedBrieven().getPrintDatum());
-			gebeurtenis.setType(ClientGebeurtenisType.CERVIX_UITSLAG_GECOMMUNICEERD);
-			gebeurtenissen.add(gebeurtenis);
+			MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(monster.getBrief());
+			if (mergedBrieven != null && Boolean.TRUE.equals(mergedBrieven.getGeprint()))
+			{
+				ClientGebeurtenis gebeurtenis = new ClientGebeurtenis();
+				gebeurtenis.setDatum(mergedBrieven.getPrintDatum());
+				gebeurtenis.setType(ClientGebeurtenisType.CERVIX_UITSLAG_GECOMMUNICEERD);
+				gebeurtenissen.add(gebeurtenis);
+			}
 		}
 	}
 
@@ -375,7 +376,7 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 	{
 		for (MammaBrief brief : screeningRonde.getBrieven())
 		{
-			if (brief.isGegenereerd())
+			if (BriefUtil.isGegenereerd(brief))
 			{
 				BriefType briefType = brief.getBriefType();
 				ClientGebeurtenisType gebeurtenisType = null;
@@ -390,7 +391,7 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 
 				if (gebeurtenisType != null)
 				{
-					MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
+					MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
 					Date printDatum = null;
 					if (mergedBrieven != null)
 					{
@@ -528,13 +529,10 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 		for (ColonIntakeAfspraak afspraak : afspraken)
 		{
 			long afstandTussenIds = afspraak.getId() - verplaatstAfspraak.getId();
-			if (afstandTussenIds > 0L)
+			if (afstandTussenIds > 0L && (maxIdAfstand == null || maxIdAfstand > afstandTussenIds))
 			{
-				if (maxIdAfstand == null || maxIdAfstand > afstandTussenIds)
-				{
-					verplaatsDatum = DateUtil.minusTijdseenheid(afspraak.getDatumLaatsteWijziging(), 150, ChronoUnit.MILLIS);
-					maxIdAfstand = afstandTussenIds;
-				}
+				verplaatsDatum = DateUtil.minusTijdseenheid(afspraak.getDatumLaatsteWijziging(), 150, ChronoUnit.MILLIS);
+				maxIdAfstand = afstandTussenIds;
 			}
 		}
 		return verplaatsDatum;
@@ -548,13 +546,10 @@ public class BaseClientGebeurtenisServiceImpl implements BaseClientGebeurtenisSe
 		for (MammaAfspraak afspraak : afspraken)
 		{
 			long afstandTussenDatums = afspraak.getCreatiedatum().getTime() - verplaatstAfspraak.getCreatiedatum().getTime();
-			if (afstandTussenDatums > 0L)
+			if (afstandTussenDatums > 0L && (huidigeCreatiedatumVerschil == null || huidigeCreatiedatumVerschil > afstandTussenDatums))
 			{
-				if (huidigeCreatiedatumVerschil == null || huidigeCreatiedatumVerschil > afstandTussenDatums)
-				{
-					verplaatsDatum = DateUtil.minusTijdseenheid(afspraak.getCreatiedatum(), 150, ChronoUnit.MILLIS);
-					huidigeCreatiedatumVerschil = afstandTussenDatums;
-				}
+				verplaatsDatum = DateUtil.minusTijdseenheid(afspraak.getCreatiedatum(), 150, ChronoUnit.MILLIS);
+				huidigeCreatiedatumVerschil = afstandTussenDatums;
 			}
 		}
 		return verplaatsDatum;

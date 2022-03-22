@@ -23,79 +23,20 @@ package nl.rivm.screenit.dto.mamma;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.mamma.enums.MammaKwaliteitsopnameType;
 
+@Getter
+@Setter
 public class MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto extends MammaAbstractHL7v24OrmBerichtTriggerDto implements Serializable
 {
 	private MammaKwaliteitsopnameType type;
-
-	private String seCode;
 
 	private String reden;
 
 	private String patientID;
 
-	private String accessionNumber;
-
 	private String onderzoekscode;
-
-	public MammaKwaliteitsopnameType getType()
-	{
-		return type;
-	}
-
-	public void setType(MammaKwaliteitsopnameType type)
-	{
-		this.type = type;
-	}
-
-	public String getSeCode()
-	{
-		return seCode;
-	}
-
-	public void setSeCode(String seCode)
-	{
-		this.seCode = seCode;
-	}
-
-	public String getReden()
-	{
-		return reden;
-	}
-
-	public void setReden(String reden)
-	{
-		this.reden = reden;
-	}
-
-	public String getPatientID()
-	{
-		return patientID;
-	}
-
-	public void setPatientID(String patientID)
-	{
-		this.patientID = patientID;
-	}
-
-	public String getAccessionNumber()
-	{
-		return accessionNumber;
-	}
-
-	public void setAccessionNumber(String accessionNumber)
-	{
-		this.accessionNumber = accessionNumber;
-	}
-
-	public String getOnderzoekscode()
-	{
-		return onderzoekscode;
-	}
-
-	public void setOnderzoekscode(String onderzoekscode)
-	{
-		this.onderzoekscode = onderzoekscode;
-	}
 }

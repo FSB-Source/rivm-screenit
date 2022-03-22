@@ -23,9 +23,14 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 
 import javax.validation.constraints.NotEmpty;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
+@Getter
+@Setter
 public class WachtwoordWijzigenDto
 {
 
@@ -37,33 +42,4 @@ public class WachtwoordWijzigenDto
 	@NotEmpty(message = "Wachtwoord controle is verplicht.")
 	private String nieuweWachtwoordControle;
 
-	public String getOudeWachtwoord()
-	{
-		return oudeWachtwoord;
-	}
-
-	public void setOudeWachtwoord(String oudeWachtwoord)
-	{
-		this.oudeWachtwoord = oudeWachtwoord;
-	}
-
-	public String getNieuweWachtwoord()
-	{
-		return nieuweWachtwoord;
-	}
-
-	public void setNieuweWachtwoord(String nieuweWachtwoord)
-	{
-		this.nieuweWachtwoord = nieuweWachtwoord;
-	}
-
-	public String getNieuweWachtwoordControle()
-	{
-		return nieuweWachtwoordControle;
-	}
-
-	public void setNieuweWachtwoordControle(String nieuweWachtwoordControle)
-	{
-		this.nieuweWachtwoordControle = nieuweWachtwoordControle;
-	}
 }

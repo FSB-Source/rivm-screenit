@@ -47,7 +47,6 @@ import org.springframework.core.annotation.Order;
 		"classpath:applicationContext-wicket-planning.xml",
 		"classpath:applicationContext-factories.xml",
 		"classpath:applicationContext-edi.xml",
-		"classpath:applicationContext-documentupload.xml",
 		"classpath:applicationContext-wicket-password.xml",
 		"classpath:applicationContext-csv2xls.xml",
 	})

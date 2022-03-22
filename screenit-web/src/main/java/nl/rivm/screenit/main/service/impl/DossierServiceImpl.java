@@ -150,6 +150,7 @@ import nl.rivm.screenit.model.project.ScannedVragenlijst;
 import nl.rivm.screenit.service.BaseDossierAuditService;
 import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
@@ -1607,7 +1608,8 @@ public class DossierServiceImpl implements DossierService
 			}
 
 			BriefType briefType = brief.getBriefType();
-			if ((!BriefType.COLON_VOORAANKONDIGING.equals(briefType) || brief.getHerdruk() != null)
+			ClientBrief herdruk = BriefUtil.getHerdruk(brief);
+			if ((!BriefType.COLON_VOORAANKONDIGING.equals(briefType) || herdruk != null)
 				&& !BriefType.COLON_UITNODIGING.equals(briefType)
 				&& !BriefType.CERVIX_ZAS_UITNODIGING.equals(briefType)
 				&& !BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR.equals(briefType))
@@ -1620,7 +1622,7 @@ public class DossierServiceImpl implements DossierService
 					screeningRondeGebeurtenis.setBrief(brief);
 					screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
 					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
-					if (brief.getHerdruk() != null)
+					if (herdruk != null)
 					{
 						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.BRIEF_HERDRUK);
 					}
@@ -1672,7 +1674,7 @@ public class DossierServiceImpl implements DossierService
 					{
 						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, projectBrief, TypeGebeurtenis.PROJECT_BRIEF_HERDRUK);
 					}
-					else if (brief.getHerdruk() != null)
+					else if (herdruk != null)
 					{
 						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.PROJECT_BRIEF_HERDRUK);
 					}
@@ -1716,13 +1718,18 @@ public class DossierServiceImpl implements DossierService
 		TypeGebeurtenis typeGebeurtenis)
 	{
 		Date datum = brief.getCreatieDatum();
-		if (brief.getMergedBrieven() != null && !brief.getMergedBrieven().getGeprint())
+
+		MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
+		if (mergedBrieven != null)
 		{
-			datum = brief.getMergedBrieven().getCreatieDatum();
-		}
-		else if (brief.getMergedBrieven() != null && brief.getMergedBrieven().getGeprint())
-		{
-			datum = brief.getMergedBrieven().getPrintDatum();
+			if (Boolean.TRUE.equals(mergedBrieven.getGeprint()))
+			{
+				datum = mergedBrieven.getPrintDatum();
+			}
+			else
+			{
+				datum = mergedBrieven.getCreatieDatum();
+			}
 		}
 		screeningRondeGebeurtenis.setDatum(datum);
 		screeningRondeGebeurtenis.setGebeurtenis(typeGebeurtenis);
@@ -1787,15 +1794,11 @@ public class DossierServiceImpl implements DossierService
 	private List<String> getExtraOmschrijvingenVoorHerdrukBrief(ClientBrief brief)
 	{
 		List<String> extraOmschrijvingen = new ArrayList<>();
-		ClientBrief oudeBrief = brief.getHerdruk();
-		if (brief.getProjectBrief() != null)
-		{
-			brief = brief.getProjectBrief();
-		}
+		ClientBrief oudeBrief = BriefUtil.getHerdruk(brief);
 
-		if (brief.isGegenereerd())
+		if (BriefUtil.isGegenereerd(brief))
 		{
-			MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
+			MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
 			if (mergedBrieven == null || mergedBrieven.getPrintDatum() != null)
 			{
 				extraOmschrijvingen.add("Afgedrukt");
@@ -1809,7 +1812,7 @@ public class DossierServiceImpl implements DossierService
 		{
 			extraOmschrijvingen.add("Vervangen");
 		}
-		else if (brief.isTegenhouden())
+		else if (BriefUtil.isTegengehouden(brief))
 		{
 			extraOmschrijvingen.add("Tegengehouden");
 		}
@@ -1820,12 +1823,13 @@ public class DossierServiceImpl implements DossierService
 
 		extraOmschrijvingen.add(EnumStringUtil.getPropertyString(brief.getBriefType()));
 
-		if (oudeBrief.getMergedBrieven() != null)
+		MergedBrieven mergedBrieven = BriefUtil.getMergedBrieven(oudeBrief);
+		if (mergedBrieven != null)
 		{
-			Date correcteDatum = oudeBrief.getMergedBrieven().getPrintDatum();
+			Date correcteDatum = mergedBrieven.getPrintDatum();
 			if (correcteDatum == null)
 			{
-				correcteDatum = oudeBrief.getMergedBrieven().getCreatieDatum();
+				correcteDatum = mergedBrieven.getCreatieDatum();
 			}
 			SimpleDateFormat simpleDateFormat = Constants.getDateTimeSecondsFormat();
 			extraOmschrijvingen.add("Herdruk van de brief die is verstuurd op: " + simpleDateFormat.format(correcteDatum));

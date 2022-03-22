@@ -21,8 +21,6 @@ package nl.rivm.screenit.mamma.se.proxy.dicom.worklist;
  * =========================LICENSE_END==================================
  */
 
-import static org.dcm4che3.data.Tag.PatientName;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
@@ -39,6 +37,8 @@ import org.dcm4che3.data.PersonName;
 import org.dcm4che3.data.Sequence;
 import org.dcm4che3.data.Tag;
 import org.dcm4che3.data.VR;
+
+import static org.dcm4che3.data.Tag.PatientName;
 
 class MammograafWorklistItemBuilder
 {
@@ -192,6 +192,8 @@ class MammograafWorklistItemBuilder
 			return "F";
 		case "M":
 			return "M";
+		case "O":
+			return "O";
 		default:
 			return null;
 		}

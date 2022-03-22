@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,6 +40,10 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.verslag.CervixVerslag;
@@ -48,10 +53,16 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Getter
+@Setter
 @Entity
-@Table(schema = "cervix", name = "screening_ronde", indexes = { @Index(name = "idx_CERVIX_SCREENING_RONDE_STATUS", columnList = "status"),
-	@Index(name = "idx_CERVIX_SCREENING_RONDE_LEEFTIJDCATEGORIE", columnList = "leeftijdcategorie"),
-	@Index(name = "idx_CERVIX_SCREENING_RONDE_IN_VERVOLGONDERZOEK_DATUM", columnList = "inVervolgonderzoekDatum") }, uniqueConstraints = {
+@Table(
+	schema = "cervix",
+	name = "screening_ronde",
+	indexes = { @Index(name = "idx_CERVIX_SCREENING_RONDE_STATUS", columnList = "status"),
+		@Index(name = "idx_CERVIX_SCREENING_RONDE_LEEFTIJDCATEGORIE", columnList = "leeftijdcategorie"),
+		@Index(name = "idx_CERVIX_SCREENING_RONDE_IN_VERVOLGONDERZOEK_DATUM", columnList = "inVervolgonderzoekDatum") },
+	uniqueConstraints = {
 		@UniqueConstraint(columnNames = "laatste_afmelding"), @UniqueConstraint(columnNames = "laatste_brief"), @UniqueConstraint(columnNames = "laatste_uitnodiging"),
 		@UniqueConstraint(columnNames = "uitnodiging_vervolgonderzoek"), @UniqueConstraint(columnNames = "uitstel"), @UniqueConstraint(columnNames = "monster_hpv_uitslag"),
 		@UniqueConstraint(columnNames = "uitstrijkje_cytologie_uitslag"), @UniqueConstraint(columnNames = "uitstrijkje_vervolgonderzoek_uitslag") })
@@ -122,197 +133,7 @@ public class CervixScreeningRonde extends ScreeningRonde<CervixDossier, CervixBr
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	private List<CervixVerslag> verslagen = new ArrayList<>();
 
-	@Override
-	public CervixDossier getDossier()
-	{
-		return dossier;
-	}
+	@Column(nullable = true)
+	private LocalDate controleUitstrijkjeDatum;
 
-	@Override
-	public void setDossier(CervixDossier dossier)
-	{
-		this.dossier = dossier;
-	}
-
-	@Override
-	public List<CervixUitnodiging> getUitnodigingen()
-	{
-		return uitnodigingen;
-	}
-
-	@Override
-	public void setUitnodigingen(List<CervixUitnodiging> uitnodigingen)
-	{
-		this.uitnodigingen = uitnodigingen;
-	}
-
-	@Override
-	public CervixUitnodiging getLaatsteUitnodiging()
-	{
-		return laatsteUitnodiging;
-	}
-
-	@Override
-	public void setLaatsteUitnodiging(CervixUitnodiging laatsteUitnodiging)
-	{
-		this.laatsteUitnodiging = laatsteUitnodiging;
-	}
-
-	@Override
-	public List<CervixBrief> getBrieven()
-	{
-		return brieven;
-	}
-
-	@Override
-	public void setBrieven(List<CervixBrief> brieven)
-	{
-		this.brieven = brieven;
-	}
-
-	@Override
-	public CervixBrief getLaatsteBrief()
-	{
-		return laatsteBrief;
-	}
-
-	@Override
-	public void setLaatsteBrief(CervixBrief laatsteBrief)
-	{
-		this.laatsteBrief = laatsteBrief;
-	}
-
-	public List<CervixHuisartsBericht> getHuisartsBerichten()
-	{
-		return huisartsBerichten;
-	}
-
-	public void setHuisartsBerichten(List<CervixHuisartsBericht> huisartsBerichten)
-	{
-		this.huisartsBerichten = huisartsBerichten;
-	}
-
-	@Override
-	public List<CervixAfmelding> getAfmeldingen()
-	{
-		return afmeldingen;
-	}
-
-	@Override
-	public void setAfmeldingen(List<CervixAfmelding> afmeldingen)
-	{
-		this.afmeldingen = afmeldingen;
-	}
-
-	@Override
-	public CervixAfmelding getLaatsteAfmelding()
-	{
-		return laatsteAfmelding;
-	}
-
-	@Override
-	public void setLaatsteAfmelding(CervixAfmelding laatsteAfmelding)
-	{
-		this.laatsteAfmelding = laatsteAfmelding;
-	}
-
-	public CervixUitstel getUitstel()
-	{
-		return uitstel;
-	}
-
-	public void setUitstel(CervixUitstel uitstel)
-	{
-		this.uitstel = uitstel;
-	}
-
-	public CervixMonster getMonsterHpvUitslag()
-	{
-		return monsterHpvUitslag;
-	}
-
-	public void setMonsterHpvUitslag(CervixMonster monsterHpvUitslag)
-	{
-		this.monsterHpvUitslag = monsterHpvUitslag;
-	}
-
-	public CervixUitstrijkje getUitstrijkjeCytologieUitslag()
-	{
-		return uitstrijkjeCytologieUitslag;
-	}
-
-	public Date getInVervolgonderzoekDatum()
-	{
-		return inVervolgonderzoekDatum;
-	}
-
-	public void setInVervolgonderzoekDatum(Date inVervolgonderzoekDatum)
-	{
-		this.inVervolgonderzoekDatum = inVervolgonderzoekDatum;
-	}
-
-	public void setUitstrijkjeCytologieUitslag(CervixUitstrijkje uitstrijkjeCytologieUitslag)
-	{
-		this.uitstrijkjeCytologieUitslag = uitstrijkjeCytologieUitslag;
-	}
-
-	public CervixUitstrijkje getUitstrijkjeVervolgonderzoekUitslag()
-	{
-		return uitstrijkjeVervolgonderzoekUitslag;
-	}
-
-	public void setUitstrijkjeVervolgonderzoekUitslag(CervixUitstrijkje uitstrijkjeVervolgonderzoekUitslag)
-	{
-		this.uitstrijkjeVervolgonderzoekUitslag = uitstrijkjeVervolgonderzoekUitslag;
-	}
-
-	public List<CervixVerslag> getVerslagen()
-	{
-		return verslagen;
-	}
-
-	public void setVerslagen(List<CervixVerslag> verslagen)
-	{
-		this.verslagen = verslagen;
-	}
-
-	public CervixUitnodiging getUitnodigingVervolgonderzoek()
-	{
-		return uitnodigingVervolgonderzoek;
-	}
-
-	public void setUitnodigingVervolgonderzoek(CervixUitnodiging vervolgonderzoekUitnodiging)
-	{
-		this.uitnodigingVervolgonderzoek = vervolgonderzoekUitnodiging;
-	}
-
-	public CervixLeeftijdcategorie getLeeftijdcategorie()
-	{
-		return leeftijdcategorie;
-	}
-
-	public void setLeeftijdcategorie(CervixLeeftijdcategorie leeftijdcategorie)
-	{
-		this.leeftijdcategorie = leeftijdcategorie;
-	}
-
-	public CervixUitnodiging getLaatsteZasUitnodiging()
-	{
-		return laatsteZasUitnodiging;
-	}
-
-	public void setLaatsteZasUitnodiging(CervixUitnodiging laatsteZasUitnodiging)
-	{
-		this.laatsteZasUitnodiging = laatsteZasUitnodiging;
-	}
-
-	public CervixUitnodiging getEersteUitnodiging()
-	{
-		return eersteUitnodiging;
-	}
-
-	public void setEersteUitnodiging(CervixUitnodiging eersteUitnodiging)
-	{
-		this.eersteUitnodiging = eersteUitnodiging;
-	}
 }

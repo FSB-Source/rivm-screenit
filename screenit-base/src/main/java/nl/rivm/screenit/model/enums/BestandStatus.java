@@ -21,8 +21,11 @@ package nl.rivm.screenit.model.enums;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.model.INaam;
 
+@AllArgsConstructor
 public enum BestandStatus implements INaam
 {
 	NOG_TE_VERWERKEN("Nog te verwerken"),
@@ -35,14 +38,11 @@ public enum BestandStatus implements INaam
 
 	VERWIJDERD("Verwijderd"),
 
+	BEZIG_MET_VERWIJDEREN("Bezig met verwijderen"),
+
 	GEARCHIVEERD("Gearchiveerd");
 
-	private String naam;
-
-	private BestandStatus(String naam)
-	{
-		this.naam = naam;
-	}
+	private final String naam;
 
 	@Override
 	public String getNaam()

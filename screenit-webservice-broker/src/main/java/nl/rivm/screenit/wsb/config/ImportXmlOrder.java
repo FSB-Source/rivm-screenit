@@ -41,7 +41,6 @@ import org.springframework.core.annotation.Order;
 		"classpath:applicationContext-hibernate.xml",
 		"classpath:applicationContext-preference-module.xml",
 		"classpath:applicationContext-mailfrom.xml",
-		"classpath:applicationContext-documentupload.xml",
 		"classpath:applicationContext-edi.xml"
 	})
 public class ImportXmlOrder

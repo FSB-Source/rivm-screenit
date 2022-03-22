@@ -24,10 +24,10 @@ package nl.rivm.screenit.huisartsenportaal.controller;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.huisartsenportaal.dto.BuildDto;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.info.BuildProperties;
@@ -37,13 +37,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/v1")
+@Slf4j
 public class BuildController
 {
 
 	@Autowired
 	private BuildProperties buildProperties;
-
-	private static final Logger LOG = LoggerFactory.getLogger(BuildController.class);
 
 	@Value("${applicationEnvironment}")
 	private String applicationEnvironment;
@@ -65,14 +64,18 @@ public class BuildController
 		return ResponseEntity.ok(build);
 	}
 
-	private String getApplicationInstance() {
+	private String getApplicationInstance()
+	{
 		if (applicationInstance == null ||
-			applicationInstance.isEmpty()) {
-			try {
+			applicationInstance.isEmpty())
+		{
+			try
+			{
 				return InetAddress.getLocalHost().getHostName();
 			}
-			catch (UnknownHostException e) {
-				e.printStackTrace();
+			catch (UnknownHostException e)
+			{
+				LOG.error(e.getMessage(), e);
 			}
 		}
 		return applicationInstance;

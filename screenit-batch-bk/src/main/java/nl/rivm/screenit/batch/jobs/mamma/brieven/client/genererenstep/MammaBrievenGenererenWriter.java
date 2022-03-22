@@ -41,7 +41,7 @@ import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.be.verslag.MammaVerslagDocumentCreator;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
@@ -65,7 +65,7 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 	private AsposeService asposeService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Override
 	protected MammaMergedBrieven createConcreteMergedBrieven(Date aangemaaktOp)
@@ -154,7 +154,7 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 
 			if (standplaatsLocatieBijlage != null && standplaatsLocatieBijlage.getActief())
 			{
-				File bijlage = fileService.load(standplaatsLocatieBijlage);
+				File bijlage = uploadDocumentService.load(standplaatsLocatieBijlage);
 				byte[] bijlageBytes = FileUtils.readFileToByteArray(bijlage);
 				Document bijlageDocument = asposeService.processDocument(bijlageBytes, context);
 				chunkDocument.getLastSection().getHeadersFooters().linkToPrevious(false);

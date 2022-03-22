@@ -38,7 +38,6 @@ import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,8 +50,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/" + PlanningRestConstants.C_SCREENINGS_ORGANISATIE)
 public class PlanningScreeningsOrganisatieController
 {
-	@Autowired
-	private PlanningAfspraakDrempelOverzichtService afspraakDrempelOverzichtService;
+	private final PlanningAfspraakDrempelOverzichtService afspraakDrempelOverzichtService;
+
+	public PlanningScreeningsOrganisatieController(PlanningAfspraakDrempelOverzichtService afspraakDrempelOverzichtService)
+	{
+		this.afspraakDrempelOverzichtService = afspraakDrempelOverzichtService;
+	}
 
 	@RequestMapping(method = RequestMethod.PUT)
 	public void put(@RequestBody PlanningScreeningsOrganisatieDto screeningsOrganisatieDto)
@@ -113,7 +116,8 @@ public class PlanningScreeningsOrganisatieController
 
 	private void bepaalWijzigingen(PlanningScreeningsOrganisatie screeningsOrganisatie)
 	{
-		screeningsOrganisatie.getScreeningsEenheidSet().forEach(screeningsEenheid -> {
+		screeningsOrganisatie.getScreeningsEenheidSet().forEach(screeningsEenheid ->
+		{
 			NavigableSet<PlanningStandplaatsPeriode> standplaatsPeriodeNavigableSet = screeningsEenheid.getStandplaatsPeriodeNavigableSet();
 			if (!standplaatsPeriodeNavigableSet.isEmpty())
 			{

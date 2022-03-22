@@ -36,6 +36,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
@@ -50,10 +53,10 @@ import org.hibernate.envers.Audited;
 @Table(schema = "colon", indexes = { @Index(name = "IFOBTEST_STATUS", columnList = "status"), @Index(name = "idx_ifobttest_barcode", columnList = "barcode", unique = true) })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public class IFOBTTest extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@Enumerated(EnumType.STRING)
 	private IFOBTTestStatus status;
@@ -114,205 +117,4 @@ public class IFOBTTest extends AbstractHibernateObject
 	@Enumerated(EnumType.STRING)
 	private PreferenceKey heraanmeldenTekstKey;
 
-	public IFOBTTestStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(IFOBTTestStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public ColonScreeningRonde getColonScreeningRonde()
-	{
-		return colonScreeningRonde;
-	}
-
-	public void setColonScreeningRonde(ColonScreeningRonde colonScreeningRonde)
-	{
-		this.colonScreeningRonde = colonScreeningRonde;
-	}
-
-	public String getBarcode()
-	{
-		return barcode;
-	}
-
-	public void setBarcode(String barcode)
-	{
-		this.barcode = barcode;
-	}
-
-	public Date getDatumVerstuurd()
-	{
-		return datumVerstuurd;
-	}
-
-	public void setDatumVerstuurd(Date datumVerstuurd)
-	{
-		this.datumVerstuurd = datumVerstuurd;
-	}
-
-	public ColonUitnodiging getColonUitnodiging()
-	{
-		return colonUitnodiging;
-	}
-
-	public void setColonUitnodiging(ColonUitnodiging colonUitnodiging)
-	{
-		this.colonUitnodiging = colonUitnodiging;
-	}
-
-	public ColonUitnodiging getColonUitnodigingExtra()
-	{
-		return colonUitnodigingExtra;
-	}
-
-	public void setColonUitnodigingExtra(ColonUitnodiging colonUitnodigingExtra)
-	{
-		this.colonUitnodigingExtra = colonUitnodigingExtra;
-	}
-
-	@Deprecated
-	public Date getAfnameDatum()
-	{
-		return afnameDatum;
-	}
-
-	@Deprecated
-	public void setAfnameDatum(Date afnameDatum)
-	{
-		this.afnameDatum = afnameDatum;
-	}
-
-	public Date getAnalyseDatum()
-	{
-		return analyseDatum;
-	}
-
-	public void setAnalyseDatum(Date analyseDatum)
-	{
-		this.analyseDatum = analyseDatum;
-	}
-
-	public BigDecimal getUitslag()
-	{
-		return uitslag;
-	}
-
-	public void setUitslag(BigDecimal uitslag)
-	{
-		this.uitslag = uitslag;
-	}
-
-	public RedenNietTeBeoordelen getRedenNietTeBeoordelen()
-	{
-		return redenNietTeBeoordelen;
-	}
-
-	public void setRedenNietTeBeoordelen(RedenNietTeBeoordelen redenNietTeBeoordelen)
-	{
-		this.redenNietTeBeoordelen = redenNietTeBeoordelen;
-	}
-
-	public BigDecimal getNormWaarde()
-	{
-		return normWaarde;
-	}
-
-	public void setNormWaarde(BigDecimal normWaarde)
-	{
-		this.normWaarde = normWaarde;
-	}
-
-	public ColonGeinterpreteerdeUitslag getGeinterpreteerdeUitslag()
-	{
-		return geinterpreteerdeUitslag;
-	}
-
-	public void setGeinterpreteerdeUitslag(ColonGeinterpreteerdeUitslag geinterpreteerdeUitslag)
-	{
-		this.geinterpreteerdeUitslag = geinterpreteerdeUitslag;
-	}
-
-	public IFobtLaboratorium getIfobtLaboratorium()
-	{
-		return ifobtLaboratorium;
-	}
-
-	public void setIfobtLaboratorium(IFobtLaboratorium ifobtLaboratorium)
-	{
-		this.ifobtLaboratorium = ifobtLaboratorium;
-	}
-
-	public String getInstumentId()
-	{
-		return instumentId;
-	}
-
-	public void setInstumentId(String instumentId)
-	{
-		this.instumentId = instumentId;
-	}
-
-	public boolean isHerinnering()
-	{
-		return herinnering;
-	}
-
-	public void setHerinnering(boolean herinnering)
-	{
-		this.herinnering = herinnering;
-	}
-
-	public Date getVerwerkingsDatum()
-	{
-		return verwerkingsDatum;
-	}
-
-	public void setVerwerkingsDatum(Date verwerkingsDatum)
-	{
-		this.verwerkingsDatum = verwerkingsDatum;
-	}
-
-	public IFOBTType getType()
-	{
-		return type;
-	}
-
-	public void setType(IFOBTType type)
-	{
-		this.type = type;
-	}
-
-	public UploadDocument getVerwijderbrief()
-	{
-		return verwijderbrief;
-	}
-
-	public void setVerwijderbrief(UploadDocument verwijderbrief)
-	{
-		this.verwijderbrief = verwijderbrief;
-	}
-
-	public PreferenceKey getHeraanmeldenTekstKey()
-	{
-		return heraanmeldenTekstKey;
-	}
-
-	public void setHeraanmeldenTekstKey(PreferenceKey heraanmeldenTekstKey)
-	{
-		this.heraanmeldenTekstKey = heraanmeldenTekstKey;
-	}
 }

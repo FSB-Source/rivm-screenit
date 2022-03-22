@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.comparator.BriefCreatieDatumComparator;
 import nl.rivm.screenit.main.service.BriefService;
 import nl.rivm.screenit.main.service.DossierService;
@@ -75,16 +77,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> extends GenericPanel<A>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(UploadAfmeldformulierPopupPanel.class);
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private BaseAfmeldService baseAfmeldService;
 
@@ -177,9 +173,6 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 		uploadForm.add(new Label("wijzeAfmelding", Model.of(getWijzeVanAfmeldingTekst(getModelObject()))));
 		uploadForm.add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -191,16 +184,14 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 			}
 
 		}.setVisible(DossierStatus.ACTIEF == dossier.getStatus()));
+
+		ClientBrief laatsteBrief = getLaatsteBrief();
 		uploadForm.add(new AjaxLink<Void>("tegenhouden")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = getLaatsteBrief();
-				brief.setTegenhouden(true);
+				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), true);
 				hibernateService.saveOrUpdate(brief);
 
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
@@ -208,24 +199,20 @@ public abstract class UploadAfmeldformulierPopupPanel<A extends Afmelding> exten
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && getLaatsteBrief() != null && !getLaatsteBrief().isTegenhouden() && getLaatsteBrief().getMergedBrieven() == null));
+		}.setVisible(magTegenhouden && laatsteBrief != null && !BriefUtil.isTegengehouden(laatsteBrief) && BriefUtil.getMergedBrieven(laatsteBrief) == null));
 		uploadForm.add(new AjaxLink<Void>("doorvoeren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = getLaatsteBrief();
-				brief.setTegenhouden(false);
+				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), false);
 				hibernateService.saveOrUpdate(brief);
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
 					brief.getBriefType() + ", was tegengehouden en wordt nu doorgevoerd.", brief.getBriefType().getOnderzoeken());
 				info(getString("info.briefactiveren"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && getLaatsteBrief() != null && getLaatsteBrief().isTegenhouden()));
+		}.setVisible(magTegenhouden && BriefUtil.isTegengehouden(laatsteBrief)));
 		uploadForm.add(new ListView<>("brievenLijst", creatieDatumCreaterAfmelding(getModelObject()))
 		{
 			@Override

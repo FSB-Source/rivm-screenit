@@ -29,4 +29,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 public interface DossierFactory
 {
 	Set<Bevolkingsonderzoek> maakDossiers(Client client);
+
+	Set<Bevolkingsonderzoek> maakBmhkEnBkDossiers(Client client);
 }

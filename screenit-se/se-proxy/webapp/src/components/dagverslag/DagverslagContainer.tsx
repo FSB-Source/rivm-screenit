@@ -18,7 +18,7 @@ import {Dispatch} from "redux"
 import {navigateToDaglijst} from "../../util/NavigationUtil"
 
 const mapStateToProps = (state: RootState): DagverslagViewStateProps => {
-	const voorgaandeDagAfgesloten = !store.getState().nietAfgeslotenVanaf || state.nietAfgeslotenVanaf === state.daglijstDatum
+	const voorgaandeDagAfgesloten = !state.nietAfgeslotenVanaf || state.nietAfgeslotenVanaf === state.daglijstDatum
 	const openstaandeOnderzoeken = hasOpenstaandeOnderzoeken(state.daglijstDatum)
 	const nietDoorgevoerdeOnderzoeken = hasNietDoorgevoerdeOnderzoeken(state.daglijstDatum)
 	const afsprakenDoorvoerenEnabled = !openstaandeOnderzoeken && nietDoorgevoerdeOnderzoeken && voorgaandeDagAfgesloten
@@ -26,6 +26,8 @@ const mapStateToProps = (state: RootState): DagverslagViewStateProps => {
 	return {
 		afsprakenDoorvoerenDisabled: !afsprakenDoorvoerenEnabled,
 		doorvoerenFeedback: doorvoerenFeedback,
+		magOnderzoeken: state.autorisatie.onderzoeken,
+		online: state.online,
 	}
 }
 

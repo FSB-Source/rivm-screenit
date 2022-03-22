@@ -21,6 +21,11 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.format.DateTimeFormatter;
+
+import lombok.extern.slf4j.Slf4j;
+
+import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.model.HL7v24ResponseWrapper;
 import nl.rivm.screenit.batch.model.HapiContextType;
 import nl.rivm.screenit.batch.model.ScreenITHL7MessageContext;
@@ -32,15 +37,10 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.HL7Util;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import org.apache.commons.lang.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -55,17 +55,11 @@ import ca.uhn.hl7v2.model.v24.segment.MSH;
 import ca.uhn.hl7v2.model.v24.segment.OBR;
 import ca.uhn.hl7v2.model.v24.segment.PID;
 
+@Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHL7BaseServiceImpl.class);
-
-	private DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern("yyyyMMddHHmmss");
-
-	private DateTimeFormatter geboortedatumFormatter = DateTimeFormat.forPattern("yyyyMMdd");
-
 	@Autowired
 	private HL7BaseSendMessageService sendMessageService;
 
@@ -115,7 +109,7 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 	{
 		mshSegment.getSendingFacility().getNamespaceID().setValue("SCREENIT");
 		mshSegment.getSendingApplication().getNamespaceID().setValue(namespaceId);
-		mshSegment.getDateTimeOfMessage().getTimeOfAnEvent().setValue(dateTimeFormatter.print(currentDateSupplier.getDateTime()));
+		mshSegment.getDateTimeOfMessage().getTimeOfAnEvent().setValue(getCurrentDateTimeString());
 		return mshSegment;
 	}
 
@@ -141,9 +135,9 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 		patientGegevens.getFamilyName().getSurnameFromPartnerSpouse().setValue(persoon.getPartnerAchternaam());
 		patientGegevens.getFamilyName().getSurnamePrefixFromPartnerSpouse().setValue(persoon.getPartnerTussenvoegsel());
 
-		pid.getPid7_DateTimeOfBirth().getTimeOfAnEvent().setValue(geboortedatumFormatter.print(new DateTime(persoon.getGeboortedatum())));
+		pid.getPid7_DateTimeOfBirth().getTimeOfAnEvent().setValue(DateUtil.formatForPattern(Constants.DATE_FORMAT_YYYYMMDD, persoon.getGeboortedatum()));
 
-		if (Geslacht.MAN == persoon.getGeslacht() || Geslacht.VROUW == persoon.getGeslacht())
+		if (persoon.getGeslacht() != null)
 		{
 			pid.getAdministrativeSex().setValue(HL7Util.getGeslachtFormat(persoon.getGeslacht()));
 		}
@@ -173,7 +167,12 @@ public class CervixHL7BaseServiceImpl implements CervixHL7BaseService
 		obrSegment.getObr4_UniversalServiceIdentifier().getCe1_Identifier().setValue("Cervixcytologie");
 		obrSegment.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(StringUtils.leftPad(monster.getMonsterId(), 9, "0"));
 		obrSegment.getObr2_PlacerOrderNumber().getNamespaceID().setValue("ScreenIT");
-		obrSegment.getRequestedDateTime().getTs1_TimeOfAnEvent().setValue(dateTimeFormatter.print(currentDateSupplier.getDateTime()));
+		obrSegment.getRequestedDateTime().getTs1_TimeOfAnEvent().setValue(getCurrentDateTimeString());
 		return obrSegment;
+	}
+
+	private String getCurrentDateTimeString()
+	{
+		return currentDateSupplier.getLocalDateTime().format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT_YYYYMMDDHHMMSS));
 	}
 }

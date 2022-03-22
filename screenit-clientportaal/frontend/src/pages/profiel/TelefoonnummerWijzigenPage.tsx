@@ -26,70 +26,73 @@ import {useThunkDispatch} from "../../index"
 import {getString} from "../../utils/TekstPropertyUtil"
 import {useSelector} from "react-redux"
 import {State} from "../../datatypes/State"
-import {navigateAndShowToast} from "../../utils/NavigationUtil"
 import properties from "./TelefoonnummerWijzigenPage.json"
 import {Formik} from "formik"
 import SubmitForm from "../../components/form/SubmitForm"
 import ScreenitTextfield from "../../components/input/ScreenitTextfield"
 import {isTelefoonnummerValid} from "../../validators/TelefoonnummerValidator"
+import {useNavigate} from "react-router-dom"
+import {showToast} from "../../utils/ToastUtil"
 
 const TelefoonnummerWijzigenPage = () => {
-    const dispatch = useThunkDispatch()
-    const persoon = useSelector((state: State) => state.client.persoon)
+	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
+	const persoon = useSelector((state: State) => state.client.persoon)
 
-    const initialValues = {
-        telefoonnummer1: persoon.telefoonnummer1 || "",
-        telefoonnummer2: persoon.telefoonnummer2 || "",
-    }
+	const initialValues = {
+		telefoonnummer1: persoon.telefoonnummer1 || "",
+		telefoonnummer2: persoon.telefoonnummer2 || "",
+	}
 
-    const validatieSchema: Yup.AnyObjectSchema = Yup.object().shape({
-        telefoonnummer1: Yup.string()
-            .test("telefoonnummerValidatie", getString(properties.form.invalid), function (value) {
-                return isTelefoonnummerValid(value)
-            }),
-        telefoonnummer2: Yup.string()
-            .test("telefoonnummerValidatie", getString(properties.form.invalid), function (value) {
-                return isTelefoonnummerValid(value)
-            }),
-    })
+	const validatieSchema: Yup.AnyObjectSchema = Yup.object().shape({
+		telefoonnummer1: Yup.string()
+			.test("telefoonnummerValidatie", getString(properties.form.invalid), function (value) {
+				return isTelefoonnummerValid(value)
+			}),
+		telefoonnummer2: Yup.string()
+			.test("telefoonnummerValidatie", getString(properties.form.invalid), function (value) {
+				return isTelefoonnummerValid(value)
+			}),
+	})
 
-    return (
-        <ActieBasePage
-            bvoName={""}
-            title={getString(properties.page.title)}
-            description={getString(properties.page.description)}
-            hintBegin={getString(properties.page.hint)}>
+	return (
+		<ActieBasePage
+			bvoName={""}
+			title={getString(properties.page.title)}
+			description={getString(properties.page.description)}
+			hintBegin={getString(properties.page.hint)}>
 
-            <Formik initialValues={initialValues}
-                    validationSchema={validatieSchema}
-                    onSubmit={(telefoonNummers) => {
-                        dispatch(saveTelefoonNummers(telefoonNummers)).then(() => {
-                            navigateAndShowToast("/profiel", getString(properties.toast.title), getString(properties.toast.description))
-                        })
-                    }}>
+			<Formik initialValues={initialValues}
+					validationSchema={validatieSchema}
+					onSubmit={(telefoonNummers) => {
+						dispatch(saveTelefoonNummers(telefoonNummers)).then(() => {
+							showToast(getString(properties.toast.title), getString(properties.toast.description))
+							navigate("/profiel")
+						})
+					}}>
 
-                {formikProps => (<SubmitForm title={getString(properties.form.title)}
-                                             formikProps={formikProps}
-                                             buttonLabel={getString(properties.form.button)}>
+				{formikProps => (<SubmitForm title={getString(properties.form.title)}
+											 formikProps={formikProps}
+											 buttonLabel={getString(properties.form.button)}>
 
-                    <ScreenitTextfield name={"telefoonnummer1"}
-                                       value={formikProps.values.telefoonnummer1}
-                                       invalidMessage={formikProps.errors.telefoonnummer1}
-                                       placeholder={getString(properties.form.placeholder, ["1"])}
-                                       onChange={value => formikProps.setFieldValue("telefoonnummer1", value)}/>
+					<ScreenitTextfield name={"telefoonnummer1"}
+									   value={formikProps.values.telefoonnummer1}
+									   invalidMessage={formikProps.errors.telefoonnummer1}
+									   placeholder={getString(properties.form.placeholder, ["1"])}
+									   onChange={value => formikProps.setFieldValue("telefoonnummer1", value)}/>
 
-                    <ScreenitTextfield name={"telefoonnummer2"}
-                                       value={formikProps.values.telefoonnummer2}
-                                       invalidMessage={formikProps.errors.telefoonnummer2}
-                                       placeholder={getString(properties.form.placeholder, ["2"])}
-                                       onChange={value => formikProps.setFieldValue("telefoonnummer2", value)}/>
+					<ScreenitTextfield name={"telefoonnummer2"}
+									   value={formikProps.values.telefoonnummer2}
+									   invalidMessage={formikProps.errors.telefoonnummer2}
+									   placeholder={getString(properties.form.placeholder, ["2"])}
+									   onChange={value => formikProps.setFieldValue("telefoonnummer2", value)}/>
 
-                </SubmitForm>)}
+				</SubmitForm>)}
 
-            </Formik>
+			</Formik>
 
-        </ActieBasePage>
-    )
+		</ActieBasePage>
+	)
 }
 
 export default TelefoonnummerWijzigenPage

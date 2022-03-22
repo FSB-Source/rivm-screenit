@@ -21,6 +21,7 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.net.InetSocketAddress;
 import java.util.List;
 
 import nl.rivm.screenit.service.JGroupsChannel;
@@ -28,9 +29,8 @@ import nl.rivm.screenit.service.JGroupsChannel;
 import org.apache.commons.lang.StringUtils;
 import org.jgroups.Global;
 import org.jgroups.JChannel;
-import org.jgroups.PhysicalAddress;
 import org.jgroups.protocols.TCP;
-import org.jgroups.protocols.TCPPING;
+import org.jgroups.protocols.TCPGOSSIP;
 import org.jgroups.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,11 +76,9 @@ public class JGroupsChannelImpl implements JGroupsChannel
 					TCP tcpProtocol = channel.getProtocolStack().findProtocol(TCP.class);
 					tcpProtocol.setBindPort(jgroupsCommonBindPort);
 
-					TCPPING tcpPingProtocol = channel.getProtocolStack().findProtocol(TCPPING.class);
-					List<PhysicalAddress> initialHosts = Util.parseCommaDelimitedHosts(jgroupsCommonIPPorts, 0);
-					tcpProtocol.setPortRange(initialHosts.size());
-
-					tcpPingProtocol.setInitialHosts2(initialHosts);
+					List<InetSocketAddress> initialHosts = Util.parseCommaDelimitedHosts2(jgroupsCommonIPPorts, 0);
+					TCPGOSSIP tcpGossipProtocol = channel.getProtocolStack().findProtocol(TCPGOSSIP.class);
+					tcpGossipProtocol.setInitialHosts(initialHosts);
 
 					channel.setName("jgCommon-" + applicatieInstantie.toLowerCase());
 					channel.connect("jgCommon-GROUP");

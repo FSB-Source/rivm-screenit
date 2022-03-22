@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.envers;
 
 /*-
@@ -31,12 +30,11 @@ import org.hibernate.envers.RevisionListener;
 
 public class ScreenitRevisionListener implements RevisionListener
 {
-
 	@Override
 	public void newRevision(Object revisionEntity)
 	{
 		ScreenitRevisionEntity screenitRevisionEntity = (ScreenitRevisionEntity) revisionEntity;
-		Account account = AccountResolver.getAccount();
+		Account account = RevisionInformationResolver.getAccount();
 		if (account != null)
 		{
 			if (account instanceof Gebruiker)
@@ -55,5 +53,6 @@ public class ScreenitRevisionListener implements RevisionListener
 				screenitRevisionEntity.setClient(client);
 			}
 		}
+		screenitRevisionEntity.setKenmerk(RevisionInformationResolver.getKenmerk());
 	}
 }

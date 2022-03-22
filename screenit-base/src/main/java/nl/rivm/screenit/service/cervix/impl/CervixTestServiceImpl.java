@@ -496,6 +496,11 @@ public class CervixTestServiceImpl implements CervixTestService
 			verwijderCisHistorie(cisHistorie);
 		}
 
+		if (dossier.getVooraankondigingsBrief() != null)
+		{
+			dossier.setVooraankondigingsBrief(null);
+		}
+
 		cervixBaseScreeningrondeService.verwijderCervixScreeningRondes(dossier);
 
 		if (CollectionUtils.isNotEmpty(dossier.getAfmeldingen()))

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -29,8 +28,11 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import nl.topicuszorg.documentupload.model.IUploadDocument;
-import nl.topicuszorg.documentupload.services.UploadDocumentService;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Proxy;
@@ -38,12 +40,13 @@ import org.hibernate.envers.Audited;
 
 @Audited
 @Entity(name = "doc_upload_document")
-@Proxy(lazy = true)
+@Proxy
 @Table(schema = "gedeeld")
-public class UploadDocument extends AbstractHibernateObject implements IUploadDocument
+@Getter
+@Setter
+@NoArgsConstructor
+public class UploadDocument extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@Column(nullable = false)
 	private Boolean actief;
@@ -65,60 +68,10 @@ public class UploadDocument extends AbstractHibernateObject implements IUploadDo
 		this.setActief(isActief);
 	}
 
-	public UploadDocument()
-	{
-
-	}
-
-	public String getNaam()
-	{
-		return this.naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public String getPath()
-	{
-		return this.path;
-	}
-
-	public void setPath(String path)
-	{
-		this.path = path;
-	}
-
 	@Deprecated
 	public File getFile()
 	{
 		return this.file;
-	}
-
-	public void setFile(File file)
-	{
-		this.file = file;
-	}
-
-	public String getContentType()
-	{
-		return this.contentType;
-	}
-
-	public void setContentType(String contentType)
-	{
-		this.contentType = contentType;
-	}
-
-	public Boolean getActief()
-	{
-		return this.actief;
-	}
-
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
 	}
 
 }

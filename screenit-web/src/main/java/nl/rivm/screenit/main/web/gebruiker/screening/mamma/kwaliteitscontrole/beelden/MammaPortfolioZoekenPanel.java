@@ -35,7 +35,7 @@ import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.screening.mamma.MammaScreeningBasePage;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
@@ -60,13 +60,9 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MammaPortfolioZoekenPanel extends Panel
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaPortfolioZoekenPanel.class);
-
 	@SpringBean
 	private LogService logService;
 
@@ -111,20 +107,19 @@ public class MammaPortfolioZoekenPanel extends Panel
 		{
 			super(id, model);
 
-			List<InstellingGebruiker> instellingGebruikers = medewerkerService.getActieveInstellingGebruikersVanInstellingMetRecht(ScreenitSession.get().getScreeningOrganisatie(),
-				Recht.GEBRUIKER_SCREENING_MAMMA_SE_ONDERZOEK);
+			List<Gebruiker> gebruikers = medewerkerService.getActieveGebruikersMetRecht(Recht.GEBRUIKER_SCREENING_MAMMA_SE_ONDERZOEK);
 
-			add(new ScreenitListMultipleChoice<InstellingGebruiker>("instellingGebruikers", ModelUtil.listRModel(instellingGebruikers, false),
-				new ChoiceRenderer<InstellingGebruiker>()
+			add(new ScreenitListMultipleChoice<>("gebruikers", ModelUtil.listRModel(gebruikers, false),
+				new ChoiceRenderer<>()
 				{
 					@Override
-					public Object getDisplayValue(InstellingGebruiker instellingGebruiker)
+					public Object getDisplayValue(Gebruiker gebruiker)
 					{
-						return NaamUtil.getNaamGebruiker(instellingGebruiker.getMedewerker());
+						return NaamUtil.getNaamGebruiker(gebruiker);
 					}
 				}).setRequired(true));
-			add(new DropDownChoice<MammobridgeRole>("mammobridgeRol", Arrays.asList(MammobridgeRole.values()),
-				new EnumChoiceRenderer<MammobridgeRole>()).setRequired(true));
+			add(new DropDownChoice<>("mammobridgeRol", Arrays.asList(MammobridgeRole.values()),
+				new EnumChoiceRenderer<>()).setRequired(true));
 			add(ComponentHelper.monthYearDatePicker("vanaf").setRequired(true));
 			add(ComponentHelper.monthYearDatePicker("totEnMet").setRequired(true));
 
@@ -133,7 +128,7 @@ public class MammaPortfolioZoekenPanel extends Panel
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
-					List<String> namen = NaamUtil.getNamenInstellingGebruikers(zoekObjectModel.getObject().getInstellingGebruikers());
+					List<String> namen = NaamUtil.getNamenGebruikers(zoekObjectModel.getObject().getGebruikers());
 
 					String logRegel = String.format("Gezocht op medewerker(s): %s van %s t/m %s als %s",
 						String.join(", ", namen),

@@ -37,6 +37,7 @@ import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
+import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVerslag;
 import nl.rivm.screenit.model.colon.ColoscopieCentrumColonCapaciteitVerdeling;
 import nl.rivm.screenit.model.colon.IFOBTTest;
@@ -46,6 +47,7 @@ import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.query.DateRestrictions;
 import nl.rivm.screenit.util.query.DateYearRestrictions;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 
@@ -82,7 +84,7 @@ public abstract class ColonRestrictions
 
 		crit.add(getU1BaseCriteria(vandaag, geboortejaren));
 
-		ScreenitRestrictions.addExcludeProjectClientenMetProjectStatusNogTeStarten(crit);
+		crit.add(Restrictions.eq("dossier.wachtOpStartProject", false));
 
 		if (projectGroupId != null)
 		{
@@ -144,7 +146,7 @@ public abstract class ColonRestrictions
 
 		crit.add(getU2BaseCriteria(vandaag));
 
-		ScreenitRestrictions.addExcludeProjectClientenMetProjectStatusNogTeStarten(crit);
+		crit.add(Restrictions.eq("dossier.wachtOpStartProject", false));
 
 		crit.addOrder(Order.asc("laatsteScreeningRonde.creatieDatum"));
 
@@ -580,6 +582,81 @@ public abstract class ColonRestrictions
 		subquery.add(Restrictions.eqProperty("brief.screeningRonde", rondeAlias + "id"));
 		subquery.add(Restrictions.in("brief.briefType", uitslagBriefTypes));
 		crit.add(Subqueries.notExists(subquery));
+	}
+
+	public static void addIfobtMissendeUitslagRestrictions(Criteria criteria, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
+	{
+		criteria.createAlias("ifobt.colonScreeningRonde", "ronde");
+		criteria.createAlias("ronde.dossier", "dossier");
+		criteria.createAlias("dossier.client", "client");
+		criteria.createAlias("client.persoon", "persoon");
+
+		criteria.add(Restrictions.le("ifobt.statusDatum", DateUtil.toUtilDate(minimaleSignaleringsDatum)));
+
+		criteria.add(
+			Restrictions.or(
+				Restrictions.and(
+					Restrictions.gt("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(minimaleSignaleringsDatum)),
+					Restrictions.gtProperty("ifobt.analyseDatum", "dossier.datumLaatstGecontroleerdeSignalering")
+				),
+				Restrictions.and(
+					Restrictions.isNull("dossier.datumLaatstGecontroleerdeSignalering"),
+					Restrictions.gt("ifobt.analyseDatum", DateUtil.toUtilDate(signalerenVanaf)))
+			)
+		);
+
+		var uitslagBriefSubQuery = DetachedCriteria.forClass(ColonBrief.class, "brief");
+		uitslagBriefSubQuery.setProjection(Projections.id());
+		uitslagBriefSubQuery.createAlias("brief.projectBrief", "projectBrief", JoinType.LEFT_OUTER_JOIN);
+		uitslagBriefSubQuery.add(Restrictions.eqProperty("brief.ifobtTest", "ifobt.id"));
+		uitslagBriefSubQuery.add(
+			Restrictions.or(
+				Restrictions.and(
+					Restrictions.eq("brief.vervangendeProjectBrief", false),
+					Restrictions.in("brief.briefType", BriefType.COLON_UITSLAG_BRIEVEN),
+					Restrictions.eq("brief.gegenereerd", true)
+				),
+				Restrictions.and(
+					Restrictions.eq("brief.vervangendeProjectBrief", true),
+					Restrictions.in("projectBrief.briefType", BriefType.COLON_UITSLAG_BRIEVEN),
+					Restrictions.eq("projectBrief.gegenereerd", true)
+				)
+			)
+		);
+
+		var nieuweUitnodigingSubQuery = uitnodigingenVanClientCreatieDatumGelijkStatusDatumIfobt();
+
+		var nieuweUitnodigingZonderGekoppeldeFITSubQuery = uitnodigingenVanClientCreatieDatumGelijkStatusDatumIfobt();
+		nieuweUitnodigingZonderGekoppeldeFITSubQuery.add(Restrictions.isNull("uitnodiging.gekoppeldeTest"));
+
+		criteria.add(Restrictions.or(
+			Restrictions.and(
+				Restrictions.eq("ifobt.status", IFOBTTestStatus.UITGEVOERD),
+				Subqueries.notExists(uitslagBriefSubQuery)
+			),
+			Restrictions.and(
+				Restrictions.in("ifobt.status", Arrays.asList(IFOBTTestStatus.VERVALDATUMVERLOPEN, IFOBTTestStatus.NIETTEBEOORDELEN)),
+				Restrictions.or(
+					Restrictions.and(
+						Subqueries.notExists(nieuweUitnodigingSubQuery),
+						Subqueries.notExists(uitslagBriefSubQuery)
+					),
+					Subqueries.exists(nieuweUitnodigingZonderGekoppeldeFITSubQuery)
+				)
+			)
+		));
+
+		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
+	}
+
+	private static DetachedCriteria uitnodigingenVanClientCreatieDatumGelijkStatusDatumIfobt()
+	{
+		var nieuweUitnodigingSubQuery = DetachedCriteria.forClass(ColonUitnodiging.class, "uitnodiging");
+		nieuweUitnodigingSubQuery.setProjection(Projections.id());
+		nieuweUitnodigingSubQuery.createAlias("uitnodiging.screeningRonde", "screeningRonde");
+		nieuweUitnodigingSubQuery.add(Restrictions.eqProperty("screeningRonde.dossier", "dossier.id"));
+		nieuweUitnodigingSubQuery.add(DateRestrictions.eqProperty("uitnodiging.creatieDatum", "ifobt.statusDatum"));
+		return nieuweUitnodigingSubQuery;
 	}
 
 	public static Criterion critGunstig(String alias)

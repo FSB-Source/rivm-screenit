@@ -31,19 +31,28 @@ import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixMonsterDaoImpl extends AbstractAutowiredDao implements CervixMonsterDao
 {
 
 	@Override
 	public CervixMonster getMonsterByMonsterId(String monsterId)
 	{
-		BaseCriteria<CervixMonster> baseCriteria = new BaseCriteria<>(CervixMonster.class, "monster");
+		return getMonster(monsterId, CervixMonster.class);
+	}
+
+	private <T extends CervixMonster> T getMonster(String monsterId, Class<T> clazz)
+	{
+		BaseCriteria<T> baseCriteria = new BaseCriteria<>(clazz, "monster");
 		baseCriteria.add(Restrictions.eq("monster.monsterId", monsterId.trim()));
 		return baseCriteria.uniqueResult(getSession());
 	}
@@ -83,22 +92,30 @@ public class CervixMonsterDaoImpl extends AbstractAutowiredDao implements Cervix
 	@Override
 	public CervixUitstrijkje getUitstrijkje(String monsterId)
 	{
-		BaseCriteria<CervixUitstrijkje> baseCriteria = new BaseCriteria<>(CervixUitstrijkje.class, "monster");
-		baseCriteria.add(Restrictions.eq("monster.monsterId", monsterId.trim()));
-		return baseCriteria.uniqueResult(getSession());
+		return getMonster(monsterId, CervixUitstrijkje.class);
 	}
 
 	@Override
 	public CervixZas getZas(String monsterId)
 	{
-		BaseCriteria<CervixZas> baseCriteria = new BaseCriteria<>(CervixZas.class, "monster");
-		baseCriteria.add(Restrictions.eq("monster.monsterId", monsterId.trim()));
-		return baseCriteria.uniqueResult(getSession());
+		return getMonster(monsterId, CervixZas.class);
+
 	}
 
 	@Override
 	public Long getNextMonsterId()
 	{
 		return getSession().doReturningWork(new SequenceGenerator(DatabaseSequence.MONSTER_ID, getSessionFactory()));
+	}
+
+	@Override
+	public boolean isVerwijderdMonster(String monsterId)
+	{
+		AuditReader reader = AuditReaderFactory.get(getSession());
+		AuditQuery auditQuery = reader.createQuery().forRevisionsOfEntity(CervixMonster.class, false, true)
+			.add(AuditEntity.property("monsterId").eq(monsterId))
+			.addProjection(AuditEntity.id().count());
+
+		return ((Long) auditQuery.getSingleResult()) > 0;
 	}
 }

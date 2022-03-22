@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
 
 /*-
@@ -25,42 +24,29 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
-import nl.rivm.screenit.model.gba.GbaFoutCategorie;
-import nl.rivm.screenit.model.gba.GbaFoutRegel;
+import nl.rivm.screenit.batch.jobs.generalis.gba.GbaFtpConnection;
+import nl.rivm.screenit.batch.jobs.generalis.gba.GbaFtpSettings;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 import com.jcraft.jsch.SftpException;
 
 @Getter
 @Setter
+@Slf4j
 public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 {
-
-	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(VertrouwdVerbondenVo107Provider.class);
-
 	private String host;
 
 	private int port;
@@ -73,44 +59,23 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 
 	private String knownHostPath;
 
-	private int sftpConnectionTimeout;
-
-	private long tryInterval;
-
-	private int maxNoTries;
-
 	@Override
 	public List<Vo107File> getVo107Files(final GbaVerwerkingsLog gbaVerwerkingsLog)
 	{
 		final List<Vo107File> vo107Files = new ArrayList<>();
 
-		new FtpConnection(gbaVerwerkingsLog)
+		var gbaFtpConnection = new GbaFtpConnection(maakFtpSettings(), gbaVerwerkingsLog)
 		{
 			@Override
 			protected void ftpActies() throws SftpException
 			{
-				c.cd(downloadPath);
+				getChannelSftp().cd(downloadPath);
 
-				List<LsEntry> files = c.ls(".");
+				List<LsEntry> files = getChannelSftp().ls(".");
 
-				files = new ArrayList<>(Collections2.filter(files, new Predicate<LsEntry>()
-				{
-					@Override
-					public boolean apply(@Nullable LsEntry input)
-					{
+				files = new ArrayList<>(Collections2.filter(files, input -> !input.getFilename().startsWith(".")));
 
-						return !input.getFilename().startsWith(".");
-					}
-				}));
-
-				Collections.sort(files, new Comparator<LsEntry>()
-				{
-					@Override
-					public int compare(LsEntry o1, LsEntry o2)
-					{
-						return o1.getFilename().compareTo(o2.getFilename());
-					}
-				});
+				files.sort(Comparator.comparing(LsEntry::getFilename));
 
 				for (LsEntry file : files)
 				{
@@ -120,52 +85,20 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 			}
 		};
 
+		gbaFtpConnection.run();
+
 		return vo107Files;
 	}
 
-	private ChannelSftp openChannel(Session session) throws JSchException
+	private GbaFtpSettings maakFtpSettings()
 	{
-		Channel channel = session.openChannel("sftp");
-		channel.connect();
-		ChannelSftp c = (ChannelSftp) channel;
-		return c;
-	}
-
-	private Session connect(JSch jsch) throws JSchException
-	{
-		boolean checkHostKey = Boolean.parseBoolean(System.getProperty("SFTP_CHECK_HOST_KEY"));
-		if (checkHostKey)
-		{
-			jsch.setKnownHosts(knownHostPath);
-		}
-		Session session = jsch.getSession(username, host, port);
-		if (!checkHostKey)
-		{
-			java.util.Properties config = new java.util.Properties();
-			config.put("StrictHostKeyChecking", "no");
-			session.setConfig(config);
-		}
-
-		String server_host_key = System.getProperty("SERVER_HOST_KEY");
-		String keyfile = System.getProperty("PRIVATE_KEYFILE");
-		if (StringUtils.isNotBlank(server_host_key) && StringUtils.isNotBlank(keyfile))
-		{
-			LOG.info("SERVER_HOST_KEY is set to " + server_host_key);
-			session.setConfig("server_host_key", server_host_key);
-			jsch.addIdentity(keyfile);
-		}
-		session.setPassword(password);
-		session.connect();
-		return session;
-	}
-
-	private void createFoutRegel(GbaVerwerkingsLog gbaVerwerkingsLog, String foutregel)
-	{
-		GbaFoutRegel gbaFoutRegel = new GbaFoutRegel();
-		gbaFoutRegel.setFout(foutregel);
-		gbaFoutRegel.setFoutCategorie(GbaFoutCategorie.PROCES);
-		gbaFoutRegel.setVerwerkingsLog(gbaVerwerkingsLog);
-		gbaVerwerkingsLog.getFouten().add(gbaFoutRegel);
+		var settings = new GbaFtpSettings();
+		settings.setHost(host);
+		settings.setPort(port);
+		settings.setUsername(username);
+		settings.setPassword(password);
+		settings.setKnownHostPath(knownHostPath);
+		return settings;
 	}
 
 	protected class SFTPVo107File implements Vo107File
@@ -183,14 +116,14 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 		@Override
 		public void saveToFile(final File targetFile)
 		{
-			new FtpConnection(gbaVerwerkingsLog)
+			var gbaFtpConnection = new GbaFtpConnection(maakFtpSettings(), gbaVerwerkingsLog)
 			{
 				@Override
 				protected void ftpActies() throws SftpException
 				{
-					c.cd(downloadPath);
+					getChannelSftp().cd(downloadPath);
 
-					try (InputStream fileInputStream = c.get(filename); FileOutputStream fileOutputStream = new FileOutputStream(targetFile))
+					try (var fileInputStream = getChannelSftp().get(filename); FileOutputStream fileOutputStream = new FileOutputStream(targetFile))
 					{
 						IOUtils.copyLarge(fileInputStream, fileOutputStream);
 					}
@@ -202,6 +135,7 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 					}
 				}
 			};
+			gbaFtpConnection.run();
 		}
 
 		@Override
@@ -213,71 +147,16 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 		@Override
 		public void deleteFile()
 		{
-			new FtpConnection(gbaVerwerkingsLog)
+			var gbaFtpConnection = new GbaFtpConnection(maakFtpSettings(), gbaVerwerkingsLog)
 			{
 				@Override
 				protected void ftpActies() throws SftpException
 				{
-					c.cd(downloadPath);
-					c.rm(filename);
+					getChannelSftp().cd(downloadPath);
+					getChannelSftp().rm(filename);
 				}
 			};
+			gbaFtpConnection.run();
 		}
 	}
-
-	private abstract class FtpConnection
-	{
-		protected ChannelSftp c;
-
-		private FtpConnection(GbaVerwerkingsLog gbaVerwerkingsLog)
-		{
-			for (int tries = 1; tries <= maxNoTries; tries++)
-			{
-				Session session = null;
-				try
-				{
-					JSch jsch = new JSch();
-					session = connect(jsch);
-					c = openChannel(session);
-
-					ftpActies();
-					break;
-				}
-				catch (JSchException e)
-				{
-					LOG.error("Error in connectie met server poging " + tries, e);
-					createFoutRegel(gbaVerwerkingsLog, "Fout in de connectie met server poging " + tries + " van " + maxNoTries);
-				}
-				catch (SftpException e)
-				{
-					LOG.error("Error bij actie op de server poging " + tries, e);
-					createFoutRegel(gbaVerwerkingsLog, "Fout bij actie op de server poging " + tries + " van " + maxNoTries);
-				}
-				finally
-				{
-					if (session != null)
-					{
-						session.disconnect();
-					}
-					if (c != null)
-					{
-						c.disconnect();
-					}
-				}
-
-				try
-				{
-					Thread.sleep(tryInterval);
-				}
-				catch (InterruptedException e)
-				{
-					LOG.error("Exception bij sleep retry", e);
-					createFoutRegel(gbaVerwerkingsLog, "Fout bij wachten retry");
-				}
-			}
-		}
-
-		protected abstract void ftpActies() throws SftpException;
-	}
-
 }

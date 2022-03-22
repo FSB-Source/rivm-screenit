@@ -23,41 +23,43 @@ package nl.rivm.screenit.main.util;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
+
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import nl.rivm.screenit.comparator.BriefCreatieDatumComparator;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
-
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
+
 import org.apache.commons.lang.StringUtils;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BriefOmschrijvingUtil
 {
-	private BriefOmschrijvingUtil()
+	public static List<String> getBrievenOmschrijvingen(List<? extends ClientBrief> brieven, UnaryOperator<String> getString)
 	{
-	}
-
-	public static List<String> getBrievenOmschrijvingen(List<? extends ClientBrief> brieven, Function<String, String> getString)
-	{
-		List<String> brievenStrings = new ArrayList<String>();
-		Collections.sort(brieven, new BriefCreatieDatumComparator());
+		List<String> brievenStrings = new ArrayList<>();
+		brieven.sort(new BriefCreatieDatumComparator());
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
-		for (ClientBrief brief : brieven)
+		for (var brief : brieven)
 		{
 			StringBuilder builder = new StringBuilder();
 			builder.append(getString.apply(EnumStringUtil.getPropertyString(brief.getBriefType())));
 			builder.append("(");
 			builder.append(formatter.format(brief.getCreatieDatum()));
-			if (brief.getHerdruk() != null)
+			var herdrukBrief = BriefUtil.getHerdruk(brief);
+			if (herdrukBrief != null)
 			{
-				builder.append(", herdruk van ").append(formatter.format(brief.getHerdruk().getCreatieDatum()));
+				builder.append(", herdruk van ").append(formatter.format(herdrukBrief.getCreatieDatum()));
 			}
-			if (brief.isTegenhouden())
+			if (BriefUtil.isTegengehouden(brief))
 			{
 				builder.append(", tegengehouden");
 			}
@@ -71,7 +73,7 @@ public class BriefOmschrijvingUtil
 		return brievenStrings;
 	}
 
-	public static void addExtraOmschrijving(StringBuilder omschrijving, Brief brief, Function<String, String> getString)
+	public static void addExtraOmschrijving(StringBuilder omschrijving, Brief brief, UnaryOperator<String> getString)
 	{
 		TypeGebeurtenis gebeurtenis = bepaalTypeGebeurtenis(brief);
 
@@ -87,31 +89,50 @@ public class BriefOmschrijvingUtil
 		omschrijving.append(")");
 	}
 
+	public static String algemeneBriefOmschrijving(Brief brief, UnaryOperator<String> getString)
+	{
+		StringBuilder omschrijving = new StringBuilder();
+		TypeGebeurtenis gebeurtenis = bepaalTypeGebeurtenis(brief);
+		omschrijving.append(getString.apply("TypeGebeurtenis." + gebeurtenis.name()));
+		omschrijving.append(" (");
+		omschrijving.append(getString.apply(EnumStringUtil.getPropertyString(brief.getBriefType())));
+		omschrijving.append(")");
+		return omschrijving.toString();
+	}
+
+	public static Date dossierGebeurtenisDatum(Brief brief)
+	{
+		var mergedBrieven = BriefUtil.getMergedBrieven(brief);
+		if (mergedBrieven != null)
+		{
+			return mergedBrieven.getPrintDatum() != null ? mergedBrieven.getPrintDatum() : mergedBrieven.getCreatieDatum();
+		}
+		return brief.getCreatieDatum();
+	}
+
 	private static TypeGebeurtenis bepaalTypeGebeurtenis(Brief brief)
 	{
-		TypeGebeurtenis gebeurtenis;
-		MergedBrieven mergedBrieven = brief.getMergedBrieven();
+		MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
 		if (isAfgedrukteMigratieBrief(brief, mergedBrieven))
 		{
-			gebeurtenis = TypeGebeurtenis.BRIEF_AFGEDRUKT;
+			return TypeGebeurtenis.BRIEF_AFGEDRUKT;
 		}
-		else if (brief.isGegenereerd())
+		else if (BriefUtil.isGegenereerd(brief))
 		{
-			gebeurtenis = mergedBrieven.getPrintDatum() != null ? TypeGebeurtenis.BRIEF_AFGEDRUKT : TypeGebeurtenis.BRIEF_KLAARGEZET;
+			return mergedBrieven.getPrintDatum() != null ? TypeGebeurtenis.BRIEF_AFGEDRUKT : TypeGebeurtenis.BRIEF_KLAARGEZET;
 		}
-		else if (brief.isTegenhouden())
+		else if (BriefUtil.isTegengehouden(brief))
 		{
-			gebeurtenis = TypeGebeurtenis.BRIEF_TEGENHOUDEN;
+			return TypeGebeurtenis.BRIEF_TEGENHOUDEN;
 		}
 		else
 		{
-			gebeurtenis = TypeGebeurtenis.BRIEF_AANGEMAAKT;
+			return TypeGebeurtenis.BRIEF_AANGEMAAKT;
 		}
-		return gebeurtenis;
 	}
 
-	private static boolean isAfgedrukteMigratieBrief(Brief brief, MergedBrieven mergedBrieven)
+	private static boolean isAfgedrukteMigratieBrief(Brief brief, MergedBrieven<?> mergedBrieven)
 	{
-		return brief.isGegenereerd() && mergedBrieven == null;
+		return BriefUtil.isGegenereerd(brief) && mergedBrieven == null;
 	}
 }

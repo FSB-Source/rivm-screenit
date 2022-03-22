@@ -24,24 +24,23 @@ import {createShowToastAction} from "../actions/ToastAction"
 import {getString} from "../utils/TekstPropertyUtil"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import {KandidaatStandplaatsPeriode} from "../datatypes/mamma/KandidaatStandplaatsPeriode"
-import {navigateAndShowToast} from "../utils/NavigationUtil"
 import {formatDateText} from "../utils/DateUtil"
 import properties from "../pages/bvo/mamma/afspraak/MammaAfspraakUitstellenPage.json"
+import {showToast} from "../utils/ToastUtil"
 
 export const maakUitstel = (standplaatsPeriode: KandidaatStandplaatsPeriode) => (dispatch: Dispatch) => {
-    return ScreenitBackend.post("/mamma/uitstel", standplaatsPeriode)
-        .then(() => {
-            navigateAndShowToast("/mamma",
-                getString(properties.toast.title, [formatDateText(standplaatsPeriode.filter.vanaf)]),
-                getString(properties.toast.description))
+	return ScreenitBackend.post("/mamma/uitstel", standplaatsPeriode)
+		.then(() => {
+			showToast(getString(properties.toast.title, [formatDateText(standplaatsPeriode.filter.vanaf)]),
+				getString(properties.toast.description))
 
-        })
-        .catch(error => {
-            dispatch(createShowToastAction({
-                title: getString(properties.toast.error),
-                description: error.response.data,
-                type: ToastMessageType.ERROR,
-            }))
-            return Promise.reject()
-        })
+		})
+		.catch(error => {
+			dispatch(createShowToastAction({
+				title: getString(properties.toast.error),
+				description: error.response.data,
+				type: ToastMessageType.ERROR,
+			}))
+			return Promise.reject()
+		})
 }

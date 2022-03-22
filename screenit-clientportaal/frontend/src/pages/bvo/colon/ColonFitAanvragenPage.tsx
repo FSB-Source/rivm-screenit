@@ -31,40 +31,42 @@ import {ArrowType} from "../../../components/vectors/ArrowIconComponent"
 import {getString} from "../../../utils/TekstPropertyUtil"
 import properties from "./ColonFitAanvragenPage.json"
 import SubmitButton from "../../../components/input/SubmitButton"
+import {useNavigate} from "react-router-dom"
 
 const ColonFitAanvragenPage = () => {
-    const dispatch = useThunkDispatch()
-    const fitStatus = useSelector((state: State) => state.client.colonDossier.fitStatus)
+	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
+	const fitStatus = useSelector((state: State) => state.client.colonDossier.fitStatus)
 
-    const aanvraagButtonZichtbaar: boolean = !fitStatus.maxAantalAanvragenBereikt
+	const aanvraagButtonZichtbaar: boolean = !fitStatus.maxAantalAanvragenBereikt
 
-    useEffect(() => {
-        dispatch(getHuidigeFitStatus())
-    }, [dispatch])
+	useEffect(() => {
+		dispatch(getHuidigeFitStatus())
+	}, [dispatch])
 
-    return (
-        <ActieBasePage bvoName={BevolkingsonderzoekNaam[Bevolkingsonderzoek.COLON]}
-                       title={getString(properties.page.title)}
-                       description={getString(properties.page.description)}>
+	return (
+		<ActieBasePage bvoName={BevolkingsonderzoekNaam[Bevolkingsonderzoek.COLON]}
+					   title={getString(properties.page.title)}
+					   description={getString(properties.page.description)}>
 
-            {getMaxAantalFitAanvragenError()}
+			{getMaxAantalFitAanvragenError()}
 
-            {aanvraagButtonZichtbaar &&
-            <SubmitButton className={bvoStyle.baseBackgroundColor}
-                          label={getString(properties.button)}
-                          displayArrow={ArrowType.ARROW_RIGHT}
-                          onClick={() => {
-                              dispatch(saveFitAanvraag())
-                          }}/>}
+			{aanvraagButtonZichtbaar &&
+				<SubmitButton className={bvoStyle.baseBackgroundColor}
+							  label={getString(properties.button)}
+							  displayArrow={ArrowType.ARROW_RIGHT}
+							  onClick={() => {
+								  dispatch(saveFitAanvraag()).then(() => navigate("/colon"))
+							  }}/>}
 
-        </ActieBasePage>
-    )
+		</ActieBasePage>
+	)
 
-    function getMaxAantalFitAanvragenError() {
-        return fitStatus.maxAantalAanvragenBereikt &&
-            <FormErrorComponent
-                text={getString(properties.error.max_aantal)}/>
-    }
+	function getMaxAantalFitAanvragenError() {
+		return fitStatus.maxAantalAanvragenBereikt &&
+			<FormErrorComponent
+				text={getString(properties.error.max_aantal)}/>
+	}
 
 }
 

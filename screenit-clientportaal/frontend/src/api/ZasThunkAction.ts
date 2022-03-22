@@ -27,32 +27,31 @@ import {AxiosResponse} from "axios"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import HttpStatusCode from "../datatypes/HttpStatus"
 import {ResetZasStatusAction, setHuidigeZasStatusAction} from "../actions/CervixDossierAction"
-import {navigateAndShowToast} from "../utils/NavigationUtil"
 import {formatDateText} from "../utils/DateUtil"
+import {showToast} from "../utils/ToastUtil"
 
 export const getHuidigeZasStatus = () => async (dispatch: Dispatch<ResetZasStatusAction>) => {
-    return ScreenitBackend.get("/cervix/zas/status")
-        .then(response => dispatch(setHuidigeZasStatusAction(response.data)))
+	return ScreenitBackend.get("/cervix/zas/status")
+		.then(response => dispatch(setHuidigeZasStatusAction(response.data)))
 }
 
 export const saveZasAanvraag = () => (dispatch: Dispatch) => {
-    const verzendenUitstellen = false
-    return ScreenitBackend.post(`/cervix/zas/aanvragen/${verzendenUitstellen}`)
-        .then(() => {
-            navigateAndShowToast("/cervix", getString(properties.toast.title),
-                getString(properties.toast.description.regulier))
-        })
-        .catch((error: AxiosResponse) => {
-            if (error.status === HttpStatusCode.CONFLICT) {
-                dispatch(createShowToastAction({description: getString(properties.error.zas_request), type: ToastMessageType.ERROR}))
-            }
-        })
+	const verzendenUitstellen = false
+	return ScreenitBackend.post(`/cervix/zas/aanvragen/${verzendenUitstellen}`)
+		.then(() => {
+			showToast(getString(properties.toast.title), getString(properties.toast.description.regulier))
+		})
+		.catch((error: AxiosResponse) => {
+			if (error.status === HttpStatusCode.CONFLICT) {
+				dispatch(createShowToastAction({description: getString(properties.error.zas_request), type: ToastMessageType.ERROR}))
+			}
+		})
 }
 
 export const saveZasAanvraagMetUitstel = (verzendenUitstellen: boolean, uitstellenTotDatum: Date | null) => (dispatch: Dispatch) => {
 	return ScreenitBackend.post(`/cervix/zas/aanvragen/${verzendenUitstellen}`)
 		.then(() => {
-			navigateAndShowToast("/cervix", getString(properties.toast.title),
+			showToast(getString(properties.toast.title),
 				verzendenUitstellen ? getString(properties.toast.description.uitstel, [formatDateText(uitstellenTotDatum)]) :
 					getString(properties.toast.description.regulier))
 		})

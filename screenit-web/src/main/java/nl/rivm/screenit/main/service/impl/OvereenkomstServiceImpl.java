@@ -45,7 +45,7 @@ import nl.rivm.screenit.model.overeenkomsten.AfgeslotenInstellingOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.model.overeenkomsten.Overeenkomst;
 import nl.rivm.screenit.model.overeenkomsten.OvereenkomstType;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
@@ -67,7 +67,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 {
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -123,11 +123,11 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 
 				if (nieuwUploadDocument)
 				{
-					fileService.saveOrUpdateUploadDocument(overeenkomst.getDocument(), FileStoreLocation.COLON_OVEREENKOMST);
+					uploadDocumentService.saveOrUpdate(overeenkomst.getDocument(), FileStoreLocation.COLON_OVEREENKOMST);
 				}
 				else
 				{
-					fileService.updateUploadDocument(overeenkomst.getDocument());
+					uploadDocumentService.update(overeenkomst.getDocument());
 				}
 			}
 			catch (Exception e)
@@ -290,7 +290,7 @@ public class OvereenkomstServiceImpl implements OvereenkomstService
 				gescandDocument.setFile(tempFile);
 				gescandDocument.setActief(Boolean.TRUE);
 
-				fileService.saveOrUpdateUploadDocument(gescandDocument, FileStoreLocation.COLON_OVEREENKOMST);
+				uploadDocumentService.saveOrUpdate(gescandDocument, FileStoreLocation.COLON_OVEREENKOMST);
 			}
 			catch (Exception e)
 			{

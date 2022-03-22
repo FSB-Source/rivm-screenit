@@ -24,6 +24,8 @@ package nl.rivm.screenit.util.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.ScreenITPostgreSQLDialect;
 
 import org.hibernate.Criteria;
@@ -34,15 +36,10 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.function.SQLFunction;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.type.DateType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class DateExpression implements Criterion
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(DateExpression.class);
-
-	private static final long serialVersionUID = 1L;
 
 	private final String propertyName;
 

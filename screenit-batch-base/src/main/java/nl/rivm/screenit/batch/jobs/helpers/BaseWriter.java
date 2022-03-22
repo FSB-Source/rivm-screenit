@@ -24,14 +24,16 @@ package nl.rivm.screenit.batch.jobs.helpers;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
+import nl.rivm.screenit.batch.service.RevisionInformationService;
 import nl.rivm.screenit.model.enums.Level;
+import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.hibernate.HibernateException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -39,17 +41,18 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public abstract class BaseWriter<S extends HibernateObject> implements ItemWriter<Long>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(BaseWriter.class);
-
 	private JobExecution jobExecution;
 
 	private StepExecution stepExecution;
 
 	@Autowired
 	private HibernateService hibernateService;
+
+	@Autowired
+	private RevisionInformationService revisionInformationService;
 
 	public static <E extends Enum> String getEnumKey(String enumKey, E enumConstant)
 	{
@@ -203,5 +206,10 @@ public abstract class BaseWriter<S extends HibernateObject> implements ItemWrite
 	{
 		aantalContextOphogen(key);
 		aantalContextOphogen(enumKey, enumConstant);
+	}
+
+	protected void registerRevisionKenmerk(String context, RevisionKenmerk kenmerk)
+	{
+		revisionInformationService.registerKenmerk(context, kenmerk);
 	}
 }

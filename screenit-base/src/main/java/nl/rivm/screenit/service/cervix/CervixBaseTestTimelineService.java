@@ -22,12 +22,14 @@ package nl.rivm.screenit.service.cervix;
  */
 
 import java.util.Date;
+import java.util.List;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
@@ -38,7 +40,8 @@ public interface CervixBaseTestTimelineService
 
 	CervixBaseTestTimelineService nietAnalyseerbaar(CervixUitnodiging uitnodiging);
 
-	CervixBaseTestTimelineService geanalyseerdOpHpv(CervixUitnodiging uitnodiging, CervixHpvBeoordelingWaarde hpvUitslag, BMHKLaboratorium laboratorium);
+	CervixBaseTestTimelineService geanalyseerdOpHpv(CervixUitnodiging uitnodiging, CervixHpvBeoordelingWaarde hpvUitslag, BMHKLaboratorium laboratorium,
+		List<CervixHpvResultValue> hpvResultValues);
 
 	CervixBaseTestTimelineService beoordeeldDoorCytologie(CervixUitnodiging uitnodiging, CervixCytologieUitslag cytologieUitslag, BMHKLaboratorium laboratorium);
 
@@ -55,6 +58,8 @@ public interface CervixBaseTestTimelineService
 	void nieuweCISHistorie(Client client);
 
 	CervixBaseTestTimelineService orderVerstuurd(CervixUitnodiging uitnodiging);
+
+	void verstuurUitnodiging(CervixScreeningRonde ronde);
 
 	CervixBaseTestTimelineService vervolgonderzoekBrief(CervixScreeningRonde ronde);
 

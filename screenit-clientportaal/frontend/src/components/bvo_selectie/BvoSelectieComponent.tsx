@@ -24,43 +24,34 @@ import BvoCard from "../bvo_card/BvoCard"
 import {Bevolkingsonderzoek} from "../../datatypes/Bevolkingsonderzoek"
 import React from "react"
 import classNames from "classnames"
-import {Geslacht} from "../../datatypes/Geslacht"
 import {useSelector} from "react-redux"
 import {State} from "../../datatypes/State"
-import {navigate} from "../../routes/routes"
+import {useNavigate} from "react-router-dom"
 
 type BvoSelectieComponentProps = {
-    className?: string
+	className?: string
 }
 
 const BvoSelectieComponent = (props: BvoSelectieComponentProps) => {
+	const navigate = useNavigate()
 
-    const persoon = useSelector((state: State) => state.client.persoon)
+	const behoortTotMammaDoelgroep = useSelector((state: State) => state.landingOverzicht.behoortTotMammaDoelgroep)
+	const behoortTotColonDoelgroep = useSelector((state: State) => state.landingOverzicht.behoortTotColonDoelgroep)
+	const behoortTotCervixDoelgroep = useSelector((state: State) => state.landingOverzicht.behoortTotCervixDoelgroep)
 
-    const clientBehoortTotMammaDoelgroep = useSelector((state: State) => state.landingOverzicht.clientBehoortTotMammaDoelgroep)
-    const clientBehoortTotColonDoelgroep = useSelector((state: State) => state.landingOverzicht.clientBehoortTotColonDoelgroep)
-    const clientBehoortTotCervixDoelgroep = useSelector((state: State) => state.landingOverzicht.clientBehoortTotCervixDoelgroep)
-
-    return (
-        <Row className={classNames(styles.bvoSelectie, props.className)}>
-            {persoon.geslacht !== Geslacht.MAN &&
-            <>
-                <Col lg={4}>
-                    <BvoCard clientValtInDoelgroep={clientBehoortTotMammaDoelgroep} bvo={Bevolkingsonderzoek.MAMMA}
-                             onClick={() => navigate("/mamma")}/>
-                </Col>
-                <Col lg={4}>
-                    <BvoCard clientValtInDoelgroep={clientBehoortTotCervixDoelgroep} bvo={Bevolkingsonderzoek.CERVIX}
-                             onClick={() => navigate("/cervix")}/>
-                </Col>
-            </>
-            }
-            <Col lg={4}>
-                <BvoCard clientValtInDoelgroep={clientBehoortTotColonDoelgroep} bvo={Bevolkingsonderzoek.COLON}
-                         onClick={() => navigate("/colon")}/>
-            </Col>
-        </Row>
-    )
+	return (
+		<Row className={classNames(styles.bvoSelectie, props.className)}>
+			<Col lg={4}>
+				<BvoCard bvo={Bevolkingsonderzoek.MAMMA} clickable={behoortTotMammaDoelgroep} onClick={() => navigate("/mamma")}/>
+			</Col>
+			<Col lg={4}>
+				<BvoCard bvo={Bevolkingsonderzoek.CERVIX} clickable={behoortTotCervixDoelgroep} onClick={() => navigate("/cervix")}/>
+			</Col>
+			<Col lg={4}>
+				<BvoCard bvo={Bevolkingsonderzoek.COLON} clickable={behoortTotColonDoelgroep} onClick={() => navigate("/colon")}/>
+			</Col>
+		</Row>
+	)
 
 }
 

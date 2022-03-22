@@ -23,12 +23,9 @@ package nl.rivm.screenit.model.enums;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang.StringUtils;
 
 public enum Bevolkingsonderzoek
 {
@@ -36,9 +33,7 @@ public enum Bevolkingsonderzoek
 
 	CERVIX("Baarmoederhalskanker", "BMHK"),
 
-	MAMMA("Borstkanker", "BK")
-
-	;
+	MAMMA("Borstkanker", "BK");
 
 	private final String naam;
 
@@ -62,32 +57,18 @@ public enum Bevolkingsonderzoek
 
 	public static String getAfkortingen(Bevolkingsonderzoek... onderzoeken)
 	{
-		return getAfkortingen(new ArrayList<Bevolkingsonderzoek>(Arrays.asList(onderzoeken)));
+		return getAfkortingen(new ArrayList<>(Arrays.asList(onderzoeken)));
 	}
 
 	public static String getAfkortingen(List<Bevolkingsonderzoek> onderzoeken)
 	{
 		sort(onderzoeken);
-		String bvoString = "";
-		List<String> bvoAfkortingen = onderzoeken
-			.stream()
-			.map(Bevolkingsonderzoek::getAfkorting)
-			.collect(Collectors.toList());
-		bvoString = StringUtils.join(bvoAfkortingen, ", ");
-		return bvoString;
+		return onderzoeken.stream().map(Bevolkingsonderzoek::getAfkorting).collect(Collectors.joining(", "));
 	}
 
 	public static void sort(List<Bevolkingsonderzoek> onderzoeken)
 	{
-		Collections.sort(onderzoeken, new Comparator<Bevolkingsonderzoek>()
-		{
-			@Override
-			public int compare(Bevolkingsonderzoek o1, Bevolkingsonderzoek o2)
-			{
-				return o1.getNaam().compareTo(o2.getNaam());
-			}
-
-		});
+		onderzoeken.sort(Comparator.comparing(Bevolkingsonderzoek::getNaam));
 	}
 
 	public static boolean heeftAlleBevolkingsonderzoeken(List<Bevolkingsonderzoek> onderzoeken)

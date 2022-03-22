@@ -32,15 +32,19 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
+
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class Locatie extends AbstractReferenceObject
 {
-	private static final long serialVersionUID = 1L;
-
 	@Column(length = 200, nullable = false)
 	private String naam;
 
@@ -71,103 +75,4 @@ public class Locatie extends AbstractReferenceObject
 
 	private Boolean moetVerifierenVoorActivatie = false;
 
-	public Adres getLocatieAdres()
-	{
-		return locatieAdres;
-	}
-
-	public void setLocatieAdres(Adres locatieAdres)
-	{
-		this.locatieAdres = locatieAdres;
-	}
-
-	public String getIban()
-	{
-		return iban;
-	}
-
-	public void setIban(String iban)
-	{
-		this.iban = iban;
-	}
-
-	public String getIbanTenaamstelling()
-	{
-		return ibanTenaamstelling;
-	}
-
-	public void setIbanTenaamstelling(String ibanTenaamstelling)
-	{
-		this.ibanTenaamstelling = ibanTenaamstelling;
-	}
-
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public List<LabformulierAanvraag> getAanvragen()
-	{
-		return aanvragen;
-	}
-
-	public void setAanvragen(List<LabformulierAanvraag> aanvragen)
-	{
-		this.aanvragen = aanvragen;
-	}
-
-	public Huisarts getHuisarts()
-	{
-		return huisarts;
-	}
-
-	public void setHuisarts(Huisarts huisarts)
-	{
-		this.huisarts = huisarts;
-	}
-
-	public String getZorgmailklantnummer()
-	{
-		return zorgmailklantnummer;
-	}
-
-	public void setZorgmailklantnummer(String zorgmailklantnummer)
-	{
-		this.zorgmailklantnummer = zorgmailklantnummer;
-	}
-
-	public CervixLocatieStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(CervixLocatieStatus status)
-	{
-		this.status = status;
-	}
-
-	public String getVerificatieCode()
-	{
-		return verificatieCode;
-	}
-
-	public void setVerificatieCode(String verificatieCode)
-	{
-		this.verificatieCode = verificatieCode;
-	}
-
-	public Boolean getMoetVerifierenVoorActivatie()
-	{
-		return moetVerifierenVoorActivatie;
-	}
-
-	public void setMoetVerifierenVoorActivatie(Boolean moetVerifieren)
-	{
-		this.moetVerifierenVoorActivatie = moetVerifieren;
-	}
 }

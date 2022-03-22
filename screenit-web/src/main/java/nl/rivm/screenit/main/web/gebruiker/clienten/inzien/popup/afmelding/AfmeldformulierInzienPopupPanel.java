@@ -35,6 +35,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.inzien.popup.DocumentVervang
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.DossierStatus;
+import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
@@ -50,8 +51,8 @@ import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -77,16 +78,12 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.envers.query.AuditEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> extends GenericPanel<A>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AfmeldformulierInzienPopupPanel.class);
-
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private DossierService dossierService;
@@ -110,9 +107,9 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 
 	private WebMarkupContainer uploadForm;
 
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
-	public AfmeldformulierInzienPopupPanel(String id, IModel<A> model)
+	protected AfmeldformulierInzienPopupPanel(String id, IModel<A> model)
 	{
 		super(id, model);
 	}
@@ -171,7 +168,7 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 				@Override
 				protected File load()
 				{
-					return fileService.load(document.getObject());
+					return uploadDocumentService.load(document.getObject());
 				}
 
 			}, "Afmeldingsformulier met handtekening." + FilenameUtils.getExtension(document.getObject().getNaam()));
@@ -198,9 +195,10 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 			{
 				if (brief.getBriefType().equals(BriefType.CERVIX_HEROVERWEGERS))
 				{
-					if (brief.getMergedBrieven() != null)
+					MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
+					if (mergedBrieven != null)
 					{
-						return brief.getMergedBrieven().getPrintDatum();
+						return mergedBrieven.getPrintDatum();
 					}
 				}
 			}
@@ -220,11 +218,9 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 
 	private void addButtons()
 	{
+		ClientBrief laatsteBrief = getLaatsteBrief();
 		add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -243,8 +239,7 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = getLaatsteBrief();
-				brief.setTegenhouden(true);
+				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), true);
 				hibernateService.saveOrUpdate(brief);
 
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
@@ -252,22 +247,20 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
-		}.setVisible(
-			magTegenhouden && getLaatsteBrief() != null && !getLaatsteBrief().isTegenhouden() && getLaatsteBrief().getMergedBrieven() == null));
+		}.setVisible(magTegenhouden && laatsteBrief != null && !BriefUtil.isTegengehouden(laatsteBrief) && BriefUtil.getMergedBrieven(laatsteBrief) == null));
 		add(new AjaxLink<Void>("doorvoeren")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = getLaatsteBrief();
-				brief.setTegenhouden(false);
+				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), false);
 				hibernateService.saveOrUpdate(brief);
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
 					brief.getBriefType() + ", was tegengehouden en wordt nu doorgevoerd.", brief.getBriefType().getOnderzoeken());
 				info(getString("info.briefactiveren"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && getLaatsteBrief() != null && getLaatsteBrief().isTegenhouden()));
+		}.setVisible(magTegenhouden && BriefUtil.isTegengehouden(laatsteBrief)));
 
 		document = ModelUtil.sModel(getModelObject().getHandtekeningDocumentAfmelding());
 		add(new AjaxLink<Void>("vervangen")
@@ -334,7 +327,7 @@ public abstract class AfmeldformulierInzienPopupPanel<A extends Afmelding> exten
 			case MEDEWERKER:
 				if (Bevolkingsonderzoek.COLON.equals(afmelding.getBevolkingsonderzoek())
 					&& (ColonAfmeldingReden.ONTERECHT.equals(((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden())
-						|| ((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden() == null))
+					|| ((ColonAfmelding) HibernateHelper.deproxy(afmelding)).getReden() == null))
 				{
 					wijzeAfmelding = "correctieantwoordformulier";
 				}

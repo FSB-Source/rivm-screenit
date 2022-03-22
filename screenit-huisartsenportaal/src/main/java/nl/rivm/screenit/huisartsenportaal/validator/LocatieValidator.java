@@ -31,6 +31,7 @@ import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
 import nl.rivm.screenit.huisartsenportaal.model.Locatie;
 import nl.rivm.screenit.huisartsenportaal.repository.LocatieCriteriaRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.LocatieRepository;
+import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.IBANValidator;
@@ -45,6 +46,9 @@ public class LocatieValidator extends BaseValidator<LocatieDto>
 {
 	@Autowired
 	private LocatieRepository locatieRepository;
+
+	@Autowired
+	private LocatieService locatieService;
 
 	@Autowired
 	private LocatieCriteriaRepository locatieCriteriaRepository;
@@ -74,11 +78,18 @@ public class LocatieValidator extends BaseValidator<LocatieDto>
 		}
 		if (checkOfDeLaatsteLocatieWordtVerwijderd(dto))
 		{
-			errors.reject("error.locatie.last", "U wilt de laatste locatie verwijderen. Dat kan alleen als er nog een locatie aanwezig is. Voeg eerst een nieuwe locatie toe.");
+			errors.reject("error.locatie.last", "U kunt deze locatie niet verwijderen. Er moet één locatie actief zijn. U kunt de gegevens van deze locatie wel wijzigen.");
 		}
 		if (!isIbanValide(dto))
 		{
 			errors.reject("error.iban.invalide", "Het IBAN rekeningnummer is niet correct.");
+		}
+		var arts = getIngelogdeHuisarts();
+		var allLocatiesFromHuisartsInDto = locatieService.getAllLocatiesFromHuisartsInDto(arts);
+		if (dto.getHuisartsportaalId() == null
+			&& !allLocatiesFromHuisartsInDto.isEmpty())
+		{
+			errors.reject("error.locatie.aantal", "Het is niet toegestaan om meer dan 1 locatie toe te voegen");
 		}
 	}
 
@@ -135,4 +146,5 @@ public class LocatieValidator extends BaseValidator<LocatieDto>
 		}
 		return false;
 	}
+
 }

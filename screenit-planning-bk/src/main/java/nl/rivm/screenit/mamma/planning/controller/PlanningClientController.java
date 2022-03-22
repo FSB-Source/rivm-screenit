@@ -32,7 +32,6 @@ import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -42,8 +41,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/" + PlanningRestConstants.C_CLIENT)
 public class PlanningClientController
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
+
+	public PlanningClientController(HibernateService hibernateService)
+	{
+		this.hibernateService = hibernateService;
+	}
 
 	@RequestMapping(method = RequestMethod.PUT)
 	public void put(@RequestBody PlanningVerzetClientenDto verzetClientenDto)

@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BagAdres;
@@ -59,11 +61,12 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.repository.ClientRepository;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.AdresUtil;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -71,19 +74,16 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ClientServiceImpl implements ClientService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ClientServiceImpl.class);
-
 	@Autowired
 	private ClientRepository clientRepository;
 
@@ -97,7 +97,7 @@ public class ClientServiceImpl implements ClientService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -221,7 +221,7 @@ public class ClientServiceImpl implements ClientService
 		{
 			if (laatsteUitnodiging == null || laatsteUitnodiging.getId() < uitnodiging.getId())
 			{
-				if (uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE && uitnodiging.getBrief().isGegenereerd()
+				if (uitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE && BriefUtil.isGegenereerd(uitnodiging.getBrief())
 					|| inclusiefZas && uitnodiging.getMonsterType() == CervixMonsterType.ZAS && uitnodiging.getMonster() != null)
 				{
 					laatsteUitnodiging = uitnodiging;
@@ -250,7 +250,7 @@ public class ClientServiceImpl implements ClientService
 		List<UploadDocument> documents = client.getDocuments();
 		try
 		{
-			fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.CLIENT_DOCUMENTEN, client.getId());
+			uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.CLIENT_DOCUMENTEN, client.getId());
 			documents.add(uploadDocument);
 			client.setDocuments(documents);
 			hibernateService.saveOrUpdate(client);
@@ -265,7 +265,7 @@ public class ClientServiceImpl implements ClientService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void deleteDocumentForClient(UploadDocument document, Client client)
 	{
-		fileService.deleteDocumentFromList(document, client.getDocuments());
+		uploadDocumentService.deleteDocumentFromList(document, client.getDocuments());
 	}
 
 	@Override
@@ -475,8 +475,8 @@ public class ClientServiceImpl implements ClientService
 					boolean kloptIngevoerdePostcodeEnHuisNr = zoekAdres == null
 						|| zoekAdres.getPostcode() == null && zoekAdres.getHuisnummer() == null
 						|| zoekAdres.getPostcode() != null && zoekAdres.getHuisnummer() != null
-							&& zoekAdres.getPostcode().equals(briefPersoon.getGbaAdres().getPostcode())
-							&& zoekAdres.getHuisnummer().equals(briefPersoon.getGbaAdres().getHuisnummer());
+						&& zoekAdres.getPostcode().equals(briefPersoon.getGbaAdres().getPostcode())
+						&& zoekAdres.getHuisnummer().equals(briefPersoon.getGbaAdres().getHuisnummer());
 
 					if (kloptIngevoerdeGeboortedatum && kloptIngevoerdeBsn && kloptIngevoerdePostcodeEnHuisNr)
 					{

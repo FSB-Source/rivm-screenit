@@ -32,36 +32,35 @@ import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNa
 import properties from "./LogoutPage.json"
 import {useKeycloak} from "@react-keycloak/web"
 import {useDispatch, useSelector} from "react-redux"
-import {logout} from "../../utils/LogoutUtil"
 import {State} from "../../datatypes/State"
+import {setLoggingOutAction} from "../../actions/AuthenticatieAction"
 
 const LogoutPage = () => {
+	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const dispatch = useDispatch()
+	const authenticatie = useSelector((state: State) => state.authenticatie)
 
-    const {keycloak} = useKeycloak()
-    const dispatch = useDispatch()
-    const authenticatie = useSelector((state: State) => state.authenticatie)
+	useEffect(() => {
+		if (keycloakInitialized && keycloak?.authenticated && !authenticatie.isLoggingOut) {
+			dispatch(setLoggingOutAction(true))
+		}
+	}, [authenticatie, keycloakInitialized, keycloak, dispatch])
 
-    useEffect(() => {
-        if (!authenticatie.isLoggingOut) {
-            logout(keycloak, dispatch, false)
-        }
-    }, [authenticatie, keycloak, dispatch])
+	useRedirectAfterSeconds(getBevolkingsonderzoekNederlandUrl(), 5)
 
-    useRedirectAfterSeconds(getBevolkingsonderzoekNederlandUrl(), 5)
-
-    return <div className={classNames(authenticationStyle.style, styles.style)}>
-        <Row>
-            <Col sm={8}>
-                <h1>{getString(properties.page.title)}</h1>
-                <div className={authenticationStyle.introTextContainer}>
-                    <SpanWithHtml value={getString(properties.page.body, [getBevolkingsonderzoekNederlandUrl(), getBevolkingsonderzoekNederlandUrlNaam()])}/>
-                </div>
-            </Col>
-            <Col sm={4}>
-                <ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
-            </Col>
-        </Row>
-    </div>
+	return <div className={classNames(authenticationStyle.style, styles.style)}>
+		<Row>
+			<Col sm={8}>
+				<h1>{getString(properties.page.title)}</h1>
+				<div className={authenticationStyle.introTextContainer}>
+					<SpanWithHtml value={getString(properties.page.body, [getBevolkingsonderzoekNederlandUrl(), getBevolkingsonderzoekNederlandUrlNaam()])}/>
+				</div>
+			</Col>
+			<Col sm={4}>
+				<ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
+			</Col>
+		</Row>
+	</div>
 
 }
 

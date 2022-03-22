@@ -2,12 +2,12 @@
 @import "src/scss/media-mixins";
 
 .content {
-  padding-bottom: 30px;
+	padding-bottom: 30px;
 
-  .paspoort {
+	.paspoort {
 		min-width: 275px;
 		max-width: 320px;
-		height: 240px;
+		min-height: 240px;
 		border-radius: 10px;
 		background-color: $grijs-600;
 		padding: 1rem;
@@ -36,25 +36,25 @@
 			}
 		}
 
-    span {
-      width: 100%;
-      display: block;
-      font-size: 0.9rem;
+		span {
+			width: 100%;
+			display: block;
+			font-size: 0.9rem;
 
-      &.lichtGrijs {
-        color: $grijs-900;
-      }
+			&.lichtGrijs {
+				color: $grijs-900;
+			}
 
-    }
+		}
 
-  }
+	}
 
-  .topTakenContainer {
-    margin-top: 50px;
-    margin-bottom: 50px;
-  }
+	.topTakenContainer {
+		margin-top: 50px;
+		margin-bottom: 50px;
+	}
 
-  .topTaakSelectie {
+	.topTaakSelectie {
 		margin-top: 70px;
 		margin-bottom: 50px;
 
@@ -64,7 +64,7 @@
 		}
 	}
 
-  .bvoSelectie {
+	.bvoSelectie {
 		margin-top: 140px;
 		margin-bottom: 40px;
 

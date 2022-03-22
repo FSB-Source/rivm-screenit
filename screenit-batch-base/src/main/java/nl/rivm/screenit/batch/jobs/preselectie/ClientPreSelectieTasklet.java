@@ -22,6 +22,9 @@ package nl.rivm.screenit.batch.jobs.preselectie;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.ProjectService;
 
 import org.slf4j.Logger;
@@ -32,6 +35,8 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Getter
+@Setter
 public class ClientPreSelectieTasklet implements Tasklet
 {
 
@@ -40,10 +45,12 @@ public class ClientPreSelectieTasklet implements Tasklet
 	@Autowired
 	private ProjectService projectService;
 
+	private Bevolkingsonderzoek bvo;
+
 	@Override
 	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception
 	{
-		projectService.updateWachtOpStartProject();
+		projectService.updateWachtOpStartProject(getBvo());
 		return RepeatStatus.FINISHED;
 	}
 

@@ -62,6 +62,7 @@ import nl.rivm.screenit.service.cervix.CervixMailService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.impl.CervixOmissiesLabproces;
 import nl.rivm.screenit.service.cervix.impl.CervixVervolg;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -117,10 +118,12 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 	protected void write(CervixMonster monster) throws Exception
 	{
 		monster = (CervixMonster) HibernateHelper.deproxy(monster);
-		CervixVervolg vervolg = null;
+		CervixVervolg vervolg;
 		try
 		{
-			vervolg = vervolgService.bepaalVervolg(monster);
+			String startdatumAanleveringGenotyperingString = (String) getJobExecution().getExecutionContext()
+				.get(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
+			vervolg = vervolgService.bepaalVervolg(monster, DateUtil.parseLocalDateForPattern(startdatumAanleveringGenotyperingString, "yyyyMMdd"));
 		}
 		catch (IllegalStateException | NullPointerException e)
 		{
@@ -132,6 +135,16 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 					+ monster.getMonsterId(),
 				e);
 			return;
+		}
+
+		if (monster.getOntvangstScreeningRonde() != null
+			&& monster.getOntvangstScreeningRonde().getControleUitstrijkjeDatum() == null
+			&& monster.getOntvangstdatum() != null
+			&& vervolg.getIntervalControleUitstrijkje() != null)
+		{
+			monster.getOntvangstScreeningRonde()
+				.setControleUitstrijkjeDatum(DateUtil.toLocalDate(monster.getOntvangstdatum())
+					.plusMonths(vervolg.getIntervalControleUitstrijkje()));
 		}
 
 		try
@@ -334,7 +347,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 		if (afgemeldNaOntvangstMonster(monster))
 		{
-			brief.setTegenhouden(true);
+			hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 		}
 
 		hibernateService.saveOrUpdate(monster);

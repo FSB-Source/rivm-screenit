@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.markup.html.basic.Label;
@@ -49,9 +49,9 @@ import com.aspose.words.Document;
 public class ProjectBriefHerinneringTemplatePage extends ProjectTemplateTestenBasePage
 {
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
-	private IModel<ProjectBriefActie> briefactieModel;
+	private final IModel<ProjectBriefActie> briefactieModel;
 
 	public ProjectBriefHerinneringTemplatePage(IModel<Project> model, IModel<ProjectBriefActie> briefactieModel)
 	{
@@ -117,7 +117,7 @@ public class ProjectBriefHerinneringTemplatePage extends ProjectTemplateTestenBa
 	@Override
 	protected List<ScreeningOrganisatie> getRegios()
 	{
-		List<ScreeningOrganisatie> soLijst = new ArrayList<ScreeningOrganisatie>();
+		List<ScreeningOrganisatie> soLijst = new ArrayList<>();
 		if (getHerinneringsActie().getProject() != null && getHerinneringsActie().getProject().getScreeningOrganisaties() != null)
 		{
 			for (Instelling instelling : getHerinneringsActie().getProject().getScreeningOrganisaties())
@@ -150,6 +150,6 @@ public class ProjectBriefHerinneringTemplatePage extends ProjectTemplateTestenBa
 	@Override
 	protected File getBriefTemplateFile()
 	{
-		return fileService.load(getHerinneringsActie().getDocument());
+		return uploadDocumentService.load(getHerinneringsActie().getDocument());
 	}
 }

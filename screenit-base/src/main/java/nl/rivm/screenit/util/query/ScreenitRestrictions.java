@@ -47,11 +47,6 @@ public class ScreenitRestrictions
 		return alias;
 	}
 
-	public static void addExcludeProjectClientenMetProjectStatusNogTeStarten(Criteria crit)
-	{
-		crit.add(Restrictions.sqlRestriction("{alias}.wacht_op_start_project = false"));
-	}
-
 	public static Conjunction getLeeftijdsgrensRestrictions(Integer minLeeftijd, Integer maxLeeftijd, LocalDate pijlDatum)
 	{
 		return getLeeftijdsgrensRestrictions(minLeeftijd, maxLeeftijd, null, pijlDatum);

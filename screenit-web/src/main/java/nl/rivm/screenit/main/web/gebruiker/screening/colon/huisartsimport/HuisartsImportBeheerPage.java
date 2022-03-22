@@ -40,9 +40,9 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixBulkHuisartsenService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -73,9 +73,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 		Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
 public class HuisartsImportBeheerPage extends ColonScreeningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ZorgmailImportPoolExecuterService importExecService;
 
@@ -92,7 +89,7 @@ public class HuisartsImportBeheerPage extends ColonScreeningBasePage
 	private AutorisatieService autorisatieService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private BerichtToBatchService berichtToBatchService;
@@ -129,13 +126,10 @@ public class HuisartsImportBeheerPage extends ColonScreeningBasePage
 		uploadForm.add(ediAdresOverschrijven);
 		uploadForm.add(new IndicatingAjaxSubmitLink("importeer")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				if (fileUploadModel != null && CollectionUtils.isNotEmpty(fileUploadModel.getObject()))
+				if (CollectionUtils.isNotEmpty(fileUploadModel.getObject()))
 				{
 					try
 					{
@@ -196,7 +190,7 @@ public class HuisartsImportBeheerPage extends ColonScreeningBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				if (cervixBulkUploadModel != null && CollectionUtils.isNotEmpty(cervixBulkUploadModel.getObject()))
+				if (CollectionUtils.isNotEmpty(cervixBulkUploadModel.getObject()))
 				{
 					try
 					{

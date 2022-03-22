@@ -39,4 +39,6 @@ public interface CervixMonsterDao
 	CervixZas getZas(String monsterId);
 
 	Long getNextMonsterId();
+
+	boolean isVerwijderdMonster(String monsterId);
 }

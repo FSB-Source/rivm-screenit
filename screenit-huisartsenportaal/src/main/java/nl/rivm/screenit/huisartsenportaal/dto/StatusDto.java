@@ -21,9 +21,14 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
+@Getter
+@Setter
 public class StatusDto
 {
 
@@ -33,33 +38,4 @@ public class StatusDto
 
 	private String databaseStatus;
 
-	public String getDatabaseStatus()
-	{
-		return databaseStatus;
-	}
-
-	public void setDatabaseStatus(String databaseStatus)
-	{
-		this.databaseStatus = databaseStatus;
-	}
-
-	public String getEnvironment()
-	{
-		return environment;
-	}
-
-	public void setEnvironment(String environment)
-	{
-		this.environment = environment;
-	}
-
-	public String getActiveMQStatus()
-	{
-		return activeMQStatus;
-	}
-
-	public void setActiveMQStatus(String activeMQStatus)
-	{
-		this.activeMQStatus = activeMQStatus;
-	}
 }

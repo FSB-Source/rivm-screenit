@@ -19,8 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {useEffect} from "react"
-import {Redirect} from "react-router-dom"
+import {useEffect, useState} from "react"
 import {useKeycloak} from "@react-keycloak/web"
 import {useDispatch, useSelector} from "react-redux"
 import {Col, Row} from "react-bootstrap"
@@ -29,38 +28,36 @@ import {setLoggingInAction} from "../../actions/AuthenticatieAction"
 import properties from "./AutoLoginPage.json"
 import {getString} from "../../utils/TekstPropertyUtil"
 import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNaam} from "../../utils/UrlUtil"
-import {procesLoginAndLogBrowserInfo} from "../../utils/LoginUtil"
+import {Navigate} from "react-router-dom"
 
 const AutoLoginPage = () => {
-    const {initialized: keycloakInitialized, keycloak} = useKeycloak()
-    const dispatch = useDispatch()
-    const authenticatie = useSelector((state: State) => state.authenticatie)
+	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const dispatch = useDispatch()
+	const authenticatie = useSelector((state: State) => state.authenticatie)
+	const [loginTimeout, setLoginTimeout] = useState<NodeJS.Timeout | undefined>(undefined)
 
-    useEffect(() => {
-        procesLoginAndLogBrowserInfo(keycloakInitialized, keycloak, dispatch, authenticatie)
-    }, [keycloakInitialized, keycloak, dispatch, authenticatie])
+	useEffect(() => {
+		if (keycloakInitialized && !keycloak.authenticated) {
+			setLoginTimeout(setTimeout(() => {
+				dispatch(setLoggingInAction(true))
+			}, 3000))
+		}
+	}, [keycloakInitialized, keycloak, dispatch])
 
-    useEffect(() => {
-        if (keycloakInitialized) {
-            dispatch(setLoggingInAction(true))
-            setTimeout(() => {
-                keycloak.login()
-            }, 3000)
-        }
-    }, [keycloakInitialized, keycloak, dispatch])
-
-    if (keycloak?.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
-        return <Redirect to={"/"}/>
-    }
-    return (
-        <div>
-            <Row>
-                <Col sm={12}>
-                    {getString(properties.auto)} <a href={getBevolkingsonderzoekNederlandUrl()}><span>{getBevolkingsonderzoekNederlandUrlNaam()}</span></a>
-                </Col>
-            </Row>
-        </div>
-    )
+	if (keycloak?.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
+		loginTimeout && clearTimeout(loginTimeout)
+		return <Navigate replace to={"/"}/>
+	} else {
+		return (
+			<div>
+				<Row>
+					<Col sm={12}>
+						{getString(properties.auto)} <a href={getBevolkingsonderzoekNederlandUrl()}><span>{getBevolkingsonderzoekNederlandUrlNaam()}</span></a>
+					</Col>
+				</Row>
+			</div>
+		)
+	}
 }
 
 export default AutoLoginPage

@@ -34,25 +34,24 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public final class ZipUtil
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ZipUtil.class);
-
 	public static Set<File> maakZips(List<UploadDocument> uploadDocumenten, String baseZipNaam, long maxKiloBytesZip) throws IOException
 	{
-		FileService fileService = SpringBeanProvider.getInstance().getBean(FileService.class);
+		UploadDocumentService uploadDocumentService = SpringBeanProvider.getInstance().getBean(UploadDocumentService.class);
 		Set<File> zips = new LinkedHashSet<>();
 		int zipNummer = 0;
 		File zipFile = null;
@@ -61,7 +60,7 @@ public final class ZipUtil
 
 		for (UploadDocument document : uploadDocumenten)
 		{
-			File fileToZip = fileService.load(document);
+			File fileToZip = uploadDocumentService.load(document);
 			long zipKiloBytes = zipFile == null ? 0 : (zipFile.length() + fileToZip.length()) / 1024;
 
 			if (zipNummer == 0 || zipKiloBytes >= (maxKiloBytesZip))

@@ -49,7 +49,6 @@ import org.springframework.core.annotation.Order;
 		"classpath:applicationContext-hibernate-base.xml",
 		"classpath:applicationContext-hibernate-batch-base.xml",
 		"classpath:applicationContext-preference-module.xml",
-		"classpath:applicationContext-documentupload.xml",
 
 		"classpath:applicationContext-jndi-batch.xml"
 	})

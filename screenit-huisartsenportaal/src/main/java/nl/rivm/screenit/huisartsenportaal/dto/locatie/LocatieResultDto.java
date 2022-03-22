@@ -24,32 +24,18 @@ package nl.rivm.screenit.huisartsenportaal.dto.locatie;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
 
+@Getter
+@Setter
 public class LocatieResultDto
 {
 
 	private long aantalLocaties;
 
-	private List<LocatieDto> locaties = new ArrayList<LocatieDto>();
+	private List<LocatieDto> locaties = new ArrayList<>();
 
-	public long getAantalLocaties()
-	{
-		return aantalLocaties;
-	}
-
-	public void setAantalLocaties(long aantalLocaties)
-	{
-		this.aantalLocaties = aantalLocaties;
-	}
-
-	public List<LocatieDto> getLocaties()
-	{
-		return locaties;
-	}
-
-	public void setLocaties(List<LocatieDto> locaties)
-	{
-		this.locaties = locaties;
-	}
 }

@@ -63,7 +63,7 @@ public class MammaUitstelPanel extends AbstractClientContactActiePanel<MammaUits
 	@SpringBean
 	private MammaBaseUitstelService baseUitstelService;
 
-	private IModel<Boolean> briefAanmaken = Model.of(false);
+	private IModel<Boolean> briefAanmaken = Model.of(true);
 
 	private IModel<Boolean> clientContact = Model.of(false);
 

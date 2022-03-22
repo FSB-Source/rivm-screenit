@@ -44,8 +44,8 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -74,7 +74,7 @@ import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>, B extends ClientBrief<?, ?, ?>> extends GenericPanel<A>
 {
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private DossierService dossierService;
@@ -103,7 +103,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 
 	private WebMarkupContainer uploadForm;
 
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
 	protected HeraanmeldingInzienPopupPanel(String id, IModel<A> model)
 	{
@@ -142,7 +142,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 				@Override
 				protected File load()
 				{
-					return fileService.load(uploadDocumentModel.getObject());
+					return uploadDocumentService.load(uploadDocumentModel.getObject());
 				}
 
 			}, "Heraanmeldformulier met handtekening." + FilenameUtils.getExtension(uploadDocumentModel.getObject().getNaam())));
@@ -160,6 +160,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 
 	private void addButtons()
 	{
+		ClientBrief laatsteBrief = getLaatsteBrief();
 		add(new AjaxLink<Void>("nogmaalsVersturen")
 		{
 			private static final long serialVersionUID = 1L;
@@ -177,13 +178,10 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 		}.setVisible(DossierStatus.ACTIEF == getModelObject().getDossier().getStatus()));
 		add(new AjaxLink<Void>("tegenhouden")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = getLaatsteBrief();
-				brief.setTegenhouden(true);
+				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), true);
 				hibernateService.saveOrUpdate(brief);
 
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
@@ -191,27 +189,22 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
-		}.setVisible(Actie.AANPASSEN.equals(actie) && getLaatsteBrief() != null && !getLaatsteBrief().isTegenhouden() && getLaatsteBrief().getMergedBrieven() == null));
+		}.setVisible(Actie.AANPASSEN.equals(actie) && laatsteBrief != null && !BriefUtil.isTegengehouden(laatsteBrief) && BriefUtil.getMergedBrieven(laatsteBrief) == null));
 		add(new AjaxLink<Void>("doorvoeren")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = getLaatsteBrief();
-				brief.setTegenhouden(false);
+				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), false);
 				hibernateService.saveOrUpdate(brief);
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
 					brief.getBriefType() + ", was tegengehouden en wordt nu doorgevoerd.", brief.getBriefType().getOnderzoeken());
 				info(getString("info.briefactiveren"));
 				close(target);
 			}
-		}.setVisible(Actie.AANPASSEN == actie && getLaatsteBrief() != null && getLaatsteBrief().isTegenhouden()));
+		}.setVisible(Actie.AANPASSEN == actie && BriefUtil.isTegengehouden(laatsteBrief)));
 		add(new AjaxLink<Void>("vervangen")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

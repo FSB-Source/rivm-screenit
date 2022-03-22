@@ -50,17 +50,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.output.TeeOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.output.TeeOutputStream;
+
+@Slf4j
 public class PlanningControllerLoggingFilter implements Filter
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningControllerLoggingFilter.class);
-
 	@Override
-	public void init(FilterConfig filterConfig) throws ServletException
+	public void init(FilterConfig filterConfig)
 	{
 	}
 
@@ -79,16 +78,18 @@ public class PlanningControllerLoggingFilter implements Filter
 
 			try
 			{
-				LOG.debug("Start request: Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getPathInfo() + "/" + requestMap + "|Request:"
+				LOG.debug("Start request: Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getServletPath() + "/" + requestMap + "|Request:"
 					+ bufferedReqest.getRequestBody());
 				chain.doFilter(bufferedReqest, bufferedResponse);
-				LOG.debug("Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getPathInfo() + "/" + requestMap + "|Request:" + bufferedReqest.getRequestBody()
-					+ "|Response: " + bufferedResponse.getContent() + "|Status:" + bufferedResponse.getStatus() + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
+				LOG.debug(
+					"Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getServletPath() + "/" + requestMap + "|Request:" + bufferedReqest.getRequestBody()
+						+ "|Response: " + bufferedResponse.getContent() + "|Status:" + bufferedResponse.getStatus() + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
 			}
 			catch (Exception e)
 			{
-				LOG.debug("Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getPathInfo() + "/" + requestMap + "|Request:" + bufferedReqest.getRequestBody()
-					+ "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
+				LOG.debug(
+					"Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getServletPath() + "/" + requestMap + "|Request:" + bufferedReqest.getRequestBody()
+						+ "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
 				LOG.error("Error in request: ", e);
 				throw e;
 			}
@@ -97,6 +98,11 @@ public class PlanningControllerLoggingFilter implements Filter
 		{
 			chain.doFilter(request, response);
 		}
+	}
+
+	@Override
+	public void destroy()
+	{
 	}
 
 	private Map<String, String> getTypesafeRequestMap(HttpServletRequest request)
@@ -110,11 +116,6 @@ public class PlanningControllerLoggingFilter implements Filter
 			typesafeRequestMap.put(requestParamName, requestParamValue);
 		}
 		return typesafeRequestMap;
-	}
-
-	@Override
-	public void destroy()
-	{
 	}
 
 	private static final class BufferedRequestWrapper extends HttpServletRequestWrapper
@@ -174,17 +175,11 @@ public class PlanningControllerLoggingFilter implements Filter
 	private static final class BufferedServletInputStream extends ServletInputStream
 	{
 
-		private ByteArrayInputStream bais;
+		private final ByteArrayInputStream bais;
 
 		public BufferedServletInputStream(ByteArrayInputStream bais)
 		{
 			this.bais = bais;
-		}
-
-		@Override
-		public int available()
-		{
-			return this.bais.available();
 		}
 
 		@Override
@@ -197,6 +192,12 @@ public class PlanningControllerLoggingFilter implements Filter
 		public int read(byte[] buf, int off, int len)
 		{
 			return this.bais.read(buf, off, len);
+		}
+
+		@Override
+		public int available()
+		{
+			return this.bais.available();
 		}
 
 		@Override
@@ -219,7 +220,7 @@ public class PlanningControllerLoggingFilter implements Filter
 
 	}
 
-	public class TeeServletOutputStream extends ServletOutputStream
+	public static class TeeServletOutputStream extends ServletOutputStream
 	{
 
 		private final TeeOutputStream targetStream;
@@ -262,7 +263,7 @@ public class PlanningControllerLoggingFilter implements Filter
 		}
 	}
 
-	public class BufferedResponseWrapper implements HttpServletResponse
+	public static class BufferedResponseWrapper implements HttpServletResponse
 	{
 
 		HttpServletResponse original;
@@ -286,9 +287,15 @@ public class PlanningControllerLoggingFilter implements Filter
 		}
 
 		@Override
-		public PrintWriter getWriter() throws IOException
+		public String getCharacterEncoding()
 		{
-			return original.getWriter();
+			return original.getCharacterEncoding();
+		}
+
+		@Override
+		public String getContentType()
+		{
+			return original.getContentType();
 		}
 
 		@Override
@@ -304,15 +311,15 @@ public class PlanningControllerLoggingFilter implements Filter
 		}
 
 		@Override
-		public String getCharacterEncoding()
+		public PrintWriter getWriter() throws IOException
 		{
-			return original.getCharacterEncoding();
+			return original.getWriter();
 		}
 
 		@Override
-		public String getContentType()
+		public void setContentType(String type)
 		{
-			return original.getContentType();
+			original.setContentType(type);
 		}
 
 		@Override
@@ -328,57 +335,9 @@ public class PlanningControllerLoggingFilter implements Filter
 		}
 
 		@Override
-		public void setContentType(String type)
+		public void setContentLengthLong(long l)
 		{
-			original.setContentType(type);
-		}
-
-		@Override
-		public void setBufferSize(int size)
-		{
-			original.setBufferSize(size);
-		}
-
-		@Override
-		public int getBufferSize()
-		{
-			return original.getBufferSize();
-		}
-
-		@Override
-		public void flushBuffer() throws IOException
-		{
-			tee.flush();
-		}
-
-		@Override
-		public void resetBuffer()
-		{
-			original.resetBuffer();
-		}
-
-		@Override
-		public boolean isCommitted()
-		{
-			return original.isCommitted();
-		}
-
-		@Override
-		public void reset()
-		{
-			original.reset();
-		}
-
-		@Override
-		public void setLocale(Locale loc)
-		{
-			original.setLocale(loc);
-		}
-
-		@Override
-		public Locale getLocale()
-		{
-			return original.getLocale();
+			original.setContentLengthLong(l);
 		}
 
 		@Override
@@ -474,6 +433,54 @@ public class PlanningControllerLoggingFilter implements Filter
 		}
 
 		@Override
+		public void setBufferSize(int size)
+		{
+			original.setBufferSize(size);
+		}
+
+		@Override
+		public int getBufferSize()
+		{
+			return original.getBufferSize();
+		}
+
+		@Override
+		public void flushBuffer() throws IOException
+		{
+			tee.flush();
+		}
+
+		@Override
+		public void resetBuffer()
+		{
+			original.resetBuffer();
+		}
+
+		@Override
+		public boolean isCommitted()
+		{
+			return original.isCommitted();
+		}
+
+		@Override
+		public void reset()
+		{
+			original.reset();
+		}
+
+		@Override
+		public void setLocale(Locale loc)
+		{
+			original.setLocale(loc);
+		}
+
+		@Override
+		public Locale getLocale()
+		{
+			return original.getLocale();
+		}
+
+		@Override
 		public void setStatus(int sc)
 		{
 			original.setStatus(sc);
@@ -484,12 +491,6 @@ public class PlanningControllerLoggingFilter implements Filter
 		public void setStatus(int sc, String sm)
 		{
 			original.setStatus(sc, sm);
-		}
-
-		@Override
-		public void setContentLengthLong(long l)
-		{
-			original.setContentLengthLong(l);
 		}
 
 		@Override

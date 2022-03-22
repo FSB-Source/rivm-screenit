@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.service.mamma;
 import java.io.IOException;
 import java.util.List;
 
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -31,7 +32,6 @@ import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.topicuszorg.organisatie.model.Organisatie;
 
 public interface MammaUitwisselportaalService
 {
@@ -53,4 +53,6 @@ public interface MammaUitwisselportaalService
 	MammaFollowUpRadiologieVerslag getFollowUpRadiologieVerslag(MammaScreeningRonde screeningRonde, InstellingGebruiker loggedInInstellingGebruiker);
 
 	Instelling getLaatstGedownloadDoorInstelling(MammaDossier dossier);
+
+	List<MammaScreeningRonde> beschikbareRondesVoorDownload(Client client);
 }

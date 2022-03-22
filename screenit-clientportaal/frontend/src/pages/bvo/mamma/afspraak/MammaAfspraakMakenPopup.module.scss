@@ -49,6 +49,10 @@
 		label {
 			@include center-in-div-vertically(50%);
 		}
+
+		&.hide {
+			display: none;
+		}
 	}
 
 	button, a {

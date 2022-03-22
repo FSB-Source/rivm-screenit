@@ -23,23 +23,15 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener;
-import nl.rivm.screenit.model.Dossier;
-import nl.rivm.screenit.model.ScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaAfmelding;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,19 +52,20 @@ public abstract class MammaBeeldenVerwijderenWriter<E extends HibernateObject> e
 
     protected void verwijderenBeeldenVanScreeningRonde(MammaScreeningRonde screeningRonde)
     {
-        LOG.info("gevonden ronde: {}", screeningRonde.getId());
-        aantalContextOphogen(MammaIlmJobListener.KEY_BEELDEN_VERWIJDERD_AANTAL);
-        berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE, MammaHL7BerichtType.IMS_ORM_ILM);
-        screeningRonde.getUitnodigingen()
-                .forEach(uitnodiging -> uitnodiging.getAfspraken()
-                        .forEach(afspraak -> {
-                            if (afspraak.getOnderzoek() != null && afspraak.getOnderzoek().getMammografie() != null)
-                            {
-                                MammaMammografie mammografie = afspraak.getOnderzoek().getMammografie();
-                                mammografie.setIlmStatus(MammaMammografieIlmStatus.TE_VERWIJDEREN);
-                                mammografie.setIlmStatusDatum(currentDateSupplier.getDate());
-                                hibernateService.saveOrUpdate(mammografie);
-                            }
+		LOG.info("gevonden ronde: {}", screeningRonde.getId());
+		aantalContextOphogen(MammaIlmJobListener.KEY_BEELDEN_VERWIJDERD_AANTAL);
+		berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE);
+		screeningRonde.getUitnodigingen()
+			.forEach(uitnodiging -> uitnodiging.getAfspraken()
+				.forEach(afspraak ->
+				{
+					if (afspraak.getOnderzoek() != null && afspraak.getOnderzoek().getMammografie() != null)
+					{
+						MammaMammografie mammografie = afspraak.getOnderzoek().getMammografie();
+						mammografie.setIlmStatus(MammaMammografieIlmStatus.TE_VERWIJDEREN);
+						mammografie.setIlmStatusDatum(currentDateSupplier.getDate());
+						hibernateService.saveOrUpdate(mammografie);
+					}
                         }));
     }
 

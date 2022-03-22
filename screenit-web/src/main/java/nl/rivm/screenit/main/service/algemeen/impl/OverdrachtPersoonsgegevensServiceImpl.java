@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixRondeDao;
 import nl.rivm.screenit.main.service.algemeen.OverdrachtPersoonsgegevensService;
@@ -89,10 +91,10 @@ import nl.rivm.screenit.model.verslag.Quantity;
 import nl.rivm.screenit.model.verslag.VerslagContent;
 import nl.rivm.screenit.model.verslag.VraagElement;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.RondeNummerService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseLaesieService;
 import nl.rivm.screenit.util.AdresUtil;
@@ -116,8 +118,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.support.PropertyComparator;
 import org.springframework.stereotype.Service;
@@ -140,12 +140,11 @@ import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoonsgegevensService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(OverdrachtPersoonsgegevensServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -159,7 +158,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 	private RondeNummerService rondeNummerService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -199,7 +198,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 
 	private void vervangGetekendeFormulier(OverdrachtPersoonsgegevens overdracht, UploadDocument nieuwDocument, Account account) throws IOException
 	{
-		fileService.delete(overdracht.getOntvangenAanvraagbrief(), true);
+		uploadDocumentService.delete(overdracht.getOntvangenAanvraagbrief(), true);
 		overdracht.setOntvangenAanvraagbrief(nieuwDocument);
 		saveOrUpdateGetekendFormulier(overdracht, nieuwDocument);
 		logService.logGebeurtenis(LogGebeurtenis.VERVANGEN_DOCUMENT, account, overdracht.getClient(), "Formulier inzage/overdracht persoonsgegevens is vervangen.");
@@ -216,7 +215,7 @@ public class OverdrachtPersoonsgegevensServiceImpl implements OverdrachtPersoons
 
 	private void saveOrUpdateGetekendFormulier(OverdrachtPersoonsgegevens overdracht, UploadDocument uploadDocument) throws IOException
 	{
-		fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.OVERDRACHT_PERSOONSGEVENS, overdracht.getClient().getId());
+		uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.OVERDRACHT_PERSOONSGEVENS, overdracht.getClient().getId());
 	}
 
 	@Override

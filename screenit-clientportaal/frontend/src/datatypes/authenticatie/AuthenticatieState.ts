@@ -19,15 +19,17 @@
  * =========================LICENSE_END==================================
  */
 export type AuthenticatieState = {
-    isLoggingIn: boolean,
-    isLoggingOut: boolean,
-    isLoggedIn: boolean,
-    isSessionExpired: boolean,
+	isLoggingIn: boolean,
+	isLoggingOut: boolean,
+	isLoggedIn: boolean,
+	isSessionExpired: boolean,
+	isUnauthorized: boolean,
 }
 
 export const legeAuthenticatieState: AuthenticatieState = {
-    isLoggingIn: false,
-    isLoggingOut: false,
-    isLoggedIn: false,
-    isSessionExpired: false,
+	isLoggingIn: false,
+	isLoggingOut: false,
+	isLoggedIn: false,
+	isSessionExpired: false,
+	isUnauthorized: false,
 }

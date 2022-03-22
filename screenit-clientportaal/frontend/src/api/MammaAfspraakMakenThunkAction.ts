@@ -21,33 +21,27 @@
 import {Dispatch} from "redux"
 import ScreenitBackend from "../utils/Backend"
 import {KandidaatAfspraak} from "../datatypes/mamma/KandidaatAfspraak"
-import {createShowToastAction} from "../actions/ToastAction"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import {getString} from "../utils/TekstPropertyUtil"
 import {setHuidigeMammaAfspraakReduxAction} from "../actions/MammaDossierAction"
 import properties from "../pages/bvo/mamma/afspraak/MammaAfspraakMakenPopup.json"
-import {navigateAndShowToast} from "../utils/NavigationUtil"
-import {getBvoBaseUrl} from "../utils/UrlUtil"
 import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
+import {showToast} from "../utils/ToastUtil"
 
-export const maakAfspraak = (bvo: Bevolkingsonderzoek, afspraak: KandidaatAfspraak) => (dispatch: Dispatch) => {
-    return ScreenitBackend.post("/mamma/afspraak/maak", afspraak)
-        .then(() => {
-            navigateAndShowToast(getBvoBaseUrl(bvo), getString(properties.toast.title), afspraak.bevestigingsBrief ? getString(properties.toast.brief_melding) : getString(properties.toast.geen_brief))
-        })
-        .catch((error) => {
-            if (error.response.data !== "tijd.niet.beschikbaar") {
-                dispatch(createShowToastAction({
-                    title: getString(properties.toast.geen_wijzigingen),
-                    description: getString(properties.toast.error.algemeen),
-                    type: ToastMessageType.ERROR,
-                }))
-            }
-            return Promise.reject(error)
-        })
+export const maakAfspraak = (bvo: Bevolkingsonderzoek, afspraak: KandidaatAfspraak) => () => {
+	return ScreenitBackend.post("/mamma/afspraak/maak", afspraak)
+		.then(() => {
+			showToast(getString(properties.toast.title), afspraak.bevestigingsBrief ? getString(properties.toast.brief_melding) : getString(properties.toast.geen_brief))
+		})
+		.catch((error) => {
+			if (error.response.data !== "tijd.niet.beschikbaar") {
+				showToast(getString(properties.toast.geen_wijzigingen), getString(properties.toast.error.algemeen), ToastMessageType.ERROR)
+			}
+			return Promise.reject(error)
+		})
 }
 
 export const getHuidigeAfspraak = () => (dispatch: Dispatch) => {
-    return ScreenitBackend.get(`/mamma/afspraak/huidige`)
-        .then(response => dispatch(setHuidigeMammaAfspraakReduxAction(response.data)))
+	return ScreenitBackend.get(`/mamma/afspraak/huidige`)
+		.then(response => dispatch(setHuidigeMammaAfspraakReduxAction(response.data)))
 }

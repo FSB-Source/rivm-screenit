@@ -24,26 +24,24 @@ package nl.rivm.screenit.service.impl;
 import java.io.File;
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandType;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerking;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ProjectBestandVerwerkingService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class ProjectBestandVerwerkThread extends OpenHibernate5SessionInThread
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectBestandVerwerkThread.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -54,9 +52,9 @@ public class ProjectBestandVerwerkThread extends OpenHibernate5SessionInThread
 	private ProjectBestandVerwerkingService projectBestandVerwerkingService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
-	private Long id;
+	private final Long id;
 
 	public ProjectBestandVerwerkThread(Long id)
 	{
@@ -76,7 +74,7 @@ public class ProjectBestandVerwerkThread extends OpenHibernate5SessionInThread
 
 		try
 		{
-			File file = fileService.load(bestand.getUploadDocument());
+			File file = uploadDocumentService.load(bestand.getUploadDocument());
 			context = new ProjectBestandVerwerkingContext(bestand, file);
 			projectBestandVerwerkingService.voorbereidingVoorVerwerking(context, bestand);
 

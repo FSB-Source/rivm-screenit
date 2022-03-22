@@ -25,9 +25,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.Getter;
+
 import nl.rivm.screenit.model.INaam;
 import nl.rivm.screenit.model.OrganisatieType;
 
+@Getter
 public enum Recht implements INaam
 {
 
@@ -142,15 +145,14 @@ public enum Recht implements INaam
 		Actie.AANPASSEN,
 		Actie.TOEVOEGEN,
 		Actie.VERWIJDEREN)
-	{
-
-		@Override
-		public List<OrganisatieType> getOrganisatieTypes()
 		{
-			return Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE);
-		}
+			@Override
+			public List<OrganisatieType> getOrganisatieTypes()
+			{
+				return Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE);
+			}
 
-	},
+		},
 
 	GEBRUIKER_BEHEER_GEBIEDEN_PERC_IFOBT_RETOUR(
 		"Beheer gebieden FIT retourpercentage",
@@ -178,14 +180,13 @@ public enum Recht implements INaam
 		Actie.AANPASSEN),
 
 	GEBRUIKER_LOCATIE_ROOSTER("Beheer rooster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON })
-	{
-
-		@Override
-		public List<OrganisatieType> getOrganisatieTypes()
 		{
-			return Collections.singletonList(OrganisatieType.COLOSCOPIECENTRUM);
-		}
-	},
+			@Override
+			public List<OrganisatieType> getOrganisatieTypes()
+			{
+				return Collections.singletonList(OrganisatieType.COLOSCOPIECENTRUM);
+			}
+		},
 
 	GEBRUIKER_UITNODIGING_VERSTUREN("Uitnodiging versturen", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
 
@@ -352,6 +353,12 @@ public enum Recht implements INaam
 	GEBRUIKER_CLIENT_COMPLICATIE_REGISTREREN("Registreren complicaties", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
 
 	GEBRUIKER_CLIENT_BEZWAAR("Bezwaar cli\u00EBnt", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
+
+	GEBRUIKER_CLIENT_DEELNAMEWENS_REGISTREREN(
+		"Deelnamewens registreren",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.TOEVOEGEN),
 
 	GEBRUIKER_AANVRAAG_OVERDRACHT_PERSOONSGEGEVENS(
 		"Aanvraag overdracht persoonsgegevens",
@@ -1079,7 +1086,14 @@ public enum Recht implements INaam
 		"SE statuspagina",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
-		Actie.INZIEN);
+		Actie.INZIEN),
+
+	GEBRUIKER_CONTROLEREN_MISSENDE_UITSLAGEN(
+		"Controleren missende uitslagen",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.AANPASSEN
+	);
 
 	private final String omschrijving;
 
@@ -1114,26 +1128,6 @@ public enum Recht implements INaam
 	Recht(String omschrijving, Bevolkingsonderzoek[] bevolkingsonderzoeken)
 	{
 		this(omschrijving, bevolkingsonderzoeken, null);
-	}
-
-	public String getOmschrijving()
-	{
-		return omschrijving;
-	}
-
-	public Bevolkingsonderzoek[] getBevolkingsonderzoeken()
-	{
-		return bevolkingsonderzoeken;
-	}
-
-	public Actie[] getActie()
-	{
-		return actie;
-	}
-
-	public ToegangLevel[] getLevel()
-	{
-		return level;
 	}
 
 	@Override

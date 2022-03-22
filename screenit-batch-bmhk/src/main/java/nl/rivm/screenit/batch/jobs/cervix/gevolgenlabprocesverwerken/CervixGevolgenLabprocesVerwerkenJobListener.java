@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -33,6 +34,7 @@ import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVe
 import nl.rivm.screenit.model.verwerkingverslag.cervix.CervixGevolgenLabprocesVerwerkenRapportageHuisartsberichtType;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.item.ExecutionContext;
@@ -40,12 +42,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixGevolgenLabprocesVerwerkenJobListener extends BaseLogListener
 {
-
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
 	@Autowired
 	private HibernateService hibernateService;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
+
+	@Override
+	protected void beforeStarting(JobExecution jobExecution)
+	{
+		super.beforeStarting(jobExecution);
+
+		String startdatumAanleveringGenotyperingString = preferenceService.getString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
+		getJobExecution().getExecutionContext().putString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name(), startdatumAanleveringGenotyperingString);
+	}
 
 	@Override
 	protected LogEvent getStartLogEvent()

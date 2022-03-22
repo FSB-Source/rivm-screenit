@@ -27,8 +27,8 @@ import java.util.List;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaBeperktBeoordeelbaarReden;
-
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -68,6 +68,7 @@ public class BeperktBeoordeelbaarPanel extends GenericPanel<MammaLezing>
 		dropdown = new ScreenitDropdown<>("beperktBeoordeelbaarReden", beperktBeoordeelbaarRedenen, new EnumChoiceRenderer<>());
 		dropdown.setOutputMarkupId(true);
 		dropdown.setVisible(!alleenInzien);
+		dropdown.setNullValid(true);
 		add(dropdown);
 
 		MammaBeperktBeoordeelbaarReden beperktBeoordeelbaarReden = getModelObject().getBeperktBeoordeelbaarReden();
@@ -98,17 +99,16 @@ public class BeperktBeoordeelbaarPanel extends GenericPanel<MammaLezing>
 
 	public void updateGeenBeoordelingMogelijk(AjaxRequestTarget target)
 	{
-		boolean geenBeoordelingMogelijk = MammaBeperktBeoordeelbaarReden.GEEN_BEOORDELING_MOGELIJK == BeperktBeoordeelbaarPanel.this.getModelObject()
-			.getBeperktBeoordeelbaarReden();
-		beperktBeoordeelbaarTekstContainer.setVisible(geenBeoordelingMogelijk);
+		boolean onbeoordeelbaar = MammaBeperktBeoordeelbaarReden.GEEN_BEOORDELING_MOGELIJK == getModelObject().getBeperktBeoordeelbaarReden();
+		beperktBeoordeelbaarTekstContainer.setVisible(onbeoordeelbaar);
 		target.add(beperktBeoordeelbaarTekstContainer);
-		if (!geenBeoordelingMogelijk)
+		if (!onbeoordeelbaar)
 		{
 			getModelObject().setWaaromGeenBeoordelingMogelijk(null);
 		}
 	}
 
-	public void updateDropdown(AjaxRequestTarget target)
+	public void updateOnbeoordeelbaar(AjaxRequestTarget target)
 	{
 		updateDropdownClickable();
 		updateGeenBeoordelingMogelijk(target);

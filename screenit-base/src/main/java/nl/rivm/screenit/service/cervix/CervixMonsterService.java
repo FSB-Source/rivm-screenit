@@ -28,8 +28,6 @@ import nl.rivm.screenit.model.cervix.CervixZas;
 public interface CervixMonsterService
 {
 
-	CervixMonster getMonsterByMonsterId(String monsterId);
-
 	CervixUitstrijkje getUitstrijkjeByClientBsnAndMonsterId(String bsn, String monsterId);
 
 	CervixUitstrijkje getUitstrijkjeByClientBsnAndControleLetters(String bsn, String controleLetters);
@@ -40,4 +38,5 @@ public interface CervixMonsterService
 
 	Long getNextMonsterId();
 
+	boolean monsterHeeftHpvBeoordelingMetGenotypeOther(CervixMonster monsterHpvUitslag);
 }

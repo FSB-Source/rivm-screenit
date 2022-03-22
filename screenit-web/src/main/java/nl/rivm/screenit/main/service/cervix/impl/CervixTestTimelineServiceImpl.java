@@ -42,6 +42,7 @@ import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
+import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixDossier;
@@ -69,6 +70,7 @@ import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixTestTimelineTimeService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
@@ -198,6 +200,11 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 
 				boolean monsterOntvangen = uitnodigingen.stream().anyMatch(u -> u.getMonster() != null && u.getMonster().getOntvangstScreeningRonde() != null);
 
+				if (uitnodigingen.isEmpty())
+				{
+					keuzes.add(TestVervolgKeuzeOptie.CERVIX_VERSTUUR_UITNODIGING);
+				}
+
 				for (CervixUitnodiging uitnodiging : uitnodigingen)
 				{
 					if (!monsterOntvangen && magAanvraag(uitnodiging) && !keuzes.contains(TestVervolgKeuzeOptie.CERVIX_AANVRAAG))
@@ -271,7 +278,7 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) uitnodiging.getMonster();
 			CervixUitstrijkjeStatus uitstrijkjeStatus = uitstrijkje.getUitstrijkjeStatus();
 			Date verzenddatumUitnodiging = null;
-			CervixMergedBrieven mergedBrieven = uitstrijkje.getUitnodiging().getBrief().getMergedBrieven();
+			MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(uitstrijkje.getUitnodiging().getBrief());
 			if (mergedBrieven != null)
 			{
 				verzenddatumUitnodiging = mergedBrieven.getPrintDatum();
@@ -391,7 +398,7 @@ public class CervixTestTimelineServiceImpl implements CervixTestTimelineService
 		case UITSTRIJKJE:
 			CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) uitnodiging.getMonster();
 			Date verzenddatumUitnodiging = null;
-			CervixMergedBrieven mergedBrieven = uitstrijkje.getUitnodiging().getBrief().getMergedBrieven();
+			MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(uitstrijkje.getUitnodiging().getBrief());
 			if (mergedBrieven != null)
 			{
 				verzenddatumUitnodiging = mergedBrieven.getPrintDatum();

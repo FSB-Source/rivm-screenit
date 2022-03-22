@@ -122,7 +122,8 @@ public class SKMLXlsUtil
 				try
 				{
 					MultiFormatDateConverter datumConverter = new MultiFormatDateConverter("dd-MM-yyyy",
-						new String[] { "dd-MM-yyyy", "dd-MM-yy", "dd-M-yyyy", "dd-M-yy", "d-MM-yyyy", "d-MM-yy", "d-M-yyyy", "d-M-yy", "ddMMyy", "ddMMyyyy", "dd/MM/yyyy" });
+						new String[] { "dd-MM-yyyy", Constants.DEFAULT_DATE_TIME_FORMAT_SHORT_YEAR, "dd-M-yyyy", "dd-M-yy", "d-MM-yyyy", "d-MM-yy", "d-M-yyyy", "d-M-yy", "ddMMyy",
+							"ddMMyyyy", "dd/MM/yyyy" });
 					dateValue = datumConverter.convertToObject(stringvalue, Constants.LOCALE_NL);
 				}
 				catch (ConversionException ce)

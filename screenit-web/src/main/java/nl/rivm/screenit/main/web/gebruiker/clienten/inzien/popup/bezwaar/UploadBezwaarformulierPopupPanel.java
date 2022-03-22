@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.comparator.BriefCreatieDatumComparator;
 import nl.rivm.screenit.main.service.BriefService;
 import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
@@ -52,8 +54,8 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.FileService;
-import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -74,18 +76,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<BezwaarMoment>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(UploadBezwaarformulierPopupPanel.class);
-
-	private static final long serialVersionUID = 1L;
-
-	@SpringBean
-	private LogService logService;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -103,7 +97,7 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 	private BezwaarService bezwaarService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	private ClientInzienBezwaarPanel clientInzienBezwaarPanel;
 
@@ -122,7 +116,7 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 	public UploadBezwaarformulierPopupPanel(String id, IModel<BezwaarMoment> model, ClientInzienBezwaarPanel clientInzienBezwaarPanel,
 		BootstrapDialog dialog)
 	{
-		super(id, new CompoundPropertyModel<BezwaarMoment>(model));
+		super(id, new CompoundPropertyModel<>(model));
 		this.dialog = dialog;
 		this.clientInzienBezwaarPanel = clientInzienBezwaarPanel;
 		this.bezwaarModel = model;
@@ -133,17 +127,14 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 			new FileUploadField("fileUpload", files).add(new FileValidator(FileType.PDF)).setRequired(true));
 
 		uploadForm.add(
-			new ListView<String>("brievenLijst",
+			new ListView<>("brievenLijst",
 				BriefOmschrijvingUtil.getBrievenOmschrijvingen(briefService.getBrievenVanBezwaar(model.getObject()), this::getString))
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void populateItem(ListItem<String> item)
 				{
 					String tekst = item.getModelObject();
-					item.add(new Label("brief", Model.<String> of(tekst)));
+					item.add(new Label("brief", Model.of(tekst)));
 
 				}
 
@@ -179,9 +170,6 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 
 		uploadForm.add(new AjaxLink<T>("nogmaalsVersturen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -193,13 +181,9 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 		});
 
 		BezwaarBrief laatsteBrief = getLaatsteBrief();
-
 		boolean magTegenhouden = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_TEGENHOUDEN, Actie.AANPASSEN);
 		uploadForm.add(new AjaxLink<T>("tegenhouden")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -208,14 +192,10 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
-		}.setVisible(
-			magTegenhouden && laatsteBrief != null && !laatsteBrief.isTegenhouden() && laatsteBrief.getMergedBrieven() == null));
+		}.setVisible(magTegenhouden && laatsteBrief != null && !BriefUtil.isTegengehouden(laatsteBrief) && BriefUtil.getMergedBrieven(laatsteBrief) == null));
 
 		uploadForm.add(new AjaxLink<T>("doorvoeren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -224,12 +204,10 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 				info(getString("info.briefactiveren"));
 				close(target);
 			}
-		}.setVisible(magTegenhouden && laatsteBrief != null && laatsteBrief.isTegenhouden()));
+		}.setVisible(magTegenhouden && BriefUtil.isTegengehouden(laatsteBrief)));
 
 		uploadForm.add(new AjaxSubmitLink("doorgaan")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -351,10 +329,9 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 			BezwaarMoment moment = bezwaarModel.getObject();
 
 			UploadDocument document = this.document.getObject();
-			fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.BEZWAAR, moment.getClient().getId());
+			uploadDocumentService.saveOrUpdate(document, FileStoreLocation.BEZWAAR, moment.getClient().getId());
 			moment.setBezwaarBrief(document);
 			hibernateService.saveOrUpdate(moment);
-
 			bezwaarService.bezwaarAfronden(moment, ScreenitSession.get().getLoggedInAccount(), bezwaarWrappers);
 			getClientInzienBezwaarPanel().verversMeldingenNaAanpassingBezwaar(bezwaarModel, target);
 
@@ -369,13 +346,11 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 		{
 			LOG.error("Fout bij verwerken van het geuploade bestand op de fileserver: ", e);
 			error(getString("error.onbekend"));
-			return;
 		}
 		catch (Exception e)
 		{
 			LOG.error("Er heeft zich een onbekende fout voorgedaan met het verwerken van het bezwaar;", e);
 			error(getString("error.onbekend"));
-			return;
 		}
 	}
 
@@ -420,11 +395,6 @@ public abstract class UploadBezwaarformulierPopupPanel extends GenericPanel<Bezw
 	public ClientInzienBezwaarPanel getClientInzienBezwaarPanel()
 	{
 		return clientInzienBezwaarPanel;
-	}
-
-	public void setClientInzienPanel(ClientInzienBezwaarPanel clientInzienPanel)
-	{
-		this.clientInzienBezwaarPanel = clientInzienPanel;
 	}
 
 	public abstract void close(AjaxRequestTarget target);

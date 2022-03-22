@@ -50,13 +50,19 @@ public enum CervixLeeftijdcategorie
 
 	private final BriefType uitnodigingsBrief;
 
-	public static CervixLeeftijdcategorie getLeeftijdcategorie(LocalDate geboortedatum, LocalDateTime creatiedatum)
+	public static int getLeeftijd(LocalDate geboortedatum, LocalDateTime peilDatum)
 	{
-		int leeftijd = Ints.checkedCast(ChronoUnit.YEARS.between(geboortedatum, creatiedatum));
+		return Ints.checkedCast(ChronoUnit.YEARS.between(geboortedatum, peilDatum));
+	}
+
+	public static CervixLeeftijdcategorie getLeeftijdcategorie(LocalDate geboortedatum, LocalDateTime peilDatum)
+	{
+		int leeftijd = getLeeftijd(geboortedatum, peilDatum);
 		int remainder = leeftijd % 5;
 		int leeftijdCategorieInteger = leeftijd - remainder;
 		switch (leeftijdCategorieInteger)
 		{
+		case 25:
 		case 30:
 			return _30;
 		case 35:

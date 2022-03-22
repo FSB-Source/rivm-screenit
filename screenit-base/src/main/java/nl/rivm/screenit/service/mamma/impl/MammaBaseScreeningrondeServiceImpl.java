@@ -37,17 +37,17 @@ import nl.rivm.screenit.model.mamma.MammaOpkomstkans;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.util.collections.CollectionUtils;
@@ -65,7 +65,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	private HibernateService hibernateService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private MammaBaseScreeningrondeDao baseScreeningrondeDao;
@@ -89,13 +89,14 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 	private MammaBaseIlmService baseIlmService;
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean heeftGeprinteOfTegengehoudenUitslagBrief(MammaScreeningRonde screeningRonde)
 	{
 		return screeningRonde.getBrieven().stream().anyMatch(
 			brief -> BriefType.isMammaUitslagBrief(brief.getBriefType()) &&
-				(brief.getMergedBrieven() != null && brief.getMergedBrieven().getGeprint()
-					|| brief.getMergedBrieven() == null && brief.isGegenereerd()
-					|| brief.isTegenhouden()));
+				(BriefUtil.isMergedBrievenGeprint(brief)
+					|| BriefUtil.getMergedBrieven(brief) == null && BriefUtil.isGegenereerd(brief)
+					|| BriefUtil.isTegengehouden(brief)));
 	}
 
 	@Override
@@ -122,8 +123,8 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		{
 			if (forceerBeeldenVerwijderen)
 			{
-				berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.GOINGTODELETE, MammaHL7BerichtType.IMS_ORM_ILM);
-				berichtToBatchService.queueMammaIlmHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE, MammaHL7BerichtType.IMS_ORM_ILM);
+				berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.GOINGTODELETE);
+				berichtToBatchService.queueMammaHL7v24BerichtUitgaand(screeningRonde, MammaHL7v24ORMBerichtStatus.DELETE);
 				baseIlmService.maakIlmBezwaarPoging(screeningRonde.getDossier(), screeningRonde.getUitnodigingsNr(), false);
 			}
 			else
@@ -205,7 +206,7 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 							hibernateService.deleteAll(beoordeling.getHuisartsBerichten());
 							if (beoordeling.getVerslagPdf() != null)
 							{
-								fileService.delete(beoordeling.getVerslagPdf(), true);
+								uploadDocumentService.delete(beoordeling.getVerslagPdf(), true);
 							}
 						});
 					hibernateService.deleteAll(afspraak.getOnderzoek().getBeoordelingen());

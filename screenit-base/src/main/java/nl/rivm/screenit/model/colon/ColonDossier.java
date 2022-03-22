@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model.colon;
 
 /*-
@@ -49,8 +48,6 @@ import org.hibernate.envers.NotAudited;
 @Audited
 public class ColonDossier extends Dossier<ColonScreeningRonde, ColonAfmelding>
 {
-	private static final long serialVersionUID = 1L;
-
 	@OneToOne(mappedBy = "colonDossier", optional = false)
 	private Client client;
 

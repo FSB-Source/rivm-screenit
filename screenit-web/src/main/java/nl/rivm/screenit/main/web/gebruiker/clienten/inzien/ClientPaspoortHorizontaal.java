@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.main.service.algemeen.DeelnamemodusService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.PostcodeLabel;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.MammaDoelgroepIndicatorPanel;
@@ -33,6 +34,7 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
@@ -45,6 +47,9 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 {
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	@SpringBean
+	private DeelnamemodusService deelnamemodusService;
 
 	private final boolean metTelefoonnummer;
 
@@ -73,7 +78,7 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 
 		add(new Label("persoon.bsn"));
 		add(new Label("persoon.anummer").setVisible(ScreenitSession.get().checkPermission(Recht.TESTEN, Actie.INZIEN)));
-		add(new Label("persoon.geslacht.omschrijving"));
+		add(new EnumLabel<>("persoon.geslacht"));
 		add(new Label("persoon.achternaam", NaamUtil.getGeboorteTussenvoegselEnAchternaam(getModelObject().getPersoon())));
 
 		add(new Label("persoon.telefoonnummer1").setVisible(metTelefoonnummer));
@@ -91,38 +96,21 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 
 		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(getModelObject())));
 
-		add(new Label("gbaLocatiebeschrijving", new IModel<>()
+		add(new Label("gbaLocatiebeschrijving", (IModel<Object>) () ->
 		{
-			@Override
-			public String getObject()
+			String locatiebeschrijving = "";
+			if (checkIfGbaPersoonIsNotNull())
 			{
-				String locatiebeschrijving = "";
-				if (checkIfGbaPersoonIsNotNull())
-				{
-					locatiebeschrijving = AdresUtil.getAdres(getModelObject().getPersoon().getGbaAdres());
-				}
-				return locatiebeschrijving;
+				locatiebeschrijving = AdresUtil.getAdres(getModelObject().getPersoon().getGbaAdres());
 			}
+			return locatiebeschrijving;
 		}));
-		add(new PostcodeLabel("gbaPostcode", true, new IModel<>()
-		{
-			@Override
-			public String getObject()
-			{
-				return checkIfGbaPersoonIsNotNull() && StringUtils.isNotBlank(getModelObject().getPersoon().getGbaAdres().getPostcode())
-					? getModelObject().getPersoon().getGbaAdres().getPostcode()
-					: "";
-			}
-		}));
-		add(new Label("gbaWoonplaats", new IModel<>()
-		{
-			@Override
-			public String getObject()
-			{
-				return checkIfGbaPersoonIsNotNull()
-					&& StringUtils.isNotBlank(getModelObject().getPersoon().getGbaAdres().getPlaats()) ? getModelObject().getPersoon().getGbaAdres().getPlaats() : "";
-			}
-		}));
+		add(new PostcodeLabel("gbaPostcode", true,
+			(IModel<Object>) () -> checkIfGbaPersoonIsNotNull() && StringUtils.isNotBlank(getModelObject().getPersoon().getGbaAdres().getPostcode())
+				? getModelObject().getPersoon().getGbaAdres().getPostcode()
+				: ""));
+		add(new Label("gbaWoonplaats", (IModel<Object>) () -> checkIfGbaPersoonIsNotNull()
+			&& StringUtils.isNotBlank(getModelObject().getPersoon().getGbaAdres().getPlaats()) ? getModelObject().getPersoon().getGbaAdres().getPlaats() : ""));
 
 		if (getModelObject() != null && getModelObject().getPersoon() != null
 			&& AdresUtil.isTijdelijkAdres(getModelObject().getPersoon(), dateSupplier.getDateTime()))
@@ -133,6 +121,14 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 		{
 			add(new Label("tijdelijkadres", Model.of("Nee")));
 		}
+
+		addSelectieblokkadeIndicator();
+	}
+
+	private void addSelectieblokkadeIndicator()
+	{
+		var selectieblokkadeTekst = deelnamemodusService.selectieblokkadeTekst(getModelObject());
+		add(new Label("selectieblokkade", selectieblokkadeTekst).setVisible(StringUtils.isNotBlank(selectieblokkadeTekst)));
 	}
 
 	private boolean checkIfGbaPersoonIsNotNull()

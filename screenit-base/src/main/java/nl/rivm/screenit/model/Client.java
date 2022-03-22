@@ -39,6 +39,10 @@ import javax.persistence.OrderBy;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.OverdrachtPersoonsgegevens;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -65,8 +69,6 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Audited
 public class Client extends Patient<GbaPersoon> implements Account, IParticipant
 {
-	private static final long serialVersionUID = 1L;
-
 	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@Audited(targetAuditMode = NOT_AUDITED)
 	private ColonDossier colonDossier;
@@ -128,7 +130,7 @@ public class Client extends Patient<GbaPersoon> implements Account, IParticipant
 	@OneToMany(fetch = FetchType.LAZY, mappedBy = "client")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	@NotAudited
-	private List<ProjectClient> projecten = new ArrayList<ProjectClient>();
+	private List<ProjectClient> projecten = new ArrayList<>();
 
 	@OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	@Audited(targetAuditMode = NOT_AUDITED)
@@ -141,6 +143,12 @@ public class Client extends Patient<GbaPersoon> implements Account, IParticipant
 	@OrderBy("statusDatum DESC")
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 	private List<OverdrachtPersoonsgegevens> overdrachtPersoonsgegevensLijst = new ArrayList<>();
+
+	@Getter
+	@Setter
+	@OneToMany(mappedBy = "client", fetch = FetchType.LAZY)
+	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+	private List<AlgemeneBrief> algemeneBrieven = new ArrayList<>();
 
 	public ColonDossier getColonDossier()
 	{

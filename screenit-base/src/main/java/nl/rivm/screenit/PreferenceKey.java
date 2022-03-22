@@ -144,6 +144,8 @@ public enum PreferenceKey
 
 	CERVIX_HERINNERINGS_PERIODE("Herinneringsperiode", Integer.class),
 
+	CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE("Interval Controle Uitstrijkje", Integer.class),
+
 	CERVIX_HERINNERINGS_PERIODE_ZAS("Herinneringsperiode ZAS", Integer.class),
 
 	CERVIX_MAX_ZAS_AANVRAGEN_INFOLIJN("Maximum aantal ZAS-en via InfoLijn", Integer.class),
@@ -232,6 +234,8 @@ public enum PreferenceKey
 
 	BMHK_LABEL_PRINTEN_ZONDER_PDF("BMHK label printen zonder PDF", Boolean.class),
 
+	SAFESIGN_LOGIN_DISABLED("Blokkeer login via SafeSign", Boolean.class),
+
 	CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE("Startdatum aanlevering genotypering analyseresultaten en invoering triage BMHK", Date.class),
 
 	MAMMA_MINIMALE_LEEFTIJD("Minimale leeftijd", Integer.class),
@@ -247,6 +251,8 @@ public enum PreferenceKey
 	MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN("Afspraak verzetten zonder client contact vanaf", Integer.class),
 
 	MAMMA_CAPACITEIT_VOLLEDIG_BENUT_TOT_EN_MET_AANTAL_WERKDAGEN("Capaciteit volledig benut tot en met", Integer.class),
+
+	MAMMA_BEVESTIGINGSBRIEF_NIET_VERZENDEN_BINNEN_AANTAL_WERKDAGEN("Bevestigingsbrief niet versturen als de afspraak valt binnen aantal dagen", Integer.class),
 
 	MAMMA_BULK_VERZETTEN_IN_VERLEDEN_AANTAL_WEKEN("Bulk verzetten in verleden", Integer.class),
 
@@ -297,6 +303,8 @@ public enum PreferenceKey
 	MAMMA_CLIENTPORTAAL_TIJDELIJKE_MELDING("BK clientportaal: Tijdelijke melding", String.class),
 
 	CERVIX_UITSTEL_UITSLAGBRIEF_PAP3A2_OF_HOGER("Uitstel uitslagbrief na PAP3a2 of hoger", Integer.class),
+
+	CERVIX_VOORAANKONDIGINGS_PERIODE("Het aantal dagen voor de 30e verjaardag dat de vooraankondiging gegenereerd wordt", Integer.class),
 
 	INTERNAL_COLON_COMPLICATIE_VERWERKING_STOP("Stopdatum verwerking complicaties DK", Date.class),
 
@@ -397,6 +405,10 @@ public enum PreferenceKey
 	MAMMA_SE_DAGLIJST_OPHALEN_DAGEN("SE daglijst ophalen dagen", Integer.class),
 
 	MAMMA_ANNOTEER_EERSTE_RONDE("Eerste ronde uitnodiging apart afdrukken", Boolean.class),
+
+	CLIENT_NIEUW_GENDERDIVERS_TEKST("Nieuwe client genderdivers tekst", String.class),
+
+	CLIENT_GENDERIDENTITEITSWIJZIGING_TEKST("Genderidentiteitswijziging tekst", String.class),
 
 	;
 

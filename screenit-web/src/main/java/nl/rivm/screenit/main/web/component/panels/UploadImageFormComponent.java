@@ -21,10 +21,12 @@ package nl.rivm.screenit.main.web.component.panels;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -39,18 +41,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class UploadImageFormComponent<T extends HibernateObject> extends GenericPanel<T>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(UploadImageFormComponent.class);
-
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	private final ListModel<FileUpload> fileUploads = new ListModel<>();
 
@@ -60,7 +56,7 @@ public class UploadImageFormComponent<T extends HibernateObject> extends Generic
 
 	private final UploadImageType<T> whatToUpload;
 
-	private AjaxSubmitLink verwijderButton;
+	private final AjaxSubmitLink verwijderButton;
 
 	public UploadImageFormComponent(String id, IModel<T> model, final UploadImageType<T> whatToUpload, final FileStoreLocation fileStoreLocation, boolean magVerwijderdWorden,
 		boolean directUploaden)
@@ -89,9 +85,6 @@ public class UploadImageFormComponent<T extends HibernateObject> extends Generic
 		boolean isBestaande = model.getObject().getId() != null;
 		form.add(new AjaxSubmitLink("uploaden")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -102,9 +95,6 @@ public class UploadImageFormComponent<T extends HibernateObject> extends Generic
 
 		verwijderButton = new AjaxSubmitLink("verwijderen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -147,7 +137,7 @@ public class UploadImageFormComponent<T extends HibernateObject> extends Generic
 			createFileInTmp(target, nieuwUploadDocument);
 			if (oudUploadDocument != null)
 			{
-				fileService.delete(oudUploadDocument, true);
+				uploadDocumentService.delete(oudUploadDocument, true);
 			}
 			target.add(labelBestandsNaam);
 			target.add(verwijderButton);
@@ -164,7 +154,7 @@ public class UploadImageFormComponent<T extends HibernateObject> extends Generic
 		{
 			uploadDocument.setFile(fileUploads.getObject().get(0).writeToTempFile());
 			uploadDocument.setNaam(fileUploads.getObject().get(0).getClientFileName());
-			fileService.saveOrUpdateUploadDocument(uploadDocument, fileStoreLocation, (Long) getModel().getObject().getId());
+			uploadDocumentService.saveOrUpdate(uploadDocument, fileStoreLocation, (Long) getModel().getObject().getId());
 			if (target != null)
 			{
 				target.add(labelBestandsNaam);

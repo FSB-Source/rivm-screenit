@@ -19,43 +19,53 @@
  * =========================LICENSE_END==================================
  */
 export type AuthenticatieAction =
-    SetLoggingInAction
-    | SetLoggingOutAction
-    | SetLoggedInAction
-    | SetSessionExpiredAction
+	SetLoggingInAction
+	| SetLoggingOutAction
+	| SetLoggedInAction
+	| SetSessionExpiredAction
+	| SetUnauthorizedAction
 
-export const SET_LOGGING_IN = 'SET_LOGGING_IN';
+export const SET_LOGGING_IN = "SET_LOGGING_IN"
 
-export type SetLoggingInAction = { type: 'SET_LOGGING_IN', loggingIn: boolean }
+export type SetLoggingInAction = { type: "SET_LOGGING_IN", loggingIn: boolean }
 
 export const setLoggingInAction = (loggingIn: boolean): SetLoggingInAction => ({
-    type: SET_LOGGING_IN,
-    loggingIn: loggingIn
+	type: SET_LOGGING_IN,
+	loggingIn: loggingIn,
 })
 
-export const SET_LOGGING_OUT = 'SET_LOGGING_OUT';
+export const SET_LOGGING_OUT = "SET_LOGGING_OUT"
 
-export type SetLoggingOutAction = { type: 'SET_LOGGING_OUT', loggingOut: boolean }
+export type SetLoggingOutAction = { type: "SET_LOGGING_OUT", loggingOut: boolean }
 
 export const setLoggingOutAction = (loggingOut: boolean): SetLoggingOutAction => ({
-    type: SET_LOGGING_OUT,
-    loggingOut: loggingOut
+	type: SET_LOGGING_OUT,
+	loggingOut: loggingOut,
 })
 
-export const SET_LOGGED_IN = 'SET_LOGGED_IN';
+export const SET_LOGGED_IN = "SET_LOGGED_IN"
 
-export type SetLoggedInAction = { type: 'SET_LOGGED_IN', loggedIn: boolean }
+export type SetLoggedInAction = { type: "SET_LOGGED_IN", loggedIn: boolean }
 
 export const setLoggedInAction = (loggedIn: boolean): SetLoggedInAction => ({
-    type: SET_LOGGED_IN,
-    loggedIn: loggedIn
+	type: SET_LOGGED_IN,
+	loggedIn: loggedIn,
 })
 
-export const SET_SESSION_EXPIRED = 'SET_SESSION_EXPIRED';
+export const SET_SESSION_EXPIRED = "SET_SESSION_EXPIRED"
 
-export type SetSessionExpiredAction = { type: 'SET_SESSION_EXPIRED', sessionExpired: boolean }
+export type SetSessionExpiredAction = { type: "SET_SESSION_EXPIRED", sessionExpired: boolean }
 
 export const setSessionExpiredAction = (sessionExpired: boolean): SetSessionExpiredAction => ({
-    type: SET_SESSION_EXPIRED,
-    sessionExpired: sessionExpired,
+	type: SET_SESSION_EXPIRED,
+	sessionExpired: sessionExpired,
+})
+
+export const SET_UNAUTHORIZED = "SET_UNAUTHORIZED"
+
+export type SetUnauthorizedAction = { type: "SET_UNAUTHORIZED", unauthorized: boolean }
+
+export const setUnauthorizedAction = (unauthorized: boolean): SetUnauthorizedAction => ({
+	type: SET_UNAUTHORIZED,
+	unauthorized: unauthorized,
 })

@@ -22,7 +22,6 @@ package nl.rivm.screenit.model.mamma.enums;
  */
 
 import java.math.BigDecimal;
-import java.util.Date;
 
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 
@@ -46,29 +45,27 @@ public enum MammaFactorType
 		case MINDER_VALIDE:
 			return screeningOrganisatie.getFactorMinderValideBk();
 		default:
-			throw new IllegalStateException();
+			throw new IllegalStateException("Unexpected value: " + this);
 		}
 	}
 
-	public static MammaFactorType getFactorType(boolean isTehuisClient, MammaDoelgroep doelgroep, Date laatsteMammografieAfgerond)
+	public static MammaFactorType getFactorType(boolean isTehuisClient, MammaDoelgroep doelgroep, boolean heeftOoitUitslagGehad)
 	{
 		if (isTehuisClient)
 		{
 			return doelgroep.equals(MammaDoelgroep.MINDER_VALIDE) ? MINDER_VALIDE : DUBBELE_TIJD;
 		}
+
 		switch (doelgroep)
 		{
 		case REGULIER:
-			if (laatsteMammografieAfgerond == null)
-			{
-				return EERSTE_ONDERZOEK;
-			}
-			break;
+			return heeftOoitUitslagGehad ? GEEN : EERSTE_ONDERZOEK;
 		case DUBBELE_TIJD:
 			return DUBBELE_TIJD;
 		case MINDER_VALIDE:
 			return MINDER_VALIDE;
+		default:
+			throw new IllegalStateException("Unexpected value: " + doelgroep);
 		}
-		return GEEN;
 	}
 }

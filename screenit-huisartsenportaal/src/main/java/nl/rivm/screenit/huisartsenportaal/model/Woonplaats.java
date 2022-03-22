@@ -26,45 +26,23 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.envers.Audited;
 
 @Entity
 @Table(name = "woonplaats")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Audited
+@Getter
+@Setter
 public class Woonplaats extends AbstractReferenceObject
 {
-	private static final long serialVersionUID = 1L;
-
 	private String naam;
 
 	private String code;
 
 	private String gemeente;
 
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public String getGemeente() {
-		return gemeente;
-	}
-
-	public void setGemeente(String gemeente) {
-		this.gemeente = gemeente;
-	}
 }

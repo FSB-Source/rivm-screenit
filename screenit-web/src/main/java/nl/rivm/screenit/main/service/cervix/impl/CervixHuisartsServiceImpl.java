@@ -64,6 +64,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MailService;
 import nl.rivm.screenit.service.WoonplaatsService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.CodeGenerator;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
@@ -487,8 +488,8 @@ public class CervixHuisartsServiceImpl implements CervixHuisartsService
 			var isVolledigAfgedrukt = true;
 			for (CervixLabformulierAanvraag aanvraag : formulierAanvragen)
 			{
-				var isVoorbladIsAfgedrukt = Boolean.TRUE.equals(aanvraag.getVoorbladBrief().getMergedBrieven().getGeprint());
-				var isFormulierenAfgedrukt = Boolean.TRUE.equals(aanvraag.getBrief().getMergedBrieven().getGeprint());
+				var isVoorbladIsAfgedrukt = BriefUtil.isMergedBrievenGeprint(aanvraag.getVoorbladBrief());
+				var isFormulierenAfgedrukt = BriefUtil.isMergedBrievenGeprint(aanvraag.getBrief());
 				if (!isVoorbladIsAfgedrukt || !isFormulierenAfgedrukt)
 				{
 					isVolledigAfgedrukt = false;

@@ -31,7 +31,6 @@ import nl.rivm.screenit.huisartsenportaal.service.HuisartsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -52,10 +51,10 @@ public class ScreenITRegistrationAuthenticationProvider extends AbstractAuthenti
 		Huisarts huisarts = (Huisarts) userDetails;
 		if (!huisarts.getInlogCode().equals(usernamePasswordAuthenticationToken.getCredentials()))
 		{
-			Integer remainingAttempts = huisartsService.increaseAttemps(huisarts);
+			Integer remainingAttempts = huisartsService.incrementAttempts(huisarts);
 			throw new BadCredentialsException("U heeft een foutieve registratiecode ingevoerd. U heeft nog " + remainingAttempts + " pogingen.");
 		}
-		huisartsService.resetAttemps(huisarts);
+		huisartsService.resetAttempts(huisarts);
 	}
 
 	@Override
@@ -66,11 +65,11 @@ public class ScreenITRegistrationAuthenticationProvider extends AbstractAuthenti
 		{
 			throw new UserNotFoundException("Registreren mislukt. Gebruiker niet gevonden.");
 		}
-		if(AanmeldStatus.GEREGISTREERD == huisarts.getAanmeldStatus() && huisarts.getInlogCode() == null)
+		if (AanmeldStatus.GEREGISTREERD == huisarts.getAanmeldStatus() && huisarts.getInlogCode() == null)
 		{
 			throw new CredentialsExpiredException("Registratie is reeds afgerond. Ga naar het inlogscherm om in te loggen.");
 		}
-		if(AanmeldStatus.GEREGISTREERD == huisarts.getAanmeldStatus())
+		if (AanmeldStatus.GEREGISTREERD == huisarts.getAanmeldStatus())
 		{
 			throw new CredentialsExpiredException("Gebruikersnaam of e-mailadres is onbekend. Gebruiker niet gevonden.");
 		}

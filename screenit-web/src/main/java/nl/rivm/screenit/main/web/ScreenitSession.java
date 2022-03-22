@@ -58,7 +58,9 @@ import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.model.envers.AccountResolver.AccountResolverDelegate;
+import nl.rivm.screenit.model.envers.RevisionInformationResolver.RevisionInformationResolverDelegate;
+import nl.rivm.screenit.model.envers.RevisionKenmerk;
+import nl.rivm.screenit.model.envers.RevisionKenmerkInThreadHolder;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 import nl.rivm.screenit.security.Constraint;
 import nl.rivm.screenit.security.InstellingGebruikerToken;
@@ -891,7 +893,7 @@ public class ScreenitSession extends WebSession
 		return scopeService.getHoogsteToegangLevel(gebruiker, constraintToCheck, checkBvo);
 	}
 
-	public static class ScreenitSessionAccountResolverDelegate implements AccountResolverDelegate
+	public static class ScreenitSessionRevisionInformationResolverDelegate implements RevisionInformationResolverDelegate
 	{
 		@Override
 		public Account getAccount()
@@ -903,6 +905,11 @@ public class ScreenitSession extends WebSession
 			return null;
 		}
 
+		@Override
+		public RevisionKenmerk getRevisionKenmerk()
+		{
+			return RevisionKenmerkInThreadHolder.getKenmerk();
+		}
 	}
 
 	public Page getUzipasPage(boolean fromUitwisselportaal)

@@ -19,9 +19,9 @@
   =========================LICENSE_END==================================
   -->
 <div class="col-md-6 col-md-offset-3 centered">
-    <br>
-    <div class="panel panel-default login opacity-full">
-        <div class="panel-heading">
+	<br>
+	<div class="panel panel-default login opacity-full">
+		<div class="panel-heading">
             <span class="row">
                 <div class="col-md-3 text-right">
                     <h3><span class="glyphicon glyphicon-log-in" aria-hidden="true"></span></h3>
@@ -30,53 +30,63 @@
                     <h3>Wachtwoord opnieuw aanvragen</h3>
                 </div>
             </span>
-        </div>
-        <div class="panel-body">
-            <form class="form-horizontal" accept-charset="UTF-8" role="form"
-                  ng-submit="wachtwoord.opslaan(wachtwoord.change)"
-                  name="loginform">
-                <fieldset>
+		</div>
+		<div class="panel-body">
+			<form class="form-horizontal" accept-charset="UTF-8" role="form"
+				  ng-submit="wachtwoord.opslaan(wachtwoord.change)"
+				  name="loginform">
+				<fieldset>
 
-                    <div class="form-group required" show-errors>
-                        <label for="wachtwoord" class="col-sm-4 control-label">Nieuwe wachtwoord</label>
-                        <div class="col-sm-8">
-                            <input type="password" class="form-control" ng-model="wachtwoord.change.nieuweWachtwoord"
-                                   name="wachtwoord" id="wachtwoord" ng-minlength="8"
-                                   ng-pattern="/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/"
-                                   placeholder="Wachtwoord" required>
-                        </div>
-                        <div ng-messages="loginform.wachtwoord.$error" ng-if="loginform.wachtwoord.$dirty"
-                             class="col-sm-8 col-sm-offset-4">
-                            <p class="help-block" ng-message="pattern">Zorg dat het wachtwoord minimaal 1
-                                hoofdletter, 1 kleine letter, 1 nummer en 1 speciaal teken bevatten. </p>
-                            <p class="help-block" ng-message="minlength">Wachtwoord moet minstens 8 tekens
-                                bevatten</p>
-                            <p ng-messages-include="assets/js/components/default-form-error.tmpl.html"></p>
-                        </div>
-                    </div>
-                    <div class="form-group required" show-errors>
-                        <label for="wachtwoordcontrole" class="col-sm-4 control-label">Wachtwoord controle</label>
-                        <div class="col-sm-8">
-                            <input type="password" class="form-control"
-                                   ng-model="wachtwoord.change.nieuweWachtwoordControle"
-                                   name="wachtwoordcontrole" id="wachtwoordcontrole" placeholder="Wachtwoord controle"
-                                   required compareto="wachtwoord.change.nieuweWachtwoord">
-                        </div>
-                        <div ng-messages="loginform.wachtwoordcontrole.$error"
-                             ng-if="loginform.wachtwoordcontrole.$dirty"
-                             class="col-sm-8 col-sm-offset-4">
-                            <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="row">
+					<div class="form-group required" show-errors>
+						<label for="wachtwoord" class="col-sm-4 control-label">Nieuwe wachtwoord</label>
+						<div class="col-sm-8">
+							<div class="password-input">
+								<input type="{{ showPassword('wachtwoord') ? 'text' : 'password' }}" class="form-control" ng-model="wachtwoord.change.nieuweWachtwoord"
+									   name="wachtwoord" id="wachtwoord" ng-minlength="12" ng-maxlength="255"
+									   ng-pattern="/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/"
+									   placeholder="Wachtwoord" required>
+								<i class="glyphicon glyphicon-eye-{{ showPassword('wachtwoord') ? 'close' : 'open' }}"
+								   ng-mousedown="handleTogglePasswordVisible('wachtwoord', false)"
+								   ng-mouseup="handleTogglePasswordVisible('wachtwoord', false)"
+								   ng-mouseleave="handleTogglePasswordVisible('wachtwoord', true)"></i>
+							</div>
+						</div>
+						<div ng-messages="loginform.wachtwoord.$error" ng-if="loginform.wachtwoord.$dirty"
+							 class="col-sm-8 col-sm-offset-4">
+							<p class="help-block" ng-message="pattern">Zorg dat het wachtwoord minimaal 1 hoofdletter, 1 kleine letter, 1 nummer en 1 speciaal teken bevat.</p>
+							<p class="help-block" ng-message="minlength">Wachtwoord moet minstens 12 tekens bevatten.</p>
+							<p class="help-block" ng-message="maxlength">Wachtwoord mag maximaal 255 tekens bevatten.</p>
+							<p ng-messages-include="assets/js/components/default-form-error.tmpl.html"></p>
+						</div>
+					</div>
+					<div class="form-group required" show-errors>
+						<label for="wachtwoordcontrole" class="col-sm-4 control-label">Wachtwoord controle</label>
+						<div class="col-sm-8">
+							<div class="password-input">
+								<input type="{{ showPassword('wachtwoordcontrole') ? 'text' : 'password' }}" class="form-control"
+									   ng-model="wachtwoord.change.nieuweWachtwoordControle"
+									   name="wachtwoordcontrole" id="wachtwoordcontrole" placeholder="Wachtwoord controle"
+									   required compareto="wachtwoord.change.nieuweWachtwoord">
+								<i class="glyphicon glyphicon-eye-{{ showPassword('wachtwoordcontrole') ? 'close' : 'open' }}"
+								   ng-mousedown="handleTogglePasswordVisible('wachtwoordcontrole', false)"
+								   ng-mouseup="handleTogglePasswordVisible('wachtwoordcontrole', false)"
+								   ng-mouseleave="handleTogglePasswordVisible('wachtwoordcontrole', true)"></i>
+							</div>
+						</div>
+						<div ng-messages="loginform.wachtwoordcontrole.$error"
+							 ng-if="loginform.wachtwoordcontrole.$dirty"
+							 class="col-sm-8 col-sm-offset-4">
+							<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+						</div>
+					</div>
+					<hr>
+					<div class="row">
                         <span class="col-md-12">
-                             <button type="submit" class="btn btn-primary btn-lg btn-block">Wachtwoord wijzigen
-                             </button>
+                             <button type="submit" class="btn btn-primary btn-lg btn-block">Wachtwoord wijzigen</button>
                          </span>
-                    </div>
-                </fieldset>
-            </form>
-        </div>
-    </div>
+					</div>
+				</fieldset>
+			</form>
+		</div>
+	</div>
 </div>

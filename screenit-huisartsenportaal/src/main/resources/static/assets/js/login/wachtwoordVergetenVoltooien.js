@@ -20,31 +20,34 @@
  */
 'use strict';
 
-angular.module('rivmUistrijkendarts').controller('wachtwoordVergetenVoltooienCtrl', function($routeParams, userfactory, toaster)
-{
+angular.module('rivmUistrijkendarts').controller('wachtwoordVergetenVoltooienCtrl', function ($scope, $routeParams, userfactory, toaster) {
+	$scope.showPasswordForFields = new Map();
+	$scope.showPassword = function (field) {
+		return $scope.showPasswordForFields.has(field) ? $scope.showPasswordForFields.get(field) : false
+	}
+	$scope.handleTogglePasswordVisible = function (field, mouseLeave) {
+		if (!mouseLeave || ($scope.showPasswordForFields.has(field) && $scope.showPasswordForFields.get(field) === true)) {
+			$scope.showPasswordForFields.set(field, $scope.showPasswordForFields.has(field) ? !$scope.showPasswordForFields.get(field) : true);
+		}
+	}
+
 	var ctrl, change;
 
 	ctrl = this;
 	this.change = {};
 
-	userfactory.userdata(true).then(function()
-	{
-		userfactory.getHuisarts(userfactory.getId()).$promise.then(function(data)
-		{
+	userfactory.userdata(true).then(function () {
+		userfactory.getHuisarts(userfactory.getId()).$promise.then(function (data) {
 
 		});
 	});
 
-	this.opslaan = function opslaan(change)
-	{
-		userfactory.wachtwoordWijzigen(change).$promise.then(function(data)
-		{
+	this.opslaan = function opslaan(change) {
+		userfactory.wachtwoordWijzigen(change).$promise.then(function (data) {
 			toaster.success("Wachtwoord succesvol gewijzigd.");
 			userfactory.logout();
-		}, function(data)
-		{
-			if (data.status == 400)
-			{
+		}, function (data) {
+			if (data.status == 400) {
 				toaster.error(data.data[0].defaultMessage);
 			}
 		});

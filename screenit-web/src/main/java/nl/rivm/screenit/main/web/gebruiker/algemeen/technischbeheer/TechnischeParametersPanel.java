@@ -47,7 +47,6 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
 import org.apache.wicket.validation.ValidationError;
 import org.apache.wicket.validation.validator.RangeValidator;
@@ -137,15 +136,11 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 		form.add(ComponentHelper.newDatePicker("startdatumBmhk", magAanpassen()).setRequired(true));
 		form.add(new TextField<>("internalZorgmailBestandUrl", String.class).setRequired(true));
 		form.add(new TextField<>("internalWsbSchematronVersionpathmapping", String.class).setRequired(true));
-		form.add(new TextField<>("internalMammaSeInformatieOphalenCron", String.class).add(new IValidator<String>()
+		form.add(new TextField<>("internalMammaSeInformatieOphalenCron", String.class).add((IValidator<String>) validatable ->
 		{
-			@Override
-			public void validate(IValidatable<String> validatable)
+			if (!CronSequenceGenerator.isValidExpression(validatable.getValue()))
 			{
-				if (!CronSequenceGenerator.isValidExpression(validatable.getValue()))
-				{
-					validatable.error(new ValidationError("Invalide cron expressie"));
-				}
+				validatable.error(new ValidationError("Invalide cron expressie"));
 			}
 		}).setRequired(true));
 		form.add(ComponentHelper.newDatePicker("internalColonComplicatieVerwerkingStop", magAanpassen()).setRequired(true));
@@ -158,6 +153,7 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 		form.add(new TextField<>("internalCervixLabFormulierValidFqdns", String.class));
 		form.add(new TextField<>("internalUziLoginUrlPrefix", String.class));
 		form.add(new CheckBox("bmhkLabelPrintenZonderPdf"));
+		form.add(new CheckBox("safesignLoginDisabled"));
 		return form;
 	}
 

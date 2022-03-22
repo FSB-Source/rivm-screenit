@@ -23,23 +23,22 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.panel;
 
 import java.io.File;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfViewer;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
 
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class MammaBeoordelingPdfTonenPanel extends GenericPanel<MammaBeoordeling>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBeoordelingPdfTonenPanel.class);
-
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private MammaBaseVerslagService verslagService;
@@ -49,7 +48,7 @@ public class MammaBeoordelingPdfTonenPanel extends GenericPanel<MammaBeoordeling
 		super(id, model);
 		if (getModelObject().getVerslagPdf() != null)
 		{
-			File verslag = fileService.load(getModelObject().getVerslagPdf());
+			File verslag = uploadDocumentService.load(getModelObject().getVerslagPdf());
 			add(new PdfViewer("verslagPdf", verslag, false));
 		}
 		else

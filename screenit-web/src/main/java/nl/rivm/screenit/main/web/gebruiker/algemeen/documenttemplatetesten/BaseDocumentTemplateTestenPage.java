@@ -26,8 +26,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.UitnodigingsDao;
-import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.BriefTypeChoiceRenderer;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -60,9 +61,9 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.overeenkomsten.AfgeslotenMedewerkerOvereenkomst;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
@@ -84,14 +85,12 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aspose.words.Document;
 
+@Slf4j
 public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 {
-	private static final Logger LOG = LoggerFactory.getLogger(DocumentTemplateTestenPage.class);
 
 	private enum TemplateBron
 	{
@@ -112,7 +111,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 	private LogService logService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	protected AsposeService asposeService;
@@ -291,7 +290,7 @@ public abstract class BaseDocumentTemplateTestenPage extends AlgemeenPage
 						if (printType != null)
 						{
 							BriefDefinitie definitie = briefService.getNieuwsteBriefDefinitie(printType);
-							briefTemplate = fileService.load(definitie.getDocument());
+							briefTemplate = uploadDocumentService.load(definitie.getDocument());
 						}
 						else
 						{

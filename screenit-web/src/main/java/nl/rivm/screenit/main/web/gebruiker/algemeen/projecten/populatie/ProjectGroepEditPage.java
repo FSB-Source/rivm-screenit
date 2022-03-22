@@ -49,10 +49,10 @@ import nl.rivm.screenit.model.project.GroepInvoer;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.ProjectService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -83,13 +83,11 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class ProjectGroepEditPage extends ProjectBasePage
 {
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ProjectService projectService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private LogService logService;
@@ -100,17 +98,13 @@ public class ProjectGroepEditPage extends ProjectBasePage
 	@SpringBean
 	private HibernateService hibernateService;
 
-	private IModel<Boolean> skipFouten = new Model<Boolean>(Boolean.FALSE);
+	private final IModel<List<FileUpload>> clientenBestanden = new ListModel<>();
 
-	private IModel<List<FileUpload>> clientenBestanden = new ListModel<>();
-
-	private MultiLineLabel meldingen;
-
-	private IModel<String> meldingenModel = new Model<String>("");
+	private IModel<String> meldingenModel = new Model<>("");
 
 	private final BootstrapDialog dialog;
 
-	private Date isPushDatumAlGezet;
+	private final Date isPushDatumAlGezet;
 
 	public ProjectGroepEditPage(IModel<Project> projectModel)
 	{
@@ -163,9 +157,10 @@ public class ProjectGroepEditPage extends ProjectBasePage
 			.add(RangeValidator.range(currentDateSupplier.getDateMidnight(), project.getEindDatum()))
 			.setVisible(!isNieuweGroep && ProjectType.PROJECT.equals(project.getType())));
 
+		IModel<Boolean> skipFouten = new Model<>(Boolean.FALSE);
 		form.add(ComponentHelper.newCheckBox("skipFouten", skipFouten).setVisible(isNieuweGroep));
 
-		meldingen = new MultiLineLabel("meldingen", meldingenModel);
+		MultiLineLabel meldingen = new MultiLineLabel("meldingen", meldingenModel);
 		meldingen.setEscapeModelStrings(false);
 		meldingen.setOutputMarkupId(true);
 		form.add(meldingen);

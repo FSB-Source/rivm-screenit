@@ -23,8 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.mamma.exchange;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
@@ -49,9 +47,6 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.util.BezwaarUtil;
 import nl.rivm.screenit.util.NaamUtil;
@@ -104,9 +99,9 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 
 	private WebMarkupContainer contentContainer = null;
 
-	private HibernateCheckBoxListContainer<MammaOnderzoek> selectedOnderzoeken = new HibernateCheckBoxListContainer<>();
+	private final HibernateCheckBoxListContainer<MammaOnderzoek> selectedOnderzoeken = new HibernateCheckBoxListContainer<>();
 
-	private Form<Void> passportForm;
+	private final Form<Void> passportForm;
 
 	private ScreenitDataTable<MammaDownloadOnderzoekenVerzoek, String> werklijst;
 
@@ -132,14 +127,14 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 		List<IColumn<MammaDownloadOnderzoekenVerzoek, String>> columns = new ArrayList<>();
 
 		columns.add(new DateTimePropertyColumn<>(Model.of("Aangemaakt"), "aangemaaktOp", "aangemaaktOp", Constants.getDateTimeFormat()));
-		columns.add(new PropertyColumn<MammaDownloadOnderzoekenVerzoek, String>(Model.of("Door"), "aangemaaktDoor.medewerker")
+		columns.add(new PropertyColumn<>(Model.of("Door"), "aangemaaktDoor.medewerker")
 		{
 			@Override
 			public IModel<?> getDataModel(IModel<MammaDownloadOnderzoekenVerzoek> rowModel)
 			{
 				IModel<?> dataModel = super.getDataModel(rowModel);
 				Gebruiker medewerker = (Gebruiker) dataModel.getObject();
-				return new Model(NaamUtil.getNaamGebruiker(medewerker));
+				return new Model<>(NaamUtil.getNaamGebruiker(medewerker));
 			}
 		});
 		columns.add(new DateTimePropertyColumn<>(Model.of("Gewijzigd"), "gewijzigdOp", "gewijzigdOp", Constants.getDateTimeFormat()));
@@ -147,7 +142,7 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 		columns.add(new ClientColumn<>("onderzoeken[0].onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client"));
 		columns.add(new PropertyColumn<>(Model.of("Bsn"), "onderzoeken[0].onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("onderzoeken[0].onderzoek.afspraak.uitnodiging.screeningRonde.dossier.client.persoon"));
-		columns.add(new AbstractColumn<MammaDownloadOnderzoekenVerzoek, String>(Model.of("Melding"))
+		columns.add(new AbstractColumn<>(Model.of("Melding"))
 		{
 
 			@Override
@@ -185,7 +180,7 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 			}
 
 		});
-		columns.add(new UploadDocumentDownloadColumn<MammaDownloadOnderzoekenVerzoek, String>(Model.of("Download Zip"), "zipBestand")
+		columns.add(new UploadDocumentDownloadColumn<>(Model.of("Download Zip"), "zipBestand")
 		{
 
 			@Override
@@ -228,7 +223,7 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 			}
 		});
 		columns.add(new DateTimePropertyColumn<>(Model.of("Gedownload op"), "gedownloadOp", "gedownloadOp", Constants.getDateTimeFormat()));
-		columns.add(new AbstractColumn<MammaDownloadOnderzoekenVerzoek, String>(Model.of("Opnieuw ophalen"))
+		columns.add(new AbstractColumn<>(Model.of("Opnieuw ophalen"))
 		{
 
 			@Override
@@ -237,7 +232,7 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 				BestandStatus status = rowModel.getObject().getStatus();
 				if ((status == BestandStatus.VERWERKT || status == BestandStatus.CRASH) && !heeftClientBezwaarTegenUitwisseling(rowModel.getObject()))
 				{
-					cellItem.add(new AjaxImageCellPanel<MammaDownloadOnderzoekenVerzoek>(componentId, rowModel, "icon-refresh")
+					cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-refresh")
 					{
 						@Override
 						protected void onClick(AjaxRequestTarget target)
@@ -265,15 +260,14 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 			}
 
 		});
-		verzoekFilter = ModelUtil.cModel(new MammaDownloadOnderzoekenVerzoek());
+		verzoekFilter = ModelUtil.ccModel(new MammaDownloadOnderzoekenVerzoek());
 
 		if (ScreenitSession.get().getInstelling().getOrganisatieType() != OrganisatieType.RIVM)
 		{
 			verzoekFilter.getObject().setAangemaaktDoor(ScreenitSession.get().getLoggedInInstellingGebruiker());
 		}
 		MammaDownloadOnderzoekenVerzoekenProvider dataProvider = new MammaDownloadOnderzoekenVerzoekenProvider(verzoekFilter);
-		werklijst = new ScreenitDataTable<MammaDownloadOnderzoekenVerzoek, String>("werklijst", columns, dataProvider,
-			Model.of("verzoek(en)"))
+		werklijst = new ScreenitDataTable<>("werklijst", columns, dataProvider, Model.of("verzoek(en)"))
 		{
 			@Override
 			protected boolean isRowClickable(IModel<MammaDownloadOnderzoekenVerzoek> rowModel)
@@ -289,7 +283,7 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 
 	private boolean heeftClientBezwaarTegenUitwisseling(MammaDownloadOnderzoekenVerzoek downloadOnderzoekenVerzoek)
 	{
-		if (downloadOnderzoekenVerzoek.getOnderzoeken() != null && downloadOnderzoekenVerzoek.getOnderzoeken().size() != 0)
+		if (downloadOnderzoekenVerzoek.getOnderzoeken() != null && !downloadOnderzoekenVerzoek.getOnderzoeken().isEmpty())
 		{
 			Client client = baseBeoordelingService.getClientVanBeoordeling(downloadOnderzoekenVerzoek.getOnderzoeken().get(0).getOnderzoek().getLaatsteBeoordeling());
 			return BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_DIGITALE_UITWISSELING_MET_HET_ZIEKENHUIS, Bevolkingsonderzoek.MAMMA);
@@ -408,15 +402,8 @@ public class MammaExchangeDownloadPage extends MammaExchangeBasePage
 		RepeatingView repeatingView = new RepeatingView("contentRepeater");
 		repeatingView.setOutputMarkupId(true);
 		repeatingView.setVisible(true);
-		new ArrayList<>(clientOpt.getObject().getMammaDossier().getScreeningRondes()) 
+		uitwisselPortaalService.beschikbareRondesVoorDownload(clientOpt.getObject())
 			.stream()
-			.filter(ronde -> ronde.getLaatsteUitnodiging() != null && ronde.getLaatsteUitnodiging().getLaatsteAfspraak() != null &&
-				ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek() != null &&
-				ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek().getLaatsteBeoordeling() != null &&
-				MammaMammografieIlmStatus.beeldenBeschikbaar(ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek().getMammografie().getIlmStatus()) &&
-				Arrays.asList(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG, MammaBeoordelingStatus.UITSLAG_GUNSTIG)
-					.contains(ronde.getLaatsteUitnodiging().getLaatsteAfspraak().getOnderzoek().getLaatsteBeoordeling().getStatus()))
-			.sorted(Comparator.comparing(MammaScreeningRonde::getCreatieDatum).reversed())
 			.map(ModelUtil::sModel)
 			.forEachOrdered(ronde ->
 			{

@@ -23,6 +23,11 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BetalingenTotalenDto
 {
 	private String totaalBedrag;
@@ -30,34 +35,4 @@ public class BetalingenTotalenDto
 	private long aantalBetalingen;
 
 	private List<BetalingDto> betalingen;
-
-	public List<BetalingDto> getBetalingen()
-	{
-		return betalingen;
-	}
-
-	public void setBetalingen(List<BetalingDto> betalingen)
-	{
-		this.betalingen = betalingen;
-	}
-
-	public String getTotaalBedrag()
-	{
-		return totaalBedrag;
-	}
-
-	public void setTotaalBedrag(String totaalBedrag)
-	{
-		this.totaalBedrag = totaalBedrag;
-	}
-
-	public long getAantalBetalingen()
-	{
-		return aantalBetalingen;
-	}
-
-	public void setAantalBetalingen(long aantalBetalingen)
-	{
-		this.aantalBetalingen = aantalBetalingen;
-	}
 }

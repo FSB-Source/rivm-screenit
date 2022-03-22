@@ -59,6 +59,11 @@ public class DateRestrictions
 		return new DateExpression(propertyName, value, "<>");
 	}
 
+	public static DatePropertyExpression eqProperty(String propertyName, String otherPropertyName)
+	{
+		return new DatePropertyExpression(propertyName, otherPropertyName, "=");
+	}
+
 	public static DatePropertyExpression leProperty(String propertyName, String otherPropertyName)
 	{
 		return new DatePropertyExpression(propertyName, otherPropertyName, "<=");

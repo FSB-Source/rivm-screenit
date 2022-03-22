@@ -29,9 +29,11 @@ import nl.rivm.screenit.main.web.component.table.ClientColumn;
 import nl.rivm.screenit.main.web.component.table.EnumPropertyColumn;
 import nl.rivm.screenit.main.web.component.table.GeboortedatumColumn;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
+import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -79,9 +81,10 @@ public abstract class CervixUitnodigingenPanel extends Panel
 				switch (uitnodiging.getMonsterType())
 				{
 				case UITSTRIJKJE:
-					if (uitnodiging.getBrief().getMergedBrieven() != null)
+					MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(uitnodiging.getBrief());
+					if (mergedBrieven != null)
 					{
-						cellItem.add(new Label(componentId, uitnodiging.getBrief().getMergedBrieven().getPrintDatum()));
+						cellItem.add(new Label(componentId, mergedBrieven.getPrintDatum()));
 					}
 					else
 					{

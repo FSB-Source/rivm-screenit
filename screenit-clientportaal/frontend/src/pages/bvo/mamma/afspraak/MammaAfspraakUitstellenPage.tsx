@@ -45,6 +45,7 @@ import bvoStyle from "../../../../components/BvoStyle.module.scss"
 import {ArrowType} from "../../../../components/vectors/ArrowIconComponent"
 import Button from "../../../../components/input/Button"
 import SearchForm from "../../../../components/form/SearchForm"
+import {useNavigate} from "react-router-dom"
 
 export type UitstelZoekFilter = {
 	vanaf: Date | null,
@@ -54,6 +55,7 @@ export type UitstelZoekFilter = {
 const MammaAfspraakUitstellenPage = () => {
 	const dispatch = useThunkDispatch()
 	const regio = useRegio()
+	const navigate = useNavigate()
 	const [gezocht, setGezocht] = useState<boolean>(false)
 	const [geenResultaten, setGeenResultaten] = useState<boolean>(false)
 	const [zoekResultaten, setZoekResultaten] = useState<KandidaatStandplaatsPeriode[]>(geenStandplaatsPeriodeZoekResultaten)
@@ -119,7 +121,7 @@ const MammaAfspraakUitstellenPage = () => {
 				</Col>
 				<Col md={7} className={styles.results}>
 					{!gezocht &&
-					<BeforeSearching text={getString(properties.beforesearching_text)}/>}
+						<BeforeSearching text={getString(properties.beforesearching_text)}/>}
 					{gezocht && zoekResultaten.map((kandidaatStandplaatsPeriode, index) =>
 						<SearchResultAfspraken
 							key={index}
@@ -132,7 +134,7 @@ const MammaAfspraakUitstellenPage = () => {
 							onHoverText={getString(properties.searchresult.hovertext)}
 							onClickAction={() => {
 								kandidaatStandplaatsPeriode.filter = zoekFilter
-								dispatch(maakUitstel(kandidaatStandplaatsPeriode))
+								dispatch(maakUitstel(kandidaatStandplaatsPeriode)).then(() => navigate("/mamma"))
 							}}/>,
 					)}
 					{geenResultaten && <FormErrorComponent text={getString(properties.searchresult.no_results, [formatDateWithDayName(zoekFilter.vanaf)])}/>}
@@ -140,9 +142,9 @@ const MammaAfspraakUitstellenPage = () => {
 								  link={"/mamma/afspraak"}/>
 
 					{(gezocht && geenResultaten) &&
-					<BigUrlButton title={getString(properties.navigation.contact.header)}
-								  text={getString(properties.navigation.contact.text)}
-								  link={getContactUrl(regio)}/>}
+						<BigUrlButton title={getString(properties.navigation.contact.header)}
+									  text={getString(properties.navigation.contact.text)}
+									  link={getContactUrl(regio)}/>}
 				</Col>
 			</Row>
 		</BasePage>

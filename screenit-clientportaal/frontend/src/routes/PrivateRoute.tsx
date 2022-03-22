@@ -19,57 +19,26 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {useEffect} from "react"
-import type {RouteProps} from "react-router-dom"
-import {Redirect, Route, RouteComponentProps} from "react-router-dom"
+import {Navigate, RouteProps} from "react-router-dom"
 import {useKeycloak} from "@react-keycloak/web"
-import {useDispatch, useSelector} from "react-redux"
+import {useSelector} from "react-redux"
 import {State} from "../datatypes/State"
-import {setLoggedInAction, setLoggingOutAction, setSessionExpiredAction} from "../actions/AuthenticatieAction"
-import {createClearStateAction} from "../actions/RootAction"
-import LadenComponent from "../components/laden/LadenComponent"
 
 interface PrivateRouteParams extends RouteProps {
-    component:
-        | React.ComponentType<RouteComponentProps<any>>
-        | React.ComponentType<any>
+	component: React.ComponentType<any>
 }
 
 export default function PrivateRoute({component: Component, ...rest}: PrivateRouteParams) {
-    const {initialized, keycloak} = useKeycloak()
-    const dispatch = useDispatch()
-    const authenticatie = useSelector((state: State) => state.authenticatie)
+	const {initialized, keycloak} = useKeycloak()
+	const authenticatie = useSelector((state: State) => state.authenticatie)
 
-    useEffect(() => {
-        if (initialized) {
-			if (keycloak.authenticated && !authenticatie.isLoggingIn && !authenticatie.isLoggingOut && !authenticatie.isLoggedIn && !authenticatie.isSessionExpired) {
-				dispatch(setLoggedInAction(true))
-			} else if (!keycloak.authenticated && (authenticatie.isLoggingOut || authenticatie.isLoggedIn)) {
-				dispatch(createClearStateAction())
-				if (!authenticatie.isLoggingOut) {
-					dispatch(setSessionExpiredAction(true))
-				} else {
-					dispatch(setLoggingOutAction(false))
-				}
-			}
-		}
-    }, [initialized, keycloak.authenticated, dispatch, authenticatie.isLoggingOut, authenticatie.isLoggedIn, authenticatie.isLoggingIn, authenticatie.isSessionExpired])
+	const redirectComponent = (path: string) => {
+		return <Navigate replace to={{pathname: path}}/>
+	}
 
-    const redirectComponent = (path: string) => {
-        return <Redirect
-            to={{pathname: path}}
-        />
-    }
-
-    return (
-        <Route{...rest} render={(props) => {
-            if (!initialized) {
-                return <LadenComponent/>
-            } else if (keycloak?.authenticated && authenticatie.isLoggedIn) {
-                return <Component {...props} />
-            } else {
-                return redirectComponent("/login")
-            }
-        }}/>
-    )
+	if (initialized && keycloak?.authenticated && authenticatie.isLoggedIn) {
+		return authenticatie.isUnauthorized ? redirectComponent("/niet-in-bevolkingsonderzoek") : <Component {...rest} />
+	} else {
+		return redirectComponent("/login")
+	}
 }

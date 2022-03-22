@@ -21,6 +21,10 @@ package nl.rivm.screenit.huisartsenportaal.model.enums;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class Scope
 {
 
@@ -30,8 +34,4 @@ public final class Scope
 
 	public static final String LOGIN = "login";
 
-	private Scope()
-	{
-
-	}
 }

@@ -26,7 +26,7 @@ import java.io.File;
 import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfViewer;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,7 +40,7 @@ public abstract class LezingPdfDialogPanel extends GenericPanel<MammaLezing>
 	private MammaBaseBeoordelingService baseBeoordelingService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	public LezingPdfDialogPanel(String id, IModel<MammaLezing> model)
 	{
@@ -49,7 +49,7 @@ public abstract class LezingPdfDialogPanel extends GenericPanel<MammaLezing>
 		MammaBeoordeling beoordeling = baseBeoordelingService.getBeoordelingVanLezing(getModelObject());
 		if (beoordeling != null && beoordeling.getVerslagPdf() != null)
 		{
-			File verslag = fileService.load(beoordeling.getVerslagPdf());
+			File verslag = uploadDocumentService.load(beoordeling.getVerslagPdf());
 			add(new PdfViewer("verslagPdf", verslag, false));
 		}
 	}

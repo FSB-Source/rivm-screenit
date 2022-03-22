@@ -24,14 +24,14 @@ package nl.rivm.screenit.batch.jobs.brieven.cleanup;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class AbstractBrievenCleanUpWriter<T extends MergedBrieven<?>> extends BaseWriter<T>
 {
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Override
 	protected void write(T item) throws Exception
@@ -44,7 +44,7 @@ public class AbstractBrievenCleanUpWriter<T extends MergedBrieven<?>> extends Ba
 		getHibernateService().saveOrUpdate(item);
 		if (uploadDocument != null)
 		{
-			fileService.delete(uploadDocument, true);
+			uploadDocumentService.delete(uploadDocument, true);
 		}
 	}
 

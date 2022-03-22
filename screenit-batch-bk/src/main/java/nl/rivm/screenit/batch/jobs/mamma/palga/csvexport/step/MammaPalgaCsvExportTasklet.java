@@ -29,14 +29,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.StringUtil;
@@ -45,8 +47,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -55,10 +55,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
+@Slf4j
 public class MammaPalgaCsvExportTasklet implements Tasklet
 {
-	private Logger LOG = LoggerFactory.getLogger(MammaPalgaCsvExportTasklet.class);
-
 	@Autowired
 	private String locatieFilestore;
 
@@ -69,7 +68,7 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 	private MammaPalgaService palgaService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -164,7 +163,7 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 		gegevens.add(voorletterClient);
 		gegevens.add(persoon.getAchternaam().trim());
 		gegevens.add(dateFormat.format(persoon.getGeboortedatum()));
-		gegevens.add(persoon.getGeslacht().getMnem());
+		gegevens.add(""); 
 		gegevens.add(persoon.getBsn());
 		hibernateService.getHibernateSession().evict(client);
 		return gegevens;
@@ -183,7 +182,7 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 			zipDocument.setContentType("application/zip");
 			for (UploadDocument document : export)
 			{
-				fileService.delete(document, true);
+				uploadDocumentService.delete(document, true);
 			}
 			palgaService.saveOrUpdateExport(zipDocument);
 		}

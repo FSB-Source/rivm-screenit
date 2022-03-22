@@ -40,16 +40,19 @@ import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
 import nl.rivm.screenit.mamma.planning.service.PlanningAfspraakDrempelOverzichtService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PlanningAfspraakDrempelOverzichtServiceImpl implements PlanningAfspraakDrempelOverzichtService
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
 	private static final int MAX_CDV_INDEX = 100;
+
+	private final ICurrentDateSupplier dateSupplier;
+
+	public PlanningAfspraakDrempelOverzichtServiceImpl(ICurrentDateSupplier dateSupplier)
+	{
+		this.dateSupplier = dateSupplier;
+	}
 
 	public PlanningAfspraakDrempelOverzichtDto getAfspraakDrempelOverzicht(PlanningStandplaats standplaats)
 	{

@@ -27,6 +27,7 @@ import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.service.HeraanmeldenMergeVeldService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -42,9 +43,10 @@ public class HeraanmeldenMergeVeldServiceImpl implements HeraanmeldenMergeVeldSe
 	@Autowired
 	private SimplePreferenceService preferenceService;
 
+	@Override
 	public String getValueVanHeraanmeldenTekstKey(ClientBrief brief)
 	{
-		ClientBrief herdruk = brief.getHerdruk();
+		ClientBrief herdruk = BriefUtil.getHerdruk(brief);
 		if (herdruk != null)
 		{
 			return getValueVanHeraanmeldenTekstKey(herdruk);

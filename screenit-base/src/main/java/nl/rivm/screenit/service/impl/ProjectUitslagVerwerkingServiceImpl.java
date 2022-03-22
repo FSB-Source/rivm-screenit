@@ -25,6 +25,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.model.colon.ColonGeinterpreteerdeUitslag;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
@@ -52,6 +53,9 @@ public class ProjectUitslagVerwerkingServiceImpl implements ProjectUitslagVerwer
 
 	@Autowired
 	private IFobtService iFobtService;
+
+	@Autowired
+	private IFobtDao iFobtDao;
 
 	@Autowired
 	private ColonStudietestService studietestService;
@@ -130,7 +134,8 @@ public class ProjectUitslagVerwerkingServiceImpl implements ProjectUitslagVerwer
 
 			if (studietest == null)
 			{
-				throw new ProjectUitslagenUploadException("Geen test gevonden met deze barcode");
+				boolean isVerwijderdeBarcode = iFobtDao.isVerwijderdeBarcode(barcode);
+				throw new ProjectUitslagenUploadException(String.format("Aan deze barcode zijn geen clientgegevens %sgekoppeld", isVerwijderdeBarcode ? "meer " : ""));
 			}
 
 			clientIsHeraangemeld = studietestService.studietestHeraanmeldenIndienNodig(studietest);

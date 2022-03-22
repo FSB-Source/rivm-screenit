@@ -31,6 +31,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Permissie;
 import nl.rivm.screenit.model.Rol;
@@ -49,24 +51,21 @@ import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandType;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
 import static nl.topicuszorg.hibernate.spring.util.ApplicationContextProvider.getApplicationContext;
 
+@Slf4j
 public class FillerUtil
 {
-	private static final Logger LOG = LoggerFactory.getLogger(FillerUtil.class);
-
 	public static UploadDocument getUploadDocumentEnSlaOp(long id, String naam, String contentType, File file, FileStoreLocation fileStoreLocation)
 	{
 		UploadDocument uploadDocument = new UploadDocument();
@@ -76,8 +75,8 @@ public class FillerUtil
 		uploadDocument.setFile(file);
 		try
 		{
-			FileService fileService = getApplicationContext().getBean(FileService.class);
-			fileService.saveOrUpdateUploadDocument(uploadDocument, fileStoreLocation, id, false);
+			UploadDocumentService uploadDocumentService = getApplicationContext().getBean(UploadDocumentService.class);
+			uploadDocumentService.saveOrUpdate(uploadDocument, fileStoreLocation, id, false);
 		}
 		catch (IOException e)
 		{

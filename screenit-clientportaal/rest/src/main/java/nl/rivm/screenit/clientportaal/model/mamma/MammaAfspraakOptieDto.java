@@ -21,14 +21,15 @@ package nl.rivm.screenit.clientportaal.model.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDateTime;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 import nl.rivm.screenit.clientportaal.model.ClientportaalBaseDto;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -50,6 +51,8 @@ public class MammaAfspraakOptieDto extends ClientportaalBaseDto
     private String plaats;
 
     private boolean bevestigingsBrief;
+
+	private boolean toonBevestigingsBriefOptie;
 
     private MammaAfspraakZoekFilterDto filter;
 

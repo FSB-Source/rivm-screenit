@@ -25,29 +25,25 @@ import ScreenitBackend from "../utils/Backend"
 import {ResetBezwaarMoment, setLaatsteBezwaarMomentAction} from "../actions/BezwaarReduxAction"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import HttpStatus from "../datatypes/HttpStatus"
-import {navigateAndShowToast} from "../utils/NavigationUtil"
-import {getBvoBaseUrl} from "../utils/UrlUtil"
 import {getString} from "../utils/TekstPropertyUtil"
 import properties from "./../pages/bvo/BezwaarType.json"
+import {showToast} from "../utils/ToastUtil"
 
-export const getLaatsteBezwaarMoment = (bvo: Bevolkingsonderzoek) => async (dispatch: Dispatch<ResetBezwaarMoment>) => {
-    return ScreenitBackend.get(`/bezwaar/${bvo}`).then(
-        (response) => dispatch(setLaatsteBezwaarMomentAction(response.data)),
-    )
+export const getLaatsteBezwaarMoment = (bvo: Bevolkingsonderzoek) => (dispatch: Dispatch<ResetBezwaarMoment>) => {
+	return ScreenitBackend.get(`/bezwaar/${bvo}`).then(
+		(response) => dispatch(setLaatsteBezwaarMomentAction(response.data)),
+	)
 }
 
-export const saveNieuwBezwaarMoment = (bvo: Bevolkingsonderzoek, bezwaarMoment: BezwaarMoment) => {
-    return (dispatch: Dispatch) => {
-        return ScreenitBackend.post(`/bezwaar/${bvo}`, bezwaarMoment)
-            .then(response => {
-                dispatch(setLaatsteBezwaarMomentAction(response.data))
-                navigateAndShowToast(getBvoBaseUrl(bvo), getString(properties.toast.wijzigingen.titel), getString(properties.toast.wijzigingen.text))
-            })
-            .catch(error => {
-                if (error.response.status === HttpStatus.NOT_MODIFIED) {
-                    navigateAndShowToast(getBvoBaseUrl(bvo), getString(properties.toast.ongewijzigd.titel),
-                        getString(properties.toast.ongewijzigd.text), ToastMessageType.WARNING)
-                }
-            })
-    }
+export const saveNieuwBezwaarMoment = (bvo: Bevolkingsonderzoek, bezwaarMoment: BezwaarMoment) => (dispatch: Dispatch<ResetBezwaarMoment>) => {
+	return ScreenitBackend.post(`/bezwaar/${bvo}`, bezwaarMoment)
+		.then(response => {
+			dispatch(setLaatsteBezwaarMomentAction(response.data))
+			showToast(getString(properties.toast.wijzigingen.titel), getString(properties.toast.wijzigingen.text))
+		})
+		.catch(error => {
+			if (error.response.status === HttpStatus.NOT_MODIFIED) {
+				showToast(getString(properties.toast.ongewijzigd.titel), getString(properties.toast.ongewijzigd.text), ToastMessageType.WARNING)
+			}
+		})
 }

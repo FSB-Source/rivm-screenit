@@ -32,16 +32,17 @@ import {geenHeraanmeldenOpties, HeraanmeldenOptiesDto} from "../../../datatypes/
 import HeraanmeldenAfspraakMakenForm from "../../../components/form/heraanmelden/HeraanmeldenAfspraakMakenForm"
 import HeraanmeldenUitnodigingAanvragenForm from "../../../components/form/heraanmelden/HeraanmeldenUitnodigingAanvragenForm"
 import {getBvoBaseUrl} from "../../../utils/UrlUtil"
-import {navigateAndShowToast} from "../../../utils/NavigationUtil"
 import LadenComponent from "../../../components/laden/LadenComponent"
 import SubmitButton from "../../../components/input/SubmitButton"
 import {ClientContactActieType} from "../../../datatypes/ClientContactActieType"
+import {useNavigate} from "react-router-dom"
+import {showToast} from "../../../utils/ToastUtil"
 
 const HeraanmeldenPage = () => {
-
 	const properties = require("./HeraanmeldenPage.json")
 	const dispatch = useThunkDispatch()
 	const selectedBvo = useSelectedBvo()!
+	const navigate = useNavigate()
 	const [heraanmeldenOpties, setHeraanmeldenOpties] = useState<HeraanmeldenOptiesDto>(geenHeraanmeldenOpties)
 	const [optiesZijnOpgehaald, setOptiesZijnOpgehaald] = useState<boolean>(false)
 
@@ -62,34 +63,31 @@ const HeraanmeldenPage = () => {
 			{!optiesZijnOpgehaald && <LadenComponent/>}
 
 			{optiesZijnOpgehaald && heraanmeldenOpties.magColonUitnodigingAanvragen &&
-			<HeraanmeldenUitnodigingAanvragenForm onSubmitSucces={(uitnodigingAanvragen) => {
-				dispatch(saveHeraanmeldVerzoekEnGeefBeschikbareActies(selectedBvo, uitnodigingAanvragen, dispatch))
-					.then(() => {
-						navigateAndShowToast(getBvoBaseUrl(selectedBvo), "",
-							uitnodigingAanvragen ? getString(properties.toast.COLON.uitnodiging) : getString(properties.toast.COLON.algemeen))
-					})
-			}}/>}
+				<HeraanmeldenUitnodigingAanvragenForm onSubmitSucces={(uitnodigingAanvragen) => {
+					dispatch(saveHeraanmeldVerzoekEnGeefBeschikbareActies(selectedBvo, uitnodigingAanvragen, dispatch))
+						.then(() => {
+							showToast(undefined, uitnodigingAanvragen ? getString(properties.toast.COLON.uitnodiging) : getString(properties.toast.COLON.algemeen))
+							navigate(getBvoBaseUrl(selectedBvo))
+						})
+				}}/>}
 
 			{optiesZijnOpgehaald && heraanmeldenOpties.magColonIntakAfspraakInplannen &&
-			<HeraanmeldenAfspraakMakenForm onSubmitSucces={(afspraakMaken) => {
-				dispatch(saveHeraanmeldVerzoekEnGeefBeschikbareActies(selectedBvo, false, dispatch))
-					.then(() => {
-						navigateAndShowToast(
-							afspraakMaken ? "/colon/afspraak-maken" : getBvoBaseUrl(selectedBvo),
-							"",
-							afspraakMaken ? getString(properties["toast"][selectedBvo]["afspraak"]) : getString(properties["toast"][selectedBvo]["algemeen"]),
-						)
-					})
-			}}/>}
+				<HeraanmeldenAfspraakMakenForm onSubmitSucces={(afspraakMaken) => {
+					dispatch(saveHeraanmeldVerzoekEnGeefBeschikbareActies(selectedBvo, false, dispatch))
+						.then(() => {
+							showToast(undefined, afspraakMaken ? getString(properties["toast"][selectedBvo]["afspraak"]) : getString(properties["toast"][selectedBvo]["algemeen"]))
+							navigate(afspraakMaken ? "/colon/afspraak-maken" : getBvoBaseUrl(selectedBvo))
+						})
+				}}/>}
 
 			{optiesZijnOpgehaald && !heraanmeldenOpties.magColonIntakAfspraakInplannen && !heraanmeldenOpties.magColonUitnodigingAanvragen &&
-			<SubmitButton className={bvoStyle.baseBackgroundColor} label={getString(properties.form.button)} displayArrow={ArrowType.ARROW_RIGHT} onClick={() => {
-				dispatch(saveHeraanmeldVerzoekEnGeefBeschikbareActies(selectedBvo, false, dispatch)).then((beschikbareActies) => {
-					const kanDirectMammaAfspraakMaken = selectedBvo === Bevolkingsonderzoek.MAMMA && beschikbareActies.beschikbareActies.includes(ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
-					navigateAndShowToast(kanDirectMammaAfspraakMaken ? "/mamma/afspraak" : getBvoBaseUrl(selectedBvo), "",
-						kanDirectMammaAfspraakMaken ? getString(properties.toast.MAMMA.afspraak) : getString(properties["toast"][selectedBvo]["algemeen"]))
-				})
-			}}/>}
+				<SubmitButton className={bvoStyle.baseBackgroundColor} label={getString(properties.form.button)} displayArrow={ArrowType.ARROW_RIGHT} onClick={() => {
+					dispatch(saveHeraanmeldVerzoekEnGeefBeschikbareActies(selectedBvo, false, dispatch)).then((beschikbareActies) => {
+						const kanDirectMammaAfspraakMaken = selectedBvo === Bevolkingsonderzoek.MAMMA && beschikbareActies.beschikbareActies.includes(ClientContactActieType.MAMMA_AFSPRAAK_MAKEN)
+						showToast(undefined, kanDirectMammaAfspraakMaken ? getString(properties.toast.MAMMA.afspraak) : getString(properties["toast"][selectedBvo]["algemeen"]))
+						navigate(kanDirectMammaAfspraakMaken ? "/mamma/afspraak" : getBvoBaseUrl(selectedBvo))
+					})
+				}}/>}
 
 		</ActieBasePage>
 	)

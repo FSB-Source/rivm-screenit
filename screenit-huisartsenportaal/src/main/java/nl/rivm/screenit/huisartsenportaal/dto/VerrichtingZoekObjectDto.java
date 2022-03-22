@@ -21,29 +21,15 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class VerrichtingZoekObjectDto
 {
 	private TableResultOptionsDto resultOptions;
 
 	private VerrichtingFilterDto verrichtingenZoekObject;
 
-	public TableResultOptionsDto getResultOptions()
-	{
-		return resultOptions;
-	}
-
-	public void setResultOptions(TableResultOptionsDto resultOptions)
-	{
-		this.resultOptions = resultOptions;
-	}
-
-	public VerrichtingFilterDto getVerrichtingenZoekObject()
-	{
-		return verrichtingenZoekObject;
-	}
-
-	public void setVerrichtingenZoekObject(VerrichtingFilterDto verrichtingenZoekObject)
-	{
-		this.verrichtingenZoekObject = verrichtingenZoekObject;
-	}
 }

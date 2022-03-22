@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import nl.rivm.screenit.PreferenceKey;
@@ -114,7 +115,7 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 	@Override
 	public MammaFactorType getFactorType(MammaDossier dossier)
 	{
-		return MammaFactorType.getFactorType(dossier.getTehuis() != null, dossier.getDoelgroep(), dossier.getLaatsteMammografieAfgerond());
+		return MammaFactorType.getFactorType(dossier.getTehuis() != null, dossier.getDoelgroep(), dossier.getLaatsteBeoordelingMetUitslag() != null);
 	}
 
 	@Override
@@ -196,18 +197,15 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 		if (heeftGbaPostcode(dossier))
 		{
 			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-			if (ronde != null)
+			if (ronde != null && ronde.getStatus() == ScreeningRondeStatus.LOPEND)
 			{
-				if (ronde.getStatus() == ScreeningRondeStatus.LOPEND)
+				MammaUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
+				if (laatsteUitnodiging != null)
 				{
-					MammaUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
-					if (laatsteUitnodiging != null)
+					MammaAfspraak laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
+					if (laatsteAfspraak != null && !isAfspraakMakenMogelijk(dossier, false, false))
 					{
-						MammaAfspraak laatsteAfspraak = laatsteUitnodiging.getLaatsteAfspraak();
-						if (laatsteAfspraak != null && !isAfspraakMakenMogelijk(dossier, false, false))
-						{
-							return laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND && !isOnvolledigOnderzoek(ronde.getLaatsteOnderzoek());
-						}
+						return laatsteAfspraak.getStatus() == MammaAfspraakStatus.GEPLAND && !isOnvolledigOnderzoek(ronde.getLaatsteOnderzoek());
 					}
 				}
 			}
@@ -221,8 +219,8 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 		return dossier.getScreeningRondes().stream()
 			.flatMap(screeningRonde -> screeningRonde.getUitnodigingen().stream())
 			.flatMap(uitnodiging -> uitnodiging.getAfspraken().stream())
-			.filter(afspraak -> afspraak.getOnderzoek() != null)
-			.map(MammaAfspraak::getOnderzoek).max(Comparator.comparing(MammaOnderzoek::getCreatieDatum)).orElse(null);
+			.map(MammaAfspraak::getOnderzoek)
+			.filter(Objects::nonNull).max(Comparator.comparing(MammaOnderzoek::getCreatieDatum)).orElse(null);
 	}
 
 	@Override
@@ -285,8 +283,8 @@ public class MammaBaseDossierServiceImpl implements MammaBaseDossierService
 
 			if (onderzoek != null && onderzoek.isDoorgevoerd() && onderzoek.getMammografie() != null)
 			{
-				int MAX_DAGEN_UITSTELLEN_FORCEREN = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_UITNODIGINGEN.name());
-				LocalDate afspraakDatum180Dagen = DateUtil.toLocalDate(onderzoek.getMammografie().getAfgerondOp()).plusDays(MAX_DAGEN_UITSTELLEN_FORCEREN);
+				int maxDagenUitstellenForceren = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_UITNODIGINGEN.name());
+				LocalDate afspraakDatum180Dagen = DateUtil.toLocalDate(onderzoek.getMammografie().getAfgerondOp()).plusDays(maxDagenUitstellenForceren);
 				magAfspraakForceren = currentDateSupplier.getLocalDate().isBefore(afspraakDatum180Dagen);
 			}
 		}

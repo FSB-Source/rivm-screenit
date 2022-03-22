@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step;
 
 /*-
@@ -25,12 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import nl.rivm.screenit.batch.jobs.generalis.gba.wrappers.Vo105BerichtWrapper;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.topicuszorg.gba.vertrouwdverbonden.model.Vo105Bericht;
 import nl.topicuszorg.gba.vertrouwdverbonden.model.utils.VoxHelper;
 
 import org.apache.commons.io.IOUtils;
@@ -39,80 +35,58 @@ import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.ItemWriter;
 
-public class Vo105ItemWriter implements ItemWriter<List<Vo105BerichtWrapper>>, ItemStreamWriter<List<Vo105BerichtWrapper>>
+public class Vo105ItemWriter implements ItemWriter<Vo105Bericht>, ItemStreamWriter<Vo105Bericht>
 {
+	public static final String VO105_BESTAND_KEY = "key.vo105bestand";
 
-	public static final String BESTANDEN_MAP_KEY = "key.bestandenmap";
-
-	private Map<String, String> vo105Bestanden = new HashMap<>();
-
-	private String voFileStorePath;
+	private String vo105FilePath;
 
 	@Override
-	public void write(List<? extends List<Vo105BerichtWrapper>> items) throws IOException
+	public void write(List<? extends Vo105Bericht> berichten) throws IOException
 	{
-		for (List<Vo105BerichtWrapper> vo105Berichten : items)
+		for (var vo105Bericht : berichten)
 		{
-			for (Vo105BerichtWrapper vo105Bericht : vo105Berichten)
-			{
-				writeBericht(vo105Bericht);
-			}
+			writeBericht(vo105Bericht);
 		}
 	}
 
-	private void writeBericht(Vo105BerichtWrapper vo105Bericht) throws IOException
+	private void writeBericht(Vo105Bericht vo105Bericht) throws IOException
 	{
-		ScreeningOrganisatie screeningOrganisatie = vo105Bericht.getScreeningOrganisatie();
-		if (!vo105Bestanden.containsKey(screeningOrganisatie.getRegioCode()))
+		if (vo105FilePath == null)
 		{
-			File dir = new File(voFileStorePath + System.getProperty("file.separator") + "temp");
-			dir.mkdirs();
-			vo105Bestanden.put(screeningOrganisatie.getRegioCode(), File.createTempFile("so" + screeningOrganisatie.getRegioCode(), "", dir).getPath());
+			vo105FilePath = File.createTempFile("VO105_BVO", "").getPath();
 		}
 
-		File file = new File(vo105Bestanden.get(screeningOrganisatie.getRegioCode()));
-		FileWriter fileWriter = null;
-		try
+		var berichtString = VoxHelper.convertToBerichtString(vo105Bericht);
+
+		try (var fileWriter = new FileWriter(vo105FilePath, true))
 		{
-			fileWriter = new FileWriter(file, true);
-			IOUtils.write(VoxHelper.convertToBerichtString(vo105Bericht.getVo105Bericht()), fileWriter);
-		}
-		finally
-		{
-			if (fileWriter != null)
-			{
-				fileWriter.close();
-			}
+			IOUtils.write(berichtString, fileWriter);
 		}
 	}
 
 	@Override
 	public void open(ExecutionContext executionContext) throws ItemStreamException
 	{
-		if (executionContext.containsKey(BESTANDEN_MAP_KEY))
+		if (executionContext.containsKey(VO105_BESTAND_KEY))
 		{
-			this.vo105Bestanden = (Map<String, String>) executionContext.get(BESTANDEN_MAP_KEY);
+			vo105FilePath = (String) executionContext.get(VO105_BESTAND_KEY);
 		}
 		else
 		{
-			vo105Bestanden.clear();
+			vo105FilePath = null;
 		}
 	}
 
 	@Override
 	public void update(ExecutionContext executionContext) throws ItemStreamException
 	{
-		executionContext.put(BESTANDEN_MAP_KEY, new HashMap<>(vo105Bestanden));
+		executionContext.put(VO105_BESTAND_KEY, vo105FilePath);
 	}
 
 	@Override
 	public void close() throws ItemStreamException
 	{
-		vo105Bestanden.clear();
-	}
-
-	public void setVoFileStorePath(String voFileStorePath)
-	{
-		this.voFileStorePath = voFileStorePath;
+		vo105FilePath = null;
 	}
 }

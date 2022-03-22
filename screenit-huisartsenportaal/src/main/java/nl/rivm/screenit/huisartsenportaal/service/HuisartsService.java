@@ -32,20 +32,20 @@ public interface HuisartsService
 
 	Huisarts setHuisarts(HuisartsDto huisartsDto);
 
-	Huisarts updatePassword(Huisarts huisarts, String wachtwoord);
+	Huisarts updateWachtwoord(Huisarts huisarts, String wachtwoord);
 
-	boolean controleerPassword(String rawPassword, String encodedPassword);
+	boolean controleerWachtwoord(String plainWachtwoord, String encodedWachtwoord);
 
 	Huisarts wachtwoordVergeten(Huisarts huisarts) throws IllegalStateException;
 
 	Huisarts getHuisartsWith(WachtwoordVergetenDto dto);
 
-	Huisarts getHuisartsWith(Long ScreenitId);
+	Huisarts getHuisartsWith(Long screenitId);
 
-	Integer increaseAttemps(Huisarts huisarts);
+	Integer incrementAttempts(Huisarts huisarts);
 
-	void resetAttemps(Huisarts huisarts);
+	void resetAttempts(Huisarts huisarts);
 
-	Long remainingMinutes(Huisarts huisarts);
+	Long remainingMinutesLock(Huisarts huisarts);
 
 }

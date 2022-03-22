@@ -30,10 +30,15 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
+@Getter
+@Setter
 public class HuisartsDto extends AbstractDtoReferenceObject
 {
 	@NotNull(message = "AGB-code is verplicht.")
@@ -94,185 +99,6 @@ public class HuisartsDto extends AbstractDtoReferenceObject
 
 	@Valid
 	@NotNull
-	private List<LocatieDto> locaties = new ArrayList<LocatieDto>();
+	private List<LocatieDto> locaties = new ArrayList<>();
 
-	public String getAgbcode()
-	{
-		return agbcode;
-	}
-
-	public void setAgbcode(String agbcode)
-	{
-		this.agbcode = agbcode;
-	}
-
-	public String getEmail()
-	{
-		return email;
-	}
-
-	public void setEmail(String email)
-	{
-		this.email = email;
-	}
-
-	public String getAanhef()
-	{
-		return aanhef;
-	}
-
-	public void setAanhef(String aanhef)
-	{
-		this.aanhef = aanhef;
-	}
-
-	public String getAchternaam()
-	{
-		return achternaam;
-	}
-
-	public void setAchternaam(String achternaam)
-	{
-		this.achternaam = achternaam;
-	}
-
-	public String getTussenvoegsel()
-	{
-		return tussenvoegsel;
-	}
-
-	public void setTussenvoegsel(String tussenvoegsel)
-	{
-		this.tussenvoegsel = tussenvoegsel;
-	}
-
-	public String getTelefoon()
-	{
-		return telefoon;
-	}
-
-	public void setTelefoon(String telefoon)
-	{
-		this.telefoon = telefoon;
-	}
-
-	public AdresDto getPostadres()
-	{
-		return postadres;
-	}
-
-	public void setPostadres(AdresDto postadres)
-	{
-		this.postadres = postadres;
-	}
-
-	public String getInlogCode()
-	{
-		return inlogCode;
-	}
-
-	public void setInlogCode(String inlogCode)
-	{
-		this.inlogCode = inlogCode;
-	}
-
-	public String getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(String status)
-	{
-		this.status = status;
-	}
-
-	public String getUsername()
-	{
-		return username;
-	}
-
-	public void setUsername(String username)
-	{
-		this.username = username;
-	}
-
-	public String getWachtwoord()
-	{
-		return wachtwoord;
-	}
-
-	public void setWachtwoord(String wachtwoord)
-	{
-		this.wachtwoord = wachtwoord;
-	}
-
-	public List<LocatieDto> getLocaties()
-	{
-		return locaties;
-	}
-
-	public void setLocaties(List<LocatieDto> locaties)
-	{
-		this.locaties = locaties;
-	}
-
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public String getVoorletters()
-	{
-		return voorletters;
-	}
-
-	public void setVoorletters(String voorletters)
-	{
-		this.voorletters = voorletters;
-	}
-
-	public Date getOvereenkomstGeaccordeerdDatum()
-	{
-		return overeenkomstGeaccordeerdDatum;
-	}
-
-	public void setOvereenkomstGeaccordeerdDatum(Date overeenkomstGeaccordeerdDatum)
-	{
-		this.overeenkomstGeaccordeerdDatum = overeenkomstGeaccordeerdDatum;
-	}
-
-	public Boolean getOvereenkomst()
-	{
-		return overeenkomst;
-	}
-
-	public void setOvereenkomst(Boolean overeenkomst)
-	{
-		this.overeenkomst = overeenkomst;
-	}
-
-	public String getExtraEmails()
-	{
-		return extraEmails;
-	}
-
-	public void setExtraEmails(String extraEmails)
-	{
-		this.extraEmails = extraEmails;
-	}
-
-	public String getAanmeldStatus()
-	{
-		return aanmeldStatus;
-	}
-
-	public void setAanmeldStatus(String aanmeldStatus)
-	{
-		this.aanmeldStatus = aanmeldStatus;
-	}
 }

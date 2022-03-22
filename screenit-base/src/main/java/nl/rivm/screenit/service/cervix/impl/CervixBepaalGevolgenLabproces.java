@@ -21,15 +21,12 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
+import nl.rivm.screenit.util.DateUtil;
 
 class CervixBepaalGevolgenLabproces
 {
-
 	CervixBepaalVervolgContext context;
 
 	CervixVervolg vervolg;
@@ -84,8 +81,7 @@ class CervixBepaalGevolgenLabproces
 
 	void bepaalGevolgenUitstijkjeVervolgonderzoekOnbeoordeelbaar()
 	{
-		CervixBepaalVervolgDao bepaalVervolgDao = SpringBeanProvider.getInstance().getBean(CervixBepaalVervolgDao.class);
-		if (!bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
+		if (!context.bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
 		{
 			vervolg.setVervolg(BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR, HuisartsBerichtType.CERVIX_VERVOLGONDERZOEK_CYTOLOGIE_UITSLAG); 
 		}
@@ -100,25 +96,44 @@ class CervixBepaalGevolgenLabproces
 		switch (context.cytologieUitslag)
 		{
 		case PAP1:
-			ICurrentDateSupplier dateSupplier = SpringBeanProvider.getInstance().getBean(ICurrentDateSupplier.class);
 			if (context.huidigeMonster.equals(context.monsterHpvUitslag))
 			{
-				vervolg.setVervolg(BriefType.CERVIX_CYTOLOGIE_NEGATIEF, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, dateSupplier.getDate()); 
+				vervolg.setVervolg(BriefType.CERVIX_CYTOLOGIE_NEGATIEF, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, DateUtil.toUtilDate(context.nu)); 
+				vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
 			}
 			else
 			{
-				vervolg.setVervolg(BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_NEGATIEF, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, dateSupplier.getDate()); 
+				vervolg.setVervolg(BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_NEGATIEF, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG,
+					DateUtil.toUtilDate(context.nu)); 
 			}
 			break;
 		case PAP2:
 		case PAP3A1:
-			if (context.huidigeMonster.equals(context.monsterHpvUitslag))
+			if (!isStartdatumGenotyperingVerstreken() || !context.monsterService.monsterHeeftHpvBeoordelingMetGenotypeOther(context.monsterHpvUitslag))
 			{
-				vervolg.setVervolg(BriefType.CERVIX_CYTOLOGIE_LICHTE_AFWIJKING, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, true); 
+				if (context.huidigeMonster.equals(context.monsterHpvUitslag))
+				{
+					vervolg.setVervolg(BriefType.CERVIX_CYTOLOGIE_LICHTE_AFWIJKING, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, true); 
+				}
+				else
+				{
+					vervolg.setVervolg(BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, true); 
+				}
 			}
 			else
 			{
-				vervolg.setVervolg(BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG, true); 
+				if (context.huidigeMonster.equals(context.monsterHpvUitslag))
+				{
+					vervolg.setVervolg(BriefType.CERVIX_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG,
+						DateUtil.toUtilDate(context.nu));
+					vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
+				}
+				else
+				{
+					vervolg.setVervolg(BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG,
+						DateUtil.toUtilDate(context.nu));
+					vervolg.setIntervalControleUitstrijkje(context.intervalControleUitstrijkje);
+				}
 			}
 			break;
 		case PAP3A2:
@@ -152,8 +167,7 @@ class CervixBepaalGevolgenLabproces
 		}
 		else
 		{
-			CervixBepaalVervolgDao bepaalVervolgDao = SpringBeanProvider.getInstance().getBean(CervixBepaalVervolgDao.class);
-			if (!bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
+			if (!context.bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
 			{
 				vervolg.setVervolg(BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR, HuisartsBerichtType.CERVIX_UITSTRIJKJE_CYTOLOGIE_UITSLAG); 
 			}
@@ -195,8 +209,7 @@ class CervixBepaalGevolgenLabproces
 
 	void bepaalGevolgenUitstrijkjeHpvOnbeoordeelbaar()
 	{
-		CervixBepaalVervolgDao bepaalVervolgDao = SpringBeanProvider.getInstance().getBean(CervixBepaalVervolgDao.class);
-		if (!bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
+		if (!context.bepaalVervolgDao.anderUitstrijkjeOnbeoordeelbaar(context.huidigUitstrijkje))
 		{
 			vervolg.setVervolg(BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_HPV_ONBEOORDEELBAAR, HuisartsBerichtType.CERVIX_UITSTRIJKJE_HPV_ONBEOORDEELBAAR); 
 		}
@@ -245,8 +258,7 @@ class CervixBepaalGevolgenLabproces
 		}
 		else
 		{
-			CervixBepaalVervolgDao bepaalVervolgDao = SpringBeanProvider.getInstance().getBean(CervixBepaalVervolgDao.class);
-			if (bepaalVervolgDao.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
+			if (context.bepaalVervolgDao.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
 			{
 				vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR); 
 			}
@@ -265,8 +277,7 @@ class CervixBepaalGevolgenLabproces
 		}
 		else
 		{
-			CervixBepaalVervolgDao bepaalVervolgDao = SpringBeanProvider.getInstance().getBean(CervixBepaalVervolgDao.class);
-			if (bepaalVervolgDao.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
+			if (context.bepaalVervolgDao.uitstrijkjeOnbeoordeelbaarCytologie(context.ontvangstRonde))
 			{
 				vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR); 
 			}
@@ -293,6 +304,11 @@ class CervixBepaalGevolgenLabproces
 			break;
 		case PAP2:
 		case PAP3A1:
+			if (isStartdatumGenotyperingVerstreken() && context.monsterService.monsterHeeftHpvBeoordelingMetGenotypeOther(context.monsterHpvUitslag))
+			{
+				vervolg.setVervolg(BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF_HPVOTHER); 
+				break;
+			}
 		case PAP3A2:
 		case PAP3B:
 		case PAP4:
@@ -335,8 +351,7 @@ class CervixBepaalGevolgenLabproces
 
 	void bepaalGevolgenZasHpvOnbeoordeelbaar()
 	{
-		CervixBepaalVervolgDao bepaalVervolgDao = SpringBeanProvider.getInstance().getBean(CervixBepaalVervolgDao.class);
-		if (!bepaalVervolgDao.andereZasOngeldig(context.huidigeZas))
+		if (!context.bepaalVervolgDao.andereZasOngeldig(context.huidigeZas))
 		{
 			vervolg.setVervolg(BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR); 
 		}
@@ -349,5 +364,10 @@ class CervixBepaalGevolgenLabproces
 	void bepaalGevolgenZasNietAnalyseerbaar()
 	{
 		vervolg.setVervolg(BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR); 
+	}
+
+	private boolean isStartdatumGenotyperingVerstreken()
+	{
+		return context.startDatumGenotypering != null && !context.nu.toLocalDate().isBefore(context.startDatumGenotypering);
 	}
 }

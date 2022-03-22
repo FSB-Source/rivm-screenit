@@ -21,216 +21,152 @@ package nl.rivm.screenit.model.dashboard;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.enums.JobType;
 
 public enum DashboardType
 {
-	GBA_LANDELIJK("GBA", JobType.GBA, Arrays.asList(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	GBA_LANDELIJK("GBA", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
-	COLON_BATCH_NA_GBA_VERWERKING("Darmkanker specifieke verwerking nav. GBA", JobType.COLON_NA_GBA, Bevolkingsonderzoek.COLON),
+	COLON_BATCH_NA_GBA_VERWERKING("Darmkanker specifieke verwerking nav. GBA", Bevolkingsonderzoek.COLON),
 
-	CLIENT_SELECTIE("Client selectie", JobType.CLIENT_SELECTIE, Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON),
+	CLIENT_SELECTIE("Client selectie", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON),
 
-	UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM("Uitnodiging versturen naar inpakcentrum", JobType.UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_JOB_DK, Bevolkingsonderzoek.COLON),
+	UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM("Uitnodiging versturen naar inpakcentrum", Bevolkingsonderzoek.COLON),
 
 	CONTROLE_TERUGKOPPELING_CLIENT_SELECTIE("Controle terugkoppeling van Inpakcentrum", Bevolkingsonderzoek.COLON),
 
-	TERUGKOPPELING_CLIENT_SELECTIE("Terugkoppeling van Inpakcentrum", JobType.KOPPELDATA_VERWERKING, Bevolkingsonderzoek.COLON),
+	TERUGKOPPELING_CLIENT_SELECTIE("Terugkoppeling van Inpakcentrum", Bevolkingsonderzoek.COLON),
 
 	RETOURZENDINGEN("Retourzendingen", Bevolkingsonderzoek.COLON),
 
-	COLON_IFOBT_KOPPELING("FIT-berichten koppeling", Arrays.asList(OrganisatieType.RIVM, OrganisatieType.LABORATORIUM), Bevolkingsonderzoek.COLON),
+	COLON_IFOBT_KOPPELING("FIT-berichten koppeling", List.of(OrganisatieType.RIVM, OrganisatieType.LABORATORIUM), Bevolkingsonderzoek.COLON),
 
 	IFOBT_INLEZEN("FIT uitslagen ontvangen", Bevolkingsonderzoek.COLON),
 
-	IFOBT_VERWERKING("FIT verwerking", JobType.IFOBT_VERWERKING, Bevolkingsonderzoek.COLON),
+	IFOBT_VERWERKING("FIT verwerking", Bevolkingsonderzoek.COLON),
 
-	IFOBT_HERINNERING("FIT herinnering", JobType.IFOBT_HERINNERING, Bevolkingsonderzoek.COLON),
+	IFOBT_HERINNERING("FIT herinnering", Bevolkingsonderzoek.COLON),
 
-	GUNSTIGE_UITSLAG("Gunstige uitslag versturen", JobType.GUNSTIGE_UITSLAG, Bevolkingsonderzoek.COLON),
+	GUNSTIGE_UITSLAG("Gunstige uitslag versturen", Bevolkingsonderzoek.COLON),
 
-	INTAKE_AFSPRAAK_MAKEN("Intake afspraken inplannen", JobType.INTAKE_AFSPRAKEN_MAKEN, Arrays.asList(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON),
+	INTAKE_AFSPRAAK_MAKEN("Intake afspraken inplannen", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON),
 
-	COLON_VERVOLG_INTAKE_CONCLUSIE("Vervolg intakeconclusie", JobType.VERVOLG_INTAKE_CONCLUSIE_BATCH, Bevolkingsonderzoek.COLON),
+	COLON_VERVOLG_INTAKE_CONCLUSIE("Vervolg intakeconclusie", Bevolkingsonderzoek.COLON),
 
-	COLON_HUISARTSBERICHTEN(
-		"Huisartsberichten",
-		JobType.COLON_HUISARTSBERICHTEN_OPNIEUW_VERSTUREN,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
-		Bevolkingsonderzoek.COLON),
+	COLON_HUISARTSBERICHTEN("Huisartsberichten", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON),
 
-	BRIEVEN_GENEREREN("Brieven genereren", JobType.BRIEVEN_GENEREREN, Bevolkingsonderzoek.COLON),
+	BRIEVEN_GENEREREN("Brieven genereren", Bevolkingsonderzoek.COLON),
 
 	VERSLAGEN("CDA Berichten", Bevolkingsonderzoek.COLON),
 
-	COLON_ILM("ILM DK", JobType.COLON_ILM, Bevolkingsonderzoek.COLON),
+	COLON_ILM("ILM DK", Bevolkingsonderzoek.COLON),
 
-	CERVIX_BATCH_NA_GBA_VERWERKING("Baarmoederhalskanker specifieke verwerking nav. GBA", JobType.CERVIX_NA_GBA, Bevolkingsonderzoek.CERVIX),
+	COLON_CONTROLE_MISSENDE_UITSLAGEN("Controle missende uitslagen", Bevolkingsonderzoek.COLON),
 
-	CERVIX_SELECTIE("Client selectie", JobType.CERVIX_SELECTIE, Bevolkingsonderzoek.CERVIX),
+	CERVIX_BATCH_NA_GBA_VERWERKING("Baarmoederhalskanker specifieke verwerking nav. GBA", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_ZAS_UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM("Verstuur zas uitnodigingen", JobType.UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM_JOB_DK, Bevolkingsonderzoek.CERVIX),
+	CERVIX_SELECTIE("Client selectie", Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_ZAS_UITNODIGING_VERSTUREN_NAAR_INPAKCENTRUM("Verstuur zas uitnodigingen", Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_ZAS_CONTROLE_TERUGKOPPELING("Controle zas terugkoppeling van inpakcentrum", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_ZAS_TERUGKOPPELING("Terugkoppeling zas van Inpakcentrum", JobType.CERVIX_KOPPELDATA_VERWERKING, Bevolkingsonderzoek.CERVIX),
+	CERVIX_ZAS_TERUGKOPPELING("Terugkoppeling zas van Inpakcentrum", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_VERVOLGONDERZOEK("Controle-uitstrijkje", JobType.CERVIX_VERVOLGONDERZOEK, Bevolkingsonderzoek.CERVIX),
+	CERVIX_VERVOLGONDERZOEK("Controle-uitstrijkje", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HERINNEREN("Herinneren", JobType.CERVIX_HERINNEREN, Bevolkingsonderzoek.CERVIX),
+	CERVIX_HERINNEREN("Herinneren", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_UITSTEL("Uitstel", JobType.CERVIX_UITSTEL, Bevolkingsonderzoek.CERVIX),
+	CERVIX_UITSTEL("Uitstel", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_GEVOLGEN_LABPROCES_VERWERKEN("Gevolgen labproces verwerken", JobType.CERVIX_GEVOLGEN_LABPROCES_VERWERKEN, Bevolkingsonderzoek.CERVIX),
+	CERVIX_GEVOLGEN_LABPROCES_VERWERKEN("Gevolgen labproces verwerken", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_BRIEVEN_GENEREREN("Brieven genereren", JobType.CERVIX_BRIEVEN, Bevolkingsonderzoek.CERVIX),
+	CERVIX_BRIEVEN_GENEREREN("Brieven genereren", Bevolkingsonderzoek.CERVIX),
 
-	REGIO_BRIEVEN_GENEREREN(
-		"BMHK huisarts brieven genereren",
-		JobType.REGIO_BRIEVEN,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
-		Bevolkingsonderzoek.CERVIX),
+	REGIO_BRIEVEN_GENEREREN("BMHK huisarts brieven genereren", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HUISARTSBERICHTEN(
-		"Huisartsberichten",
-		JobType.CERVIX_HUISARTSBERICHTEN,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
-		Bevolkingsonderzoek.CERVIX),
+	CERVIX_HUISARTSBERICHTEN("Huisartsberichten", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HPV_KOPPELING("HPV koppeling", Arrays.asList(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
+	CERVIX_HPV_KOPPELING("HPV koppeling", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_ORDER("Order verwerking", JobType.CERVIX_ORDER, Arrays.asList(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
+	CERVIX_ORDER("Order verwerking", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_VERSLAG_CYTOLOGIE("Verslag cytologie", Arrays.asList(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
+	CERVIX_VERSLAG_CYTOLOGIE("Verslag cytologie", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_BEPALEN_VERRICHTINGEN(
-		"Bepalen verrichtingen",
-		JobType.CERVIX_BEPALEN_VERRICHTINGEN,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
-		Bevolkingsonderzoek.CERVIX),
+	CERVIX_BEPALEN_VERRICHTINGEN("Bepalen verrichtingen", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HPV_ORU(
-		"HPV-uitslag ORU berichten verwerking",
-		JobType.CERVIX_HPV_ORU,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM),
-		Bevolkingsonderzoek.CERVIX),
+	CERVIX_HPV_ORU("HPV-uitslag ORU berichten verwerking", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HEROVERWEGERS(
-		"Heroverwegers brief aanmaken",
-		JobType.CERVIX_HEROVERWEGERS,
-		Arrays.asList(OrganisatieType.RIVM),
-		Bevolkingsonderzoek.CERVIX),
+	CERVIX_HEROVERWEGERS("Heroverwegers brief aanmaken", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN("HPV(-) labformuliergegevens wissen", JobType.CERVIX_HPV_ORU, Bevolkingsonderzoek.CERVIX),
+	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN("HPV(-) labformuliergegevens wissen", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_VERLATE_DEELNAME_COVID19("Verlate deelname COVID-19", JobType.CERVIX_VERLATE_DEELNAME_COVID19, Bevolkingsonderzoek.CERVIX),
+	CERVIX_VERLATE_DEELNAME_COVID19("Verlate deelname COVID-19", Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_ILM("ILM BMHK", JobType.CERVIX_ILM, Bevolkingsonderzoek.CERVIX),
+	CERVIX_ILM("ILM BMHK", Bevolkingsonderzoek.CERVIX),
 
-	MAMMA_HERINNEREN("Herinneren", JobType.MAMMA_HERINNEREN, Bevolkingsonderzoek.MAMMA),
+	MAMMA_HERINNEREN("Herinneren", Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_BATCH_NA_GBA_VERWERKING("Borstkanker specifieke verwerking nav. GBA", JobType.MAMMA_NA_GBA, Bevolkingsonderzoek.MAMMA),
+	MAMMA_BATCH_NA_GBA_VERWERKING("Borstkanker specifieke verwerking nav. GBA", Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_BRIEVEN_GENEREREN("Brieven genereren", JobType.MAMMA_BRIEVEN, Bevolkingsonderzoek.MAMMA),
+	MAMMA_BRIEVEN_GENEREREN("Brieven genereren", Bevolkingsonderzoek.MAMMA),
 
 	MAMMA_IMS_UITGAAND("Uitgaande HL7-berichten naar IMS", Bevolkingsonderzoek.MAMMA),
 
 	MAMMA_IMS_INKOMEND("Inkomende HL7-berichten IMS", Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_UITNODIGINGEN("Uitnodigingen", JobType.MAMMA_UITNODIGEN, Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.MAMMA),
+	MAMMA_UITNODIGINGEN("Uitnodigingen", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_HUISARTS_BERICHTEN(
-		"Huisartsberichten",
-		JobType.MAMMA_HUISARTS_BERICHTEN_OPNIEUW_VERSTUREN,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
-		Bevolkingsonderzoek.MAMMA),
+	MAMMA_HUISARTS_BERICHTEN("Huisartsberichten", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_VERSLAG_FOLLOW_UP("Verslag follow-up", Arrays.asList(OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
+	MAMMA_VERSLAG_FOLLOW_UP("Verslag follow-up", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_KANSBEREKENING("Kansberekening", JobType.MAMMA_KANSBEREKENING, Bevolkingsonderzoek.MAMMA),
+	MAMMA_KANSBEREKENING("Kansberekening", Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_VERVOLG_ONDERZOEKEN(
-		"Nabewerking onderzoeken",
-		JobType.MAMMA_VERVOLG_ONDERZOEKEN,
-		Arrays.asList(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
-		Bevolkingsonderzoek.MAMMA),
+	MAMMA_VERVOLG_ONDERZOEKEN("Nabewerking onderzoeken", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_UITWISSELPORTAAL(
-		"Uitwisselportaal",
-		JobType.MAMMA_UITWISSELPORTAAL,
-		Arrays.asList(OrganisatieType.RIVM),
-		Bevolkingsonderzoek.MAMMA),
+	MAMMA_UITWISSELPORTAAL("Uitwisselportaal", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_PALGA_CSV_EXPORT(
-		"Palga csv exporteren",
-		JobType.MAMMA_PALGA_CSV_EXPORT,
-		Arrays.asList(OrganisatieType.RIVM),
-		Bevolkingsonderzoek.MAMMA),
+	MAMMA_PALGA_CSV_EXPORT("Palga csv exporteren", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_PALGA_CSV_IMPORT(
-		"Palga csv importeren",
-		JobType.MAMMA_PALGA_CSV_IMPORT,
-		Arrays.asList(OrganisatieType.RIVM),
-		Bevolkingsonderzoek.MAMMA),
+	MAMMA_PALGA_CSV_IMPORT("Palga csv importeren", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_SE_BERICHTEN(
-		"SE Berichten",
-		Arrays.asList(OrganisatieType.SCREENINGSORGANISATIE, OrganisatieType.RIVM),
-		Bevolkingsonderzoek.MAMMA),
+	MAMMA_SE_BERICHTEN("SE Berichten", List.of(OrganisatieType.SCREENINGSORGANISATIE, OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
 
-	MAMMA_ILM("ILM BK", JobType.MAMMA_ILM, Bevolkingsonderzoek.MAMMA),
+	MAMMA_ILM("ILM BK", Bevolkingsonderzoek.MAMMA),
 
-	ALGEMENE_BRIEVEN_GENEREREN("Algemene brieven genereren", JobType.ALGEMENE_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	ALGEMENE_BRIEVEN_GENEREREN("Algemene brieven genereren", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
-	BEZWAAR_BRIEVEN_GENEREREN("Bezwaar brieven genereren", JobType.BEZWAAR_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	BEZWAAR_BRIEVEN_GENEREREN("Bezwaar brieven genereren", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
-	PROJECT_BRIEVEN_GENEREREN("Project brieven genereren", JobType.PROJECT_BRIEVEN, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+	PROJECT_BRIEVEN_GENEREREN("Project brieven genereren", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
-	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN(
-		"ILM algemene gegevens verwijderen",
-		JobType.ILM_ALGEMENE_GEGEVENS_VERWIJDEREN,
-		Bevolkingsonderzoek.COLON,
-		Bevolkingsonderzoek.CERVIX,
-		Bevolkingsonderzoek.MAMMA),
+	ILM_ALGEMENE_GEGEVENS_VERWIJDEREN("ILM algemene gegevens verwijderen", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
-	ENOVATION_HUISARTSEN("Enovation huisartsen import", JobType.ENOVATION_HUISARTSEN_BATCH, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON),
+	ENOVATION_HUISARTSEN("Enovation huisartsen import", Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON),
 
-	MAIL_LANDELIJK("Mail versturen", Arrays.asList(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX,
-			Bevolkingsonderzoek.MAMMA),
+	MAIL_LANDELIJK("Mail versturen", List.of(OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+
+	SIGNALERING_GENDER("Signalering gender", Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 	;
 
 	private final String naam;
-
-	private final JobType type;
 
 	private final Bevolkingsonderzoek[] bevolkingsOnderzoek;
 
 	private final List<OrganisatieType> organisatieTypes;
 
-	DashboardType(String naam, List<OrganisatieType> organisatieTypes, Bevolkingsonderzoek... bevolkingsOnderzoek)
-	{
-		this(naam, null, organisatieTypes, bevolkingsOnderzoek);
-	}
-
 	DashboardType(String naam, Bevolkingsonderzoek... bevolkingsOnderzoek)
 	{
-		this(naam, null, null, bevolkingsOnderzoek);
+		this(naam, null, bevolkingsOnderzoek);
 	}
 
-	DashboardType(String naam, JobType type, Bevolkingsonderzoek... bevolkingsOnderzoek)
-	{
-		this(naam, type, null, bevolkingsOnderzoek);
-	}
-
-	DashboardType(String naam, JobType type, List<OrganisatieType> organisatieTypes, Bevolkingsonderzoek... bevolkingsOnderzoek)
+	DashboardType(String naam, List<OrganisatieType> organisatieTypes, Bevolkingsonderzoek... bevolkingsOnderzoek)
 	{
 		this.naam = naam;
-		this.type = type;
 		this.organisatieTypes = organisatieTypes;
 		this.bevolkingsOnderzoek = bevolkingsOnderzoek;
 	}
@@ -249,5 +185,4 @@ public enum DashboardType
 	{
 		return organisatieTypes;
 	}
-
 }

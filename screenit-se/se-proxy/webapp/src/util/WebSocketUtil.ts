@@ -24,12 +24,33 @@ export const initWebSocket = (): void => {
 	client.debug = (): void => {
 	}
 	client.reconnectDelay = 1000
-	client.onWebSocketClose = (): void => {
-		console.info("Verbinding maken met websocket mislukt, opnieuw proberen in 1000ms...")
+	client.onWebSocketClose = (e): void => {
+		console.log("Verbinding maken met websocket mislukt, opnieuw proberen in 1000ms...")
+		console.log(`WS onWebSocketClose ${JSON.stringify(e)}`)
 	}
-	client.onConnect = (): void => {
+	client.onWebSocketError = (e): void => {
+		console.log(`WS onWebSocketError ${JSON.stringify(e)}`)
+	}
+	client.onStompError = (e): void => {
+		console.log(`WS onStompError ${JSON.stringify(e)}`)
+	}
+	client.onUnhandledFrame = (e): void => {
+		console.log(`WS onUnhandledFrame ${JSON.stringify(e)}`)
+	}
+	client.onUnhandledMessage = (message): void => {
+		console.log(`WS onUnhandledMessage ${JSON.stringify(message)}`)
+	}
+	client.onDisconnect = (e): void => {
+		console.log(`WS onDisconnect ${JSON.stringify(e)}`)
+	}
+	client.onConnect = (e): void => {
+		console.log(`WS onConnect ${JSON.stringify(e)}`)
 		client.subscribe("/transactionReceive", (message: Message) => {
-			verwerkSocketBericht(message)
+			try {
+				verwerkSocketBericht(message)
+			} catch (e: any) {
+				console.error(`Fout bij het verwerken van socketbericht ${message} door ${e} ${e.stack && `stacktrace: ${e.stack}`}`)
+			}
 		})
 	}
 

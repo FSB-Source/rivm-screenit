@@ -21,11 +21,6 @@ package nl.rivm.screenit.model.enums;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_IN_HUISARTSBERICHT;
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_NAAR_INPAKCENTRUM;
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.QR_CODE;
-import static nl.rivm.screenit.model.enums.MergeFieldFlag.WAARDE_NIET_TRIMMEN;
-
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.NumberFormat;
@@ -35,6 +30,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -76,6 +72,8 @@ import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegel;
+import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdrachtRegelSpecificatie;
 import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
@@ -114,11 +112,13 @@ import nl.rivm.screenit.service.mamma.MammaMergeFieldService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
+import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.rivm.screenit.util.mamma.MammaBeoordelingUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
@@ -128,6 +128,8 @@ import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.envers.query.AuditEntity;
 import org.joda.time.DateTime;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
@@ -136,1253 +138,146 @@ import org.springframework.beans.support.PropertyComparator;
 
 import com.google.common.base.Strings;
 
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_IN_HUISARTSBERICHT;
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.NIET_NAAR_INPAKCENTRUM;
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.QR_CODE;
+import static nl.rivm.screenit.model.enums.MergeFieldFlag.WAARDE_NIET_TRIMMEN;
+
 public enum MergeField
 {
 
 	UNIEK_BRIEF_KENMERK("_UNIEK_BRIEF_KENMERK", MergeFieldTestType.OVERIGE, String.class, "K6BD83FL", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Brief brief = context.getBrief();
-			ColonUitnodiging uitnodiging = context.getColonUitnodiging();
-			if (brief != null && brief.getId() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return "K" + Long.toHexString(brief.getId()).toUpperCase();
+				Brief brief = context.getBrief();
+				ColonUitnodiging uitnodiging = context.getColonUitnodiging();
+				if (brief != null && brief.getId() != null)
+				{
+					return "K" + Long.toHexString(brief.getId()).toUpperCase();
+				}
+				else if (uitnodiging != null)
+				{
+					return "KU" + Long.toHexString(uitnodiging.getUitnodigingsId()).toUpperCase();
+				}
+				return null;
 			}
-			else if (uitnodiging != null)
-			{
-				return "KU" + Long.toHexString(uitnodiging.getUitnodigingsId()).toUpperCase();
-			}
-			return null;
-		}
-	},
+		},
 	SO_ID("_SO_ID")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return screeningOrganisatie.getId();
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getId();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	SO_NAAM("_SO_NAAM")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return screeningOrganisatie.getNaam();
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getNaam();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	SO_LOGO("_SO_LOGO", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return screeningOrganisatie.getLogoBrief();
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getLogoBrief();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	SO_HANDTEKENING_BESTUURDER("_SO_HANDTEKENING_BESTUURDER", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return screeningOrganisatie.getBestuurSign();
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getBestuurSign();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	SO_HANDTEKENING_RCMDL("_SO_HANDTEKENING_RCMDL", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return screeningOrganisatie.getRcmdlSign();
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getRcmdlSign();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	SO_KWALITEITSLOGO("_SO_KWALITEITSLOGO", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return screeningOrganisatie.getKwaliteitslogo();
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getKwaliteitslogo();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	SO_POSTADRES("_SO_POSTADRES")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			return AdresUtil.getVolledigeAdresString(getAdres(getScreeningOrganisatie(context), 0));
-		}
-	},
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return AdresUtil.getVolledigeAdresString(getAdres(getScreeningOrganisatie(context), 0));
+			}
+		},
 
 	SO_STRAATNAAM("_SO_STRAATNAAM")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 0);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return adres.getStraat();
-			}
-			return null;
-		}
-
-	},
-
-	SO_HUISNUMMER_TOEV("_SO_HUISNUMMER_TOEV")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 0);
-			if (adres != null)
-			{
-				StringBuilder adresString = new StringBuilder();
-				if (adres.getHuisnummer() != null)
-				{
-					adresString.append(adres.getHuisnummer());
-				}
-
-				if (!Strings.isNullOrEmpty(adres.getHuisletter()))
-				{
-					adresString.append(" ");
-					adresString.append(adres.getHuisletter());
-				}
-
-				if (!Strings.isNullOrEmpty(adres.getHuisnummerToevoeging()))
-				{
-					adresString.append(" ");
-					adresString.append(adres.getHuisnummerToevoeging());
-				}
-
-				if (adres.getHuisnummer() == null && !Strings.isNullOrEmpty(adres.getHuisnummerAanduiding()))
-				{
-
-					adresString.append(" ");
-					adresString.append(adres.getHuisnummerAanduiding());
-				}
-
-				return adresString.toString();
-			}
-			return null;
-		}
-
-	},
-
-	SO_POSTCODE("_SO_POSTCODE")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 0);
-			if (adres != null)
-			{
-				return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-			}
-			return null;
-		}
-
-	},
-
-	SO_PLAATS("_SO_PLAATS")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 0);
-			if (adres != null)
-			{
-				return adres.getPlaats();
-			}
-			return null;
-		}
-
-	},
-
-	SO_POSTBUSNR("_SO_POSTBUSNR")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 1);
-			if (adres != null)
-			{
-				return adres.getHuisnummer();
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSNR_DK("_SO_POSTBUSNR_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
-				if (contactGegevens != null)
-				{
-					Adres adres = contactGegevens.getPostbusnummerAdres();
-					if (adres != null)
-					{
-						return adres.getHuisnummer();
-					}
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSNR_BMHK("_SO_POSTBUSNR_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
-				if (contactGegevens != null)
-				{
-					Adres adres = contactGegevens.getPostbusnummerAdres();
-					if (adres != null)
-					{
-						return adres.getHuisnummer();
-					}
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_POSTBUSNR("_BK_CE_POSTBUSNR", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
-			if (adres != null)
-			{
-				return adres.getHuisnummer();
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSPOSTCODE("_SO_POSTBUSPOSTCODE")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 1);
-			if (adres != null)
-			{
-				return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSPOSTCODE_DK("_SO_POSTBUSPOSTCODE_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
-				if (contactGegevens != null)
-				{
-					Adres adres = contactGegevens.getPostbusnummerAdres();
-					if (adres != null)
-					{
-						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-					}
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSPOSTCODE_BMHK("_SO_POSTBUSPOSTCODE_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
-				if (contactGegevens != null)
-				{
-					Adres adres = contactGegevens.getPostbusnummerAdres();
-					if (adres != null)
-					{
-						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-					}
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_POSTBUSPOSTCODE("_BK_CE_POSTBUSPOSTCODE", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
-			if (adres != null)
-			{
-				return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSPLAATS("_SO_POSTBUSPLAATS")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 1);
-			if (adres != null)
-			{
-				return adres.getPlaats();
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSPLAATS_DK("_SO_POSTBUSPLAATS_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
-				if (contactGegevens != null)
-				{
-					Adres adres = contactGegevens.getPostbusnummerAdres();
-					if (adres != null)
-					{
-						return adres.getPlaats();
-					}
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_POSTBUSPLAATS_BMHK("_SO_POSTBUSPLAATS_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
-				if (contactGegevens != null)
-				{
-					Adres adres = contactGegevens.getPostbusnummerAdres();
-					if (adres != null)
-					{
-						return adres.getPlaats();
-					}
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_POSTBUSPLAATS("_BK_CE_POSTBUSPLAATS", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
-			if (adres != null)
-			{
-				return adres.getPlaats();
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNR("_SO_ANTWOORDNR")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 2);
-			if (adres != null)
-			{
-				return adres.getHuisnummer();
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNR_DK("_SO_ANTWOORDNR_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
-			if (contactGegevens != null)
-			{
-				Adres adres = contactGegevens.getAntwoordnummerAdres();
-				if (adres != null)
-				{
-					return adres.getHuisnummer();
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNR_BMHK("_SO_ANTWOORDNR_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
-			if (contactGegevens != null)
-			{
-				Adres adres = contactGegevens.getAntwoordnummerAdres();
-				if (adres != null)
-				{
-					return adres.getHuisnummer();
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_ANTWOORDNR("_BK_CE_ANTWOORDNR", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
-			if (adres != null)
-			{
-				return adres.getHuisnummer();
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNRPOSTCODE("_SO_ANTWOORDNRPOSTCODE")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 2);
-			if (adres != null)
-			{
-				return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNRPOSTCODE_DK("_SO_ANTWOORDNRPOSTCODE_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
-			if (contactGegevens != null)
-			{
-				Adres adres = contactGegevens.getAntwoordnummerAdres();
-				if (adres != null)
-				{
-					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNRPOSTCODE_BMHK("_SO_ANTWOORDNRPOSTCODE_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
-			if (contactGegevens != null)
-			{
-				Adres adres = contactGegevens.getAntwoordnummerAdres();
-				if (adres != null)
-				{
-					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_ANTWOORDNRPOSTCODE("_BK_CE_ANTWOORDNRPOSTCODE", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
-			if (adres != null)
-			{
-				return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNRPLAATS("_SO_ANTWOORDNRPLAATS")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getScreeningOrganisatie(context), 2);
-			if (adres != null)
-			{
-				return adres.getPlaats();
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNRPLAATS_DK("_SO_ANTWOORDNRPLAATS_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
-			if (contactGegevens != null)
-			{
-				Adres adres = contactGegevens.getAntwoordnummerAdres();
-				if (adres != null)
-				{
-					return adres.getPlaats();
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNRPLAATS_BMHK("_SO_ANTWOORDNRPLAATS_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
-			if (contactGegevens != null)
-			{
-				Adres adres = contactGegevens.getAntwoordnummerAdres();
-				if (adres != null)
-				{
-					return adres.getPlaats();
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_ANTWOORDNRPLAATS("_BK_CE_ANTWOORDNRPLAATS", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
-			if (adres != null)
-			{
-				return adres.getPlaats();
-			}
-			return null;
-		}
-	},
-
-	SO_ANTWOORDNUMMER_BMHK_LAB(
-		"_SO_ANTWOORDNUMMER_BMHK_LAB",
-		MergeFieldTestType.BMHKLAB,
-		"bmhkLaboratorium.retouradressen[0].adres.huisnummer",
-		Integer.class,
-		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			String antwoordnummer = null;
-			Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
-			if (bmhkRetouradres != null && bmhkRetouradres.getHuisnummer() != null)
-			{
-				antwoordnummer = bmhkRetouradres.getHuisnummer().toString();
-			}
-			return antwoordnummer;
-		}
-
-	},
-
-	SO_ANTWNRPOSTCODE_BMHK_LAB(
-		"_SO_ANTWNRPOSTCODE_BMHK_LAB",
-		MergeFieldTestType.BMHKLAB,
-		"bmhkLaboratorium.retouradressen[0].adres.postcode",
-		String.class,
-		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			String postcode = null;
-			Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
-			if (bmhkRetouradres != null)
-			{
-				postcode = PostcodeFormatter.formatPostcode(bmhkRetouradres.getPostcode(), true);
-			}
-			return postcode;
-		}
-
-	},
-
-	SO_ANTWNRPLAATS_BMHK_LAB(
-		"_SO_ANTWNRPLAATS_BMHK_LAB",
-		MergeFieldTestType.BMHKLAB,
-		"bmhkLaboratorium.retouradressen[0].adres.plaats",
-		String.class,
-		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			String plaats = null;
-			Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
-			if (bmhkRetouradres != null)
-			{
-				plaats = bmhkRetouradres.getPlaats();
-			}
-			return plaats;
-		}
-
-	},
-
-	SO_ANTWNRKIX_BMHK_LAB(
-		"_SO_ANTWNRKIX_BMHK_LAB",
-		RoyalMailCBCBean.class,
-		null,
-		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			return AdresUtil.createKixCode(getBmhkRetouradres(context.getCervixUitnodiging()));
-		}
-
-	},
-
-	SO_TEL("_SO_TEL")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getTelefoon();
-			}
-			return null;
-		}
-	},
-
-	SO_TEL_DK("_SO_TEL_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
-				if (contactGegevens != null)
-				{
-					return contactGegevens.getTelefoon();
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_TEL_BMHK("_SO_TEL_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
-				if (contactGegevens != null)
-				{
-					return contactGegevens.getTelefoon();
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_TEL_INFOLIJN("_BK_CE_TEL_INFOLIJN", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getTelefoon();
-			}
-			return null;
-		}
-	},
-	MAMMA_CE_TEL_PLANNING("_BK_CE_TEL_PLANNING", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getTelefoon2();
-			}
-			return null;
-		}
-	},
-	MAMMA_CE_TEL_MINDER_VALIDE("_BK_CE_TEL_MINDER_VALIDE", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getTelefoon4();
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_TEL_PROF("_BK_CE_TEL_PROF", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getTelefoon3();
-			}
-			return null;
-		}
-	},
-
-	SO_TEL2("_SO_TEL2")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getTelefoon2();
-			}
-			return null;
-		}
-
-	},
-
-	SO_FAX("_SO_FAX")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getFax();
-			}
-			return null;
-		}
-	},
-
-	SO_EMAILDRES("_SO_EMAILADRES")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getEmail();
-			}
-			return null;
-		}
-	},
-
-	SO_EMAILADRES_DK("_SO_EMAILADRES_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
-				if (contactGegevens != null)
-				{
-					return contactGegevens.getEmail();
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_EMAILADRES_BMHK("_SO_EMAILADRES_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
-				if (contactGegevens != null)
-				{
-					return contactGegevens.getEmail();
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_EMAIL_INFOLIJN("_BK_CE_EMAIL_INFOLIJN", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getEmail();
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_EMAIL_PLANNING("_BK_CE_EMAIL_PLANNING", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getEmail2();
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_EMAIL_MINDER_VALIDE("_BK_CE_EMAIL_MINDER_VALIDE", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getEmail4();
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_EMAIL_PROF("_BK_CE_EMAIL_PROF", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getEmail3();
-			}
-			return null;
-		}
-	},
-
-	SO_WEBSITE("_SO_WEBSITEADRES")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getWebsite();
-			}
-			return null;
-		}
-	},
-
-	SO_RCMDL("_SO_RCMDL")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getRcmdl();
-			}
-			return null;
-		}
-	},
-
-	SO_RECHTBANK("_SO_RECHTBANK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getRechtbank();
-			}
-			return null;
-		}
-
-	},
-
-	SO_OPENINGSTIJDEN_TEKST("_SO_OPENINGSTIJDEN_TEKST")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getClientPortaalVrijeTekst();
-			}
-			return null;
-		}
-	},
-
-	SO_OPENINGSTIJDEN_TEKST_DK("_SO_OPENINGSTIJDEN_TEKST_DK")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
-				if (contactGegevens != null)
-				{
-					return contactGegevens.getClientPortaalVrijeTekst();
-				}
-			}
-			return null;
-		}
-	},
-
-	SO_OPENINGSTIJDEN_TEKST_BMHK("_SO_OPENINGSTIJDEN_TEKST_BMHK", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
-				if (contactGegevens != null)
-				{
-					return contactGegevens.getClientPortaalVrijeTekst();
-				}
-			}
-			return null;
-		}
-	},
-
-	MAMMA_CE_OPENINGSTIJDEN_TEKST("_BK_CE_OPENINGSTIJDEN_TEKST", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
-			if (centraleEenheid != null)
-			{
-				return centraleEenheid.getClientPortaalVrijeTekst();
-			}
-			return null;
-		}
-	},
-
-	SO_IBAN("_SO_IBAN")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getIban();
-			}
-			return null;
-		}
-	},
-
-	SO_TENAAMSTELLING("_SO_TENAAMSTELLING")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
-			{
-				return screeningOrganisatie.getIbanTenaamstelling();
-			}
-			return null;
-		}
-	},
-
-	CLIENT_BSN("_CLIENT_BSN", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getClient() != null)
-			{
-				return context.getClient().getPersoon().getBsn();
-			}
-			return null;
-		}
-	},
-
-	CLIENT_NAAM("_CLIENT_NAAM")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getClient() != null)
-			{
-				return NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(context.getClient());
-			}
-			return null;
-		}
-	},
-
-	CLIENT_ADRES("_CLIENT_ADRES")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getClient() != null)
-			{
-				return AdresUtil.getAdres(getClientAdres(context));
-			}
-			return null;
-		}
-	},
-
-	CLIENT_POSTCODE("_CLIENT_POSTCODE")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getClient() != null)
-			{
-				return PostcodeFormatter.formatPostcode(getClientAdres(context).getPostcode(), true);
-			}
-			return null;
-		}
-	},
-
-	CLIENT_WOONPLAATS("_CLIENT_WOONPLAATS")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getClient() != null)
-			{
-				return getClientAdres(context).getPlaats();
-			}
-			return null;
-		}
-	},
-
-	KIX_CLIENT("_CLIENT_KIX", RoyalMailCBCBean.class, null)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getClient() != null)
-			{
-				return AdresUtil.createKixCode(getClientAdres(context));
-			}
-			return null;
-		}
-
-	},
-
-	CLIENT_GEBOORTEDATUM("_CLIENT_GEBOORTEDATUM")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			return DateUtil.getGeboortedatum(context.getClient());
-		}
-
-	},
-
-	CLIENT_AANHEF("_CLIENT_AANHEF")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getClient() != null)
-			{
-				StringBuilder aanhef = new StringBuilder();
-				aanhef.append("Geachte ");
-				if (context.getClient().getPersoon().getGeslacht() == Geslacht.MAN)
-				{
-					aanhef.append("heer ");
-				}
-				else if (context.getClient().getPersoon().getGeslacht() == Geslacht.VROUW)
-				{
-					aanhef.append("mevrouw ");
-				}
-				else
-				{
-					aanhef.append("heer of mevrouw ");
-				}
-
-				NaamGebruik naamGebruik = context.getClient().getPersoon().getNaamGebruik();
-				if (NaamGebruik.EIGEN.equals(naamGebruik) || NaamGebruik.EIGEN_PARTNER.equals(naamGebruik))
-				{
-					aanhef.append(StringUtils.capitalize(context.getClient().getPersoon().getNaamEigenPartner()));
-				}
-				else if (naamGebruik == null || NaamGebruik.PARTNER.equals(naamGebruik) || NaamGebruik.PARTNER_EIGEN.equals(naamGebruik))
-				{
-					aanhef.append(StringUtils.capitalize(context.getClient().getPersoon().getNaamPartnerEigen()));
-				}
-				return aanhef;
-			}
-			return null;
-		}
-
-	},
-
-	FORM_NUMMER("_FORM_NUMMER", MergeFieldTestType.OVERIGE, String.class, "12345", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-
-			return null;
-		}
-
-	},
-
-	IL_NAAM("_IL_NAAM")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getIntakeAfspraak() != null)
-			{
-				return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getNaam();
-			}
-			return null;
-		}
-	},
-
-	IL_ADRES("_IL_ADRES")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getIntakeAfspraak() != null)
-			{
-				return AdresUtil.getVolledigeAdresString(getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0));
-			}
-			return null;
-		}
-	},
-
-	IL_STRAATNAAM("_IL_STRAATNAAM")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
-		{
-			if (context.getIntakeAfspraak() != null)
-			{
-				Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
 					return adres.getStraat();
 				}
+				return null;
 			}
-			return null;
-		}
-	},
 
-	IL_HUISNUMMER_TOEV("_IL_HUISNUMMER_TOEV")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
+		},
+
+	SO_HUISNUMMER_TOEV("_SO_HUISNUMMER_TOEV")
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
 					StringBuilder adresString = new StringBuilder();
@@ -1412,187 +307,1306 @@ public enum MergeField
 
 					return adresString.toString();
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
-	IL_POSTCODE("_IL_POSTCODE")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
+	SO_POSTCODE("_SO_POSTCODE")
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
-	IL_PLAATS("_IL_PLAATS")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
+	SO_PLAATS("_SO_PLAATS")
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+				Adres adres = getAdres(getScreeningOrganisatie(context), 0);
 				if (adres != null)
 				{
 					return adres.getPlaats();
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
-	IL_POSTBUSNR("_IL_POSTBUSNR")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
+	SO_POSTBUSNR("_SO_POSTBUSNR")
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+				Adres adres = getAdres(getScreeningOrganisatie(context), 1);
 				if (adres != null)
 				{
 					return adres.getHuisnummer();
 				}
+				return null;
 			}
-			return null;
-		}
+		},
 
-	},
-
-	IL_POSTBUSPOSTCODE("_IL_POSTBUSPOSTCODE")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
+	SO_POSTBUSNR_DK("_SO_POSTBUSNR_DK")
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					if (contactGegevens != null)
+					{
+						Adres adres = contactGegevens.getPostbusnummerAdres();
+						if (adres != null)
+						{
+							return adres.getHuisnummer();
+						}
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_POSTBUSNR_BMHK("_SO_POSTBUSNR_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					if (contactGegevens != null)
+					{
+						Adres adres = contactGegevens.getPostbusnummerAdres();
+						if (adres != null)
+						{
+							return adres.getHuisnummer();
+						}
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_POSTBUSNR("_BK_CE_POSTBUSNR", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
+				if (adres != null)
+				{
+					return adres.getHuisnummer();
+				}
+				return null;
+			}
+		},
+
+	SO_POSTBUSPOSTCODE("_SO_POSTBUSPOSTCODE")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getScreeningOrganisatie(context), 1);
 				if (adres != null)
 				{
 					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
 				}
+				return null;
 			}
-			return null;
-		}
+		},
 
-	},
-
-	IL_POSTBUSPLAATS("_IL_POSTBUSPLAATS")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
+	SO_POSTBUSPOSTCODE_DK("_SO_POSTBUSPOSTCODE_DK")
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					if (contactGegevens != null)
+					{
+						Adres adres = contactGegevens.getPostbusnummerAdres();
+						if (adres != null)
+						{
+							return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+						}
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_POSTBUSPOSTCODE_BMHK("_SO_POSTBUSPOSTCODE_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					if (contactGegevens != null)
+					{
+						Adres adres = contactGegevens.getPostbusnummerAdres();
+						if (adres != null)
+						{
+							return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+						}
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_POSTBUSPOSTCODE("_BK_CE_POSTBUSPOSTCODE", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
+				if (adres != null)
+				{
+					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+				}
+				return null;
+			}
+		},
+
+	SO_POSTBUSPLAATS("_SO_POSTBUSPLAATS")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getScreeningOrganisatie(context), 1);
 				if (adres != null)
 				{
 					return adres.getPlaats();
 				}
+				return null;
 			}
-			return null;
-		}
+		},
 
-	},
+	SO_POSTBUSPLAATS_DK("_SO_POSTBUSPLAATS_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					if (contactGegevens != null)
+					{
+						Adres adres = contactGegevens.getPostbusnummerAdres();
+						if (adres != null)
+						{
+							return adres.getPlaats();
+						}
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_POSTBUSPLAATS_BMHK("_SO_POSTBUSPLAATS_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					if (contactGegevens != null)
+					{
+						Adres adres = contactGegevens.getPostbusnummerAdres();
+						if (adres != null)
+						{
+							return adres.getPlaats();
+						}
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_POSTBUSPLAATS("_BK_CE_POSTBUSPLAATS", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getMammaCentraleEenheid(context), 1);
+				if (adres != null)
+				{
+					return adres.getPlaats();
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNR("_SO_ANTWOORDNR")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getScreeningOrganisatie(context), 2);
+				if (adres != null)
+				{
+					return adres.getHuisnummer();
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNR_DK("_SO_ANTWOORDNR_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
+				if (contactGegevens != null)
+				{
+					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					if (adres != null)
+					{
+						return adres.getHuisnummer();
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNR_BMHK("_SO_ANTWOORDNR_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
+				if (contactGegevens != null)
+				{
+					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					if (adres != null)
+					{
+						return adres.getHuisnummer();
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_ANTWOORDNR("_BK_CE_ANTWOORDNR", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
+				if (adres != null)
+				{
+					return adres.getHuisnummer();
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNRPOSTCODE("_SO_ANTWOORDNRPOSTCODE")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getScreeningOrganisatie(context), 2);
+				if (adres != null)
+				{
+					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNRPOSTCODE_DK("_SO_ANTWOORDNRPOSTCODE_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
+				if (contactGegevens != null)
+				{
+					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					if (adres != null)
+					{
+						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNRPOSTCODE_BMHK("_SO_ANTWOORDNRPOSTCODE_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
+				if (contactGegevens != null)
+				{
+					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					if (adres != null)
+					{
+						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_ANTWOORDNRPOSTCODE("_BK_CE_ANTWOORDNRPOSTCODE", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
+				if (adres != null)
+				{
+					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNRPLAATS("_SO_ANTWOORDNRPLAATS")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getScreeningOrganisatie(context), 2);
+				if (adres != null)
+				{
+					return adres.getPlaats();
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNRPLAATS_DK("_SO_ANTWOORDNRPLAATS_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensDk();
+				if (contactGegevens != null)
+				{
+					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					if (adres != null)
+					{
+						return adres.getPlaats();
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNRPLAATS_BMHK("_SO_ANTWOORDNRPLAATS_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				RegioBvoContactGegevens contactGegevens = MergeField.getScreeningOrganisatie(context).getRegioBvoContactGegevensBmhk();
+				if (contactGegevens != null)
+				{
+					Adres adres = contactGegevens.getAntwoordnummerAdres();
+					if (adres != null)
+					{
+						return adres.getPlaats();
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_ANTWOORDNRPLAATS("_BK_CE_ANTWOORDNRPLAATS", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				Adres adres = getAdres(getMammaCentraleEenheid(context), 2);
+				if (adres != null)
+				{
+					return adres.getPlaats();
+				}
+				return null;
+			}
+		},
+
+	SO_ANTWOORDNUMMER_BMHK_LAB(
+		"_SO_ANTWOORDNUMMER_BMHK_LAB",
+		MergeFieldTestType.BMHKLAB,
+		"bmhkLaboratorium.retouradressen[0].adres.huisnummer",
+		Integer.class,
+		NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				String antwoordnummer = null;
+				Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
+				if (bmhkRetouradres != null && bmhkRetouradres.getHuisnummer() != null)
+				{
+					antwoordnummer = bmhkRetouradres.getHuisnummer().toString();
+				}
+				return antwoordnummer;
+			}
+
+		},
+
+	SO_ANTWNRPOSTCODE_BMHK_LAB(
+		"_SO_ANTWNRPOSTCODE_BMHK_LAB",
+		MergeFieldTestType.BMHKLAB,
+		"bmhkLaboratorium.retouradressen[0].adres.postcode",
+		String.class,
+		NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				String postcode = null;
+				Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
+				if (bmhkRetouradres != null)
+				{
+					postcode = PostcodeFormatter.formatPostcode(bmhkRetouradres.getPostcode(), true);
+				}
+				return postcode;
+			}
+
+		},
+
+	SO_ANTWNRPLAATS_BMHK_LAB(
+		"_SO_ANTWNRPLAATS_BMHK_LAB",
+		MergeFieldTestType.BMHKLAB,
+		"bmhkLaboratorium.retouradressen[0].adres.plaats",
+		String.class,
+		NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				String plaats = null;
+				Adres bmhkRetouradres = getBmhkRetouradres(context.getCervixUitnodiging());
+				if (bmhkRetouradres != null)
+				{
+					plaats = bmhkRetouradres.getPlaats();
+				}
+				return plaats;
+			}
+
+		},
+
+	SO_ANTWNRKIX_BMHK_LAB(
+		"_SO_ANTWNRKIX_BMHK_LAB",
+		RoyalMailCBCBean.class,
+		null,
+		NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return AdresUtil.createKixCode(getBmhkRetouradres(context.getCervixUitnodiging()));
+			}
+
+		},
+
+	SO_TEL("_SO_TEL")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getTelefoon();
+				}
+				return null;
+			}
+		},
+
+	SO_TEL_DK("_SO_TEL_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					if (contactGegevens != null)
+					{
+						return contactGegevens.getTelefoon();
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_TEL_BMHK("_SO_TEL_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					if (contactGegevens != null)
+					{
+						return contactGegevens.getTelefoon();
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_TEL_INFOLIJN("_BK_CE_TEL_INFOLIJN", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getTelefoon();
+				}
+				return null;
+			}
+		},
+	MAMMA_CE_TEL_PLANNING("_BK_CE_TEL_PLANNING", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getTelefoon2();
+				}
+				return null;
+			}
+		},
+	MAMMA_CE_TEL_MINDER_VALIDE("_BK_CE_TEL_MINDER_VALIDE", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getTelefoon4();
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_TEL_PROF("_BK_CE_TEL_PROF", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getTelefoon3();
+				}
+				return null;
+			}
+		},
+
+	SO_TEL2("_SO_TEL2")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getTelefoon2();
+				}
+				return null;
+			}
+
+		},
+
+	SO_FAX("_SO_FAX")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getFax();
+				}
+				return null;
+			}
+		},
+
+	SO_EMAILDRES("_SO_EMAILADRES")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getEmail();
+				}
+				return null;
+			}
+		},
+
+	SO_EMAILADRES_DK("_SO_EMAILADRES_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					if (contactGegevens != null)
+					{
+						return contactGegevens.getEmail();
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_EMAILADRES_BMHK("_SO_EMAILADRES_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					if (contactGegevens != null)
+					{
+						return contactGegevens.getEmail();
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_EMAIL_INFOLIJN("_BK_CE_EMAIL_INFOLIJN", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getEmail();
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_EMAIL_PLANNING("_BK_CE_EMAIL_PLANNING", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getEmail2();
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_EMAIL_MINDER_VALIDE("_BK_CE_EMAIL_MINDER_VALIDE", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getEmail4();
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_EMAIL_PROF("_BK_CE_EMAIL_PROF", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getEmail3();
+				}
+				return null;
+			}
+		},
+
+	SO_WEBSITE("_SO_WEBSITEADRES")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getWebsite();
+				}
+				return null;
+			}
+		},
+
+	SO_RCMDL("_SO_RCMDL")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getRcmdl();
+				}
+				return null;
+			}
+		},
+
+	SO_RECHTBANK("_SO_RECHTBANK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getRechtbank();
+				}
+				return null;
+			}
+
+		},
+
+	SO_OPENINGSTIJDEN_TEKST("_SO_OPENINGSTIJDEN_TEKST")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getClientPortaalVrijeTekst();
+				}
+				return null;
+			}
+		},
+
+	SO_OPENINGSTIJDEN_TEKST_DK("_SO_OPENINGSTIJDEN_TEKST_DK")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensDk();
+					if (contactGegevens != null)
+					{
+						return contactGegevens.getClientPortaalVrijeTekst();
+					}
+				}
+				return null;
+			}
+		},
+
+	SO_OPENINGSTIJDEN_TEKST_BMHK("_SO_OPENINGSTIJDEN_TEKST_BMHK", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					RegioBvoContactGegevens contactGegevens = screeningOrganisatie.getRegioBvoContactGegevensBmhk();
+					if (contactGegevens != null)
+					{
+						return contactGegevens.getClientPortaalVrijeTekst();
+					}
+				}
+				return null;
+			}
+		},
+
+	MAMMA_CE_OPENINGSTIJDEN_TEKST("_BK_CE_OPENINGSTIJDEN_TEKST", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CentraleEenheid centraleEenheid = getMammaCentraleEenheid(context);
+				if (centraleEenheid != null)
+				{
+					return centraleEenheid.getClientPortaalVrijeTekst();
+				}
+				return null;
+			}
+		},
+
+	SO_IBAN("_SO_IBAN")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getIban();
+				}
+				return null;
+			}
+		},
+
+	SO_TENAAMSTELLING("_SO_TENAAMSTELLING")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getIbanTenaamstelling();
+				}
+				return null;
+			}
+		},
+
+	CLIENT_BSN("_CLIENT_BSN", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() != null)
+				{
+					return context.getClient().getPersoon().getBsn();
+				}
+				return null;
+			}
+		},
+
+	CLIENT_NAAM("_CLIENT_NAAM")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() != null)
+				{
+					return NaamUtil.voorlettersTussenvoegselEnAanspreekAchternaam(context.getClient());
+				}
+				return null;
+			}
+		},
+
+	CLIENT_ADRES("_CLIENT_ADRES")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() != null)
+				{
+					return AdresUtil.getAdres(getClientAdres(context));
+				}
+				return null;
+			}
+		},
+
+	CLIENT_POSTCODE("_CLIENT_POSTCODE")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() != null)
+				{
+					return PostcodeFormatter.formatPostcode(getClientAdres(context).getPostcode(), true);
+				}
+				return null;
+			}
+		},
+
+	CLIENT_WOONPLAATS("_CLIENT_WOONPLAATS")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() != null)
+				{
+					return getClientAdres(context).getPlaats();
+				}
+				return null;
+			}
+		},
+
+	KIX_CLIENT("_CLIENT_KIX", RoyalMailCBCBean.class, null)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() != null)
+				{
+					return AdresUtil.createKixCode(getClientAdres(context));
+				}
+				return null;
+			}
+
+		},
+
+	CLIENT_GEBOORTEDATUM("_CLIENT_GEBOORTEDATUM")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return DateUtil.getGeboortedatum(context.getClient());
+			}
+
+		},
+
+	CLIENT_AANHEF("_CLIENT_AANHEF")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() != null)
+				{
+					var persoon = context.getClient().getPersoon();
+					var aanhef = new StringBuilder();
+					aanhef.append("Geachte ");
+					if (persoon.getGeslacht() == Geslacht.MAN)
+					{
+						aanhef.append("heer ");
+					}
+					else if (persoon.getGeslacht() == Geslacht.VROUW)
+					{
+						aanhef.append("mevrouw ");
+					}
+					else if (persoon.getGeslacht() == Geslacht.ONBEKEND)
+					{
+						aanhef.append(NaamUtil.getVoorlettersClient(context.getClient())).append(" ");
+					}
+					else
+					{
+						aanhef.append("heer of mevrouw ");
+					}
+
+					var naamGebruik = persoon.getNaamGebruik();
+					if (NaamGebruik.EIGEN.equals(naamGebruik) || NaamGebruik.EIGEN_PARTNER.equals(naamGebruik))
+					{
+						var naam = persoon.getNaamEigenPartner();
+						aanhef.append(persoon.getGeslacht() == Geslacht.ONBEKEND ? naam : StringUtils.capitalize(naam));
+					}
+					else if (naamGebruik == null || NaamGebruik.PARTNER.equals(naamGebruik) || NaamGebruik.PARTNER_EIGEN.equals(naamGebruik))
+					{
+						var naam = persoon.getNaamPartnerEigen();
+						aanhef.append(persoon.getGeslacht() == Geslacht.ONBEKEND ? naam : StringUtils.capitalize(naam));
+					}
+					return aanhef;
+				}
+				return null;
+			}
+
+		},
+
+	FORM_NUMMER("_FORM_NUMMER", MergeFieldTestType.OVERIGE, String.class, "12345", NIET_NAAR_INPAKCENTRUM)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+
+				return null;
+			}
+
+		},
+
+	IL_NAAM("_IL_NAAM")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getNaam();
+				}
+				return null;
+			}
+		},
+
+	IL_ADRES("_IL_ADRES")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					return AdresUtil.getVolledigeAdresString(getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0));
+				}
+				return null;
+			}
+		},
+
+	IL_STRAATNAAM("_IL_STRAATNAAM")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					if (adres != null)
+					{
+						return adres.getStraat();
+					}
+				}
+				return null;
+			}
+		},
+
+	IL_HUISNUMMER_TOEV("_IL_HUISNUMMER_TOEV")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					if (adres != null)
+					{
+						StringBuilder adresString = new StringBuilder();
+						if (adres.getHuisnummer() != null)
+						{
+							adresString.append(adres.getHuisnummer());
+						}
+
+						if (!Strings.isNullOrEmpty(adres.getHuisletter()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisletter());
+						}
+
+						if (!Strings.isNullOrEmpty(adres.getHuisnummerToevoeging()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisnummerToevoeging());
+						}
+
+						if (adres.getHuisnummer() == null && !Strings.isNullOrEmpty(adres.getHuisnummerAanduiding()))
+						{
+
+							adresString.append(" ");
+							adresString.append(adres.getHuisnummerAanduiding());
+						}
+
+						return adresString.toString();
+					}
+				}
+				return null;
+			}
+
+		},
+
+	IL_POSTCODE("_IL_POSTCODE")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					if (adres != null)
+					{
+						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					}
+				}
+				return null;
+			}
+
+		},
+
+	IL_PLAATS("_IL_PLAATS")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 0);
+					if (adres != null)
+					{
+						return adres.getPlaats();
+					}
+				}
+				return null;
+			}
+
+		},
+
+	IL_POSTBUSNR("_IL_POSTBUSNR")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					if (adres != null)
+					{
+						return adres.getHuisnummer();
+					}
+				}
+				return null;
+			}
+
+		},
+
+	IL_POSTBUSPOSTCODE("_IL_POSTBUSPOSTCODE")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					if (adres != null)
+					{
+						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					}
+				}
+				return null;
+			}
+
+		},
+
+	IL_POSTBUSPLAATS("_IL_POSTBUSPLAATS")
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getIntakeAfspraak() != null)
+				{
+					Adres adres = getAdres(context.getIntakeAfspraak().getLocation().getColoscopieCentrum(), 1);
+					if (adres != null)
+					{
+						return adres.getPlaats();
+					}
+				}
+				return null;
+			}
+
+		},
 
 	IL_TEL("_IL_TEL")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getTelefoon();
+				if (context.getIntakeAfspraak() != null)
+				{
+					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getTelefoon();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	IL_FAX("_IL_FAX")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getFax();
+				if (context.getIntakeAfspraak() != null)
+				{
+					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getFax();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	IL_EMAILADRES("_IL_EMAILADRES")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getEmail();
+				if (context.getIntakeAfspraak() != null)
+				{
+					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getEmail();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	IL_WEBSITEADRES("_IL_WEBSITEADRES")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getWebsite();
+				if (context.getIntakeAfspraak() != null)
+				{
+					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getWebsite();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	IL_LOKATIE("_IL_LOKATIE")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getLocatieBeschrijving();
+				if (context.getIntakeAfspraak() != null)
+				{
+					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getLocatieBeschrijving();
+				}
+
+				return null;
 			}
 
-			return null;
-		}
-
-	},
+		},
 
 	IL_INTAKEDUUR("_IL_INTAKEDUUR")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getAfspraakDefinities().get(0).getDuurAfspraakInMinuten();
+				if (context.getIntakeAfspraak() != null)
+				{
+					return context.getIntakeAfspraak().getLocation().getColoscopieCentrum().getAfspraakDefinities().get(0).getDuurAfspraakInMinuten();
+				}
+
+				return null;
 			}
 
-			return null;
-		}
-
-	},
+		},
 
 	COLON_HERAANMELDEN_TEKST(
 		"_COLON_HERAANMELDEN_TEKST",
@@ -1600,22 +1614,22 @@ public enum MergeField
 		String.class,
 		"",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getBrief() != null && context.getBrief().getBevolkingsonderzoek() == Bevolkingsonderzoek.COLON)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getValueVanHeraanmeldenTekstKey((ColonBrief) context.getBrief());
+				if (context.getBrief() != null && context.getBrief().getBevolkingsonderzoek() == Bevolkingsonderzoek.COLON)
+				{
+					return getValueVanHeraanmeldenTekstKey((ColonBrief) context.getBrief());
+				}
+				if (context.getColonUitnodiging() != null && context.getColonUitnodiging().getScreeningRonde() != null)
+				{
+					return getValueTekstKeyAlsHeraangemeldeUitnodigingVoorInpakcentrum(context.getColonUitnodiging().getScreeningRonde().getUitnodigingen());
+				}
+				return null;
 			}
-			if (context.getColonUitnodiging() != null && context.getColonUitnodiging().getScreeningRonde() != null)
-			{
-				return getValueTekstKeyAlsHeraangemeldeUitnodigingVoorInpakcentrum(context.getColonUitnodiging().getScreeningRonde().getUitnodigingen());
-			}
-			return null;
-		}
 
-	},
+		},
 
 	COLON_NIEUWE_FIT_TEKST(
 		"_COLON_NIEUWE_FIT_TEKST",
@@ -1623,24 +1637,24 @@ public enum MergeField
 		String.class,
 		"",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getColonUitnodiging() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				switch (context.getColonUitnodiging().getColonUitnodigingCategorie())
+				if (context.getColonUitnodiging() != null)
 				{
-				case U4:
-					return getStringValueFromPreference(PreferenceKey.COLON_NIEUWE_FIT_AANGEVRAAGD_TEKST);
-				case U4_2:
-					return getStringValueFromPreference(PreferenceKey.COLON_NIEUWE_FIT_NA_HERAANMELDING_TEKST);
+					switch (context.getColonUitnodiging().getColonUitnodigingCategorie())
+					{
+					case U4:
+						return getStringValueFromPreference(PreferenceKey.COLON_NIEUWE_FIT_AANGEVRAAGD_TEKST);
+					case U4_2:
+						return getStringValueFromPreference(PreferenceKey.COLON_NIEUWE_FIT_NA_HERAANMELDING_TEKST);
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	COLON_JAAR_VOLGENDE_RONDE(
 		"_COLON_JAAR_VOLGENDE_RONDE",
@@ -1648,324 +1662,314 @@ public enum MergeField
 		String.class,
 		"",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getClient() != null && context.getClient().getColonDossier().getVolgendeUitnodiging() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				ColonDossierBaseService dossierService = getBean(ColonDossierBaseService.class);
-				LocalDate datumVolgendeUitnodiging = dossierService.getDatumVolgendeUitnodiging(context.getClient().getColonDossier());
-
-				if (datumVolgendeUitnodiging != null)
+				if (context.getClient() != null && context.getClient().getColonDossier().getVolgendeUitnodiging() != null)
 				{
-					return datumVolgendeUitnodiging.getYear();
-				}
-			}
-			return null;
-		}
+					ColonDossierBaseService dossierService = getBean(ColonDossierBaseService.class);
+					LocalDate datumVolgendeUitnodiging = dossierService.getDatumVolgendeUitnodiging(context.getClient().getColonDossier());
 
-	},
+					if (datumVolgendeUitnodiging != null)
+					{
+						return datumVolgendeUitnodiging.getYear();
+					}
+				}
+				return null;
+			}
+
+		},
 
 	ZI_ADRES("_ZI_ADRES", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling zorginstelling = getZorgInstelling(context);
-			if (zorginstelling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return AdresUtil.getVolledigeAdresString(getAdres(zorginstelling, 0));
+				Instelling zorginstelling = getZorgInstelling(context);
+				if (zorginstelling != null)
+				{
+					return AdresUtil.getVolledigeAdresString(getAdres(zorginstelling, 0));
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_NAAM("_ZI_NAAM", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.naam", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling zorginstelling = getZorgInstelling(context);
-			if (zorginstelling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return zorginstelling.getNaam();
+				Instelling zorginstelling = getZorgInstelling(context);
+				if (zorginstelling != null)
+				{
+					return zorginstelling.getNaam();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_STRAATNAAM("_ZI_STRAATNAAM", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].straat", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getZorgInstelling(context), 0);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return adres.getStraat();
+				Adres adres = getAdres(getZorgInstelling(context), 0);
+				if (adres != null)
+				{
+					return adres.getStraat();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_HUISNUMMER_TOEV("_ZI_HUISNUMMER_TOEVOEGING")
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getZorgInstelling(context), 0);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return AdresUtil.getHuisnummerVolledig(adres);
+				Adres adres = getAdres(getZorgInstelling(context), 0);
+				if (adres != null)
+				{
+					return AdresUtil.getHuisnummerVolledig(adres);
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_POSTCODE("_ZI_POSTCODE", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].postcode", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getZorgInstelling(context), 0);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+				Adres adres = getAdres(getZorgInstelling(context), 0);
+				if (adres != null)
+				{
+					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_PLAATS("_ZI_PLAATS", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[0].plaats", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getZorgInstelling(context), 0);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return adres.getPlaats();
+				Adres adres = getAdres(getZorgInstelling(context), 0);
+				if (adres != null)
+				{
+					return adres.getPlaats();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_POSTBUSNR("_ZI_POSTBUSNR", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[1].huisnummer", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getZorgInstelling(context), 1);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return adres.getHuisnummer();
+				Adres adres = getAdres(getZorgInstelling(context), 1);
+				if (adres != null)
+				{
+					return adres.getHuisnummer();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_POSTBUSPOSTCODE("_ZI_POSTBUSPOSTCODE", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[1].postcode", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getZorgInstelling(context), 1);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+				Adres adres = getAdres(getZorgInstelling(context), 1);
+				if (adres != null)
+				{
+					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_POSTBUSPLAATS("_ZI_POSTBUSPLAATS", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.adressen[1].plaats", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Adres adres = getAdres(getZorgInstelling(context), 1);
-			if (adres != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return adres.getPlaats();
+				Adres adres = getAdres(getZorgInstelling(context), 1);
+				if (adres != null)
+				{
+					return adres.getPlaats();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_TEL("_ZI_TEL", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.telefoon", String.class)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling zorginstelling = getZorgInstelling(context);
-			if (zorginstelling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return zorginstelling.getTelefoon();
+				Instelling zorginstelling = getZorgInstelling(context);
+				if (zorginstelling != null)
+				{
+					return zorginstelling.getTelefoon();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_FAX("_ZI_FAX", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.fax", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling zorginstelling = getZorgInstelling(context);
-			if (zorginstelling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return zorginstelling.getFax();
+				Instelling zorginstelling = getZorgInstelling(context);
+				if (zorginstelling != null)
+				{
+					return zorginstelling.getFax();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_EMAILADRES("_ZI_EMAILADRES", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.email", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling zorginstelling = getZorgInstelling(context);
-			if (zorginstelling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return zorginstelling.getEmail();
+				Instelling zorginstelling = getZorgInstelling(context);
+				if (zorginstelling != null)
+				{
+					return zorginstelling.getEmail();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_WEBSITEADRES("_ZI_WEBSITEADRES", MergeFieldTestType.ZORGINSTELLING, "overeenkomst.gebruiker.organisatieMedewerkers[0].instelling.website", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling zorginstelling = getZorgInstelling(context);
-			if (zorginstelling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return zorginstelling.getWebsite();
+				Instelling zorginstelling = getZorgInstelling(context);
+				if (zorginstelling != null)
+				{
+					return zorginstelling.getWebsite();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	ZI_AFDELING("_ZI_AFDELING", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-
-			return null;
-		}
-	},
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return null;
+			}
+		},
 
 	HA_AANHEF("_HA_AANHEF", MergeFieldTestType.BMHKHUISARTS, String.class, "Geachte heer of mevrouw Dokter", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts arts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (arts != null && arts.getOrganisatieMedewerkers() != null && arts.getOrganisatieMedewerkers().size() > 0)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				String aanhef = "Geachte ";
-				Gebruiker gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
-				if (gebruiker != null && gebruiker.getAanhef() != null)
+				CervixHuisarts arts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (arts != null && arts.getOrganisatieMedewerkers() != null && !arts.getOrganisatieMedewerkers().isEmpty())
 				{
-					switch (gebruiker.getAanhef())
+					String aanhef = "Geachte ";
+					Gebruiker gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
+					if (gebruiker != null && gebruiker.getAanhef() != null)
 					{
-					case DHR:
-						aanhef += "heer";
-						break;
-					case MEVR:
-						aanhef += "mevrouw";
-						break;
+						if (gebruiker.getAanhef() == Aanhef.DHR)
+						{
+							aanhef += "heer";
+						}
+						else if (gebruiker.getAanhef() == Aanhef.MEVR)
+						{
+							aanhef += "mevrouw";
+						}
+						aanhef += " ";
 					}
-					aanhef += " ";
-				}
-				else
-				{
-					aanhef += "heer of mevrouw ";
-				}
-				if (gebruiker != null && gebruiker.getTussenvoegsel() != null)
-				{
-					aanhef += StringUtils.capitalize(gebruiker.getTussenvoegsel()) + " ";
-				}
-				if (gebruiker != null && gebruiker.getAchternaam() != null)
-				{
-					aanhef += StringUtils.capitalize(gebruiker.getAchternaam());
-				}
+					else
+					{
+						aanhef += "heer of mevrouw ";
+					}
+					if (gebruiker != null && gebruiker.getTussenvoegsel() != null)
+					{
+						aanhef += StringUtils.capitalize(gebruiker.getTussenvoegsel()) + " ";
+					}
+					if (gebruiker != null && gebruiker.getAchternaam() != null)
+					{
+						aanhef += StringUtils.capitalize(gebruiker.getAchternaam());
+					}
 
-				return aanhef;
+					return aanhef;
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_NAAM("_HA_NAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Dokter", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts arts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (arts != null && arts.getOrganisatieMedewerkers() != null && arts.getOrganisatieMedewerkers().size() > 0)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				String naam = null;
-				Gebruiker gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
-				if (gebruiker != null)
+				CervixHuisarts arts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (arts != null && arts.getOrganisatieMedewerkers() != null && !arts.getOrganisatieMedewerkers().isEmpty())
 				{
-					naam = NaamUtil.getNaamGebruiker(gebruiker);
+					String naam = null;
+					Gebruiker gebruiker = arts.getOrganisatieMedewerkers().get(0).getMedewerker();
+					if (gebruiker != null)
+					{
+						naam = NaamUtil.getNaamGebruiker(gebruiker);
+					}
+
+					return naam;
 				}
-
-				return naam;
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_ID("_HA_LOCATIE_ID", MergeFieldTestType.BMHKHUISARTS, Integer.class, "123456789", NIET_NAAR_INPAKCENTRUM, MergeFieldFlag.QR_CODE)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return locatie.getId();
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
+				{
+					return locatie.getId();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_NAAM("_HA_LOCATIE_NAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Praktijk van dokter Arts", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return locatie.getNaam();
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
+				{
+					return locatie.getNaam();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_ADRES_KIX(
 		"_HA_LOCATIE_ADRES_KIX",
@@ -1975,20 +1979,19 @@ public enum MergeField
 		String.class,
 		"8888XXX8888",
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return AdresUtil.createKixCode(locatie.getLocatieAdres());
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
+				{
+					return AdresUtil.createKixCode(locatie.getLocatieAdres());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_ADRES_VOLLEDIG(
 		"_HA_LOCATIE_ADRES_VOLLEDIG",
@@ -1996,144 +1999,138 @@ public enum MergeField
 		String.class,
 		"Teststraat 123 B, 8888XX Teststad-Utrecht",
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = locatie.getLocatieAdres();
-				if (adres != null)
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
 				{
-					return AdresUtil.getVolledigeAdresString(adres);
+					Adres adres = locatie.getLocatieAdres();
+					if (adres != null)
+					{
+						return AdresUtil.getVolledigeAdresString(adres);
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_ADRES_STRAATNAAM("_HA_LOCATIE_ADRES_STRAATNAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststraat", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = locatie.getLocatieAdres();
-				if (adres != null)
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
 				{
-					return adres.getStraat();
+					Adres adres = locatie.getLocatieAdres();
+					if (adres != null)
+					{
+						return adres.getStraat();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_ADRES_HUISNUMMER_TOEV("_HA_LOCATIE_ADRES_HUISNUMMER_TOEV", MergeFieldTestType.BMHKHUISARTS, String.class, "123 B", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = locatie.getLocatieAdres();
-				if (adres != null)
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
 				{
-					StringBuilder adresString = new StringBuilder();
-					if (adres.getHuisnummer() != null)
+					Adres adres = locatie.getLocatieAdres();
+					if (adres != null)
 					{
-						adresString.append(adres.getHuisnummer());
-					}
+						StringBuilder adresString = new StringBuilder();
+						if (adres.getHuisnummer() != null)
+						{
+							adresString.append(adres.getHuisnummer());
+						}
 
-					if (!Strings.isNullOrEmpty(adres.getHuisletter()))
-					{
-						adresString.append(" ");
-						adresString.append(adres.getHuisletter());
-					}
+						if (!Strings.isNullOrEmpty(adres.getHuisletter()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisletter());
+						}
 
-					if (!Strings.isNullOrEmpty(adres.getHuisnummerToevoeging()))
-					{
-						adresString.append(" ");
-						adresString.append(adres.getHuisnummerToevoeging());
-					}
+						if (!Strings.isNullOrEmpty(adres.getHuisnummerToevoeging()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisnummerToevoeging());
+						}
 
-					if (adres.getHuisnummer() == null && !Strings.isNullOrEmpty(adres.getHuisnummerAanduiding()))
-					{
-						adresString.append(" ");
-						adresString.append(adres.getHuisnummerAanduiding());
-					}
+						if (adres.getHuisnummer() == null && !Strings.isNullOrEmpty(adres.getHuisnummerAanduiding()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisnummerAanduiding());
+						}
 
-					return adresString.toString();
+						return adresString.toString();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_ADRES_POSTCODE("_HA_LOCATIE_ADRES_POSTCODE", MergeFieldTestType.BMHKHUISARTS, String.class, "8888 XX", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = locatie.getLocatieAdres();
-				if (adres != null)
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
 				{
-					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					Adres adres = locatie.getLocatieAdres();
+					if (adres != null)
+					{
+						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_LOCATIE_ADRES_PLAATS("_HA_LOCATIE_ADRES_PLAATS", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststad-Utrecht", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixHuisartsAdres adres = locatie.getLocatieAdres();
-				if (adres != null && adres.getWoonplaats() != null)
+				CervixHuisartsLocatie locatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (locatie != null)
 				{
-					return adres.getWoonplaats().getNaam();
+					CervixHuisartsAdres adres = locatie.getLocatieAdres();
+					if (adres != null && adres.getWoonplaats() != null)
+					{
+						return adres.getWoonplaats().getNaam();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_POST_ADRES_KIX("_HA_POST_ADRES_KIX", RoyalMailCBCBean.class, null, MergeFieldTestType.BMHKHUISARTS, String.class, "8888XXX8888", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts arts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (arts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return AdresUtil.createKixCode(arts.getPostadres());
+				CervixHuisarts arts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (arts != null)
+				{
+					return AdresUtil.createKixCode(arts.getPostadres());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_POST_ADRES_VOLLEDIG(
 		"_HA_POST_ADRES_VOLLEDIG",
@@ -2141,805 +2138,751 @@ public enum MergeField
 		String.class,
 		"Teststraat 123 B, 8888 XX Teststad-Utrecht",
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (cervixHuisarts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = cervixHuisarts.getPostadres();
-				if (adres != null)
+				CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (cervixHuisarts != null)
 				{
-					return AdresUtil.getVolledigeAdresString(adres);
+					Adres adres = cervixHuisarts.getPostadres();
+					if (adres != null)
+					{
+						return AdresUtil.getVolledigeAdresString(adres);
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_POST_ADRES_STRAATNAAM("_HA_POST_ADRES_STRAATNAAM", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststraat", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (cervixHuisarts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = cervixHuisarts.getPostadres();
-				if (adres != null)
+				CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (cervixHuisarts != null)
 				{
-					return adres.getStraat();
+					Adres adres = cervixHuisarts.getPostadres();
+					if (adres != null)
+					{
+						return adres.getStraat();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_POST_ADRES_HUISNUMMER_TOEV("_HA_POST_ADRES_HUISNUMMER_TOEV", MergeFieldTestType.BMHKHUISARTS, String.class, "123 B", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (cervixHuisarts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = cervixHuisarts.getPostadres();
-				if (adres != null)
+				CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (cervixHuisarts != null)
 				{
-					StringBuilder adresString = new StringBuilder();
-					if (adres.getHuisnummer() != null)
+					Adres adres = cervixHuisarts.getPostadres();
+					if (adres != null)
 					{
-						adresString.append(adres.getHuisnummer());
-					}
+						StringBuilder adresString = new StringBuilder();
+						if (adres.getHuisnummer() != null)
+						{
+							adresString.append(adres.getHuisnummer());
+						}
 
-					if (!Strings.isNullOrEmpty(adres.getHuisletter()))
-					{
-						adresString.append(" ");
-						adresString.append(adres.getHuisletter());
-					}
+						if (!Strings.isNullOrEmpty(adres.getHuisletter()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisletter());
+						}
 
-					if (!Strings.isNullOrEmpty(adres.getHuisnummerToevoeging()))
-					{
-						adresString.append(" ");
-						adresString.append(adres.getHuisnummerToevoeging());
-					}
+						if (!Strings.isNullOrEmpty(adres.getHuisnummerToevoeging()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisnummerToevoeging());
+						}
 
-					if (adres.getHuisnummer() == null && !Strings.isNullOrEmpty(adres.getHuisnummerAanduiding()))
-					{
-						adresString.append(" ");
-						adresString.append(adres.getHuisnummerAanduiding());
-					}
+						if (adres.getHuisnummer() == null && !Strings.isNullOrEmpty(adres.getHuisnummerAanduiding()))
+						{
+							adresString.append(" ");
+							adresString.append(adres.getHuisnummerAanduiding());
+						}
 
-					return adresString.toString();
+						return adresString.toString();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_POST_ADRES_POSTCODE("_HA_POST_ADRES_POSTCODE", MergeFieldTestType.BMHKHUISARTS, String.class, "8888 XX", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (cervixHuisarts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				Adres adres = cervixHuisarts.getPostadres();
-				if (adres != null)
+				CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (cervixHuisarts != null)
 				{
-					return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					Adres adres = cervixHuisarts.getPostadres();
+					if (adres != null)
+					{
+						return PostcodeFormatter.formatPostcode(adres.getPostcode(), true);
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_POST_ADRES_PLAATS("_HA_POST_ADRES_PLAATS", MergeFieldTestType.BMHKHUISARTS, String.class, "Teststad-Utrecht", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			if (cervixHuisarts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixHuisartsAdres adres = cervixHuisarts.getPostadres();
-				if (adres != null && adres.getWoonplaats() != null)
+				CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				if (cervixHuisarts != null)
 				{
-					return adres.getWoonplaats().getNaam();
+					CervixHuisartsAdres adres = cervixHuisarts.getPostadres();
+					if (adres != null && adres.getWoonplaats() != null)
+					{
+						return adres.getWoonplaats().getNaam();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	HA_REGISTRATIE_CODE("_HA_REGISTRATIE_CODE", MergeFieldTestType.BMHKHUISARTS, String.class, "Wxr-j3O-uKl", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling uitstrijkendArts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			String registratieCode = null;
-			if (uitstrijkendArts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				registratieCode = uitstrijkendArts.getOrganisatieMedewerkers().get(0).getMedewerker().getWachtwoordChangeCode();
+				Instelling uitstrijkendArts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				String registratieCode = null;
+				if (uitstrijkendArts != null)
+				{
+					registratieCode = uitstrijkendArts.getOrganisatieMedewerkers().get(0).getMedewerker().getWachtwoordChangeCode();
+				}
+				return registratieCode;
 			}
-			return registratieCode;
-		}
 
-	},
+		},
 
 	HA_LAB_FORM_VOLGNUMMER("_HA_LAB_FORM_VOLGNUMMER", MergeFieldTestType.BMHKHUISARTS, String.class, "99", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Integer volgnummer = context.getValue(MailMergeContext.CONTEXT_HA_LAB_FORM_VOLGNUMMER);
-			return volgnummer;
-		}
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return context.<Integer> getValue(MailMergeContext.CONTEXT_HA_LAB_FORM_VOLGNUMMER);
+			}
 
-	},
+		},
 
 	HA_AANTAL_FORM("_HA_AANTAL_FORM", MergeFieldTestType.BMHKHUISARTS, String.class, "99", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Integer volgnummer = context.getValue(MailMergeContext.CONTEXT_HA_AANTAL_FORM);
-			return volgnummer;
-		}
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return context.<Integer> getValue(MailMergeContext.CONTEXT_HA_AANTAL_FORM);
+			}
 
-	},
+		},
 
 	HA_AGB_CODE("_HA_AGB_CODE", MergeFieldTestType.BMHKHUISARTS, String.class, "01012345", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Instelling uitstrijkendArts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-			String agbcode = null;
-			if (uitstrijkendArts != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				agbcode = uitstrijkendArts.getAgbcode();
+				Instelling uitstrijkendArts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+				String agbcode = null;
+				if (uitstrijkendArts != null)
+				{
+					agbcode = uitstrijkendArts.getAgbcode();
+				}
+				return agbcode;
 			}
-			return agbcode;
-		}
 
-	},
+		},
 
 	DATUM_VANDAAG("_DATUM_VANDAAG", MergeFieldTestType.OVERIGE, Date.class, "31-12-2000")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			return getFormattedDateZonderDagnaam(new Date());
-		}
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return getFormattedDateZonderDagnaam(new Date());
+			}
 
-	},
+		},
 
 	DATUM_INTAKE("_DATUM_INTAKE", MergeFieldTestType.INTAKE, Date.class, "01-12-2017")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getFormattedDate(context.getIntakeAfspraak().getStartTime());
+				if (context.getIntakeAfspraak() != null)
+				{
+					return getFormattedDateMetDagnaam(context.getIntakeAfspraak().getStartTime());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	TIJDSTIP_INTAKE("_TIJDSTIP_INTAKE", MergeFieldTestType.INTAKE, String.class, "08:45")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-				return dateFormat.format(context.getIntakeAfspraak().getStartTime());
+				if (context.getIntakeAfspraak() != null)
+				{
+					DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+					return dateFormat.format(context.getIntakeAfspraak().getStartTime());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	DATUM_VORIGE_INTAKE("_DATUM_VORIGEINTAKE", MergeFieldTestType.INTAKE, Date.class, "29-05-2017")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getVorigeIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getFormattedDate(context.getVorigeIntakeAfspraak().getStartTime());
+				if (context.getVorigeIntakeAfspraak() != null)
+				{
+					return getFormattedDateMetDagnaam(context.getVorigeIntakeAfspraak().getStartTime());
+				}
+
+				return null;
 			}
 
-			return null;
-		}
-
-	},
+		},
 
 	TIJDSTIP_VORIGE_INTAKE("_TIJDSTIP_VORIGEINTAKE", MergeFieldTestType.INTAKE, String.class, "10:30")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getVorigeIntakeAfspraak() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-				return dateFormat.format(context.getVorigeIntakeAfspraak().getStartTime());
+				if (context.getVorigeIntakeAfspraak() != null)
+				{
+					DateFormat dateFormat = new SimpleDateFormat("HH:mm");
+					return dateFormat.format(context.getVorigeIntakeAfspraak().getStartTime());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	DATUM_VORIGECOLOSCOPIE("_DATUM_VORIGECOLOSCOPIE")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			return null;
-		}
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return null;
+			}
 
-	},
+		},
 
 	TIJDSTIP_VORIGECOLOSCOPIE("_TIJDSTIP_VORIGECOLOSCOPIE")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			return null;
-		}
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return null;
+			}
 
-	},
+		},
 
 	UITNODIGINGSID("_UITNODIGINGSID", CervixUitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, "cervixUitnodiging.uitnodigingsId", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			String id = null;
-
-			if (context.getColonUitnodiging() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				id = context.getColonUitnodiging().getUitnodigingsId().toString();
-			}
-			else if (context.getCervixUitnodiging() != null)
-			{
-				id = context.getCervixUitnodiging().getUitnodigingsId().toString();
+				String id = null;
+
+				if (context.getColonUitnodiging() != null)
+				{
+					id = context.getColonUitnodiging().getUitnodigingsId().toString();
+				}
+				else if (context.getCervixUitnodiging() != null)
+				{
+					id = context.getCervixUitnodiging().getUitnodigingsId().toString();
+				}
+
+				return id;
 			}
 
-			return id;
-		}
-
-	},
+		},
 
 	MAMMA_UITNODIGINGSNUMMER("_BK_UITNODIGINGSNUMMER", CervixUitnodigingIdBarcode.class, null, MergeFieldTestType.OVERIGE, String.class, "123456789")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			String id = null;
-
-			Object brief = HibernateHelper.deproxy(context.getBrief());
-			if (brief instanceof MammaBrief)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBrief mammaBrief = (MammaBrief) brief;
-				if (mammaBrief.getScreeningRonde() != null)
+				String id = null;
+
+				Object brief = HibernateHelper.deproxy(context.getBrief());
+				if (brief instanceof MammaBrief)
 				{
-					id = mammaBrief.getScreeningRonde().getUitnodigingsNr().toString();
+					MammaBrief mammaBrief = (MammaBrief) brief;
+					if (mammaBrief.getScreeningRonde() != null)
+					{
+						id = mammaBrief.getScreeningRonde().getUitnodigingsNr().toString();
+					}
 				}
+
+				return id;
 			}
 
-			return id;
-		}
-
-	},
+		},
 
 	ZV_ACHTERNAAM("_ZV_ACHTERNAAM", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.achternaam", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getAchternaam();
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+				{
+					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getAchternaam();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_TUSSENVOEGSEL("_ZV_TUSSENVOEGSEL", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.tussenvoegsel", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getTussenvoegsel();
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+				{
+					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getTussenvoegsel();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_VOORLETTERS("_ZV_VOORLETTERS", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.voorletters", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getVoorletters();
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+				{
+					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getVoorletters();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_AANHEF("_ZV_AANHEF", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.aanhef", Aanhef.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				if (((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getAanhef() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst
+					&& ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getAanhef() != null)
 				{
 					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getAanhef().getNaam();
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_TITEL("_ZV_TITEL", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.titel", Titel.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				if (((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getTitel() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst
+					&& ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getTitel() != null)
 				{
 					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getTitel().getNaam();
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_FUNCTIE("_ZV_FUNCTIE", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.functie", Functie.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				if (((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getFunctie() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst
+					&& ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getFunctie() != null)
 				{
 					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getFunctie().getNaam();
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_UZINR("_ZV_UZINR", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.uzinummer", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getUzinummer();
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+				{
+					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getUzinummer();
 
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_PLAATS("_ZV_PLAATS", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.adressen[0].plaats", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			AbstractAfgeslotenOvereenkomst overeenkomst = context.getOvereenkomst();
-			if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				AfgeslotenMedewerkerOvereenkomst afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
-				Adres adres = getAdres(afgeslotenKwaliteitsOvereenkomst.getGebruiker(), 0);
-				if (adres != null)
+				AbstractAfgeslotenOvereenkomst overeenkomst = context.getOvereenkomst();
+				if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
 				{
-					return adres.getPlaats();
+					AfgeslotenMedewerkerOvereenkomst afgeslotenKwaliteitsOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
+					Adres adres = getAdres(afgeslotenKwaliteitsOvereenkomst.getGebruiker(), 0);
+					if (adres != null)
+					{
+						return adres.getPlaats();
+					}
+
 				}
-
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_GEBOORTEDATUM("_ZV_GEBOORTEDATUM", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.geboortedatum", Date.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return new SimpleDateFormat("dd-MM-yyyy").format(((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getGeboortedatum());
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+				{
+					return new SimpleDateFormat("dd-MM-yyyy").format(((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getGeboortedatum());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_BIGNR("_ZV_BIGNR", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.bignummer", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getBignummer();
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+				{
+					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getBignummer();
 
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZV_EMAIL("_ZV_EMAIL", MergeFieldTestType.ZORGVERLENER, "overeenkomst.gebruiker.emailextra", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getEmailextra();
+				if (context.getOvereenkomst() instanceof AfgeslotenMedewerkerOvereenkomst)
+				{
+					return ((AfgeslotenMedewerkerOvereenkomst) context.getOvereenkomst()).getGebruiker().getEmailextra();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	SO_VERTEGENWOORDIGER("_SO_VERTEGENWOORDIGER")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
-			if (screeningOrganisatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return screeningOrganisatie.getVertegenwoordiger();
+				ScreeningOrganisatie screeningOrganisatie = getScreeningOrganisatie(context);
+				if (screeningOrganisatie != null)
+				{
+					return screeningOrganisatie.getVertegenwoordiger();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_GEM_ACHTERNAAM("_ZI_GEM_ACHTERNAAM", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
-				if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAchternaam();
+					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
+					{
+						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAchternaam();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_GEM_TUSSENVOEGSEL("_ZI_GEM_TUSSENVOEGSEL", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
-				if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTussenvoegsel();
+					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
+					{
+						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTussenvoegsel();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_GEM_VOORLETTERS("_ZI_GEM_VOORLETTERS")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
-				if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getVoorletters();
+					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null)
+					{
+						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getVoorletters();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_GEM_AANHEF("_ZI_GEM_AANHEF", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
-				if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAanhef() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAanhef().getNaam();
+					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAanhef() != null)
+					{
+						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getAanhef().getNaam();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_GEM_TITEL("_ZI_GEM_TITEL", MergeFieldTestType.ZORGINSTELLING, String.class, "xxxx")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
-				if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTitel() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTitel().getNaam();
+					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTitel() != null)
+					{
+						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getTitel().getNaam();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	ZI_GEM_FUNCTIE("_ZI_GEM_FUNCTIE", MergeFieldTestType.ZORGINSTELLING, String.class, "xxx")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
-				if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getFunctie() != null)
+				if (context.getOvereenkomst() instanceof AfgeslotenInstellingOvereenkomst)
 				{
-					return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getFunctie().getNaam();
+					AfgeslotenInstellingOvereenkomst afgeslotenOvereenkomst = (AfgeslotenInstellingOvereenkomst) context.getOvereenkomst();
+					if (afgeslotenOvereenkomst.getInstelling().getGemachtigde() != null && afgeslotenOvereenkomst.getInstelling().getGemachtigde().getFunctie() != null)
+					{
+						return afgeslotenOvereenkomst.getInstelling().getGemachtigde().getFunctie().getNaam();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	OV_INGANGSDATUM("_OV_INGANGSDATUM", MergeFieldTestType.OVERIGE, "overeenkomst.startDatum", Date.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getOvereenkomst() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getFormattedDate(context.getOvereenkomst().getStartDatum());
+				if (context.getOvereenkomst() != null)
+				{
+					return getFormattedDateMetDagnaam(context.getOvereenkomst().getStartDatum());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	OV_VRAGENLIJST_NAAM("_OV_VRAGENLIJST_NAAM")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			return context.getVragenlijstNaam();
-		}
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return context.getVragenlijstNaam();
+			}
 
-	},
+		},
 
 	OV_VRAGENLIJST_TIP("_OV_VRAGENLIJST_TIP")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-
-			if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return "\nTip";
-			}
-			return null;
-		}
 
-	},
+				if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
+				{
+					return "\nTip";
+				}
+				return null;
+			}
+
+		},
 
 	OV_VRAGENLIJST_PRE_URL_TEKST("_OV_VRAGENLIJST_PRE_URL_TEKST")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return "U kunt dit formulier ook online invullen. \nGa naar";
+				if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
+				{
+					return "U kunt dit formulier ook online invullen. \nGa naar";
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	OV_VRAGENLIJST_POST_URL_TEKST("_OV_VRAGENLIJST_POST_URL_TEKST")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return "\n";
+				if (OV_VRAGENLIJST_URL.getFieldValue(context) != null)
+				{
+					return "\n";
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	OV_VRAGENLIJST_URL("_OV_VRAGENLIJST_URL")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ProjectBrief brief = context.getProjectBrief();
-			if (brief != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
+				ProjectBrief brief = context.getProjectBrief();
+				if (brief != null)
 				{
-					brief = brief.getTeHerinnerenBrief();
+					if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
+					{
+						brief = brief.getTeHerinnerenBrief();
+					}
+					ProjectVragenlijstUitzettenVia projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
+					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
+					{
+						ProjectService projectService = getBean(ProjectService.class);
+						return projectService.generateVragenlijstUrl(brief);
+					}
 				}
-				ProjectVragenlijstUitzettenVia projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
-				if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
-				{
-					ProjectService projectService = getBean(ProjectService.class);
-					return projectService.generateVragenlijstUrl(brief);
-				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	OV_VRAGENLIJST_KEY("_OV_VRAGENLIJST_KEY")
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			ProjectBrief brief = context.getProjectBrief();
-			if (brief != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
+				ProjectBrief brief = context.getProjectBrief();
+				if (brief != null)
 				{
-					brief = brief.getTeHerinnerenBrief();
+					if (brief.getDefinitie().getType().equals(ProjectBriefActieType.HERINNERING))
+					{
+						brief = brief.getTeHerinnerenBrief();
+					}
+					ProjectVragenlijstUitzettenVia projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
+					if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
+					{
+						ProjectService projectService = getBean(ProjectService.class);
+						return projectService.generateVragenlijstKey(brief);
+					}
 				}
-				ProjectVragenlijstUitzettenVia projectVragenlijstUitzettenVia = brief.getDefinitie().getProjectVragenlijstUitzettenVia();
-				if (ProjectVragenlijstUitzettenVia.isWeb(projectVragenlijstUitzettenVia))
-				{
-					ProjectService projectService = getBean(ProjectService.class);
-					return projectService.generateVragenlijstKey(brief);
-				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	OV_VRAGENLIJST_FORMULIERNUMMER("_OV_VRAGENLIJST_FORMULIERNUMMER", Code128Bean.class, Double.valueOf(5))
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			return "++FN+901";
-		}
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				return "++FN+901";
+			}
 
-	},
+		},
 
 	OV_VRAGENLIJST_PROJECT_BRIEF_ID("_OV_VRAGENLIJST_PROJECT_BRIEF_ID", Code128Bean.class, Double.valueOf(5))
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getProjectBrief() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return context.getProjectBrief().getId().toString();
+				if (context.getProjectBrief() != null)
+				{
+					return context.getProjectBrief().getId().toString();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_MONSTER_ID("_CERVIX_MONSTER_ID", CervixMonsterIdBarcode.class, null)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
-			if (uitnodiging != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				setBarcodeTypeFromContext(context);
-				return uitnodiging.getMonster().getMonsterId();
+				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				if (uitnodiging != null)
+				{
+					setBarcodeTypeFromContext(context);
+					return uitnodiging.getMonster().getMonsterId();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_MONSTER_CONTROLE_LETTERS(
 		"_CERVIX_MONSTER_CONTROLE_LETTERS",
@@ -2950,69 +2893,68 @@ public enum MergeField
 		NIET_IN_HUISARTSBERICHT,
 		QR_CODE,
 		WAARDE_NIET_TRIMMEN)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
-			return uitnodiging != null
-				&& uitnodiging.getMonsterType().equals(CervixMonsterType.UITSTRIJKJE)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				return uitnodiging != null
+					&& uitnodiging.getMonsterType().equals(CervixMonsterType.UITSTRIJKJE)
 					? ((CervixUitstrijkje) uitnodiging.getMonster()).getControleLetters()
 					: null;
-		}
-	},
+			}
+		},
 
 	BMHKLAB_NAAM("_BMHKLAB_NAAM", MergeFieldTestType.BMHKLAB, "bmhkLaboratorium.naam", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging cervixUitnodiging = context.getCervixUitnodiging();
-			if (cervixUitnodiging != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixMonster monster = cervixUitnodiging.getMonster();
-				if (monster != null)
+				CervixUitnodiging cervixUitnodiging = context.getCervixUitnodiging();
+				if (cervixUitnodiging != null)
 				{
-					BMHKLaboratorium laboratorium = monster.getLaboratorium();
-					if (laboratorium != null)
+					CervixMonster monster = cervixUitnodiging.getMonster();
+					if (monster != null)
 					{
-						return laboratorium.getNaam();
+						BMHKLaboratorium laboratorium = monster.getLaboratorium();
+						if (laboratorium != null)
+						{
+							return laboratorium.getNaam();
+						}
 					}
 				}
-			}
-			else
-			{
-				String labnaam = null;
-				CervixHuisartsLocatie cervixHuisartsLocatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-				if (cervixHuisartsLocatie != null && cervixHuisartsLocatie.getLocatieAdres() != null && cervixHuisartsLocatie.getLocatieAdres().getWoonplaats() != null
-					&& cervixHuisartsLocatie.getLocatieAdres().getWoonplaats().getGemeente() != null)
+				else
 				{
-					BMHKLaboratorium laboratorium = cervixHuisartsLocatie.getLocatieAdres().getWoonplaats().getGemeente().getBmhkLaboratorium();
-					if (laboratorium != null)
+					String labnaam = null;
+					CervixHuisartsLocatie cervixHuisartsLocatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+					if (cervixHuisartsLocatie != null && cervixHuisartsLocatie.getLocatieAdres() != null && cervixHuisartsLocatie.getLocatieAdres().getWoonplaats() != null
+						&& cervixHuisartsLocatie.getLocatieAdres().getWoonplaats().getGemeente() != null)
 					{
-						labnaam = laboratorium.getNaam();
-					}
-				}
-				if (labnaam == null)
-				{
-					CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
-					if (cervixHuisarts != null && cervixHuisarts.getPostadres() != null && cervixHuisarts.getPostadres().getWoonplaats() != null
-						&& cervixHuisarts.getPostadres().getWoonplaats().getGemeente() != null)
-					{
-						BMHKLaboratorium laboratorium = cervixHuisarts.getPostadres().getWoonplaats().getGemeente().getBmhkLaboratorium();
+						BMHKLaboratorium laboratorium = cervixHuisartsLocatie.getLocatieAdres().getWoonplaats().getGemeente().getBmhkLaboratorium();
 						if (laboratorium != null)
 						{
 							labnaam = laboratorium.getNaam();
 						}
 					}
+					if (labnaam == null)
+					{
+						CervixHuisarts cervixHuisarts = context.getValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS);
+						if (cervixHuisarts != null && cervixHuisarts.getPostadres() != null && cervixHuisarts.getPostadres().getWoonplaats() != null
+							&& cervixHuisarts.getPostadres().getWoonplaats().getGemeente() != null)
+						{
+							BMHKLaboratorium laboratorium = cervixHuisarts.getPostadres().getWoonplaats().getGemeente().getBmhkLaboratorium();
+							if (laboratorium != null)
+							{
+								labnaam = laboratorium.getNaam();
+							}
+						}
+					}
+					return labnaam;
 				}
-				return labnaam;
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	BMHKLAB_ONDERTEKENAAR_HA_BERICHT_CYTO(
 		"_BMHKLAB_ONDERTEKENAAR_HA_BERICHT_CYTO",
@@ -3020,132 +2962,127 @@ public enum MergeField
 		"bmhkLaboratorium.patholoog",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Object deproxy = HibernateHelper.deproxy(context.getBrief());
-			if (deproxy instanceof CervixBrief)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBrief brief = (CervixBrief) deproxy;
-				if (CervixMonsterUtil.isUitstrijkje(brief.getMonster()))
+				Object deproxy = HibernateHelper.deproxy(context.getBrief());
+				if (deproxy instanceof CervixBrief)
 				{
-					CervixUitstrijkje monster = CervixMonsterUtil.getUitstrijkje(brief.getMonster());
-					if (monster.getCytologieVerslag() != null)
+					CervixBrief brief = (CervixBrief) deproxy;
+					if (CervixMonsterUtil.isUitstrijkje(brief.getMonster()))
 					{
-						return monster.getCytologieVerslag().getPatholoogNaam();
+						CervixUitstrijkje monster = CervixMonsterUtil.getUitstrijkje(brief.getMonster());
+						if (monster.getCytologieVerslag() != null)
+						{
+							return monster.getCytologieVerslag().getPatholoogNaam();
+						}
 					}
 				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	BMHKLAB_ONDERTEKENAAR("_BMHKLAB_ONDERTEKENAAR", MergeFieldTestType.BMHKLAB, "bmhkLaboratorium.patholoog", String.class)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Object deproxy = HibernateHelper.deproxy(context.getBrief());
-			if (deproxy instanceof CervixBrief)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBrief brief = (CervixBrief) deproxy;
-				return getBMHKLaboratoriumOndertekenaar(brief, false);
+				Object deproxy = HibernateHelper.deproxy(context.getBrief());
+				if (deproxy instanceof CervixBrief)
+				{
+					CervixBrief brief = (CervixBrief) deproxy;
+					return getBMHKLaboratoriumOndertekenaar(brief, false);
+				}
+				if (context.getBmhkLaboratorium() != null)
+				{
+					return getBMHKLaboratoriumOndertekenaar(context.getBmhkLaboratorium(), false);
+				}
+				return null;
 			}
-			if (context.getBmhkLaboratorium() != null)
-			{
-				return getBMHKLaboratoriumOndertekenaar(context.getBmhkLaboratorium(), false);
-			}
-			return null;
-		}
 
-	},
+		},
 
 	BMHKLAB_HANDTEKENING("_BMHKLAB_HANDTEKENING", MergeFieldFlag.NIET_IN_HUISARTSBERICHT, NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Object deproxy = HibernateHelper.deproxy(context.getBrief());
-			if (deproxy instanceof CervixBrief)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBrief brief = (CervixBrief) deproxy;
-				return getBMHKLaboratoriumOndertekenaar(brief, true);
+				Object deproxy = HibernateHelper.deproxy(context.getBrief());
+				if (deproxy instanceof CervixBrief)
+				{
+					CervixBrief brief = (CervixBrief) deproxy;
+					return getBMHKLaboratoriumOndertekenaar(brief, true);
+				}
+				if (context.getBmhkLaboratorium() != null)
+				{
+					return getBMHKLaboratoriumOndertekenaar(context.getBmhkLaboratorium(), true);
+				}
+				return null;
 			}
-			if (context.getBmhkLaboratorium() != null)
-			{
-				return getBMHKLaboratoriumOndertekenaar(context.getBmhkLaboratorium(), true);
-			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_CYTO_PV("_CERVIX_CYTO_PV", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
-			if (uitnodiging != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
-				CervixCytologieVerslag verslag = uitstrijkje.getCytologieVerslag();
-				if (verslag != null)
+				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				if (uitnodiging != null)
 				{
-					CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
-					return cytologieUitslagHuisarts.getProtocollairVerslag();
+					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
+					CervixCytologieVerslag verslag = uitstrijkje.getCytologieVerslag();
+					if (verslag != null)
+					{
+						CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
+						return cytologieUitslagHuisarts.getProtocollairVerslag();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_CYTO_CONCLUSIE("_CERVIX_CYTO_CONCLUSIE", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
-			if (uitnodiging != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
-				CervixCytologieVerslag verslag = uitstrijkje.getCytologieVerslag();
-				if (verslag != null)
+				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				if (uitnodiging != null)
 				{
-					CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
-					return cytologieUitslagHuisarts.getConclusie();
+					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
+					CervixCytologieVerslag verslag = uitstrijkje.getCytologieVerslag();
+					if (verslag != null)
+					{
+						CervixCytologieCytologieUitslagBvoBmhkTbvHuisarts cytologieUitslagHuisarts = verslag.getVerslagContent().getCytologieUitslagBvoBmhkTbvHuisarts();
+						return cytologieUitslagHuisarts.getConclusie();
+					}
 				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_NIET_ANALYSEERBAAR_REDEN("_CERVIX_NIET_ANALYSEERBAAR_REDEN", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
-			if (uitnodiging != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
-				if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR)
+				CervixUitnodiging uitnodiging = context.getCervixUitnodiging();
+				if (uitnodiging != null)
 				{
-					return uitstrijkje.getNietAnalyseerbaarReden().getNaam();
+					CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
+					if (uitstrijkje.getUitstrijkjeStatus() == CervixUitstrijkjeStatus.NIET_ANALYSEERBAAR)
+					{
+						return uitstrijkje.getNietAnalyseerbaarReden().getNaam();
+					}
 				}
+				return CervixNietAnalyseerbaarReden.ONBEKEND.getNaam();
 			}
-			return CervixNietAnalyseerbaarReden.ONBEKEND.getNaam();
-		}
 
-	},
+		},
 
 	CERVIX_HERINNERINGSTEKST(
 		"_CERVIX_HERINNERINGSTEKST",
@@ -3154,20 +3091,19 @@ public enum MergeField
 		"",
 		NIET_NAAR_INPAKCENTRUM,
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
-			if (uitnodiging != null && Boolean.TRUE.equals(uitnodiging.getHerinnering()))
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getStringValueFromPreference(PreferenceKey.CERVIX_HERINNERING_TEKST);
+				CervixUitnodiging uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
+				if (uitnodiging != null && Boolean.TRUE.equals(uitnodiging.getHerinnering()))
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_HERINNERING_TEKST);
+				}
+				return "";
 			}
-			return "";
-		}
 
-	},
+		},
 
 	CERVIX_HERAANMELDEN_TEKST(
 		"_CERVIX_HERAANMELDEN_TEKST",
@@ -3176,19 +3112,18 @@ public enum MergeField
 		"",
 		NIET_NAAR_INPAKCENTRUM,
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getBrief() != null && context.getBrief().getBevolkingsonderzoek() == Bevolkingsonderzoek.CERVIX)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getValueVanHeraanmeldenTekstKey((CervixBrief) context.getBrief());
+				if (context.getBrief() != null && context.getBrief().getBevolkingsonderzoek() == Bevolkingsonderzoek.CERVIX)
+				{
+					return getValueVanHeraanmeldenTekstKey((CervixBrief) context.getBrief());
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_UITGESTELD_TEKST(
 		"_CERVIX_UITGESTELD_TEKST",
@@ -3197,20 +3132,19 @@ public enum MergeField
 		"",
 		NIET_NAAR_INPAKCENTRUM,
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixUitnodiging uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
-			if (uitnodiging != null && Boolean.TRUE.equals(uitnodiging.getUitgesteld()))
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getStringValueFromPreference(PreferenceKey.CERVIX_UITGESTELD_TEKST);
+				CervixUitnodiging uitnodiging = getOorspronkelijkeCervixUitnoding(context.getCervixUitnodiging());
+				if (uitnodiging != null && Boolean.TRUE.equals(uitnodiging.getUitgesteld()))
+				{
+					return getStringValueFromPreference(PreferenceKey.CERVIX_UITGESTELD_TEKST);
+				}
+				return "";
 			}
-			return "";
-		}
 
-	},
+		},
 
 	CERVIX_VERVOLGONDERZOEK_NEGATIEF(
 		"_CERVIX_VERVOLGONDERZOEK_NEGATIEF_TEKST",
@@ -3223,7 +3157,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixLeeftijdcategorie leeftijdcategorie = context.getCervixUitnodiging().getScreeningRonde().getLeeftijdcategorie();
+				CervixLeeftijdcategorie leeftijdcategorie = getCervixLeeftijdcategorie(context);
 				if (CervixLeeftijdcategorie._70.equals(leeftijdcategorie) || CervixLeeftijdcategorie._65.equals(leeftijdcategorie))
 				{
 					return getStringValueFromPreference(PreferenceKey.CERVIX_VERVOLGONDERZOEK_NEGATIEF_65PLUS_TEKST);
@@ -3247,12 +3181,12 @@ public enum MergeField
 		NIET_NAAR_INPAKCENTRUM,
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
 		{
-
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixLeeftijdcategorie leeftijdcategorie = context.getCervixUitnodiging().getScreeningRonde().getLeeftijdcategorie();
-				if (CervixLeeftijdcategorie._70.equals(leeftijdcategorie) || CervixLeeftijdcategorie._65.equals(leeftijdcategorie) || CervixLeeftijdcategorie._60.equals(leeftijdcategorie))
+				CervixLeeftijdcategorie leeftijdcategorie = getCervixLeeftijdcategorie(context);
+				if (CervixLeeftijdcategorie._70.equals(leeftijdcategorie) || CervixLeeftijdcategorie._65.equals(leeftijdcategorie) || CervixLeeftijdcategorie._60.equals(
+					leeftijdcategorie))
 				{
 					return getStringValueFromPreference(PreferenceKey.CERVIX_CYTOLOGIE_POSITIEF_60PLUS_TEKST);
 				}
@@ -3271,193 +3205,185 @@ public enum MergeField
 		"31-12-2017",
 		NIET_NAAR_INPAKCENTRUM,
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			if (context.getBrief() != null && context.getBrief().getBriefType() == BriefType.CERVIX_HUISARTS_ONBEKEND)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				CervixBrief brief = (CervixBrief) context.getBrief();
-				while (brief.getLabformulier() == null)
+				if (context.getBrief() != null && context.getBrief().getBriefType() == BriefType.CERVIX_HUISARTS_ONBEKEND)
 				{
-					brief = brief.getHerdruk();
+					CervixBrief brief = (CervixBrief) context.getBrief();
+					while (brief.getLabformulier() == null)
+					{
+						brief = (CervixBrief) BriefUtil.getHerdruk(brief);
+					}
+					DateTime ontvangstdatum = new DateTime(brief.getLabformulier().getUitstrijkje().getOntvangstdatum());
+					Integer wachttijdHuisartsDoorgeven = getSimplePreferenceService().getInteger(PreferenceKey.CERVIX_WACHTTIJD_HUISARTS_DOORGEVEN.toString());
+					return new SimpleDateFormat("dd-MM-yyyy").format(WerkDagHelper.plusBusinessDays(ontvangstdatum, wachttijdHuisartsDoorgeven).toDate());
 				}
-				DateTime ontvangstdatum = new DateTime(brief.getLabformulier().getUitstrijkje().getOntvangstdatum());
-				Integer wachttijdHuisartsDoorgeven = getSimplePreferenceService().getInteger(PreferenceKey.CERVIX_WACHTTIJD_HUISARTS_DOORGEVEN.toString());
-				return new SimpleDateFormat("dd-MM-yyyy").format(WerkDagHelper.plusBusinessDays(ontvangstdatum, wachttijdHuisartsDoorgeven).toDate());
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_BETAALOPDRACHT_BETALINGSOMSCHRIJVING(
 		"_BTO_BETALINGSOMSCHRIJVING",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
-			if (betaalopdracht != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return betaalopdracht.getOmschrijving();
+				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					return betaalopdracht.getOmschrijving();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_BETAALOPDRACHT_BETALINGSKENMERK(
 		"_BTO_BETALINGSKENMERK",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
-			if (betaalopdracht != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return betaalopdracht.getBetalingskenmerk();
+				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					return betaalopdracht.getBetalingskenmerk();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_BETAALOPDRACHT_GEHEELTOTAALBEDRAG(
 		"_BTO_GEHEELTOTAALBEDRAG",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
-			if (betaalopdracht != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().map(b -> b.getBedrag()).reduce((b1, b2) -> b1.add(b2)).orElse(BigDecimal.ZERO);
-				return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().map(CervixBetaalopdrachtRegel::getBedrag).reduce(BigDecimal::add)
+						.orElse(BigDecimal.ZERO);
+					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_BETAALOPDRACHT_LABS_TOTAALBEDRAG(
 		"_BTO_LABS_TOTAALBEDRAG",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
-			if (betaalopdracht != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getLaboratorium() != null).map(b -> b.getBedrag())
-					.reduce((b1, b2) -> b1.add(b2)).orElse(BigDecimal.ZERO);
-				return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getLaboratorium() != null).map(CervixBetaalopdrachtRegel::getBedrag)
+						.reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_BETAALOPDRACHT_AANTAL_UITSTRIJKJES(
 		"_BTO_AANTAL_UITSTRIJKJES",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixBetaalopdracht betaalopdracht = getBetaalopdracht(context);
-			if (betaalopdracht != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				long aantal = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getHuisartsLocatie() != null).map(b -> b.getSpecificaties()).flatMap(s -> s.stream())
-					.mapToInt(s -> s.getAantalBetaalRegels()).sum();
-				return Long.toString(aantal);
+				CervixBetaalopdracht betaalopdracht = getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					long aantal = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getHuisartsLocatie() != null).map(CervixBetaalopdrachtRegel::getSpecificaties)
+						.flatMap(Collection::stream)
+						.mapToInt(CervixBetaalopdrachtRegelSpecificatie::getAantalBetaalRegels).sum();
+					return Long.toString(aantal);
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	CERVIX_BETAALOPDRACHT_HA_TOTAALBEDRAG(
 		"_BTO_HA_TOTAALBEDRAG",
 		MergeFieldFlag.NIET_IN_HUISARTSBERICHT,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
-			if (betaalopdracht != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getHuisartsLocatie() != null).map(b -> b.getBedrag())
-					.reduce((b1, b2) -> b1.add(b2)).orElse(BigDecimal.ZERO);
-				return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				CervixBetaalopdracht betaalopdracht = MergeField.getBetaalopdracht(context);
+				if (betaalopdracht != null)
+				{
+					BigDecimal totaalBedrag = betaalopdracht.getBetaalopdrachtRegels().stream().filter(b -> b.getHuisartsLocatie() != null)
+						.map(CervixBetaalopdrachtRegel::getBedrag).reduce(BigDecimal::add).orElse(BigDecimal.ZERO);
+					return NumberFormat.getCurrencyInstance().format(totaalBedrag);
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	CERVIX_HUISARTS_ZORGMAIL_VERIFICATIE_PINCODE(
 		"_CERVIX_HUISARTS_ZORGMAIL_VERIFICATIE_PINCODE",
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			CervixHuisartsLocatie huisartsLocatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
-			if (huisartsLocatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return huisartsLocatie.getVerificatieCode();
+				CervixHuisartsLocatie huisartsLocatie = context.getValue(MailMergeContext.CONTEXT_HA_LOCATIE);
+				if (huisartsLocatie != null)
+				{
+					return huisartsLocatie.getVerificatieCode();
+				}
+				return "";
 			}
-			return "";
-		}
-	},
+		},
 
 	MAMMA_AFSPRAAK_DATUM("_BK_AFSPRAAK_DATUM", MergeFieldTestType.BKAFSPRAAK, Date.class, "01-12-2017", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaAfspraak afspraak = getLaatsteMammaAfspraak(context);
-			if (afspraak != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return DateUtil.toLocalDate(afspraak.getVanaf()).format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+				MammaAfspraak afspraak = getLaatsteMammaAfspraak(context);
+				if (afspraak != null)
+				{
+					return DateUtil.toLocalDate(afspraak.getVanaf()).format(DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_AFSPRAAK_TIJD("_BK_AFSPRAAK_TIJD", MergeFieldTestType.BKAFSPRAAK, String.class, "08:45", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaAfspraak afspraak = getLaatsteMammaAfspraak(context);
-			if (afspraak != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return DateUtil.toLocalTime(afspraak.getVanaf()).format(DateTimeFormatter.ofPattern("HH:mm"));
+				MammaAfspraak afspraak = getLaatsteMammaAfspraak(context);
+				if (afspraak != null)
+				{
+					return DateUtil.toLocalTime(afspraak.getVanaf()).format(DateTimeFormatter.ofPattern("HH:mm"));
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_AFSPRAAK_REDEN_VERZET(
 		"_BK_AFSPRAAK_REDEN_VERZET",
@@ -3465,28 +3391,27 @@ public enum MergeField
 		MammaVerzettenReden.class,
 		null,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
-			if (laatsteAfspraak != null && MammaVerzettenReden.briefVerplicht(laatsteAfspraak.getVerzettenReden()))
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaAfspraak vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
+				MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
+				if (laatsteAfspraak != null && MammaVerzettenReden.briefVerplicht(laatsteAfspraak.getVerzettenReden()))
+				{
+					MammaAfspraak vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
 
-				if (vorigeAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND))
-				{
-					return getStringValueFromPreference(PreferenceKey.MAMMA_BULK_VERZETTEN_VERLEDEN_AFSPRAAK_TEKST);
+					if (vorigeAfspraak.getStatus().equals(MammaAfspraakStatus.GEPLAND))
+					{
+						return getStringValueFromPreference(PreferenceKey.MAMMA_BULK_VERZETTEN_VERLEDEN_AFSPRAAK_TEKST);
+					}
+					else
+					{
+						return getStringValueFromPreference(PreferenceKey.MAMMA_BULK_VERZETTEN_TOEKOMST_AFSPRAAK_TEKST);
+					}
 				}
-				else
-				{
-					return getStringValueFromPreference(PreferenceKey.MAMMA_BULK_VERZETTEN_TOEKOMST_AFSPRAAK_TEKST);
-				}
+				return "";
 			}
-			return "";
-		}
-	},
+		},
 
 	MAMMA_AFSPRAAK_LOCATIE_WIJZIGING(
 		"_BK_AFSPRAAK_LOCATIE_WIJZIGING",
@@ -3494,33 +3419,33 @@ public enum MergeField
 		String.class,
 		getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST),
 		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			boolean toonLocatieWijzigingTekst = Boolean.TRUE.equals(context.getValue(MailMergeContext.CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST));
-			if (toonLocatieWijzigingTekst)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST);
-			}
-			MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
-			if (laatsteAfspraak != null)
-			{
-				MammaAfspraak vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
-				if (vorigeAfspraak != null)
+				boolean toonLocatieWijzigingTekst = Boolean.TRUE.equals(context.getValue(MailMergeContext.CONTEXT_MAMMA_TOON_LOCATIE_WIJZIGING_TEKST));
+				if (toonLocatieWijzigingTekst)
 				{
-					MammaStandplaatsLocatie vorigeStandplaatsLocatie = vorigeAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
-					MammaStandplaatsLocatie standplaatsLocatie = laatsteAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
-					if (!AdresUtil.isZelfdeStandplaatsLocatie(vorigeStandplaatsLocatie, standplaatsLocatie))
+					return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST);
+				}
+				MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
+				if (laatsteAfspraak != null)
+				{
+					MammaAfspraak vorigeAfspraak = getEenNaLaatsteAfspraak(laatsteAfspraak.getUitnodiging());
+					if (vorigeAfspraak != null)
 					{
-						return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST);
+						MammaStandplaatsLocatie vorigeStandplaatsLocatie = vorigeAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
+						MammaStandplaatsLocatie standplaatsLocatie = laatsteAfspraak.getStandplaatsPeriode().getStandplaatsRonde().getStandplaats().getLocatie();
+						if (!AdresUtil.isZelfdeStandplaatsLocatie(vorigeStandplaatsLocatie, standplaatsLocatie))
+						{
+							return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_LOCATIE_WIJZIGING_TEKST);
+						}
 					}
 				}
-			}
 
-			return null;
-		}
-	},
+				return null;
+			}
+		},
 
 	MAMMA_AFSPRAAK_BETREFT(
 		"_BK_AFSPRAAK_BETREFT",
@@ -3528,29 +3453,29 @@ public enum MergeField
 		null,
 		getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST),
 		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
-			if (laatsteAfspraak != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				List<MammaAfspraak> afspraken = new ArrayList<>(laatsteAfspraak.getUitnodiging().getAfspraken());
-				afspraken.sort(Comparator.comparing(MammaAfspraak::getCreatiedatum));
-
-				if (afspraken.size() > 1 && MammaAfspraakStatus.VERPLAATST.equals(afspraken.get(afspraken.size() - 2).getStatus()))
+				MammaAfspraak laatsteAfspraak = getLaatsteMammaAfspraak(context);
+				if (laatsteAfspraak != null)
 				{
-					return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_WIJZIGING_TEKST);
-				}
-				else
-				{
-					return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST);
-				}
+					List<MammaAfspraak> afspraken = new ArrayList<>(laatsteAfspraak.getUitnodiging().getAfspraken());
+					afspraken.sort(Comparator.comparing(MammaAfspraak::getCreatiedatum));
 
+					if (afspraken.size() > 1 && MammaAfspraakStatus.VERPLAATST.equals(afspraken.get(afspraken.size() - 2).getStatus()))
+					{
+						return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_WIJZIGING_TEKST);
+					}
+					else
+					{
+						return getStringValueFromPreference(PreferenceKey.MAMMA_AFSPRAAK_BETREFT_BEVESTIGING_TEKST);
+					}
+
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_SP_STRAATNAAM(
 		"_BK_SP_STRAATNAAM",
@@ -3558,19 +3483,18 @@ public enum MergeField
 		"client.mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.standplaatsPeriode.standplaatsRonde.standplaats.locatie.straat",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return locatie.getStraat();
+				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				if (locatie != null)
+				{
+					return locatie.getStraat();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_SP_HUISNUMMER(
 		"_BK_SP_HUISNUMMER",
@@ -3579,25 +3503,24 @@ public enum MergeField
 		String.class,
 		NIET_NAAR_INPAKCENTRUM,
 		MergeFieldFlag.WAARDE_NIET_TRIMMEN)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
-			if (locatie != null && locatie.getToonHuisnummerInBrieven())
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				String huisnummerString = " " + locatie.getHuisnummer();
-				if (locatie.getHuisnummerToevoeging() != null)
+				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				if (locatie != null && locatie.getToonHuisnummerInBrieven())
 				{
-					huisnummerString += " " + locatie.getHuisnummerToevoeging();
+					String huisnummerString = " " + locatie.getHuisnummer();
+					if (locatie.getHuisnummerToevoeging() != null)
+					{
+						huisnummerString += " " + locatie.getHuisnummerToevoeging();
+					}
+					return huisnummerString;
 				}
-				return huisnummerString;
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 
 	MAMMA_SP_POSTCODE(
 		"_BK_SP_POSTCODE",
@@ -3605,19 +3528,18 @@ public enum MergeField
 		"client.mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.standplaatsPeriode.standplaatsRonde.standplaats.locatie.postcode",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return PostcodeFormatter.formatPostcode(locatie.getPostcode(), true);
+				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				if (locatie != null)
+				{
+					return PostcodeFormatter.formatPostcode(locatie.getPostcode(), true);
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_SP_PLAATS(
 		"_BK_SP_PLAATS",
@@ -3625,19 +3547,18 @@ public enum MergeField
 		"client.mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.standplaatsPeriode.standplaatsRonde.standplaats.locatie.plaats",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return locatie.getPlaats();
+				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				if (locatie != null)
+				{
+					return locatie.getPlaats();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_SP_LOC_OMSCHRIJVING(
 		"_BK_SP_LOC_OMSCHRIJVING",
@@ -3645,114 +3566,108 @@ public enum MergeField
 		"client.mammaDossier.laatsteScreeningRonde.laatsteUitnodiging.laatsteAfspraak.standplaatsPeriode.standplaatsRonde.standplaats.locatie.locatieBeschrijving",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
-			if (locatie != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return locatie.getLocatieBeschrijving();
+				MammaStandplaatsLocatie locatie = getMammaStandplaatsLocatieAfspraak(context);
+				if (locatie != null)
+				{
+					return locatie.getLocatieBeschrijving();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_ONDERZOEK_DATUM("_BK_ONDERZOEK_DATUM", MergeFieldTestType.BKAFSPRAAK, Date.class, "10-10-2018", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
-			Date onderzoekDatum = null;
-			if (beoordeling != null && beoordeling.getOnderzoek() != null && beoordeling.getOnderzoek().getCreatieDatum() != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				onderzoekDatum = beoordeling.getOnderzoek().getCreatieDatum();
-			}
-			else
-			{
-				MammaAfspraak afspraak = getAfspraakVanLaatsteOnderzoek(context);
-				if (afspraak != null)
+				MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
+				Date onderzoekDatum = null;
+				if (beoordeling != null && beoordeling.getOnderzoek() != null && beoordeling.getOnderzoek().getCreatieDatum() != null)
 				{
-					onderzoekDatum = afspraak.getOnderzoek().getCreatieDatum();
+					onderzoekDatum = beoordeling.getOnderzoek().getCreatieDatum();
 				}
+				else
+				{
+					MammaAfspraak afspraak = getAfspraakVanLaatsteOnderzoek(context);
+					if (afspraak != null)
+					{
+						onderzoekDatum = afspraak.getOnderzoek().getCreatieDatum();
+					}
+				}
+				if (onderzoekDatum != null)
+				{
+					return Constants.getDateFormat().format(onderzoekDatum);
+				}
+				return null;
 			}
-			if (onderzoekDatum != null)
-			{
-				return Constants.getDateFormat().format(onderzoekDatum);
-			}
-			return null;
-		}
-	},
+		},
 	MAMMA_ONDERZOEK_1_VER_RADIOLOOG_ONDERTEKENAAR(
 		"_BK_ONDERZ_1_VER_RADIOLOOG_ONDERTEKENAAR",
 		MergeFieldTestType.BKRADIOLOOG,
 		"radioloog1",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Gebruiker radioloog = getMammaRadioloog1(context);
-			if (radioloog != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return radioloog.getOndertekenaar();
+				Gebruiker radioloog = getMammaRadioloog1(context);
+				if (radioloog != null)
+				{
+					return radioloog.getOndertekenaar();
+				}
+				return null;
 			}
-			return null;
-		}
 
-	},
+		},
 	MAMMA_ONDERZOEK_1_VER_RADIOLOOG_HANDTEKENING("_BK_ONDERZ_1_VER_RADIOLOOG_HANDTEKENING", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Gebruiker radioloog = getMammaRadioloog1(context);
-			if (radioloog != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return radioloog.getHandtekening();
+				Gebruiker radioloog = getMammaRadioloog1(context);
+				if (radioloog != null)
+				{
+					return radioloog.getHandtekening();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 	MAMMA_ONDERZOEK_2_VER_RADIOLOOG_ONDERTEKENAAR(
 		"_BK_ONDERZ_2_VER_RADIOLOOG_ONDERTEKENAAR",
 		MergeFieldTestType.BKRADIOLOOG,
 		"radioloog2",
 		String.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Gebruiker radioloog = getMammaRadioloog2(context);
-			if (radioloog != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return radioloog.getOndertekenaar();
+				Gebruiker radioloog = getMammaRadioloog2(context);
+				if (radioloog != null)
+				{
+					return radioloog.getOndertekenaar();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 	MAMMA_ONDERZOEK_2_VER_RADIOLOOG_HANDTEKENING("_BK_ONDERZ_2_VER_RADIOLOOG_HANDTEKENING", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			Gebruiker radioloog = getMammaRadioloog2(context);
-			if (radioloog != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return radioloog.getHandtekening();
+				Gebruiker radioloog = getMammaRadioloog2(context);
+				if (radioloog != null)
+				{
+					return radioloog.getHandtekening();
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_ONDERBROKEN_ONDERZOEKEN_BEELDEN_TEKST(
 		"_BK_ONDERBROKEN_ONDERZOEK_BEELDEN_TEKST",
@@ -3761,101 +3676,98 @@ public enum MergeField
 		"Tekst over onderbroken onderzoeken met resp. zonder beelden",
 		NIET_NAAR_INPAKCENTRUM,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaAfspraak afspraak = getAfspraakVanLaatsteOnderzoek(context);
-			if (afspraak != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaOnderzoek onderzoek = afspraak.getOnderzoek();
-				if (onderzoek != null && onderzoek.getMammografie() != null && onderzoek.getStatus() == MammaOnderzoekStatus.ONDERBROKEN)
+				MammaAfspraak afspraak = getAfspraakVanLaatsteOnderzoek(context);
+				if (afspraak != null)
 				{
+					MammaOnderzoek onderzoek = afspraak.getOnderzoek();
+					if (onderzoek != null && onderzoek.getMammografie() != null && onderzoek.getStatus() == MammaOnderzoekStatus.ONDERBROKEN)
+					{
 
-					if (MammaMammografieIlmStatus.beeldenBeschikbaarOfBeschikbaarGeweest(onderzoek.getMammografie().getIlmStatus()))
-					{
-						return getStringValueFromPreference(PreferenceKey.MAMMA_ONDERBROKEN_ONDERZOEK_MET_BEELDEN_TEKST);
-					}
-					else
-					{
-						return getStringValueFromPreference(PreferenceKey.MAMMA_ONDERBROKEN_ONDERZOEK_ZONDER_BEELDEN_TEKST);
+						if (MammaMammografieIlmStatus.beeldenBeschikbaarOfBeschikbaarGeweest(onderzoek.getMammografie().getIlmStatus()))
+						{
+							return getStringValueFromPreference(PreferenceKey.MAMMA_ONDERBROKEN_ONDERZOEK_MET_BEELDEN_TEKST);
+						}
+						else
+						{
+							return getStringValueFromPreference(PreferenceKey.MAMMA_ONDERBROKEN_ONDERZOEK_ZONDER_BEELDEN_TEKST);
+						}
 					}
 				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_UITSLAG_BIRADS_LINKS("_BK_UITSLAG_BIRADS_LINKS", MergeFieldTestType.BKAFSPRAAK, Integer.class, "1", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaLezing verslaglezing = getVerslagLezing(context);
-			return bepaalVerslagBiradsTekst(verslaglezing, MammaZijde.LINKER_BORST);
-		}
-	},
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				MammaLezing verslaglezing = getVerslagLezing(context);
+				return bepaalVerslagBiradsTekst(verslaglezing, MammaZijde.LINKER_BORST);
+			}
+		},
 
 	MAMMA_UITSLAG_BIRADS_RECHTS("_BK_UITSLAG_BIRADS_RECHTS", MergeFieldTestType.BKAFSPRAAK, Integer.class, "1", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaLezing verslaglezing = getVerslagLezing(context);
-			return bepaalVerslagBiradsTekst(verslaglezing, MammaZijde.RECHTER_BORST);
-		}
-	},
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				MammaLezing verslaglezing = getVerslagLezing(context);
+				return bepaalVerslagBiradsTekst(verslaglezing, MammaZijde.RECHTER_BORST);
+			}
+		},
 
 	MAMMA_OPMERKING_VERSLAG("_BK_OPMERKING_VERSLAG", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaLezing verslaglezing = getVerslagLezing(context);
-			return verslaglezing != null && verslaglezing.getBiradsOpmerking() != null ? "Opmerking:" + System.lineSeparator() + verslaglezing.getBiradsOpmerking() : null;
-		}
-	},
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				MammaLezing verslaglezing = getVerslagLezing(context);
+				return verslaglezing != null && verslaglezing.getBiradsOpmerking() != null ? "Opmerking:" + System.lineSeparator() + verslaglezing.getBiradsOpmerking() : null;
+			}
+		},
 
 	MAMMA_HUISARTSBERICHT_LAESIES("_BK_HUISARTSBERICHT_LAESIES", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaLezing verslaglezing = getVerslagLezing(context);
-			return createLaesiesTekst(verslaglezing);
-		}
-	},
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				MammaLezing verslaglezing = getVerslagLezing(context);
+				return createLaesiesTekst(verslaglezing);
+			}
+		},
 
 	MAMMA_NEVENBEVINDINGEN("_BK_ONDERZOEK_NEVENBEVINDINGEN", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaBeoordeling beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
-			if (beoordeling != null && (!beoordeling.getEersteLezing().getNevenbevindingen().isEmpty() || !beoordeling.getTweedeLezing().getNevenbevindingen().isEmpty()))
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getNevenbevindingenEnumString(beoordeling);
+				MammaBeoordeling beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
+				if (beoordeling != null && (!beoordeling.getEersteLezing().getNevenbevindingen().isEmpty() || !beoordeling.getTweedeLezing().getNevenbevindingen().isEmpty()))
+				{
+					return getNevenbevindingenEnumString(beoordeling);
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_NEVENBEVINDINGEN_OPMERKINGEN("_BK_ONDERZOEK_NEVENBEVINDING_OPMERKING", NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaBeoordeling beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
-			if (beoordeling != null && (!beoordeling.getEersteLezing().getNevenbevindingen().isEmpty() || !beoordeling.getTweedeLezing().getNevenbevindingen().isEmpty()))
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				return getNevenBevindingenOpmerkingTekst(beoordeling);
+				MammaBeoordeling beoordeling = getMammaBeoordelingMetEersteEnOfTweedeLezing(context);
+				if (beoordeling != null && (!beoordeling.getEersteLezing().getNevenbevindingen().isEmpty() || !beoordeling.getTweedeLezing().getNevenbevindingen().isEmpty()))
+				{
+					return getNevenBevindingenOpmerkingTekst(beoordeling);
+				}
+				return null;
 			}
-			return null;
-		}
-	},
+		},
 
 	MAMMA_BEPERKT_BEOORDEELBAAR_REDEN(
 		"_BK_BEPERKT_BEOORDEELBAAR_REDEN",
@@ -3863,73 +3775,92 @@ public enum MergeField
 		"client.mammaDossier.laatsteScreeningRonde.laatsteOnderzoek.laatsteBeoordeling.eersteLezing.beperktBeoordeelbaarReden",
 		MammaBeperktBeoordeelbaarReden.class,
 		NIET_NAAR_INPAKCENTRUM)
-	{
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaBeoordeling beoordeling = getMammaBeoordeling(context);
-			if (beoordeling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
-				if (reden != null)
+				MammaBeoordeling beoordeling = getMammaBeoordeling(context);
+				if (beoordeling != null)
 				{
-					switch (reden)
+					final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
+					if (reden != null)
 					{
-					case FOTOS_MAAR_IN_1_RICHTING_GEMAAKT:
-						return "de röntgenfoto('s) maar in één richting zijn gemaakt";
-					case MAMMA_NIET_VOLLEDIG_AFGEBEELD:
-						return "uw borst(en) niet volledig is (zijn) afgebeeld";
+						if (reden == MammaBeperktBeoordeelbaarReden.FOTOS_MAAR_IN_1_RICHTING_GEMAAKT)
+						{
+							return "de röntgenfoto('s) maar in één richting zijn gemaakt";
+						}
+						else if (reden == MammaBeperktBeoordeelbaarReden.MAMMA_NIET_VOLLEDIG_AFGEBEELD)
+						{
+							return "uw borst(en) niet volledig is (zijn) afgebeeld";
+						}
 					}
 				}
+				return ""; 
 			}
-			return ""; 
-		}
-	},
+		},
 
 	MAMMA_VERSLAG_UITSLAG_CONCLUSIE("_BK_VERSLAG_UITSLAG_CONCLUSIE", NIET_NAAR_INPAKCENTRUM)
-	{
-
-		@Override
-		public Object getFieldValue(MailMergeContext context)
 		{
-			MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
-			if (beoordeling != null)
+			@Override
+			public Object getFieldValue(MailMergeContext context)
 			{
-				final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
-				if (reden != null)
+				MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
+				if (beoordeling != null)
 				{
-					switch (reden)
+					final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
+					if (reden != null)
 					{
-					case KWALITEIT_KOMT_NIET_OVEREEN_MET_STANDAARD:
-					case FOTOS_VAN_EEN_OF_BEIDE_ZIJDEN_BEWOGEN:
-					case FOTOS_MAAR_IN_1_RICHTING_GEMAAKT:
-					case MAMMA_NIET_VOLLEDIG_AFGEBEELD:
-						return "Bij dit onderzoek was slechts een gedeeltelijke beoordeling mogelijk. Op het gedeelte dat we wél konden beoordelen, hebben we geen aanwijzingen voor borstkanker gevonden.";
+						switch (reden)
+						{
+						case KWALITEIT_KOMT_NIET_OVEREEN_MET_STANDAARD:
+						case FOTOS_VAN_EEN_OF_BEIDE_ZIJDEN_BEWOGEN:
+						case FOTOS_MAAR_IN_1_RICHTING_GEMAAKT:
+						case MAMMA_NIET_VOLLEDIG_AFGEBEELD:
+							return "Bij dit onderzoek was slechts een gedeeltelijke beoordeling mogelijk. Op het gedeelte dat we wél konden beoordelen, hebben we geen aanwijzingen voor borstkanker gevonden.";
 
-					case PROTHESE_MEER_DAN_0_PUNT_8:
-						return "Door de aanwezigheid van prothese(n) was slechts een gedeeltelijke beoordeling mogelijk. Op het gedeelte dat we wél konden beoordelen, hebben we geen aanwijzingen voor borstkanker gevonden.";
+						case PROTHESE_MEER_DAN_0_PUNT_8:
+							return "Door de aanwezigheid van prothese(n) was slechts een gedeeltelijke beoordeling mogelijk. Op het gedeelte dat we wél konden beoordelen, hebben we geen aanwijzingen voor borstkanker gevonden.";
 
-					case GEEN_BEOORDELING_MOGELIJK:
-						return "Bij dit onderzoek was geen beoordeling mogelijk.";
+						case GEEN_BEOORDELING_MOGELIJK:
+							return "Bij dit onderzoek was geen beoordeling mogelijk.";
+						}
+					}
+					else
+					{
+						return "Bij dit onderzoek zijn geen afwijkingen gevonden.";
 					}
 				}
-				else
-				{
-					return "Bij dit onderzoek zijn geen afwijkingen gevonden.";
-				}
+				return null;
 			}
-			return null;
-		}
+		},
 
-	}
+	CLIENT_SIGNALERING_GENDER("_CLIENT_SIGNALERING_GENDER", MergeFieldTestType.OVERIGE, String.class, "", NIET_NAAR_INPAKCENTRUM, NIET_IN_HUISARTSBERICHT)
+		{
+			@Override
+			public Object getFieldValue(MailMergeContext context)
+			{
+				if (context.getClient() == null)
+				{
+					return null;
+				}
+				var persoon = context.getClient().getPersoon();
+				if (persoon.getGeslacht() == Geslacht.ONBEKEND)
+				{
+					var auditsVanAnderGeslacht = EntityAuditUtil.getEntityHistory(persoon, getHibernateSession(), AuditEntity.property("geslacht").ne(Geslacht.ONBEKEND), false, 1);
+					if (auditsVanAnderGeslacht.isEmpty())
+					{
+						return getStringValueFromPreference(PreferenceKey.CLIENT_NIEUW_GENDERDIVERS_TEKST);
+					}
+				}
+				return getStringValueFromPreference(PreferenceKey.CLIENT_GENDERIDENTITEITSWIJZIGING_TEKST);
+			}
+		};
 
-	;
+	private final String fieldName; 
 
-	private String fieldName;
+	private Class<?> instance; 
 
-	private Class<?> instance;
-
-	private MergeFieldTestType type;
+	private MergeFieldTestType type; 
 
 	private String currentValue;
 
@@ -4117,7 +4048,7 @@ public enum MergeField
 				}
 				else
 				{
-					return getFormattedDate(datum);
+					return getFormattedDateMetDagnaam(datum);
 				}
 			}
 
@@ -4196,7 +4127,7 @@ public enum MergeField
 		return AdresUtil.getAdres(persoon, new DateTime());
 	}
 
-	private static Instelling getZIBijKwaliteitsOvereenkomst(AfgeslotenMedewerkerOvereenkomst afgeslotenOvereenkomst)
+	private static Instelling getZorginstellingBijKwaliteitsOvereenkomst(AfgeslotenMedewerkerOvereenkomst afgeslotenOvereenkomst)
 	{
 		if (CollectionUtils.isNotEmpty(afgeslotenOvereenkomst.getGebruiker().getOrganisatieMedewerkers()))
 		{
@@ -4267,7 +4198,7 @@ public enum MergeField
 		else if (overeenkomst instanceof AfgeslotenMedewerkerOvereenkomst)
 		{
 			AfgeslotenMedewerkerOvereenkomst afgeslotenOvereenkomst = (AfgeslotenMedewerkerOvereenkomst) overeenkomst;
-			return getZIBijKwaliteitsOvereenkomst(afgeslotenOvereenkomst);
+			return getZorginstellingBijKwaliteitsOvereenkomst(afgeslotenOvereenkomst);
 		}
 		return null;
 	}
@@ -4303,7 +4234,7 @@ public enum MergeField
 		return screeningOrganisatie;
 	}
 
-	private static String getFormattedDate(Date date)
+	private static String getFormattedDateMetDagnaam(Date date)
 	{
 		if (date != null)
 		{
@@ -4394,6 +4325,7 @@ public enum MergeField
 				{
 				case NIET_ONTVANGEN: 
 					laboratorium = uitstrijkje.getLabformulier().getLaboratorium();
+
 				case ONTVANGEN:
 				case NIET_ANALYSEERBAAR:
 				case GEANALYSEERD_OP_HPV_POGING_1:
@@ -4426,7 +4358,7 @@ public enum MergeField
 			return getBMHKLaboratoriumOndertekenaar(laboratorium, handtekening);
 		}
 
-		ClientBrief herdruk = brief.getHerdruk();
+		ClientBrief herdruk = BriefUtil.getHerdruk(brief);
 		if (herdruk != null)
 		{
 			return getBMHKLaboratoriumOndertekenaar((CervixBrief) herdruk, handtekening);
@@ -4452,7 +4384,7 @@ public enum MergeField
 			CervixBrief brief = uitnodiging.getBrief();
 			if (brief != null && !Boolean.TRUE.equals(uitnodiging.getHerinnering()) && !Boolean.TRUE.equals(uitnodiging.getUitgesteld()))
 			{
-				CervixBrief herdruk = brief.getHerdruk();
+				CervixBrief herdruk = (CervixBrief) BriefUtil.getHerdruk(brief);
 				if (herdruk != null)
 				{
 					return getOorspronkelijkeCervixUitnoding(herdruk.getUitnodiging());
@@ -4642,6 +4574,17 @@ public enum MergeField
 			.max(Comparator.comparing(MammaAfspraak::getCreatiedatum)).orElse(null);
 	}
 
+	private static CervixLeeftijdcategorie getCervixLeeftijdcategorie(MailMergeContext context)
+	{
+		Brief brief = BriefUtil.getOrigineleBrief(context.getBrief());
+		if (brief instanceof CervixBrief)
+		{
+			CervixBrief cervixBrief = (CervixBrief) brief;
+			return cervixBrief.getScreeningRonde().getLeeftijdcategorie();
+		}
+		return null;
+	}
+
 	private static <T extends Object> T getBean(Class<T> clazz)
 	{
 		return SpringBeanProvider.getInstance().getBean(clazz);
@@ -4657,4 +4600,10 @@ public enum MergeField
 		SimplePreferenceService preferenceService = getSimplePreferenceService();
 		return preferenceService != null ? preferenceService.getString(key.name(), "") : null;
 	}
+
+	private static Session getHibernateSession()
+	{
+		return getBean(HibernateService.class).getHibernateSession();
+	}
+
 }

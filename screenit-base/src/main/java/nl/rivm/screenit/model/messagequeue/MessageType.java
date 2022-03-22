@@ -25,11 +25,13 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import nl.rivm.screenit.model.messagequeue.dto.CervixHerindexatieDto;
+import nl.rivm.screenit.model.messagequeue.dto.VerwijderBetaalOpdrachtDto;
 
 @AllArgsConstructor
 @Getter
 public enum MessageType
 {
+	VERWIJDER_BETAAL_OPDRACHT(VerwijderBetaalOpdrachtDto.class),
 	HERINDEXATIE(CervixHerindexatieDto.class);
 
 	private final Class<?> contentType;

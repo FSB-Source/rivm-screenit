@@ -32,7 +32,6 @@ import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
-import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
@@ -431,26 +430,18 @@ public class LabaanvraagValidator
 
 	private void validateScreeningRonde(CervixUitstrijkje uitstrijkje, String bsn)
 	{
-		CervixUitstrijkjeStatus origineleStatus = uitstrijkje.getUitstrijkjeStatus();
-		if (origineleStatus == CervixUitstrijkjeStatus.NIET_ONTVANGEN)
-		{
-			uitstrijkje.setUitstrijkjeStatus(CervixUitstrijkjeStatus.ONTVANGEN); 
-
-		}
-
 		CervixScreeningRonde ontvangstRonde = uitstrijkje.getOntvangstScreeningRonde();
 		if (ontvangstRonde == null)
 		{
 			uitstrijkje.setOntvangstScreeningRonde(screeningRondeService.getLaatsteScreeningRonde(bsn));
 		}
 
-		if (!screeningRondeService.hasValidScreeningRonde(uitstrijkje))
+		if (!screeningRondeService.heeftValideScreeningRondeVoorDigitaalLabformulier(uitstrijkje))
 		{
 			addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage.GEEN_GELDIGE_RONDE);
 		}
 
 		uitstrijkje.setOntvangstScreeningRonde(ontvangstRonde);
-		uitstrijkje.setUitstrijkjeStatus(origineleStatus); 
 	}
 
 	private void validateMonsterGerelateerdeData(LabaanvraagResource resource)

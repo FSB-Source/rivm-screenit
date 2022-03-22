@@ -59,6 +59,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 {
 	@SpringBean
@@ -91,14 +93,12 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 
 		SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
 
-		List<IColumn<CervixBetaalopdracht, String>> betaalOpdrachtColumns = new ArrayList<IColumn<CervixBetaalopdracht, String>>();
+		List<IColumn<CervixBetaalopdracht, String>> betaalOpdrachtColumns = new ArrayList<>();
 		betaalOpdrachtColumns.add(new DateTimePropertyColumn<>(Model.of("Status datum"), "statusDatum", "statusDatum", simpleDateFormat));
 		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Betalingskenmerk"), "betalingskenmerk", "betalingskenmerk"));
 		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Omschrijving"), "omschrijving", "omschrijving"));
-		betaalOpdrachtColumns.add(new AbstractColumn<CervixBetaalopdracht, String>(Model.of("Status"))
+		betaalOpdrachtColumns.add(new AbstractColumn<>(Model.of("Status"))
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void populateItem(Item<ICellPopulator<CervixBetaalopdracht>> cellItem, String componentId, IModel<CervixBetaalopdracht> rowModel)
@@ -125,11 +125,11 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 				}
 				else
 				{
-					cellItem.add(new EnumLabel<BestandStatus>(componentId, status));
+					cellItem.add(new EnumLabel<>(componentId, status));
 				}
 			}
 		});
-		betaalOpdrachtColumns.add(new CervixBetalingSepaUploadDocumentColumn<CervixBetaalopdracht, String>(Model.of("SEPA specificatie"), "sepaSpecificatiePdf")
+		betaalOpdrachtColumns.add(new CervixBetalingSepaUploadDocumentColumn<>(Model.of("SEPA specificatie"), "sepaSpecificatiePdf")
 		{
 			@Override
 			protected void loggingBijOnClick(IModel<CervixBetaalopdracht> rowModel)
@@ -146,7 +146,7 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 			}
 		});
 		betaalOpdrachtColumns.add(new PropertyColumn<>(Model.of("Controlegetal (SHA-256)"), "hashtotaal", "hashtotaal"));
-		betaalOpdrachtColumns.add(new CervixBetalingSepaUploadDocumentColumn<CervixBetaalopdracht, String>(Model.of("SEPA document"), "sepaDocument")
+		betaalOpdrachtColumns.add(new CervixBetalingSepaUploadDocumentColumn<>(Model.of("SEPA document"), "sepaDocument")
 		{
 			@Override
 			protected void loggingBijOnClick(IModel<CervixBetaalopdracht> rowModel)
@@ -163,24 +163,21 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 		});
 		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_BETALINGEN_BMHK, Actie.VERWIJDEREN))
 		{
-			betaalOpdrachtColumns.add(new AbstractColumn<CervixBetaalopdracht, String>(Model.of("Verwijderen"))
+			betaalOpdrachtColumns.add(new AbstractColumn<>(Model.of("Verwijderen"))
 			{
-
-				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void populateItem(Item<ICellPopulator<CervixBetaalopdracht>> cellItem, String componentId, final IModel<CervixBetaalopdracht> rowModel)
 				{
-					final AjaxImageCellPanel<CervixBetaalopdracht> imageCellPanel = new AjaxImageCellPanel<CervixBetaalopdracht>(componentId, rowModel, "icon-trash")
+					final AjaxImageCellPanel<CervixBetaalopdracht> imageCellPanel = new AjaxImageCellPanel<>(componentId, rowModel, "icon-trash")
 					{
-
-						private static final long serialVersionUID = 1L;
 
 						@Override
 						protected void onClick(AjaxRequestTarget target)
 						{
 							dialog.openWith(target,
-								new ConfirmPanel(IDialog.CONTENT_ID, new SimpleStringResourceModel("betaalOpdrachtVerwijderen"), null, new DefaultConfirmCallback()
+								new ConfirmPanel(IDialog.CONTENT_ID, new SimpleStringResourceModel("betaalOpdrachtVerwijderen"), Model.of(getString("sepa.bestand.verwijderen")),
+									new DefaultConfirmCallback()
 								{
 
 									private static final long serialVersionUID = 1L;
@@ -217,15 +214,22 @@ public class CervixBetalingSepaBestandenPage extends CervixScreeningBasePage
 
 	private void verwijderBetaalOpdracht(IModel<CervixBetaalopdracht> model, AjaxRequestTarget target)
 	{
-		cervixBetalingService.verwijderSepaBestanden(model.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+		try
+		{
+			cervixBetalingService.verwijderSepaBestanden(model.getObject(), ScreenitSession.get().getLoggedInInstellingGebruiker());
+		}
+		catch (JsonProcessingException e)
+		{
+			error(getString(e.getMessage()));
+		}
 		target.add(betalingOpdrachtenContainer);
-		info("Betaalopdracht is verwijderd");
+		info("Betaalopdracht wordt verwijderd");
 	}
 
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.cervixscreening.betalingen", CervixBetalingPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.cervixscreening.betalingen.sepabestanden", CervixBetalingSepaBestandenPage.class));
 		return contextMenuItems;

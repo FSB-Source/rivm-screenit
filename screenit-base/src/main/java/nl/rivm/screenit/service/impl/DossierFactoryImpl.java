@@ -24,11 +24,14 @@ package nl.rivm.screenit.service.impl;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.mamma.MammaDeelnamekans;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
@@ -37,19 +40,16 @@ import nl.rivm.screenit.service.DossierFactory;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 @Transactional(propagation = Propagation.REQUIRED)
 public class DossierFactoryImpl implements DossierFactory
 {
-	private static final Logger LOG = LoggerFactory.getLogger(DossierFactoryImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -63,20 +63,30 @@ public class DossierFactoryImpl implements DossierFactory
 			bevolkingsonderzoeken.add(Bevolkingsonderzoek.COLON);
 		}
 
-		if (client.getPersoon().getGeslacht() == Geslacht.VROUW)
+		var geslacht = client.getPersoon().getGeslacht();
+		if (geslacht == Geslacht.VROUW || geslacht == Geslacht.ONBEKEND)
 		{
-			if (client.getCervixDossier() == null)
-			{
-				maakCervixDossier(client);
-				bevolkingsonderzoeken.add(Bevolkingsonderzoek.CERVIX);
-			}
-			if (client.getMammaDossier() == null)
-			{
-				maakMammaDossier(client);
-				bevolkingsonderzoeken.add(Bevolkingsonderzoek.MAMMA);
-			}
+			bevolkingsonderzoeken.addAll(maakBmhkEnBkDossiers(client));
 		}
 
+		return bevolkingsonderzoeken;
+	}
+
+	@Override
+	public Set<Bevolkingsonderzoek> maakBmhkEnBkDossiers(Client client)
+	{
+		Set<Bevolkingsonderzoek> bevolkingsonderzoeken = new HashSet<>();
+		if (client.getCervixDossier() == null)
+		{
+			maakCervixDossier(client);
+			bevolkingsonderzoeken.add(Bevolkingsonderzoek.CERVIX);
+		}
+
+		if (client.getMammaDossier() == null)
+		{
+			maakMammaDossier(client);
+			bevolkingsonderzoeken.add(Bevolkingsonderzoek.MAMMA);
+		}
 		return bevolkingsonderzoeken;
 	}
 
@@ -92,11 +102,12 @@ public class DossierFactoryImpl implements DossierFactory
 
 	private void maakCervixDossier(Client client)
 	{
-		LOG.info("CervixDossier aanmaken voor client(id: " + client.getId() + ")");
+		LOG.info("CervixDossier aanmaken voor client(id: {})", client.getId());
 
 		CervixDossier cervixDossier = new CervixDossier();
 		cervixDossier.setStatus(DossierStatus.ACTIEF);
 		cervixDossier.setAangemeld(true);
+		cervixDossier.setDeelnamemodus(initieleDeelnameModus(client));
 		cervixDossier.setClient(client);
 		client.setCervixDossier(cervixDossier);
 
@@ -105,12 +116,13 @@ public class DossierFactoryImpl implements DossierFactory
 
 	private void maakMammaDossier(Client client)
 	{
-		LOG.info("MammaDossier aanmaken voor client(id: " + client.getId() + ")");
+		LOG.info("MammaDossier aanmaken voor client(id: {})", client.getId());
 
 		MammaDossier mammaDossier = new MammaDossier();
 		mammaDossier.setStatus(DossierStatus.ACTIEF);
 		mammaDossier.setDoelgroep(MammaDoelgroep.REGULIER);
 		mammaDossier.setAangemeld(true);
+		mammaDossier.setDeelnamemodus(initieleDeelnameModus(client));
 		mammaDossier.setXdsStatus(XdsStatus.NIET_AANGEMELD);
 		mammaDossier.setClient(client);
 		client.setMammaDossier(mammaDossier);
@@ -120,5 +132,10 @@ public class DossierFactoryImpl implements DossierFactory
 		mammaDossier.setDeelnamekans(mammaDeelnamekans);
 
 		hibernateService.saveOrUpdateAll(mammaDossier, mammaDeelnamekans, client);
+	}
+
+	private static Deelnamemodus initieleDeelnameModus(Client client)
+	{
+		return client.getPersoon().getGeslacht() == Geslacht.VROUW ? Deelnamemodus.STANDAARD : Deelnamemodus.SELLECTIEBLOKKADE;
 	}
 }

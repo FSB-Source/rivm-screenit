@@ -32,16 +32,19 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.huisartsenportaal.model.enums.AanvraagStatus;
 
 import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class LabformulierAanvraag extends AbstractReferenceObject
 {
-	private static final long serialVersionUID = 1L;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date aanvraagDatum;
 
@@ -62,73 +65,4 @@ public class LabformulierAanvraag extends AbstractReferenceObject
 
 	private String aangevraagdDoor;
 
-	public Date getAanvraagDatum()
-	{
-		return aanvraagDatum;
-	}
-
-	public void setAanvraagDatum(Date aanvraagDatum)
-	{
-		this.aanvraagDatum = aanvraagDatum;
-	}
-
-	public Integer getAantal()
-	{
-		return aantal;
-	}
-
-	public void setAantal(Integer aantal)
-	{
-		this.aantal = aantal;
-	}
-
-	public AanvraagStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(AanvraagStatus status)
-	{
-		this.status = status;
-	}
-
-	public Huisarts getHuisarts()
-	{
-		return huisarts;
-	}
-
-	public void setHuisarts(Huisarts huisarts)
-	{
-		this.huisarts = huisarts;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public String getAangevraagdDoor()
-	{
-		return aangevraagdDoor;
-	}
-
-	public void setAangevraagdDoor(String aangevraagdDoor)
-	{
-		this.aangevraagdDoor = aangevraagdDoor;
-	}
-
-	public Locatie getLocatie()
-	{
-		return locatie;
-	}
-
-	public void setLocatie(Locatie locatie)
-	{
-		this.locatie = locatie;
-	}
 }

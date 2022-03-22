@@ -43,7 +43,7 @@ import nl.dries.wicket.hibernate.dozer.SessionFinder;
 import nl.dries.wicket.hibernate.dozer.SessionFinderHolder;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.service.ZorgIdSessieService;
-import nl.rivm.screenit.main.web.ScreenitSession.ScreenitSessionAccountResolverDelegate;
+import nl.rivm.screenit.main.web.ScreenitSession.ScreenitSessionRevisionInformationResolverDelegate;
 import nl.rivm.screenit.main.web.base.BasePage;
 import nl.rivm.screenit.main.web.component.LocalTimeConverter;
 import nl.rivm.screenit.main.web.component.MultiDateConverter;
@@ -61,7 +61,8 @@ import nl.rivm.screenit.main.web.gebruiker.login.UitwisselportaalLoginPage;
 import nl.rivm.screenit.main.web.gebruiker.login.uzipas.CheckUzipas;
 import nl.rivm.screenit.main.web.security.ScreenitAnnotationsShiroAuthorizationStrategy;
 import nl.rivm.screenit.main.web.security.ScreenitShiroUnauthorizedComponentListener;
-import nl.rivm.screenit.model.envers.AccountResolver;
+import nl.rivm.screenit.model.envers.RevisionInformationResolver;
+import nl.rivm.screenit.model.envers.RevisionKenmerkInThreadHolder;
 import nl.topicuszorg.cloud.distributedsessions.RedisConfig;
 import nl.topicuszorg.cloud.distributedsessions.wicket.RedisPageManagerProvider;
 import nl.topicuszorg.formulieren2.expressie.ExpressieSettings;
@@ -132,7 +133,7 @@ public class ScreenitApplication extends WebApplication
 	{
 		super.init();
 
-		AccountResolver.registerDelegate(new ScreenitSessionAccountResolverDelegate());
+		RevisionInformationResolver.registerDelegate(new ScreenitSessionRevisionInformationResolverDelegate());
 		SessionFinderHolder.setSessionFinder(SpringBeanProvider.getInstance().getBean(SessionFinder.class));
 		sessionAttributePrefix = getSessionAttributePrefix(null, null);
 
@@ -172,7 +173,8 @@ public class ScreenitApplication extends WebApplication
 						boolean ajaxLazyLoadPanelFeedbackMessages = !((AjaxLazyLoadPanel) map.values().toArray()[0]).getFeedbackMessages().isEmpty();
 						List<FeedbackMessages> childsFeedbackMessages = new ArrayList<>();
 
-						((AjaxLazyLoadPanel) map.values().toArray()[0]).visitChildren((component, iVisit) -> {
+						((AjaxLazyLoadPanel) map.values().toArray()[0]).visitChildren((component, iVisit) ->
+						{
 							if (!component.getFeedbackMessages().isEmpty())
 							{
 								childsFeedbackMessages.add(component.getFeedbackMessages());
@@ -210,6 +212,7 @@ public class ScreenitApplication extends WebApplication
 				{
 					((ScreenitExpressieProvider) expressieProvider).resetCache();
 				}
+				RevisionKenmerkInThreadHolder.resetKenmerk();
 			}
 
 			@Override
@@ -274,15 +277,15 @@ public class ScreenitApplication extends WebApplication
 	{
 		StringBuilder versieBuilder = new StringBuilder();
 		Properties applicationProperties = new Properties();
-		try (InputStream resourceAsStream = this.getClass().getResourceAsStream("/application.properties"))
+		try (InputStream resourceAsStream = this.getClass().getResourceAsStream("/build-info.properties"))
 		{
 			applicationProperties.load(resourceAsStream);
-			version = applicationProperties.getProperty("application.version");
-			timestamp = applicationProperties.getProperty("application.timestamp");
+			version = applicationProperties.getProperty("build.version");
+			timestamp = applicationProperties.getProperty("build.time");
 			versieBuilder.append(version);
 			if ("SNAPSHOT".equals(version))
 			{
-				buildnumber = applicationProperties.getProperty("application.buildnumber");
+				buildnumber = applicationProperties.getProperty("build.number");
 
 				if (!"${BUILD_NUMBER}".equals(buildnumber))
 				{
@@ -300,7 +303,7 @@ public class ScreenitApplication extends WebApplication
 		}
 		catch (IOException e)
 		{
-			LOG.error("Could not load application.properties (for version number)");
+			LOG.error("Fout bij laden van build-info.properties (voor versienummer)");
 		}
 		versionString = versieBuilder.toString();
 	}

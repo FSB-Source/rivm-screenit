@@ -22,7 +22,7 @@ package nl.rivm.screenit.clientportaal.controllers;
  */
 
 import nl.rivm.screenit.clientportaal.model.LandingOverzichtDto;
-import nl.rivm.screenit.clientportaal.services.impl.LandingOverzichtServiceImpl;
+import nl.rivm.screenit.clientportaal.services.LandingOverzichtService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +37,7 @@ public class LandingOverzichtController extends AbstractController
 {
 
 	@Autowired
-	private LandingOverzichtServiceImpl landingOverzichtService;
+	private LandingOverzichtService landingOverzichtService;
 
 	@GetMapping
 	public ResponseEntity<LandingOverzichtDto> getLandingInfo(Authentication authentication)

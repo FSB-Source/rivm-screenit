@@ -23,10 +23,9 @@ package nl.rivm.screenit.clientportaal.filter;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.envers.AccountResolver;
+import nl.rivm.screenit.model.envers.RevisionInformationResolver;
 
-public class CPAccountResolverDelegate implements AccountResolver.AccountResolverDelegate
+public class CPAccountResolverDelegate implements RevisionInformationResolver.RevisionInformationResolverDelegate
 {
 	private static ThreadLocal<Client> safeClient = new ThreadLocal<>();
 

@@ -24,26 +24,28 @@ import styles from "./TaakComponent.module.scss"
 import {BevolkingsonderzoekStyle, BevolkingsonderzoekToptaakStyle} from "../../datatypes/Bevolkingsonderzoek"
 import bvoStyle from "../BvoStyle.module.scss"
 import {useSelectedBvo} from "../../utils/Hooks"
-import {navigate, RoutePath} from "../../routes/routes"
+import {RoutePath} from "../../routes/routes"
+import {useNavigate} from "react-router-dom"
 
 export type TaakComponentProps = {
-    tekst: string,
-    link: RoutePath,
-    icon?: React.ReactNode,
+	tekst: string,
+	link: RoutePath,
+	icon?: React.ReactNode,
 }
 
 const TaakComponent = (props: TaakComponentProps) => {
-    const selectedBvo = useSelectedBvo()
+	const selectedBvo = useSelectedBvo()
+	const navigate = useNavigate()
 
-    return (
-        <div className={classNames(styles.topTaak, selectedBvo && BevolkingsonderzoekStyle[selectedBvo])}
-             onClick={() => navigate(props.link)}>
-            <div className={classNames(styles.icon, BevolkingsonderzoekToptaakStyle[selectedBvo!])}>{props.icon}</div>
-            <span className={bvoStyle.bvoText}>Ik wil graag</span>
-            <br/>
-            <span>{props.tekst}</span>
-        </div>
-    )
+	return (
+		<div className={classNames(styles.topTaak, selectedBvo && BevolkingsonderzoekStyle[selectedBvo])}
+			 onClick={() => navigate(props.link)}>
+			<div className={classNames(styles.icon, BevolkingsonderzoekToptaakStyle[selectedBvo!])}>{props.icon}</div>
+			<span className={bvoStyle.bvoText}>Ik wil graag</span>
+			<br/>
+			<span>{props.tekst}</span>
+		</div>
+	)
 }
 
 export default TaakComponent

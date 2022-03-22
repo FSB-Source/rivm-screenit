@@ -55,9 +55,10 @@ public class AlgemeneBrievenGenererenPartitioner extends AbstractBrievenGenerere
 
 	private List<BriefType> getBriefTypes()
 	{
-		List<BriefType> briefTypes = new ArrayList<BriefType>();
+		List<BriefType> briefTypes = new ArrayList<>();
 		briefTypes.add(BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_AANVRAAG);
 		briefTypes.add(BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_HANDTEKENING);
+		briefTypes.add(BriefType.CLIENT_SIGNALERING_GENDER);
 		return briefTypes;
 	}
 }

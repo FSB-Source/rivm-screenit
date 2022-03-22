@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.component.table;
 
 /*-
@@ -28,9 +27,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.component.AjaxDownload;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.topicuszorg.documentupload.services.UploadDocumentService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.io.IOUtils;
@@ -41,15 +42,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.resource.AbstractResourceStreamWriter;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(UploadDocumentDownloadLinkPanel.class);
-
-	private static final long serialVersionUID = 1L;
-
 	private final IModel<String> fileNameToLog;
 
 	@SpringBean
@@ -75,11 +71,11 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 			@Override
 			protected IResourceStream getResourceStream()
 			{
-				AbstractResourceStreamWriter rstream = new AbstractResourceStreamWriter()
+				return new AbstractResourceStreamWriter()
 				{
 
 					@Override
-					public void write(OutputStream output) throws IOException
+					public void write(OutputStream output)
 					{
 
 						try
@@ -116,8 +112,6 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 						}
 					}
 				};
-
-				return rstream;
 			}
 
 			@Override
@@ -134,7 +128,7 @@ public class UploadDocumentDownloadLinkPanel extends GenericPanel<UploadDocument
 
 		};
 		getPage().add(download);
-		add(new IndicatingAjaxLink<UploadDocument>("download", getModel())
+		add(new IndicatingAjaxLink<>("download", getModel())
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)

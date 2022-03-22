@@ -58,12 +58,7 @@ public enum PlanningBlokIndex
 	{
 		Long screeningsEenheidId = screeningsEenheid.getId();
 
-		Set<PlanningBlok> blokChangedSet = blokChangedMap.get(screeningsEenheidId);
-		if (blokChangedSet == null)
-		{
-			blokChangedSet = new HashSet<>();
-			blokChangedMap.put(screeningsEenheidId, blokChangedSet);
-		}
+		Set<PlanningBlok> blokChangedSet = blokChangedMap.computeIfAbsent(screeningsEenheidId, k -> new HashSet<>());
 		blokChangedSet.addAll(blokSet);
 	}
 
@@ -71,12 +66,7 @@ public enum PlanningBlokIndex
 	{
 		Long screeningsEenheidId = screeningsEenheid.getId();
 
-		Set<PlanningBlok> blokDeletedSet = blokDeletedMap.get(screeningsEenheidId);
-		if (blokDeletedSet == null)
-		{
-			blokDeletedSet = new HashSet<>();
-			blokDeletedMap.put(screeningsEenheidId, blokDeletedSet);
-		}
+		Set<PlanningBlok> blokDeletedSet = blokDeletedMap.computeIfAbsent(screeningsEenheidId, k -> new HashSet<>());
 		blokDeletedSet.addAll(blokSet);
 
 		Set<PlanningBlok> blokChangedSet = blokChangedMap.get(screeningsEenheidId);
@@ -85,7 +75,7 @@ public enum PlanningBlokIndex
 			blokChangedSet.removeAll(blokSet);
 		}
 
-		blokMap.keySet().removeAll(blokSet.stream().map(PlanningConceptEntiteit::getConceptId).collect(Collectors.toList()));
+		blokSet.stream().map(PlanningConceptEntiteit::getConceptId).collect(Collectors.toList()).forEach(blokMap.keySet()::remove);
 	}
 
 	public static Set<PlanningBlok> getBlokDeletedSet(PlanningScreeningsEenheid screeningsEenheid)

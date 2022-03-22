@@ -22,9 +22,11 @@ package nl.rivm.screenit.service.cervix.impl;
  */
 
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import nl.rivm.screenit.model.cervix.CervixHpvAnalyseresultaten;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +41,6 @@ public class CervixMonsterServiceImpl implements CervixMonsterService
 
 	@Autowired
 	private CervixMonsterDao monsterDao;
-
-	@Override
-	public CervixMonster getMonsterByMonsterId(String monsterId)
-	{
-		return monsterDao.getMonsterByMonsterId(monsterId);
-	}
 
 	@Override
 	public CervixUitstrijkje getUitstrijkjeByClientBsnAndMonsterId(String bsn, String monsterId)
@@ -77,4 +73,12 @@ public class CervixMonsterServiceImpl implements CervixMonsterService
 		return monsterDao.getNextMonsterId();
 	}
 
+	@Override
+	public boolean monsterHeeftHpvBeoordelingMetGenotypeOther(CervixMonster monsterHpvUitslag)
+	{
+		CervixHpvAnalyseresultaten analyseresultaten = monsterHpvUitslag.getLaatsteHpvBeoordeling().getAnalyseresultaten();
+
+		return analyseresultaten != null && !analyseresultaten.getHpv16().equals(CervixHpvResultValue.POS_HPV16) && !analyseresultaten.getHpv18()
+			.equals(CervixHpvResultValue.POS_HPV18) && analyseresultaten.getHpvohr().equals(CervixHpvResultValue.POS_OTHER_HR_HPV);
+	}
 }

@@ -23,14 +23,12 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  */
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -49,9 +47,10 @@ import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.colon.IFobtService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -60,7 +59,6 @@ import nl.topicuszorg.wicket.input.BooleanLabel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -70,6 +68,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -80,9 +79,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPanel
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ColonDossierService colonDossierService;
 
@@ -99,9 +95,9 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 	private LogService logService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
-	private BootstrapDialog confirmDialog;
+	private final BootstrapDialog confirmDialog;
 
 	private InfoFragment infoFragment;
 
@@ -112,7 +108,7 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 		PropertyModel<ColonUitnodiging> uitnodigingModel = new PropertyModel<ColonUitnodiging>(model, "uitnodiging");
 
 		UploadDocument formulier = uitnodiging.getAntwoordFormulier().getFormulier();
-		File file = formulier != null ? fileService.load(formulier) : null;
+		File file = formulier != null ? uploadDocumentService.load(formulier) : null;
 
 		if (file != null && file.exists())
 		{
@@ -141,9 +137,6 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 	{
 		ConfirmingIndicatingAjaxLink<Void> button = new ConfirmingIndicatingAjaxLink<Void>(id, confirmDialog, "label.antwoordformulier.verwijderen")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -198,9 +191,6 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 
 	private class InfoFragment extends Fragment
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		private final IModel<ColonUitnodiging> uitnodiging;
 
 		public InfoFragment(String id, IModel<ScannedAntwoordFormulier> model, PropertyModel<ColonUitnodiging> uitnodigingModel)
@@ -240,23 +230,11 @@ public class AntwoordformulierOntvangenPanel extends AbstractGebeurtenisDetailPa
 			add(new Label("afmeldReden", getString(EnumStringUtil.getPropertyString(ColonAfmeldingReden.resolveEnum(indexAfmeldReden)))));
 
 			List<SAFTransactionTrail> trails = saf.getTransactionTrails();
-			Comparator<SAFTransactionTrail> com = new Comparator<SAFTransactionTrail>()
+			Comparator<SAFTransactionTrail> com = (o1, o2) -> o2.getDatumTijd().compareTo(o1.getDatumTijd());
+
+			trails.sort(com);
+			ListView<SAFTransactionTrail> listView = new ListView<>("transactionTrails", ModelUtil.listModel(trails))
 			{
-
-				@Override
-				public int compare(SAFTransactionTrail o1, SAFTransactionTrail o2)
-				{
-					return o2.getDatumTijd().compareTo(o1.getDatumTijd());
-				}
-
-			};
-
-			Collections.sort(trails, com);
-			ListView<SAFTransactionTrail> listView = new ListView<SAFTransactionTrail>("transactionTrails", ModelUtil.listModel(trails))
-			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void populateItem(ListItem<SAFTransactionTrail> item)
 				{

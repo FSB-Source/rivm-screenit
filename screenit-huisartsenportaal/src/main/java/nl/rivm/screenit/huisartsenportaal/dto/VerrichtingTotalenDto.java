@@ -23,6 +23,11 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class VerrichtingTotalenDto
 {
 
@@ -30,23 +35,4 @@ public class VerrichtingTotalenDto
 
 	private List<VerrichtingDto> verrichtingen;
 
-	public List<VerrichtingDto> getVerrichtingen()
-	{
-		return verrichtingen;
-	}
-
-	public void setVerrichtingen(List<VerrichtingDto> verrichtingen)
-	{
-		this.verrichtingen = verrichtingen;
-	}
-
-	public long getAantalVerrichtingen()
-	{
-		return aantalVerrichtingen;
-	}
-
-	public void setAantalVerrichtingen(long aantalVerrichtingen)
-	{
-		this.aantalVerrichtingen = aantalVerrichtingen;
-	}
 }

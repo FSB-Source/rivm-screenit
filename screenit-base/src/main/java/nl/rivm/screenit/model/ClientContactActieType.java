@@ -34,6 +34,8 @@ public enum ClientContactActieType
 
 	TIJDELIJK_ADRES(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
+	DEELNAMEWENSEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
+
 	CERVIX_DEELNAME_BUITEN_BVO_BMHK(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
 	COLON_AANVRAGEN_NIEUWE_IFOBT(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),
@@ -66,6 +68,7 @@ public enum ClientContactActieType
 
 	CERVIX_HERDRUK(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX }),
 
+	@Deprecated
 	CERVIX_FRISSE_START(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX }),
 
 	CERVIX_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX }),

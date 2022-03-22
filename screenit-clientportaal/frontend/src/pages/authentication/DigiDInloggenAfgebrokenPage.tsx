@@ -19,8 +19,8 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {useCallback, useEffect} from "react"
-import {Redirect, useLocation} from "react-router-dom"
+import {useCallback} from "react"
+import {Navigate, useLocation} from "react-router-dom"
 import {useKeycloak} from "@react-keycloak/web"
 import {useDispatch, useSelector} from "react-redux"
 import {Col, Row} from "react-bootstrap"
@@ -38,69 +38,61 @@ import {ArrowType} from "../../components/vectors/ArrowIconComponent"
 import properties from "./DigiDInloggenAfgebrokenPage.json"
 import {getBevolkingsonderzoekNederlandUrl, getBevolkingsonderzoekNederlandUrlNaam} from "../../utils/UrlUtil"
 import {Location} from "history"
-import {procesLoginAndLogBrowserInfo} from "../../utils/LoginUtil"
 
 enum DigidLoginAfbrekenCode {
-    "cancelled" = "cancelled",
-    "bsn" = "bsn",
-    "sofi" = "sofi",
-    "error" = "error"
+	"cancelled" = "cancelled",
+	"bsn" = "bsn",
+	"sofi" = "sofi",
+	"error" = "error"
 }
 
 const DigiDInloggenAfgebrokenPage = () => {
-    const {initialized: keycloakInitialized, keycloak} = useKeycloak()
-    const dispatch = useDispatch()
-    const authenticatie = useSelector((state: State) => state.authenticatie)
-    const digidLoginAfbrekenCode = getDigiDLoginAfbrekenCode(useLocation())
-    const toonNogmaalsInloggenButton = digidLoginAfbrekenCode === DigidLoginAfbrekenCode.cancelled || digidLoginAfbrekenCode === DigidLoginAfbrekenCode.error
+	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const dispatch = useDispatch()
+	const authenticatie = useSelector((state: State) => state.authenticatie)
+	const digidLoginAfbrekenCode = getDigiDLoginAfbrekenCode(useLocation())
+	const toonNogmaalsInloggenButton = digidLoginAfbrekenCode === DigidLoginAfbrekenCode.cancelled || digidLoginAfbrekenCode === DigidLoginAfbrekenCode.error
 
-    useEffect(() => {
-        procesLoginAndLogBrowserInfo(keycloakInitialized, keycloak, dispatch, authenticatie)
-    }, [keycloakInitialized, keycloak, dispatch, authenticatie])
+	const login = useCallback(() => {
+		dispatch(setLoggingInAction(true))
+	}, [dispatch])
 
-    const login = useCallback(() => {
-        if (keycloakInitialized) {
-            dispatch(setLoggingInAction(true))
-            keycloak?.login()
-        }
-    }, [keycloakInitialized, keycloak, dispatch])
-
-    if (keycloak?.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
-        return <Redirect to={"/"}/>
-    }
-    return (
-        <div className={classNames(authenticationStyle.style, styles.style)}>
-            <Row>
-                <Col sm={8}>
-                    <div>
-                        <h1>{getString(properties["login"]["digid"][digidLoginAfbrekenCode]["title"])}</h1>
-                        <div className={authenticationStyle.introTextContainer}>
-                            <SpanWithHtml value={getString(properties["login"]["digid"][digidLoginAfbrekenCode]["tekst"])}/>
-                        </div>
-                        {toonNogmaalsInloggenButton && <div className={styles.loginDigid}>
-                            <Button label={getString(properties.login.button.title)} displayArrow={ArrowType.ARROW_RIGHT} onClick={login}/>
-                        </div>}
-                        <div className={styles.naarBvo}>
-                            <Button label={getString(properties.terug.naar, [getBevolkingsonderzoekNederlandUrlNaam()])} displayArrow={ArrowType.ARROW_LEFT}
-                                    onClick={() => window.open(getBevolkingsonderzoekNederlandUrl(), "_self")}/>
-                        </div>
-                    </div>
-                </Col>
-                <Col sm={4}>
-                    <ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
-                </Col>
-            </Row>
-        </div>
-    )
+	if (keycloakInitialized && keycloak?.authenticated && authenticatie.isLoggedIn && !authenticatie.isLoggingOut) {
+		return <Navigate replace to={"/"}/>
+	}
+	return (
+		<div className={classNames(authenticationStyle.style, styles.style)}>
+			<Row>
+				<Col sm={8}>
+					<div>
+						<h1>{getString(properties["login"]["digid"][digidLoginAfbrekenCode]["title"])}</h1>
+						<div className={authenticationStyle.introTextContainer}>
+							<SpanWithHtml value={getString(properties["login"]["digid"][digidLoginAfbrekenCode]["tekst"])}/>
+						</div>
+						{toonNogmaalsInloggenButton && <div className={styles.loginDigid}>
+							<Button label={getString(properties.login.button.title)} displayArrow={ArrowType.ARROW_RIGHT} onClick={login}/>
+						</div>}
+						<div className={styles.naarBvo}>
+							<Button label={getString(properties.terug.naar, [getBevolkingsonderzoekNederlandUrlNaam()])} displayArrow={ArrowType.ARROW_LEFT}
+									onClick={() => window.open(getBevolkingsonderzoekNederlandUrl(), "_self")}/>
+						</div>
+					</div>
+				</Col>
+				<Col sm={4}>
+					<ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
+				</Col>
+			</Row>
+		</div>
+	)
 }
 
-function getDigiDLoginAfbrekenCode(location: Location<unknown>) {
-    let fullDigiDLoginAfbrekenCode = new URLSearchParams(location.search).get("code")
-    let digidLoginAfbrekenCodeString = fullDigiDLoginAfbrekenCode !== null && fullDigiDLoginAfbrekenCode !== undefined ? fullDigiDLoginAfbrekenCode.replace("login.digid.", "") : "error"
-    if (!Object.values(DigidLoginAfbrekenCode).includes(digidLoginAfbrekenCodeString as DigidLoginAfbrekenCode)) {
-        digidLoginAfbrekenCodeString = "error"
-    }
-    return digidLoginAfbrekenCodeString as keyof typeof DigidLoginAfbrekenCode
+function getDigiDLoginAfbrekenCode(location: Location) {
+	let fullDigiDLoginAfbrekenCode = new URLSearchParams(location.search).get("code")
+	let digidLoginAfbrekenCodeString = fullDigiDLoginAfbrekenCode !== null && fullDigiDLoginAfbrekenCode !== undefined ? fullDigiDLoginAfbrekenCode.replace("login.digid.", "") : "error"
+	if (!Object.values(DigidLoginAfbrekenCode).includes(digidLoginAfbrekenCodeString as DigidLoginAfbrekenCode)) {
+		digidLoginAfbrekenCodeString = "error"
+	}
+	return digidLoginAfbrekenCodeString as keyof typeof DigidLoginAfbrekenCode
 }
 
 export default DigiDInloggenAfgebrokenPage

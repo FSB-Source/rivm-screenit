@@ -30,7 +30,7 @@ import nl.rivm.screenit.model.Permissie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.model.envers.AccountResolver;
+import nl.rivm.screenit.model.envers.RevisionInformationResolver;
 import nl.rivm.screenit.security.Constraint;
 import nl.rivm.screenit.security.IScreenitRealm;
 import nl.rivm.screenit.security.InstellingGebruikerToken;
@@ -94,7 +94,7 @@ public class SERealm extends AuthorizingRealm implements IScreenitRealm
 		setCredentialsMatcher(new MultipleAuthenticationSourceCredentialsMatcher(
 			hibernateService, YUBIKEY_SESSION_COUNTER_WRAP_AROUND_ALLOWED_RANGE, YUBIKEY_MAX_SESSION_COUNTER_INCREASE));
 		setAuthenticationTokenClass(AuthenticationToken.class);
-		AccountResolver.registerDelegate(new SEAccountResolverDelegate());
+		RevisionInformationResolver.registerDelegate(new SEAccountResolverDelegate());
 	}
 
 	@Override

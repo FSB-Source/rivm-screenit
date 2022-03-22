@@ -21,8 +21,10 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
@@ -42,10 +44,13 @@ import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.verslag.CervixVerslag;
 import nl.rivm.screenit.service.BaseTestTimelineService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixTestTimelineTimeService;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.slf4j.Logger;
@@ -66,6 +71,12 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 
 	@Autowired
 	private BaseTestTimelineService baseTestTimelineService;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
+
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public boolean rekenDossierTerug(CervixDossier dossier, CervixTestTimeLineDossierTijdstip tijdstip)
@@ -269,7 +280,8 @@ public class CervixTestTimelineTimeServiceImpl implements CervixTestTimelineTime
 		case ONTVANGEN:
 			return 14;
 		case VERVOLGONDERZOEK_BRIEF:
-			return 180;
+			return Math.toIntExact(ChronoUnit.DAYS.between(currentDateSupplier.getLocalDate(),
+				currentDateSupplier.getLocalDate().plusMonths(preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()))));
 		case NIEUWE_RONDE:
 			return 1825;
 		default:

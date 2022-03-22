@@ -28,7 +28,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.bezwaar.edit.BezwaarEditPanel;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
@@ -44,13 +45,14 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
 import nl.rivm.screenit.model.algemeen.BezwaarViewWrapper;
 import nl.rivm.screenit.model.enums.BezwaarType;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BezwaarService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -67,15 +69,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<ClientContactActie>
 {
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientContactBezwaarPanel.class);
-
 	@SpringBean
 	private BezwaarService bezwaarService;
 
@@ -86,16 +83,16 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private HibernateService hibernateService;
 
-	private IModel<BezwaarMoment> bezwaarMomentModel;
+	private final IModel<BezwaarMoment> bezwaarMomentModel;
 
-	private IModel<Client> clientModel;
+	private final IModel<Client> clientModel;
 
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
 	private List<BezwaarGroupViewWrapper> wrappers;
 
@@ -122,9 +119,6 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 
 		manier.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -277,7 +271,7 @@ public class ClientContactBezwaarPanel extends AbstractClientContactActiePanel<C
 				Client client = bezwaarMoment.getClient();
 				client.getBezwaarMomenten().size(); 
 				UploadDocument document = this.document.getObject();
-				fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.BEZWAAR, client.getId());
+				uploadDocumentService.saveOrUpdate(document, FileStoreLocation.BEZWAAR, client.getId());
 				bezwaarMoment.setBezwaarBrief(document);
 
 				bezwaarMoment.setStatus(AanvraagBriefStatus.BRIEF);

@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
@@ -45,9 +47,9 @@ import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.BvoAfmeldService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixAfmeldService;
 import nl.rivm.screenit.service.colon.ColonAfmeldService;
 import nl.rivm.screenit.service.mamma.MammaAfmeldService;
@@ -55,19 +57,16 @@ import nl.rivm.screenit.util.AfmeldingUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Component
 @Transactional(propagation = Propagation.REQUIRED)
 public class BaseAfmeldServiceImpl implements BaseAfmeldService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(BaseAfmeldServiceImpl.class);
-
 	@Autowired
 	private ClientService clientService;
 
@@ -81,7 +80,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -264,7 +263,7 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 			if (handtekeningDocumentAfmelding != null)
 			{
 				var fileStoreLocation = FileStoreLocation.getAfmelding(afmelding.getBevolkingsonderzoek());
-				fileService.saveOrUpdateUploadDocument(handtekeningDocumentAfmelding, fileStoreLocation, client.getId());
+				uploadDocumentService.saveOrUpdate(handtekeningDocumentAfmelding, fileStoreLocation, client.getId());
 			}
 		}
 		catch (IOException e)
@@ -381,12 +380,12 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 		Account loggedInAccount)
 	{
 		afmelding.setHandtekeningDocumentAfmelding(null);
-		fileService.delete(huidigDocument, true);
+		uploadDocumentService.delete(huidigDocument, true);
 
 		afmelding.setHandtekeningDocumentAfmelding(nieuwDocument);
 		try
 		{
-			fileService.saveOrUpdateUploadDocument(nieuwDocument, FileStoreLocation.getAfmelding(brief.getBevolkingsonderzoek()),
+			uploadDocumentService.saveOrUpdate(nieuwDocument, FileStoreLocation.getAfmelding(brief.getBevolkingsonderzoek()),
 				brief.getClient().getId());
 		}
 		catch (IOException e)
@@ -406,12 +405,12 @@ public class BaseAfmeldServiceImpl implements BaseAfmeldService
 		Account loggedInAccount)
 	{
 		afmelding.setHandtekeningDocumentHeraanmelding(null);
-		fileService.delete(huidigDocument, true);
+		uploadDocumentService.delete(huidigDocument, true);
 
 		afmelding.setHandtekeningDocumentHeraanmelding(nieuwDocument);
 		try
 		{
-			fileService.saveOrUpdateUploadDocument(nieuwDocument, FileStoreLocation.getHeraanmelding(brief.getBevolkingsonderzoek()),
+			uploadDocumentService.saveOrUpdate(nieuwDocument, FileStoreLocation.getHeraanmelding(brief.getBevolkingsonderzoek()),
 				brief.getClient().getId());
 		}
 		catch (IOException e)

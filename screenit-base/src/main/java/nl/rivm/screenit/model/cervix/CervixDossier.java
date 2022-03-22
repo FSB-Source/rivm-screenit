@@ -25,7 +25,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.Index;
 import javax.persistence.OneToMany;
@@ -35,9 +38,14 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.DeelnamemodusDossier;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -51,11 +59,10 @@ import org.hibernate.envers.NotAudited;
 	indexes = { @Index(name = "idx_CERVIX_DOSSIER_VOLGENDE_RONDE_VANAF", columnList = "volgendeRondeVanaf"), @Index(name = "idx_CERVIX_DOSSIER_STATUS", columnList = "status") },
 	uniqueConstraints = { @UniqueConstraint(columnNames = "laatste_screening_ronde"), @UniqueConstraint(columnNames = "laatste_afmelding") })
 @Audited
-public class CervixDossier extends Dossier<CervixScreeningRonde, CervixAfmelding>
+@Getter
+@Setter
+public class CervixDossier extends Dossier<CervixScreeningRonde, CervixAfmelding> implements DeelnamemodusDossier
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@OneToOne(mappedBy = "cervixDossier", optional = false)
 	private Client client;
 
@@ -80,83 +87,11 @@ public class CervixDossier extends Dossier<CervixScreeningRonde, CervixAfmelding
 	@Temporal(TemporalType.DATE)
 	private Date volgendeRondeVanaf;
 
-	@Override
-	public Client getClient()
-	{
-		return client;
-	}
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Deelnamemodus deelnamemodus = Deelnamemodus.STANDAARD;
 
-	@Override
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
+	@OneToOne(optional = true, fetch = FetchType.EAGER)
+	private CervixBrief vooraankondigingsBrief;
 
-	@Override
-	public List<CervixScreeningRonde> getScreeningRondes()
-	{
-		return screeningRondes;
-	}
-
-	@Override
-	public void setScreeningRondes(List<CervixScreeningRonde> screeningRondes)
-	{
-		this.screeningRondes = screeningRondes;
-	}
-
-	@Override
-	public CervixScreeningRonde getLaatsteScreeningRonde()
-	{
-		return laatsteScreeningRonde;
-	}
-
-	@Override
-	public void setLaatsteScreeningRonde(CervixScreeningRonde laatsteScreeningRonde)
-	{
-		this.laatsteScreeningRonde = laatsteScreeningRonde;
-	}
-
-	@Override
-	public List<CervixAfmelding> getAfmeldingen()
-	{
-		return afmeldingen;
-	}
-
-	@Override
-	public void setAfmeldingen(List<CervixAfmelding> afmeldingen)
-	{
-		this.afmeldingen = afmeldingen;
-	}
-
-	@Override
-	public CervixAfmelding getLaatsteAfmelding()
-	{
-		return laatsteAfmelding;
-	}
-
-	@Override
-	public void setLaatsteAfmelding(CervixAfmelding laatsteAfmelding)
-	{
-		this.laatsteAfmelding = laatsteAfmelding;
-	}
-
-	public Date getVolgendeRondeVanaf()
-	{
-		return volgendeRondeVanaf;
-	}
-
-	public void setVolgendeRondeVanaf(Date volgendeRondeVanaf)
-	{
-		this.volgendeRondeVanaf = volgendeRondeVanaf;
-	}
-
-	public CervixCISHistorie getCisHistorie()
-	{
-		return cisHistorie;
-	}
-
-	public void setCisHistorie(CervixCISHistorie cisHistorie)
-	{
-		this.cisHistorie = cisHistorie;
-	}
 }

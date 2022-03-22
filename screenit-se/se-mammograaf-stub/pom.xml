@@ -63,8 +63,15 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>build-info</goal>
                             <goal>repackage</goal>
                         </goals>
+                        <configuration>
+                            <additionalProperties>
+                                <number>${buildnumber}</number>
+                            </additionalProperties>
+                            <outputFile>target/classes/build-info.properties</outputFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -23,24 +23,21 @@ package nl.rivm.screenit.batch.service.impl;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 import nl.rivm.screenit.batch.service.MammaHL7CreateMessageService;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
+import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaOnderzoek;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.HL7Util;
 import nl.rivm.screenit.util.NaamUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,47 +69,23 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 	private DateTimeFormatter hl7DateFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
 	@Override
-	public ORM_O01 maakOrmIlmBericht(Client client, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws IOException, HL7Exception
+	public ORM_O01 maakClientORMBericht(MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto, Client client) throws IOException, HL7Exception
 	{
-		ORM_O01 ormBericht = createOrm_o01();
-		buildPIDSegment(ormBericht.getPATIENT().getPID(), client);
-		buildIlmOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), triggerDto);
-
-		buildORCSegmentILM(ormBericht.getORDER().getORC(), triggerDto.getAccessionNumber());
+		ORM_O01 ormBericht = createBaseOrmMessage(triggerDto.getStatus(), client);
+		buildOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), triggerDto);
+		if (triggerDto.getStatus() == MammaHL7v24ORMBerichtStatus.DELETE)
+		{
+			buildORCSegmentDelete(ormBericht.getORDER().getORC(), triggerDto.getAccessionNumber());
+		}
+		else
+		{
+			buildORCSegment(ormBericht.getORDER().getORC(), triggerDto.getAccessionNumber());
+		}
 		return ormBericht;
 	}
 
 	@Override
-	public ORM_O01 maakClientORMBericht(MammaHL7v24ORMBerichtStatus status, Client client) throws IOException, HL7Exception
-	{
-		ORM_O01 ormBericht = createBaseOrmMessage(status, client);
-		buildOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), client.getMammaDossier().getLaatsteScreeningRonde(), status);
-		buildORCSegment(ormBericht.getORDER().getORC(), getAccessionNumber(client.getMammaDossier().getLaatsteScreeningRonde()));
-		return ormBericht;
-	}
-
-	@Override
-	public ORM_O01 maakUploadBeeldenORMBericht(MammaHL7v24ORMBerichtStatus status, MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger, Client client)
-		throws IOException, HL7Exception
-	{
-		ORM_O01 ormBericht = createBaseOrmMessage(status, client);
-		buildUploadVerzoekOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), hl7BerichtTrigger);
-		buildORCSegment(ormBericht.getORDER().getORC(), hl7BerichtTrigger.getAccessionNumber().toString());
-		return ormBericht;
-	}
-
-	@Override
-	public ORM_O01 maakUploadBeeldenORMILMBericht(MammaHL7v24ORMBerichtStatus status, MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger, Client client)
-		throws IOException, HL7Exception
-	{
-		ORM_O01 ormBericht = createBaseOrmMessage(status, client);
-		buildUploadVerzoekOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), hl7BerichtTrigger);
-		buildORCSegmentILM(ormBericht.getORDER().getORC(), hl7BerichtTrigger.getAccessionNumber());
-		return ormBericht;
-	}
-
-	@Override
-	public ORM_O01 maakKwaliteitsopnameORMBericht(MammaHL7v24ORMBerichtStatus status, MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger)
+	public ORM_O01 maakKwaliteitsopnameORMBericht(MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger)
 		throws IOException, HL7Exception
 	{
 		if (hl7BerichtTrigger.getAccessionNumber().length() > 16)
@@ -121,8 +94,8 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 		}
 		ORM_O01 ormBericht = createOrm_o01();
 		buildKwaliteitsopnamePIDSegment(ormBericht.getPATIENT().getPID(), hl7BerichtTrigger);
-		buildKwaliteitsopnameORCSegment(ormBericht.getORDER().getORC(), hl7BerichtTrigger);
-		buildKwaliteitsopnameOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), hl7BerichtTrigger, status);
+		buildORCSegment(ormBericht.getORDER().getORC(), hl7BerichtTrigger.getAccessionNumber());
+		buildKwaliteitsopnameOBRSegment(ormBericht.getORDER().getORDER_DETAIL().getOBR(), hl7BerichtTrigger);
 		return ormBericht;
 	}
 
@@ -233,9 +206,9 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 
 		XPN patientGegevens = pid.getPid5_PatientName(0);
 		patientGegevens.getGivenName().setValue("DUMMY");
-		patientGegevens.getFamilyName().getSurname().setValue(hl7BerichtTrigger.getSeCode());
+		patientGegevens.getFamilyName().getSurname().setValue(hl7BerichtTrigger.getScreeningseenheidCode());
 		patientGegevens.getFamilyName().getOwnSurnamePrefix().setValue("");
-		patientGegevens.getFamilyName().getOwnSurname().setValue(hl7BerichtTrigger.getSeCode());
+		patientGegevens.getFamilyName().getOwnSurname().setValue(hl7BerichtTrigger.getScreeningseenheidCode());
 
 		pid.getPid7_DateTimeOfBirth().getTimeOfAnEvent().setValue(hl7DateFormatter.format(LocalDate.of(2018, 1, 1)));
 
@@ -249,10 +222,10 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 		buildPIDSegment(pid, client, client.getPersoon().getBsn());
 	}
 
-	private void buildORCSegmentILM(ORC orc, Long accessionNumber) throws DataTypeException
+	private void buildORCSegmentDelete(ORC orc, String accessionNumber) throws DataTypeException
 	{
 		orc.getOrc1_OrderControl().setValue("DC");
-		orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(String.valueOf(accessionNumber));
+		orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(accessionNumber);
 		orc.getOrc5_OrderStatus().setValue("IP");
 	}
 
@@ -264,87 +237,43 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 
 	}
 
-	private void buildKwaliteitsopnameORCSegment(ORC orc, MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger) throws DataTypeException
+	private void buildOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto) throws DataTypeException
 	{
-		orc.getOrc1_OrderControl().setValue("XO");
-		orc.getOrc2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(hl7BerichtTrigger.getAccessionNumber());
-		orc.getOrc5_OrderStatus().setValue("SC");
-
-	}
-
-	private void buildIlmOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws DataTypeException
-	{
-		buildOBRSegment(obr, triggerDto);
-		obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(triggerDto.getAccessionNumber().toString());
-	}
-
-	private void buildOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws DataTypeException
-	{
-		Date laatsteOnderzoekAfgerondOpDatum = triggerDto.getLaatsteOnderzoekAfgerondOpDatum();
-
 		buildOBRSegment(
 			obr,
 			triggerDto.getStatus(),
-			triggerDto.getAccessionNumber().toString(),
-			"MAMMO",
-			"Mammografie",
-			laatsteOnderzoekAfgerondOpDatum,
+			triggerDto.getAccessionNumber(),
+			triggerDto.isUploaded() ? "ZHOND" : "MAMMO",
+			triggerDto.isUploaded() ? "Ziekenhuis" : "Mammografie",
+			triggerDto.getLaatsteOnderzoekAfgerondOpDatum(),
 			triggerDto.getLaatsteAfspraakDatum(),
-			triggerDto.getScreeningsEenheidCode());
+			triggerDto.getScreeningseenheidCode());
 	}
 
-	private void buildOBRSegment(OBR obr, MammaScreeningRonde ronde, MammaHL7v24ORMBerichtStatus status) throws DataTypeException
-	{
-		MammaAfspraak laatsteAfspraak = ronde.getLaatsteUitnodiging().getLaatsteAfspraak();
-		MammaOnderzoek onderzoek = laatsteAfspraak.getOnderzoek();
-
-		Date laatsteOnderzoekAfgerondOpDatum = onderzoek != null ? onderzoek.getAfgerondOp() : null;
-
-		buildOBRSegment(
-			obr,
-			status,
-			getAccessionNumber(ronde),
-			"MAMMO",
-			"Mammografie",
-			laatsteOnderzoekAfgerondOpDatum,
-			laatsteAfspraak.getVanaf(),
-			laatsteAfspraak.getStandplaatsPeriode().getScreeningsEenheid().getCode());
-	}
-
-	private void buildUploadVerzoekOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger) throws DataTypeException
-	{
-		buildOBRSegment(
-			obr,
-			hl7BerichtTrigger.getStatus(),
-			hl7BerichtTrigger.getAccessionNumber().toString(),
-			"ZHOND",
-			"Ziekenhuis",
-			hl7BerichtTrigger.getOnderzoeksDatum(),
-			null,
-			"ZHOND");
-	}
-
-	private void buildOBRSegment(OBR obr, MammaHL7v24ORMBerichtStatus status, String accessionNumber, String usiIdentifier, String usiText, Date onderzoekAfgerondOp,
-		Date laatsteAfspraakDatum, String condition) throws DataTypeException
+	private void buildOBRSegment(OBR obr, MammaHL7v24ORMBerichtStatus status, String accessionNumber, String onderzoekscode, String onderzoeksnaam,
+		LocalDateTime onderzoekAfgerondOp, LocalDateTime laatsteAfspraakDatum, String screeningseenheidCode) throws DataTypeException
 	{
 		obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(accessionNumber);
-		obr.getObr4_UniversalServiceIdentifier().getCe1_Identifier().setValue(usiIdentifier);
-		obr.getObr4_UniversalServiceIdentifier().getCe2_Text().setValue(usiText);
+		obr.getObr4_UniversalServiceIdentifier().getCe1_Identifier().setValue(onderzoekscode);
+		obr.getObr4_UniversalServiceIdentifier().getCe2_Text().setValue(onderzoeksnaam);
 		obr.getObr5_Priority().setValue("R");
-		if (onderzoekAfgerondOp != null && !MammaHL7v24ORMBerichtStatus.STARTED.equals(status))
+		if (onderzoekAfgerondOp != null)
 		{
-			obr.getObr7_ObservationDateTime().getTimeOfAnEvent().setValue(hl7DateTimeFormatter.format(DateUtil.toLocalDateTime(onderzoekAfgerondOp)));
+			obr.getObr7_ObservationDateTime().getTimeOfAnEvent().setValue(hl7DateTimeFormatter.format(onderzoekAfgerondOp));
 		}
 
 		obr.getObr25_ResultStatus().setValue(status.getLabel());
 		if (laatsteAfspraakDatum != null)
 		{
-			obr.getObr27_QuantityTiming(0).getTq4_StartDateTime().getTimeOfAnEvent().setValue(hl7DateTimeFormatter.format(DateUtil.toLocalDateTime(laatsteAfspraakDatum)));
+			obr.getObr27_QuantityTiming(0).getTq4_StartDateTime().getTimeOfAnEvent().setValue(hl7DateTimeFormatter.format(laatsteAfspraakDatum));
 		}
-		obr.getObr27_QuantityTiming(0).getTq7_Condition().setValue(condition);
+		if (StringUtils.isNotBlank(screeningseenheidCode))
+		{
+			obr.getObr27_QuantityTiming(0).getTq7_Condition().setValue(screeningseenheidCode);
+		}
 	}
 
-	private void buildKwaliteitsopnameOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger, MammaHL7v24ORMBerichtStatus status)
+	private void buildKwaliteitsopnameOBRSegment(OBR obr, MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger)
 		throws DataTypeException
 	{
 		obr.getObr2_PlacerOrderNumber().getEi1_EntityIdentifier().setValue(hl7BerichtTrigger.getAccessionNumber());
@@ -352,14 +281,10 @@ public class MammaHL7CreateMessageServiceImpl implements MammaHL7CreateMessageSe
 		obr.getObr4_UniversalServiceIdentifier().getCe2_Text().setValue("Kwaliteitsopname");
 		obr.getObr5_Priority().setValue("R");
 
-		obr.getObr25_ResultStatus().setValue(status.getLabel());
-		obr.getObr27_QuantityTiming(0).getTq7_Condition().setValue(hl7BerichtTrigger.getSeCode());
+		obr.getObr25_ResultStatus().setValue(hl7BerichtTrigger.getStatus().getLabel());
+		obr.getObr27_QuantityTiming(0).getTq7_Condition().setValue(hl7BerichtTrigger.getScreeningseenheidCode());
 		obr.getObr31_ReasonForStudy(0).getText().setValue(hl7BerichtTrigger.getReden());
 
 	}
 
-	private String getAccessionNumber(MammaScreeningRonde ronde)
-	{
-		return ronde.getUitnodigingsNr().toString();
-	}
 }

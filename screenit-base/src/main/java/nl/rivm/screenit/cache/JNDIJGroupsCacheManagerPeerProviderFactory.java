@@ -66,7 +66,7 @@ public class JNDIJGroupsCacheManagerPeerProviderFactory extends CacheManagerPeer
 
 		if (StringUtils.isBlank(initialHosts))
 		{
-			initialHosts = "127.0.0.1[7800]";
+			initialHosts = "127.0.0.1[12001]";
 		}
 		if (StringUtils.isBlank(bindIp))
 		{
@@ -86,9 +86,9 @@ public class JNDIJGroupsCacheManagerPeerProviderFactory extends CacheManagerPeer
 		{
 			System.getProperties().put(Global.EXTERNAL_ADDR, bindIp);
 		}
-		if (System.getProperty(Global.TCPPING_INITIAL_HOSTS) == null)
+		if (System.getProperty(Global.GOSSIP_ROUTER) == null)
 		{
-			System.getProperties().put(Global.TCPPING_INITIAL_HOSTS, initialHosts);
+			System.getProperties().put(Global.GOSSIP_ROUTER, initialHosts);
 		}
 		return new JGroupsCacheManagerPeerProvider(applicationInstance.toLowerCase(), cacheManager,
 			JNDIJGroupsCacheManagerPeerProviderFactory.class.getResource("/jg-sit-tcp.xml"));

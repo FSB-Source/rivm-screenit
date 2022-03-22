@@ -25,27 +25,26 @@ import {BevolkingsonderzoekStyle} from "../../datatypes/Bevolkingsonderzoek"
 import bvoStyle from "../BvoStyle.module.scss"
 import {useSelectedBvo} from "../../utils/Hooks"
 import {isExternalUrl} from "../../utils/UrlUtil"
-import {useHistory} from "react-router"
+import {useNavigate} from "react-router-dom"
 
 export type BigUrlButtonProps = {
-    title: string,
-    text: string,
-    link: string,
+	title: string,
+	text: string,
+	link: string,
 }
 
 const BigUrlButton = (props: BigUrlButtonProps) => {
-    const bvo = useSelectedBvo()
-    const browserHistory = useHistory()
+	const bvo = useSelectedBvo()
+	const navigate = useNavigate()
 
-    return (
-        <div className={classNames(styles.bigUrl, BevolkingsonderzoekStyle[bvo!])}
-             onClick={() => isExternalUrl(props.link) ? window.open(props.link, "_self") : browserHistory.push(props.link)}>
-
-            <span className={bvoStyle.bvoText}>{props.title}</span>
-            <br/>
-            <span>{props.text}</span>
-        </div>
-    )
+	return (
+		<div className={classNames(styles.bigUrl, BevolkingsonderzoekStyle[bvo!])}
+			 onClick={() => isExternalUrl(props.link) ? window.open(props.link, "_self") : navigate(props.link)}>
+			<span className={bvoStyle.bvoText}>{props.title}</span>
+			<br/>
+			<span>{props.text}</span>
+		</div>
+	)
 }
 
 export default BigUrlButton

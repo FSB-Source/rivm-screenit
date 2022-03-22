@@ -25,34 +25,36 @@ import {BevolkingsonderzoekStyle, BevolkingsonderzoekToptaakStyle} from "../../d
 import bvoStyle from "../BvoStyle.module.scss"
 import {useSelectedBvo} from "../../utils/Hooks"
 import SpanWithHtml from "../span/SpanWithHtml"
-import {navigate, RoutePath} from "../../routes/routes"
+import {RoutePath} from "../../routes/routes"
+import {useNavigate} from "react-router-dom"
 
 export type TopTaakProps = {
-    link: RoutePath,
-    titel: string,
-    subTitel?: string,
-    subTekst?: string,
-    icon?: React.ReactNode,
+	link: RoutePath,
+	titel: string,
+	subTitel?: string,
+	subTekst?: string,
+	icon?: React.ReactNode,
 }
 
 const TopTaakComponent = (props: TopTaakProps) => {
-    const selectedBvo = useSelectedBvo()
+	const selectedBvo = useSelectedBvo()
+	const navigate = useNavigate()
 
-    return (
-        <div className={classNames(styles.topTaak, BevolkingsonderzoekStyle[selectedBvo!])}
-             onClick={() => navigate(props.link)}>
+	return (
+		<div className={classNames(styles.topTaak, BevolkingsonderzoekStyle[selectedBvo!])}
+			 onClick={() => navigate(props.link)}>
 
-            <div className={classNames(styles.topTaakIcon, BevolkingsonderzoekToptaakStyle[selectedBvo!])}>{props.icon}</div>
+			<div className={classNames(styles.topTaakIcon, BevolkingsonderzoekToptaakStyle[selectedBvo!])}>{props.icon}</div>
 
-            <span className={bvoStyle.bvoText}>Ik wil graag</span>
-            <h1>{props.titel}</h1>
+			<span className={bvoStyle.bvoText}>Ik wil graag</span>
+			<h1>{props.titel}</h1>
 
-            {(props.subTitel && props.subTekst) && <div className={styles.subTitleContainer}>
-                <SpanWithHtml value={props.subTitel}/>
-                <SpanWithHtml value={props.subTekst}/>
-            </div>}
-        </div>
-    )
+			{(props.subTitel && props.subTekst) && <div className={styles.subTitleContainer}>
+				<SpanWithHtml value={props.subTitel}/>
+				<SpanWithHtml value={props.subTekst}/>
+			</div>}
+		</div>
+	)
 
 }
 

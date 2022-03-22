@@ -46,6 +46,7 @@ import org.hibernate.envers.NotAudited;
 	schema = "gedeeld",
 	indexes = { @Index(name = "idx_project_brief_gegenereerd", columnList = "gegenereerd"),
 		@Index(name = "idx_project_brief_vervangendeprojectbrief", columnList = "vervangendeprojectbrief"),
+		@Index(name = "idx_project_brief_brief", columnList = "brief")
 	})
 @Audited
 @Getter

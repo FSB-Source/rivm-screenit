@@ -493,4 +493,13 @@ public class MammaBaseAfspraakServiceImpl implements MammaBaseAfspraakService
 		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 		return afspraakStatus == MammaAfspraakStatus.GEPLAND && nu.isAfter(afspraakMoment);
 	}
+
+	@Override
+	public boolean briefKanNietMeerVerzondenWorden(Date afspraakDatum)
+	{
+		Integer aantalWerkdagenBriefNietVersturenParameter = preferenceService.getInteger(PreferenceKey.MAMMA_BEVESTIGINGSBRIEF_NIET_VERZENDEN_BINNEN_AANTAL_WERKDAGEN.name());
+		LocalDate minimumAfspraakDatum = DateUtil.plusWerkdagen(dateSupplier.getLocalDate(), aantalWerkdagenBriefNietVersturenParameter);
+		return !DateUtil.toUtilDate(minimumAfspraakDatum).after(afspraakDatum);
+	}
+
 }

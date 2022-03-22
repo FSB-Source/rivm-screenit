@@ -29,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.model.BriefDefinitie;
 import nl.rivm.screenit.model.Instelling;
@@ -46,10 +48,10 @@ import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.JavaScriptPdfHelper;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -60,8 +62,6 @@ import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
@@ -74,10 +74,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 
+@Slf4j
 public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(LabformulierGenererenWriter.class);
 
 	private static int MAXBRIEVENPDF = 500;
 
@@ -94,7 +93,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -289,7 +288,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 		FileOutputStream outputStream = null;
 		try
 		{
-			File file = fileService.load(cervixRegioMergedBrieven.getMergedBrieven());
+			File file = uploadDocumentService.load(cervixRegioMergedBrieven.getMergedBrieven());
 			PDDocument pdfBoxDocument = PDDocument.load(file);
 			PDActionJavaScript javaScript = new PDActionJavaScript(JavaScriptPdfHelper.getPrintJavascript());
 			pdfBoxDocument.getDocumentCatalog().setOpenAction(javaScript);
@@ -359,7 +358,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 	private Document mergeBrief(CervixLabformulierAanvraag aanvraag, UploadDocument document) throws Exception
 	{
-		File briefTemplate = fileService.load(document);
+		File briefTemplate = uploadDocumentService.load(document);
 		byte[] briefTemplateBytes = FileUtils.readFileToByteArray(briefTemplate);
 		MailMergeContext context = new MailMergeContext();
 		context.putValue(MailMergeContext.CONTEXT_HA_LAB_FORM_VOLGNUMMER, volgnummerBatch);
@@ -393,7 +392,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 			uploadDocument.setFile(mergedPdfFile);
 
 			Long fileStoreId = aanvraag.getHuisartsLocatie().getHuisarts().getId();
-			fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.INSTELLING_MERGED_BRIEVEN, fileStoreId);
+			uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.INSTELLING_MERGED_BRIEVEN, fileStoreId);
 
 			mergedBrieven.setMergedBrieven(uploadDocument);
 			mergedPdfFile.delete();
@@ -407,7 +406,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 
 				UploadDocument uploadDocumentMergedBrieven = mergedBrieven.getMergedBrieven();
 				File copyMergedBrievenFile = File.createTempFile("CopyMergedBrieven", ".pdf");
-				File mergedBrievenFile = fileService.load(uploadDocumentMergedBrieven);
+				File mergedBrievenFile = uploadDocumentService.load(uploadDocumentMergedBrieven);
 				uploadDocumentMergedBrieven.setNaam(voegNaamgevingAanPdf(mergedBrieven));
 				FileUtils.copyFile(mergedBrievenFile, copyMergedBrievenFile);
 
@@ -417,7 +416,7 @@ public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 				outputStream = new FileOutputStream(mergedBrievenFile);
 				pdfMergerUtility.setDestinationStream(outputStream);
 				pdfMergerUtility.mergeDocuments(MemoryUsageSetting.setupMainMemoryOnly());
-				fileService.saveOrUpdateUploadDocument(uploadDocumentMergedBrieven, FileStoreLocation.INSTELLING_MERGED_BRIEVEN,
+				uploadDocumentService.saveOrUpdate(uploadDocumentMergedBrieven, FileStoreLocation.INSTELLING_MERGED_BRIEVEN,
 					aanvraag.getHuisartsLocatie().getHuisarts().getId());
 				outputStream.close();
 

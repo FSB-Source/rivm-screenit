@@ -22,7 +22,6 @@ package nl.rivm.screenit.service.impl;
  */
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +30,8 @@ import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.Column;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.LogDao;
 import nl.rivm.screenit.model.Account;
@@ -56,8 +57,6 @@ import nl.topicuszorg.loginformatie.model.Gebeurtenis;
 import nl.topicuszorg.loginformatie.model.ILogInformatie;
 import nl.topicuszorg.loginformatie.services.ILogInformatieService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -68,12 +67,11 @@ import com.google.common.base.Strings;
 
 @Service(value = "logInformatieService")
 @Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
 public class LogServiceImpl implements LogService, ILogInformatieService<ILogInformatie<?, ?, ?, ?, ?>, InstellingGebruiker, Gebeurtenis>
 {
 
 	private static final String MELDING_TOO_LONG_PREFIX = "...(voor de volledige informatie click op de regel)";
-
-	private static final Logger LOG = LoggerFactory.getLogger(LogServiceImpl.class);
 
 	private static int MELDING_COLUMN_SIZE;
 
@@ -105,18 +103,18 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	@PostConstruct
 	private void init()
 	{
-		Properties applicationProperties = new Properties();
-		try (InputStream resourceAsStream = getClass().getResourceAsStream("/application.properties"))
+		var applicationProperties = new Properties();
+		try (var resourceAsStream = getClass().getResourceAsStream("/build-info.properties"))
 		{
 			applicationProperties.load(resourceAsStream);
-			String version = applicationProperties.getProperty("application.version");
-			String timestamp = applicationProperties.getProperty("application.timestamp");
-			String buildnumber = applicationProperties.getProperty("application.buildnumber");
+			String version = applicationProperties.getProperty("build.version");
+			String timestamp = applicationProperties.getProperty("build.time");
+			String buildnumber = applicationProperties.getProperty("build.number");
 			LOG.info("ScreenIT versie: {} ({}, {})", version, buildnumber, timestamp);
 		}
 		catch (IOException e)
 		{
-			LOG.error("Fout bij het lezen van de application.properties", e);
+			LOG.error("Fout bij laden van build-info.properties (voor versienummer)");
 		}
 	}
 

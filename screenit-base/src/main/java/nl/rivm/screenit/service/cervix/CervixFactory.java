@@ -47,11 +47,18 @@ import nl.rivm.screenit.model.enums.BriefType;
 
 public interface CervixFactory
 {
+
+	CervixScreeningRonde maakRonde(CervixDossier dossier, boolean setDatumVolgendeRonde);
+
 	CervixScreeningRonde maakRonde(CervixDossier dossier);
 
-	CervixScreeningRonde maakRonde(CervixDossier dossier, LocalDateTime creatieDatum);
+	CervixScreeningRonde maakRonde(CervixDossier dossier, LocalDateTime creatieDatum, boolean setDatumVolgendeRonde);
+
+	void updateDossierMetVolgendeRondeDatum(CervixDossier dossier, LocalDateTime creatiedatum);
 
 	CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, BriefType briefType);
+
+	void maakVooraankondiging(CervixScreeningRonde ronde);
 
 	CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, BriefType briefType, boolean herinneren, boolean herinneringOnderbreken);
 

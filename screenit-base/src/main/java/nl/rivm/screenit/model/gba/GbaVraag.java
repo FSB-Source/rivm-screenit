@@ -34,9 +34,11 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.RedenOpnieuwAanvragenClientgegevens;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.GbaVraagType;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
@@ -44,12 +46,12 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
-@Table(schema = "algemeen", indexes = @Index(name = "idx_gba_vraag_bsn", columnList = "bsn") )
+@Table(schema = "algemeen", indexes = @Index(name = "idx_gba_vraag_bsn", columnList = "bsn"))
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
+@Getter
+@Setter
 public class GbaVraag extends AbstractHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	private Client client;
@@ -66,114 +68,10 @@ public class GbaVraag extends AbstractHibernateObject
 
 	private String bsn;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	private ScreeningOrganisatie screeningOrganisatie;
-
 	@Enumerated(EnumType.STRING)
 	private RedenOpnieuwAanvragenClientgegevens reden;
 
 	private Boolean reactieOntvangen;
 
 	private String aanvullendeInformatie;
-
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public Date getDatum()
-	{
-		return datum;
-	}
-
-	public void setDatum(Date datum)
-	{
-		this.datum = datum;
-	}
-
-	public boolean isVerstuurd()
-	{
-		return verstuurd;
-	}
-
-	public void setVerstuurd(boolean verstuurd)
-	{
-		this.verstuurd = verstuurd;
-	}
-
-	public GbaVraagType getVraagType()
-	{
-		return vraagType;
-	}
-
-	public void setVraagType(GbaVraagType vraagType)
-	{
-		this.vraagType = vraagType;
-	}
-
-	public String getBsn()
-	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public String getUniqueBatchId()
-	{
-		return uniqueBatchId;
-	}
-
-	public void setUniqueBatchId(String uniqueBatchId)
-	{
-		this.uniqueBatchId = uniqueBatchId;
-	}
-
-	public RedenOpnieuwAanvragenClientgegevens getReden()
-	{
-		return reden;
-	}
-
-	public void setReden(RedenOpnieuwAanvragenClientgegevens reden)
-	{
-		this.reden = reden;
-	}
-
-	public ScreeningOrganisatie getScreeningOrganisatie()
-	{
-		return screeningOrganisatie;
-	}
-
-	public void setScreeningOrganisatie(ScreeningOrganisatie screeningOrganisatie)
-	{
-		this.screeningOrganisatie = screeningOrganisatie;
-	}
-
-	public Boolean getReactieOntvangen()
-	{
-		return reactieOntvangen;
-	}
-
-	public void setReactieOntvangen(Boolean reactieOntvangen)
-	{
-		this.reactieOntvangen = reactieOntvangen;
-	}
-
-	public String getAanvullendeInformatie()
-	{
-		return aanvullendeInformatie;
-	}
-
-	public void setAanvullendeInformatie(String aanvullendeInformatie)
-	{
-		this.aanvullendeInformatie = aanvullendeInformatie;
-	}
-
 }

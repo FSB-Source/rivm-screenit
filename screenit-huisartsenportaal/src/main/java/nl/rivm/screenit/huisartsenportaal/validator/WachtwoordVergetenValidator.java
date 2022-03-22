@@ -23,7 +23,6 @@ package nl.rivm.screenit.huisartsenportaal.validator;
 
 import nl.rivm.screenit.huisartsenportaal.dto.WachtwoordVergetenDto;
 import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
-import nl.rivm.screenit.huisartsenportaal.repository.HuisartsRepository;
 import nl.rivm.screenit.huisartsenportaal.service.HuisartsService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,16 +35,12 @@ public class WachtwoordVergetenValidator extends BaseValidator<WachtwoordVergete
 	@Autowired
 	private HuisartsService huisartsService;
 
-	@Autowired
-	private HuisartsRepository huisartsRepository;
-
 	@Override
 	public void validateTarget(WachtwoordVergetenDto dto, Errors errors)
 	{
 		if (dto.getGebruikersnaam() == null || dto.getEmail() == null)
 		{
-			errors.reject("error.field.null",
-				"Vul een gebruikersnaam en e-mail in om opnieuw uw wachtwoord op te vragen.");
+			errors.reject("error.field.null", "Vul een gebruikersnaam en e-mail in om opnieuw uw wachtwoord op te vragen.");
 		}
 
 		Huisarts huisarts = huisartsService.getHuisartsWith(dto);

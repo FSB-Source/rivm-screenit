@@ -39,12 +39,14 @@ import ScreenitBackend from "../../../utils/Backend"
 import LadenComponent from "../../../components/laden/LadenComponent"
 import {AfmeldingDto} from "../../../datatypes/afmelden/AfmeldingDto"
 import {CervixAfmeldingReden} from "../../../datatypes/afmelden/CervixAfmeldingReden"
-import {navigateAndShowToast} from "../../../utils/NavigationUtil"
 import {getBvoBaseUrl} from "../../../utils/UrlUtil"
+import {useNavigate} from "react-router-dom"
+import {showToast} from "../../../utils/ToastUtil"
 
 const AfmeldenPage = () => {
 	const selectedBvo = useSelectedBvo()!
 	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 	const properties = require("./AfmeldenPage.json")
 	const [afmeldOpties, setAfmeldOpties] = useState<AfmeldOptiesDto>(geenAfmeldOpties)
 
@@ -102,10 +104,11 @@ const AfmeldenPage = () => {
 							dispatch(saveNieuwAfmeldMoment(selectedBvo,
 								getAfmeldingDto(values),
 							)).then(() => {
-								navigateAndShowToast(getBvoBaseUrl(selectedBvo), "",
+								showToast(undefined,
 									values.afmeldType === AfmeldType.EENMALIG ?
 										getString(properties.toast.eenmalig, [BevolkingsonderzoekNaam[selectedBvo]]) :
 										getString(properties.toast.definitief, [BevolkingsonderzoekNaam[selectedBvo]]))
+								navigate(getBvoBaseUrl(selectedBvo))
 							})
 						}}>
 					{formikProps => (

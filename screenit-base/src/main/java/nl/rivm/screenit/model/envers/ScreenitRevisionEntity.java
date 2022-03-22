@@ -23,10 +23,15 @@ package nl.rivm.screenit.model.envers;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gebruiker;
@@ -38,12 +43,13 @@ import org.hibernate.envers.RevisionEntity;
 import org.hibernate.envers.RevisionNumber;
 import org.hibernate.envers.RevisionTimestamp;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "gedeeld")
 @RevisionEntity(ScreenitRevisionListener.class)
 public class ScreenitRevisionEntity implements HibernateObject
 {
-	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue
@@ -65,64 +71,8 @@ public class ScreenitRevisionEntity implements HibernateObject
 	@Column(nullable = true, length = HibernateMagicNumber.L255)
 	private String opmerking;
 
-	@Override
-	public Long getId()
-	{
-		return id;
-	}
+	@Column(nullable = true)
+	@Enumerated(EnumType.STRING)
+	private RevisionKenmerk kenmerk;
 
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
-	public long getTimestamp()
-	{
-		return timestamp;
-	}
-
-	public void setTimestamp(long timestamp)
-	{
-		this.timestamp = timestamp;
-	}
-
-	public Gebruiker getGebruiker()
-	{
-		return gebruiker;
-	}
-
-	public void setGebruiker(Gebruiker gebruiker)
-	{
-		this.gebruiker = gebruiker;
-	}
-
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public InstellingGebruiker getInstellingGebruiker()
-	{
-		return instellingGebruiker;
-	}
-
-	public void setInstellingGebruiker(InstellingGebruiker instellingGebruiker)
-	{
-		this.instellingGebruiker = instellingGebruiker;
-	}
-
-	public String getOpmerking()
-	{
-		return opmerking;
-	}
-
-	public void setOpmerking(String opmerking)
-	{
-		this.opmerking = opmerking;
-	}
 }

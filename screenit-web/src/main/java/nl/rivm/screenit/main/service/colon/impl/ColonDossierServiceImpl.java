@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.extern.slf4j.Slf4j;
+
+import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.dao.colon.impl.RoosterDaoImpl;
 import nl.rivm.screenit.main.service.OngeldigeBerichtenService;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
@@ -42,6 +45,7 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.IGeografischeCoordinaten;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.berichten.cda.MeldingOngeldigCdaBericht;
@@ -63,14 +67,18 @@ import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
+import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.CoordinatenService;
+import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
@@ -97,7 +105,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.Constants.COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
+
 @Service
+@Slf4j
 public class ColonDossierServiceImpl implements ColonDossierService
 {
 	@Autowired
@@ -125,10 +136,19 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	private IFobtService ifobtService;
 
 	@Autowired
+	private IFobtDao ifobtDao;
+
+	@Autowired
 	private ColonDossierBaseService dossierBaseService;
 
 	@Autowired
 	private CoordinatenService coordinatenService;
+
+	@Autowired
+	private InstellingService instellingService;
+
+	@Autowired
+	private DashboardService dashboardService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -711,6 +731,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void vervangUitslagVerwijderenDocument(IFOBTTest buis, UploadDocument uploadDocument)
 	{
 		if (uploadDocument != null)
@@ -727,5 +748,31 @@ public class ColonDossierServiceImpl implements ColonDossierService
 		{
 			throw new IllegalStateException("Geen upload document");
 		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public boolean setUitslagenGecontroleerdEnUpdateDashboard(LogRegel logRegel, InstellingGebruiker medewerker, DashboardStatus dashboardStatus)
+	{
+		var dossier = logRegel.getClient().getColonDossier();
+		var signaleringsTermijn = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
+
+		var nu = currentDateSupplier.getLocalDate();
+		var laatstGesignaleerdeIfobt = ifobtDao.getLaatsteIfobtTestMetMissendeUitslagVanDossier(dossier,
+			nu.minusDays(COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN), nu.minusDays(signaleringsTermijn));
+
+		boolean isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
+
+		logService.logGebeurtenis(LogGebeurtenis.COLON_CONTROLE_MISSENDE_UITSLAGEN_MATCH_GECONTROLEERD, medewerker, dossier.getClient(), Bevolkingsonderzoek.COLON);
+
+		if (laatstGesignaleerdeIfobt == null)
+		{
+			LOG.warn("Er zijn geen gesignaleerde IFOBTs gevonden voor dossier {}", dossier.getId());
+			return isGedowngrade;
+		}
+		dossier.setDatumLaatstGecontroleerdeSignalering(laatstGesignaleerdeIfobt.getAnalyseDatum());
+		hibernateService.saveOrUpdate(dossier);
+
+		return isGedowngrade;
 	}
 }

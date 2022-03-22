@@ -39,6 +39,8 @@ import java.util.concurrent.Executors;
 
 import javax.xml.bind.JAXBException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.cervix.CervixVerrichtingDao;
 import nl.rivm.screenit.document.sepa.CervixBetaalOpdrachtSpecificatieDocumentCreator;
@@ -66,12 +68,13 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.messagequeue.MessageType;
 import nl.rivm.screenit.model.messagequeue.dto.CervixHerindexatieDto;
+import nl.rivm.screenit.model.messagequeue.dto.VerwijderBetaalOpdrachtDto;
 import nl.rivm.screenit.service.AsposeService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.MessageService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
@@ -84,8 +87,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.IBANValidator;
 import org.hibernate.HibernateException;
 import org.joda.time.LocalDate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -94,15 +95,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.aspose.words.Document;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixBetalingServiceImpl implements CervixBetalingService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixBetalingServiceImpl.class);
+	private File template;
 
-	private File template = null;
-
-	private ExecutorService executorService;
+	private final ExecutorService executorService;
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
@@ -120,7 +120,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	private AsposeService asposeService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -159,7 +159,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 
 			SEPACreditTransfer.Betaalgroep betaalgroep = null;
 
-			if (betaalOpdrachtRegels.size() > 0)
+			if (!betaalOpdrachtRegels.isEmpty())
 			{
 
 				betaalgroep = transfer.betaalgroep(String.valueOf(betaalOpdrachtRegels.get(0).getId()), new LocalDate(betaalOpdracht.getStatusDatum()),
@@ -306,7 +306,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 				document.setNaam(specificatieNaam + "." + specificatieSuffix);
 				document.setContentType("application/pdf");
 				document.setFile(specificatie);
-				fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.CERVIX_BETALING_PDF, betaalopdracht.getId());
+				uploadDocumentService.saveOrUpdate(document, FileStoreLocation.CERVIX_BETALING_PDF, betaalopdracht.getId());
 				betaalopdracht.setSepaSpecificatiePdf(document);
 
 				String sepaNaam = betaalopdracht.getBetalingskenmerk() + "-sepa";
@@ -320,7 +320,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 				document.setNaam(sepaNaam + "." + sepaSuffix);
 				document.setContentType("application/pdf");
 				document.setFile(sepaBestand);
-				fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.CERVIX_BETALING_SEPA, betaalopdracht.getId());
+				uploadDocumentService.saveOrUpdate(document, FileStoreLocation.CERVIX_BETALING_SEPA, betaalopdracht.getId());
 				betaalopdracht.setSepaDocument(document);
 				betaalopdracht.setHashtotaal(hashtotaal);
 				betaalopdracht.setStatus(BestandStatus.VERWERKT);
@@ -374,48 +374,19 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			.filter(b -> b.getHuisartsLocatie() != null)
 			.map(CervixBetaalopdrachtRegel::getSpecificaties).flatMap(Collection::stream)
 			.map(CervixBetaalopdrachtRegelSpecificatie::getBoekRegels).flatMap(Collection::stream)
-			.forEach(boekRegel -> {
-				huisartsenportaalSyncService.sendJmsBericht(CervixHuisartsToDtoUtil.getVerrichtingDto(boekRegel.getVerrichting()));
-			});
+			.forEach(boekRegel ->
+			huisartsenportaalSyncService.sendJmsBericht(CervixHuisartsToDtoUtil.getVerrichtingDto(boekRegel.getVerrichting())));
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void verwijderSepaBestanden(CervixBetaalopdracht betaalopdracht, InstellingGebruiker loggedInInstellingGebruiker)
+	public void verwijderSepaBestanden(CervixBetaalopdracht betaalopdracht, InstellingGebruiker loggedInInstellingGebruiker) throws JsonProcessingException
 	{
-		for (CervixBetaalopdrachtRegel opdrachtRegel : betaalopdracht.getBetaalopdrachtRegels())
-		{
-			for (CervixBetaalopdrachtRegelSpecificatie specificatie : opdrachtRegel.getSpecificaties())
-			{
-				for (CervixBoekRegel boekRegel : specificatie.getBoekRegels())
-				{
-					boekRegel.setSpecificatie(null);
-					hibernateService.saveOrUpdate(boekRegel);
-					if (boekRegel.getVerrichting().getType() == CervixTariefType.HUISARTS_UITSTRIJKJE)
-					{
-						huisartsenportaalSyncService.sendJmsBericht(CervixHuisartsToDtoUtil.getVerrichtingDto(boekRegel.getVerrichting()));
-					}
-				}
-				specificatie.getBoekRegels().clear();
-			}
-		}
+		betaalopdracht.setStatus(BestandStatus.BEZIG_MET_VERWIJDEREN);
+		hibernateService.saveOrUpdate(betaalopdracht);
 
-		UploadDocument sepaDocument = betaalopdracht.getSepaDocument();
-
-		UploadDocument sepaSpecificatiePdf = betaalopdracht.getSepaSpecificatiePdf();
-		betaalopdracht.setSepaDocument(null);
-		betaalopdracht.setSepaSpecificatiePdf(null);
-		if (sepaDocument != null)
-		{
-			fileService.delete(sepaDocument, true);
-		}
-		if (sepaSpecificatiePdf != null)
-		{
-			fileService.delete(sepaSpecificatiePdf, true);
-		}
-		hibernateService.delete(betaalopdracht);
-		logService.logGebeurtenis(LogGebeurtenis.CERVIX_BETAALOPDRACHT_VERWIJDERD, loggedInInstellingGebruiker, "Betalingskenmerk: " + betaalopdracht.getBetalingskenmerk(),
-			Bevolkingsonderzoek.CERVIX);
+		messageService.queueMessage(MessageType.VERWIJDER_BETAAL_OPDRACHT,
+			new VerwijderBetaalOpdrachtDto(betaalopdracht.getId()));
 	}
 
 	@Override
@@ -607,7 +578,7 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 			}
 			else if (nieuweTarief.getGeldigTotenmetDatum() != null
 				&& (oudeTarief.getGeldigTotenmetDatum() == null || (oudeTarief.getGeldigVanafDatum().before(nieuweTarief.getGeldigTotenmetDatum())
-					&& oudeTarief.getGeldigTotenmetDatum().after(nieuweTarief.getGeldigTotenmetDatum()))))
+				&& oudeTarief.getGeldigTotenmetDatum().after(nieuweTarief.getGeldigTotenmetDatum()))))
 			{
 				melding += "Oud " + CervixTariefUtil.getTariefString(oudeTarief);
 				oudeTarief.setGeldigVanafDatum(DateUtil.toUtilDate(DateUtil.toLocalDate(nieuweTarief.getGeldigTotenmetDatum()).plusDays(1)));

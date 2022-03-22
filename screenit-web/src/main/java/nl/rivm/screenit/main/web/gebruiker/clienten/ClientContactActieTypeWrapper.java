@@ -27,7 +27,6 @@ import java.util.Arrays;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix.CervixClientContactAanvragenNieuweZASPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix.CervixClientContactAfmeldenPanel;
-import nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix.CervixClientContactFrisseStartPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix.CervixClientContactHeraanmeldenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix.CervixClientContactHerdrukPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.cervix.CervixClientContactUitstelPanel;
@@ -39,6 +38,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonClientCon
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonHuisartsWijzigenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactBezwaarPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactClientGegevensAanvragenPanel;
+import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactDeelnamewensenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactInzagePersoonsgegevensPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactTijdelijkAdresPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.mamma.MammaClientContactAfmeldenPanel;
@@ -56,455 +56,452 @@ import nl.rivm.screenit.model.enums.Recht;
 
 public enum ClientContactActieTypeWrapper
 {
-
 	GEEN(ClientContactActieType.GEEN, null, null, null)
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return getFullExclusieArrayWithoutSelf(ClientContactActieTypeWrapper.GEEN);
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return getFullExclusieArrayWithoutSelf(ClientContactActieTypeWrapper.GEEN);
+			}
+		},
 
 	OPNIEUW_AANVRAGEN_CLIENTGEGEVENS(
 		ClientContactActieType.OPNIEUW_AANVRAGEN_CLIENTGEGEVENS,
 		ClientContactClientGegevensAanvragenPanel.class,
 		Recht.GEBRUIKER_GBA_AANVRAGEN,
 		"icon-refresh")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.COLON_AFMELDEN,
-				ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.COLON_AFMELDEN,
+					ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
 
-		}
-	},
+			}
+		},
 
 	TIJDELIJK_ADRES(ClientContactActieType.TIJDELIJK_ADRES, ClientContactTijdelijkAdresPanel.class, Recht.GEBRUIKER_CLIENT_GEGEVENS, "icon-home")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	COLON_AFMELDEN(ClientContactActieType.COLON_AFMELDEN, ColonClientContactAfmeldenPanel.class, Recht.GEBRUIKER_CLIENT_COLON_AFMELDEN, "icon-ban-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.COLON_HERAANMELDEN,
-				ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN, ClientContactActieTypeWrapper.COLON_AANVRAGEN_NIEUWE_IFOBT,
-				ClientContactActieTypeWrapper.COLON_NIEUWE_AFSPRAAK_AANMAKEN, ClientContactActieTypeWrapper.OPNIEUW_AANVRAGEN_CLIENTGEGEVENS };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.COLON_HERAANMELDEN,
+					ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN, ClientContactActieTypeWrapper.COLON_AANVRAGEN_NIEUWE_IFOBT,
+					ClientContactActieTypeWrapper.COLON_NIEUWE_AFSPRAAK_AANMAKEN, ClientContactActieTypeWrapper.OPNIEUW_AANVRAGEN_CLIENTGEGEVENS };
+			}
+		},
 
 	COLON_HERAANMELDEN(ClientContactActieType.COLON_HERAANMELDEN, ColonClientContactHeraanmeldenPanel.class, Recht.GEBRUIKER_CLIENT_COLON_HERAANMELDEN, "icon-ok-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.COLON_AFMELDEN,
-				ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN, ClientContactActieTypeWrapper.COLON_AANVRAGEN_NIEUWE_IFOBT,
-				ClientContactActieTypeWrapper.COLON_NIEUWE_AFSPRAAK_AANMAKEN, ClientContactActieTypeWrapper.OPNIEUW_AANVRAGEN_CLIENTGEGEVENS };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.COLON_AFMELDEN,
+					ClientContactActieTypeWrapper.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN, ClientContactActieTypeWrapper.COLON_AANVRAGEN_NIEUWE_IFOBT,
+					ClientContactActieTypeWrapper.COLON_NIEUWE_AFSPRAAK_AANMAKEN, ClientContactActieTypeWrapper.OPNIEUW_AANVRAGEN_CLIENTGEGEVENS };
+			}
+		},
 
 	COLON_AANVRAGEN_NIEUWE_IFOBT(
 		ClientContactActieType.COLON_AANVRAGEN_NIEUWE_IFOBT,
 		ColonClientContactAanvragenNieuweIFOBTPanel.class,
 		Recht.GEBRUIKER_CLIENT_SR_NIEUWE_IFOBT_AANVRAGEN,
 		"icon-repeat")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.COLON_AFMELDEN,
-				ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.COLON_AFMELDEN,
+					ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
+			}
+		},
 
 	COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN(
 		ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN,
 		ColonClientContactAfspraakWijzigenPanel.class,
 		Recht.GEBRUIKER_CLIENT_SR_INTAKEAFSPRAAKGEMAAKT,
 		"icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.COLON_AFMELDEN,
-				ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.COLON_AFMELDEN,
+					ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
+			}
+		},
 
 	COLON_NIEUWE_AFSPRAAK_AANMAKEN(
 		ClientContactActieType.COLON_NIEUWE_AFSPRAAK_AANMAKEN,
 		ColonClientContactNieuweAfspraakAanmakenPanel.class,
 		Recht.GEBRUIKER_CLIENT_SR_NIEUWE_INTAKEAFSPRAAKGEMAAKT,
 		"icon-nieuwe-afspraak")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.COLON_AFMELDEN,
-				ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.COLON_AFMELDEN,
+					ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
+			}
+		},
 
 	COLON_HUISARTS_WIJZIGEN(ClientContactActieType.COLON_HUISARTS_WIJZIGEN, ColonHuisartsWijzigenPanel.class, Recht.GEBRUIKER_WIJZIGEN_HUISARTS, "icon-edit")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	COLON_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN(
 		ClientContactActieType.COLON_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN,
 		null,
 		Recht.CLIENT_AANVRAAG_VERWIJDEREN_UITSLAG_BRIEF,
 		"icon-repeat")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	BEZWAAR(ClientContactActieType.BEZWAAR, ClientContactBezwaarPanel.class, Recht.GEBRUIKER_CLIENT_BEZWAAR, "icon-ok-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	INZAGE_PERSOONSGEGEVENS(
 		ClientContactActieType.INZAGE_PERSOONSGEGEVENS,
 		ClientContactInzagePersoonsgegevensPanel.class,
 		Recht.GEBRUIKER_AANVRAAG_OVERDRACHT_PERSOONSGEGEVENS,
 		"icon-refresh")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
+
+	DEELNAMEWENSEN(ClientContactActieType.DEELNAMEWENSEN, ClientContactDeelnamewensenPanel.class, Recht.GEBRUIKER_CLIENT_DEELNAMEWENS_REGISTREREN, null)
+		{
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	CERVIX_DEELNAME_BUITEN_BVO_BMHK(ClientContactActieType.CERVIX_DEELNAME_BUITEN_BVO_BMHK, null, Recht.GEBRUIKER_CLIENT_CERVIX_AANMELDEN_DEELNAME_BUITEN_BVO_BMHK, null)
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return getFullExclusieArrayWithoutSelf(ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK);
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return getFullExclusieArrayWithoutSelf(ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK);
+			}
+		},
 
 	CERVIX_AFMELDEN(ClientContactActieType.CERVIX_AFMELDEN, CervixClientContactAfmeldenPanel.class, Recht.GEBRUIKER_CLIENT_CERVIX_AFMELDEN, "icon-ban-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.CERVIX_HERAANMELDEN,
-				ClientContactActieTypeWrapper.CERVIX_UITSTEL, ClientContactActieTypeWrapper.CERVIX_ZAS_AANVRAGEN, ClientContactActieTypeWrapper.CERVIX_FRISSE_START,
-				ClientContactActieTypeWrapper.CERVIX_HERDRUK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.CERVIX_HERAANMELDEN,
+					ClientContactActieTypeWrapper.CERVIX_UITSTEL, ClientContactActieTypeWrapper.CERVIX_ZAS_AANVRAGEN,
+					ClientContactActieTypeWrapper.CERVIX_HERDRUK };
+			}
+		},
 
 	CERVIX_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN(
 		ClientContactActieType.CERVIX_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN,
 		null,
 		Recht.CLIENT_AANVRAAG_VERWIJDEREN_UITSLAG_BRIEF,
 		"icon-repeat")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	CERVIX_HERAANMELDEN(ClientContactActieType.CERVIX_HERAANMELDEN, CervixClientContactHeraanmeldenPanel.class, Recht.GEBRUIKER_CLIENT_CERVIX_HERAANMELDEN, "icon-ok-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.CERVIX_AFMELDEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.CERVIX_AFMELDEN };
+			}
+		},
 
 	CERVIX_UITSTEL(ClientContactActieType.CERVIX_UITSTEL, CervixClientContactUitstelPanel.class, Recht.GEBRUIKER_CLIENT_UITSTEL, "icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK, CERVIX_AFMELDEN,
-				CERVIX_ZAS_AANVRAGEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK, CERVIX_AFMELDEN,
+					CERVIX_ZAS_AANVRAGEN };
+			}
+		},
 
 	CERVIX_ZAS_AANVRAGEN(ClientContactActieType.CERVIX_ZAS_AANVRAGEN, CervixClientContactAanvragenNieuweZASPanel.class, Recht.GEBRUIKER_CERVIX_CLIENT_ZAS_AANVRAGEN, "icon-refresh")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.CERVIX_AFMELDEN,
-				ClientContactActieTypeWrapper.CERVIX_UITSTEL };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.CERVIX_AFMELDEN,
+					ClientContactActieTypeWrapper.CERVIX_UITSTEL };
+			}
+		},
 
 	CERVIX_HERDRUK(ClientContactActieType.CERVIX_HERDRUK, CervixClientContactHerdrukPanel.class, Recht.GEBRUIKER_CERVIX_CLIENT_HERDRUK, "icon-repeat")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.CERVIX_AFMELDEN,
-				ClientContactActieTypeWrapper.CERVIX_FRISSE_START };
-		}
-	},
-
-	CERVIX_FRISSE_START(ClientContactActieType.CERVIX_FRISSE_START, CervixClientContactFrisseStartPanel.class, Recht.GEBRUIKER_CERVIX_CLIENT_HERDRUK, "icon-repeat")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
-		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.CERVIX_AFMELDEN,
-				ClientContactActieTypeWrapper.CERVIX_HERDRUK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.CERVIX_AFMELDEN };
+			}
+		},
 
 	MAMMA_AFMELDEN(ClientContactActieType.MAMMA_AFMELDEN, MammaClientContactAfmeldenPanel.class, Recht.GEBRUIKER_CLIENT_MAMMA_AFMELDEN, "icon-ban-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_HERAANMELDEN(ClientContactActieType.MAMMA_HERAANMELDEN, MammaClientContactHeraanmeldenPanel.class, Recht.GEBRUIKER_CLIENT_MAMMA_AFMELDEN, "icon-ok-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_RONDE_FORCEREN(ClientContactActieType.MAMMA_RONDE_FORCEREN, MammaClientContactRondeForcerenPanel.class, Recht.GEBRUIKER_CLIENT_MAMMA_RONDE_FORCEREN, "icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
-				ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN,
-				ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
+					ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN,
+					ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS(
 		ClientContactActieType.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
 		null,
 		Recht.GEBRUIKER_CLIENT_MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
 		"icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_INFOBRIEF_PROTHESEN(
 		ClientContactActieType.MAMMA_INFOBRIEF_PROTHESEN,
 		null,
 		Recht.GEBRUIKER_CLIENT_MAMMA_INFOBRIEF_PROTHESEN,
 		"icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	MAMMA_AFSPRAAK_MAKEN(ClientContactActieType.MAMMA_AFSPRAAK_MAKEN, MammaClientContactAfspraakMakenPanel.class, Recht.GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_MAKEN, "icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN,
-				MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG, MAMMA_VERZOEK_CLIENT_CONTACT };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN,
+					MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG, MAMMA_VERZOEK_CLIENT_CONTACT };
+			}
+		},
 
 	MAMMA_AFSPRAAK_WIJZIGEN(
 		ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN,
 		MammaClientContactAfspraakWijzigenPanel.class,
 		Recht.GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_WIJZIGEN,
 		"icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
-				ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG,
-				ClientContactActieTypeWrapper.MAMMA_VERZOEK_CLIENT_CONTACT, ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
-				ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
+					ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG,
+					ClientContactActieTypeWrapper.MAMMA_VERZOEK_CLIENT_CONTACT, ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
+					ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_DOELGROEP_WIJZIGEN(
 		ClientContactActieType.MAMMA_DOELGROEP_WIJZIGEN,
 		MammaClientContactDoelgroepVastleggenPanel.class,
 		Recht.GEBRUIKER_CLIENT_MAMMA_DOELGROEP_WIJZIGEN,
 		"icon-ok-circle")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
-				ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_NIET_MEER_ZIEKENHUIS,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
+					ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_NIET_MEER_ZIEKENHUIS,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_HUISARTS_WIJZIGEN(ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN, MammaHuisartsWijzigenPanel.class, Recht.GEBRUIKER_WIJZIGEN_HUISARTS, "icon-edit")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK };
+			}
+		},
 
 	MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG(
 		ClientContactActieType.MAMMA_CLIENT_WIL_GEEN_VERVOLG_ONDERZOEK,
 		MammaClientContactWilGeenVervolgOnderzoekPanel.class,
 		Recht.GEBRUIKER_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG,
 		"icon-edit")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
-				ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_VERZOEK_CLIENT_CONTACT, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
+					ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_VERZOEK_CLIENT_CONTACT,
+					ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_VERZOEK_CLIENT_CONTACT(
 		ClientContactActieType.MAMMA_VERZOEK_CLIENT_CONTACT,
 		MammaClientContactVerzoekOmContactPanel.class,
 		Recht.GEBRUIKER_CLIENT_OPROEP_NA_ONDERBROKEN_ONDERZOEK,
 		"icon-edit")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
-				ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG,
-				ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
+					ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG,
+					ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN };
+			}
+		},
 
 	MAMMA_AFSPRAAK_MAKEN_FORCEREN(
 		ClientContactActieType.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
 		MammaClientContactAfspraakMakenPanel.class,
 		Recht.GEBRUIKER_CLIENT_MAMMA_AFSPRAAK_MAKEN_FORCEREN,
 		"icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
-				ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
-				ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG, MAMMA_VERZOEK_CLIENT_CONTACT };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_HERBEOORDELEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
+					ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
+					ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG, MAMMA_VERZOEK_CLIENT_CONTACT };
+			}
+		},
 
 	MAMMA_HERBEOORDELEN(
 		ClientContactActieType.MAMMA_HERBEOORDELEN,
 		MammaClientContactHerbeoordelenPanel.class,
 		Recht.GEBRUIKER_CLIENT_MAMMA_HERBEOORDELEN,
 		"icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
-				ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
-				ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG, MAMMA_VERZOEK_CLIENT_CONTACT };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN, ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN,
+					ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN, ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS,
+					ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN, MAMMA_CLIENT_WIL_GEEN_ONDERZOEK_VERVOLG, MAMMA_VERZOEK_CLIENT_CONTACT };
+			}
+		},
 
 	MAMMA_MINDER_VALIDE_NIET_MEER_ZIEKENHUIS(
 		ClientContactActieType.MAMMA_MINDER_VALIDE_NIET_MEER_ZIEKENHUIS,
 		null,
 		Recht.GEBRUIKER_CLIENT_MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS_TERUGDRAAIEN,
 		"icon-calendar")
-	{
-		@Override
-		public ClientContactActieTypeWrapper[] getExclusie()
 		{
-			return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
-				ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN };
-		}
-	},
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_WIJZIGEN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFMELDEN, ClientContactActieTypeWrapper.MAMMA_HERAANMELDEN, ClientContactActieTypeWrapper.MAMMA_RONDE_FORCEREN,
+					ClientContactActieTypeWrapper.MAMMA_AFSPRAAK_MAKEN, ClientContactActieTypeWrapper.MAMMA_DOELGROEP_WIJZIGEN };
+			}
+		},
 	;
 
 	private static ClientContactActieTypeWrapper[] getFullExclusieArrayWithoutSelf(ClientContactActieTypeWrapper self)

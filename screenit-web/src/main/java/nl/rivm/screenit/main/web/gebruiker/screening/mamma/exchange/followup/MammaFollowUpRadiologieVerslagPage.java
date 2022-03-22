@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
@@ -85,10 +87,9 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.StringValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+@Slf4j
 @SecurityConstraint(
 	constraint = ShiroConstraint.HasPermission,
 	checkScope = true,
@@ -97,8 +98,6 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	organisatieTypeScopes = { OrganisatieType.RADIOLOGIEAFDELING, OrganisatieType.MAMMAPOLI, OrganisatieType.ZORGINSTELLING })
 public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaFollowUpRadiologieVerslagPage.class);
-
 	private WebMarkupContainer passport = null;
 
 	private WebMarkupContainer contentContainer = null;
@@ -120,14 +119,23 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 	@SpringBean
 	private SimplePreferenceService preferenceService;
 
-	private TransparentWebMarkupContainer fragments;
+	private final TransparentWebMarkupContainer fragments;
 
-	private IModel<Instelling> instellingModel;
+	private final IModel<Instelling> instellingModel;
 
 	private IModel<MammaFollowUpDoorverwezenFilterOptie> doorverwezenFilterOptieModel;
 
 	public MammaFollowUpRadiologieVerslagPage()
 	{
+		if (ScreenitSession.get().isZoekObjectGezetForComponent(MammaFollowUpRadiologieVerslagPage.class))
+		{
+			doorverwezenFilterOptieModel = (IModel<MammaFollowUpDoorverwezenFilterOptie>) ScreenitSession.get().getZoekObject(MammaFollowUpRadiologieVerslagPage.class);
+		}
+		if (doorverwezenFilterOptieModel == null || doorverwezenFilterOptieModel.getObject() == null)
+		{
+			doorverwezenFilterOptieModel = Model.of(MammaFollowUpDoorverwezenFilterOptie.ALLES);
+		}
+
 		instellingModel = ModelUtil.sModel(ScreenitSession.get().getLoggedInInstellingGebruiker().getOrganisatie());
 		createEmptyPassportContainer();
 		createEmptyContentContainer();
@@ -165,7 +173,7 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 	{
 		MammaScreeningRonde screeningRonde = screeningrondeService.getLaatsteScreeningRondeMetUitslag(clientOpt.getObject());
 
-		WebMarkupContainer nieuwePanel = null;
+		WebMarkupContainer nieuwePanel;
 		if (screeningRonde == null)
 		{
 			nieuwePanel = new GeenScreeningRondePanel("content");
@@ -177,7 +185,7 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 		else
 		{
 			nieuwePanel = new FormulierPanel("content",
-				ModelUtil.cModel(uitwisselportaalService.getFollowUpRadiologieVerslag(screeningRonde, ScreenitSession.get().getLoggedInInstellingGebruiker())));
+				ModelUtil.ccModel(uitwisselportaalService.getFollowUpRadiologieVerslag(screeningRonde, ScreenitSession.get().getLoggedInInstellingGebruiker())));
 		}
 		nieuwePanel.setOutputMarkupId(true);
 		contentContainer.replaceWith(nieuwePanel);
@@ -219,7 +227,7 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 		columns.add(new PropertyColumn<>(Model.of("Bsn"), "screeningRonde.dossier.client.persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("screeningRonde.dossier.client.persoon"));
 		columns.add(new PropertyColumn<>(Model.of("Beelden gedownload op"), "aangemaaktOp", "aangemaaktOp"));
-		columns.add(new NotClickablePropertyColumn<MammaFollowUpRadiologieVerslag, String>(Model.of("Urgentie"), "")
+		columns.add(new NotClickablePropertyColumn<>(Model.of("Urgentie"), "")
 		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MammaFollowUpRadiologieVerslag>> item, String componentId, IModel<MammaFollowUpRadiologieVerslag> rowModel)
@@ -237,7 +245,7 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 			}
 		});
 
-		ScreenitDataTable<MammaFollowUpRadiologieVerslag, String> openstaandeRadiologieVerslagenTabel = new ScreenitDataTable<MammaFollowUpRadiologieVerslag, String>(
+		ScreenitDataTable<MammaFollowUpRadiologieVerslag, String> openstaandeRadiologieVerslagenTabel = new ScreenitDataTable<>(
 			"openstaandeRadiologieVerslagenTabel", columns,
 			followUpDataRegioProvider, 10, Model.of("radiologieverslag(en)"))
 		{
@@ -254,7 +262,6 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 
 	private void createDoorverwezenFilter()
 	{
-		doorverwezenFilterOptieModel = Model.of(MammaFollowUpDoorverwezenFilterOptie.ALLES);
 		RadioChoice<MammaFollowUpDoorverwezenFilterOptie> doorverwezenFilter = new RadioChoice<>("doorverwezenFilter", doorverwezenFilterOptieModel,
 			Arrays.asList(MammaFollowUpDoorverwezenFilterOptie.values()),
 			new EnumChoiceRenderer<>(this));
@@ -268,6 +275,7 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 			@Override
 			protected void onUpdate(AjaxRequestTarget ajaxRequestTarget)
 			{
+				ScreenitSession.get().setZoekObject(MammaFollowUpRadiologieVerslagPage.class, doorverwezenFilterOptieModel);
 				ajaxRequestTarget.add(openstaandeRadiologieVerslagenContainer);
 			}
 		});
@@ -284,8 +292,6 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 
 	private class GeenScreeningRondePanel extends Fragment
 	{
-		private static final long serialVersionUID = 1L;
-
 		public GeenScreeningRondePanel(String id)
 		{
 			super(id, "geenScreeningRondeFragment", fragments);
@@ -294,8 +300,6 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 
 	private class GeenBeeldenGedownloadedPanel extends Fragment
 	{
-		private static final long serialVersionUID = 1L;
-
 		public GeenBeeldenGedownloadedPanel(String id, IModel<MammaScreeningRonde> model)
 		{
 			super(id, "geenBeeldenGedownloadedFragment", fragments, model);
@@ -311,7 +315,7 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 					if (followUpRadiologieVerslag == null)
 					{
 						MammaFollowUpRadiologieVerslag radiologieVerslag = new MammaFollowUpRadiologieVerslag();
-						model = ModelUtil.cModel(radiologieVerslag);
+						model = ModelUtil.ccModel(radiologieVerslag);
 						radiologieVerslag = model.getObject();
 						radiologieVerslag.setAangemaaktIn(ScreenitSession.get().getInstelling());
 						radiologieVerslag.setAangemaaktOp(dateSupplier.getDate());
@@ -320,7 +324,7 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 					}
 					else
 					{
-						model = ModelUtil.cModel(followUpRadiologieVerslag);
+						model = ModelUtil.ccModel(followUpRadiologieVerslag);
 					}
 
 					WebMarkupContainer nieuwePanel = new FormulierPanel("content", model);
@@ -336,8 +340,6 @@ public class MammaFollowUpRadiologieVerslagPage extends MammaExchangeBasePage
 
 	private class FormulierPanel extends Fragment
 	{
-		private static final long serialVersionUID = 1L;
-
 		public FormulierPanel(String id, IModel<MammaFollowUpRadiologieVerslag> verslagModel)
 		{
 			super(id, "formulier", fragments, verslagModel);

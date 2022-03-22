@@ -35,7 +35,7 @@ import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.StringUtil;
@@ -64,7 +64,7 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;
@@ -159,7 +159,7 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 		List<UploadDocument> exports = getExports();
 		for (UploadDocument export : exports)
 		{
-			fileService.delete(export, true);
+			uploadDocumentService.delete(export, true);
 		}
 	}
 
@@ -216,7 +216,7 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 		List<UploadDocument> imports = getImports();
 		for (UploadDocument importDoc : imports)
 		{
-			fileService.delete(importDoc, true);
+			uploadDocumentService.delete(importDoc, true);
 		}
 	}
 

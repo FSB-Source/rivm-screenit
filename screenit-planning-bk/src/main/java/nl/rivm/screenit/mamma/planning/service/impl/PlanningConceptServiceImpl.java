@@ -28,43 +28,28 @@ import java.util.Collection;
 import java.util.NavigableMap;
 import java.util.Set;
 
-import nl.rivm.screenit.exceptions.DryRunException;
-import nl.rivm.screenit.exceptions.OpslaanAfsprakenBuitenStandplaatsPeriodeException;
-import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
-import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningDag;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
-import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsOrganisatie;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 import nl.rivm.screenit.mamma.planning.model.PlanningWeek;
-import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
-import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingenRoute;
 
-import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service
 @Transactional(propagation = Propagation.SUPPORTS)
+@Service
+@Slf4j
 public class PlanningConceptServiceImpl implements PlanningConceptService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningConceptServiceImpl.class);
-
-	@Autowired
-	private PlanningConceptOpslaanService conceptOpslaanService;
-
-	@Autowired
-	SessionFactory sessionFactory;
 
 	@Override
 	public void herhalen(PlanningScreeningsEenheid screeningsEenheidVan, PlanningScreeningsEenheid screeningsEenheidNaar, PlanningWeek teHerhalenWeek, LocalDate herhalenVanaf,
@@ -89,6 +74,16 @@ public class PlanningConceptServiceImpl implements PlanningConceptService
 		else if (screeningsEenheidNaar.getHerhalingsWeek() != null)
 		{
 			screeningsEenheidNaar.setHerhalingsWeek(screeningsEenheidNaar.getWeek(herhalenTotEnMet.plusWeeks(1)));
+		}
+	}
+
+	@Override
+	public void herhalen(LocalDate herhalenVanaf)
+	{
+		for (PlanningScreeningsEenheid screeningsEenheid : PlanningScreeningsEenheidIndex.getScreeningsEenheden())
+		{
+			PlanningWeek herhalingsWeek = screeningsEenheid.getHerhalingsWeek();
+			herhaal(herhalingsWeek, screeningsEenheid, herhalenVanaf, null);
 		}
 	}
 
@@ -159,35 +154,6 @@ public class PlanningConceptServiceImpl implements PlanningConceptService
 			if (standplaatsPeriode != null)
 			{
 				wijzigingenRoute.setVanafStandplaatsPeriode(standplaatsPeriode);
-			}
-		}
-	}
-
-	@Override
-	public void herhalen(LocalDate herhalenVanaf)
-	{
-		for (PlanningScreeningsEenheid screeningsEenheid : PlanningScreeningsEenheidIndex.getScreeningsEenheden())
-		{
-			PlanningWeek herhalingsWeek = screeningsEenheid.getHerhalingsWeek();
-			herhaal(herhalingsWeek, screeningsEenheid, herhalenVanaf, null);
-		}
-	}
-
-	@Override
-	public void opslaan()
-	{
-		PlanningDoorrekenenManager.run();
-
-		for (PlanningScreeningsOrganisatie screeningsOrganisatie : PlanningScreeningsOrganisatieIndex.getScreeningsOrganisaties())
-		{
-			try
-			{
-				conceptOpslaanService.opslaan(screeningsOrganisatie.getId(), false);
-			}
-			catch (OpslaanVerwijderenTijdBlokException | OpslaanAfsprakenBuitenStandplaatsPeriodeException | DryRunException e)
-			{
-				LOG.error("Niet mogelijk om het concept op te slaan voor so: " + screeningsOrganisatie.getId(), e);
-				throw new IllegalStateException(e);
 			}
 		}
 	}

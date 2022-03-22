@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -27,6 +26,9 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.project.ProjectBrief;
 
 import org.hibernate.annotations.Cascade;
@@ -35,11 +37,10 @@ import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public abstract class ClientBrief<SR extends ScreeningRonde, AF extends Afmelding, CB extends ClientBrief> extends Brief
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@OneToOne(optional = true, fetch = FetchType.LAZY, mappedBy = "brief")
 	@Cascade({ CascadeType.SAVE_UPDATE, CascadeType.DELETE })
 	private ProjectBrief projectBrief;
@@ -50,16 +51,6 @@ public abstract class ClientBrief<SR extends ScreeningRonde, AF extends Afmeldin
 	@Cascade({ CascadeType.SAVE_UPDATE })
 	private Client client;
 
-	public Client getClient()
-	{
-		return client;
-	}
-
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
 	public abstract AF getAfmelding();
 
 	public abstract void setAfmelding(AF afmelding);
@@ -67,26 +58,6 @@ public abstract class ClientBrief<SR extends ScreeningRonde, AF extends Afmeldin
 	public abstract SR getScreeningRonde();
 
 	public abstract void setScreeningRonde(SR screeningRonde);
-
-	public ProjectBrief getProjectBrief()
-	{
-		return projectBrief;
-	}
-
-	public void setProjectBrief(ProjectBrief projectBrief)
-	{
-		this.projectBrief = projectBrief;
-	}
-
-	public boolean isVervangendeProjectBrief()
-	{
-		return vervangendeProjectBrief;
-	}
-
-	public void setVervangendeProjectBrief(boolean vervangendeProjectBrief)
-	{
-		this.vervangendeProjectBrief = vervangendeProjectBrief;
-	}
 
 	public abstract CB getHerdruk();
 

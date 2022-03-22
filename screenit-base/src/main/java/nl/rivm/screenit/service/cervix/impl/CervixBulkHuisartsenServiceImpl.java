@@ -33,6 +33,8 @@ import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.cervix.CervixHuisartsBaseDao;
 import nl.rivm.screenit.huisartsenportaal.dto.HuisartsDto;
 import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
@@ -55,11 +57,10 @@ import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixBulkHuisartsenService;
 import nl.rivm.screenit.util.CodeGenerator;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
@@ -68,8 +69,6 @@ import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThre
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.NonUniqueResultException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -77,14 +76,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixBulkHuisartsenServiceImpl.class);
-
-	private ExecutorService executorService;
+	private final ExecutorService executorService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -93,7 +90,7 @@ public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenServ
 	private LogService logService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private BaseBriefService briefService;
@@ -106,9 +103,6 @@ public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenServ
 
 	@Autowired
 	private CervixHuisartsBaseDao cervixHuisartsDao;
-
-	@Autowired
-	private BerichtToBatchService berichtToBatchService;
 
 	public CervixBulkHuisartsenServiceImpl()
 	{
@@ -134,7 +128,7 @@ public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenServ
 		try
 		{
 			UploadDocument document = bulkUpload.getDocument();
-			File file = fileService.load(document);
+			File file = uploadDocumentService.load(document);
 			try (FileInputStream fileInputStream = new FileInputStream(file);)
 			{
 				logging(LogGebeurtenis.BULK_HUISARTSEN_VERWERKING_GESTART, null);
@@ -436,7 +430,7 @@ public class CervixBulkHuisartsenServiceImpl implements CervixBulkHuisartsenServ
 		document.setActief(true);
 		document.setContentType(contentType);
 		document.setFile(file);
-		fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.CERVIX_BULK_HUISARTSEN);
+		uploadDocumentService.saveOrUpdate(document, FileStoreLocation.CERVIX_BULK_HUISARTSEN);
 
 		CervixBulkUpload upload = new CervixBulkUpload();
 		upload.setGebruiker(gebruiker);

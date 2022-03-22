@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.component.panels;
 
 /*-
@@ -26,6 +25,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import nl.rivm.screenit.ApplicationEnvironment;
 import nl.rivm.screenit.main.web.ScreenitApplication;
 
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +65,7 @@ public class ApplicatieInfoPanel extends Panel
 
 	private String omgevingTekst()
 	{
-		String omgevingTekst = applicationEnvironment.equalsIgnoreCase("PRODUCTIE") ? null : applicationEnvironment;
+		String omgevingTekst = ApplicationEnvironment.PROD.getEnvNaam().equalsIgnoreCase(applicationEnvironment) ? null : applicationEnvironment;
 		return Stream.of(omgevingTekst, applicatieInstance).filter(Objects::nonNull).collect(Collectors.joining(" - "));
 	}
 }

@@ -23,7 +23,6 @@ package nl.rivm.screenit.huisartsenportaal.model.enums;
 
 public enum AanmeldStatus
 {
-
 	AANGEMAAKT,
 
 	REGISTRATIE_KLAARGEZET,

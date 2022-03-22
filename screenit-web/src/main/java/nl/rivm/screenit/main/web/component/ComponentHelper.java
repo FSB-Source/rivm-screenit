@@ -66,8 +66,8 @@ import org.apache.wicket.validation.validator.StringValidator;
 import org.joda.time.DateTime;
 import org.joda.time.MutableDateTime;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
-import org.wicketstuff.wiquery.ui.datepicker.DatePickerYearRange;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker.ShowOnEnum;
+import org.wicketstuff.wiquery.ui.datepicker.DatePickerYearRange;
 
 import com.google.common.base.Joiner;
 
@@ -242,7 +242,13 @@ public final class ComponentHelper
 	public static CheckBox newCheckBox(String id, IModel<Boolean> model)
 	{
 		return new CheckBox(id, model);
+	}
 
+	public static CheckBox newCheckBox(String id, IModel<Boolean> model, boolean enabled)
+	{
+		CheckBox checkBox = new CheckBox(id, model);
+		checkBox.setEnabled(enabled);
+		return checkBox;
 	}
 
 	public static TextArea<String> newTextArea(String id, int maxLength)

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {addBusinessDays, addDays, addMonths, max, min, startOfDay, subMonths} from "date-fns"
+import {addBusinessDays, addDays, addMonths, max, min, startOfDay, subDays, subMonths} from "date-fns"
 import {isNullOfUndefined} from "./EmptyUtil"
 import {cpStore} from "../index"
 
@@ -76,6 +76,10 @@ export const formatDateTime = (datum?: Date | null): string => {
 
 export const plusDagen = (datum: Date, dagen: number): Date => {
 	return addDays(datum, dagen)
+}
+
+export const minDagen = (datum: Date, dagen: number): Date => {
+	return subDays(datum, dagen)
 }
 
 export const plusMaanden = (datum: Date, maanden: number): Date => {

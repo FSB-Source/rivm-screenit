@@ -22,6 +22,7 @@ package nl.rivm.screenit.service.cervix.impl;
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
@@ -44,6 +45,7 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixAfmeldService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -108,10 +110,9 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 		for (CervixUitnodiging uitnodiging : ronde.getUitnodigingen())
 		{
 			CervixBrief brief = uitnodiging.getBrief();
-			if (!brief.isGegenereerd() || !uitnodiging.isVerstuurd())
+			if (!BriefUtil.isGegenereerd(brief) || !uitnodiging.isVerstuurd())
 			{
-				brief.setTegenhouden(true);
-				hibernateService.saveOrUpdate(brief);
+				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 			}
 		}
 	}
@@ -130,11 +131,12 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 	@Override
 	public void vervolgHeraanmelden(CervixAfmelding herAanTeMeldenAfmelding, Account account)
 	{
+		LocalDateTime creatieDatum = currentDateSupplier.getLocalDateTime().plus(200, ChronoUnit.MILLIS);
+
 		if (herAanTeMeldenAfmelding.getType() == AfmeldingType.DEFINITIEF)
 		{
-			herAanTeMeldenAfmelding.setHeraanmeldBevestiging(
-				briefService.maakBvoBrief(herAanTeMeldenAfmelding, BriefType.CERVIX_HERAANMELDING_BEVESTIGING,
-					DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().plus(200, ChronoUnit.MILLIS))));
+			CervixBrief brief = briefService.maakBvoBrief(herAanTeMeldenAfmelding, BriefType.CERVIX_HERAANMELDING_BEVESTIGING, DateUtil.toUtilDate(creatieDatum));
+			herAanTeMeldenAfmelding.setHeraanmeldBevestiging(brief);
 			hibernateService.saveOrUpdate(herAanTeMeldenAfmelding);
 		}
 
@@ -152,14 +154,18 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 					return;
 				}
 				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, true);
+				LocalDate geboorteDatum = DateUtil.toLocalDate(ronde.getDossier().getClient().getPersoon().getGeboortedatum());
+				if (CervixLeeftijdcategorie.getLeeftijd(geboorteDatum, creatieDatum) < 30)
+				{
+					return;
+				}
 
 				CervixBrief brief;
 				boolean herinneren = true;
 				if (laatsteUitnodiging != null)
 				{
 					CervixBrief laatsteUitnodigingBrief = laatsteUitnodiging.getBrief();
-					brief = briefService.maakBvoBrief(ronde, laatsteUitnodigingBrief.getBriefType(),
-						DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().plus(200, ChronoUnit.MILLIS)));
+					brief = briefService.maakBvoBrief(ronde, laatsteUitnodigingBrief.getBriefType(), DateUtil.toUtilDate(creatieDatum));
 					brief.setHerdruk(laatsteUitnodigingBrief);
 					hibernateService.saveOrUpdate(brief);
 
@@ -167,8 +173,8 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 				}
 				else
 				{
-					brief = briefService.maakBvoBrief(ronde, BriefType.CERVIX_UITNODIGING,
-						DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().plus(200, ChronoUnit.MILLIS)));
+					CervixLeeftijdcategorie leeftijdcategorie = CervixLeeftijdcategorie.getLeeftijdcategorie(geboorteDatum, creatieDatum);
+					brief = briefService.maakBvoBrief(ronde, leeftijdcategorie.getUitnodigingsBrief(), DateUtil.toUtilDate(creatieDatum));
 				}
 
 				cervixFactory.maakUitnodiging(ronde, brief, herinneren, true);
@@ -187,7 +193,7 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 			CervixDossier dossier = herAanTeMeldenAfmelding.getDossier();
 			Client client = dossier.getClient();
 			CervixScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-			if (ronde != null && DateUtil.compareBefore(herAanTeMeldenAfmelding.getHeraanmeldDatum(), dossier.getVolgendeRondeVanaf()))
+			if (ronde != null && (dossier.getVolgendeRondeVanaf() == null || DateUtil.compareBefore(herAanTeMeldenAfmelding.getHeraanmeldDatum(), dossier.getVolgendeRondeVanaf())))
 			{
 				return ronde;
 			}

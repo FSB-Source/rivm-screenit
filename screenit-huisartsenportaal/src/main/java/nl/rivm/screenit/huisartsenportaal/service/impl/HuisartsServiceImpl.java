@@ -37,7 +37,6 @@ import nl.rivm.screenit.huisartsenportaal.repository.HuisartsRepository;
 import nl.rivm.screenit.huisartsenportaal.service.AdresService;
 import nl.rivm.screenit.huisartsenportaal.service.HuisartsService;
 import nl.rivm.screenit.huisartsenportaal.service.LocatieService;
-import nl.rivm.screenit.huisartsenportaal.service.WoonplaatsService;
 import nl.rivm.screenit.huisartsenportaal.util.CodeGenerator;
 
 import org.joda.time.DateTime;
@@ -64,9 +63,6 @@ public class HuisartsServiceImpl implements HuisartsService
 	private LocatieService locatieService;
 
 	@Autowired
-	private WoonplaatsService woonplaatsService;
-
-	@Autowired
 	private PasswordEncoder passwordEncoder;
 
 	@Autowired
@@ -82,7 +78,7 @@ public class HuisartsServiceImpl implements HuisartsService
 			huisarts.setGebruikersnaam(huisartsDto.getUsername());
 
 			String wachtwoord = huisartsDto.getWachtwoord();
-			updatePassword(huisarts, wachtwoord);
+			updateWachtwoord(huisarts, wachtwoord);
 
 			huisarts.getRollen().remove(Recht.ROLE_REGISTEREN);
 			huisarts.getRollen().add(Recht.ROLE_AANVRAGEN);
@@ -99,16 +95,13 @@ public class HuisartsServiceImpl implements HuisartsService
 		return huisarts;
 	}
 
-	public Huisarts updatePassword(Huisarts huisarts, String wachtwoord)
+	public Huisarts updateWachtwoord(Huisarts huisarts, String wachtwoord)
 	{
 		String encodedWachtwoord = passwordEncoder.encode(wachtwoord);
 		huisarts.setPassword(encodedWachtwoord);
 		huisarts.setInlogMethode(InlogMethode.USERNAME_PASSWORD);
 		huisarts.setAanmeldStatus(AanmeldStatus.GEREGISTREERD);
-		if (huisarts.getRollen().contains(Recht.ROLE_REGISTEREN))
-		{
-			huisarts.getRollen().remove(Recht.ROLE_REGISTEREN);
-		}
+		huisarts.getRollen().remove(Recht.ROLE_REGISTEREN);
 		if (!huisarts.getRollen().contains(Recht.ROLE_AANVRAGEN))
 		{
 			huisarts.getRollen().add(Recht.ROLE_AANVRAGEN);
@@ -134,7 +127,7 @@ public class HuisartsServiceImpl implements HuisartsService
 		{
 			huisarts = new Huisarts();
 		}
-		if(huisarts.getScreenitId() == null)
+		if (huisarts.getScreenitId() == null)
 		{
 			huisarts.setScreenitId(huisartsDto.getScreenitId());
 		}
@@ -198,9 +191,9 @@ public class HuisartsServiceImpl implements HuisartsService
 	}
 
 	@Override
-	public boolean controleerPassword(String rawPassword, String encodedPassword)
+	public boolean controleerWachtwoord(String plainWachtwoord, String encodedWachtwoord)
 	{
-		return passwordEncoder.matches(rawPassword, encodedPassword);
+		return passwordEncoder.matches(plainWachtwoord, encodedWachtwoord);
 	}
 
 	public void setPasswordEncoder(PasswordEncoder passwordEncoder)
@@ -209,13 +202,13 @@ public class HuisartsServiceImpl implements HuisartsService
 	}
 
 	@Override
-	public Huisarts getHuisartsWith(Long ScreenitId)
+	public Huisarts getHuisartsWith(Long screenitId)
 	{
-		return huisartsRepository.findByScreenitId(ScreenitId);
+		return huisartsRepository.findByScreenitId(screenitId);
 	}
 
 	@Override
-	public Integer increaseAttemps(Huisarts huisarts)
+	public Integer incrementAttempts(Huisarts huisarts)
 	{
 		Integer attempts = huisarts.getAttempts();
 		if (attempts == Medewerker.MAX_ATTEMPS)
@@ -229,7 +222,7 @@ public class HuisartsServiceImpl implements HuisartsService
 	}
 
 	@Override
-	public void resetAttemps(Huisarts huisarts)
+	public void resetAttempts(Huisarts huisarts)
 	{
 		huisarts.setAttempts(0);
 		huisarts.setLastAttemptDate(new Date());
@@ -237,7 +230,7 @@ public class HuisartsServiceImpl implements HuisartsService
 	}
 
 	@Override
-	public Long remainingMinutes(Huisarts huisarts)
+	public Long remainingMinutesLock(Huisarts huisarts)
 	{
 		Date lastAttempt = huisarts.getLastAttemptDate();
 		Date lockdownTime = new DateTime().minusMinutes(Medewerker.MAX_LOCKED).toDate();

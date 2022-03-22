@@ -373,7 +373,7 @@ public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLab
 	private void replaceHuisartsLocatie(AjaxRequestTarget target, CervixHuisartsLocatie huisartsLocatie)
 	{
 		CervixLabformulier labformulier = CervixLabformulierBasePanel.this.getModelObject();
-		CervixVervolg vervolg = vervolgService.bepaalVervolg(labformulier.getUitstrijkje());
+		CervixVervolg vervolg = vervolgService.bepaalVervolg(labformulier.getUitstrijkje(), null);
 		if (CervixLabformulierStatus.HUISARTS_ONBEKEND.equals(labformulier.getStatus()) && labformulier.getHuisartsLocatie() == null && huisartsLocatie != null
 			&& vervolg.getVervolgTekst() != null
 			&& CervixVervolgTekst.UITSTRIJKJE_HPV_POSITIEF_NAAR_CYTOLOGIE.getCssClass().equals(vervolg.getVervolgTekst().getCssClass()))

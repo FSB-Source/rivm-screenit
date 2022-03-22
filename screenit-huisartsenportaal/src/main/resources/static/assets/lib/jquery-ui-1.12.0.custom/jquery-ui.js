@@ -1450,7 +1450,7 @@ var uniqueId = $.fn.extend( {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 var ie = $.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
 
 /*!
@@ -1462,10 +1462,10 @@ var ie = $.ui.ie = !!/msie [\w.]+/.exec( navigator.userAgent.toLowerCase() );
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var mouseHandled = false;
 $( document ).on( "mouseup", function() {
@@ -1498,7 +1498,7 @@ var widgetsMouse = $.widget( "ui.mouse", {
 	},
 
 	// TODO: make sure destroying one instance of mouse doesn't mess with
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_mouseDestroy: function() {
 		this.element.off( "." + this.widgetName );
 		if ( this._mouseMoveDelegate ) {
@@ -1510,14 +1510,14 @@ var widgetsMouse = $.widget( "ui.mouse", {
 
 	_mouseDown: function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( mouseHandled ) {
 			return;
 		}
 
 		this._mouseMoved = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		( this._mouseStarted && this._mouseUp( event ) );
 
 		this._mouseDownEvent = event;
@@ -1525,8 +1525,8 @@ var widgetsMouse = $.widget( "ui.mouse", {
 		var that = this,
 			btnIsLeft = ( event.which === 1 ),
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			elIsCancel = ( typeof this.options.cancel === "string" && event.target.nodeName ?
 				$( event.target ).closest( this.options.cancel ).length : false );
 		if ( !btnIsLeft || elIsCancel || !this._mouseCapture( event ) ) {
@@ -1548,12 +1548,12 @@ var widgetsMouse = $.widget( "ui.mouse", {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( true === $.data( event.target, this.widgetName + ".preventClickEvent" ) ) {
 			$.removeData( event.target, this.widgetName + ".preventClickEvent" );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._mouseMoveDelegate = function( event ) {
 			return that._mouseMove( event );
 		};
@@ -1573,23 +1573,23 @@ var widgetsMouse = $.widget( "ui.mouse", {
 
 	_mouseMove: function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this._mouseMoved ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( $.ui.ie && ( !document.documentMode || document.documentMode < 9 ) &&
 					!event.button ) {
 				return this._mouseUp( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			} else if ( !event.which ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( event.originalEvent.altKey || event.originalEvent.ctrlKey ||
 						event.originalEvent.metaKey || event.originalEvent.shiftKey ) {
 					this.ignoreMissingWhich = true;
@@ -1654,14 +1654,14 @@ var widgetsMouse = $.widget( "ui.mouse", {
 		return this.mouseDelayMet;
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_mouseStart: function( /* event */ ) {},
 	_mouseDrag: function( /* event */ ) {},
 	_mouseStop: function( /* event */ ) {},
 	_mouseCapture: function( /* event */ ) { return true; }
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 var plugin = $.ui.plugin = {
 	add: function( module, option, set ) {
 		var i,
@@ -1695,24 +1695,24 @@ var plugin = $.ui.plugin = {
 var safeActiveElement = $.ui.safeActiveElement = function( document ) {
 	var activeElement;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	try {
 		activeElement = document.activeElement;
 	} catch ( error ) {
 		activeElement = document.body;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( !activeElement ) {
 		activeElement = document.body;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( !activeElement.nodeName ) {
 		activeElement = document.body;
 	}
@@ -1722,8 +1722,8 @@ var safeActiveElement = $.ui.safeActiveElement = function( document ) {
 
 var safeBlur = $.ui.safeBlur = function( element ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( element && element.nodeName.toLowerCase() !== "body" ) {
 		$( element ).trigger( "blur" );
 	}
@@ -1738,12 +1738,12 @@ var safeBlur = $.ui.safeBlur = function( element ) {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.draggable", $.ui.mouse, {
 	version: "1.12.0",
@@ -1774,7 +1774,7 @@ $.widget( "ui.draggable", $.ui.mouse, {
 		stack: false,
 		zIndex: false,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		drag: null,
 		start: null,
 		stop: null
@@ -1814,13 +1814,13 @@ $.widget( "ui.draggable", $.ui.mouse, {
 
 		this._blurActiveElement( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.helper || o.disabled ||
 				$( event.target ).closest( ".ui-resizable-handle" ).length > 0 ) {
 			return false;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.handle = this._getHandle( event );
 		if ( !this.handle ) {
 			return false;
@@ -1856,15 +1856,15 @@ $.widget( "ui.draggable", $.ui.mouse, {
 		var activeElement = $.ui.safeActiveElement( this.document[ 0 ] ),
 			target = $( event.target );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this._getHandle( event ) && target.closest( activeElement ).length ) {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.ui.safeBlur( activeElement );
 	},
 
@@ -1872,15 +1872,15 @@ $.widget( "ui.draggable", $.ui.mouse, {
 
 		var o = this.options;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.helper = this._createHelper( event );
 
 		this._addClass( this.helper, "ui-draggable-dragging" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._cacheHelperProportions();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.ui.ddmanager ) {
 			$.ui.ddmanager.current = this;
 		}
@@ -1890,10 +1890,10 @@ $.widget( "ui.draggable", $.ui.mouse, {
 		 * This block generates everything position related - it's the core of draggables.
 		 */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._cacheMargins();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.cssPosition = this.helper.css( "position" );
 		this.scrollParent = this.helper.scrollParent( true );
 		this.offsetParent = this.helper.offsetParent();
@@ -1901,41 +1901,41 @@ $.widget( "ui.draggable", $.ui.mouse, {
 				return $( this ).css( "position" ) === "fixed";
 			} ).length > 0;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.positionAbs = this.element.offset();
 		this._refreshOffsets( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.originalPosition = this.position = this._generatePosition( event, false );
 		this.originalPageX = event.pageX;
 		this.originalPageY = event.pageY;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		( o.cursorAt && this._adjustOffsetFromHelper( o.cursorAt ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._setContainment();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this._trigger( "start", event ) === false ) {
 			this._clear();
 			return false;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._cacheHelperProportions();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.ui.ddmanager && !o.dropBehaviour ) {
 			$.ui.ddmanager.prepareOffsets( this, event );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._mouseDrag( event, true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.ui.ddmanager ) {
 			$.ui.ddmanager.dragStart( this, event );
 		}
@@ -1960,16 +1960,16 @@ $.widget( "ui.draggable", $.ui.mouse, {
 
 	_mouseDrag: function( event, noPropagation ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.hasFixedAncestor ) {
 			this.offset.parent = this._getParentOffset();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.position = this._generatePosition( event, true );
 		this.positionAbs = this._convertPositionTo( "absolute" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !noPropagation ) {
 			var ui = this._uiHash();
 			if ( this._trigger( "drag", event, ui ) === false ) {
@@ -1991,14 +1991,14 @@ $.widget( "ui.draggable", $.ui.mouse, {
 
 	_mouseStop: function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var that = this,
 			dropped = false;
 		if ( $.ui.ddmanager && !this.options.dropBehaviour ) {
 			dropped = $.ui.ddmanager.drop( this, event );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.dropped ) {
 			dropped = this.dropped;
 			this.dropped = false;
@@ -2030,17 +2030,17 @@ $.widget( "ui.draggable", $.ui.mouse, {
 	_mouseUp: function( event ) {
 		this._unblockFrames();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.ui.ddmanager ) {
 			$.ui.ddmanager.dragStop( this, event );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.handleElement.is( event.target ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this.element.trigger( "focus" );
 		}
 
@@ -2091,9 +2091,9 @@ $.widget( "ui.draggable", $.ui.mouse, {
 				o.appendTo ) );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( helperIsFunction && helper[ 0 ] === this.element[ 0 ] ) {
 			this._setPositionRelative();
 		}
@@ -2140,17 +2140,17 @@ $.widget( "ui.draggable", $.ui.mouse, {
 
 	_getParentOffset: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var po = this.offsetParent.offset(),
 			document = this.document[ 0 ];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.cssPosition === "absolute" && this.scrollParent[ 0 ] !== document &&
 				$.contains( this.scrollParent[ 0 ], this.offsetParent[ 0 ] ) ) {
 			po.left += this.scrollParent.scrollLeft();
@@ -2289,13 +2289,13 @@ $.widget( "ui.draggable", $.ui.mouse, {
 		return {
 			top: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pos.top	+
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.top * mod +
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.top * mod -
 				( ( this.cssPosition === "fixed" ?
 					-this.offset.scroll.top :
@@ -2303,13 +2303,13 @@ $.widget( "ui.draggable", $.ui.mouse, {
 			),
 			left: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pos.left +
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.left * mod +
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.left * mod	-
 				( ( this.cssPosition === "fixed" ?
 					-this.offset.scroll.left :
@@ -2327,7 +2327,7 @@ $.widget( "ui.draggable", $.ui.mouse, {
 			pageX = event.pageX,
 			pageY = event.pageY;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !scrollIsRootNode || !this.offset.scroll ) {
 			this.offset.scroll = {
 				top: this.scrollParent.scrollTop(),
@@ -2340,7 +2340,7 @@ $.widget( "ui.draggable", $.ui.mouse, {
 		 * Constrain the position to a mix of grid, containment.
 		 */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( constrainPosition ) {
 			if ( this.containment ) {
 				if ( this.relativeContainer ) {
@@ -2371,8 +2371,8 @@ $.widget( "ui.draggable", $.ui.mouse, {
 
 			if ( o.grid ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				top = o.grid[ 1 ] ? this.originalPageY + Math.round( ( pageY -
 					this.originalPageY ) / o.grid[ 1 ] ) * o.grid[ 1 ] : this.originalPageY;
 				pageY = containment ? ( ( top - this.offset.click.top >= containment[ 1 ] ||
@@ -2403,16 +2403,16 @@ $.widget( "ui.draggable", $.ui.mouse, {
 		return {
 			top: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pageY -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.click.top -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.top -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.top +
 				( this.cssPosition === "fixed" ?
 					-this.offset.scroll.top :
@@ -2420,16 +2420,16 @@ $.widget( "ui.draggable", $.ui.mouse, {
 			),
 			left: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pageX -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.click.left -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.left -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.left +
 				( this.cssPosition === "fixed" ?
 					-this.offset.scroll.left :
@@ -2451,13 +2451,13 @@ $.widget( "ui.draggable", $.ui.mouse, {
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 	_trigger: function( type, event, ui ) {
 		ui = ui || this._uiHash();
 		$.ui.plugin.call( this, type, [ event, ui, this ], true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( /^(drag|start|stop)/.test( type ) ) {
 			this.positionAbs = this._convertPositionTo( "absolute" );
 			ui.offset = this.positionAbs;
@@ -2491,9 +2491,9 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 			if ( sortable && !sortable.options.disabled ) {
 				draggable.sortables.push( sortable );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				sortable.refreshPositions();
 				sortable._trigger( "activate", event, uiSortable );
 			}
@@ -2512,13 +2512,13 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 			if ( sortable.isOver ) {
 				sortable.isOver = 0;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				draggable.cancelHelperRemoval = true;
 				sortable.cancelHelperRemoval = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				sortable._storedCSS = {
 					position: sortable.placeholder.css( "position" ),
 					top: sortable.placeholder.css( "top" ),
@@ -2527,14 +2527,14 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 
 				sortable._mouseStop( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				sortable.options.helper = sortable.options._helper;
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				sortable.cancelHelperRemoval = true;
 
 				sortable._trigger( "deactivate", event, uiSortable );
@@ -2546,7 +2546,7 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 			var innermostIntersecting = false,
 				sortable = this;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			sortable.positionAbs = draggable.positionAbs;
 			sortable.helperProportions = draggable.helperProportions;
 			sortable.offset.click = draggable.offset.click;
@@ -2556,7 +2556,7 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 
 				$.each( draggable.sortables, function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					this.positionAbs = draggable.positionAbs;
 					this.helperProportions = draggable.helperProportions;
 					this.offset.click = draggable.offset.click;
@@ -2573,33 +2573,33 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 
 			if ( innermostIntersecting ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( !sortable.isOver ) {
 					sortable.isOver = 1;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					draggable._parent = ui.helper.parent();
 
 					sortable.currentItem = ui.helper
 						.appendTo( sortable.element )
 						.data( "ui-sortable-item", true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					sortable.options._helper = sortable.options.helper;
 
 					sortable.options.helper = function() {
 						return ui.helper[ 0 ];
 					};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					event.target = sortable.currentItem[ 0 ];
 					sortable._mouseCapture( event, true );
 					sortable._mouseStart( event, true, true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					sortable.offset.click.top = draggable.offset.click.top;
 					sortable.offset.click.left = draggable.offset.click.left;
 					sortable.offset.parent.left -= draggable.offset.parent.left -
@@ -2609,17 +2609,17 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 
 					draggable._trigger( "toSortable", event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					draggable.dropped = sortable.element;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					$.each( draggable.sortables, function() {
 						this.refreshPositions();
 					} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					draggable.currentItem = draggable.element;
 					sortable.fromOutside = draggable;
 				}
@@ -2627,31 +2627,31 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 				if ( sortable.currentItem ) {
 					sortable._mouseDrag( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					ui.position = sortable.position;
 				}
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( sortable.isOver ) {
 
 					sortable.isOver = 0;
 					sortable.cancelHelperRemoval = true;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					sortable.options._revert = sortable.options.revert;
 					sortable.options.revert = false;
 
 					sortable._trigger( "out", event, sortable._uiHash( sortable ) );
 					sortable._mouseStop( event, true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					sortable.options.revert = sortable.options._revert;
 					sortable.options.helper = sortable.options._helper;
 
@@ -2659,19 +2659,19 @@ $.ui.plugin.add( "draggable", "connectToSortable", {
 						sortable.placeholder.remove();
 					}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					ui.helper.appendTo( draggable._parent );
 					draggable._refreshOffsets( event );
 					ui.position = draggable._generatePosition( event, true );
 
 					draggable._trigger( "fromSortable", event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					draggable.dropped = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					$.each( draggable.sortables, function() {
 						this.refreshPositions();
 					} );
@@ -2966,11 +2966,11 @@ var widgetsDraggable = $.ui.draggable;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.droppable", {
 	version: "1.12.0",
@@ -2982,7 +2982,7 @@ $.widget( "ui.droppable", {
 		scope: "default",
 		tolerance: "intersect",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		activate: null,
 		deactivate: null,
 		drop: null,
@@ -3005,11 +3005,11 @@ $.widget( "ui.droppable", {
 		this.proportions = function( /* valueToWrite */ ) {
 			if ( arguments.length ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				proportions = arguments[ 0 ];
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				return proportions ?
 					proportions :
 					proportions = {
@@ -3027,7 +3027,7 @@ $.widget( "ui.droppable", {
 
 	_addToManager: function( scope ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.ui.ddmanager.droppables[ scope ] = $.ui.ddmanager.droppables[ scope ] || [];
 		$.ui.ddmanager.droppables[ scope ].push( this );
 	},
@@ -3085,7 +3085,7 @@ $.widget( "ui.droppable", {
 
 		var draggable = $.ui.ddmanager.current;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !draggable || ( draggable.currentItem ||
 				draggable.element )[ 0 ] === this.element[ 0 ] ) {
 			return;
@@ -3103,7 +3103,7 @@ $.widget( "ui.droppable", {
 
 		var draggable = $.ui.ddmanager.current;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !draggable || ( draggable.currentItem ||
 				draggable.element )[ 0 ] === this.element[ 0 ] ) {
 			return;
@@ -3122,7 +3122,7 @@ $.widget( "ui.droppable", {
 		var draggable = custom || $.ui.ddmanager.current,
 			childrenIntersection = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !draggable || ( draggable.currentItem ||
 				draggable.element )[ 0 ] === this.element[ 0 ] ) {
 			return false;
@@ -3175,7 +3175,7 @@ $.widget( "ui.droppable", {
 		};
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	// TODO: Remove in 1.13 along with call to it below
 	_addHoverClass: function() {
 		this._addClass( "ui-droppable-hover" );
@@ -3258,13 +3258,13 @@ $.ui.ddmanager = {
 
 		droppablesLoop: for ( i = 0; i < m.length; i++ ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( m[ i ].options.disabled || ( t && !m[ i ].accept.call( m[ i ].element[ 0 ],
 					( t.currentItem || t.element ) ) ) ) {
 				continue;
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			for ( j = 0; j < list.length; j++ ) {
 				if ( list[ j ] === m[ i ].element[ 0 ] ) {
 					m[ i ].proportions().height = 0;
@@ -3277,7 +3277,7 @@ $.ui.ddmanager = {
 				continue;
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( type === "mousedown" ) {
 				m[ i ]._activate.call( m[ i ], event );
 			}
@@ -3295,7 +3295,7 @@ $.ui.ddmanager = {
 
 		var dropped = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.each( ( $.ui.ddmanager.droppables[ draggable.options.scope ] || [] ).slice(), function() {
 
 			if ( !this.options ) {
@@ -3319,8 +3319,8 @@ $.ui.ddmanager = {
 	},
 	dragStart: function( draggable, event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		draggable.element.parentsUntil( "body" ).on( "scroll.droppable", function() {
 			if ( !draggable.options.refreshPositions ) {
 				$.ui.ddmanager.prepareOffsets( draggable, event );
@@ -3329,13 +3329,13 @@ $.ui.ddmanager = {
 	},
 	drag: function( draggable, event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( draggable.options.refreshPositions ) {
 			$.ui.ddmanager.prepareOffsets( draggable, event );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.each( $.ui.ddmanager.droppables[ draggable.options.scope ] || [], function() {
 
 			if ( this.options.disabled || this.greedyChild || !this.visible ) {
@@ -3353,7 +3353,7 @@ $.ui.ddmanager = {
 
 			if ( this.options.greedy ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				scope = this.options.scope;
 				parent = this.element.parents( ":data(ui-droppable)" ).filter( function() {
 					return $( this ).droppable( "instance" ).options.scope === scope;
@@ -3365,7 +3365,7 @@ $.ui.ddmanager = {
 				}
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( parentInstance && c === "isover" ) {
 				parentInstance.isover = false;
 				parentInstance.isout = true;
@@ -3376,7 +3376,7 @@ $.ui.ddmanager = {
 			this[ c === "isout" ? "isover" : "isout" ] = false;
 			this[ c === "isover" ? "_over" : "_out" ].call( this, event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( parentInstance && c === "isout" ) {
 				parentInstance.isout = false;
 				parentInstance.isover = true;
@@ -3388,19 +3388,19 @@ $.ui.ddmanager = {
 	dragStop: function( draggable, event ) {
 		draggable.element.parentsUntil( "body" ).off( "scroll.droppable" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !draggable.options.refreshPositions ) {
 			$.ui.ddmanager.prepareOffsets( draggable, event );
 		}
 	}
 };
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 // TODO: switch return back to widget declaration at top of file when this is removed
 if ( $.uiBackCompat !== false ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	$.widget( "ui.droppable", $.ui.droppable, {
 		options: {
 			hoverClass: false,
@@ -3444,14 +3444,14 @@ var widgetsDroppable = $.ui.droppable;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.resizable", $.ui.mouse, {
 	version: "1.12.0",
@@ -3476,10 +3476,10 @@ $.widget( "ui.resizable", $.ui.mouse, {
 		minHeight: 10,
 		minWidth: 10,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		zIndex: 90,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		resize: null,
 		start: null,
 		stop: null
@@ -3507,8 +3507,8 @@ $.widget( "ui.resizable", $.ui.mouse, {
 		}
 
 		// TODO: determine which cases actually cause this to happen
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		el[ scroll ] = 1;
 		has = ( el[ scroll ] > 0 );
 		el[ scroll ] = 0;
@@ -3530,7 +3530,7 @@ $.widget( "ui.resizable", $.ui.mouse, {
 			_helper: o.helper || o.ghost || o.animate ? o.helper || "ui-resizable-helper" : null
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.element[ 0 ].nodeName.match( /^(canvas|textarea|input|select|button|img)$/i ) ) {
 
 			this.element.wrap(
@@ -3559,8 +3559,8 @@ $.widget( "ui.resizable", $.ui.mouse, {
 			this.element.css( margins );
 			this.originalElement.css( "margin", 0 );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this.originalResizeStyle = this.originalElement.css( "resize" );
 			this.originalElement.css( "resize", "none" );
 
@@ -3570,8 +3570,8 @@ $.widget( "ui.resizable", $.ui.mouse, {
 				display: "block"
 			} ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this.originalElement.css( margins );
 
 			this._proportionallyResize();
@@ -4057,7 +4057,7 @@ $.widget( "ui.resizable", $.ui.mouse, {
 			data.top = dh - o.maxHeight;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !data.width && !data.height && !data.left && data.top ) {
 			data.top = null;
 		} else if ( !data.width && !data.height && !data.top && data.left ) {
@@ -4109,7 +4109,7 @@ $.widget( "ui.resizable", $.ui.mouse, {
 			prel = this._proportionallyResizeElements[ i ];
 
 			// TODO: Seems like a bug to cache this.outerDimensions
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !this.outerDimensions ) {
 				this.outerDimensions = this._getPaddingPlusBorderDimensions( prel );
 			}
@@ -4245,7 +4245,7 @@ $.ui.plugin.add( "resizable", "animate", {
 						$( pr[ 0 ] ).css( { width: data.width, height: data.height } );
 					}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					that._updateCache( data );
 					that._propagate( "resize", event );
 
@@ -4508,11 +4508,11 @@ $.ui.plugin.add( "resizable", "ghost", {
 
 		that._addClass( that.ghost, "ui-resizable-ghost" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		// TODO: remove after 1.12
 		if ( $.uiBackCompat !== false && typeof that.options.ghost === "string" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			that.ghost.addClass( this.options.ghost );
 		}
 
@@ -4625,12 +4625,12 @@ var widgetsResizable = $.ui.resizable;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 	version: "1.12.0",
@@ -4641,7 +4641,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 		filter: "*",
 		tolerance: "touch",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		selected: null,
 		selecting: null,
 		start: null,
@@ -4656,7 +4656,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 
 		this.dragged = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.refresh = function() {
 			that.elementPos = $( that.element[ 0 ] ).offset();
 			that.selectees = $( that.options.filter, that.element[ 0 ] );
@@ -4712,7 +4712,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 
 		$( options.appendTo ).append( this.helper );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.helper.css( {
 			"left": event.pageX,
 			"top": event.pageY,
@@ -4733,7 +4733,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 				that._addClass( selectee.$element, "ui-unselecting" );
 				selectee.unselecting = true;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				that._trigger( "unselecting", event, {
 					unselecting: selectee.element
 				} );
@@ -4752,7 +4752,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 				selectee.selecting = doSelect;
 				selectee.selected = doSelect;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( doSelect ) {
 					that._trigger( "selecting", event, {
 						selecting: selectee.element
@@ -4793,7 +4793,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 				hit = false,
 				offset = {};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !selectee || selectee.element === that.element[ 0 ] ) {
 				return;
 			}
@@ -4813,7 +4813,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 
 			if ( hit ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( selectee.selected ) {
 					that._removeClass( selectee.$element, "ui-selected" );
 					selectee.selected = false;
@@ -4826,14 +4826,14 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 					that._addClass( selectee.$element, "ui-selecting" );
 					selectee.selecting = true;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					that._trigger( "selecting", event, {
 						selecting: selectee.element
 					} );
 				}
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( selectee.selecting ) {
 					if ( ( event.metaKey || event.ctrlKey ) && selectee.startselected ) {
 						that._removeClass( selectee.$element, "ui-selecting" );
@@ -4848,7 +4848,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 							selectee.unselecting = true;
 						}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						that._trigger( "unselecting", event, {
 							unselecting: selectee.element
 						} );
@@ -4862,7 +4862,7 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
 						that._addClass( selectee.$element, "ui-unselecting" );
 						selectee.unselecting = true;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						that._trigger( "unselecting", event, {
 							unselecting: selectee.element
 						} );
@@ -4917,12 +4917,12 @@ var widgetsSelectable = $.widget( "ui.selectable", $.ui.mouse, {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 	version: "1.12.0",
@@ -4952,7 +4952,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		tolerance: "intersect",
 		zIndex: 1000,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		activate: null,
 		beforeStop: null,
 		change: null,
@@ -4980,18 +4980,18 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		this.containerCache = {};
 		this._addClass( "ui-sortable" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.refresh();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.offset = this.element.offset();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._mouseInit();
 
 		this._setHandleClassName();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.ready = true;
 
 	},
@@ -5040,10 +5040,10 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			return false;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._refreshItems( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$( event.target ).parents().each( function() {
 			if ( $.data( this, that.widgetName + "-item" ) === that ) {
 				currentItem = $( this );
@@ -5081,14 +5081,14 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 		this.currentContainer = this;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.refreshPositions();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.helper = this._createHelper( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._cacheHelperProportions();
 
 		/*
@@ -5096,13 +5096,13 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		 * This block generates everything position related - it's the core of draggables.
 		 */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._cacheMargins();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.scrollParent = this.helper.scrollParent();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.offset = this.currentItem.offset();
 		this.offset = {
 			top: this.offset.top - this.margins.top,
@@ -5116,40 +5116,40 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			},
 			parent: this._getParentOffset(),
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			relative: this._getRelativeOffset()
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		// TODO: Still need to figure out a way to make relative sorting possible
 		this.helper.css( "position", "absolute" );
 		this.cssPosition = this.helper.css( "position" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.originalPosition = this._generatePosition( event );
 		this.originalPageX = event.pageX;
 		this.originalPageY = event.pageY;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		( o.cursorAt && this._adjustOffsetFromHelper( o.cursorAt ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.domPosition = {
 			prev: this.currentItem.prev()[ 0 ],
 			parent: this.currentItem.parent()[ 0 ]
 		};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.helper[ 0 ] !== this.currentItem[ 0 ] ) {
 			this.currentItem.hide();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._createPlaceholder();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( o.containment ) {
 			this._setContainment();
 		}
@@ -5157,7 +5157,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		if ( o.cursor && o.cursor !== "auto" ) { // cursor option
 			body = this.document.find( "body" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this.storedCursor = body.css( "cursor" );
 			body.css( "cursor", o.cursor );
 
@@ -5179,28 +5179,28 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			this.helper.css( "zIndex", o.zIndex );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.scrollParent[ 0 ] !== this.document[ 0 ] &&
 				this.scrollParent[ 0 ].tagName !== "HTML" ) {
 			this.overflowOffset = this.scrollParent.offset();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._trigger( "start", event, this._uiHash() );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this._preserveHelperProportions ) {
 			this._cacheHelperProportions();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !noActivation ) {
 			for ( i = this.containers.length - 1; i >= 0; i-- ) {
 				this.containers[ i ]._trigger( "activate", event, this._uiHash( this ) );
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.ui.ddmanager ) {
 			$.ui.ddmanager.current = this;
 		}
@@ -5213,8 +5213,8 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 		this._addClass( this.helper, "ui-sortable-helper" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._mouseDrag( event );
 		return true;
 
@@ -5225,7 +5225,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			o = this.options,
 			scrolled = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.position = this._generatePosition( event );
 		this.positionAbs = this._convertPositionTo( "absolute" );
 
@@ -5233,7 +5233,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			this.lastPositionAbs = this.positionAbs;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.scroll ) {
 			if ( this.scrollParent[ 0 ] !== this.document[ 0 ] &&
 					this.scrollParent[ 0 ].tagName !== "HTML" ) {
@@ -5283,10 +5283,10 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.positionAbs = this._convertPositionTo( "absolute" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this.options.axis || this.options.axis !== "y" ) {
 			this.helper[ 0 ].style.left = this.position.left + "px";
 		}
@@ -5294,10 +5294,10 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			this.helper[ 0 ].style.top = this.position.top + "px";
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		for ( i = this.items.length - 1; i >= 0; i-- ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			item = this.items[ i ];
 			itemElement = item.item[ 0 ];
 			intersection = this._intersectsWithPointer( item );
@@ -5305,20 +5305,20 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 				continue;
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( item.instance !== this.currentContainer ) {
 				continue;
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( itemElement !== this.currentItem[ 0 ] &&
 				this.placeholder[ intersection === 1 ? "next" : "prev" ]()[ 0 ] !== itemElement &&
 				!$.contains( this.placeholder[ 0 ], itemElement ) &&
@@ -5341,15 +5341,15 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._contactContainers( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.ui.ddmanager ) {
 			$.ui.ddmanager.drag( this, event );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._trigger( "sort", event, this._uiHash() );
 
 		this.lastPositionAbs = this.positionAbs;
@@ -5363,7 +5363,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.ui.ddmanager && !this.options.dropBehaviour ) {
 			$.ui.ddmanager.drop( this, event );
 		}
@@ -5417,7 +5417,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 				this.currentItem.show();
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			for ( var i = this.containers.length - 1; i >= 0; i-- ) {
 				this.containers[ i ]._trigger( "deactivate", null, this._uiHash( this ) );
 				if ( this.containers[ i ].containerCache.over ) {
@@ -5430,8 +5430,8 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 		if ( this.placeholder ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( this.placeholder[ 0 ].parentNode ) {
 				this.placeholder[ 0 ].parentNode.removeChild( this.placeholder[ 0 ] );
 			}
@@ -5666,7 +5666,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 				$( this.options.items, this.element ), this ] ],
 			connectWith = this._connectWith();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( connectWith && this.ready ) {
 			for ( i = connectWith.length - 1; i >= 0; i-- ) {
 				cur = $( connectWith[ i ], this.document[ 0 ] );
@@ -5690,7 +5690,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			for ( j = 0, queriesLength = _queries.length; j < queriesLength; j++ ) {
 				item = $( _queries[ j ] );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				item.data( this.widgetName + "-item", targetData );
 
 				items.push( {
@@ -5706,13 +5706,13 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 	refreshPositions: function( fast ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.floating = this.items.length ?
 			this.options.axis === "x" || this._isFloating( this.items[ 0 ].item ) :
 			false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.offsetParent && this.helper ) {
 			this.offset.parent = this._getParentOffset();
 		}
@@ -5722,7 +5722,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		for ( i = this.items.length - 1; i >= 0; i-- ) {
 			item = this.items[ i ];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( item.instance !== this.currentContainer && this.currentContainer &&
 					item.item[ 0 ] !== this.currentItem[ 0 ] ) {
 				continue;
@@ -5795,16 +5795,16 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 				},
 				update: function( container, p ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( className && !o.forcePlaceholderSize ) {
 						return;
 					}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( !p.height() ) {
 						p.height(
 							that.currentItem.innerHeight() -
@@ -5821,10 +5821,10 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			};
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		that.placeholder = $( o.placeholder.element.call( that.element, that.currentItem ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		that.currentItem.after( that.placeholder );
 
 		//Update the size of the placeholder (TODO: Logic to fuzzy, see line 316/317)
@@ -5848,17 +5848,17 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			innermostContainer = null,
 			innermostIndex = null;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		for ( i = this.containers.length - 1; i >= 0; i-- ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( $.contains( this.currentItem[ 0 ], this.containers[ i ].element[ 0 ] ) ) {
 				continue;
 			}
 
 			if ( this._intersectsWith( this.containers[ i ].containerCache ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( innermostContainer &&
 						$.contains(
 							this.containers[ i ].element[ 0 ],
@@ -5871,7 +5871,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( this.containers[ i ].containerCache.over ) {
 					this.containers[ i ]._trigger( "out", event, this._uiHash( this ) );
 					this.containers[ i ].containerCache.over = 0;
@@ -5880,12 +5880,12 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !innermostContainer ) {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.containers.length === 1 ) {
 			if ( !this.containers[ innermostIndex ].containerCache.over ) {
 				this.containers[ innermostIndex ]._trigger( "over", event, this._uiHash( this ) );
@@ -5893,8 +5893,8 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			}
 		} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			dist = 10000;
 			itemWithLeastDistance = null;
 			floating = innermostContainer.floating || this._isFloating( this.currentItem );
@@ -5925,7 +5925,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 				}
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !itemWithLeastDistance && !this.options.dropOnEmpty ) {
 				return;
 			}
@@ -5945,7 +5945,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			this.containers[ innermostIndex ]._trigger( "change", event, this._uiHash( this ) );
 			this.currentContainer = this.containers[ innermostIndex ];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this.options.placeholder.update( this.currentContainer, this.placeholder );
 
 			this.containers[ innermostIndex ]._trigger( "over", event, this._uiHash( this ) );
@@ -5961,7 +5961,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 				$( o.helper.apply( this.element[ 0 ], [ event, this.currentItem ] ) ) :
 				( o.helper === "clone" ? this.currentItem.clone() : this.currentItem );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !helper.parents( "body" ).length ) {
 			$( o.appendTo !== "parent" ?
 				o.appendTo :
@@ -6012,25 +6012,25 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 	_getParentOffset: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.offsetParent = this.helper.offsetParent();
 		var po = this.offsetParent.offset();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.cssPosition === "absolute" && this.scrollParent[ 0 ] !== this.document[ 0 ] &&
 				$.contains( this.scrollParent[ 0 ], this.offsetParent[ 0 ] ) ) {
 			po.left += this.scrollParent.scrollLeft();
 			po.top += this.scrollParent.scrollTop();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.offsetParent[ 0 ] === this.document[ 0 ].body ||
 				( this.offsetParent[ 0 ].tagName &&
 				this.offsetParent[ 0 ].tagName.toLowerCase() === "html" && $.ui.ie ) ) {
@@ -6134,13 +6134,13 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		return {
 			top: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pos.top	+
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.top * mod +
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.top * mod -
 				( ( this.cssPosition === "fixed" ?
 					-this.scrollParent.scrollTop() :
@@ -6148,13 +6148,13 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			),
 			left: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pos.left +
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.left * mod +
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.left * mod	-
 				( ( this.cssPosition === "fixed" ?
 					-this.scrollParent.scrollLeft() : scrollIsRootNode ? 0 :
@@ -6177,10 +6177,10 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 					this.scrollParent,
 				scrollIsRootNode = ( /(html|body)/i ).test( scroll[ 0 ].tagName );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.cssPosition === "relative" && !( this.scrollParent[ 0 ] !== this.document[ 0 ] &&
 				this.scrollParent[ 0 ] !== this.offsetParent[ 0 ] ) ) {
 			this.offset.relative = this._getRelativeOffset();
@@ -6235,16 +6235,16 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		return {
 			top: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pageY -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.click.top -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.top -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.top +
 				( ( this.cssPosition === "fixed" ?
 					-this.scrollParent.scrollTop() :
@@ -6252,16 +6252,16 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			),
 			left: (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				pageX -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.click.left -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.relative.left -
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.offset.parent.left +
 				( ( this.cssPosition === "fixed" ?
 					-this.scrollParent.scrollLeft() :
@@ -6277,19 +6277,19 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			i.item[ 0 ].parentNode.insertBefore( this.placeholder[ 0 ],
 				( this.direction === "down" ? i.item[ 0 ] : i.item[ 0 ].nextSibling ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.counter = this.counter ? ++this.counter : 1;
 		var counter = this.counter;
 
 		this._delay( function() {
 			if ( counter === this.counter ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.refreshPositions( !hardRefresh );
 			}
 		} );
@@ -6300,14 +6300,14 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 
 		this.reverting = false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var i,
 			delayedTriggers = [];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this._noFinalSort && this.currentItem.parent().length ) {
 			this.placeholder.before( this.currentItem );
 		}
@@ -6335,14 +6335,14 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 				this.currentItem.prev().not( ".ui-sortable-helper" )[ 0 ] ||
 				this.domPosition.parent !== this.currentItem.parent()[ 0 ] ) && !noPropagation ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			delayedTriggers.push( function( event ) {
 				this._trigger( "update", event, this._uiHash() );
 			} );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this !== this.currentContainer ) {
 			if ( !noPropagation ) {
 				delayedTriggers.push( function( event ) {
@@ -6361,7 +6361,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		function delayEvent( type, instance, container ) {
 			return function( event ) {
 				container._trigger( type, event, instance._uiHash( instance ) );
@@ -6377,7 +6377,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.storedCursor ) {
 			this.document.find( "body" ).css( "cursor", this.storedCursor );
 			this.storedStylesheet.remove();
@@ -6395,8 +6395,8 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 			this._trigger( "beforeStop", event, this._uiHash() );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.placeholder[ 0 ].parentNode.removeChild( this.placeholder[ 0 ] );
 
 		if ( !this.cancelHelperRemoval ) {
@@ -6409,7 +6409,7 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
 		if ( !noPropagation ) {
 			for ( i = 0; i < delayedTriggers.length; i++ ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				delayedTriggers[ i ].call( this, event );
 			}
 			this._trigger( "stop", event, this._uiHash() );
@@ -6450,16 +6450,16 @@ var widgetsSortable = $.widget( "ui.sortable", $.ui.mouse, {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var widgetsAccordion = $.widget( "ui.accordion", {
 	version: "1.12.0",
@@ -6480,7 +6480,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 			header: "ui-icon-triangle-1-e"
 		},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		activate: null,
 		beforeActivate: null
 	},
@@ -6508,14 +6508,14 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		this._addClass( "ui-accordion", "ui-widget ui-helper-reset" );
 		this.element.attr( "role", "tablist" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !options.collapsible && ( options.active === false || options.active == null ) ) {
 			options.active = 0;
 		}
 
 		this._processPanels();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( options.active < 0 ) {
 			options.active += this.headers.length;
 		}
@@ -6552,17 +6552,17 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 	_destroy: function() {
 		var contents;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.element.removeAttr( "role" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.headers
 			.removeAttr( "role aria-expanded aria-selected aria-controls tabIndex" )
 			.removeUniqueId();
 
 		this._destroyIcons();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		contents = this.headers.next()
 			.css( "display", "" )
 			.removeAttr( "role aria-hidden aria-labelledby" )
@@ -6576,7 +6576,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 	_setOption: function( key, value ) {
 		if ( key === "active" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._activate( value );
 			return;
 		}
@@ -6590,7 +6590,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 
 		this._super( key, value );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( key === "collapsible" && !value && this.options.active === false ) {
 			this._activate( 0 );
 		}
@@ -6608,9 +6608,9 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 
 		this.element.attr( "aria-disabled", value );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._toggleClass( null, "ui-state-disabled", !!value );
 		this._toggleClass( this.headers.add( this.headers.next() ), null, "ui-state-disabled",
 			!!value );
@@ -6665,33 +6665,33 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		var options = this.options;
 		this._processPanels();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( ( options.active === false && options.collapsible === true ) ||
 				!this.headers.length ) {
 			options.active = false;
 			this.active = $();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		} else if ( options.active === false ) {
 			this._activate( 0 );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		} else if ( this.active.length && !$.contains( this.element[ 0 ], this.active[ 0 ] ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( this.headers.length === this.headers.find( ".ui-state-disabled" ).length ) {
 				options.active = false;
 				this.active = $();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			} else {
 				this._activate( Math.max( 0, options.active - 1 ) );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			options.active = this.headers.index( this.active );
 		}
 
@@ -6711,7 +6711,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		this.panels = this.headers.next().filter( ":not(.ui-accordion-content-active)" ).hide();
 		this._addClass( this.panels, "ui-accordion-content", "ui-helper-reset ui-widget-content" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( prevPanels ) {
 			this._off( prevHeaders.not( this.headers ) );
 			this._off( prevPanels.not( this.panels ) );
@@ -6756,7 +6756,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 					} )
 					.hide();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this.active.length ) {
 			this.headers.eq( 0 ).attr( "tabIndex", 0 );
 		} else {
@@ -6817,12 +6817,12 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 	_activate: function( index ) {
 		var active = this._findActive( index )[ 0 ];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( active === this.active[ 0 ] ) {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		active = active || this.active[ 0 ];
 
 		this._eventHandler( {
@@ -6873,23 +6873,23 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 
 		if (
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				( clickedIsActive && !options.collapsible ) ||
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
 			return;
 		}
 
 		options.active = collapsing ? false : this.headers.index( clicked );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.active = clickedIsActive ? $() : clicked;
 		this._toggle( eventData );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._removeClass( active, "ui-accordion-header-active", "ui-state-active" );
 		if ( options.icons ) {
 			activeChildren = active.children( ".ui-accordion-header-icon" );
@@ -6914,7 +6914,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		var toShow = data.newPanel,
 			toHide = this.prevShow.length ? this.prevShow : data.oldPanel;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.prevShow.add( this.prevHide ).stop( true, true );
 		this.prevShow = toShow;
 		this.prevHide = toHide;
@@ -6935,9 +6935,9 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 			"aria-expanded": "false"
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( toShow.length && toHide.length ) {
 			toHide.prev().attr( {
 				"tabIndex": -1,
@@ -6980,7 +6980,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 			easing = options;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		easing = easing || options.easing || animate.easing;
 		duration = duration || options.duration || animate.duration;
 
@@ -7027,7 +7027,7 @@ var widgetsAccordion = $.widget( "ui.accordion", {
 		this._removeClass( prev, "ui-accordion-header-active" )
 			._addClass( prev, "ui-accordion-header-collapsed" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( toHide.length ) {
 			toHide.parent()[ 0 ].className = toHide.parent()[ 0 ].className;
 		}
@@ -7044,14 +7044,14 @@ var widgetsAccordion = $.widget( "ui.accordion", {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var widgetsMenu = $.widget( "ui.menu", {
 	version: "1.12.0",
@@ -7069,7 +7069,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 		},
 		role: "menu",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		blur: null,
 		focus: null,
 		select: null
@@ -7078,8 +7078,8 @@ var widgetsMenu = $.widget( "ui.menu", {
 	_create: function() {
 		this.activeMenu = this.element;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.mouseHandled = false;
 		this.element
 			.uniqueId()
@@ -7091,8 +7091,8 @@ var widgetsMenu = $.widget( "ui.menu", {
 		this._addClass( "ui-menu", "ui-widget ui-widget-content" );
 		this._on( {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			"mousedown .ui-menu-item": function( event ) {
 				event.preventDefault();
 			},
@@ -7102,22 +7102,22 @@ var widgetsMenu = $.widget( "ui.menu", {
 				if ( !this.mouseHandled && target.not( ".ui-state-disabled" ).length ) {
 					this.select( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( !event.isPropagationStopped() ) {
 						this.mouseHandled = true;
 					}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( target.has( ".ui-menu" ).length ) {
 						this.expand( event );
 					} else if ( !this.element.is( ":focus" ) &&
 							active.closest( ".ui-menu" ).length ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						this.element.trigger( "focus", [ true ] );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						if ( this.active && this.active.parents( ".ui-menu" ).length === 1 ) {
 							clearTimeout( this.timer );
 						}
@@ -7126,9 +7126,9 @@ var widgetsMenu = $.widget( "ui.menu", {
 			},
 			"mouseenter .ui-menu-item": function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( this.previousFilter ) {
 					return;
 				}
@@ -7136,13 +7136,13 @@ var widgetsMenu = $.widget( "ui.menu", {
 				var actualTarget = $( event.target ).closest( ".ui-menu-item" ),
 					target = $( event.currentTarget );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( actualTarget[ 0 ] !== target[ 0 ] ) {
 					return;
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this._removeClass( target.siblings().children( ".ui-state-active" ),
 					null, "ui-state-active" );
 				this.focus( event, target );
@@ -7151,8 +7151,8 @@ var widgetsMenu = $.widget( "ui.menu", {
 			"mouseleave .ui-menu": "collapseAll",
 			focus: function( event, keepActiveItem ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				var item = this.active || this.element.find( this.options.items ).eq( 0 );
 
 				if ( !keepActiveItem ) {
@@ -7175,14 +7175,14 @@ var widgetsMenu = $.widget( "ui.menu", {
 
 		this.refresh();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._on( this.document, {
 			click: function( event ) {
 				if ( this._closeOnDocumentClick( event ) ) {
 					this.collapseAll( event );
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.mouseHandled = false;
 			}
 		} );
@@ -7195,7 +7195,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 				.removeUniqueId()
 				.removeAttr( "tabIndex role aria-haspopup" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.element
 			.removeAttr( "aria-activedescendant" )
 			.find( ".ui-menu" ).addBack()
@@ -7269,8 +7269,8 @@ var widgetsMenu = $.widget( "ui.menu", {
 				this.active.nextAll( ".ui-menu-item" ) :
 				match;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !match.length ) {
 				character = String.fromCharCode( event.keyCode );
 				match = this._filterMenuItems( character );
@@ -7310,7 +7310,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 
 		this._toggleClass( "ui-menu-icons", null, !!this.element.find( ".ui-icon" ).length );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		newSubmenus = submenus.filter( ":not(.ui-menu)" )
 			.hide()
 			.attr( {
@@ -7335,7 +7335,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 		menus = submenus.add( this.element );
 		items = menus.find( this.options.items );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		items.not( ".ui-menu-item" ).each( function() {
 			var item = $( this );
 			if ( that._isDivider( item ) ) {
@@ -7343,7 +7343,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 			}
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		newItems = items.not( ".ui-menu-item, .ui-menu-divider" );
 		newWrappers = newItems.children()
 			.not( ".ui-menu" )
@@ -7355,10 +7355,10 @@ var widgetsMenu = $.widget( "ui.menu", {
 		this._addClass( newItems, "ui-menu-item" )
 			._addClass( newWrappers, "ui-menu-item-wrapper" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		items.filter( ".ui-state-disabled" ).attr( "aria-disabled", "true" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.active && !$.contains( this.element[ 0 ], this.active[ 0 ] ) ) {
 			this.blur();
 		}
@@ -7398,13 +7398,13 @@ var widgetsMenu = $.widget( "ui.menu", {
 		focused = this.active.children( ".ui-menu-item-wrapper" );
 		this._addClass( focused, null, "ui-state-active" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.role ) {
 			this.element.attr( "aria-activedescendant", focused.attr( "id" ) );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		activeParent = this.active
 			.parent()
 				.closest( ".ui-menu-item" )
@@ -7465,8 +7465,8 @@ var widgetsMenu = $.widget( "ui.menu", {
 	_startOpening: function( submenu ) {
 		clearTimeout( this.timer );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( submenu.attr( "aria-hidden" ) !== "true" ) {
 			return;
 		}
@@ -7498,12 +7498,12 @@ var widgetsMenu = $.widget( "ui.menu", {
 		clearTimeout( this.timer );
 		this.timer = this._delay( function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			var currentMenu = all ? this.element :
 				$( event && event.target ).closest( this.element.find( ".ui-menu" ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !currentMenu.length ) {
 				currentMenu = this.element;
 			}
@@ -7512,15 +7512,15 @@ var widgetsMenu = $.widget( "ui.menu", {
 
 			this.blur( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._removeClass( currentMenu.find( ".ui-state-active" ), null, "ui-state-active" );
 
 			this.activeMenu = currentMenu;
 		}, this.delay );
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_close: function( startMenu ) {
 		if ( !startMenu ) {
 			startMenu = this.active ? this.active.parent() : this.element;
@@ -7538,7 +7538,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 
 	_isDivider: function( item ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		return !/[^\-\u2014\u2013\s]/.test( item.text() );
 	},
 
@@ -7561,7 +7561,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 		if ( newItem && newItem.length ) {
 			this._open( newItem.parent() );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._delay( function() {
 				this.focus( event, newItem );
 			} );
@@ -7659,7 +7659,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 	select: function( event ) {
 
 		// TODO: It should never be possible to not have an active item at this
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.active = this.active || $( event.target ).closest( ".ui-menu-item" );
 		var ui = { item: this.active };
 		if ( !this.active.has( ".ui-menu" ).length ) {
@@ -7675,7 +7675,7 @@ var widgetsMenu = $.widget( "ui.menu", {
 		return this.activeMenu
 			.find( this.options.items )
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				.filter( ".ui-menu-item" )
 					.filter( function() {
 						return regex.test(
@@ -7693,14 +7693,14 @@ var widgetsMenu = $.widget( "ui.menu", {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.autocomplete", {
 	version: "1.12.0",
@@ -7717,7 +7717,7 @@ $.widget( "ui.autocomplete", {
 		},
 		source: null,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		change: null,
 		close: null,
 		focus: null,
@@ -7732,22 +7732,22 @@ $.widget( "ui.autocomplete", {
 
 	_create: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var suppressKeyPress, suppressKeyPressRepeat, suppressInput,
 			nodeName = this.element[ 0 ].nodeName.toLowerCase(),
 			isTextarea = nodeName === "textarea",
 			isInput = nodeName === "input";
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.isMultiLine = isTextarea || !isInput && this._isContentEditable( this.element );
 
 		this.valueMethod = this.element[ isTextarea || isInput ? "val" : "text" ];
@@ -7788,11 +7788,11 @@ $.widget( "ui.autocomplete", {
 					break;
 				case keyCode.ENTER:
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( this.menu.active ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						suppressKeyPress = true;
 						event.preventDefault();
 						this.menu.select( event );
@@ -7810,16 +7810,16 @@ $.widget( "ui.autocomplete", {
 						}
 						this.close( event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						event.preventDefault();
 					}
 					break;
 				default:
 					suppressKeyPressRepeat = true;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					this._searchTimeout( event );
 					break;
 				}
@@ -7836,7 +7836,7 @@ $.widget( "ui.autocomplete", {
 					return;
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				var keyCode = $.ui.keyCode;
 				switch ( event.keyCode ) {
 				case keyCode.PAGE_UP:
@@ -7882,7 +7882,7 @@ $.widget( "ui.autocomplete", {
 			.appendTo( this._appendTo() )
 			.menu( {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				role: null
 			} )
 			.hide()
@@ -7892,21 +7892,21 @@ $.widget( "ui.autocomplete", {
 		this._on( this.menu.element, {
 			mousedown: function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				event.preventDefault();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.cancelBlur = true;
 				this._delay( function() {
 					delete this.cancelBlur;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( this.element[ 0 ] !== $.ui.safeActiveElement( this.document[ 0 ] ) ) {
 						this.element.trigger( "focus" );
 					}
@@ -7915,8 +7915,8 @@ $.widget( "ui.autocomplete", {
 			menufocus: function( event, ui ) {
 				var label, item;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( this.isNewMenu ) {
 					this.isNewMenu = false;
 					if ( event.originalEvent && /^mouse/.test( event.originalEvent.type ) ) {
@@ -7933,13 +7933,13 @@ $.widget( "ui.autocomplete", {
 				item = ui.item.data( "ui-autocomplete-item" );
 				if ( false !== this._trigger( "focus", event, { item: item } ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( event.originalEvent && /^key/.test( event.originalEvent.type ) ) {
 						this._value( item.value );
 					}
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				label = ui.item.attr( "aria-label" ) || item.value;
 				if ( label && $.trim( label ).length ) {
 					this.liveRegion.children().hide();
@@ -7950,14 +7950,14 @@ $.widget( "ui.autocomplete", {
 				var item = ui.item.data( "ui-autocomplete-item" ),
 					previous = this.previous;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( this.element[ 0 ] !== $.ui.safeActiveElement( this.document[ 0 ] ) ) {
 					this.element.trigger( "focus" );
 					this.previous = previous;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					this._delay( function() {
 						this.previous = previous;
 						this.selectedItem = item;
@@ -7968,8 +7968,8 @@ $.widget( "ui.autocomplete", {
 					this._value( item.value );
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.term = this._value();
 
 				this.close( event );
@@ -7986,9 +7986,9 @@ $.widget( "ui.autocomplete", {
 
 		this._addClass( this.liveRegion, null, "ui-helper-hidden-accessible" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._on( this.window, {
 			beforeunload: function() {
 				this.element.removeAttr( "autocomplete" );
@@ -8085,7 +8085,7 @@ $.widget( "ui.autocomplete", {
 		clearTimeout( this.searching );
 		this.searching = this._delay( function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			var equalValues = this.term === this._value(),
 				menuVisible = this.menu.element.is( ":visible" ),
 				modifierKey = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
@@ -8100,7 +8100,7 @@ $.widget( "ui.autocomplete", {
 	search: function( value, event ) {
 		value = value != null ? value : this._value();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.term = this._value();
 
 		if ( value.length < this.options.minLength ) {
@@ -8147,7 +8147,7 @@ $.widget( "ui.autocomplete", {
 			this._trigger( "open" );
 		} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._close();
 		}
 	},
@@ -8159,7 +8159,7 @@ $.widget( "ui.autocomplete", {
 
 	_close: function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._off( this.document, "mousedown" );
 
 		if ( this.menu.element.is( ":visible" ) ) {
@@ -8178,7 +8178,7 @@ $.widget( "ui.autocomplete", {
 
 	_normalize: function( items ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( items.length && items[ 0 ].label && items[ 0 ].value ) {
 			return items;
 		}
@@ -8202,7 +8202,7 @@ $.widget( "ui.autocomplete", {
 		this.isNewMenu = true;
 		this.menu.refresh();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		ul.show();
 		this._resizeMenu();
 		ul.position( $.extend( {
@@ -8213,7 +8213,7 @@ $.widget( "ui.autocomplete", {
 			this.menu.next();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._on( this.document, {
 			mousedown: "_closeOnClickOutside"
 		} );
@@ -8223,8 +8223,8 @@ $.widget( "ui.autocomplete", {
 		var ul = this.menu.element;
 		ul.outerWidth( Math.max(
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			ul.width( "" ).outerWidth() + 1,
 			this.element.outerWidth()
 		) );
@@ -8277,15 +8277,15 @@ $.widget( "ui.autocomplete", {
 		if ( !this.isMultiLine || this.menu.element.is( ":visible" ) ) {
 			this._move( keyEvent, event );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			event.preventDefault();
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_isContentEditable: function( element ) {
 		if ( !element.length ) {
 			return false;
@@ -8313,9 +8313,9 @@ $.extend( $.ui.autocomplete, {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 $.widget( "ui.autocomplete", $.ui.autocomplete, {
 	options: {
 		messages: {
@@ -8354,14 +8354,14 @@ var widgetsAutocomplete = $.ui.autocomplete;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var controlgroupCornerRegex = /ui-corner-([a-z]){2,6}/g;
 
@@ -8385,7 +8385,7 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 		this._enhance();
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_enhance: function() {
 		this.element.attr( "role", "toolbar" );
 		this.refresh();
@@ -8407,12 +8407,12 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 		var that = this,
 			childWidgets = [];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.each( this.options.items, function( widget, selector ) {
 			var labels;
 			var options = {};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !selector ) {
 				return;
 			}
@@ -8433,35 +8433,35 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 				return;
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !$.fn[ widget ] ) {
 				return;
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( that[ "_" + widget + "Options" ] ) {
 				options = that[ "_" + widget + "Options" ]( "middle" );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			that.element
 				.find( selector )
 				.each( function() {
 					var element = $( this );
 					var instance = element[ widget ]( "instance" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					var instanceOptions = $.widget.extend( {}, options );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					// TODO: Find a more generic solution
 					if ( widget === "button" && element.parent( ".ui-spinner" ).length ) {
 						return;
 					}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( !instance ) {
 						instance = element[ widget ]()[ widget ]( "instance" );
 					}
@@ -8471,8 +8471,8 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 					}
 					element[ widget ]( instanceOptions );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					var widgetElement = element[ widget ]( "widget" );
 					$.data( widgetElement[ 0 ], "ui-controlgroup-data",
 						instance ? instance : element[ widget ]( "instance" ) );
@@ -8598,15 +8598,15 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 
 		children = this.childWidgets;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.onlyVisible ) {
 			children = children.filter( ":visible" );
 		}
 
 		if ( children.length ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			$.each( [ "first", "last" ], function( index, value ) {
 				var instance = children[ value ]().data( "ui-controlgroup-data" );
 
@@ -8621,7 +8621,7 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
 				}
 			} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._callChildMethod( "refresh" );
 		}
 	}
@@ -8636,15 +8636,15 @@ var widgetsControlgroup = $.widget( "ui.controlgroup", {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 	version: "1.12.0",
@@ -8663,14 +8663,14 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 		var that = this;
 		var options = this._super() || {};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._readType();
 
 		labels = this.element.labels();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.label = $( labels[ labels.length - 1 ] );
 		if ( !this.label.length ) {
 			$.error( "No label found for checkboxradio widget" );
@@ -8678,16 +8678,16 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 
 		this.originalLabel = "";
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.label.contents().not( this.element ).each( function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			that.originalLabel += this.nodeType === 3 ? $( this ).text() : this.outerHTML;
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.originalLabel ) {
 			options.label = this.originalLabel;
 		}
@@ -8751,7 +8751,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_enhance: function() {
 		this._updateIcon( this.element[ 0 ].checked );
 	},
@@ -8773,7 +8773,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 			group = $( this.form[ 0 ].elements ).filter( nameSelector );
 		} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			group = $( nameSelector ).filter( function() {
 				return $( this ).form().length === 0;
 			} );
@@ -8815,7 +8815,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 
 	_setOption: function( key, value ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( key === "label" && !value ) {
 			return;
 		}
@@ -8826,7 +8826,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 			this._toggleClass( this.label, null, "ui-state-disabled", value );
 			this.element[ 0 ].disabled = value;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			return;
 		}
 		this.refresh();
@@ -8862,7 +8862,7 @@ $.widget( "ui.checkboxradio", [ $.ui.formResetMixin, {
 
 	_updateLabel: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.label.contents().not( this.element.add( this.icon ).add( this.iconSpace ) ).remove();
 		this.label.append( this.options.label );
 	},
@@ -8895,14 +8895,14 @@ var widgetsCheckboxradio = $.ui.checkboxradio;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.button", {
 	version: "1.12.0",
@@ -8921,8 +8921,8 @@ $.widget( "ui.button", {
 	_getCreateOptions: function() {
 		var disabled,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			options = this._super() || {};
 
 		this.isInput = this.element.is( "input" );
@@ -8945,16 +8945,16 @@ $.widget( "ui.button", {
 			this.options.showLabel = true;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.disabled == null ) {
 			this.options.disabled = this.element[ 0 ].disabled || false;
 		}
 
 		this.hasTitle = !!this.element.attr( "title" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.label && this.options.label !== this.originalLabel ) {
 			if ( this.isInput ) {
 				this.element.val( this.options.label );
@@ -8972,9 +8972,9 @@ $.widget( "ui.button", {
 					if ( event.keyCode === $.ui.keyCode.SPACE ) {
 						event.preventDefault();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						if ( this.element[ 0 ].click ) {
 							this.element[ 0 ].click();
 						} else {
@@ -9010,7 +9010,7 @@ $.widget( "ui.button", {
 			position = icon ? this.options.iconPosition : value,
 			displayBlock = position === "top" || position === "bottom";
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this.icon ) {
 			this.icon = $( "<span>" );
 
@@ -9021,19 +9021,19 @@ $.widget( "ui.button", {
 			}
 		} else if ( icon ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._removeClass( this.icon, null, this.options.icon );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( icon ) {
 			this._addClass( this.icon, null, value );
 		}
 
 		this._attachIcon( position );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( displayBlock ) {
 			this._addClass( this.icon, null, "ui-widget-icon-block" );
 			if ( this.iconSpace ) {
@@ -9041,8 +9041,8 @@ $.widget( "ui.button", {
 			}
 		} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !this.iconSpace ) {
 				this.iconSpace = $( "<span> </span>" );
 				this._addClass( this.iconSpace, "ui-button-icon-space" );
@@ -9102,7 +9102,7 @@ $.widget( "ui.button", {
 			this._updateIcon( key, value );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( key === "showLabel" ) {
 				this._toggleClass( "ui-button-icon-only", null, !value );
 				this._updateTooltip();
@@ -9113,8 +9113,8 @@ $.widget( "ui.button", {
 				this.element.val( value );
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.element.html( value );
 				if ( this.icon ) {
 					this._attachIcon( this.options.iconPosition );
@@ -9136,8 +9136,8 @@ $.widget( "ui.button", {
 
 	refresh: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var isDisabled = this.element.is( "input, button" ) ?
 			this.element[ 0 ].disabled : this.element.hasClass( "ui-button-disabled" );
 
@@ -9149,10 +9149,10 @@ $.widget( "ui.button", {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 if ( $.uiBackCompat !== false ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	$.widget( "ui.button", $.ui.button, {
 		options: {
 			text: true,
@@ -9249,7 +9249,7 @@ if ( $.uiBackCompat !== false ) {
 
 var widgetsButton = $.ui.button;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 /* jscs:disable requireCamelCaseOrUpperCaseIdentifiers */
 /*!
  * jQuery UI Datepicker 1.12.0
@@ -9260,14 +9260,14 @@ var widgetsButton = $.ui.button;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.extend( $.ui, { datepicker: { version: "1.12.0" } } );
 
@@ -9277,16 +9277,16 @@ function datepicker_getZindex( elem ) {
 	var position, value;
 	while ( elem.length && elem[ 0 ] !== document ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		position = elem.css( "position" );
 		if ( position === "absolute" || position === "relative" || position === "fixed" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			value = parseInt( elem.css( "zIndex" ), 10 );
 			if ( !isNaN( value ) && value !== 0 ) {
 				return value;
@@ -9338,40 +9338,40 @@ function Datepicker() {
 	};
 	this._defaults = { // Global defaults for all the date picker instances
 		showOn: "focus", // "focus" for popup on focus,
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		showAnim: "fadeIn", // Name of jQuery animation for popup
 		showOptions: {}, // Options for enhanced animations
 		defaultDate: null, // Used when field is blank: actual date,
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		appendText: "", // Display text following the input box, e.g. showing the format
 		buttonText: "...", // Text for trigger button
 		buttonImage: "", // URL for trigger button image
 		buttonImageOnly: false, // True if the image appears alone, false if it appears on a button
 		hideIfNoPrevNext: false, // True to hide next/previous month links
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		navigationAsDateFormat: false, // True if date formatting applied to prev/today/next links
 		gotoCurrent: false, // True if today link goes back to current selection instead
 		changeMonth: false, // True if month can be selected directly, false if only prev/next
 		changeYear: false, // True if year can be selected directly, false if only prev/next
 		yearRange: "c-10:c+10", // Range of years to display in drop-down,
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		showOtherMonths: false, // True to show dates in other months, false to leave blank
 		selectOtherMonths: false, // True to allow selection of dates in other months, false for unselectable
 		showWeek: false, // True to show week of the year, false to not show it
 		calculateWeek: this.iso8601Week, // How to calculate the week of the year,
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		shortYearCutoff: "+10", // Short year values < this are in the current century,
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		minDate: null, // The earliest selectable date, or null for no limit
 		maxDate: null, // The latest selectable date, or null for no limit
 		duration: "fast", // Duration of display/closure
 		beforeShowDay: null, // Function that takes a date and returns an array with
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		beforeShow: null, // Function that takes an input field and
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		onSelect: null, // Define a callback function when a date is selected
 		onChangeMonthYear: null, // Define a callback function when the month or year is changed
 		onClose: null, // Define a callback function when the datepicker is closed
@@ -9396,7 +9396,7 @@ $.extend( Datepicker.prototype, {
 	/* Class name added to elements to indicate already configured with a date picker. */
 	markerClassName: "hasDatepicker",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	maxRows: 4,
 
 	// TODO rename to "widget" when switching to widget factory
@@ -9459,7 +9459,7 @@ $.extend( Datepicker.prototype, {
 		this._autoSize( inst );
 		$.data( target, "datepicker", inst );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( inst.settings.disabled ) {
 			this._disableDatepicker( target );
 		}
@@ -9553,13 +9553,13 @@ $.extend( Datepicker.prototype, {
 		this._updateDatepicker( inst );
 		this._updateAlternate( inst );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( inst.settings.disabled ) {
 			this._disableDatepicker( target );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		inst.dpDiv.css( "display", "block" );
 	},
 
@@ -9602,7 +9602,7 @@ $.extend( Datepicker.prototype, {
 				[ ( browserWidth / 2 ) - 100 + scrollX, ( browserHeight / 2 ) - 150 + scrollY ];
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._dialogInput.css( "left", ( this._pos[ 0 ] + 20 ) + "px" ).css( "top", this._pos[ 1 ] + "px" );
 		inst.settings.onSelect = onSelect;
 		this._inDialog = true;
@@ -9768,7 +9768,7 @@ $.extend( Datepicker.prototype, {
 			maxDate = this._getMinMaxDate( inst, "max" );
 			datepicker_extendRemove( inst.settings, settings );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( minDate !== null && settings.dateFormat !== undefined && settings.minDate === undefined ) {
 				inst.settings.minDate = this._formatDate( inst, minDate );
 			}
@@ -9790,7 +9790,7 @@ $.extend( Datepicker.prototype, {
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_changeDatepicker: function( target, name, value ) {
 		this._optionDatepicker( target, name, value );
 	},
@@ -9854,7 +9854,7 @@ $.extend( Datepicker.prototype, {
 						if ( onSelect ) {
 							dateStr = $.datepicker._formatDate( inst );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 							onSelect.apply( ( inst.input ? inst.input[ 0 ] : null ), [ dateStr, inst ] );
 						} else {
 							$.datepicker._hideDatepicker();
@@ -9886,14 +9886,14 @@ $.extend( Datepicker.prototype, {
 						}
 						handled = event.ctrlKey || event.metaKey;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						if ( event.originalEvent.altKey ) {
 							$.datepicker._adjustDate( event.target, ( event.ctrlKey ?
 								-$.datepicker._get( inst, "stepBigMonths" ) :
 								-$.datepicker._get( inst, "stepMonths" ) ), "M" );
 						}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						break;
 				case 38: if ( event.ctrlKey || event.metaKey ) {
 							$.datepicker._adjustDate( event.target, -7, "D" );
@@ -9905,14 +9905,14 @@ $.extend( Datepicker.prototype, {
 						}
 						handled = event.ctrlKey || event.metaKey;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						if ( event.originalEvent.altKey ) {
 							$.datepicker._adjustDate( event.target, ( event.ctrlKey ?
 								+$.datepicker._get( inst, "stepBigMonths" ) :
 								+$.datepicker._get( inst, "stepMonths" ) ), "M" );
 						}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						break;
 				case 40: if ( event.ctrlKey || event.metaKey ) {
 							$.datepicker._adjustDate( event.target, +7, "D" );
@@ -10015,15 +10015,15 @@ $.extend( Datepicker.prototype, {
 		offset = { left: $.datepicker._pos[ 0 ], top: $.datepicker._pos[ 1 ] };
 		$.datepicker._pos = null;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		inst.dpDiv.empty();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		inst.dpDiv.css( { position: "absolute", display: "block", top: "-1000px" } );
 		$.datepicker._updateDatepicker( inst );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		offset = $.datepicker._checkOffset( inst, offset, isFixed );
 		inst.dpDiv.css( { position: ( $.datepicker._inDialog && $.blockUI ?
 			"static" : ( isFixed ? "fixed" : "absolute" ) ), display: "none",
@@ -10078,12 +10078,12 @@ $.extend( Datepicker.prototype, {
 			inst.input.trigger( "focus" );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( inst.yearshtml ) {
 			origyearshtml = inst.yearshtml;
 			setTimeout( function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( origyearshtml === inst.yearshtml && inst.yearshtml ) {
 					inst.dpDiv.find( "select.ui-datepicker-year:first" ).replaceWith( inst.yearshtml );
 				}
@@ -10092,9 +10092,9 @@ $.extend( Datepicker.prototype, {
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_shouldFocusInput: function( inst ) {
 		return inst.input && inst.input.is( ":visible" ) && !inst.input.is( ":disabled" ) && !inst.input.is( ":focus" );
 	},
@@ -10111,7 +10111,7 @@ $.extend( Datepicker.prototype, {
 		offset.left -= ( isFixed && offset.left === inst.input.offset().left ) ? $( document ).scrollLeft() : 0;
 		offset.top -= ( isFixed && offset.top === ( inst.input.offset().top + inputHeight ) ) ? $( document ).scrollTop() : 0;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		offset.left -= Math.min( offset.left, ( offset.left + dpWidth > viewWidth && viewWidth > dpWidth ) ?
 			Math.abs( offset.left + dpWidth - viewWidth ) : 0 );
 		offset.top -= Math.min( offset.top, ( offset.top + dpHeight > viewHeight && viewHeight > dpHeight ) ?
@@ -10148,7 +10148,7 @@ $.extend( Datepicker.prototype, {
 				$.datepicker._tidyDialog( inst );
 			};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( $.effects && ( $.effects.effect[ showAnim ] || $.effects[ showAnim ] ) ) {
 				inst.dpDiv.hide( showAnim, $.datepicker._get( inst, "showOptions" ), duration, postProcess );
 			} else {
@@ -10316,7 +10316,7 @@ $.extend( Datepicker.prototype, {
 		var time,
 			checkDate = new Date( date.getTime() );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		checkDate.setDate( checkDate.getDate() + 4 - ( checkDate.getDay() || 7 ) );
 
 		time = checkDate.getTime();
@@ -10351,7 +10351,7 @@ $.extend( Datepicker.prototype, {
 			literal = false,
 			date,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			lookAhead = function( match ) {
 				var matches = ( iFormat + 1 < format.length && format.charAt( iFormat + 1 ) === match );
 				if ( matches ) {
@@ -10360,7 +10360,7 @@ $.extend( Datepicker.prototype, {
 				return matches;
 			},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			getNumber = function( match ) {
 				var isDoubled = lookAhead( match ),
 					size = ( match === "@" ? 14 : ( match === "!" ? 20 :
@@ -10375,7 +10375,7 @@ $.extend( Datepicker.prototype, {
 				return parseInt( num[ 0 ], 10 );
 			},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			getName = function( match, shortNames, longNames ) {
 				var index = -1,
 					names = $.map( lookAhead( match ) ? longNames : shortNames, function( v, k ) {
@@ -10399,7 +10399,7 @@ $.extend( Datepicker.prototype, {
 				}
 			},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			checkLiteral = function() {
 				if ( value.charAt( iValue ) !== format.charAt( iFormat ) ) {
 					throw "Unexpected literal at position " + iValue;
@@ -10520,7 +10520,7 @@ $.extend( Datepicker.prototype, {
 			monthNamesShort = ( settings ? settings.monthNamesShort : null ) || this._defaults.monthNamesShort,
 			monthNames = ( settings ? settings.monthNames : null ) || this._defaults.monthNames,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			lookAhead = function( match ) {
 				var matches = ( iFormat + 1 < format.length && format.charAt( iFormat + 1 ) === match );
 				if ( matches ) {
@@ -10529,7 +10529,7 @@ $.extend( Datepicker.prototype, {
 				return matches;
 			},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			formatNumber = function( match, value, len ) {
 				var num = "" + value;
 				if ( lookAhead( match ) ) {
@@ -10540,7 +10540,7 @@ $.extend( Datepicker.prototype, {
 				return num;
 			},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			formatName = function( match, value, shortNames, longNames ) {
 				return ( lookAhead( match ) ? longNames[ value ] : shortNames[ value ] );
 			},
@@ -10604,7 +10604,7 @@ $.extend( Datepicker.prototype, {
 			chars = "",
 			literal = false,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			lookAhead = function( match ) {
 				var matches = ( iFormat + 1 < format.length && format.charAt( iFormat + 1 ) === match );
 				if ( matches ) {
@@ -10690,7 +10690,7 @@ $.extend( Datepicker.prototype, {
 				}
 				catch ( e ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				}
 
 				var date = ( offset.toLowerCase().match( /^c/ ) ?
@@ -10949,7 +10949,7 @@ $.extend( Datepicker.prototype, {
 							( ( printDate.getTime() === selectedDate.getTime() && drawMonth === inst.selectedMonth && inst._keyEvent ) || 
 							( defaultDate.getTime() === printDate.getTime() && defaultDate.getTime() === selectedDate.getTime() ) ?
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 							" " + this._dayOverClass : "" ) + 
 							( unselectable ? " " + this._unselectableClass + " ui-state-disabled" : "" ) +  
 							( otherMonth && !showOtherMonths ? "" : " " + daySettings[ 1 ] + 
@@ -10995,7 +10995,7 @@ $.extend( Datepicker.prototype, {
 			html = "<div class='ui-datepicker-title'>",
 			monthHtml = "";
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( secondary || !changeMonth ) {
 			monthHtml += "<span class='ui-datepicker-month'>" + monthNames[ drawMonth ] + "</span>";
 		} else {
@@ -11016,14 +11016,14 @@ $.extend( Datepicker.prototype, {
 			html += monthHtml + ( secondary || !( changeMonth && changeYear ) ? "&#xa0;" : "" );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !inst.yearshtml ) {
 			inst.yearshtml = "";
 			if ( secondary || !changeYear ) {
 				html += "<span class='ui-datepicker-year'>" + drawYear + "</span>";
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				years = this._get( inst, "yearRange" ).split( ":" );
 				thisYear = new Date().getFullYear();
 				determineYear = function( value ) {
@@ -11271,14 +11271,14 @@ var widgetsDatepicker = $.datepicker;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.dialog", {
 	version: "1.12.0",
@@ -11306,7 +11306,7 @@ $.widget( "ui.dialog", {
 			of: window,
 			collision: "fit",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			using: function( pos ) {
 				var topOffset = $( this ).css( pos ).offset().top;
 				if ( topOffset < 0 ) {
@@ -11319,7 +11319,7 @@ $.widget( "ui.dialog", {
 		title: null,
 		width: 300,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		beforeClose: null,
 		close: null,
 		drag: null,
@@ -11366,7 +11366,7 @@ $.widget( "ui.dialog", {
 			this.options.title = this.originalTitle;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.disabled ) {
 			this.options.disabled = false;
 		}
@@ -11420,7 +11420,7 @@ $.widget( "ui.dialog", {
 			.removeUniqueId()
 			.css( this.originalCss )
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			.detach();
 
 		this.uiDialog.remove();
@@ -11431,7 +11431,7 @@ $.widget( "ui.dialog", {
 
 		next = originalPosition.parent.children().eq( originalPosition.index );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( next.length && next[ 0 ] !== this.element[ 0 ] ) {
 			next.before( this.element );
 		} else {
@@ -11460,9 +11460,9 @@ $.widget( "ui.dialog", {
 
 		if ( !this.opener.filter( ":focusable" ).trigger( "focus" ).length ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			$.ui.safeBlur( $.ui.safeActiveElement( this.document[ 0 ] ) );
 		}
 
@@ -11514,9 +11514,9 @@ $.widget( "ui.dialog", {
 		this._createOverlay();
 		this._moveToTop( null, true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.overlay ) {
 			this.overlay.css( "z-index", this.uiDialog.css( "z-index" ) - 1 );
 		}
@@ -11526,9 +11526,9 @@ $.widget( "ui.dialog", {
 			that._trigger( "focus" );
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._makeFocusTarget();
 
 		this._trigger( "open" );
@@ -11536,13 +11536,13 @@ $.widget( "ui.dialog", {
 
 	_focusTabbable: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var hasFocus = this._focusedElement;
 		if ( !hasFocus ) {
 			hasFocus = this.element.find( "[autofocus]" );
@@ -11574,9 +11574,9 @@ $.widget( "ui.dialog", {
 		event.preventDefault();
 		checkFocus.call( this );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._delay( checkFocus );
 	},
 
@@ -11585,7 +11585,7 @@ $.widget( "ui.dialog", {
 			.hide()
 			.attr( {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				tabIndex: -1,
 				role: "dialog"
 			} )
@@ -11601,7 +11601,7 @@ $.widget( "ui.dialog", {
 					return;
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( event.keyCode !== $.ui.keyCode.TAB || event.isDefaultPrevented() ) {
 					return;
 				}
@@ -11630,9 +11630,9 @@ $.widget( "ui.dialog", {
 			}
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this.element.find( "[aria-describedby]" ).length ) {
 			this.uiDialog.attr( {
 				"aria-describedby": this.element.uniqueId().attr( "id" )
@@ -11649,20 +11649,20 @@ $.widget( "ui.dialog", {
 		this._on( this.uiDialogTitlebar, {
 			mousedown: function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( !$( event.target ).closest( ".ui-dialog-titlebar-close" ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					this.uiDialog.trigger( "focus" );
 				}
 			}
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.uiDialogTitlebarClose = $( "<button type='button'></button>" )
 			.button( {
 				label: $( "<a>" ).text( this.options.closeText ).html(),
@@ -11714,7 +11714,7 @@ $.widget( "ui.dialog", {
 		var that = this,
 			buttons = this.options.buttons;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.uiDialogButtonPane.remove();
 		this.uiButtonSet.empty();
 
@@ -11729,10 +11729,10 @@ $.widget( "ui.dialog", {
 				{ click: props, text: name } :
 				props;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			props = $.extend( { type: "button" }, props );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			click = props.click;
 			buttonOptions = {
 				icon: props.icon,
@@ -11801,8 +11801,8 @@ $.widget( "ui.dialog", {
 			options = this.options,
 			handles = options.resizable,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			position = this.uiDialog.css( "position" ),
 			resizeHandles = typeof handles === "string" ?
 				handles :
@@ -11896,7 +11896,7 @@ $.widget( "ui.dialog", {
 
 	_position: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var isVisible = this.uiDialog.is( ":visible" );
 		if ( !isVisible ) {
 			this.uiDialog.show();
@@ -11953,7 +11953,7 @@ $.widget( "ui.dialog", {
 		if ( key === "closeText" ) {
 			this.uiDialogTitlebarClose.button( {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				label: $( "<a>" ).text( "" + this.options.closeText ).html()
 			} );
 		}
@@ -11975,18 +11975,18 @@ $.widget( "ui.dialog", {
 
 		if ( key === "resizable" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			isResizable = uiDialog.is( ":data(ui-resizable)" );
 			if ( isResizable && !value ) {
 				uiDialog.resizable( "destroy" );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( isResizable && typeof value === "string" ) {
 				uiDialog.resizable( "option", "handles", value );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !isResizable && value !== false ) {
 				this._makeResizable();
 			}
@@ -11999,12 +11999,12 @@ $.widget( "ui.dialog", {
 
 	_size: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var nonContentHeight, minContentHeight, maxContentHeight,
 			options = this.options;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.element.show().css( {
 			width: "auto",
 			minHeight: 0,
@@ -12016,8 +12016,8 @@ $.widget( "ui.dialog", {
 			options.width = options.minWidth;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		nonContentHeight = this.uiDialog.css( {
 			height: "auto",
 			width: options.width
@@ -12071,7 +12071,7 @@ $.widget( "ui.dialog", {
 		}
 
 		// TODO: Remove hack when datepicker implements
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		return !!$( event.target ).closest( ".ui-datepicker" ).length;
 	},
 
@@ -12080,8 +12080,8 @@ $.widget( "ui.dialog", {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var isOpening = true;
 		this._delay( function() {
 			isOpening = false;
@@ -12089,9 +12089,9 @@ $.widget( "ui.dialog", {
 
 		if ( !this.document.data( "ui-dialog-overlays" ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._on( this.document, {
 				focusin: function( event ) {
 					if ( isOpening ) {
@@ -12138,11 +12138,11 @@ $.widget( "ui.dialog", {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 // TODO: switch return back to widget declaration at top of file when this is removed
 if ( $.uiBackCompat !== false ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	$.widget( "ui.dialog", $.ui.dialog, {
 		options: {
 			dialogClass: ""
@@ -12173,16 +12173,16 @@ var widgetsDialog = $.ui.dialog;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var widgetsProgressbar = $.widget( "ui.progressbar", {
 	version: "1.12.0",
@@ -12203,13 +12203,13 @@ var widgetsProgressbar = $.widget( "ui.progressbar", {
 
 	_create: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.oldValue = this.options.value = this._constrainedValue();
 
 		this.element.attr( {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			role: "progressbar",
 			"aria-valuemin": this.min
 		} );
@@ -12242,7 +12242,7 @@ var widgetsProgressbar = $.widget( "ui.progressbar", {
 
 		this.indeterminate = newValue === false;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( typeof newValue !== "number" ) {
 			newValue = 0;
 		}
@@ -12253,7 +12253,7 @@ var widgetsProgressbar = $.widget( "ui.progressbar", {
 
 	_setOptions: function( options ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		var value = options.value;
 		delete options.value;
 
@@ -12266,7 +12266,7 @@ var widgetsProgressbar = $.widget( "ui.progressbar", {
 	_setOption: function( key, value ) {
 		if ( key === "max" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			value = Math.max( this.min, value );
 		}
 		this._super( key, value );
@@ -12334,16 +12334,16 @@ var widgetsProgressbar = $.widget( "ui.progressbar", {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 	version: "1.12.0",
@@ -12365,7 +12365,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		},
 		width: false,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		change: null,
 		close: null,
 		focus: null,
@@ -12397,7 +12397,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 				this.element[ 0 ].selectedIndex
 			);
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.labels = this.element.labels().attr( "for", this.ids.button );
 		this._on( this.labels, {
 			click: function( event ) {
@@ -12406,10 +12406,10 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			}
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.element.hide();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.button = $( "<span>", {
 			tabindex: this.options.disabled ? -1 : 0,
 			id: this.ids.button,
@@ -12437,8 +12437,8 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		this._on( this.button, this._buttonEvents );
 		this.button.one( "focusin", function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !that._rendered ) {
 				that._refreshMenu();
 			}
@@ -12448,19 +12448,19 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 	_drawMenu: function() {
 		var that = this;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.menu = $( "<ul>", {
 			"aria-hidden": "true",
 			"aria-labelledby": this.ids.button,
 			id: this.ids.menu
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.menuWrap = $( "<div>" ).append( this.menu );
 		this._addClass( this.menuWrap, "ui-selectmenu-menu", "ui-front" );
 		this.menuWrap.appendTo( this._appendTo() );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.menuInstance = this.menu
 			.menu( {
 				classes: {
@@ -12470,9 +12470,9 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 				select: function( event, ui ) {
 					event.preventDefault();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					that._setSelection();
 
 					that._select( ui.item.data( "ui-selectmenu-item" ), event );
@@ -12480,7 +12480,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 				focus: function( event, ui ) {
 					var item = ui.item.data( "ui-selectmenu-item" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( that.focusIndex != null && item.index !== that.focusIndex ) {
 						that._trigger( "focus", event, { item: item } );
 						if ( !that.isOpen ) {
@@ -12495,15 +12495,15 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			} )
 			.menu( "instance" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.menuInstance._off( this.menu, "mouseleave" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.menuInstance._closeOnDocumentClick = function() {
 			return false;
 		};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.menuInstance._isDivider = function() {
 			return false;
 		};
@@ -12514,7 +12514,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		this.buttonItem.replaceWith(
 			this.buttonItem = this._renderButtonItem(
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this._getSelectedItem().data( "ui-selectmenu-item" ) || {}
 			)
 		);
@@ -12545,11 +12545,11 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 
 		item = this._getSelectedItem();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.menuInstance.focus( null, item );
 		this._setAria( item.data( "ui-selectmenu-item" ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._setOption( "disabled", this.element.prop( "disabled" ) );
 	},
 
@@ -12558,17 +12558,17 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this._rendered ) {
 			this._refreshMenu();
 		} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._removeClass( this.menu.find( ".ui-state-active" ), null, "ui-state-active" );
 			this.menuInstance.focus( null, this._getSelectedItem() );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this.menuItems.length ) {
 			return;
 		}
@@ -12711,14 +12711,14 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 			selection.removeAllRanges();
 			selection.addRange( this.range );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		} else {
 			this.range.select();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.button.focus();
 	},
 
@@ -12737,7 +12737,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 
 	_buttonEvents: {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		mousedown: function() {
 			var selection;
 
@@ -12747,7 +12747,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 					this.range = selection.getRangeAt( 0 );
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			} else {
 				this.range = document.selection.createRange();
 			}
@@ -12827,7 +12827,7 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 	_select: function( item, event ) {
 		var oldIndex = this.element[ 0 ].selectedIndex;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.element[ 0 ].selectedIndex = item.index;
 		this.buttonItem.replaceWith( this.buttonItem = this._renderButtonItem( item ) );
 		this._setAria( item );
@@ -12907,9 +12907,9 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 	_toggleAttr: function() {
 		this.button.attr( "aria-expanded", this.isOpen );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._removeClass( this.button, "ui-selectmenu-button-" +
 			( this.isOpen ? "closed" : "open" ) )
 			._addClass( this.button, "ui-selectmenu-button-" +
@@ -12922,13 +12922,13 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 	_resizeButton: function() {
 		var width = this.options.width;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( width === false ) {
 			this.button.css( "width", "" );
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( width === null ) {
 			width = this.element.show().outerWidth();
 			this.element.hide();
@@ -12941,9 +12941,9 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
 		this.menu.outerWidth( Math.max(
 			this.button.outerWidth(),
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this.menu.width( "" ).outerWidth() + 1
 		) );
 	},
@@ -12997,14 +12997,14 @@ var widgetsSelectmenu = $.widget( "ui.selectmenu", [ $.ui.formResetMixin, {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 	version: "1.12.0",
@@ -13016,8 +13016,8 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 			"ui-slider": "ui-corner-all",
 			"ui-slider-handle": "ui-corner-all",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			"ui-slider-range": "ui-corner-all ui-widget-header"
 		},
 		distance: 0,
@@ -13029,15 +13029,15 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 		value: 0,
 		values: null,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		change: null,
 		slide: null,
 		start: null,
 		stop: null
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	numPages: 5,
 
 	_create: function() {
@@ -13115,7 +13115,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 			} else {
 				this._removeClass( this.range, "ui-slider-range-min ui-slider-range-max" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.range.css( {
 					"left": "",
 					"bottom": ""
@@ -13316,7 +13316,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 
 		allowed = this._trigger( "slide", event, this._uiHash( index, newVal, newValues ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( allowed === false ) {
 			return;
 		}
@@ -13335,7 +13335,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 	_change: function( event, index ) {
 		if ( !this._keySliding && !this._mouseSliding ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._lastChangedValue = index;
 			this._trigger( "change", event, this._uiHash( index ) );
 		}
@@ -13415,7 +13415,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 					this._refreshRange( value );
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.handles.css( value === "horizontal" ? "bottom" : "left", "" );
 				break;
 			case "value":
@@ -13428,7 +13428,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 				this._animateOff = true;
 				this._refreshValue();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				for ( i = valsLength - 1; i >= 0; i-- ) {
 					this._change( null, i );
 				}
@@ -13456,8 +13456,8 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 		this._toggleClass( null, "ui-state-disabled", !!value );
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_value: function() {
 		var val = this.options.value;
 		val = this._trimAlignValue( val );
@@ -13465,9 +13465,9 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 		return val;
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_values: function( index ) {
 		var val,
 			vals,
@@ -13480,8 +13480,8 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 			return val;
 		} else if ( this._hasMultipleValues() ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			vals = this.options.values.slice();
 			for ( i = 0; i < vals.length; i += 1 ) {
 				vals[ i ] = this._trimAlignValue( vals[ i ] );
@@ -13493,7 +13493,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_trimAlignValue: function( val ) {
 		if ( val <= this._valueMin() ) {
 			return this._valueMin();
@@ -13509,8 +13509,8 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 			alignValue += ( valModStep > 0 ) ? step : ( -step );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		return parseFloat( alignValue.toFixed( 5 ) );
 	},
 
@@ -13522,7 +13522,7 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
 		max = aboveMin + min;
 		if ( max > this.options.max ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			max -= step;
 		}
 		this.max = parseFloat( max.toFixed( this._precision() ) );
@@ -13728,14 +13728,14 @@ var widgetsSlider = $.widget( "ui.slider", $.ui.mouse, {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 function spinnerModifer( fn ) {
 	return function() {
@@ -13778,16 +13778,16 @@ $.widget( "ui.spinner", {
 
 	_create: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._setOption( "max", this.options.max );
 		this._setOption( "min", this.options.min );
 		this._setOption( "step", this.options.step );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.value() !== "" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._value( this.element.val(), true );
 		}
 
@@ -13795,9 +13795,9 @@ $.widget( "ui.spinner", {
 		this._on( this._events );
 		this._refresh();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._on( this.window, {
 			beforeunload: function() {
 				this.element.removeAttr( "autocomplete" );
@@ -13861,11 +13861,11 @@ $.widget( "ui.spinner", {
 		"mousedown .ui-spinner-button": function( event ) {
 			var previous;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			previous = this.element[ 0 ] === $.ui.safeActiveElement( this.document[ 0 ] ) ?
 				this.previous : this.element.val();
 			function checkFocus() {
@@ -13874,23 +13874,23 @@ $.widget( "ui.spinner", {
 					this.element.trigger( "focus" );
 					this.previous = previous;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					this._delay( function() {
 						this.previous = previous;
 					} );
 				}
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			event.preventDefault();
 			checkFocus.call( this );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this.cancelBlur = true;
 			this._delay( function() {
 				delete this.cancelBlur;
@@ -13907,7 +13907,7 @@ $.widget( "ui.spinner", {
 		"mouseup .ui-spinner-button": "_stop",
 		"mouseenter .ui-spinner-button": function( event ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !$( event.currentTarget ).hasClass( "ui-state-active" ) ) {
 				return;
 			}
@@ -13920,19 +13920,19 @@ $.widget( "ui.spinner", {
 		},
 
 		// TODO: do we really want to consider this a stop?
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		"mouseleave .ui-spinner-button": "_stop"
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_enhance: function() {
 		this.uiSpinner = this.element
 			.attr( "autocomplete", "off" )
 			.wrap( "<span>" )
 			.parent()
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				.append(
 					"<a></a><a></a>"
 				);
@@ -13946,7 +13946,7 @@ $.widget( "ui.spinner", {
 
 		this.element.attr( "role", "spinbutton" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.buttons = this.uiSpinner.children( "a" )
 			.attr( "tabIndex", -1 )
 			.attr( "aria-hidden", true )
@@ -13970,8 +13970,8 @@ $.widget( "ui.spinner", {
 			"showLabel": false
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.buttons.height() > Math.ceil( this.uiSpinner.height() * 0.5 ) &&
 				this.uiSpinner.height() > 0 ) {
 			this.uiSpinner.height( this.uiSpinner.height() );
@@ -14068,21 +14068,21 @@ $.widget( "ui.spinner", {
 		var base, aboveMin,
 			options = this.options;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		base = options.min !== null ? options.min : 0;
 		aboveMin = value - base;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		aboveMin = Math.round( aboveMin / options.step ) * options.step;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		value = base + aboveMin;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		value = parseFloat( value.toFixed( this._precision() ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( options.max !== null && value > options.max ) {
 			return options.max;
 		}
@@ -14174,16 +14174,16 @@ $.widget( "ui.spinner", {
 	isValid: function() {
 		var value = this.value();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( value === null ) {
 			return false;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		return value === this._adjustValue( value );
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_value: function( value, allowAny ) {
 		var parsed;
 		if ( value !== "" ) {
@@ -14247,11 +14247,11 @@ $.widget( "ui.spinner", {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 // TODO: switch return back to widget declaration at top of file when this is removed
 if ( $.uiBackCompat !== false ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	$.widget( "ui.spinner", $.ui.spinner, {
 		_enhance: function() {
 			this.uiSpinner = this.element
@@ -14259,7 +14259,7 @@ if ( $.uiBackCompat !== false ) {
 				.wrap( this._uiSpinnerHtml() )
 				.parent()
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					.append( this._buttonHtml() );
 		},
 		_uiSpinnerHtml: function() {
@@ -14283,14 +14283,14 @@ var widgetsSpinner = $.ui.spinner;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.tabs", {
 	version: "1.12.0",
@@ -14309,7 +14309,7 @@ $.widget( "ui.tabs", {
 		hide: null,
 		show: null,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		activate: null,
 		beforeActivate: null,
 		beforeLoad: null,
@@ -14325,7 +14325,7 @@ $.widget( "ui.tabs", {
 			anchorUrl = anchor.href.replace( rhash, "" );
 			locationUrl = location.href.replace( rhash, "" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			try {
 				anchorUrl = decodeURIComponent( anchorUrl );
 			} catch ( error ) {}
@@ -14349,8 +14349,8 @@ $.widget( "ui.tabs", {
 		this._processTabs();
 		options.active = this._initialActive();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( $.isArray( options.disabled ) ) {
 			options.disabled = $.unique( options.disabled.concat(
 				$.map( this.tabs.filter( ".ui-state-disabled" ), function( li ) {
@@ -14359,7 +14359,7 @@ $.widget( "ui.tabs", {
 			) ).sort();
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.active !== false && this.anchors.length ) {
 			this.active = this._findActive( options.active );
 		} else {
@@ -14380,7 +14380,7 @@ $.widget( "ui.tabs", {
 
 		if ( active === null ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( locationHash ) {
 				this.tabs.each( function( i, tab ) {
 					if ( $( tab ).attr( "aria-controls" ) === locationHash ) {
@@ -14390,18 +14390,18 @@ $.widget( "ui.tabs", {
 				} );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( active === null ) {
 				active = this.tabs.index( this.tabs.filter( ".ui-tabs-active" ) );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( active === null || active === -1 ) {
 				active = this.tabs.length ? 0 : false;
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( active !== false ) {
 			active = this.tabs.index( this.tabs.eq( active ) );
 			if ( active === -1 ) {
@@ -14409,7 +14409,7 @@ $.widget( "ui.tabs", {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !collapsible && active === false && this.anchors.length ) {
 			active = 0;
 		}
@@ -14451,35 +14451,35 @@ $.widget( "ui.tabs", {
 			break;
 		case $.ui.keyCode.SPACE:
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			event.preventDefault();
 			clearTimeout( this.activating );
 			this._activate( selectedIndex );
 			return;
 		case $.ui.keyCode.ENTER:
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			event.preventDefault();
 			clearTimeout( this.activating );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._activate( selectedIndex === this.options.active ? false : selectedIndex );
 			return;
 		default:
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		event.preventDefault();
 		clearTimeout( this.activating );
 		selectedIndex = this._focusNextTab( selectedIndex, goingForward );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !event.ctrlKey && !event.metaKey ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			focusedTab.attr( "aria-selected", "false" );
 			this.tabs.eq( selectedIndex ).attr( "aria-selected", "true" );
 
@@ -14494,14 +14494,14 @@ $.widget( "ui.tabs", {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( event.ctrlKey && event.keyCode === $.ui.keyCode.UP ) {
 			event.preventDefault();
 			this.active.trigger( "focus" );
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_handlePageNav: function( event ) {
 		if ( event.altKey && event.keyCode === $.ui.keyCode.PAGE_UP ) {
 			this._activate( this._focusNextTab( this.options.active - 1, false ) );
@@ -14542,7 +14542,7 @@ $.widget( "ui.tabs", {
 	_setOption: function( key, value ) {
 		if ( key === "active" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			this._activate( value );
 			return;
 		}
@@ -14552,7 +14552,7 @@ $.widget( "ui.tabs", {
 		if ( key === "collapsible" ) {
 			this._toggleClass( "ui-tabs-collapsible", null, value );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( !value && this.options.active === false ) {
 				this._activate( 0 );
 			}
@@ -14575,36 +14575,36 @@ $.widget( "ui.tabs", {
 		var options = this.options,
 			lis = this.tablist.children( ":has(a[href])" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		options.disabled = $.map( lis.filter( ".ui-state-disabled" ), function( tab ) {
 			return lis.index( tab );
 		} );
 
 		this._processTabs();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( options.active === false || !this.anchors.length ) {
 			options.active = false;
 			this.active = $();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		} else if ( this.active.length && !$.contains( this.tablist[ 0 ], this.active[ 0 ] ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( this.tabs.length === options.disabled.length ) {
 				options.active = false;
 				this.active = $();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			} else {
 				this._activate( this._findNextTab( Math.max( 0, options.active - 1 ), false ) );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			options.active = this.tabs.index( this.active );
 		}
 
@@ -14627,7 +14627,7 @@ $.widget( "ui.tabs", {
 				"aria-hidden": "true"
 			} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !this.active.length ) {
 			this.tabs.eq( 0 ).attr( "tabIndex", 0 );
 		} else {
@@ -14656,7 +14656,7 @@ $.widget( "ui.tabs", {
 		this._addClass( this.tablist, "ui-tabs-nav",
 			"ui-helper-reset ui-helper-clearfix ui-widget-header" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.tablist
 			.on( "mousedown" + this.eventNamespace, "> li", function( event ) {
 				if ( $( this ).is( ".ui-state-disabled" ) ) {
@@ -14664,12 +14664,12 @@ $.widget( "ui.tabs", {
 				}
 			} )
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			.on( "focus" + this.eventNamespace, ".ui-tabs-anchor", function() {
 				if ( $( this ).closest( "li" ).is( ".ui-state-disabled" ) ) {
 					this.blur();
@@ -14700,17 +14700,17 @@ $.widget( "ui.tabs", {
 				tab = $( anchor ).closest( "li" ),
 				originalAriaControls = tab.attr( "aria-controls" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( that._isLocal( anchor ) ) {
 				selector = anchor.hash;
 				panelId = selector.substring( 1 );
 				panel = that.element.find( that._sanitizeSelector( selector ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				panelId = tab.attr( "aria-controls" ) || $( {} ).uniqueId()[ 0 ].id;
 				selector = "#" + panelId;
 				panel = that.element.find( selector );
@@ -14737,7 +14737,7 @@ $.widget( "ui.tabs", {
 		this.panels.attr( "role", "tabpanel" );
 		this._addClass( this.panels, "ui-tabs-panel", "ui-widget-content" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( prevTabs ) {
 			this._off( prevTabs.not( this.tabs ) );
 			this._off( prevAnchors.not( this.anchors ) );
@@ -14745,7 +14745,7 @@ $.widget( "ui.tabs", {
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_getList: function() {
 		return this.tablist || this.element.find( "ol, ul" ).eq( 0 );
 	},
@@ -14767,7 +14767,7 @@ $.widget( "ui.tabs", {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		for ( i = 0; ( li = this.tabs[ i ] ); i++ ) {
 			currentItem = $( li );
 			if ( disabled === true || $.inArray( i, disabled ) !== -1 ) {
@@ -14795,7 +14795,7 @@ $.widget( "ui.tabs", {
 
 		this._off( this.anchors.add( this.tabs ).add( this.panels ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this._on( true, this.anchors, {
 			click: function( event ) {
 				event.preventDefault();
@@ -14864,16 +14864,16 @@ $.widget( "ui.tabs", {
 
 		if ( tab.hasClass( "ui-state-disabled" ) ||
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				tab.hasClass( "ui-tabs-loading" ) ||
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				this.running ||
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				( clickedIsActive && !options.collapsible ) ||
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				( this._trigger( "beforeActivate", event, eventData ) === false ) ) {
 			return;
 		}
@@ -14895,7 +14895,7 @@ $.widget( "ui.tabs", {
 		this._toggle( event, eventData );
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	_toggle: function( event, eventData ) {
 		var that = this,
 			toShow = eventData.newPanel,
@@ -14919,7 +14919,7 @@ $.widget( "ui.tabs", {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( toHide.length && this.options.hide ) {
 			this._hide( toHide, this.options.hide, function() {
 				that._removeClass( eventData.oldTab.closest( "li" ),
@@ -14939,9 +14939,9 @@ $.widget( "ui.tabs", {
 			"aria-expanded": "false"
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( toShow.length && toHide.length ) {
 			eventData.oldTab.attr( "tabIndex", -1 );
 		} else if ( toShow.length ) {
@@ -14963,12 +14963,12 @@ $.widget( "ui.tabs", {
 		var anchor,
 			active = this._findActive( index );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( active[ 0 ] === this.active[ 0 ] ) {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !active.length ) {
 			active = this.active;
 		}
@@ -14987,7 +14987,7 @@ $.widget( "ui.tabs", {
 
 	_getIndex: function( index ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( typeof index === "string" ) {
 			index = this.anchors.index( this.anchors.filter( "[href$='" +
 				$.ui.escapeSelector( index ) + "']" ) );
@@ -15105,16 +15105,16 @@ $.widget( "ui.tabs", {
 				}
 			};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this._isLocal( anchor[ 0 ] ) ) {
 			return;
 		}
 
 		this.xhr = $.ajax( this._ajaxSettings( anchor, event, eventData ) );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.xhr && this.xhr.statusText !== "canceled" ) {
 			this._addClass( tab, "ui-tabs-loading" );
 			panel.attr( "aria-busy", "true" );
@@ -15122,8 +15122,8 @@ $.widget( "ui.tabs", {
 			this.xhr
 				.done( function( response, status, jqXHR ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					setTimeout( function() {
 						panel.html( response );
 						that._trigger( "load", event, eventData );
@@ -15133,8 +15133,8 @@ $.widget( "ui.tabs", {
 				} )
 				.fail( function( jqXHR, status ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					setTimeout( function() {
 						complete( jqXHR, status );
 					}, 1 );
@@ -15159,11 +15159,11 @@ $.widget( "ui.tabs", {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 // TODO: Switch return back to widget declaration at top of file when this is removed
 if ( $.uiBackCompat !== false ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	$.widget( "ui.tabs", $.ui.tabs, {
 		_processTabs: function() {
 			this._superApply( arguments );
@@ -15183,14 +15183,14 @@ var widgetsTabs = $.ui.tabs;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 $.widget( "ui.tooltip", {
 	version: "1.12.0",
@@ -15200,16 +15200,16 @@ $.widget( "ui.tooltip", {
 		},
 		content: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			var title = $( this ).attr( "title" ) || "";
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			return $( "<a>" ).text( title ).html();
 		},
 		hide: true,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		items: "[title]:not([disabled])",
 		position: {
 			my: "left top+15",
@@ -15219,7 +15219,7 @@ $.widget( "ui.tooltip", {
 		show: true,
 		track: false,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		close: null,
 		open: null
 	},
@@ -15256,13 +15256,13 @@ $.widget( "ui.tooltip", {
 			focusin: "open"
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.tooltips = {};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.parents = {};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.liveRegion = $( "<div>" )
 			.attr( {
 				role: "log",
@@ -15294,14 +15294,14 @@ $.widget( "ui.tooltip", {
 	_disable: function() {
 		var that = this;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.each( this.tooltips, function( id, tooltipData ) {
 			var event = $.Event( "blur" );
 			event.target = event.currentTarget = tooltipData.element[ 0 ];
 			that.close( event, true );
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.disabledTitles = this.disabledTitles.add(
 			this.element.find( this.options.items ).addBack()
 				.filter( function() {
@@ -15317,7 +15317,7 @@ $.widget( "ui.tooltip", {
 
 	_enable: function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.disabledTitles.each( function() {
 			var element = $( this );
 			if ( element.data( "ui-tooltip-title" ) ) {
@@ -15331,11 +15331,11 @@ $.widget( "ui.tooltip", {
 		var that = this,
 			target = $( event ? event.target : this.element )
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				.closest( this.options.items );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !target.length || target.data( "ui-tooltip-id" ) ) {
 			return;
 		}
@@ -15346,7 +15346,7 @@ $.widget( "ui.tooltip", {
 
 		target.data( "ui-tooltip-open", true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( event && event.type === "mouseover" ) {
 			target.parents().each( function() {
 				var parent = $( this ),
@@ -15384,20 +15384,20 @@ $.widget( "ui.tooltip", {
 
 		content = contentOption.call( target[ 0 ], function( response ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			that._delay( function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( !target.data( "ui-tooltip-open" ) ) {
 					return;
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( event ) {
 					event.type = eventType;
 				}
@@ -15417,21 +15417,21 @@ $.widget( "ui.tooltip", {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		tooltipData = this._find( target );
 		if ( tooltipData ) {
 			tooltipData.tooltip.find( ".ui-tooltip-content" ).html( content );
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( target.is( "[title]" ) ) {
 			if ( event && event.type === "mouseover" ) {
 				target.attr( "title", "" );
@@ -15445,9 +15445,9 @@ $.widget( "ui.tooltip", {
 		this._addDescribedBy( target, tooltip.attr( "id" ) );
 		tooltip.find( ".ui-tooltip-content" ).html( content );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		this.liveRegion.children().hide();
 		a11yContent = $( "<div>" ).html( tooltip.find( ".ui-tooltip-content" ).html() );
 		a11yContent.removeAttr( "name" ).find( "[name]" ).removeAttr( "name" );
@@ -15466,7 +15466,7 @@ $.widget( "ui.tooltip", {
 				mousemove: position
 			} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			position( event );
 		} else {
 			tooltip.position( $.extend( {
@@ -15478,10 +15478,10 @@ $.widget( "ui.tooltip", {
 
 		this._show( tooltip, this.options.show );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this.options.track && this.options.show && this.options.show.delay ) {
 			delayedShow = this.delayedShow = setInterval( function() {
 				if ( tooltip.is( ":visible" ) ) {
@@ -15505,8 +15505,8 @@ $.widget( "ui.tooltip", {
 			}
 		};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( target[ 0 ] !== this.element[ 0 ] ) {
 			events.remove = function() {
 				this._removeTooltip( this._find( target ).tooltip );
@@ -15528,30 +15528,30 @@ $.widget( "ui.tooltip", {
 			target = $( event ? event.currentTarget : this.element ),
 			tooltipData = this._find( target );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( !tooltipData ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			target.removeData( "ui-tooltip-open" );
 			return;
 		}
 
 		tooltip = tooltipData.tooltip;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( tooltipData.closing ) {
 			return;
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		clearInterval( this.delayedShow );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( target.data( "ui-tooltip-title" ) && !target.attr( "title" ) ) {
 			target.attr( "title", target.data( "ui-tooltip-title" ) );
 		}
@@ -15567,7 +15567,7 @@ $.widget( "ui.tooltip", {
 		target.removeData( "ui-tooltip-open" );
 		this._off( target, "mouseleave focusout keyup" );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( target[ 0 ] !== this.element[ 0 ] ) {
 			this._off( target, "remove" );
 		}
@@ -15626,23 +15626,23 @@ $.widget( "ui.tooltip", {
 	_destroy: function() {
 		var that = this;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.each( this.tooltips, function( id, tooltipData ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			var event = $.Event( "blur" ),
 				element = tooltipData.element;
 			event.target = event.currentTarget = element[ 0 ];
 			that.close( event, true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			$( "#" + id ).remove();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( element.data( "ui-tooltip-title" ) ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( !element.attr( "title" ) ) {
 					element.attr( "title", element.data( "ui-tooltip-title" ) );
 				}
@@ -15653,11 +15653,11 @@ $.widget( "ui.tooltip", {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 // TODO: Switch return back to widget declaration at top of file when this is removed
 if ( $.uiBackCompat !== false ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	$.widget( "ui.tooltip", $.ui.tooltip, {
 		options: {
 			tooltipClass: null
@@ -15683,20 +15683,20 @@ var widgetsTooltip = $.ui.tooltip;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var dataSpace = "ui-effects-",
 	dataSpaceStyle = "ui-effects-style",
 	dataSpaceAnimated = "ui-effects-animated",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	jQuery = $;
 
 $.effects = {
@@ -15718,10 +15718,10 @@ $.effects = {
 	var stepHooks = "backgroundColor borderBottomColor borderLeftColor borderRightColor " +
 		"borderTopColor color columnRuleColor outlineColor textDecorationColor textEmphasisColor",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	rplusequals = /^([\-+])=\s*(\d+\.?\d*)/,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	stringParsers = [ {
 			re: /rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*(\d?(?:\.\d+)?)\s*)?\)/,
 			parse: function( execResult ) {
@@ -15744,7 +15744,7 @@ $.effects = {
 			}
 		}, {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			re: /#([a-f0-9]{2})([a-f0-9]{2})([a-f0-9]{2})/,
 			parse: function( execResult ) {
 				return [
@@ -15755,7 +15755,7 @@ $.effects = {
 			}
 		}, {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			re: /#([a-f0-9])([a-f0-9])([a-f0-9])/,
 			parse: function( execResult ) {
 				return [
@@ -15777,7 +15777,7 @@ $.effects = {
 			}
 		} ],
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	color = jQuery.Color = function( color, green, blue, alpha ) {
 		return new jQuery.Color.fn.parse( color, green, blue, alpha );
 	},
@@ -15831,21 +15831,21 @@ $.effects = {
 	},
 	support = color.support = {},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	supportElem = jQuery( "<p>" )[ 0 ],
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	colors,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	each = jQuery.each;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 supportElem.style.cssText = "background-color:rgba(1,1,1,.5)";
 support.rgba = supportElem.style.backgroundColor.indexOf( "rgba" ) > -1;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 each( spaces, function( spaceName, space ) {
 	space.cache = "_" + spaceName;
 	space.props.alpha = {
@@ -15862,23 +15862,23 @@ function clamp( value, prop, allowEmpty ) {
 		return ( allowEmpty || !prop.def ) ? null : prop.def;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	value = type.floor ? ~~value : parseFloat( value );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( isNaN( value ) ) {
 		return prop.def;
 	}
 
 	if ( type.mod ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		return ( value + type.mod ) % type.mod;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	return 0 > value ? 0 : type.max < value ? type.max : value;
 }
 
@@ -15897,28 +15897,28 @@ function stringParse( string ) {
 		if ( values ) {
 			parsed = inst[ spaceName ]( values );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			inst[ spaces[ spaceName ].cache ] = parsed[ spaces[ spaceName ].cache ];
 			rgba = inst._rgba = parsed._rgba;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			return false;
 		}
 	} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( rgba.length ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( rgba.join() === "0,0,0,0" ) {
 			jQuery.extend( rgba, colors.transparent );
 		}
 		return inst;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	return colors[ string ];
 }
 
@@ -15937,7 +15937,7 @@ color.fn = jQuery.extend( color.prototype, {
 			type = jQuery.type( red ),
 			rgba = this._rgba = [];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( green !== undefined ) {
 			red = [ red, green, blue, alpha ];
 			type = "array";
@@ -15966,27 +15966,27 @@ color.fn = jQuery.extend( color.prototype, {
 					var cache = space.cache;
 					each( space.props, function( key, prop ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						if ( !inst[ cache ] && space.to ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 							if ( key === "alpha" || red[ key ] == null ) {
 								return;
 							}
 							inst[ cache ] = space.to( inst._rgba );
 						}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						inst[ cache ][ prop.idx ] = clamp( red[ key ], prop, true );
 					} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					if ( inst[ cache ] &&
 							jQuery.inArray( null, inst[ cache ].slice( 0, 3 ) ) < 0 ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 						inst[ cache ][ 3 ] = 1;
 						if ( space.from ) {
 							inst._rgba = space.from( inst[ cache ] );
@@ -16043,12 +16043,12 @@ color.fn = jQuery.extend( color.prototype, {
 				endValue = end[ index ],
 				type = propTypes[ prop.type ] || {};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( endValue === null ) {
 				return;
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( startValue === null ) {
 				result[ index ] = endValue;
 			} else {
@@ -16066,7 +16066,7 @@ color.fn = jQuery.extend( color.prototype, {
 	},
 	blend: function( opaque ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( this._rgba[ 3 ] === 1 ) {
 			return this;
 		}
@@ -16099,7 +16099,7 @@ color.fn = jQuery.extend( color.prototype, {
 					v = i > 2 ? 1 : 0;
 				}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( i && i < 3 ) {
 					v = Math.round( v * 100 ) + "%";
 				}
@@ -16122,7 +16122,7 @@ color.fn = jQuery.extend( color.prototype, {
 
 		return "#" + jQuery.map( rgba, function( v ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			v = ( v || 0 ).toString( 16 );
 			return v.length === 1 ? "0" + v : v;
 		} ).join( "" );
@@ -16133,8 +16133,8 @@ color.fn = jQuery.extend( color.prototype, {
 } );
 color.fn.parse.prototype = color.fn;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 function hue2rgb( p, q, h ) {
 	h = ( h + 1 ) % 1;
@@ -16175,8 +16175,8 @@ spaces.hsla.to = function( rgba ) {
 		h = ( 60 * ( r - g ) / diff ) + 240;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( diff === 0 ) {
 		s = 0;
 	} else if ( l <= 0.5 ) {
@@ -16212,10 +16212,10 @@ each( spaces, function( spaceName, space ) {
 		to = space.to,
 		from = space.from;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	color.fn[ spaceName ] = function( value ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( to && !this[ cache ] ) {
 			this[ cache ] = to( this._rgba );
 		}
@@ -16245,10 +16245,10 @@ each( spaces, function( spaceName, space ) {
 		}
 	};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	each( props, function( key, prop ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( color.fn[ key ] ) {
 			return;
 		}
@@ -16282,8 +16282,8 @@ each( spaces, function( spaceName, space ) {
 	} );
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 color.hook = function( hook ) {
 	var hooks = hook.split( " " );
 	each( hooks, function( i, hook ) {
@@ -16319,8 +16319,8 @@ color.hook = function( hook ) {
 					elem.style[ hook ] = value;
 				} catch ( e ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				}
 			}
 		};
@@ -16349,12 +16349,12 @@ jQuery.cssHooks.borderColor = {
 	}
 };
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 colors = jQuery.Color.names = {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	aqua: "#00ffff",
 	black: "#000000",
 	blue: "#0000ff",
@@ -16372,7 +16372,7 @@ colors = jQuery.Color.names = {
 	white: "#ffffff",
 	yellow: "#ffff00",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	transparent: [ null, null, null, 0 ],
 
 	_default: "#ffffff"
@@ -16426,7 +16426,7 @@ function getElementStyles( elem ) {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	} else {
 		for ( key in style ) {
 			if ( typeof style[ key ] === "string" ) {
@@ -16456,7 +16456,7 @@ function styleDifference( oldStyle, newStyle ) {
 	return diff;
 }
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 if ( !$.fn.addBack ) {
 	$.fn.addBack = function( selector ) {
 		return this.add( selector == null ?
@@ -16474,7 +16474,7 @@ $.effects.animateClass = function( value, duration, easing, callback ) {
 			applyClassChange,
 			allAnimations = o.children ? animated.find( "*" ).addBack() : animated;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		allAnimations = allAnimations.map( function() {
 			var el = $( this );
 			return {
@@ -16483,7 +16483,7 @@ $.effects.animateClass = function( value, duration, easing, callback ) {
 			};
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		applyClassChange = function() {
 			$.each( classAnimationActions, function( i, action ) {
 				if ( value[ action ] ) {
@@ -16493,17 +16493,17 @@ $.effects.animateClass = function( value, duration, easing, callback ) {
 		};
 		applyClassChange();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		allAnimations = allAnimations.map( function() {
 			this.end = getElementStyles( this.el[ 0 ] );
 			this.diff = styleDifference( this.start, this.end );
 			return this;
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		animated.attr( "class", baseClass );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		allAnimations = allAnimations.map( function() {
 			var styleInfo = this,
 				dfd = $.Deferred(),
@@ -16518,14 +16518,14 @@ $.effects.animateClass = function( value, duration, easing, callback ) {
 			return dfd.promise();
 		} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		$.when.apply( $, allAnimations.get() ).done( function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			applyClassChange();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			$.each( arguments, function() {
 				var el = this.el;
 				$.each( this.diff, function( key ) {
@@ -16533,8 +16533,8 @@ $.effects.animateClass = function( value, duration, easing, callback ) {
 				} );
 			} );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			o.complete.call( animated[ 0 ] );
 		} );
 	} );
@@ -16564,7 +16564,7 @@ $.fn.extend( {
 			if ( typeof force === "boolean" || force === undefined ) {
 				if ( !speed ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					return orig.apply( this, arguments );
 				} else {
 					return $.effects.animateClass.call( this,
@@ -16573,7 +16573,7 @@ $.fn.extend( {
 				}
 			} else {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				return $.effects.animateClass.call( this,
 					{ toggle: classNames }, force, speed, easing );
 			}
@@ -16607,7 +16607,7 @@ if ( $.expr && $.expr.filters && $.expr.filters.animated ) {
 if ( $.uiBackCompat !== false ) {
 	$.extend( $.effects, {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		save: function( element, set ) {
 			var i = 0, length = set.length;
 			for ( ; i < length; i++ ) {
@@ -16617,7 +16617,7 @@ if ( $.uiBackCompat !== false ) {
 			}
 		},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		restore: function( element, set ) {
 			var val, i = 0, length = set.length;
 			for ( ; i < length; i++ ) {
@@ -16635,15 +16635,15 @@ if ( $.uiBackCompat !== false ) {
 			return mode;
 		},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		createWrapper: function( element ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( element.parent().is( ".ui-effects-wrapper" ) ) {
 				return element.parent();
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			var props = {
 					width: element.outerWidth( true ),
 					height: element.outerHeight( true ),
@@ -16659,16 +16659,16 @@ if ( $.uiBackCompat !== false ) {
 						padding: 0
 					} ),
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				size = {
 					width: element.width(),
 					height: element.height()
 				},
 				active = document.activeElement;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			try {
 				active.id;
 			} catch ( e ) {
@@ -16677,16 +16677,16 @@ if ( $.uiBackCompat !== false ) {
 
 			element.wrap( wrapper );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( element[ 0 ] === active || $.contains( element[ 0 ], active ) ) {
 				$( active ).trigger( "focus" );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			wrapper = element.parent();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( element.css( "position" ) === "static" ) {
 				wrapper.css( { position: "relative" } );
 				element.css( { position: "relative" } );
@@ -16720,7 +16720,7 @@ if ( $.uiBackCompat !== false ) {
 			if ( element.parent().is( ".ui-effects-wrapper" ) ) {
 				element.parent().replaceWith( element );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( element[ 0 ] === active || $.contains( element[ 0 ], active ) ) {
 					$( active ).trigger( "focus" );
 				}
@@ -16777,7 +16777,7 @@ $.extend( $.effects, {
 		};
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	unshift: function( element, queueLength, count ) {
 		var queue = element.queue();
 
@@ -16809,7 +16809,7 @@ $.extend( $.effects, {
 		return mode;
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	getBaseline: function( origin, original ) {
 		var y, x;
 
@@ -16847,16 +16847,16 @@ $.extend( $.effects, {
 		};
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	createPlaceholder: function( element ) {
 		var placeholder,
 			cssPosition = element.css( "position" ),
 			position = element.position();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		element.css( {
 			marginTop: element.css( "marginTop" ),
 			marginBottom: element.css( "marginBottom" ),
@@ -16871,14 +16871,14 @@ $.extend( $.effects, {
 
 			placeholder = $( "<" + element[ 0 ].nodeName + ">" ).insertAfter( element ).css( {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				display: /^(inline|ruby)/.test( element.css( "display" ) ) ?
 					"inline-block" :
 					"block",
 				visibility: "hidden",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				marginTop: element.css( "marginTop" ),
 				marginBottom: element.css( "marginBottom" ),
 				marginLeft: element.css( "marginLeft" ),
@@ -16911,8 +16911,8 @@ $.extend( $.effects, {
 		}
 	},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	cleanUp: function( element ) {
 		$.effects.restoreStyle( element );
 		$.effects.removePlaceholder( element );
@@ -16930,44 +16930,44 @@ $.extend( $.effects, {
 	}
 } );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 function _normalizeArguments( effect, options, speed, callback ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( $.isPlainObject( effect ) ) {
 		options = effect;
 		effect = effect.effect;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	effect = { effect: effect };
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( options == null ) {
 		options = {};
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( $.isFunction( options ) ) {
 		callback = options;
 		speed = null;
 		options = {};
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( typeof options === "number" || $.fx.speeds[ options ] ) {
 		callback = speed;
 		speed = options;
 		options = {};
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( $.isFunction( speed ) ) {
 		callback = speed;
 		speed = null;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( options ) {
 		$.extend( effect, options );
 	}
@@ -16985,27 +16985,27 @@ function _normalizeArguments( effect, options, speed, callback ) {
 
 function standardAnimationOption( option ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( !option || typeof option === "number" || $.fx.speeds[ option ] ) {
 		return true;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( typeof option === "string" && !$.effects.effect[ option ] ) {
 		return true;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( $.isFunction( option ) ) {
 		return true;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( typeof option === "object" && !option.effect ) {
 		return true;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	return false;
 }
 
@@ -17023,15 +17023,15 @@ $.fn.extend( {
 				var el = $( this ),
 					normalizedMode = $.effects.mode( el, mode ) || defaultMode;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				el.data( dataSpaceAnimated, true );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				modes.push( normalizedMode );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( defaultMode && ( normalizedMode === "show" ||
 						( normalizedMode === defaultMode && normalizedMode === "hide" ) ) ) {
 					el.show();
@@ -17048,7 +17048,7 @@ $.fn.extend( {
 
 		if ( $.fx.off || !effectMethod ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( mode ) {
 				return this[ mode ]( args.duration, complete );
 			} else {
@@ -17085,14 +17085,14 @@ $.fn.extend( {
 				}
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			args.mode = modes.shift();
 
 			if ( $.uiBackCompat !== false && !defaultMode ) {
 				if ( elem.is( ":hidden" ) ? mode === "hide" : mode === "show" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					elem[ mode ]();
 					done();
 				} else {
@@ -17101,7 +17101,7 @@ $.fn.extend( {
 			} else {
 				if ( args.mode === "none" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 					elem[ mode ]();
 					done();
 				} else {
@@ -17110,9 +17110,9 @@ $.fn.extend( {
 			}
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		return queue === false ?
 			this.each( prefilter ).each( run ) :
 			this.queue( queueName, prefilter ).queue( queueName, run );
@@ -17247,7 +17247,7 @@ $.fx.step.clip = function( fx ) {
 
 ( function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var baseEasings = {};
 
@@ -17305,11 +17305,11 @@ var effect = $.effects;
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectBlind = $.effects.define( "blind", "hide", function( options, done ) {
 	var map = {
@@ -17358,17 +17358,17 @@ var effectsEffectBlind = $.effects.define( "blind", "hide", function( options, d
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) {
 	var upAnim, downAnim, refValue,
 		element = $( this ),
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		mode = options.mode,
 		hide = mode === "hide",
 		show = mode === "show",
@@ -17376,12 +17376,12 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
 		distance = options.distance,
 		times = options.times || 5,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		anims = times * 2 + ( show || hide ? 1 : 0 ),
 		speed = options.duration / anims,
 		easing = options.easing,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		ref = ( direction === "up" || direction === "down" ) ? "top" : "left",
 		motion = ( direction === "up" || direction === "left" ),
 		i = 0,
@@ -17392,7 +17392,7 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
 
 	refValue = element.css( ref );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( !distance ) {
 		distance = element[ ref === "top" ? "outerHeight" : "outerWidth" ]() / 3;
 	}
@@ -17401,15 +17401,15 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
 		downAnim = { opacity: 1 };
 		downAnim[ ref ] = refValue;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		element
 			.css( "opacity", 0 )
 			.css( ref, motion ? -distance * 2 : distance * 2 )
 			.animate( downAnim, speed, easing );
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( hide ) {
 		distance = distance / Math.pow( 2, times - 1 );
 	}
@@ -17417,7 +17417,7 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
 	downAnim = {};
 	downAnim[ ref ] = refValue;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	for ( ; i < times; i++ ) {
 		upAnim = {};
 		upAnim[ ref ] = ( motion ? "-=" : "+=" ) + distance;
@@ -17429,7 +17429,7 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
 		distance = hide ? distance * 2 : distance / 2;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( hide ) {
 		upAnim = { opacity: 0 };
 		upAnim[ ref ] = ( motion ? "-=" : "+=" ) + distance;
@@ -17451,11 +17451,11 @@ var effectsEffectBounce = $.effects.define( "bounce", function( options, done ) 
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectClip = $.effects.define( "clip", "hide", function( options, done ) {
 	var start,
@@ -17499,11 +17499,11 @@ var effectsEffectClip = $.effects.define( "clip", "hide", function( options, don
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectDrop = $.effects.define( "drop", "hide", function( options, done ) {
 
@@ -17533,7 +17533,7 @@ var effectsEffectDrop = $.effects.define( "drop", "hide", function( options, don
 		animation.opacity = 1;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	element.animate( animation, {
 		queue: false,
 		duration: options.duration,
@@ -17551,13 +17551,13 @@ var effectsEffectDrop = $.effects.define( "drop", "hide", function( options, don
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectExplode = $.effects.define( "explode", "hide", function( options, done ) {
 
@@ -17568,15 +17568,15 @@ var effectsEffectExplode = $.effects.define( "explode", "hide", function( option
 		mode = options.mode,
 		show = mode === "show",
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		offset = element.show().css( "visibility", "hidden" ).offset(),
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		width = Math.ceil( element.outerWidth() / cells ),
 		height = Math.ceil( element.outerHeight() / rows ),
 		pieces = [];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	function childComplete() {
 		pieces.push( this );
 		if ( pieces.length === rows * cells ) {
@@ -17584,7 +17584,7 @@ var effectsEffectExplode = $.effects.define( "explode", "hide", function( option
 		}
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	for ( i = 0; i < rows; i++ ) { // ===>
 		top = offset.top + i * height;
 		my = i - ( rows - 1 ) / 2;
@@ -17593,8 +17593,8 @@ var effectsEffectExplode = $.effects.define( "explode", "hide", function( option
 			left = offset.left + j * width;
 			mx = j - ( cells - 1 ) / 2;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			element
 				.clone()
 				.appendTo( "body" )
@@ -17606,8 +17606,8 @@ var effectsEffectExplode = $.effects.define( "explode", "hide", function( option
 					top: -i * height
 				} )
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				.parent()
 					.addClass( "ui-effects-explode" )
 					.css( {
@@ -17645,11 +17645,11 @@ var effectsEffectExplode = $.effects.define( "explode", "hide", function( option
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectFade = $.effects.define( "fade", "toggle", function( options, done ) {
 	var show = options.mode === "show";
@@ -17675,15 +17675,15 @@ var effectsEffectFade = $.effects.define( "fade", "toggle", function( options, d
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectFold = $.effects.define( "fold", "hide", function( options, done ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	var element = $( this ),
 		mode = options.mode,
 		show = mode === "show",
@@ -17720,7 +17720,7 @@ var effectsEffectFold = $.effects.define( "fold", "hide", function( options, don
 		animation2.clip = start;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	element
 		.queue( function( next ) {
 			if ( placeholder ) {
@@ -17747,11 +17747,11 @@ var effectsEffectFold = $.effects.define( "fold", "hide", function( options, don
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectHighlight = $.effects.define( "highlight", "show", function( options, done ) {
 	var element = $( this ),
@@ -17787,24 +17787,24 @@ var effectsEffectHighlight = $.effects.define( "highlight", "show", function( op
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	var baseline, factor, temp,
 		element = $( this ),
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		cProps = [ "fontSize" ],
 		vProps = [ "borderTopWidth", "borderBottomWidth", "paddingTop", "paddingBottom" ],
 		hProps = [ "borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight" ],
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		mode = options.mode,
 		restore = mode !== "effect",
 		scale = options.scale || "both",
@@ -17823,7 +17823,7 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 		to = temp;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	factor = {
 		from: {
 			y: from.height / original.height,
@@ -17835,33 +17835,33 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 		}
 	};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( scale === "box" || scale === "both" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( factor.from.y !== factor.to.y ) {
 			from = $.effects.setTransition( element, vProps, factor.from.y, from );
 			to = $.effects.setTransition( element, vProps, factor.to.y, to );
 		}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( factor.from.x !== factor.to.x ) {
 			from = $.effects.setTransition( element, hProps, factor.from.x, from );
 			to = $.effects.setTransition( element, hProps, factor.to.x, to );
 		}
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( scale === "content" || scale === "both" ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		if ( factor.from.y !== factor.to.y ) {
 			from = $.effects.setTransition( element, cProps, factor.from.y, from );
 			to = $.effects.setTransition( element, cProps, factor.to.y, to );
 		}
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( origin ) {
 		baseline = $.effects.getBaseline( origin, original );
 		from.top = ( original.outerHeight - from.outerHeight ) * baseline.y + pos.top;
@@ -17871,13 +17871,13 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 	}
 	element.css( from );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( scale === "content" || scale === "both" ) {
 
 		vProps = vProps.concat( [ "marginTop", "marginBottom" ] ).concat( cProps );
 		hProps = hProps.concat( [ "marginLeft", "marginRight" ] );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		// TODO: is this right? should we include anything with css width specified as well
 		element.find( "*[width]" ).each( function() {
 			var child = $( this ),
@@ -17895,13 +17895,13 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 					outerWidth: childOriginal.width * factor.to.x
 				};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( factor.from.y !== factor.to.y ) {
 				childFrom = $.effects.setTransition( child, vProps, factor.from.y, childFrom );
 				childTo = $.effects.setTransition( child, vProps, factor.to.y, childTo );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			if ( factor.from.x !== factor.to.x ) {
 				childFrom = $.effects.setTransition( child, hProps, factor.from.x, childFrom );
 				childTo = $.effects.setTransition( child, hProps, factor.to.x, childTo );
@@ -17911,11 +17911,11 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 				$.effects.saveStyle( child );
 			}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 			child.css( childFrom );
 			child.animate( childTo, options.duration, options.easing, function() {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				if ( restore ) {
 					$.effects.restoreStyle( child );
 				}
@@ -17923,7 +17923,7 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 		} );
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	element.animate( to, {
 		queue: false,
 		duration: options.duration,
@@ -17941,8 +17941,8 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
 					.css( "position", position === "static" ? "relative" : position )
 					.offset( offset );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 				$.effects.saveStyle( element );
 			}
 
@@ -17961,15 +17961,15 @@ var effectsEffectSize = $.effects.define( "size", function( options, done ) {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectScale = $.effects.define( "scale", function( options, done ) {
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	var el = $( this ),
 		mode = options.mode,
 		percent = parseInt( options.percent, 10 ) ||
@@ -17981,7 +17981,7 @@ var effectsEffectScale = $.effects.define( "scale", function( options, done ) {
 			origin: options.origin || [ "middle", "center" ]
 		}, options );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( options.fade ) {
 		newOptions.from.opacity = 1;
 		newOptions.to.opacity = 0;
@@ -17999,11 +17999,11 @@ var effectsEffectScale = $.effects.define( "scale", function( options, done ) {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectPuff = $.effects.define( "puff", "hide", function( options, done ) {
 	var newOptions = $.extend( true, {}, options, {
@@ -18023,11 +18023,11 @@ var effectsEffectPuff = $.effects.define( "puff", "hide", function( options, don
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectPulsate = $.effects.define( "pulsate", "show", function( options, done ) {
 	var element = $( this ),
@@ -18036,7 +18036,7 @@ var effectsEffectPulsate = $.effects.define( "pulsate", "show", function( option
 		hide = mode === "hide",
 		showhide = show || hide,
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 		anims = ( ( options.times || 5 ) * 2 ) + ( showhide ? 1 : 0 ),
 		duration = options.duration / anims,
 		animateTo = 0,
@@ -18048,7 +18048,7 @@ var effectsEffectPulsate = $.effects.define( "pulsate", "show", function( option
 		animateTo = 1;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	for ( ; i < anims; i++ ) {
 		element.animate( { opacity: animateTo }, duration, options.easing );
 		animateTo = 1 - animateTo;
@@ -18070,11 +18070,11 @@ var effectsEffectPulsate = $.effects.define( "pulsate", "show", function( option
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectShake = $.effects.define( "shake", function( options, done ) {
 
@@ -18095,15 +18095,15 @@ var effectsEffectShake = $.effects.define( "shake", function( options, done ) {
 
 	$.effects.createPlaceholder( element );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	animation[ ref ] = ( positiveMotion ? "-=" : "+=" ) + distance;
 	animation1[ ref ] = ( positiveMotion ? "+=" : "-=" ) + distance * 2;
 	animation2[ ref ] = ( positiveMotion ? "-=" : "+=" ) + distance * 2;
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	element.animate( animation, speed, options.easing );
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	for ( ; i < times; i++ ) {
 		element
 			.animate( animation1, speed, options.easing )
@@ -18127,11 +18127,11 @@ var effectsEffectShake = $.effects.define( "shake", function( options, done ) {
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effectsEffectSlide = $.effects.define( "slide", "show", function( options, done ) {
 	var startClip, startRef,
@@ -18155,12 +18155,12 @@ var effectsEffectSlide = $.effects.define( "slide", "show", function( options, d
 	startClip = element.cssClip();
 	startRef = element.position()[ ref ];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	animation[ ref ] = ( positiveMotion ? -1 : 1 ) * distance + startRef;
 	animation.clip = element.cssClip();
 	animation.clip[ map[ direction ][ 1 ] ] = animation.clip[ map[ direction ][ 0 ] ];
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	if ( mode === "show" ) {
 		element.cssClip( animation.clip );
 		element.css( ref, animation[ ref ] );
@@ -18168,7 +18168,7 @@ var effectsEffectSlide = $.effects.define( "slide", "show", function( options, d
 		animation[ ref ] = startRef;
 	}
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	element.animate( animation, {
 		queue: false,
 		duration: options.duration,
@@ -18186,11 +18186,11 @@ var effectsEffectSlide = $.effects.define( "slide", "show", function( options, d
  * http://jquery.org/license
  */
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 
 var effect;
 if ( $.uiBackCompat !== false ) {

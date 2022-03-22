@@ -19,642 +19,671 @@
   =========================LICENSE_END==================================
   -->
 <div class="col-md-12">
-    <div class="content">
-        <form class="form-horizontal" ng-submit="reg.opslaan(wijzigGegevensForm, reg.huisarts)"
-              name="wijzigGegevensForm">
-            <div class="row">
-                <div ng-show="reg.wijzigGegevens">
-                    <h1>Wijzig uw gegevens</h1>
-                    <p>Hier kunt u uw geregistreerde gegevens wijzigen.</p>
-                </div>
-                <div ng-hide="reg.wijzigGegevens">
-                    <h1>Nieuwe zakelijke voorwaarden</h1>
-                    <p>Welkom bij het huisartsportaal van het Bevolkingsonderzoek. Hier treft u de nieuwe zakelijke
-                        voorwaarden aan.</p>
-                    <p>We vragen u kennis te nemen van de voorwaarden en ze te accepteren. Ook kunt u hier uw gegevens
-                        op juistheid controleren en indien nodig aanpassen</p>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <h3>1. AGB-code en NAW gegevens</h3>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label class="col-sm-5 control-label">AGB-code</label>
-                            <div class="col-sm-7">
-                                <label class="form-control">{{ reg.huisarts.agbcode }}</label>
-                            </div>
-                        </div>
-                        <div class="form-group required" show-errors>
-                            <label for="inputEmail3" class="col-sm-5 control-label">Email</label>
-                            <div class="col-sm-7">
-                                <input type="email" class="form-control" ng-model="reg.huisarts.email" id="inputEmail3"
-                                       name="email" placeholder="Email" required
-                                       pattern="^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*((\.[A-Za-z]{2,}){1}$)">
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.email.$error" ng-if="wijzigGegevensForm.email.$dirty"
-                                 class="col-sm-7 col-sm-offset-5">
-                                <p class="help-block" ng-message="pattern">Dit veld moet minimaal een @ en een punt bevatten.</p>
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                        <div class="form-group" show-errors>
-                            <label for="inputExtraEmail3" class="col-sm-5 control-label">Emails (extra)</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" id="inputExtraEmail3"
-                                       ng-model="reg.huisarts.extraEmails"
-                                       placeholder="Emails (extra)" name="extraEmails"
-                                       pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*(;|,)\s*|\s*$))*$">
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.extraEmails.$error" class="col-sm-7 col-sm-offset-5">
-                                <p class="help-block" ng-message="pattern">Dit veld moet minimaal een @ en een punt bevatten.</p>
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group required" show-errors>
-                            <label for="inputUsername3" class="col-sm-5 control-label">Gebruikersnaam</label>
-                            <div class="col-sm-7">
-                                <label class="form-control" id="inputUsername3">{{ reg.huisarts.username }}</label>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="col-sm-5 control-label">Wachtwoord</label>
-                            <div class="col-sm-7">
-                                <button type="button" class="btn btn-default" data-toggle="modal"
-                                        data-target="#wachtwoordwijzigen">Wachtwoord wijzigen
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+	<div class="content">
+		<form class="form-horizontal" ng-submit="reg.opslaan(wijzigGegevensForm, reg.huisarts)"
+			  name="wijzigGegevensForm">
+			<div class="row">
+				<div ng-show="reg.wijzigGegevens">
+					<h1>Wijzig uw gegevens</h1>
+					<p>Hier kunt u uw geregistreerde gegevens wijzigen.</p>
+				</div>
+				<div ng-hide="reg.wijzigGegevens">
+					<h1>Nieuwe zakelijke voorwaarden</h1>
+					<p>Welkom bij het huisartsportaal van het Bevolkingsonderzoek. Hier treft u de nieuwe zakelijke
+						voorwaarden aan.</p>
+					<p>We vragen u kennis te nemen van de voorwaarden en ze te accepteren. Ook kunt u hier uw gegevens
+						op juistheid controleren en indien nodig aanpassen</p>
+				</div>
+				<div class="row">
+					<div class="col-md-12">
+						<h3>1. AGB-code en NAW gegevens</h3>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label class="col-sm-5 control-label">AGB-code</label>
+							<div class="col-sm-7">
+								<label class="form-control">{{ reg.huisarts.agbcode }}</label>
+							</div>
+						</div>
+						<div class="form-group required" show-errors>
+							<label for="inputEmail3" class="col-sm-5 control-label">Email</label>
+							<div class="col-sm-7">
+								<input type="email" class="form-control" ng-model="reg.huisarts.email" id="inputEmail3"
+									   name="email" placeholder="Email" required
+									   pattern="^[_A-Za-z0-9-]+(\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*((\.[A-Za-z]{2,}){1}$)">
+							</div>
+							<div ng-messages="wijzigGegevensForm.email.$error" ng-if="wijzigGegevensForm.email.$dirty"
+								 class="col-sm-7 col-sm-offset-5">
+								<p class="help-block" ng-message="pattern">Dit veld moet minimaal een @ en een punt bevatten.</p>
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+						<div class="form-group" show-errors>
+							<label for="inputExtraEmail3" class="col-sm-5 control-label">Emails (extra)</label>
+							<div class="col-sm-7">
+								<input type="text" class="form-control" id="inputExtraEmail3"
+									   ng-model="reg.huisarts.extraEmails"
+									   placeholder="Emails (extra)" name="extraEmails"
+									   pattern="^(([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)(\s*(;|,)\s*|\s*$))*$">
+							</div>
+							<div ng-messages="wijzigGegevensForm.extraEmails.$error" class="col-sm-7 col-sm-offset-5">
+								<p class="help-block" ng-message="pattern">Dit veld moet minimaal een @ en een punt bevatten.</p>
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group required" show-errors>
+							<label for="inputUsername3" class="col-sm-5 control-label">Gebruikersnaam</label>
+							<div class="col-sm-7">
+								<label class="form-control" id="inputUsername3">{{ reg.huisarts.username }}</label>
+							</div>
+						</div>
+						<div class="form-group">
+							<label class="col-sm-5 control-label">Wachtwoord</label>
+							<div class="col-sm-7">
+								<button type="button" class="btn btn-default" data-toggle="modal"
+										data-target="#wachtwoordwijzigen">Wachtwoord wijzigen
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
 
-                <div class="row">
-                    <hr/>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="inputAahef3" class="col-sm-5 control-label">Titel:</label>
-                            <div class="col-sm-7" id="inputAahef3">
-                                <select class="form-control" ng-model="reg.huisarts.aanhef">
-                                    <option></option>
-                                    <option>Dhr.</option>
-                                    <option>Mevr.</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group required" show-errors>
-                            <label for="inputAchternaam3" class="col-sm-5 control-label">Achternaam</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" ng-model="reg.huisarts.achternaam"
-                                       id="inputAchternaam3" placeholder="Achternaam" name="achternaam" maxlength="100"
-                                       ng-pattern="/^[a-zA-Z\u00C0-\u024F\-\'\s]*$/" required>
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.achternaam.$error"
-                                 ng-if="wijzigGegevensForm.achternaam.$dirty" class="col-sm-7 col-sm-offset-5">
-                                <p class="help-block" ng-message="pattern">Achternaam mag alleen letters, spaties en koppeltekens bevatten.</p>
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                        <div class="form-group" show-errors>
-                            <label for="inputTussenvoegsel3" class="col-sm-5 control-label">Tussenvoegsel</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" ng-model="reg.huisarts.tussenvoegsel"
-                                       id="inputTussenvoegsel3" placeholder="Tussenvoegsel" name="tussenvoegsel" maxlength="20"
-                                       ng-pattern="/^[a-zA-Z\u00C0-\u024F\'\s]*$/">
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.tussenvoegsel.$error"
-                                 ng-if="wijzigGegevensForm.tussenvoegsel.$dirty" class="col-sm-7 col-sm-offset-5">
-                                <p class="help-block" ng-message="pattern">Tussenvoegsel mag alleen letters en spaties bevatten.</p>
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                        <div class="form-group" show-errors>
-                            <label for="inputVoorletters3" class="col-sm-5 control-label">Voorletters</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" ng-model="reg.huisarts.voorletters"
-                                       id="inputVoorletters3" placeholder="A" name="voorletters" maxlength="20"
-                                       ng-pattern="/^[a-zA-Z\u00C0-\u024F\.]*$/">
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.voorletters.$error"
-                                 ng-if="wijzigGegevensForm.voorletters.$dirty" class="col-sm-7 col-sm-offset-5">
-                                <p class="help-block" ng-message="pattern">'Voorletters' mag alleen letters en punten bevatten.</p>
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="inputTelefoonnummer3" class="col-sm-5 control-label">Telefoonnummer</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" ng-model="reg.huisarts.telefoon"
-                                       id="inputTelefoonnummer3" placeholder="Telefoonnummer" name="telefoon" maxlength="25">
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.telefoon.$error"
-                                 ng-if="wijzigGegevensForm.telefoon.$dirty"
-                                 class="col-sm-7 col-sm-offset-5">
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group required" show-errors>
-                            <label for="inputStraat3" class="col-sm-5 control-label">Straat</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" ng-model="reg.huisarts.postadres.straat"
-                                       id="inputStraat3" placeholder="Straatnaam" required name="straat">
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.straat.$error" ng-if="wijzigGegevensForm.straat.$dirty"
-                                 class="col-sm-7 col-sm-offset-5">
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                        <div class="form-group required" show-errors>
-                            <label for="inputHuisnummer3" class="col-sm-5 control-label">Huisnummer + toevoeging</label>
-                            <div class="col-sm-7 ">
-                                <div class="row">
-                                    <div class="col-sm-7">
-                                        <input type="number" class="form-control"
-                                               ng-model="reg.huisarts.postadres.huisnummer"
-                                               id="inputHuisnummer3" placeholder="Huisnummer" name="huisnummer"
-                                               min="0" required>
-                                    </div>
-                                    <div class="col-sm-5">
-                                        <input type="text" class="form-control"
-                                               ng-model="reg.huisarts.postadres.huisnummertoevoeging"
-                                               id="inputHuisnummer3"
-                                               placeholder="Toevoeging">
-                                    </div>
-                                </div>
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.huisnummer.$error"
-                                 ng-if="wijzigGegevensForm.huisnummer.$dirty" class="col-sm-7 col-sm-offset-5">
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                        <div class="form-group required" show-errors>
-                            <label for="inputPostcode3" class="col-sm-5 control-label">Postcode</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" ng-model="reg.huisarts.postadres.postcode"
-                                       id="inputPostcode3" placeholder="Postcode" maxlength="6" required
-                                       name="postcode">
-                            </div>
-                            <div ng-messages="wijzigGegevensForm.postcode.$error"
-                                 ng-if="wijzigGegevensForm.postcode.$dirty" class="col-sm-7 col-sm-offset-5">
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                        <div class="form-group required" show-errors>
-                            <label for="inputPlaats3" class="col-sm-5 control-label">Plaats</label>
-                            <div class="col-sm-7">
-                                <ui-select name="plaats" id="inputPlaats3" ng-model="reg.huisarts.postadres.woonplaats"
-                                           theme="bootstrap" required>
-                                    <ui-select-match placeholder="Voer de eerste 3 tekens in...">
-                                        <div>
-                                            {{ $select.selected.naam }}
-                                            <small>
-                                                (Gemeente: {{ $select.selected.gemeente }})
-                                            </small>
-                                        </div>
-                                    </ui-select-match>
-                                    <ui-select-choices
-                                            repeat="item in reg.woonplaatsen | filter: $select.search"
-                                            refresh="reg.getWoonplaatsen($select.search)"
-                                            minimum-input-length="2" refresh-delay="0">
-                                        <div ng-bind-html="item.naam | highlight: $select.search"></div>
-                                        <small>
-                                            Gemeente: {{ item.gemeente }}
-                                        </small>
-                                    </ui-select-choices>
-                                </ui-select>
-                            </div>
-                            <div ng-messages="registerform.plaats.$error" ng-if="registerform.plaats.$dirty"
-                                 class="col-sm-7 col-sm-offset-5">
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+				<div class="row">
+					<hr/>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="inputAahef3" class="col-sm-5 control-label">Titel:</label>
+							<div class="col-sm-7" id="inputAahef3">
+								<select class="form-control" ng-model="reg.huisarts.aanhef">
+									<option></option>
+									<option>Dhr.</option>
+									<option>Mevr.</option>
+								</select>
+							</div>
+						</div>
+						<div class="form-group required" show-errors>
+							<label for="inputAchternaam3" class="col-sm-5 control-label">Achternaam</label>
+							<div class="col-sm-7">
+								<input type="text" class="form-control" ng-model="reg.huisarts.achternaam"
+									   id="inputAchternaam3" placeholder="Achternaam" name="achternaam" maxlength="100"
+									   ng-pattern="/^[a-zA-Z\u00C0-\u024F\-\'\s]*$/" required>
+							</div>
+							<div ng-messages="wijzigGegevensForm.achternaam.$error"
+								 ng-if="wijzigGegevensForm.achternaam.$dirty" class="col-sm-7 col-sm-offset-5">
+								<p class="help-block" ng-message="pattern">Achternaam mag alleen letters, spaties en koppeltekens bevatten.</p>
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+						<div class="form-group" show-errors>
+							<label for="inputTussenvoegsel3" class="col-sm-5 control-label">Tussenvoegsel</label>
+							<div class="col-sm-7">
+								<input type="text" class="form-control" ng-model="reg.huisarts.tussenvoegsel"
+									   id="inputTussenvoegsel3" placeholder="Tussenvoegsel" name="tussenvoegsel" maxlength="20"
+									   ng-pattern="/^[a-zA-Z\u00C0-\u024F\'\s]*$/">
+							</div>
+							<div ng-messages="wijzigGegevensForm.tussenvoegsel.$error"
+								 ng-if="wijzigGegevensForm.tussenvoegsel.$dirty" class="col-sm-7 col-sm-offset-5">
+								<p class="help-block" ng-message="pattern">Tussenvoegsel mag alleen letters en spaties bevatten.</p>
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+						<div class="form-group" show-errors>
+							<label for="inputVoorletters3" class="col-sm-5 control-label">Voorletters</label>
+							<div class="col-sm-7">
+								<input type="text" class="form-control" ng-model="reg.huisarts.voorletters"
+									   id="inputVoorletters3" placeholder="A" name="voorletters" maxlength="20"
+									   ng-pattern="/^[a-zA-Z\u00C0-\u024F\.]*$/">
+							</div>
+							<div ng-messages="wijzigGegevensForm.voorletters.$error"
+								 ng-if="wijzigGegevensForm.voorletters.$dirty" class="col-sm-7 col-sm-offset-5">
+								<p class="help-block" ng-message="pattern">'Voorletters' mag alleen letters en punten bevatten.</p>
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="inputTelefoonnummer3" class="col-sm-5 control-label">Telefoonnummer</label>
+							<div class="col-sm-7">
+								<input type="text" class="form-control" ng-model="reg.huisarts.telefoon"
+									   id="inputTelefoonnummer3" placeholder="Telefoonnummer" name="telefoon" maxlength="25">
+							</div>
+							<div ng-messages="wijzigGegevensForm.telefoon.$error"
+								 ng-if="wijzigGegevensForm.telefoon.$dirty"
+								 class="col-sm-7 col-sm-offset-5">
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="form-group required" show-errors>
+							<label for="inputStraat3" class="col-sm-5 control-label">Straat</label>
+							<div class="col-sm-7">
+								<input type="text" class="form-control" ng-model="reg.huisarts.postadres.straat"
+									   id="inputStraat3" placeholder="Straatnaam" required name="straat">
+							</div>
+							<div ng-messages="wijzigGegevensForm.straat.$error" ng-if="wijzigGegevensForm.straat.$dirty"
+								 class="col-sm-7 col-sm-offset-5">
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+						<div class="form-group required" show-errors>
+							<label for="inputHuisnummer3" class="col-sm-5 control-label">Huisnummer + toevoeging</label>
+							<div class="col-sm-7 ">
+								<div class="row">
+									<div class="col-sm-7">
+										<input type="number" class="form-control"
+											   ng-model="reg.huisarts.postadres.huisnummer"
+											   id="inputHuisnummer3" placeholder="Huisnummer" name="huisnummer"
+											   min="0" required>
+									</div>
+									<div class="col-sm-5">
+										<input type="text" class="form-control"
+											   ng-model="reg.huisarts.postadres.huisnummertoevoeging"
+											   id="inputHuisnummer3"
+											   placeholder="Toevoeging">
+									</div>
+								</div>
+							</div>
+							<div ng-messages="wijzigGegevensForm.huisnummer.$error"
+								 ng-if="wijzigGegevensForm.huisnummer.$dirty" class="col-sm-7 col-sm-offset-5">
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+						<div class="form-group required" show-errors>
+							<label for="inputPostcode3" class="col-sm-5 control-label">Postcode</label>
+							<div class="col-sm-7">
+								<input type="text" class="form-control" ng-model="reg.huisarts.postadres.postcode"
+									   id="inputPostcode3" placeholder="Postcode" maxlength="6" required
+									   name="postcode">
+							</div>
+							<div ng-messages="wijzigGegevensForm.postcode.$error"
+								 ng-if="wijzigGegevensForm.postcode.$dirty" class="col-sm-7 col-sm-offset-5">
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+						<div class="form-group required" show-errors>
+							<label for="inputPlaats3" class="col-sm-5 control-label">Plaats</label>
+							<div class="col-sm-7">
+								<ui-select name="plaats" id="inputPlaats3" ng-model="reg.huisarts.postadres.woonplaats"
+										   theme="bootstrap" required>
+									<ui-select-match placeholder="Voer de eerste 3 tekens in...">
+										<div>
+											{{ $select.selected.naam }}
+											<small>
+												(Gemeente: {{ $select.selected.gemeente }})
+											</small>
+										</div>
+									</ui-select-match>
+									<ui-select-choices
+											repeat="item in reg.woonplaatsen | filter: $select.search"
+											refresh="reg.getWoonplaatsen($select.search)"
+											minimum-input-length="2" refresh-delay="0">
+										<div ng-bind-html="item.naam | highlight: $select.search"></div>
+										<small>
+											Gemeente: {{ item.gemeente }}
+										</small>
+									</ui-select-choices>
+								</ui-select>
+							</div>
+							<div ng-messages="registerform.plaats.$error" ng-if="registerform.plaats.$dirty"
+								 class="col-sm-7 col-sm-offset-5">
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 
-            <div class="row">
+			<div class="row">
 
-                <div class="col-md-12">
-                    <h3>2. Locaties</h3>
-                    <div class="col-md-12">
-                        <div class="col-md-offset-7 col-sm-3 text-right">
-                            <small>Uw locaties zijn gefilterd op:</small>
-                        </div>
-                        <div class="col-sm-2 clickable" style="margin-bottom: 10px">
-                            <ui-select theme="bootstrapcustom" ng-model="reg.locatieZoekObject.status"
-                                       ng-change="reg.resetTable()"
-                                       class="ui-select-btn"
-                                       search-enabled="false">
-                                <ui-select-match class="">
+				<div class="col-md-12">
+					<h3 ng-bind="reg.locatieTitel"></h3>
+					<div class="col-md-12">
+						<div class="col-md-offset-7 col-sm-3 text-right">
+							<small>Uw locaties zijn gefilterd op:</small>
+						</div>
+						<div class="col-sm-2 clickable" style="margin-bottom: 10px">
+							<ui-select theme="bootstrapcustom" ng-model="reg.locatieZoekObject.status"
+									   ng-change="reg.resetTable()"
+									   class="ui-select-btn"
+									   search-enabled="false">
+								<ui-select-match class="">
                                     <span class="label"
-                                          ng-class="reg.getLocatieStatusLabelClass(reg.locatieZoekObject.status)" ng-bind="reg.getLocatieStatusText(reg.locatieZoekObject.status)"></span>
-                                </ui-select-match>
-                                <ui-select-choices
-                                        repeat="filter in reg.optionsLocatieStatus">
+										  ng-class="reg.getLocatieStatusLabelClass(reg.locatieZoekObject.status)"
+										  ng-bind="reg.getLocatieStatusText(reg.locatieZoekObject.status)"></span>
+								</ui-select-match>
+								<ui-select-choices
+										repeat="filter in reg.optionsLocatieStatus">
                                     <span class="label center-block"
-                                          ng-class="reg.getLocatieChoiceStatusLabelClass(filter)" ng-bind="reg.getLocatieChoiceStatusText(filter)"></span>
-                                </ui-select-choices>
-                            </ui-select>
-                        </div>
-                    </div>
-                    <div class="col-md-12 scroll-x">
-                        <table ng-table="reg.tableParams"
-                               class="table table-striped table-clickable table-hover scroll-x">
-                            <tr ng-repeat="row in $data track by row.huisartsportaalId"
-                                ng-click="reg.openEditLocatie(locatieform, row)">
-                                <td data-title="'Locatienaam'" sortable="'naam'">{{row.naam}}</td>
-                                <td data-title="'Adres'" sortable="'locatieAdres.straat'">{{row.locatieAdres.straat}}
-                                    {{row.locatieAdres.huisnummer}}{{row.locatieAdres.huisnummertoevoeging}}
-                                </td>
-                                <td data-title="'Postcode'" sortable="'locatieAdres.postcode'">
-                                    {{row.locatieAdres.postcode.toUpperCase()}}
-                                </td>
-                                <td data-title="'Plaats'" sortable="'locatieAdres.woonplaats.naam'">
-                                    {{row.locatieAdres.woonplaats.naam}}
-                                </td>
-                                <td data-title="'Status'" sortable="'status'">
-                                    <span ng-if="row.status === 'ACTIEF'" class="label label-success">actief</span>
-                                    <span ng-if="row.status === 'KLANTNUMMER_NIET_GEVERIFIEERD'" class="label label-warning">verifi&euml;ren</span>
-                                    <span ng-if="row.status === 'INACTIEF'" class="label label-danger">verwijderd</span>
-                                </td>
-                                <td data-title="'Wijzig'" class="text-center">
-                                    <a ng-if="row.status !== 'INACTIEF'"><img src="assets/images/icons/icon_pencil.png"></a>
-                                    <a ng-if="row.status === 'INACTIEF'" ng-click="$event.stopPropagation();reg.confirmActiverenLocatie(row)"
-                                       style="text-decoration: none; color: #000" data-toggle="tooltip"
-                                       data-placement="right" title="Activeren" data-delay="0">
-                                        <img alt="activeren" src="assets/images/icons/icon_reload.png">
-                                    </a>
-                                </td>
-                                <td data-title="'Verwijder'" class="text-center"
-                                    ng-click="$event.stopPropagation()">
-                                    <a ng-if="row.status !== 'INACTIEF'" ng-click="reg.confirmVerwijderenLocatie(row)"
-                                       style="text-decoration: none; color: #000" data-placement="right"
-                                       title="Verwijderen" data-delay="0">
-                                        <img alt="verwijderen" src="assets/images/icons/icon_trash.png">
-                                    </a>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
+										  ng-class="reg.getLocatieChoiceStatusLabelClass(filter)" ng-bind="reg.getLocatieChoiceStatusText(filter)"></span>
+								</ui-select-choices>
+							</ui-select>
+						</div>
+					</div>
+					<div class="col-md-12 scroll-x">
+						<table ng-table="reg.tableParams"
+							   class="table table-striped table-clickable table-hover scroll-x">
+							<tr ng-repeat="row in $data track by row.huisartsportaalId"
+								ng-click="reg.openEditLocatie(locatieform, row)">
+								<td data-title="'Locatienaam'" sortable="'naam'">{{row.naam}}</td>
+								<td data-title="'Adres'" sortable="'locatieAdres.straat'">{{row.locatieAdres.straat}}
+									{{row.locatieAdres.huisnummer}}{{row.locatieAdres.huisnummertoevoeging}}
+								</td>
+								<td data-title="'Postcode'" sortable="'locatieAdres.postcode'">
+									{{row.locatieAdres.postcode.toUpperCase()}}
+								</td>
+								<td data-title="'Plaats'" sortable="'locatieAdres.woonplaats.naam'">
+									{{row.locatieAdres.woonplaats.naam}}
+								</td>
+								<td data-title="'Status'" sortable="'status'">
+									<span ng-if="row.status === 'ACTIEF'" class="label label-success">actief</span>
+									<span ng-if="row.status === 'KLANTNUMMER_NIET_GEVERIFIEERD'" class="label label-warning">verifi&euml;ren</span>
+									<span ng-if="row.status === 'INACTIEF'" class="label label-danger">verwijderd</span>
+								</td>
+								<td data-title="'Wijzig'" class="text-center"
+									ng-click="$event.stopPropagation()">
+									<a ng-if="row.status !== 'INACTIEF'" ng-click="reg.openEditLocatie(locatieform, row)"><img src="assets/images/icons/icon_pencil.png"></a>
+									<a ng-if="row.status === 'INACTIEF' && !reg.hasActieveLocatie" ng-click="reg.confirmActiverenLocatie(row)"
+									   style="text-decoration: none; color: #000" data-toggle="tooltip"
+									   data-placement="right" title="Activeren" data-delay="0">
+										<img alt="activeren" src="assets/images/icons/icon_reload.png">
+									</a>
+								</td>
+								<td data-title="'Verwijder'" class="text-center"
+									ng-click="$event.stopPropagation()">
+									<a ng-if="row.status !== 'INACTIEF'" ng-click="reg.confirmVerwijderenLocatie(row)"
+									   style="text-decoration: none; color: #000" data-placement="right"
+									   title="Verwijderen" data-delay="0">
+										<img alt="verwijderen" src="assets/images/icons/icon_trash.png">
+									</a>
+								</td>
+							</tr>
+						</table>
+					</div>
 
-                    <div class="row margin-top-10">
-                        <div class="col-md-12 text-right">
-                            <button type="button" class="btn btn-default btn-locatie" data-toggle="modal"
-                                    data-target="#locatieToevoegen" ng-click="reg.addLocatie()">
-                                Locatie
-                                toevoegen
-                            </button>
-                        </div>
-                    </div>
+					<div class="row margin-top-10">
+						<div class="col-md-12 text-right">
+							<button type="button" class="btn btn-default btn-locatie" data-toggle="modal"
+									data-target="#locatieToevoegen" ng-click="reg.addLocatie()"
+									ng-if="reg.hasLocatie">
+								Locatie
+								toevoegen
+							</button>
+						</div>
+					</div>
 
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <h3>3. Zakelijke overeenkomst</h3>
-                    <div class="row">
-                        <div class="col-md-5">
-                            <label for="inputUsername3" class="control-label">
-                                <input ng-model="reg.huisarts.overeenkomst" type="checkbox" name="overeenkomst"
-                                       required>
-                                Ik ga akkoord met de <a ng-click="reg.getOvereenkomst()">zakelijke voorwaarden</a>
-                            </label>
-                            <div ng-messages="registerform.overeenkomst.$error"
-                                 ng-if="registerform.overeenkomst.$dirty">
-                                <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                            </div>
-                            <br> <br> <br>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <div class=" col-md-12">
-                            <button type="submit" class="btn btn-primary btn-block">Gegevens opslaan</button>
-                            <br><br> <br><br>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
-    </div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-12">
+					<h3>3. Zakelijke overeenkomst</h3>
+					<div class="row">
+						<div class="col-md-5">
+							<label for="inputUsername3" class="control-label">
+								<input ng-model="reg.huisarts.overeenkomst" type="checkbox" name="overeenkomst"
+									   required>
+								Ik ga akkoord met de <a ng-click="reg.getOvereenkomst()">zakelijke voorwaarden</a>
+							</label>
+							<div ng-messages="registerform.overeenkomst.$error"
+								 ng-if="registerform.overeenkomst.$dirty">
+								<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+							</div>
+							<br> <br> <br>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-12">
+					<div class="form-group">
+						<div class=" col-md-12">
+							<button type="submit" class="btn btn-primary btn-block">Gegevens opslaan</button>
+							<br><br> <br><br>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
 </div>
 
 <div class="modal fade" tabindex="-1" id="wachtwoordwijzigen" role="dialog"
-     aria-labelledby="wachtwoordWijzigingenLabel">
-    <form id="wachtwoord-wijzigen-form" class="form-horizontal" name="wachtwoordform" ng-submit="reg.wijzigWachtwoord(wachtwoordform, reg.wachtwoord)" novalidate>
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header purple">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title modal-title-spacing" id="wachtwoordWijzigingenLabel">Wachtwoord wijzigen</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[wachtwoordform.huidigewachtwoord.$invalid && (wachtwoordform.$submitted || wachtwoordform.huidigewachtwoord.$dirty)]">
-                                <label for="inputVoorletters3" class="col-sm-5 control-label">Huidig wachtwoord</label>
-                                <div class="col-sm-7">
-                                    <input type="password" class="form-control" name="huidigewachtwoord"
-                                           ng-model="reg.wachtwoord.oudeWachtwoord"
-                                           id="inputVoorletters3" required placeholder="Huidig wachtwoord">
-                                </div>
-                                <div ng-messages="wachtwoordform.huidigewachtwoord.$error"
-                                     ng-if="wachtwoordform.huidigewachtwoord.$dirty || wachtwoordform.$submitted"
-                                     class="col-sm-7 col-sm-offset-5">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
+	 aria-labelledby="wachtwoordWijzigingenLabel">
+	<form id="wachtwoord-wijzigen-form" class="form-horizontal" name="wachtwoordform" ng-submit="reg.wijzigWachtwoord(wachtwoordform, reg.wachtwoord)" novalidate>
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header purple">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+							aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title modal-title-spacing" id="wachtwoordWijzigingenLabel">Wachtwoord wijzigen</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-md-12">
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[wachtwoordform.huidigewachtwoord.$invalid && (wachtwoordform.$submitted || wachtwoordform.huidigewachtwoord.$dirty)]">
+								<label for="inputVoorletters3" class="col-sm-5 control-label">Huidig wachtwoord</label>
+								<div class="col-sm-7">
+									<div class="password-input">
+										<input type="{{ showPassword('huidigewachtwoord') ? 'text' : 'password' }}" class="form-control" name="huidigewachtwoord"
+											   ng-model="reg.wachtwoord.oudeWachtwoord"
+											   id="inputVoorletters3" required placeholder="Huidig wachtwoord">
+										<i class="glyphicon glyphicon-eye-{{ showPassword('huidigewachtwoord') ? 'close' : 'open' }}"
+										   ng-mousedown="handleTogglePasswordVisible('huidigewachtwoord', false)"
+										   ng-mouseup="handleTogglePasswordVisible('huidigewachtwoord', false)"
+										   ng-mouseleave="handleTogglePasswordVisible('huidigewachtwoord', true)"></i>
+									</div>
+								</div>
+								<div ng-messages="wachtwoordform.huidigewachtwoord.$error"
+									 ng-if="wachtwoordform.huidigewachtwoord.$dirty || wachtwoordform.$submitted"
+									 class="col-sm-7 col-sm-offset-5">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
 
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[wachtwoordform.wachtwoord.$invalid && (wachtwoordform.$submitted || wachtwoordform.wachtwoord.$dirty)]">
-                                <label for="inputWachtwoord3" class="col-sm-5 control-label">Wachtwoord</label>
-                                <div class="col-sm-7">
-                                    <input type="password" class="form-control"
-                                           ng-model="reg.wachtwoord.nieuweWachtwoord"
-                                           id="inputWachtwoord3" placeholder="Wachtwoord" name="wachtwoord"
-                                           ng-minlength="8"
-                                           ng-pattern="/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/"
-                                           required>
-                                </div>
-                                <div ng-messages="wachtwoordform.wachtwoord.$error"
-                                     ng-if="wachtwoordform.wachtwoord.$dirty || wachtwoordform.$submitted"
-                                     class="col-sm-7 col-sm-offset-5">
-                                    <p class="help-block" ng-message="pattern">Zorg dat het wachtwoord minimaal 1
-                                        hoofdletter, 1 kleine letter, 1 nummer en 1 speciaal teken bevatten. </p>
-                                    <p class="help-block" ng-message="minlength">Wachtwoord moet minstens 8 tekens
-                                        bevatten</p>
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[wachtwoordform.wachtwoordcontrole.$invalid && (wachtwoordform.$submitted || wachtwoordform.wachtwoordcontrole.$dirty)]">
-                                <label for="inputWachtwoordControle3"
-                                       class="col-sm-5 control-label">Wachtwoord
-                                    controle</label>
-                                <div class="col-sm-7">
-                                    <input type="password" class="form-control"
-                                           ng-model="reg.wachtwoord.nieuweWachtwoordControle"
-                                           id="inputWachtwoordControle3" name="wachtwoordcontrole" required
-                                           placeholder="Controle" compareto="reg.wachtwoord.nieuweWachtwoord"/>
-                                </div>
-                                <div ng-messages="wachtwoordform.wachtwoordcontrole.$error"
-                                     ng-if="wachtwoordform.wachtwoordcontrole.$dirty || wachtwoordform.$submitted" class="col-sm-7 col-sm-offset-5">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="reg.resetFieldsWijzigWachtwoord(wachtwoordform)">Sluiten</button>
-                    <button type="submit" class="btn btn-primary">Wijzig wachtwoord</button>
-                </div>
-            </div>
-        </div>
-    </form>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[wachtwoordform.wachtwoord.$invalid && (wachtwoordform.$submitted || wachtwoordform.wachtwoord.$dirty)]">
+								<label for="inputWachtwoord3" class="col-sm-5 control-label">Wachtwoord</label>
+								<div class="col-sm-7">
+									<div class="password-input">
+										<input type="{{ showPassword('nieuweWachtwoord') ? 'text' : 'password' }}" class="form-control"
+											   ng-model="reg.wachtwoord.nieuweWachtwoord"
+											   id="inputWachtwoord3" placeholder="Wachtwoord" name="wachtwoord"
+											   ng-minlength="12" ng-maxlength="255"
+											   ng-pattern="/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/"
+											   required>
+										<i class="glyphicon glyphicon-eye-{{ showPassword('nieuweWachtwoord') ? 'close' : 'open' }}"
+										   ng-mousedown="handleTogglePasswordVisible('nieuweWachtwoord', false)"
+										   ng-mouseup="handleTogglePasswordVisible('nieuweWachtwoord', false)"
+										   ng-mouseleave="handleTogglePasswordVisible('nieuweWachtwoord', true)"></i>
+									</div>
+								</div>
+								<div ng-messages="wachtwoordform.wachtwoord.$error"
+									 ng-if="wachtwoordform.wachtwoord.$dirty || wachtwoordform.$submitted"
+									 class="col-sm-7 col-sm-offset-5">
+									<p class="help-block" ng-message="pattern">Zorg dat het wachtwoord minimaal 1 hoofdletter, 1 kleine letter, 1 nummer en 1 speciaal teken
+										bevat.</p>
+									<p class="help-block" ng-message="minlength">Wachtwoord moet minstens 12 tekens bevatten.</p>
+									<p class="help-block" ng-message="maxlength">Wachtwoord mag maximaal 255 tekens bevatten.</p>
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[wachtwoordform.wachtwoordcontrole.$invalid && (wachtwoordform.$submitted || wachtwoordform.wachtwoordcontrole.$dirty)]">
+								<label for="inputWachtwoordControle3" class="col-sm-5 control-label">Wachtwoord controle</label>
+								<div class="col-sm-7">
+									<div class="password-input">
+										<input type="{{ showPassword('wachtwoordcontrole') ? 'text' : 'password' }}" class="form-control"
+											   ng-model="reg.wachtwoord.nieuweWachtwoordControle" id="inputWachtwoordControle3"
+											   name="wachtwoordcontrole" required placeholder="Controle" compareto="reg.wachtwoord.nieuweWachtwoord"/>
+										<i class="glyphicon glyphicon-eye-{{ showPassword('wachtwoordcontrole') ? 'close' : 'open' }}"
+										   ng-mousedown="handleTogglePasswordVisible('wachtwoordcontrole', false)"
+										   ng-mouseup="handleTogglePasswordVisible('wachtwoordcontrole', false)"
+										   ng-mouseleave="handleTogglePasswordVisible('wachtwoordcontrole', true)"></i>
+									</div>
+								</div>
+								<div ng-messages="wachtwoordform.wachtwoordcontrole.$error"
+									 ng-if="wachtwoordform.wachtwoordcontrole.$dirty || wachtwoordform.$submitted" class="col-sm-7 col-sm-offset-5">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="reg.resetFieldsWijzigWachtwoord(wachtwoordform)">Sluiten</button>
+					<button type="submit" class="btn btn-primary">Wijzig wachtwoord</button>
+				</div>
+			</div>
+		</div>
+	</form>
 </div>
 
 <div class="modal fade" tabindex="-1" id="locatieToevoegen" role="dialog" aria-labelledby="locatieToevoegenLabel">
-    <form class="form-horizontal" ng-submit="reg.saveLocatie(locatietoevoegenform, reg.locatie)"
-          name="locatietoevoegenform" novalidate>
-        <div id="locatie-toevoegen-dialoog" class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header purple">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title modal-title-spacing" id="locatieToevoegenLabel" ng-bind="reg.locatiePopupLabel"></h4>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatie.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatie.$dirty)]">
-                                <label for="inputLocatienaam3"
-                                       class="col-sm-6 control-label">Locatienaam:</label>
-                                <div class="col-sm-6">
-                                    <input type="text" class="form-control" ng-model="reg.locatie.naam"
-                                           id="inputLocatienaam3" name="locatie" required
-                                           placeholder="Naam van de locatie" maxlength="70">
-                                </div>
-                                <div ng-messages="locatietoevoegenform.locatie.$error"
-                                     ng-if="locatietoevoegenform.locatie.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.klantnummer.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.klantnummer.$dirty)]">
-                                <label for="inputKlantnummer3" class="col-sm-6 control-label">Zorgmail klantnummer</label>
-                                <div class="col-sm-6">
-                                    <input type="text" class="form-control"
-                                           ng-model="reg.locatie.zorgmailklantnummer" required
-                                           id="inputKlantnummer3" name="klantnummer" ng-minlength="9" ng-maxlength="9"
-                                           ng-pattern="/^[0-9]*$/" placeholder="bijv. 500010007">
-                                </div>
-                                <div ng-messages="locatietoevoegenform.klantnummer.$error"
-                                     ng-if="locatietoevoegenform.klantnummer.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <p class="help-block" ng-message="pattern">Het zorgmail klantnummer mag alleen uit
-                                        cijfers bestaan.</p>
-                                    <p class="help-block" ng-message="minlength">Het zorgmail klantnummer mag niet
-                                        minder dan 9 cijfers bevatten.</p>
-                                    <p class="help-block" ng-message="maxlength">Het zorgmail klantnummer mag niet meer
-                                        dan 9 cijfers bevatten.</p>
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.iban.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.iban.$dirty)]">
-                                <label for="inputIban3" class="col-sm-6 control-label">IBAN:</label>
-                                <div class="col-sm-6">
-                                    <input type="text" class="form-control" ng-model="reg.locatie.iban"
-                                           required
-                                           id="inputIban3" name="iban" placeholder="bijv. NL12ABNA12345678">
-                                </div>
-                                <div ng-messages="locatietoevoegenform.iban.$error"
-                                     ng-if="locatietoevoegenform.iban.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.tenaamstelling.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.tenaamstelling.$dirty)]">
-                                <label for="inputTenaamstelling3"
-                                       class="col-sm-6 control-label">Tenaamstelling:</label>
-                                <div class="col-sm-6">
-                                    <input type="text" class="form-control" required
-                                           ng-model="reg.locatie.ibanTenaamstelling"
-                                           id="inputTenaamstelling3" placeholder="tenaamstelling"
-                                           name="tenaamstelling">
-                                </div>
-                                <div ng-messages="locatietoevoegenform.tenaamstelling.$error"
-                                     ng-if="locatietoevoegenform.tenaamstelling.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-7">
-                            <div class="form-group">
-                                <label for="inputStraat4" class="col-sm-6 control-label">Gelijk aan
-                                    NAW gegevens</label>
-                                <div class="checkbox col-sm-6">
-                                    <input type="checkbox" style="margin-left: 5px;"
-                                           ng-model="reg.locatie.check"
-                                           ng-click="reg.gelijkCheck()">
-                                </div>
-                            </div>
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresStraat.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresStraat.$dirty)]">
-                                <label for="inputStraat4" class="col-sm-6 control-label">Straat</label>
-                                <div class="col-sm-6">
-                                    <input type="text" class="form-control"
-                                           ng-model="reg.locatie.locatieAdres.straat" required
-                                           id="inputStraat4" placeholder="Straat"
-                                           ng-disabled="reg.locatie.check" name="locatieAdresStraat">
-                                </div>
-                                <div ng-messages="locatietoevoegenform.locatieAdresStraat.$error"
-                                     ng-if="locatietoevoegenform.locatieAdresStraat.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresHuisnummer.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresHuisnummer.$dirty)]">
-                                <label for="inputHuisnummer3" class="col-sm-6 control-label">Huisnummer +
-                                    toevoeging</label>
-                                <div class="col-sm-6 ">
-                                    <div class="row">
-                                        <div class="col-sm-7">
-                                            <input type="number" class="form-control"
-                                                   ng-model="reg.locatie.locatieAdres.huisnummer"
-                                                   id="inputHuisnummer3"
-                                                   placeholder="Huisnummer" ng-disabled="reg.locatie.check"
-                                                   name="locatieAdresHuisnummer" min="0" required>
-                                        </div>
-                                        <div class="col-sm-5" id="huisnummer-toevoeging-input">
-                                            <input type="text" class="form-control"
-                                                   ng-model="reg.locatie.locatieAdres.huisnummertoevoeging"
-                                                   id="inputHuisnummer3" placeholder="Toevoeging"
-                                                   ng-disabled="reg.locatie.check"
-                                                   name="locatieAdresHuisnummertoevoeging">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div ng-messages="locatietoevoegenform.locatieAdresHuisnummer.$error"
-                                     ng-if="locatietoevoegenform.locatieAdresHuisnummer.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresPostcode.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresPostcode.$dirty)]">
-                                <label for="inputPostcode4" class="col-sm-6 control-label">Postcode</label>
-                                <div class="col-sm-6">
-                                    <input type="text" class="form-control"
-                                           ng-model="reg.locatie.locatieAdres.postcode" required
-                                           id="inputPostcode4" placeholder="Postcode"
-                                           ng-disabled="reg.locatie.check" maxlength="6" name="locatieAdresPostcode">
-                                </div>
-                                <div ng-messages="locatietoevoegenform.locatieAdresPostcode.$error"
-                                     ng-if="locatietoevoegenform.locatieAdresPostcode.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
+	<form class="form-horizontal" ng-submit="reg.saveLocatie(locatietoevoegenform, reg.locatie)"
+		  name="locatietoevoegenform" novalidate>
+		<div id="locatie-toevoegen-dialoog" class="modal-dialog modal-lg" role="document">
+			<div class="modal-content">
+				<div class="modal-header purple">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+							aria-hidden="true">&times;</span></button>
+					<h4 class="modal-title modal-title-spacing" id="locatieToevoegenLabel" ng-bind="reg.locatiePopupLabel"></h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-md-5">
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatie.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatie.$dirty)]">
+								<label for="inputLocatienaam3"
+									   class="col-sm-6 control-label">Locatienaam:</label>
+								<div class="col-sm-6">
+									<input type="text" class="form-control" ng-model="reg.locatie.naam"
+										   id="inputLocatienaam3" name="locatie" required
+										   placeholder="Naam van de locatie" maxlength="70">
+								</div>
+								<div ng-messages="locatietoevoegenform.locatie.$error"
+									 ng-if="locatietoevoegenform.locatie.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.klantnummer.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.klantnummer.$dirty)]">
+								<label for="inputKlantnummer3" class="col-sm-6 control-label">Zorgmail klantnummer</label>
+								<div class="col-sm-6">
+									<input type="text" class="form-control"
+										   ng-model="reg.locatie.zorgmailklantnummer" required
+										   id="inputKlantnummer3" name="klantnummer" ng-minlength="9" ng-maxlength="9"
+										   ng-pattern="/^[0-9]*$/" placeholder="bijv. 500010007">
+								</div>
+								<div ng-messages="locatietoevoegenform.klantnummer.$error"
+									 ng-if="locatietoevoegenform.klantnummer.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<p class="help-block" ng-message="pattern">Het zorgmail klantnummer mag alleen uit
+										cijfers bestaan.</p>
+									<p class="help-block" ng-message="minlength">Het zorgmail klantnummer mag niet
+										minder dan 9 cijfers bevatten.</p>
+									<p class="help-block" ng-message="maxlength">Het zorgmail klantnummer mag niet meer
+										dan 9 cijfers bevatten.</p>
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.iban.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.iban.$dirty)]">
+								<label for="inputIban3" class="col-sm-6 control-label">IBAN:</label>
+								<div class="col-sm-6">
+									<input type="text" class="form-control" ng-model="reg.locatie.iban"
+										   required
+										   id="inputIban3" name="iban" placeholder="bijv. NL12ABNA12345678">
+								</div>
+								<div ng-messages="locatietoevoegenform.iban.$error"
+									 ng-if="locatietoevoegenform.iban.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.tenaamstelling.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.tenaamstelling.$dirty)]">
+								<label for="inputTenaamstelling3"
+									   class="col-sm-6 control-label">Tenaamstelling:</label>
+								<div class="col-sm-6">
+									<input type="text" class="form-control" required
+										   ng-model="reg.locatie.ibanTenaamstelling"
+										   id="inputTenaamstelling3" placeholder="tenaamstelling"
+										   name="tenaamstelling">
+								</div>
+								<div ng-messages="locatietoevoegenform.tenaamstelling.$error"
+									 ng-if="locatietoevoegenform.tenaamstelling.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+						</div>
+						<div class="col-md-7">
+							<div class="form-group">
+								<label for="inputStraat4" class="col-sm-6 control-label">Gelijk aan
+									NAW gegevens</label>
+								<div class="checkbox col-sm-6">
+									<input type="checkbox" style="margin-left: 5px;"
+										   ng-model="reg.locatie.check"
+										   ng-click="reg.gelijkCheck()">
+								</div>
+							</div>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresStraat.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresStraat.$dirty)]">
+								<label for="inputStraat4" class="col-sm-6 control-label">Straat</label>
+								<div class="col-sm-6">
+									<input type="text" class="form-control"
+										   ng-model="reg.locatie.locatieAdres.straat" required
+										   id="inputStraat4" placeholder="Straat"
+										   ng-disabled="reg.locatie.check" name="locatieAdresStraat">
+								</div>
+								<div ng-messages="locatietoevoegenform.locatieAdresStraat.$error"
+									 ng-if="locatietoevoegenform.locatieAdresStraat.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresHuisnummer.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresHuisnummer.$dirty)]">
+								<label for="inputHuisnummer3" class="col-sm-6 control-label">Huisnummer +
+									toevoeging</label>
+								<div class="col-sm-6 ">
+									<div class="row">
+										<div class="col-sm-7">
+											<input type="number" class="form-control"
+												   ng-model="reg.locatie.locatieAdres.huisnummer"
+												   id="inputHuisnummer3"
+												   placeholder="Huisnummer" ng-disabled="reg.locatie.check"
+												   name="locatieAdresHuisnummer" min="0" required>
+										</div>
+										<div class="col-sm-5" id="huisnummer-toevoeging-input">
+											<input type="text" class="form-control"
+												   ng-model="reg.locatie.locatieAdres.huisnummertoevoeging"
+												   id="inputHuisnummer3" placeholder="Toevoeging"
+												   ng-disabled="reg.locatie.check"
+												   name="locatieAdresHuisnummertoevoeging">
+										</div>
+									</div>
+								</div>
+								<div ng-messages="locatietoevoegenform.locatieAdresHuisnummer.$error"
+									 ng-if="locatietoevoegenform.locatieAdresHuisnummer.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresPostcode.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresPostcode.$dirty)]">
+								<label for="inputPostcode4" class="col-sm-6 control-label">Postcode</label>
+								<div class="col-sm-6">
+									<input type="text" class="form-control"
+										   ng-model="reg.locatie.locatieAdres.postcode" required
+										   id="inputPostcode4" placeholder="Postcode"
+										   ng-disabled="reg.locatie.check" maxlength="6" name="locatieAdresPostcode">
+								</div>
+								<div ng-messages="locatietoevoegenform.locatieAdresPostcode.$error"
+									 ng-if="locatietoevoegenform.locatieAdresPostcode.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
 
-                            <div class="form-group required" ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresPlaats.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresPlaats.$dirty)]">
-                                <label for="inputPlaats4" class="col-sm-6 control-label">Plaats</label>
-                                <div class="col-sm-6">
-                                    <ui-select name="locatieAdresPlaats"
-                                               ng-model="reg.locatie.locatieAdres.woonplaats"
-                                               theme="bootstrap" ng-required="true" ng-disabled="reg.locatie.check">
-                                        <ui-select-match
-                                                placeholder="Voer de eerste 3 tekens in...">
-                                            <div>
-                                                {{ $select.selected.naam }}
-                                                <small>
-                                                    (Gemeente: {{ $select.selected.gemeente }})
-                                                </small>
-                                            </div>
-                                        </ui-select-match>
-                                        <ui-select-choices
-                                                repeat="item in reg.locatieWoonplaatsen | filter: $select.search"
-                                                refresh="reg.getLocatieWoonplaatsen($select.search)"
-                                                minimum-input-length="2" refresh-delay="0">
-                                            <div ng-bind-html="item.naam | highlight: $select.search"></div>
-                                            <small>
-                                                Gemeente: {{ item.gemeente }}
-                                            </small>
-                                        </ui-select-choices>
-                                    </ui-select>
-                                </div>
-                                <div ng-messages="locatietoevoegenform.locatieAdresPlaats.$error"
-                                     ng-if="locatietoevoegenform.locatieAdresPlaats.$dirty || locatietoevoegenform.$submitted"
-                                     class="col-sm-6 col-sm-offset-6">
-                                    <span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal" ng-click="reg.resetFieldsLocatie(locatietoevoegenform)">Sluiten</button>
-                    <button type="submit" class="btn btn-primary">Locatie opslaan</button>
-                </div>
-            </div>
-        </div>
-    </form>
+							<div class="form-group required"
+								 ng-class="{true: 'has-error', false: ''}[locatietoevoegenform.locatieAdresPlaats.$invalid && (locatietoevoegenform.$submitted || locatietoevoegenform.locatieAdresPlaats.$dirty)]">
+								<label for="inputPlaats4" class="col-sm-6 control-label">Plaats</label>
+								<div class="col-sm-6">
+									<ui-select name="locatieAdresPlaats"
+											   ng-model="reg.locatie.locatieAdres.woonplaats"
+											   theme="bootstrap" ng-required="true" ng-disabled="reg.locatie.check">
+										<ui-select-match
+												placeholder="Voer de eerste 3 tekens in...">
+											<div>
+												{{ $select.selected.naam }}
+												<small>
+													(Gemeente: {{ $select.selected.gemeente }})
+												</small>
+											</div>
+										</ui-select-match>
+										<ui-select-choices
+												repeat="item in reg.locatieWoonplaatsen | filter: $select.search"
+												refresh="reg.getLocatieWoonplaatsen($select.search)"
+												minimum-input-length="2" refresh-delay="0">
+											<div ng-bind-html="item.naam | highlight: $select.search"></div>
+											<small>
+												Gemeente: {{ item.gemeente }}
+											</small>
+										</ui-select-choices>
+									</ui-select>
+								</div>
+								<div ng-messages="locatietoevoegenform.locatieAdresPlaats.$error"
+									 ng-if="locatietoevoegenform.locatieAdresPlaats.$dirty || locatietoevoegenform.$submitted"
+									 class="col-sm-6 col-sm-offset-6">
+									<span ng-messages-include="assets/js/components/default-form-error.tmpl.html"></span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal" ng-click="reg.resetFieldsLocatie(locatietoevoegenform)">Sluiten</button>
+					<button type="submit" class="btn btn-primary">Locatie opslaan</button>
+				</div>
+			</div>
+		</div>
+	</form>
 </div>
 
 <div class="modal fade" tabindex="-1" id="confirmVerwijderen" role="dialog" aria-labelledby="confirmVerwijderenLabel">
-    <form class="form-horizontal" ng-submit="reg.deleteLocatie(reg.locatie)"
-          ng-init="reg.backupLocatieForm = locatieform"
-          name="locatieform">
-        <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-header purple">
-                    <h4 class="modal-title modal-title-spacing" id="confirmVerwijderenLabel">Locatie verwijderen</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Weet u zeker dat u deze locatie wilt verwijderen?</p>
-                    <ul ng-if="reg.locatieVerwijderenAanvragen || reg.locatieVerwijderenVerzonden">
-                        <li ng-if="reg.locatieVerwijderenAanvragen">U verwijdert een locatie waarvoor u al
-                            laboratoriumformulieren heeft aangevraagd. Deze laboratoriumformulieren zullen niet meer aan
-                            u verzonden worden.
-                        </li>
-                        <li ng-if="reg.locatieVerwijderenVerzonden">U verwijdert een locatie waarvoor u mogelijk nog
-                            laboratoriumformulieren op voorraad heeft. Deze laboratoriumformulieren kunt u niet meer
-                            gebruiken en dient u te vernietigen.
-                        </li>
-                    </ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
-                    <button type="submit" class="btn btn-danger">Locatie
-                        verwijderen
-                    </button>
-                </div>
-            </div>
-        </div>
-    </form>
+	<form class="form-horizontal" ng-submit="reg.deleteLocatie(reg.locatie)"
+		  ng-init="reg.backupLocatieForm = locatieform"
+		  name="locatieform">
+		<div class="modal-dialog modal-md" role="document">
+			<div class="modal-content">
+				<div class="modal-header purple">
+					<h4 class="modal-title modal-title-spacing" id="confirmVerwijderenLabel">Locatie verwijderen</h4>
+				</div>
+				<div class="modal-body">
+					<p>Weet u zeker dat u deze locatie wilt verwijderen?</p>
+					<ul ng-if="reg.locatieVerwijderenAanvragen || reg.locatieVerwijderenVerzonden">
+						<li ng-if="reg.locatieVerwijderenAanvragen">U verwijdert een locatie waarvoor u al
+							laboratoriumformulieren heeft aangevraagd. Deze laboratoriumformulieren zullen niet meer aan
+							u verzonden worden.
+						</li>
+						<li ng-if="reg.locatieVerwijderenVerzonden">U verwijdert een locatie waarvoor u mogelijk nog
+							laboratoriumformulieren op voorraad heeft. Deze laboratoriumformulieren kunt u niet meer
+							gebruiken en dient u te vernietigen.
+						</li>
+					</ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
+					<button type="submit" class="btn btn-danger">Locatie
+						verwijderen
+					</button>
+				</div>
+			</div>
+		</div>
+	</form>
 </div>
 
 <div class="modal fade" tabindex="-1" id="confirmActiveren" role="dialog" aria-labelledby="confirmActiverenLabel">
-    <form class="form-horizontal" ng-submit="reg.activeerLocatie(reg.locatie)"
-          ng-init="reg.backupLocatieForm = locatieform"
-          name="locatieform">
-        <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-header purple">
-                    <h4 class="modal-title modal-title-spacing" id="confirmActiverenLabel">Locatie activeren</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Weet u zeker dat u deze locatie weer wilt activeren?</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
-                    <button type="submit" class="btn btn-success">Locatie
-                        activeren
-                    </button>
-                </div>
-            </div>
-        </div>
-    </form>
+	<form class="form-horizontal" ng-submit="reg.activeerLocatie(reg.locatie)"
+		  ng-init="reg.backupLocatieForm = locatieform"
+		  name="locatieform">
+		<div class="modal-dialog modal-md" role="document">
+			<div class="modal-content">
+				<div class="modal-header purple">
+					<h4 class="modal-title modal-title-spacing" id="confirmActiverenLabel">Locatie activeren</h4>
+				</div>
+				<div class="modal-body">
+					<p>Weet u zeker dat u deze locatie weer wilt activeren?</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Annuleren</button>
+					<button type="submit" class="btn btn-success">Locatie
+						activeren
+					</button>
+				</div>
+			</div>
+		</div>
+	</form>
 </div>

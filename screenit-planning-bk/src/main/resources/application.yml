@@ -1,0 +1,54 @@
+app:
+  name: ${APPLICATION_NAME:ScreenIT BK Planning}
+  environment: ${APPLICATION_ENVIRONMENT:Development}
+  instance: ${APPLICATION_INSTANCE:BK Planning}
+  url: ${APPLICATION_URL:http://localhost:14830}
+  planningBkRestUrl: ${APPLICATION_URL:http://localhost:14830}
+  test_modus: ${TEST_MODUS:false}
+  filestore_location: /screenit/filestore
+  kansberekening_service_url: ${URL_KANSBEREKENING_SERVICE:http://localhost:14832/}
+  aspose_license: ${ASPOSE_LICENSE}
+  aspose_vragenlijst_template: ${ASPOSE_VRAGENLIJST_TEMPLATE}
+
+  jgroups:
+    bind_ip: ${JG_EXTERNAL_HOST_BIND_IP:127.0.0.1}
+    ehcache:
+      bind_port: ${JG_EXTERNAL_HOST_BIND_PORT_CACHE:7809}
+      ip_ports: ${JG_INITIAL_HOSTS_CACHE:127.0.0.1[12001]}
+    common:
+      bind_port: ${JG_EXTERNAL_HOST_BIND_PORT_TIME:7829}
+      ip_ports: ${JG_INITIAL_HOSTS_TIME:127.0.0.1[12001]}
+
+mail:
+  from_address: ${MAIL_FROM_ADDRESS:no-reply@mail.test.landelijkescreening.nl}
+
+server:
+  port: ${PORT:14830}
+  servlet:
+    application-display-name: ${APPLICATION_NAME:ScreenIT BK Planning}
+    context-parameters:
+      contextClass: org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+      contextConfigLocation: nl.rivm.screenit.mamma.planning.config
+    context-path: /
+  error:
+    include-stacktrace: never
+
+spring:
+  profiles:
+    active:
+      - default
+  datasource:
+    hikari:
+      username: ${DB_USER:screenit}
+      password: ${DB_PASSWORD:screenit}
+      jdbc-url: jdbc:postgresql://${DB_IP:localhost}:${DB_PORT:5432}/${DB_NAME:screenit}
+      driver-class-name: org.postgresql.Driver
+      max-lifetime: 1800000
+      maximum-pool-size: 5
+      pool-name: HikariPool-1
+      leak-detection-threshold: 10000
+      register-mbeans: false
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration
+  liquibase:
+    enabled: false

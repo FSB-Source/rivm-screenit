@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.AbstractClientContactActiePanel;
 import nl.rivm.screenit.model.Client;
@@ -38,8 +37,8 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstelType;
+import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -58,9 +57,6 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
 public class CervixClientContactUitstelPanel extends AbstractClientContactActiePanel<ClientContactActie>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private static final Logger LOG = LoggerFactory.getLogger(CervixClientContactUitstelPanel.class);
 
 	@SpringBean
@@ -103,9 +99,6 @@ public class CervixClientContactUitstelPanel extends AbstractClientContactActieP
 		ScreenitDropdown<CervixUitstelType> uitstelType = new ScreenitDropdown<>("uitstelType", Arrays.asList(CervixUitstelType.values()), new EnumChoiceRenderer<>());
 		uitstelType.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -158,7 +151,7 @@ public class CervixClientContactUitstelPanel extends AbstractClientContactActieP
 
 			if (uitstelType == CervixUitstelType.ZWANGERSCHAP && uitstellenTotDatum.isBefore(morgen))
 			{
-				error("De (vermoedelijke) bevallingsdatum mag niet meer dan " + uitstelBijZwangerschap + " maanden oud zijn");
+				error("De (vermoedelijke) bevallingsdatum mag niet meer dan " + uitstelBijZwangerschap + " dagen oud zijn");
 			}
 			else if (uitstelType == CervixUitstelType.ZWANGERSCHAP && morgen.plusMonths(9).minusDays(1).isBefore(datum))
 			{
@@ -217,7 +210,7 @@ public class CervixClientContactUitstelPanel extends AbstractClientContactActieP
 		switch (uitstelModel.getObject().getUitstelType())
 		{
 		case ZWANGERSCHAP:
-			uitstellenTotDatum = new DateTime(datum).plusMonths(uitstelBijZwangerschap).toDate();
+			uitstellenTotDatum = new DateTime(datum).plusDays(uitstelBijZwangerschap).toDate();
 			break;
 		case ANDERS:
 			uitstellenTotDatum = datum;
@@ -232,7 +225,7 @@ public class CervixClientContactUitstelPanel extends AbstractClientContactActieP
 		Date datum = uitstel.getUitstellenTotDatum();
 		if (datum != null && uitstel.getUitstelType() == CervixUitstelType.ZWANGERSCHAP)
 		{
-			datum = new DateTime(datum).minusMonths(uitstelBijZwangerschap).toDate();
+			datum = new DateTime(datum).minusDays(uitstelBijZwangerschap).toDate();
 		}
 		return datum;
 	}

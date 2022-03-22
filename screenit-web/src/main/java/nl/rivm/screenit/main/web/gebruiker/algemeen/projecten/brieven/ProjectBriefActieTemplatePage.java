@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.component.table.NavigeerNaarCellPanel;
 import nl.rivm.screenit.main.web.component.table.UploadDocumentDownloadLinkPanel;
 import nl.rivm.screenit.main.web.gebruiker.base.GebruikerBasePage;
@@ -40,8 +42,7 @@ import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.service.AsposeService;
-import nl.rivm.screenit.service.FileService;
-import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -55,32 +56,23 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 
+@Slf4j
 public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectBriefActieTemplatePage.class);
-
 	private IModel<ProjectBriefActie> briefactieModel;
 
 	@SpringBean
-	private LogService logService;
-
-	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private AsposeService asposeService;
 
 	@SpringBean
 	private HibernateService hibernateService;
-
-	private IModel<ScreeningOrganisatie> selectedInstelling;
 
 	public ProjectBriefActieTemplatePage(IModel<Project> model, IModel<ProjectBriefActie> briefactieModel)
 	{
@@ -199,7 +191,6 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 	{
 		super.onDetach();
 		ModelUtil.nullSafeDetach(briefactieModel);
-		ModelUtil.nullSafeDetach(selectedInstelling);
 	}
 
 	@Override
@@ -264,7 +255,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 			}
 			else
 			{
-				File vragenlijstTemplate = fileService.load(vragenlijstInstantie.getTemplateVanGebruiker());
+				File vragenlijstTemplate = uploadDocumentService.load(vragenlijstInstantie.getTemplateVanGebruiker());
 				vragenlijst = asposeService.processDocument(vragenlijstTemplate, context);
 			}
 			if (vragenlijst != null)
@@ -279,7 +270,7 @@ public class ProjectBriefActieTemplatePage extends ProjectTemplateTestenBasePage
 	@Override
 	protected File getBriefTemplateFile()
 	{
-		return fileService.load(briefactieModel.getObject().getDocument());
+		return uploadDocumentService.load(briefactieModel.getObject().getDocument());
 	}
 
 }

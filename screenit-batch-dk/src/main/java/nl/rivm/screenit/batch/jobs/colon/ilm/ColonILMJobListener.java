@@ -24,10 +24,22 @@ package nl.rivm.screenit.batch.jobs.colon.ilm;
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.rivm.screenit.model.logging.LogEvent;
+
+import org.springframework.batch.core.JobExecution;
 
 public class ColonILMJobListener extends BaseLogListener
 {
+	private static final String REVISION_KENMERK_CONTEXT = "ILM";
+
+	@Override
+	protected void beforeStarting(JobExecution jobExecution)
+	{
+		super.beforeStarting(jobExecution);
+		registerRevisionKenmerk(REVISION_KENMERK_CONTEXT, RevisionKenmerk.VERWIJDERD_DOOR_ILM);
+	}
+
 	@Override
 	protected LogEvent getStartLogEvent()
 	{
@@ -49,6 +61,7 @@ public class ColonILMJobListener extends BaseLogListener
 	@Override
 	protected LogEvent getEindLogEvent()
 	{
+		unregisterRevisionKenmerk(REVISION_KENMERK_CONTEXT);
 		return new LogEvent();
 	}
 

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.component.modal;
 
 /*-
@@ -26,9 +25,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 
 public class DefaultConfirmCallback implements IConfirmCallback
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Override
 	public void onYesClick(AjaxRequestTarget target)
 	{

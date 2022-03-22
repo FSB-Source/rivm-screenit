@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service;
 
 /*-
@@ -39,7 +38,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface LogService
 {
-
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Bevolkingsonderzoek... bevolkingsonderzoeken);
 
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken);
@@ -48,7 +46,8 @@ public interface LogService
 
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, Account account, Client client, String melding, Bevolkingsonderzoek... bevolkingsonderzoeken);
 
-	void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, List<Instelling> dashboardOrganisaties, Account account, Client client, String melding, LocalDateTime datumTijd);
+	void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, List<Instelling> dashboardOrganisaties, Account account, Client client,
+		String melding, LocalDateTime datumTijd);
 
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, Account account, Client client, String melding, LocalDateTime datumTijd);
 
@@ -71,8 +70,7 @@ public interface LogService
 
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Bevolkingsonderzoek... bevolkingsonderzoeken);
 
-	void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Account account,
-		Client client,
+	void logGebeurtenis(LogGebeurtenis gebeurtenis, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Account account, Client client,
 		Bevolkingsonderzoek... bevolkingsonderzoeken);
 
 	void logGebeurtenis(LogGebeurtenis gebeurtenis, MammaScreeningsEenheid screeningsEenheid, List<Instelling> dashboardOrganisaties, LogEvent logEvent, Account account,

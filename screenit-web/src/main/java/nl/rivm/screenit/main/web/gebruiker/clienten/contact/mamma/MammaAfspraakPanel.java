@@ -40,6 +40,7 @@ import nl.rivm.screenit.model.mamma.MammaStandplaats;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsLocatie;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
@@ -62,12 +63,15 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 	private ICurrentDateSupplier dateSupplier;
 
 	@SpringBean
-	private SimplePreferenceService simplePreferenceService;
+	private SimplePreferenceService preferenceService;
+
+	@SpringBean
+	private MammaBaseAfspraakService baseAfspraakService;
 
 	@SpringBean
 	private MammaAfspraakService afspraakService;
 
-	private IModel<Boolean> briefAanmaken = Model.of(false);
+	private IModel<Boolean> briefAanmaken = Model.of(true);
 
 	private boolean isNieuweAfspraak;
 
@@ -108,8 +112,9 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 
 		add(DateLabel.forDatePattern("vanaf", "EEEE dd-MM-yyyy HH:mm"));
 
+		briefAanmaken.setObject(baseAfspraakService.briefKanNietMeerVerzondenWorden(afspraak.getVanaf()));
 		CheckBox briefAanmakenCheckBox = ComponentHelper.newCheckBox("briefAanmaken", briefAanmaken);
-		add(briefAanmakenCheckBox.setVisible(isNieuweAfspraak));
+		add(briefAanmakenCheckBox.setVisible(isNieuweAfspraak && briefAanmaken.getObject()));
 
 		boolean vanuitPlanning = getPage().getMetaData(ClientContactPanel.CREATE_CONTEXT_KEY).bkVanuitPlanning;
 
@@ -144,7 +149,7 @@ public class MammaAfspraakPanel extends AbstractClientContactActiePanel<MammaAfs
 		if (nieuweAfspraak != null)
 		{
 			MammaVerzettenReden verzettenReden = nieuweAfspraak.getVerzettenReden();
-			int aantalWerkdagenVerzettenVanaf = simplePreferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name());
+			int aantalWerkdagenVerzettenVanaf = preferenceService.getInteger(PreferenceKey.MAMMA_AFSPRAAK_VERZETTEN_ZONDER_CLIENT_CONTACT_VANAF_AANTAL_WERKDAGEN.name());
 			LocalDate minimumAfspraakDatum = DateUtil.plusWerkdagen(dateSupplier.getLocalDate(), aantalWerkdagenVerzettenVanaf);
 			if (MammaVerzettenReden.briefVerplicht(verzettenReden) && DateUtil.toUtilDate(minimumAfspraakDatum).after(nieuweAfspraak.getVanaf()))
 			{

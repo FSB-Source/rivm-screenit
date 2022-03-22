@@ -21,32 +21,17 @@ package nl.rivm.screenit.huisartsenportaal.dto.locatie;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.huisartsenportaal.dto.TableResultOptionsDto;
 
+@Getter
+@Setter
 public class LocatieSearchDto
 {
 
 	private String status;
 
 	private TableResultOptionsDto resultOptions;
-
-	public String getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(String status)
-	{
-		this.status = status;
-	}
-
-	public TableResultOptionsDto getResultOptions()
-	{
-		return resultOptions;
-	}
-
-	public void setResultOptions(TableResultOptionsDto resultOptions)
-	{
-		this.resultOptions = resultOptions;
-	}
 }

@@ -32,6 +32,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseKwaliteitscontroleDao;
@@ -85,8 +87,6 @@ import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -95,10 +95,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseBeoordelingService.class);
-
 	@Autowired
 	private LogService logService;
 
@@ -245,7 +244,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		beoordeling.setOpschortGebruiker(null);
 		beoordeling.setOpschortReden(MammaBeoordelingOpschortenReden.NIET_OPSCHORTEN);
 		beoordeling.setOpschortRedenTekst(null);
-		setStatus(beoordeling, MammaBeoordelingStatus.EERSTE_LEZING);
+		setStatus(beoordeling, beoordeling.getEersteLezing() != null ? MammaBeoordelingStatus.TWEEDE_LEZING : MammaBeoordelingStatus.EERSTE_LEZING);
 		hibernateService.saveOrUpdateAll(beoordeling);
 	}
 
@@ -324,6 +323,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	@Override
 	public void slaLezingOpEnVerwerkStatus(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker gebruiker, StringResolver stringResolverMethod)
 	{
+		wisBiradsBijOnbeoordeelbaar(lezing);
+
 		if (MammaBeoordelingOpschortenReden.NIET_OPSCHORTEN.equals(beoordeling.getOpschortReden()))
 		{
 			slaLezingOp(beoordeling, lezing);
@@ -331,7 +332,27 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		}
 		else
 		{
+			if (lezing.getLezingType() == MammaLezingType.EERSTE_LEZING && beoordeling.getEersteLezing() != null)
+			{
+				hibernateService.delete(beoordeling.getEersteLezing());
+				beoordeling.setEersteLezing(null);
+			}
+			if (lezing.getLezingType() == MammaLezingType.TWEEDE_LEZING && beoordeling.getTweedeLezing() != null)
+			{
+				hibernateService.delete(beoordeling.getTweedeLezing());
+				beoordeling.setTweedeLezing(null);
+			}
+			hibernateService.saveOrUpdate(beoordeling);
 			verwerkOpschortingBeoordeling(beoordeling, gebruiker, stringResolverMethod);
+		}
+	}
+
+	private void wisBiradsBijOnbeoordeelbaar(MammaLezing lezing)
+	{
+		if (lezing.getBeperktBeoordeelbaarReden() == MammaBeperktBeoordeelbaarReden.GEEN_BEOORDELING_MOGELIJK)
+		{
+			lezing.setBiradsLinks(MammaBIRADSWaarde.GEEN);
+			lezing.setBiradsRechts(MammaBIRADSWaarde.GEEN);
 		}
 	}
 
@@ -762,7 +783,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		}
 		catch (NullPointerException ex)
 		{
-			LOG.error("Null Lezing voor beoordeling id: " + beoordeling.getId());
+			LOG.error("Null Lezing voor beoordeling id: {} ", beoordeling.getId());
 			return null;
 		}
 	}
@@ -811,7 +832,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<String> getNevenBevindingenOpmerkingenAsList(MammaBeoordeling beoordeling)
 	{
-		ArrayList<String> opmerkingen = new ArrayList<String>();
+		ArrayList<String> opmerkingen = new ArrayList<>();
 		if (beoordeling != null && beoordeling.getEersteLezing() != null && beoordeling.getTweedeLezing() != null)
 		{
 			if (beoordeling.getEersteLezing().getNevenbevindingOpmerking() != null)
@@ -858,7 +879,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		{
 			return afspraak.getOnderzoek().getBeoordelingen().stream()
 				.filter(b -> b.getVerslagLezing() != null)
-				.map(b -> {
+				.map(b ->
+				{
 					b.getVerslagLezing().setBeoordeling(b);
 					return b.getVerslagLezing();
 				})
@@ -876,7 +898,8 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 		{
 			return afspraak.getOnderzoek().getBeoordelingen().stream()
 				.filter(b -> b.getEersteLezing() != null || b.getTweedeLezing() != null)
-				.map(b -> {
+				.map(b ->
+				{
 					if (b.getTweedeLezing() != null)
 					{
 						b.getTweedeLezing().setBeoordeling(b);
@@ -902,8 +925,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 			.filter(afspraak -> afspraak.getOnderzoek() != null)
 			.flatMap(afspraak -> afspraak.getOnderzoek().getBeoordelingen().stream())
 			.filter(beoordeling -> Stream.of(opschortenRedenen).anyMatch(reden -> reden.equals(beoordeling.getOpschortReden())))
-			.sorted(Comparator.comparing(MammaBeoordeling::getStatusDatum))
-			.findFirst();
+			.min(Comparator.comparing(MammaBeoordeling::getStatusDatum));
 	}
 
 	@Override

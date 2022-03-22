@@ -58,10 +58,12 @@ public class LocatieVerificatieServiceImpl implements LocatieVerificatieService
 
 		for (Locatie locatie : locaties)
 		{
-			teVerifierenLocaties.add(new VerificatieLocatieDto()
-				.setLocatieNaam(locatie.getNaam())
-				.setZorgmailKlantnummer(locatie.getZorgmailklantnummer())
-				.setHuisartsportaalId(String.valueOf(locatie.getHuisartsportaalId())));
+			var locatieDto = new VerificatieLocatieDto();
+			locatieDto.setLocatieNaam(locatie.getNaam());
+			locatieDto.setZorgmailKlantnummer(locatie.getZorgmailklantnummer());
+			locatieDto.setHuisartsportaalId(String.valueOf(locatie.getHuisartsportaalId()));
+
+			teVerifierenLocaties.add(locatieDto);
 		}
 
 		return teVerifierenLocaties;

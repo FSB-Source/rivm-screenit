@@ -31,6 +31,8 @@ import java.util.zip.ZipOutputStream;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.service.MammaVerzamelDownloadOnderzoekDataService;
 import nl.rivm.screenit.batch.service.MammaVerzamelOnderzoekDataService;
 import nl.rivm.screenit.model.UploadDocument;
@@ -38,15 +40,13 @@ import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.stereotype.Service;
@@ -56,12 +56,11 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.google.common.collect.ImmutableMap;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class MammaVerzamelDownloadOnderzoekDataServiceImpl implements MammaVerzamelDownloadOnderzoekDataService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaVerzamelDownloadOnderzoekDataServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -81,7 +80,7 @@ public class MammaVerzamelDownloadOnderzoekDataServiceImpl implements MammaVerza
 	private BerichtToBatchService berichtToBatchService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@PostConstruct
 	public void init()
@@ -158,7 +157,7 @@ public class MammaVerzamelDownloadOnderzoekDataServiceImpl implements MammaVerza
 		UploadDocument document = verzoek.getZipBestand();
 		document.setFile(f);
 
-		fileService.updateUploadDocument(document);
+		uploadDocumentService.update(document);
 	}
 
 }

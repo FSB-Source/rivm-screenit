@@ -35,6 +35,7 @@ import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.Actie;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
@@ -112,7 +113,7 @@ public interface ProjectService
 
 	void projectAttribuutOpslaan(ProjectAttribuut attribuut);
 
-	void updateWachtOpStartProject();
+	void updateWachtOpStartProject(Bevolkingsonderzoek bvo);
 
 	ProjectClient addClientToProjectGroep(ProjectGroep projectGroep, Client client);
 

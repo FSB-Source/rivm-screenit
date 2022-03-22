@@ -24,23 +24,22 @@ package nl.rivm.screenit.service.impl;
 import java.io.File;
 import java.io.IOException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandVerwerking;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class ProjectUitslagVerwerkThread extends OpenHibernate5SessionInThread
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectUitslagVerwerkThread.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -48,7 +47,7 @@ public class ProjectUitslagVerwerkThread extends OpenHibernate5SessionInThread
 	private ProjectUitslagVerwerkingService projectUitslagVerwerkingService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private LogService logService;
@@ -72,7 +71,7 @@ public class ProjectUitslagVerwerkThread extends OpenHibernate5SessionInThread
 
 		try
 		{
-			File file = fileService.load(uitslagenbestand.getUploadDocument());
+			File file = uploadDocumentService.load(uitslagenbestand.getUploadDocument());
 			context = new ProjectUitslagVerwerkingContext(uitslagenbestand, file);
 
 			while (context.isErEenNieuweRegel())
@@ -110,7 +109,8 @@ public class ProjectUitslagVerwerkThread extends OpenHibernate5SessionInThread
 				catch (IOException e)
 				{
 					LOG.error("Er is een fout opgetreden bij het sluiten van de reader.", e);
-					projectUitslagVerwerkingService.setBestandStatus(uitslagenbestand, BestandStatus.CRASH, "Er is een onbekende fout opgetreden, neem contact op met de helpdesk.");
+					projectUitslagVerwerkingService.setBestandStatus(uitslagenbestand, BestandStatus.CRASH,
+						"Er is een onbekende fout opgetreden, neem contact op met de helpdesk.");
 				}
 			}
 		}

@@ -26,6 +26,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.service.IFobtHL7BerichtInlezenService;
 import nl.rivm.screenit.dao.KwaliteitscontroleDao;
 import nl.rivm.screenit.dao.colon.IFOBTResultDao;
@@ -59,26 +61,23 @@ import nl.rivm.screenit.util.IFOBTTestUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import ca.uhn.hl7v2.DefaultHapiContext;
+import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.HapiContext;
 import ca.uhn.hl7v2.model.Message;
 import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 import ca.uhn.hl7v2.parser.Parser;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Slf4j
 public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezenService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(IFobtHL7BerichtInlezenServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -120,12 +119,7 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 		{
 			IFOBTBestand bestand = null;
 
-			String ifobtBericht = bericht.getHl7Bericht();
-			HapiContext context = new DefaultHapiContext();
-
-			context.getExecutorService();
-			Parser p = context.getPipeParser();
-			Message hapiMsg = p.parse(ifobtBericht);
+			Message hapiMsg = transformToMessage(bericht.getHl7Bericht());
 
 			ColonIFobtHL7BerichtWrapper wrapper = new ColonIFobtHL7BerichtWrapper((OUL_R22) hapiMsg);
 			IfobtVerwerkingRapportageEntry verslagEntry = new IfobtVerwerkingRapportageEntry();
@@ -155,7 +149,9 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 
 						if (skmlBarcode == null)
 						{
-							String melding = "FIT of controle buis met barcode " + barcode + " in bestand " + ifobtResult.getBestandsNaam() + " bestaat niet.";
+							boolean isVerwijderdeBarcode = ifobtDao.isVerwijderdeBarcode(barcode);
+							String melding = String.format("FIT of controle buis met barcode %s in bestand %s bestaat niet%s.", barcode, ifobtResult.getBestandsNaam(),
+								isVerwijderdeBarcode ? " meer" : "");
 							logService.logGebeurtenis(LogGebeurtenis.IFOBT_ONBEKENDE_BARCODE, null, melding, Bevolkingsonderzoek.COLON);
 							LOG.warn(melding);
 
@@ -231,6 +227,17 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 		}
 	}
 
+	private Message transformToMessage(String ifobtBericht) throws HL7Exception, IOException
+	{
+		try (HapiContext context = new DefaultHapiContext())
+		{
+
+			context.getExecutorService();
+			Parser p = context.getPipeParser();
+			return p.parse(ifobtBericht);
+		}
+	}
+
 	private void logSkmlTestOntvangen(boolean sentinelTestOntvangen, boolean interneTestOntvangen, boolean externeTestOntvangen)
 	{
 		if (sentinelTestOntvangen)
@@ -247,7 +254,7 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 		}
 	}
 
-	private IFOBTBestand createOrGetBestand(IFOBTResult ifobtResult) throws IOException
+	private IFOBTBestand createOrGetBestand(IFOBTResult ifobtResult)
 	{
 		IFOBTBestand bestand = ifobtDao.getIfobtBestand(ifobtResult.getBestandsNaam());
 		if (bestand == null)
@@ -287,7 +294,6 @@ public class IFobtHL7BerichtInlezenServiceImpl implements IFobtHL7BerichtInlezen
 			ontvangenBericht.setStatus(BerichtStatus.WAARSCHUWING);
 		}
 		hibernateService.saveOrUpdate(ontvangenBericht);
-		IFobtLaboratorium laboratorium = ontvangenBericht.getLaboratorium();
 		String melding = "Uitslag in FIT HL7 bericht (messageID: " + ontvangenBericht.getMessageId() + ") kon niet worden verwerkt. (" + message + ")";
 		addMelding(verwerkingLogEvent, melding);
 	}

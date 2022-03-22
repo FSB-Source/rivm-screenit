@@ -20,177 +20,178 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="btn-top pull-right">
-        <button class="btn btn-primary right" wicket:id="contactAanmaken">
-            <i class="icon-edit icon-white"></i> Registreren cli&euml;nt contact
-        </button>
-    </div>
-    <h1 class="pageTitle">Cli&euml;ntgegevens</h1>
-    <div class="form-horizontal">
-        <wicket:container wicket:id="paspoort"></wicket:container>
+	<div class="btn-top pull-right">
+		<button class="btn btn-primary right" wicket:id="contactAanmaken">
+			<i class="icon-edit icon-white"></i> Registreren cli&euml;nt contact
+		</button>
+	</div>
+	<h1 class="pageTitle">Cli&euml;ntgegevens</h1>
+	<div class="form-horizontal">
+		<wicket:container wicket:id="paspoort"></wicket:container>
 
-        <fieldset>
-            <div class="row-fluid">
-                <div class="span12">
-                    <legend>Status bevolkingsonderzoek</legend>
-                </div>
-            </div>
+		<fieldset>
+			<div class="row-fluid">
+				<div class="span12">
+					<legend>Status bevolkingsonderzoek</legend>
+				</div>
+			</div>
 
-            <table class="table table-bordered table-condensed status-bevolkingsonderzoek">
-                <thead>
-                <tr>
-                    <th class="input-xlarge">Bevolkingsonderzoek</th>
-                    <th>Status</th>
-                </tr>
-                </thead>
-                <tbody>
-                <div wicket:id="cervixDossier"></div>
-                <div wicket:id="mammaDossier"></div>
-                <div wicket:id="colonDossier"></div>
-                </tbody>
-            </table>
-        </fieldset>
-        <wicket:container wicket:id="clientInzienBezwaarPanel"></wicket:container>
-        <wicket:container wicket:id="clientInzienAanvraagOverdrachtGegevensPanel"></wicket:container>
-        <fieldset>
-            <div class="row-fluid">
-                <div class="span4">
-                    <h2>Adres</h2>
-                    <div class="control-group value no-label">
-                        <div class="controls" wicket:id="adres"></div>
-                        <wicket:enclosure child="persoon.datumVertrokkenUitNederland">
-                            Datum vertrokken uit Nederland:
-                            <span wicket:id="persoon.datumVertrokkenUitNederland"></span>
-                        </wicket:enclosure>
-                    </div>
-                    <div class="control-group value no-label">
-                        <wicket:enclosure child="persoon.datumVestigingNederland">
-                            Datum vestiging in Nederland:
-                            <span wicket:id="persoon.datumVestigingNederland"></span>
-                        </wicket:enclosure>
-                    </div>
-                </div>
-                <div class="span4">
-                    <div wicket:id="tijdelijkGbaAdres">
-                        <h2>Tijdelijk GBA adres
-                            <button class="btn" wicket:id="tijdelijkGbaAdresWijzigen"><span wicket:id="label"></span></button>
-                        </h2>
-                        <div class="control-group value no-label">
-                            <div class="controls">
-                                <wicket:container wicket:id="persoon.tijdelijkGbaAdres.adres">Brugstraat 24 B/1</wicket:container>
-                                <br>
-                                <wicket:container wicket:id="persoon.tijdelijkGbaAdres.postcode">7512 AD</wicket:container>
-                                <wicket:container wicket:id="persoon.tijdelijkGbaAdres.plaats">Enschede</wicket:container>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <wicket:enclosure child="persoon.tijdelijkAdres.eindDatum">
-                    <div class="span4">
-                        <h2>Tijdelijk adres</h2>
-                        <div class="control-group value no-label">
-                            <div class="controls">
-                                <wicket:container wicket:id="persoon.tijdelijkAdres.adres">Brugstraat 24 B/1</wicket:container>
-                                <wicket:container wicket:id="persoon.tijdelijkAdres.huisletter">B</wicket:container>
-                                <br>
-                                <wicket:container wicket:id="persoon.tijdelijkAdres.postcode">7512 AD</wicket:container>
-                                <wicket:container wicket:id="persoon.tijdelijkAdres.plaats">Enschede</wicket:container>
-                                <br> <br>
-                                <wicket:container wicket:id="persoon.tijdelijkAdres.startDatum">01-12-2012</wicket:container>
-                                t/m
-                                <wicket:container wicket:id="persoon.tijdelijkAdres.eindDatum">01-03-2013</wicket:container>
-                            </div>
-                        </div>
-                    </div>
-                </wicket:enclosure>
+			<table class="table table-bordered table-condensed status-bevolkingsonderzoek">
+				<thead>
+				<tr>
+					<th class="input-xlarge">Bevolkingsonderzoek</th>
+					<th>Status</th>
+				</tr>
+				</thead>
+				<tbody>
+				<div wicket:id="cervixDossier"></div>
+				<div wicket:id="mammaDossier"></div>
+				<div wicket:id="colonDossier"></div>
+				</tbody>
+			</table>
+		</fieldset>
+		<wicket:container wicket:id="clientInzienBezwaarPanel"></wicket:container>
+		<wicket:container wicket:id="clientInzienAanvraagOverdrachtGegevensPanel"></wicket:container>
+		<wicket:container wicket:id="algemeneBrievenPanel"></wicket:container>
+		<fieldset>
+			<div class="row-fluid">
+				<div class="span4">
+					<h2>Adres</h2>
+					<div class="control-group value no-label">
+						<div class="controls" wicket:id="adres"></div>
+						<wicket:enclosure child="persoon.datumVertrokkenUitNederland">
+							Datum vertrokken uit Nederland:
+							<span wicket:id="persoon.datumVertrokkenUitNederland"></span>
+						</wicket:enclosure>
+					</div>
+					<div class="control-group value no-label">
+						<wicket:enclosure child="persoon.datumVestigingNederland">
+							Datum vestiging in Nederland:
+							<span wicket:id="persoon.datumVestigingNederland"></span>
+						</wicket:enclosure>
+					</div>
+				</div>
+				<div class="span4">
+					<div wicket:id="tijdelijkGbaAdres">
+						<h2>Tijdelijk GBA adres
+							<button class="btn" wicket:id="tijdelijkGbaAdresWijzigen"><span wicket:id="label"></span></button>
+						</h2>
+						<div class="control-group value no-label">
+							<div class="controls">
+								<wicket:container wicket:id="persoon.tijdelijkGbaAdres.adres">Brugstraat 24 B/1</wicket:container>
+								<br>
+								<wicket:container wicket:id="persoon.tijdelijkGbaAdres.postcode">7512 AD</wicket:container>
+								<wicket:container wicket:id="persoon.tijdelijkGbaAdres.plaats">Enschede</wicket:container>
+							</div>
+						</div>
+					</div>
+				</div>
+				<wicket:enclosure child="persoon.tijdelijkAdres.eindDatum">
+					<div class="span4">
+						<h2>Tijdelijk adres</h2>
+						<div class="control-group value no-label">
+							<div class="controls">
+								<wicket:container wicket:id="persoon.tijdelijkAdres.adres">Brugstraat 24 B/1</wicket:container>
+								<wicket:container wicket:id="persoon.tijdelijkAdres.huisletter">B</wicket:container>
+								<br>
+								<wicket:container wicket:id="persoon.tijdelijkAdres.postcode">7512 AD</wicket:container>
+								<wicket:container wicket:id="persoon.tijdelijkAdres.plaats">Enschede</wicket:container>
+								<br> <br>
+								<wicket:container wicket:id="persoon.tijdelijkAdres.startDatum">01-12-2012</wicket:container>
+								t/m
+								<wicket:container wicket:id="persoon.tijdelijkAdres.eindDatum">01-03-2013</wicket:container>
+							</div>
+						</div>
+					</div>
+				</wicket:enclosure>
 
-            </div>
-        </fieldset>
-        <form wicket:id="telefoonform">
-            <fieldset wicket:id="telefoonnummers">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <legend>Telefoonnummer(s)</legend>
-                    </div>
-                </div>
-                <div class="row-fluid">
-                    <div class="span6">
-                        <div class="control-group value">
-                            <label class="control-label">Telefoonnummer</label> <input
-                                class="input-large" type="text"
-                                wicket:id="persoon.telefoonnummer1"/>
-                        </div>
-                    </div>
-                    <div class="span6">
-                        <div class="control-group value">
-                            <label class="control-label">Mobiel nummer</label> <input
-                                class="input-large" type="text"
-                                wicket:id="persoon.telefoonnummer2"/>
-                        </div>
-                    </div>
-                    <div class="row-fluid">
-                        <div class="span12">
-                            <a href="javascript:void(0);" class="btn btn-primary right"
-                               wicket:id="opslaantelefoon">Opslaan</a>
-                        </div>
-                    </div>
-                </div>
-            </fieldset>
-        </form>
+			</div>
+		</fieldset>
+		<form wicket:id="telefoonform">
+			<fieldset wicket:id="telefoonnummers">
+				<div class="row-fluid">
+					<div class="span12">
+						<legend>Telefoonnummer(s)</legend>
+					</div>
+				</div>
+				<div class="row-fluid">
+					<div class="span6">
+						<div class="control-group value">
+							<label class="control-label">Telefoonnummer</label> <input
+								class="input-large" type="text"
+								wicket:id="persoon.telefoonnummer1"/>
+						</div>
+					</div>
+					<div class="span6">
+						<div class="control-group value">
+							<label class="control-label">Mobiel nummer</label> <input
+								class="input-large" type="text"
+								wicket:id="persoon.telefoonnummer2"/>
+						</div>
+					</div>
+					<div class="row-fluid">
+						<div class="span12">
+							<a href="javascript:void(0);" class="btn btn-primary right"
+							   wicket:id="opslaantelefoon">Opslaan</a>
+						</div>
+					</div>
+				</div>
+			</fieldset>
+		</form>
 
-        <fieldset>
-            <div class="row-fluid">
-                <div class="span12">
-                    <legend>Verantwoordelijke screeningsorganisatie</legend>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span6">
-                    <div class="control-group value no-label">
-                        <div class="controls"
-                             wicket:id="persoon.gbaAdres.gbaGemeente.screeningOrganisatie.naam">
-                            Screeningsorganisatie 1
-                        </div>
-                    </div>
+		<fieldset>
+			<div class="row-fluid">
+				<div class="span12">
+					<legend>Verantwoordelijke screeningsorganisatie</legend>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="control-group value no-label">
+						<div class="controls"
+							 wicket:id="persoon.gbaAdres.gbaGemeente.screeningOrganisatie.naam">
+							Screeningsorganisatie 1
+						</div>
+					</div>
 
-                </div>
-                <div class="span6"></div>
-            </div>
-        </fieldset>
+				</div>
+				<div class="span6"></div>
+			</div>
+		</fieldset>
 
-        <wicket:enclosure child="gbaStatus">
-            <fieldset>
-                <div class="row-fluid">
-                    <div class="span12">
-                        <legend>GBA status</legend>
-                    </div>
-                </div>
-                <div class="row-fluid">
-                    <div class="span6">
-                        <div class="control-group value">
-                            <label class="control-label">Datum laatste GBA mutatie</label>
-                            <div class="controls" wicket:id="laatsteGbaMutatie">08-10-2012</div>
-                        </div>
+		<wicket:enclosure child="gbaStatus">
+			<fieldset>
+				<div class="row-fluid">
+					<div class="span12">
+						<legend>GBA status</legend>
+					</div>
+				</div>
+				<div class="row-fluid">
+					<div class="span6">
+						<div class="control-group value">
+							<label class="control-label">Datum laatste GBA mutatie</label>
+							<div class="controls" wicket:id="laatsteGbaMutatie">08-10-2012</div>
+						</div>
 
-                        <div class="control-group value">
-                            <label class="control-label">Laatst aangevraagd op</label>
-                            <div class="controls" wicket:id="laatstAangevraagd">
-                                08-10-2012
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row-fluid">
-                        <div class="control-group value">
-                            <label class="control-label">Indicatie status</label>
-                            <div class="controls" wicket:id="gbaStatus">indicatie</div>
-                        </div>
-                    </div>
+						<div class="control-group value">
+							<label class="control-label">Laatst aangevraagd op</label>
+							<div class="controls" wicket:id="laatstAangevraagd">
+								08-10-2012
+							</div>
+						</div>
+					</div>
+					<div class="row-fluid">
+						<div class="control-group value">
+							<label class="control-label">Indicatie status</label>
+							<div class="controls" wicket:id="gbaStatus">indicatie</div>
+						</div>
+					</div>
 
-                </div>
-            </fieldset>
-        </wicket:enclosure>
+				</div>
+			</fieldset>
+		</wicket:enclosure>
 
-    </div>
-    <div wicket:id="dialog"></div>
+	</div>
+	<div wicket:id="dialog"></div>
 </wicket:panel>
 </html>

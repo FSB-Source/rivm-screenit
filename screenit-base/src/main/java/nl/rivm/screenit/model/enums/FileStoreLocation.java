@@ -24,6 +24,8 @@ package nl.rivm.screenit.model.enums;
 import java.io.File;
 import java.util.Calendar;
 
+import lombok.Getter;
+
 public enum FileStoreLocation
 {
 
@@ -165,13 +167,16 @@ public enum FileStoreLocation
 		false,
 		true),
 
-	MAMMA_UPLOAD_BEELDEN(File.separator + "mamma" + File.separator + "uploadBeelden", false, false);
+	MAMMA_UPLOAD_BEELDEN(File.separator + "mamma" + File.separator + "uploadBeelden", false, false),
 
-	private String path;
+	REGRESSIETEST(File.separator + "test" + File.separator, false, false);
 
-	private boolean saveFileWithId;
+	private final String path;
 
-	private boolean daysDirectories;
+	@Getter
+	private final boolean saveFileWithId;
+
+	private final boolean daysDirectories;
 
 	FileStoreLocation(String path, boolean daysDirectories)
 	{
@@ -195,21 +200,6 @@ public enum FileStoreLocation
 	public String getPath()
 	{
 		return generatePath(path);
-	}
-
-	public boolean isSaveFileWithId()
-	{
-		return saveFileWithId;
-	}
-
-	public boolean isDaysDirectories()
-	{
-		return daysDirectories;
-	}
-
-	public void setDaysDirectories(boolean daysDirectories)
-	{
-		this.daysDirectories = daysDirectories;
 	}
 
 	private String generatePath(String path)

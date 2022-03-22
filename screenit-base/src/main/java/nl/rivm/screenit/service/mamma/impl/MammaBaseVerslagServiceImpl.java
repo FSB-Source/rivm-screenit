@@ -33,7 +33,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
 import nl.rivm.screenit.service.mamma.be.verslag.MammaVerslagDocumentCreator;
@@ -59,7 +59,7 @@ public class MammaBaseVerslagServiceImpl implements MammaBaseVerslagService
 	private BaseBriefService briefService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private AsposeService asposeService;
@@ -96,12 +96,12 @@ public class MammaBaseVerslagServiceImpl implements MammaBaseVerslagService
 		document.setActief(true);
 		document.setContentType("application/pdf");
 		document.setFile(tmpVerslag);
-		fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.MAMMA_VERSLAG, beoordelingService.getClientVanBeoordeling(beoordeling).getId());
+		uploadDocumentService.saveOrUpdate(document, FileStoreLocation.MAMMA_VERSLAG, beoordelingService.getClientVanBeoordeling(beoordeling).getId());
 		beoordeling.setVerslagPdf(document);
 		hibernateService.saveOrUpdateAll(document, beoordeling);
 		if (tmpVerslag.exists() && !tmpVerslag.delete())
 		{
-			fileService.delete(document, true);
+			uploadDocumentService.delete(document, true);
 			LOG.error("Kon geen verslag wegschrijven naar de filestore voor beoordeling {}", beoordeling.getId());
 			throw new RuntimeException("Kon tijdelijk bestand niet verwijderen");
 		}
@@ -135,7 +135,7 @@ public class MammaBaseVerslagServiceImpl implements MammaBaseVerslagService
 	private File haalBriefTemplateOp(BriefType briefType)
 	{
 		BriefDefinitie definitie = briefService.getNieuwsteBriefDefinitie(briefType);
-		return fileService.load(definitie.getDocument());
+		return uploadDocumentService.load(definitie.getDocument());
 	}
 
 	@Override
@@ -148,7 +148,7 @@ public class MammaBaseVerslagServiceImpl implements MammaBaseVerslagService
 		}
 		else
 		{
-			verslag = fileService.load(beoordeling.getVerslagPdf());
+			verslag = uploadDocumentService.load(beoordeling.getVerslagPdf());
 		}
 		return verslag;
 	}

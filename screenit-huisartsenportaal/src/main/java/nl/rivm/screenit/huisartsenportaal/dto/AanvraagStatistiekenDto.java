@@ -21,9 +21,14 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
+@Getter
+@Setter
 public class AanvraagStatistiekenDto
 {
 
@@ -33,33 +38,4 @@ public class AanvraagStatistiekenDto
 
 	public Integer aantalTotaal;
 
-	public Integer getAantalVerstuurd()
-	{
-		return aantalVerstuurd;
-	}
-
-	public void setAantalVerstuurd(Integer aantalVerstuurd)
-	{
-		this.aantalVerstuurd = aantalVerstuurd;
-	}
-
-	public Integer getAantalNogTeVersturen()
-	{
-		return aantalNogTeVersturen;
-	}
-
-	public void setAantalNogTeVersturen(Integer aantalNogTeVersturen)
-	{
-		this.aantalNogTeVersturen = aantalNogTeVersturen;
-	}
-
-	public Integer getAantalTotaal()
-	{
-		return aantalTotaal;
-	}
-
-	public void setAantalTotaal(Integer aantalTotaal)
-	{
-		this.aantalTotaal = aantalTotaal;
-	}
 }

@@ -40,13 +40,10 @@ import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
 import nl.rivm.screenit.model.vragenlijsten.Vragenlijst;
 import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoorden;
 import nl.rivm.screenit.model.vragenlijsten.VragenlijstAntwoordenHolder;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.hibernate.Hibernate;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -56,9 +53,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class VragenlijstServiceImpl implements VragenlijstService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(VragenlijstServiceImpl.class);
-
 	@Autowired
 	private VragenlijstDao vragenlijstDao;
 
@@ -69,7 +63,7 @@ public class VragenlijstServiceImpl implements VragenlijstService
 	private FormulierService formulierService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -147,7 +141,7 @@ public class VragenlijstServiceImpl implements VragenlijstService
 		{
 			if (oldFormulierInstantie.getTemplateVanGebruiker() != null)
 			{
-				fileService.delete(oldFormulierInstantie.getTemplateVanGebruiker(), true);
+				uploadDocumentService.delete(oldFormulierInstantie.getTemplateVanGebruiker(), true);
 			}
 			hibernateService.delete(oldFormulierInstantie);
 		}
@@ -179,14 +173,14 @@ public class VragenlijstServiceImpl implements VragenlijstService
 		document.setContentType(contentType);
 		document.setNaam(clientFileName);
 		document.setFile(tempFile);
-		fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.VRAGENLIJSTEN_TEMPLATES);
+		uploadDocumentService.saveOrUpdate(document, FileStoreLocation.VRAGENLIJSTEN_TEMPLATES);
 
 		UploadDocument templateVanGebruiker = formulierInstantie.getTemplateVanGebruiker();
 		formulierInstantie.setTemplateVanGebruiker(document);
 		hibernateService.saveOrUpdate(formulierInstantie);
 		if (templateVanGebruiker != null)
 		{
-			fileService.delete(templateVanGebruiker, true);
+			uploadDocumentService.delete(templateVanGebruiker, true);
 		}
 	}
 }

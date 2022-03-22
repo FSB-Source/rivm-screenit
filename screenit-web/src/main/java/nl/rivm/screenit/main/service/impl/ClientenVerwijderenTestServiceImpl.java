@@ -24,6 +24,8 @@ package nl.rivm.screenit.main.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.DashboardDao;
 import nl.rivm.screenit.main.service.ClientenVerwijderenTestService;
@@ -40,17 +42,15 @@ import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.model.logging.NieuweIFobtAanvraagLogEvent;
 import nl.rivm.screenit.model.mamma.MammaDeelnamekans;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.TestService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixTestService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -58,13 +58,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTestService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientenVerwijderenTestServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -81,7 +79,7 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 	private TestService testService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private ClientDao clientDao;
@@ -143,7 +141,7 @@ public class ClientenVerwijderenTestServiceImpl implements ClientenVerwijderenTe
 					{
 						bezwaarMoment.setBezwaarBrief(null);
 						hibernateService.saveOrUpdate(bezwaarMoment);
-						fileService.delete(brief, true);
+						uploadDocumentService.delete(brief, true);
 					}
 				}
 				client.setLaatstVoltooideBezwaarMoment(null);

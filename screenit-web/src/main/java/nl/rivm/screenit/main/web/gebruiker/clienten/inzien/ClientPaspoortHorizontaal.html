@@ -20,100 +20,108 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="form-horizontal">
+	<div class="form-horizontal">
 
-        <fieldset class="hero-unit">
-            <div class="row-fluid">
-                <div class="span12">
-                    <legend>
-                        <wicket:container wicket:id="volledigeNaam">Persoonsgegevens</wicket:container>&nbsp;&nbsp;&nbsp;<wicket:container wicket:id="doelgroep"></wicket:container>
-                    </legend>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span4">
-                    <div class="control-group value">
-                        <label class="control-label">BSN</label>
-                        <div class="controls">
-                            <strong wicket:id="persoon.bsn"></strong>
-                            <wicket:enclosure child="persoon.anummer">
-                                <strong>(A-nr.:<span wicket:id="persoon.anummer"></span>)</strong>
-                            </wicket:enclosure>
-                        </div>
-                    </div>
-                    <div class="control-group value">
-                        <label class="control-label">Geboortedatum</label>
-                        <div class="controls">
-                            <wicket:container wicket:id="persoon.geboortedatum"></wicket:container>
-                        </div>
-                    </div>
-                    <wicket:enclosure child="persoon.overlijdensdatum">
-                        <div class="control-group value">
-                            <label class="control-label">Overlijdensdatum</label>
-                            <div class="controls datum-overlijden">
-                                <wicket:container wicket:id="persoon.overlijdensdatum"></wicket:container>
-                            </div>
-                        </div>
-                    </wicket:enclosure>
-                    <div class="control-group value">
-                        <label class="control-label">Geslacht</label>
-                        <div class="controls">
-                            <strong wicket:id="persoon.geslacht.omschrijving"></strong>
-                        </div>
-                    </div>
-                    <div class="control-group value">
-                        <label class="control-label">Geboortenaam</label>
-                        <div class="controls">
-                            <strong wicket:id="persoon.achternaam"></strong>
-                        </div>
-                    </div>
-                    <wicket:enclosure child="persoon.telefoonnummer1">
-                        <div class="control-group value">
-                            <label class="control-label">Telefoonnummer</label>
-                            <div class="controls">
-                                <strong wicket:id="persoon.telefoonnummer1"></strong>
-                            </div>
-                        </div>
-                    </wicket:enclosure>
-                    <wicket:enclosure child="persoon.telefoonnummer2">
-                        <div class="control-group value">
-                            <label class="control-label">Mobiel nummer</label>
-                            <div class="controls">
-                                <strong wicket:id="persoon.telefoonnummer2"></strong>
-                            </div>
-                        </div>
-                    </wicket:enclosure>
-                </div>
-                <div class="span4">
-                </div>
-                <div class="span4">
-                    <div class="control-group value">
-                        <label class="control-label">Straat / Locatiebeschrijving</label>
-                        <div class="controls">
-                            <strong wicket:id="gbaLocatiebeschrijving"></strong>
-                        </div>
-                    </div>
-                    <div class="control-group value">
-                        <label class="control-label">Postcode</label>
-                        <div class="controls">
-                            <strong wicket:id="gbaPostcode"></strong>
-                        </div>
-                    </div>
-                    <div class="control-group value">
-                        <label class="control-label">Woonplaats</label>
-                        <div class="controls">
-                            <strong wicket:id="gbaWoonplaats"></strong>
-                        </div>
-                    </div>
-                    <div class="control-group value">
-                        <label class="control-label">Tijdelijk adres</label>
-                        <div class="controls">
-                            <strong wicket:id="tijdelijkadres"></strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </fieldset>
-    </div>
+		<fieldset class="hero-unit">
+			<div class="row-fluid">
+				<div class="span12">
+					<legend>
+						<wicket:container wicket:id="volledigeNaam">Persoonsgegevens</wicket:container>&nbsp;&nbsp;&nbsp;<wicket:container wicket:id="doelgroep"></wicket:container>
+					</legend>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span4">
+					<div class="control-group value">
+						<label class="control-label">BSN</label>
+						<div class="controls">
+							<strong wicket:id="persoon.bsn"></strong>
+							<wicket:enclosure child="persoon.anummer">
+								<strong>(A-nr.:<span wicket:id="persoon.anummer"></span>)</strong>
+							</wicket:enclosure>
+						</div>
+					</div>
+					<div class="control-group value">
+						<label class="control-label">Geboortedatum</label>
+						<div class="controls">
+							<wicket:container wicket:id="persoon.geboortedatum"></wicket:container>
+						</div>
+					</div>
+					<wicket:enclosure child="persoon.overlijdensdatum">
+						<div class="control-group value">
+							<label class="control-label">Overlijdensdatum</label>
+							<div class="controls datum-overlijden">
+								<wicket:container wicket:id="persoon.overlijdensdatum"></wicket:container>
+							</div>
+						</div>
+					</wicket:enclosure>
+					<div class="control-group value">
+						<label class="control-label">Geslacht</label>
+						<div class="controls">
+							<strong wicket:id="persoon.geslacht"></strong>
+						</div>
+					</div>
+					<div class="control-group value">
+						<label class="control-label">Geboortenaam</label>
+						<div class="controls">
+							<strong wicket:id="persoon.achternaam"></strong>
+						</div>
+					</div>
+					<wicket:enclosure child="persoon.telefoonnummer1">
+						<div class="control-group value">
+							<label class="control-label">Telefoonnummer</label>
+							<div class="controls">
+								<strong wicket:id="persoon.telefoonnummer1"></strong>
+							</div>
+						</div>
+					</wicket:enclosure>
+					<wicket:enclosure child="persoon.telefoonnummer2">
+						<div class="control-group value">
+							<label class="control-label">Mobiel nummer</label>
+							<div class="controls">
+								<strong wicket:id="persoon.telefoonnummer2"></strong>
+							</div>
+						</div>
+					</wicket:enclosure>
+				</div>
+				<div class="span4">
+				</div>
+				<div class="span4">
+					<div class="control-group value">
+						<label class="control-label">Straat / Locatiebeschrijving</label>
+						<div class="controls">
+							<strong wicket:id="gbaLocatiebeschrijving"></strong>
+						</div>
+					</div>
+					<div class="control-group value">
+						<label class="control-label">Postcode</label>
+						<div class="controls">
+							<strong wicket:id="gbaPostcode"></strong>
+						</div>
+					</div>
+					<div class="control-group value">
+						<label class="control-label">Woonplaats</label>
+						<div class="controls">
+							<strong wicket:id="gbaWoonplaats"></strong>
+						</div>
+					</div>
+					<div class="control-group value">
+						<label class="control-label">Tijdelijk adres</label>
+						<div class="controls">
+							<strong wicket:id="tijdelijkadres"></strong>
+						</div>
+					</div>
+					<wicket:enclosure child="selectieblokkade">
+						<div class="control-group value">
+							<label class="control-label">Selectieblokkade</label>
+							<div class="controls">
+								<strong wicket:id="selectieblokkade"></strong>
+							</div>
+						</div>
+					</wicket:enclosure>
+				</div>
+			</div>
+		</fieldset>
+	</div>
 </wicket:panel>
 </html>

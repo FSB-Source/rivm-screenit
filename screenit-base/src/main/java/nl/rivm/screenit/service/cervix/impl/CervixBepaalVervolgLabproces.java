@@ -21,17 +21,17 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 
 class CervixBepaalVervolgLabproces
 {
+	private final CervixBepaalVervolgContext context;
 
-	private CervixBepaalVervolgContext context;
+	private final CervixVervolg vervolg = new CervixVervolg();
 
-	private CervixVervolg vervolg = new CervixVervolg();
-
-	private CervixBepaalGevolgenLabproces bepaalGevolgenLabproces;
+	private final CervixBepaalGevolgenLabproces bepaalGevolgenLabproces;
 
 	public CervixBepaalVervolgLabproces(CervixBepaalVervolgContext context)
 	{
@@ -52,9 +52,9 @@ class CervixBepaalVervolgLabproces
 				}
 				else
 				{
-					if (context.monsterHpvUitslag != null && context.huidigeMonster.equals(context.monsterHpvUitslag)
-						|| context.uitstrijkjeCytologieUitslag != null && context.huidigeMonster.equals(context.uitstrijkjeCytologieUitslag)
-						|| context.uitstrijkjeVervolgonderzoekUitslag != null && context.huidigeMonster.equals(context.uitstrijkjeVervolgonderzoekUitslag))
+					if (context.huidigeMonster.equals(context.monsterHpvUitslag)
+						|| context.huidigeMonster.equals(context.uitstrijkjeCytologieUitslag)
+						|| context.huidigeMonster.equals(context.uitstrijkjeVervolgonderzoekUitslag))
 					{
 						vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_CLIENT_REEDS_GEINFORMEERD_BEWAAR);
 					}
@@ -71,7 +71,7 @@ class CervixBepaalVervolgLabproces
 				}
 				else
 				{
-					if (context.monsterHpvUitslag != null && context.huidigeMonster.equals(context.monsterHpvUitslag))
+					if (context.huidigeMonster.equals(context.monsterHpvUitslag))
 					{
 						if (CervixHpvBeoordelingWaarde.POSITIEF.equals(context.hpvUitslag))
 						{
@@ -141,13 +141,13 @@ class CervixBepaalVervolgLabproces
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_VERVOLGONDERZOEK_NAAR_CYTOLOGIE);
 					break;
 				case BEOORDEELD_DOOR_CYTOLOGIE:
-					switch (context.huidigUitstrijkje.getCytologieVerslag().getCytologieUitslag())
+					if (context.huidigUitstrijkje.getCytologieVerslag().getCytologieUitslag() == CervixCytologieUitslag.PAP0)
 					{
-					case PAP0:
 						vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_CYTOLOGIE_ONBEOORDEELBAAR_VERNIETIG);
 						bepaalGevolgenLabproces.bepaalGevolgenUitstijkjeVervolgonderzoekOnbeoordeelbaar();
-						break;
-					default:
+					}
+					else
+					{
 						throw new IllegalStateException();
 					}
 					break;
@@ -203,9 +203,8 @@ class CervixBepaalVervolgLabproces
 					}
 					break;
 				case BEOORDEELD_DOOR_CYTOLOGIE:
-					switch (context.huidigUitstrijkje.getCytologieVerslag().getCytologieUitslag())
+					if (context.huidigUitstrijkje.getCytologieVerslag().getCytologieUitslag() == CervixCytologieUitslag.PAP0)
 					{
-					case PAP0:
 						if (context.huidigeMonster.equals(context.monsterHpvUitslag))
 						{
 							vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_HPV_POSITIEF_CYTOLOGIE_ONBEOORDEELBAAR_BEWAAR);
@@ -215,8 +214,9 @@ class CervixBepaalVervolgLabproces
 							vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_CYTOLOGIE_ONBEOORDEELBAAR_VERNIETIG);
 						}
 						bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeCytologieOnbeoordeelbaar();
-						break;
-					default:
+					}
+					else
+					{
 						throw new IllegalStateException();
 					}
 					break;
@@ -262,23 +262,23 @@ class CervixBepaalVervolgLabproces
 				vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_ONTVANGEN_NAAR_HPV);
 				break;
 			case GEANALYSEERD_OP_HPV_POGING_1:
-				switch (context.huidigUitstrijkje.getLaatsteHpvBeoordeling().getHpvUitslag())
+				if (context.huidigUitstrijkje.getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.ONGELDIG)
 				{
-				case ONGELDIG:
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_GEANALYSEERD_OP_HPV_POGING_1_ONGELDIG_NAAR_HPV);
-					break;
-				default:
+				}
+				else
+				{
 					throw new IllegalStateException();
 				}
 				break;
 			case GEANALYSEERD_OP_HPV_POGING_2:
-				switch (context.huidigUitstrijkje.getLaatsteHpvBeoordeling().getHpvUitslag())
+				if (context.huidigUitstrijkje.getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.ONGELDIG)
 				{
-				case ONGELDIG:
 					vervolg.setVervolgTekst(CervixVervolgTekst.UITSTRIJKJE_GEANALYSEERD_OP_HPV_POGING_2_ONGELDIG_VERNIETIG);
 					bepaalGevolgenLabproces.bepaalGevolgenUitstrijkjeHpvOnbeoordeelbaar();
-					break;
-				default:
+				}
+				else
+				{
 					throw new IllegalStateException();
 				}
 				break;
@@ -361,23 +361,23 @@ class CervixBepaalVervolgLabproces
 				vervolg.setVervolgTekst(CervixVervolgTekst.ZAS_ONTVANGEN_NAAR_HPV);
 				break;
 			case GEANALYSEERD_OP_HPV_POGING_1:
-				switch (context.huidigeZas.getLaatsteHpvBeoordeling().getHpvUitslag())
+				if (context.huidigeZas.getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.ONGELDIG)
 				{
-				case ONGELDIG:
 					vervolg.setVervolgTekst(CervixVervolgTekst.ZAS_GEANALYSEERD_OP_HPV_POGING_1_ONGELDIG_NAAR_HPV);
-					break;
-				default:
+				}
+				else
+				{
 					throw new IllegalStateException();
 				}
 				break;
 			case GEANALYSEERD_OP_HPV_POGING_2:
-				switch (context.huidigeZas.getLaatsteHpvBeoordeling().getHpvUitslag())
+				if (context.huidigeZas.getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.ONGELDIG)
 				{
-				case ONGELDIG:
 					vervolg.setVervolgTekst(CervixVervolgTekst.ZAS_GEANALYSEERD_OP_HPV_POGING_2_ONGELDIG_VERNIETIG);
 					bepaalGevolgenLabproces.bepaalGevolgenZasHpvOnbeoordeelbaar();
-					break;
-				default:
+				}
+				else
+				{
 					throw new IllegalStateException();
 				}
 				break;

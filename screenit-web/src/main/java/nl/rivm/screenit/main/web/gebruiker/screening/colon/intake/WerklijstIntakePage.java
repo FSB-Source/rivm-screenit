@@ -106,13 +106,13 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 {
 
-	private ScreenitDataTable<ColonIntakeAfspraak, String> table;
+	private final ScreenitDataTable<ColonIntakeAfspraak, String> table;
 
 	private final IModel<WerklijstIntakeFilter> zoekModel;
 
-	private Form<WerklijstIntakeFilter> bsnForm;
+	private final Form<WerklijstIntakeFilter> bsnForm;
 
-	private Form<WerklijstIntakeFilter> form;
+	private final Form<WerklijstIntakeFilter> form;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -128,7 +128,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	private Label aantalLabel;
 
-	public WerklijstIntakePage(AfspraakStatus filterStatus)
+	protected WerklijstIntakePage(AfspraakStatus filterStatus)
 	{
 		ColoscopieCentrum intakelocatie = ScreenitSession.get().getColoscopieCentrum();
 		add(new Label("intakelocatie", intakelocatie.getNaam()));
@@ -147,13 +147,13 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		{
 			werklijstIntakeDataProvider.setSort("startTime", SortOrder.DESCENDING);
 		}
-		table = new ScreenitDataTable<ColonIntakeAfspraak, String>("tabel", getColumns(), werklijstIntakeDataProvider, 10, Model.of("afspraken"))
+		table = new ScreenitDataTable<>("tabel", getColumns(), werklijstIntakeDataProvider, 10, Model.of("afspraken"))
 		{
 
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<ColonIntakeAfspraak> model)
 			{
-				dialog.openWith(target, new ColonConclusieVastleggenPanel(IDialog.CONTENT_ID, ModelUtil.cModel(ModelUtil.nullSafeGet(model)))
+				dialog.openWith(target, new ColonConclusieVastleggenPanel(IDialog.CONTENT_ID, ModelUtil.ccModel(ModelUtil.nullSafeGet(model)))
 				{
 
 					@Override
@@ -257,12 +257,12 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 
 	private void addBsnGeboortedatumForm(boolean afgerondeAfspraken)
 	{
-		Form<WerklijstIntakeFilter> form = new Form<>("bsnGebroortedatumForm", zoekModel);
-		form.setOutputMarkupId(true);
-		add(form);
-		FormComponent<String> bsn = ComponentHelper.addTextField(form, "bsn", true, 10, String.class, false);
+		Form<WerklijstIntakeFilter> bsnGebroortedatumForm = new Form<>("bsnGebroortedatumForm", zoekModel);
+		bsnGebroortedatumForm.setOutputMarkupId(true);
+		add(bsnGebroortedatumForm);
+		FormComponent<String> bsn = ComponentHelper.addTextField(bsnGebroortedatumForm, "bsn", true, 10, String.class, false);
 		bsn.add(new BSNValidator());
-		form.add(
+		bsnGebroortedatumForm.add(
 			new ScreenitDateTextField("geboortedatum").setRequired(true).setVisible(afgerondeAfspraken).setOutputMarkupId(true)
 				.add(new AjaxFormComponentUpdatingBehavior("change")
 				{
@@ -280,15 +280,15 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 				onFilterBsn(target);
 			}
 		};
-		form.add(submitOnEnter);
-		form.setDefaultButton(submitOnEnter);
-		form.setVisible(afgerondeAfspraken);
+		bsnGebroortedatumForm.add(submitOnEnter);
+		bsnGebroortedatumForm.setDefaultButton(submitOnEnter);
+		bsnGebroortedatumForm.setVisible(afgerondeAfspraken);
 	}
 
 	private List<IColumn<ColonIntakeAfspraak, String>> getColumns()
 	{
 		List<IColumn<ColonIntakeAfspraak, String>> columns = new ArrayList<>();
-		columns.add(new DateTimePropertyColumn<ColonIntakeAfspraak, String>(Model.of("Intakeafspraak"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
+		columns.add(new DateTimePropertyColumn<>(Model.of("Intakeafspraak"), "startTime", "startTime", new SimpleDateFormat("dd-MM-yyyy HH:mm"))
 		{
 			@Override
 			public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> embeddedModel)
@@ -305,34 +305,34 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		columns.add(new ClientColumn<>("persoon.achternaam", "client"));
 		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "client.persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "client.persoon"));
-		columns.add(new PropertyColumn<>(Model.of("Geslacht"), "persoon.geslacht", "client.persoon.geslacht"));
-		columns.add(new PropertyColumn<ColonIntakeAfspraak, String>(Model.of("Adres"), "client.persoon.adres.straat")
+		columns.add(new EnumPropertyColumn<>(Model.of("Geslacht"), "persoon.geslacht", "client.persoon.geslacht"));
+		columns.add(new PropertyColumn<>(Model.of("Adres"), "client.persoon.adres.straat")
 		{
 
 			@Override
-			public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
+			public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
 			{
 				GbaPersoon persoon = rowModel.getObject().getClient().getPersoon();
 
 				Adres adres = AdresUtil.getAdres(persoon, new DateTime());
-				return new Model(AdresUtil.getAdres(adres));
+				return new Model<>(AdresUtil.getAdres(adres));
 			}
 		});
 
-		columns.add(new PropertyColumn<ColonIntakeAfspraak, String>(Model.of("PC/Plaats"), "client.persoon.adres.plaats")
+		columns.add(new PropertyColumn<>(Model.of("PC/Plaats"), "client.persoon.adres.plaats")
 		{
 
 			@Override
-			public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
+			public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
 			{
 				GbaPersoon persoon = rowModel.getObject().getClient().getPersoon();
 
 				Adres adres = AdresUtil.getAdres(persoon, new DateTime());
-				return new Model(PostcodeFormatter.formatPostcode(adres.getPostcode(), true) + " " + adres.getPlaats());
+				return new Model<>(PostcodeFormatter.formatPostcode(adres.getPostcode(), true) + " " + adres.getPlaats());
 			}
 		});
 
-		columns.add(new AbstractExportableColumn<ColonIntakeAfspraak, String>(Model.of("Datum brief afspraak"))
+		columns.add(new AbstractExportableColumn<>(Model.of("Datum brief afspraak"))
 		{
 
 			@Override
@@ -352,7 +352,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 					{
 						if (brief.getIntakeAfspraak() != null
 							&& (BriefType.COLON_UITNODIGING_INTAKE.equals(brief.getBriefType())
-								|| BriefType.COLON_INTAKE_GEWIJZIGD.equals(brief.getBriefType())))
+							|| BriefType.COLON_INTAKE_GEWIJZIGD.equals(brief.getBriefType())))
 						{
 							laatsteBrief = bepaalLaatsteBrief(laatsteBrief, brief);
 						}
@@ -365,7 +365,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 				return briefAfgedrukt;
 			}
 
-			private ClientBrief bepaalLaatsteBrief(ClientBrief laatsteBrief, ClientBrief brief)
+			private ClientBrief<?, ?, ?> bepaalLaatsteBrief(ClientBrief<?, ?, ?> laatsteBrief, ClientBrief<?, ?, ?> brief)
 			{
 				laatsteBrief = bepaalLaatsteBriefInner(laatsteBrief, brief);
 				ProjectBrief projectBrief = brief.getProjectBrief();
@@ -376,7 +376,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 				return laatsteBrief;
 			}
 
-			private ClientBrief bepaalLaatsteBriefInner(ClientBrief laatsteBrief, ClientBrief brief)
+			private ClientBrief<?, ?, ?> bepaalLaatsteBriefInner(ClientBrief<?, ?, ?> laatsteBrief, ClientBrief<?, ?, ?> brief)
 			{
 				MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
 				if (mergedBrieven != null && mergedBrieven.getPrintDatum() != null
@@ -388,16 +388,16 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 			}
 
 			@Override
-			public IModel<?> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
+			public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
 			{
-				return new Model(getBriefAfgedrukt(rowModel));
+				return new Model<>(getBriefAfgedrukt(rowModel));
 			}
 		});
 
-		columns.add(new PropertyColumn<ColonIntakeAfspraak, String>(Model.of("Huisarts"), "client.huisarts")
+		columns.add(new PropertyColumn<>(Model.of("Huisarts"), "client.huisarts")
 		{
 			@Override
-			public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
+			public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
 			{
 				String huisarts = "";
 
@@ -411,17 +411,17 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 					huisarts = NaamUtil.getNaamOnbekendeHuisarts(ronde.getOnbekendeHuisarts());
 				}
 
-				return new Model(huisarts);
+				return new Model<>(huisarts);
 			}
 		});
 		if (this instanceof ColonOpenstaanteIntakesWerklijstPage)
 		{
-			columns.add(new PropertyColumn<ColonIntakeAfspraak, String>(Model.of("#dagen tot nieuwe BVO uitnodiging"), "volgendeUitnodiging.peildatum",
+			columns.add(new PropertyColumn<>(Model.of("#dagen tot nieuwe BVO uitnodiging"), "volgendeUitnodiging.peildatum",
 				"client.colonDossier.volgendeUitnodiging")
 			{
 
 				@Override
-				public IModel<Object> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
+				public IModel<String> getDataModel(IModel<ColonIntakeAfspraak> rowModel)
 				{
 					LocalDate datumVolgendeUitnodiging = dossierBaseService.getDatumVolgendeUitnodiging(rowModel.getObject().getClient().getColonDossier());
 					String aantalDagenToGo = "";
@@ -429,7 +429,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 					{
 						aantalDagenToGo = "" + ChronoUnit.DAYS.between(dateSupplier.getLocalDate(), datumVolgendeUitnodiging);
 					}
-					return new Model(aantalDagenToGo);
+					return new Model<>(aantalDagenToGo);
 				}
 			});
 		}
@@ -507,7 +507,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("label.werklijst.geplande", ColonGeplandeIntakesWerklijstPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.werklijst.openstaande", ColonOpenstaanteIntakesWerklijstPage.class)
 		{
@@ -532,8 +532,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 			}
 
 		});
-		contextMenuItems
-			.add(new GebruikerMenuItem("label.werklijst.afgeronde", ColonAfgerondeIntakesWerklijstPage.class));
+		contextMenuItems.add(new GebruikerMenuItem("label.werklijst.afgeronde", ColonAfgerondeIntakesWerklijstPage.class));
 		return contextMenuItems;
 	}
 }

@@ -35,9 +35,9 @@ import SpanWithHtml from "../span/SpanWithHtml"
 import {useWindowDimensions} from "../../utils/Hooks"
 
 export type BvoCardProps = {
-    bvo: Bevolkingsonderzoek
-    onClick: () => void;
-    clientValtInDoelgroep: boolean
+	bvo: Bevolkingsonderzoek;
+	clickable: boolean;
+	onClick: () => void;
 }
 
 const BvoCard = (props: BvoCardProps) => {
@@ -58,21 +58,17 @@ const BvoCard = (props: BvoCardProps) => {
 	})
 
 	return (
-		<div
-			className={classNames(styles.bvoCard, BevolkingsonderzoekStyle[props.bvo], !props.clientValtInDoelgroep && styles.bvoCardDisabled)}
-			onClick={() => props.clientValtInDoelgroep && props.onClick()}>
-
+		<div className={classNames(styles.bvoCard, BevolkingsonderzoekStyle[props.bvo], !props.clickable && styles.disabled)} onClick={() => props.clickable && props.onClick()}>
 			<VerticalDividerComponent className={styles.verticalRectangle}/>
 
 			<span className={bvoStyle.bvoText}>Bevolkingsonderzoek</span>
-            <h1 className={styles.bvoNaam}>{bvoNaam}</h1>
+			<h1 className={styles.bvoNaam}>{bvoNaam}</h1>
 
-            <div className={styles.bvoEventContainer}>
-                {bvoParameters ? getBvoStatus(client, bvoParameters, props.bvo) : <span
-                    className={styles.bvoEventLabel}>Laden...</span>}
-            </div>
-        </div>
-    )
+			<div className={styles.bvoEventContainer}>
+				{bvoParameters ? getBvoStatus(client, bvoParameters, props.bvo) : <span className={styles.bvoEventLabel}>Laden...</span>}
+			</div>
+		</div>
+	)
 
 }
 
@@ -82,12 +78,12 @@ const getBvoStatus = (client: Client, bvoParameters: BvoParameters, bvo: Bevolki
 }
 
 function getManVrouwTekst(bvo: Bevolkingsonderzoek): string {
-    switch (bvo) {
-        case Bevolkingsonderzoek.COLON:
-            return properties.MANNEN_VROUWEN_TUSSEN
-        default:
-            return properties.VROUWEN_TUSSEN
-    }
+	switch (bvo) {
+		case Bevolkingsonderzoek.COLON:
+			return properties.MANNEN_VROUWEN_TUSSEN
+		default:
+			return properties.VROUWEN_TUSSEN
+	}
 }
 
 export default BvoCard

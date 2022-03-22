@@ -30,7 +30,7 @@ public enum PlanningTehuisIndex
 {
 	;
 
-	private static final Map<Long, PlanningTehuis> tehuisMap = new HashMap();
+	private static final Map<Long, PlanningTehuis> tehuisMap = new HashMap<>();
 
 	public static void put(PlanningTehuis tehuis)
 	{

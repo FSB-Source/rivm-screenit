@@ -85,4 +85,6 @@ public interface MammaBaseAfspraakService
 	boolean isAfspraakBinnen180Dagen(MammaOnderzoek onderzoek);
 
 	boolean isNoShow(MammaAfspraakStatus afspraakStatus, LocalDateTime afspraakMoment);
+
+	boolean briefKanNietMeerVerzondenWorden(Date afspraakDatum);
 }

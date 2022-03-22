@@ -21,6 +21,11 @@ package nl.rivm.screenit.huisartsenportaal.model.enums;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+@Getter
 public enum AanvraagStatus
 {
 
@@ -32,22 +37,7 @@ public enum AanvraagStatus
 
 	VERWIJDERD("Verwijderd");
 
-	private String naam;
-
-	AanvraagStatus(String naam)
-	{
-		this.naam = naam;
-	}
-
-	public String getNaam()
-	{
-		return naam;
-	}
-
-	public void setNaam(String naam)
-	{
-		this.naam = naam;
-	}
+	private final String naam;
 
 	public static AanvraagStatus getAanvraagStatusByName(String naam)
 	{

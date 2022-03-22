@@ -33,7 +33,10 @@ import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 public interface PlanningConceptOpslaanService
 {
 
-	PlanningConceptMeldingenDto opslaan(Long screeningOrganisatieId, boolean runDry) throws OpslaanVerwijderenTijdBlokException, DryRunException, OpslaanAfsprakenBuitenStandplaatsPeriodeException;
+	void slaConceptOpVoorAlleScreeningsOrganisaties();
+
+	PlanningConceptMeldingenDto slaConceptOpVoorScreeningsOrganisatie(Long screeningOrganisatieId, boolean runDry)
+		throws OpslaanVerwijderenTijdBlokException, DryRunException, OpslaanAfsprakenBuitenStandplaatsPeriodeException;
 
 	int getAantalAfsprakenTeOntkoppelen(MammaCapaciteitBlok blok, Date vanaf, Date tot, MammaCapaciteitBlokType nieuweBlokType);
 }

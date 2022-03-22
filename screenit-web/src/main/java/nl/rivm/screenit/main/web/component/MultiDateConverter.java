@@ -45,7 +45,7 @@ public class MultiDateConverter extends DateConverter
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String[] FORMATS = new String[] { "dd-MM-yy", "ddMMyy", "dMyy" };
+	private static final String[] FORMATS = new String[] { Constants.DEFAULT_DATE_TIME_FORMAT_SHORT_YEAR, "ddMMyy", "dMyy" };
 
 	private static final Logger LOG = LoggerFactory.getLogger(MultiDateConverter.class);
 

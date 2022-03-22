@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken;
 
 /*-
@@ -23,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken;
  */
 
 import nl.rivm.screenit.model.MergedBrieven;
-import nl.topicuszorg.documentupload.model.IUploadDocument;
 import nl.topicuszorg.documentupload.wicket.UploadDocumentPdfObjectContainer;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -32,8 +30,6 @@ import org.apache.wicket.model.IModel;
 
 public class MergedBrievenPrintPanel<MB extends MergedBrieven<?>> extends GenericPanel<MB>
 {
-
-	private static final long serialVersionUID = 1L;
 
 	public MergedBrievenPrintPanel(String id, IModel<MB> model)
 	{

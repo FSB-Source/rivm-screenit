@@ -20,45 +20,38 @@
  */
 'use strict';
 
-angular.module('rivmUistrijkendarts').controller('loginCtrl', function($rootScope, userfactory, toaster)
-{
+angular.module('rivmUistrijkendarts').controller('loginCtrl', function ($scope, $rootScope, userfactory, toaster) {
+	$scope.showPassword = false;
+	$scope.handleTogglePasswordVisible = function (mouseLeave) {
+		if (!mouseLeave || $scope.showPassword) {
+			$scope.showPassword = !$scope.showPassword;
+		}
+	}
+
 	this.user = {};
 
-	this.login = function(user)
-	{
-		userfactory.login(user.username, user.password, "login").then(function(data)
-		{
+	this.login = function (user) {
+		userfactory.login(user.username, user.password, "login").then(function (data) {
 			console.log(data);
-			userfactory.userdata().then(function(data2)
-			{
-				if (!userfactory.heeftRecht("ROLE_AANVRAGEN") && !userfactory.heeftRecht("ROLE_OVEREENKOMST"))
-				{
+			userfactory.userdata().then(function (data2) {
+				if (!userfactory.heeftRecht("ROLE_AANVRAGEN") && !userfactory.heeftRecht("ROLE_OVEREENKOMST")) {
 					toaster.error("U moet zich eerst registreren om te kunnen inloggen.");
 					userfactory.logout();
-				}
-				else
-				{
+				} else {
 					toaster.success("Login succesvol!");
 					userfactory.afterLogin();
 				}
-			}, function(data2)
-			{
+			}, function (data2) {
 				console.log(data2);
 				toaster.error("Er is een onbekende fout opgetreden neem contact op met de helpdesk.")
 			});
 
-		}, function(data)
-		{
-			if (data.status == 400 && data.data.error_description !== "Bad credentials")
-			{
+		}, function (data) {
+			if (data.status == 400 && data.data.error_description !== "Bad credentials") {
 				toaster.error(data.data.error_description)
-			}
-			else if (data.status == 400 && data.data.error_description === "Bad credentials")
-			{
+			} else if (data.status == 400 && data.data.error_description === "Bad credentials") {
 				toaster.error("Er is op dit moment geen account gevonden met deze informatie. Probeer het opnieuw.")
-			}
-			else
-			{
+			} else {
 				toaster.error("Er is een onbekende fout opgetreden neem contact op met de helpdesk.");
 			}
 		});

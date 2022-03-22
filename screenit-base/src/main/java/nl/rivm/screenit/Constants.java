@@ -67,6 +67,8 @@ public class Constants
 
 	public static final String DATE_FORMAT_DDMMYYY = "ddMMyyyy";
 
+	public static final String DEFAULT_DATE_TIME_FORMAT_SHORT_YEAR = "dd-MM-yy";
+
 	public static final String END_OF_TIME = "TO_DATE('01-01-4000', 'DD-MM-YYYY')";
 
 	public static final String BEGIN_OF_TIME = "TO_DATE('01-01-1900', 'DD-MM-YYYY')";
@@ -156,6 +158,8 @@ public class Constants
 	public static final String BK_TNUMMER_ELEKTRONISCH = "T8888888";
 
 	public static final String RONDE_AFROND_REDEN_BUITEN_DOELGROEP = "Cli\u00EBnt behoort niet meer tot de doelgroep";
+
+	public static final int COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN = 366 * 2;
 
 	private Constants()
 	{

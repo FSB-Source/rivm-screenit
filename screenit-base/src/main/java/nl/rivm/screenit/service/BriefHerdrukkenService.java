@@ -26,5 +26,7 @@ import nl.rivm.screenit.model.ClientBrief;
 
 public interface BriefHerdrukkenService
 {
-    void opnieuwAanmaken(ClientBrief<?, ?, ?> brief, Account account);
+	void opnieuwAanmaken(ClientBrief<?, ?, ?> brief, Account account);
+
+	boolean magHerdrukken(ClientBrief<?, ?, ?> brief);
 }

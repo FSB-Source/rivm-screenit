@@ -32,6 +32,7 @@ import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.MammaIlmLogEvent;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportage;
@@ -62,6 +63,8 @@ public class MammaIlmJobListener extends BaseLogListener
 
 	public static final int MAX_AANTAL_RONDES_VERWERKEN_IN_STEP = 50; 
 
+	private static final String REVISION_KENMERK_CONTEXT = "ILM";
+
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -79,6 +82,7 @@ public class MammaIlmJobListener extends BaseLogListener
 		putOrganisatieParametersInExecutionContext(OrganisatieParameterKey.MAMMA_ILM_RONDES_VERWIJDEREN_UITVOEREN);
 		putTimeInExecutionContext();
 		jobExecution.getExecutionContext().putLong(KEY_LAATSTE_RONDE_ID, 0L);
+		registerRevisionKenmerk(REVISION_KENMERK_CONTEXT, RevisionKenmerk.VERWIJDERD_DOOR_ILM);
 	}
 
 	@Override
@@ -122,6 +126,8 @@ public class MammaIlmJobListener extends BaseLogListener
 
 		addRapportage(jobExecution, logEvent);
 		hibernateService.saveOrUpdate(logEvent);
+
+		unregisterRevisionKenmerk(REVISION_KENMERK_CONTEXT);
 
 		return logEvent;
 	}
@@ -190,11 +196,14 @@ public class MammaIlmJobListener extends BaseLogListener
 
 	private void putTimeInExecutionContext()
 	{
-		int minutes = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_ILM_MAX_TIJD_MINUTEN, 0);
+		Integer minutes = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.MAMMA_ILM_MAX_TIJD_MINUTEN);
 
-		Date startTime = new Date();
-		Date endTime = DateUtil.plusTijdseenheid(startTime, minutes, ChronoUnit.MINUTES);
-		getJobExecution().getExecutionContext().put(KEY_MAX_EIND_TIJD, endTime);
+		if (minutes != null)
+		{
+			Date startTime = new Date();
+			Date endTime = DateUtil.plusTijdseenheid(startTime, minutes, ChronoUnit.MINUTES);
+			getJobExecution().getExecutionContext().put(KEY_MAX_EIND_TIJD, endTime);
+		}
 	}
 
 	@Override

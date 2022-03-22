@@ -23,27 +23,21 @@ package nl.rivm.screenit.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-
-import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.enums.FileStoreLocation;
+import java.io.InputStream;
 
 public interface FileService
 {
 
-	void delete(UploadDocument document);
+	boolean exists(final String fullFilePath);
 
-	void delete(UploadDocument document, boolean deleteFile);
+	void save(final String fullFilePath, final File tempFile) throws IOException;
 
-	File load(UploadDocument uploadDocument);
+	void save(final String fullFilePath, final InputStream content, final Long contentLength) throws IOException;
 
-	void saveOrUpdateUploadDocument(UploadDocument document, FileStoreLocation fileStoreLocation) throws IOException, IllegalStateException;
+	File load(final String fullFilePath);
 
-	void saveOrUpdateUploadDocument(UploadDocument document, FileStoreLocation fileStoreLocation, Long id) throws IOException, IllegalStateException;
+	InputStream loadAsStream(final String fullFilePath) throws IOException;
 
-	void saveOrUpdateUploadDocument(UploadDocument document, FileStoreLocation fileStoreLocation, Long id, boolean verwijderTmpFile) throws IOException, IllegalStateException;
+	boolean delete(final String fullFilePath);
 
-	void updateUploadDocument(UploadDocument uploadDocument) throws IOException;
-
-	void deleteDocumentFromList(UploadDocument document, List<UploadDocument> documents);
 }

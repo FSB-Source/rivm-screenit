@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step;
 
 /*-
@@ -24,7 +23,6 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step;
 
 import nl.rivm.screenit.model.gba.GbaVraag;
 
-import org.hibernate.Criteria;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
@@ -43,8 +41,7 @@ import org.springframework.orm.hibernate5.SessionFactoryUtils;
 
 public class GbaVraagItemReader implements ItemReader<Long>, ItemStream
 {
-
-	private static final String ROWNUMBER = "key.rownumber";
+	private static final String CURRENT_ROWNUMBER = "key.rownumber";
 
 	@Autowired
 	private SessionFactory sessionFactory;
@@ -68,22 +65,22 @@ public class GbaVraagItemReader implements ItemReader<Long>, ItemStream
 	{
 		hibernateSession = sessionFactory.openSession();
 
-		Criteria gbaVragen = hibernateSession.createCriteria(GbaVraag.class);
+		var gbaVragen = hibernateSession.createCriteria(GbaVraag.class);
 		gbaVragen.add(Restrictions.eq("verstuurd", false));
 		gbaVragen.setProjection(Projections.id());
 
 		scrollableResults = gbaVragen.scroll(ScrollMode.FORWARD_ONLY);
 
-		if (executionContext.containsKey(ROWNUMBER))
+		if (executionContext.containsKey(CURRENT_ROWNUMBER))
 		{
-			scrollableResults.setRowNumber(executionContext.getInt(ROWNUMBER));
+			scrollableResults.setRowNumber(executionContext.getInt(CURRENT_ROWNUMBER));
 		}
 	}
 
 	@Override
 	public void update(ExecutionContext executionContext) throws ItemStreamException
 	{
-		executionContext.putInt(ROWNUMBER, scrollableResults.getRowNumber());
+		executionContext.putInt(CURRENT_ROWNUMBER, scrollableResults.getRowNumber());
 	}
 
 	@Override
@@ -91,5 +88,4 @@ public class GbaVraagItemReader implements ItemReader<Long>, ItemStream
 	{
 		SessionFactoryUtils.closeSession(hibernateSession);
 	}
-
 }

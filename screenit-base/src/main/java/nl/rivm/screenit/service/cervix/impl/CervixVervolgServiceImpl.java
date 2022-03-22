@@ -21,18 +21,57 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.service.cervix.CervixVervolgService;
+import java.time.LocalDate;
 
+import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
+import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.model.cervix.CervixZas;
+import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
+import nl.rivm.screenit.service.BaseHoudbaarheidService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.service.cervix.CervixVervolgService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CervixVervolgServiceImpl implements CervixVervolgService
 {
+	@Autowired
+	private ICurrentDateSupplier dateSupplier;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
+
+	@Autowired
+	private CervixBepaalVervolgDao bepaalVervolgDao;
+
+	@Autowired
+	private BaseHoudbaarheidService houdbaarheidService;
+
+	@Autowired
+	private CervixMonsterService monsterService;
 
 	@Override
-	public CervixVervolg bepaalVervolg(CervixMonster monster)
+	public CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering)
 	{
-		return new CervixBepaalVervolgLabproces(new CervixBepaalVervolgContext(monster)).bepaalVervolg();
+		return bepaalVervolg(monster, startdatumGenotypering, false);
+	}
+
+	@Override
+	public CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering, boolean digitaalLabformulier)
+	{
+		boolean isZasHoudbaar = false;
+		if (monster instanceof CervixZas)
+		{
+			isZasHoudbaar = houdbaarheidService.isHoudbaar(CervixZasHoudbaarheid.class, monster.getMonsterId());
+		}
+
+		return new CervixBepaalVervolgLabproces(
+			new CervixBepaalVervolgContext(monster, isZasHoudbaar, dateSupplier.getLocalDateTime(), startdatumGenotypering, bepaalVervolgDao, monsterService,
+				preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()), digitaalLabformulier)).bepaalVervolg();
 	}
 }

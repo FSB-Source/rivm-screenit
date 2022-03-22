@@ -24,8 +24,12 @@ package nl.rivm.screenit.main.service.mamma.impl;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.dao.mamma.MammaUitwisselportaalDao;
@@ -44,29 +48,26 @@ import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
+import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
-import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaUitwisselportaalServiceImpl.class);
-
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
@@ -80,7 +81,7 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	private MammaBaseBeoordelingService beoordelingService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private MammaUitwisselportaalDao uitwisselportaalDao;
@@ -89,15 +90,13 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	private LogService logService;
 
 	@Autowired
-	private MammaBaseDossierService baseDossierService;
-
-	@Autowired
 	private MammaBaseScreeningrondeService screeningrondeService;
 
-	private static OrganisatieType[] RADIOLOGIE_VERSLAG_ORGANISATIE_TYPES = new OrganisatieType[] { OrganisatieType.ZORGINSTELLING, OrganisatieType.MAMMAPOLI,
+	private static final OrganisatieType[] RADIOLOGIE_VERSLAG_ORGANISATIE_TYPES = new OrganisatieType[] { OrganisatieType.ZORGINSTELLING, OrganisatieType.MAMMAPOLI,
 		OrganisatieType.RADIOLOGIEAFDELING };
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void maakDownloadVerzoek(List<MammaOnderzoek> onderzoeken, InstellingGebruiker loggedInInstellingGebruiker) throws IOException
 	{
 		Client client = beoordelingService.getClientVanBeoordeling(onderzoeken.get(0).getLaatsteBeoordeling());
@@ -136,12 +135,13 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 			+ new SimpleDateFormat(Constants.DATE_FORMAT_YYYYMMDDHHMMSS).format(new Date())
 			+ ".zip";
 		document.setNaam(zipNaam);
-		fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.MAMMA_VERZAMELDE_ONDERZOEK_DATA, null, true);
+		uploadDocumentService.saveOrUpdate(document, FileStoreLocation.MAMMA_VERZAMELDE_ONDERZOEK_DATA, null, true);
 		verzoek.setZipBestand(document);
 		hibernateService.saveOrUpdate(verzoek);
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void startDownloading()
 	{
 		berichtToBatchService.queueMammaVerzamelOnderzoeksDataBericht();
@@ -160,7 +160,8 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	}
 
 	@Override
-	public void resetDownloadVerzoek(MammaDownloadOnderzoekenVerzoek verzoek) throws IOException
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void resetDownloadVerzoek(MammaDownloadOnderzoekenVerzoek verzoek)
 	{
 		hibernateService.reload(verzoek);
 		if (verzoek.getStatus() != BestandStatus.NOG_TE_VERWERKEN && verzoek.getStatus() != BestandStatus.BEZIG_MET_VERWERKEN)
@@ -184,6 +185,7 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void updateDownloadVerzoekInformatie(MammaDownloadOnderzoekenVerzoek verzoek, InstellingGebruiker loggedInInstellingGebruiker)
 	{
 		verzoek.setGedownloadOp(dateSupplier.getDate());
@@ -212,8 +214,8 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	{
 		return screeningRonde != null
 			? screeningRonde.getFollowUpRadiologieVerslagen().stream()
-				.filter(mammaFollowUpRadiologieVerslag -> mammaFollowUpRadiologieVerslag.getAangemaaktIn().equals(loggedInInstellingGebruiker.getOrganisatie())).findFirst()
-				.orElse(null)
+			.filter(mammaFollowUpRadiologieVerslag -> mammaFollowUpRadiologieVerslag.getAangemaaktIn().equals(loggedInInstellingGebruiker.getOrganisatie())).findFirst()
+			.orElse(null)
 			: null;
 	}
 
@@ -221,6 +223,24 @@ public class MammaUitwisselportaalServiceImpl implements MammaUitwisselportaalSe
 	public Instelling getLaatstGedownloadDoorInstelling(MammaDossier dossier)
 	{
 		return uitwisselportaalDao.getLaatstGedownloadDoorInstelling(dossier);
+	}
+
+	@Override
+	public List<MammaScreeningRonde> beschikbareRondesVoorDownload(Client client)
+	{
+		return new ArrayList<>(client.getMammaDossier().getScreeningRondes()) 
+			.stream()
+			.filter(this::rondeBeschikbaarVoorDownload)
+			.sorted(Comparator.comparing(MammaScreeningRonde::getCreatieDatum).reversed())
+			.collect(Collectors.toList());
+	}
+
+	private boolean rondeBeschikbaarVoorDownload(MammaScreeningRonde ronde)
+	{
+		var laatsteOnderzoek = ronde.getLaatsteOnderzoek();
+		return laatsteOnderzoek != null && laatsteOnderzoek.getLaatsteBeoordeling() != null &&
+			MammaMammografieIlmStatus.beeldenBeschikbaar(laatsteOnderzoek.getMammografie().getIlmStatus()) &&
+			Arrays.asList(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG, MammaBeoordelingStatus.UITSLAG_GUNSTIG).contains(laatsteOnderzoek.getLaatsteBeoordeling().getStatus());
 	}
 
 }

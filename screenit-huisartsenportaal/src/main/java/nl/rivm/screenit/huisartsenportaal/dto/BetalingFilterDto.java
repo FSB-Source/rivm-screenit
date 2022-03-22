@@ -23,6 +23,11 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BetalingFilterDto
 {
 	private LocatieDto locatie;
@@ -37,51 +42,4 @@ public class BetalingFilterDto
 
 	private boolean isAlleenZonderBetalingskenmerk;
 
-	public LocatieDto getLocatie() {
-		return locatie;
-	}
-
-	public void setLocatie(LocatieDto locatie) {
-		this.locatie = locatie;
-	}
-
-	public String getClientNaam() {
-		return clientNaam;
-	}
-
-	public void setClientNaam(String clientNaam) {
-		this.clientNaam = clientNaam;
-	}
-
-	public String getBetalingskenmerk() {
-		return betalingskenmerk;
-	}
-
-	public void setBetalingskenmerk(String betalingskenmerk) {
-		this.betalingskenmerk = betalingskenmerk;
-	}
-
-	public Date getBetalingsdatumVanaf() {
-		return betalingsdatumVanaf;
-	}
-
-	public void setBetalingsdatumVanaf(Date betalingsdatumVanaf) {
-		this.betalingsdatumVanaf = betalingsdatumVanaf;
-	}
-
-	public Date getBetalingsdatumTotenMet() {
-		return betalingsdatumTotenMet;
-	}
-
-	public void setBetalingsdatumTotenMet(Date betalingsdatumTotenMet) {
-		this.betalingsdatumTotenMet = betalingsdatumTotenMet;
-	}
-
-	public boolean isAlleenZonderBetalingskenmerk() {
-		return isAlleenZonderBetalingskenmerk;
-	}
-
-	public void setAlleenZonderBetalingskenmerk(boolean alleenZonderBetalingskenmerk) {
-		isAlleenZonderBetalingskenmerk = alleenZonderBetalingskenmerk;
-	}
 }

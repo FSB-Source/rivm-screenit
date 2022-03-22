@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dto.mamma.MammaUploadBeeldenVerzoekDto;
 import nl.rivm.screenit.main.dao.mamma.MammaUploadBeeldenDao;
 import nl.rivm.screenit.main.service.mamma.MammaUploadBeeldenService;
@@ -43,28 +45,24 @@ import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaUploadBeeldenVerzoekType;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class MammaUploadBeeldenServiceImpl implements MammaUploadBeeldenService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(MammaUploadBeeldenServiceImpl.class);
-
 	@Autowired
 	private MammaUploadBeeldenDao uploadBeeldenVerzoekDao;
 
@@ -72,7 +70,7 @@ public class MammaUploadBeeldenServiceImpl implements MammaUploadBeeldenService
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private ICurrentDateSupplier dateSupplier;
@@ -141,7 +139,7 @@ public class MammaUploadBeeldenServiceImpl implements MammaUploadBeeldenService
 			for (UploadDocument uploadDocument : uploadDocumenten)
 			{
 				teUploadenBeelden.add(uploadDocument);
-				fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.MAMMA_UPLOAD_BEELDEN);
+				uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.MAMMA_UPLOAD_BEELDEN);
 			}
 
 			uploadBeeldenPoging.setBestanden(teUploadenBeelden);

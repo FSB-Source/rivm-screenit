@@ -53,39 +53,26 @@ public enum PlanningBlokkadeIndex
 		case SCREENINGS_ORGANISATIE:
 			PlanningScreeningsOrganisatie screeningsOrganisatie = blokkade.getScreeningsOrganisatie();
 
-			Map<LocalDate, Set<PlanningBlokkade>> screeningsOrganisatieDatumMap = screeningsOrganisatieBlokkadeMap.get(screeningsOrganisatie);
-			if (screeningsOrganisatieDatumMap == null)
-			{
-				screeningsOrganisatieDatumMap = new HashMap<>();
-				screeningsOrganisatieBlokkadeMap.put(screeningsOrganisatie, screeningsOrganisatieDatumMap);
-			}
+			Map<LocalDate, Set<PlanningBlokkade>> screeningsOrganisatieDatumMap = screeningsOrganisatieBlokkadeMap.computeIfAbsent(screeningsOrganisatie, k -> new HashMap<>());
 
 			addToMap(blokkade, screeningsOrganisatieDatumMap);
 			break;
 		case SCREENINGS_EENHEID:
 			PlanningScreeningsEenheid screeningsEenheid = blokkade.getScreeningsEenheid();
 
-			Map<LocalDate, Set<PlanningBlokkade>> screeningsEenheidDatumMap = screeningsEenheidBlokkadeMap.get(screeningsEenheid);
-			if (screeningsEenheidDatumMap == null)
-			{
-				screeningsEenheidDatumMap = new HashMap<>();
-				screeningsEenheidBlokkadeMap.put(screeningsEenheid, screeningsEenheidDatumMap);
-			}
+			Map<LocalDate, Set<PlanningBlokkade>> screeningsEenheidDatumMap = screeningsEenheidBlokkadeMap.computeIfAbsent(screeningsEenheid, k -> new HashMap<>());
 
 			addToMap(blokkade, screeningsEenheidDatumMap);
 			break;
 		case STANDPLAATS:
 			PlanningStandplaats standplaats = blokkade.getStandplaats();
 
-			Map<LocalDate, Set<PlanningBlokkade>> standplaatsDatumMap = standplaatsBlokkadeMap.get(standplaats);
-			if (standplaatsDatumMap == null)
-			{
-				standplaatsDatumMap = new HashMap<>();
-				standplaatsBlokkadeMap.put(standplaats, standplaatsDatumMap);
-			}
+			Map<LocalDate, Set<PlanningBlokkade>> standplaatsDatumMap = standplaatsBlokkadeMap.computeIfAbsent(standplaats, k -> new HashMap<>());
 
 			addToMap(blokkade, standplaatsDatumMap);
 			break;
+		default:
+			throw new IllegalStateException("Unexpected value: " + blokkade.getBlokkadeType());
 		}
 	}
 
@@ -93,12 +80,7 @@ public enum PlanningBlokkadeIndex
 	{
 		for (LocalDate date = blokkade.getVanaf(); date.compareTo(blokkade.getTotEnMet()) <= 0; date = date.plusDays(1))
 		{
-			Set<PlanningBlokkade> blokkadeSet = datumMap.get(date);
-			if (blokkadeSet == null)
-			{
-				blokkadeSet = new HashSet<>();
-				datumMap.put(date, blokkadeSet);
-			}
+			Set<PlanningBlokkade> blokkadeSet = datumMap.computeIfAbsent(date, k -> new HashSet<>());
 			blokkadeSet.add(blokkade);
 		}
 	}

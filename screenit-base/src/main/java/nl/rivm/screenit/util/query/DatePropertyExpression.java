@@ -21,19 +21,18 @@ package nl.rivm.screenit.util.query;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.criterion.CriteriaQuery;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.engine.spi.TypedValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class DatePropertyExpression implements Criterion
 {
 	private static final TypedValue[] NO_TYPED_VALUES = new TypedValue[0];
-
-	private static final Logger LOG = LoggerFactory.getLogger(DatePropertyExpression.class);
 
 	private final String propertyName;
 
@@ -46,14 +45,13 @@ public class DatePropertyExpression implements Criterion
 		this.propertyName = propertyName;
 		this.otherPropertyName = otherPropertyName;
 		this.operation = operation;
-
 	}
 
 	@Override
 	public String toSqlString(Criteria criteria, CriteriaQuery criteriaQuery) throws HibernateException
 	{
-		final String[] lhsColumns = criteriaQuery.findColumns( propertyName, criteria );
-		final String[] rhsColumns = criteriaQuery.findColumns( otherPropertyName, criteria );
+		final String[] lhsColumns = criteriaQuery.findColumns(propertyName, criteria);
+		final String[] rhsColumns = criteriaQuery.findColumns(otherPropertyName, criteria);
 		StringBuffer fragment = new StringBuffer();
 
 		fragment.append(" date_trunc('day', ");

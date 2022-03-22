@@ -21,50 +21,49 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.cleanup;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
+import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.enums.BestandStatus;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class BetalingBestandenCleanUpWriter extends BaseWriter<CervixBetaalopdracht>
 {
+	@Autowired
+	private UploadDocumentService uploadDocumentService;
 
-    private static final Logger LOG = LoggerFactory.getLogger(BetalingBestandenCleanUpWriter.class);
+	@Autowired
+	private HibernateService hibernateService;
 
-    @Autowired
-    private FileService fileService;
+	@Autowired
+	private ICurrentDateSupplier currentDateSupplier;
 
-    @Autowired
-    private HibernateService hibernateService;
+	@Override
+	protected void write(CervixBetaalopdracht item) throws Exception
+	{
+		UploadDocument specificatie = item.getSepaSpecificatiePdf();
+		UploadDocument sepa = item.getSepaDocument();
 
-    @Autowired
-    private ICurrentDateSupplier currentDateSupplier;
-
-    @Override
-    protected void write(CervixBetaalopdracht item) throws Exception
-    {
-        UploadDocument specificatie = item.getSepaSpecificatiePdf();
-        UploadDocument sepa = item.getSepaDocument();
-
-        if (specificatie != null)
-        {
-            item.setSepaSpecificatiePdf(null);
-            fileService.delete(specificatie, true);
-        }
-        if (sepa != null)
-        {
-            item.setSepaDocument(null);
-            fileService.delete(sepa, true);
-        }
-        item.setStatus(BestandStatus.VERWIJDERD);
-        item.setStatusDatum(currentDateSupplier.getDate());
-        hibernateService.saveOrUpdate(item);
-        LOG.info("Betaling bestanden verwijderd van item: " + item.getId());
-    }
+		if (specificatie != null)
+		{
+			item.setSepaSpecificatiePdf(null);
+			uploadDocumentService.delete(specificatie, true);
+		}
+		if (sepa != null)
+		{
+			item.setSepaDocument(null);
+			uploadDocumentService.delete(sepa, true);
+		}
+		item.setStatus(BestandStatus.VERWIJDERD);
+		item.setStatusDatum(currentDateSupplier.getDate());
+		hibernateService.saveOrUpdate(item);
+		LOG.info("Betaling bestanden verwijderd van item: " + item.getId());
+	}
 }

@@ -18,45 +18,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {
-    AuthenticatieAction,
-    SET_LOGGED_IN,
-    SET_LOGGING_IN,
-    SET_LOGGING_OUT,
-    SET_SESSION_EXPIRED,
-} from "../actions/AuthenticatieAction"
+import {AuthenticatieAction, SET_LOGGED_IN, SET_LOGGING_IN, SET_LOGGING_OUT, SET_SESSION_EXPIRED, SET_UNAUTHORIZED} from "../actions/AuthenticatieAction"
 import {AuthenticatieState, legeAuthenticatieState} from "../datatypes/authenticatie/AuthenticatieState"
 
 function AuthenticatieReducer(stateSlice: AuthenticatieState = legeAuthenticatieState, action: AuthenticatieAction): AuthenticatieState {
-    switch (action.type) {
-        case SET_LOGGING_IN:
-            return {
-                ...stateSlice,
-                isLoggingIn: action.loggingIn,
-                isLoggingOut: action.loggingIn ? false : stateSlice.isLoggingOut,
-            }
-        case SET_LOGGING_OUT:
-            return {
-                ...stateSlice,
-                isLoggingIn: action.loggingOut ? false : stateSlice.isLoggingIn,
-                isLoggingOut: action.loggingOut,
-                isSessionExpired: action.loggingOut ? false : stateSlice.isSessionExpired,
-            }
-        case SET_LOGGED_IN:
-            return {
-                ...stateSlice,
-                isLoggedIn: action.loggedIn,
-                isLoggingOut: action.loggedIn ? false : stateSlice.isLoggingOut,
-                isSessionExpired: action.loggedIn ? false : stateSlice.isSessionExpired,
-            }
-        case SET_SESSION_EXPIRED:
-            return {
-                ...stateSlice,
-                isSessionExpired: action.sessionExpired,
-            }
-        default:
-            return stateSlice
-    }
+	switch (action.type) {
+		case SET_LOGGING_IN:
+			return {
+				...stateSlice,
+				isLoggingIn: action.loggingIn,
+				isLoggingOut: action.loggingIn ? false : stateSlice.isLoggingOut,
+			}
+		case SET_LOGGING_OUT:
+			return {
+				...stateSlice,
+				isLoggingIn: action.loggingOut ? false : stateSlice.isLoggingIn,
+				isLoggingOut: action.loggingOut,
+				isSessionExpired: action.loggingOut ? false : stateSlice.isSessionExpired,
+			}
+		case SET_LOGGED_IN:
+			return {
+				...stateSlice,
+				isLoggingIn: action.loggedIn ? false : stateSlice.isLoggingIn,
+				isLoggedIn: action.loggedIn,
+				isLoggingOut: action.loggedIn ? false : stateSlice.isLoggingOut,
+				isSessionExpired: action.loggedIn ? false : stateSlice.isSessionExpired,
+			}
+		case SET_SESSION_EXPIRED:
+			return {
+				...stateSlice,
+				isSessionExpired: action.sessionExpired,
+			}
+		case SET_UNAUTHORIZED:
+			return {
+				...stateSlice,
+				isUnauthorized: action.unauthorized,
+			}
+		default:
+			return stateSlice
+	}
 }
 
 export default AuthenticatieReducer

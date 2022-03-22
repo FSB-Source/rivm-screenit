@@ -24,7 +24,10 @@ package nl.rivm.screenit.main.model.mamma.beoordeling;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.model.InstellingGebruiker;
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.mamma.enums.MammobridgeRole;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -33,57 +36,33 @@ import org.apache.wicket.model.IModel;
 
 public class MammaPortfolioZoekObject implements IDetachable
 {
-	private IModel<List<InstellingGebruiker>> instellingGebruikers;
+	private IModel<List<Gebruiker>> gebruikers;
 
+	@Getter
+	@Setter
 	private Date vanaf;
 
+	@Getter
+	@Setter
 	private Date totEnMet;
 
+	@Getter
+	@Setter
 	private MammobridgeRole mammobridgeRol;
 
-	public List<InstellingGebruiker> getInstellingGebruikers()
+	public List<Gebruiker> getGebruikers()
 	{
-		return ModelUtil.nullSafeGet(instellingGebruikers);
+		return ModelUtil.nullSafeGet(gebruikers);
 	}
 
-	public void setInstellingGebruikers(List<InstellingGebruiker> instellingGebruikers)
+	public void setGebruikers(List<Gebruiker> gebruikers)
 	{
-		this.instellingGebruikers = ModelUtil.listRModel(instellingGebruikers);
-	}
-
-	public Date getVanaf()
-	{
-		return vanaf;
-	}
-
-	public void setVanaf(Date vanaf)
-	{
-		this.vanaf = vanaf;
-	}
-
-	public Date getTotEnMet()
-	{
-		return totEnMet;
-	}
-
-	public void setTotEnMet(Date totEnMet)
-	{
-		this.totEnMet = totEnMet;
-	}
-
-	public MammobridgeRole getMammobridgeRol()
-	{
-		return mammobridgeRol;
-	}
-
-	public void setMammobridgeRol(MammobridgeRole mammobridgeRol)
-	{
-		this.mammobridgeRol = mammobridgeRol;
+		this.gebruikers = ModelUtil.listRModel(gebruikers);
 	}
 
 	@Override
 	public void detach()
 	{
-		ModelUtil.nullSafeDetach(instellingGebruikers);
+		ModelUtil.nullSafeDetach(gebruikers);
 	}
 }

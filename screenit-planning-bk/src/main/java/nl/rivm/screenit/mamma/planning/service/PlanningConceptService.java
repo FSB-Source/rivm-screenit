@@ -32,6 +32,4 @@ public interface PlanningConceptService
 		LocalDate herhalenTotEnMet);
 
 	void herhalen(LocalDate herhalenVanaf);
-
-	void opslaan();
 }

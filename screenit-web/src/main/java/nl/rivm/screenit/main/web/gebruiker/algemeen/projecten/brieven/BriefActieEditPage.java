@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.comparator.ProjectVragenlijstComparator;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -45,9 +47,9 @@ import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectType;
 import nl.rivm.screenit.model.project.ProjectVragenlijst;
 import nl.rivm.screenit.model.project.ProjectVragenlijstUitzettenVia;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.VragenlijstBaseService;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -77,17 +79,12 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.RangeValidator;
 import org.bouncycastle.util.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class BriefActieEditPage extends ProjectBasePage
 {
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(BriefActieEditPage.class);
-
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
@@ -101,7 +98,7 @@ public class BriefActieEditPage extends ProjectBasePage
 	@SpringBean
 	private VragenlijstBaseService vragenlijstBaseService;
 
-	private Form<ProjectBriefActie> form;
+	private final Form<ProjectBriefActie> form;
 
 	private WebMarkupContainer typePanelContainer;
 
@@ -109,9 +106,9 @@ public class BriefActieEditPage extends ProjectBasePage
 
 	private WebMarkupContainer vragenlijstHerinnerenContainer;
 
-	private IModel<ProjectBriefActie> briefActieModel;
+	private final IModel<ProjectBriefActie> briefActieModel;
 
-	private IModel<ProjectBriefActie> briefHerinnerenVragenlijstModel = null;
+	private IModel<ProjectBriefActie> briefHerinnerenVragenlijstModel;
 
 	private final IModel<List<FileUpload>> fileUploads = new ListModel<>();
 
@@ -162,9 +159,6 @@ public class BriefActieEditPage extends ProjectBasePage
 			new EnumChoiceRenderer<>());
 		typeDropDown.add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
@@ -201,12 +195,10 @@ public class BriefActieEditPage extends ProjectBasePage
 
 		add(new IndicatingAjaxSubmitLink("opslaan", form)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				ProjectBriefActie actie = (ProjectBriefActie) form.getModelObject();
+				ProjectBriefActie actie = form.getModelObject();
 				Project project = actie.getProject();
 				if (validatieProjectBriefActie(actie))
 				{
@@ -225,7 +217,7 @@ public class BriefActieEditPage extends ProjectBasePage
 						uploadDocument.setNaam(fileUpload.getClientFileName());
 						uploadDocument.setContentType(fileUpload.getContentType());
 						uploadDocument.setActief(true);
-						fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, actie.getProject().getId());
+						uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, actie.getProject().getId());
 						actie.setDocument(uploadDocument);
 						actie.setUploader(ScreenitSession.get().getLoggedInInstellingGebruiker());
 						actie.setLaatstGewijzigd(nu);
@@ -241,7 +233,7 @@ public class BriefActieEditPage extends ProjectBasePage
 							herinneringsDocument.setNaam(fileUpload.getClientFileName());
 							herinneringsDocument.setContentType(fileUpload.getContentType());
 							herinneringsDocument.setActief(true);
-							fileService.saveOrUpdateUploadDocument(herinneringsDocument, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, actie.getProject().getId());
+							uploadDocumentService.saveOrUpdate(herinneringsDocument, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, actie.getProject().getId());
 							herinnerActie.setUploader(ScreenitSession.get().getLoggedInInstellingGebruiker());
 							herinnerActie.setDocument(herinneringsDocument);
 							herinnerActie.setLaatstGewijzigd(nu);

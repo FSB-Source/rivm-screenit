@@ -26,6 +26,8 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.planning.model.PlanningBeschikbaar;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
 import nl.rivm.screenit.mamma.planning.model.PlanningConstanten;
@@ -35,14 +37,9 @@ import nl.rivm.screenit.mamma.planning.model.PlanningStandplaats;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsRonde;
 import nl.rivm.screenit.mamma.planning.model.PopulatieMetStreefDatum;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+@Slf4j
 public class UitnodigenCapaciteitCalculator
 {
-	private static final Logger LOG = LoggerFactory.getLogger(UitnodigenCapaciteitCalculator.class);
-
-	private BigDecimal capaciteitVoorUitnodigen;
 
 	private final Set<PlanningDag> uitTeNodigenDagen;
 
@@ -53,6 +50,8 @@ public class UitnodigenCapaciteitCalculator
 	private final BigDecimal extraMindervalideCapaciteitUitgenodigd;
 
 	private final PlanningScreeningsOrganisatie screeningsOrganisatieStandplaats;
+
+	private BigDecimal capaciteitVoorUitnodigen;
 
 	public UitnodigenCapaciteitCalculator(Set<PlanningDag> uitTeNodigenDagen, PlanningStandplaatsRonde standplaatsRonde,
 		Set<PopulatieMetStreefDatum> standplaatsPopulatie, BigDecimal extraMindervalideCapaciteitUitgenodigd)
@@ -97,7 +96,8 @@ public class UitnodigenCapaciteitCalculator
 	private void reserveerWijkSelectieEnUitstel()
 	{
 		AtomicInteger aantalUitstel = new AtomicInteger();
-		standplaatsPopulatie.forEach(wijkPopulatie -> wijkPopulatie.getClienten().forEach(client -> {
+		standplaatsPopulatie.forEach(wijkPopulatie -> wijkPopulatie.getClienten().forEach(client ->
+		{
 			if (wijkPopulatie.isVoorUitstelClient())
 			{
 				reserveerUitstel(client);
@@ -159,7 +159,8 @@ public class UitnodigenCapaciteitCalculator
 	{
 		PlanningStandplaats standplaats = standplaatsRonde.getStandplaats();
 		Set<PlanningClient> afspraken = standplaats.getAfspraakSet(); 
-		afspraken.forEach(client -> {
+		afspraken.forEach(client ->
+		{
 			if (!client.isNoShow())
 			{
 				reserveerCapaciteitVoor(client);

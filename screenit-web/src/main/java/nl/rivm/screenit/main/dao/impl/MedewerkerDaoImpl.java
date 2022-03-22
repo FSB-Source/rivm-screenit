@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.dao.impl;
 
 /*-
@@ -62,7 +61,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class MedewerkerDaoImpl extends AbstractAutowiredDao implements MedewerkerDao
 {
-
 	@Autowired
 	private InstellingDao instellingDao;
 
@@ -471,18 +469,17 @@ public class MedewerkerDaoImpl extends AbstractAutowiredDao implements Medewerke
 	}
 
 	@Override
-	public List<InstellingGebruiker> getActieveInstellingGebruikersVanInstellingMetRecht(Instelling instelling, Recht recht)
+	public List<Gebruiker> getActieveGebruikersMetRecht(Recht recht)
 	{
-		BaseCriteria<InstellingGebruiker> crit = new BaseCriteria<>(InstellingGebruiker.class);
-		crit.createAlias("rollen", "rollen");
+		BaseCriteria<Gebruiker> crit = new BaseCriteria<>(Gebruiker.class);
+		crit.createAlias("organisatieMedewerkers", "instellingGebruiker");
+		crit.createAlias("instellingGebruiker.rollen", "rollen");
 		crit.createAlias("rollen.rol", "rol");
 		crit.createAlias("rol.permissies", "permissies");
-		crit.createAlias("medewerker", "medewerker");
 
 		crit.add(Restrictions.eq("permissies.recht", recht));
-		crit.add(Restrictions.eq("organisatie", instelling));
 		crit.add(Restrictions.eq("actief", true));
-		crit.add(Restrictions.eq("medewerker.actief", true));
+		crit.add(Restrictions.eq("instellingGebruiker.actief", true));
 		crit.setResultTransformer(Criteria.DISTINCT_ROOT_ENTITY);
 		return crit.list(getSession());
 	}

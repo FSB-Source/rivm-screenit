@@ -21,19 +21,18 @@ package nl.rivm.screenit.dto.mamma;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 
+@Getter
+@Setter
 public abstract class MammaAbstractHL7v24OrmBerichtTriggerDto extends MammaHL7v24BerichtTriggerDto
 {
 	private MammaHL7v24ORMBerichtStatus status;
 
-	public MammaHL7v24ORMBerichtStatus getStatus()
-	{
-		return status;
-	}
+	private String accessionNumber;
 
-	public void setStatus(MammaHL7v24ORMBerichtStatus status)
-	{
-		this.status = status;
-	}
+	private String screeningseenheidCode;
 }

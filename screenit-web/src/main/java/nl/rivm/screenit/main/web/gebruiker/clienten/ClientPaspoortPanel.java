@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten;
 
 /*-
@@ -22,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.main.service.algemeen.DeelnamemodusService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.gedeeld.MammaDoelgroepIndicatorPanel;
 import nl.rivm.screenit.model.Client;
@@ -34,6 +34,8 @@ import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -47,6 +49,9 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
+
+	@SpringBean
+	private DeelnamemodusService deelnamemodusService;
 
 	public ClientPaspoortPanel(String id, IModel<Client> model)
 	{
@@ -63,7 +68,7 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 		add(new Label("persoon.voornaam"));
 		add(new Label("persoon.achternaam", NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client)));
 		add(new Label("persoon.bsn"));
-		add(new Label("persoon.geslacht"));
+		add(new EnumLabel<>("persoon.geslacht"));
 		add(new Label("geboortenaam", NaamUtil.getGeboorteTussenvoegselEnAchternaam(persoon)));
 
 		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(persoon)));
@@ -79,12 +84,11 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 		{
 			add(new Label("tijdelijkadres", Model.of("Nee")));
 		}
+		addSelectieblokkadeIndicator();
 		add(new Label("persoon.telefoonnummer1"));
 		add(new Label("persoon.telefoonnummer2"));
 		add(new Label("mammaDossier.dubbeleTijdReden")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onConfigure()
 			{
@@ -98,4 +102,11 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 		});
 		add(new MammaDoelgroepIndicatorPanel("doelgroep", getModelObject().getMammaDossier(), true));
 	}
+
+	private void addSelectieblokkadeIndicator()
+	{
+		String selectieblokkadeTekst = deelnamemodusService.selectieblokkadeTekst(getModelObject());
+		add(new Label("selectieblokkade", selectieblokkadeTekst).setVisible(StringUtils.isNotBlank(selectieblokkadeTekst)));
+	}
+
 }

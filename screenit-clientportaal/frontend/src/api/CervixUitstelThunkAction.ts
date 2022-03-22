@@ -21,7 +21,7 @@
 import {Dispatch} from "redux"
 import ScreenitBackend from "../utils/Backend"
 import {CervixUitstelDto, CervixUitstelFormulier} from "../datatypes/cervix/CervixUitstelDto"
-import {plusMaanden} from "../utils/DateUtil"
+import {plusDagen} from "../utils/DateUtil"
 import {CervixUitstelAction, createCervixUitstelAction, ResetCervixUitstelStatusAction, setCervixUitstelStatusAction} from "../actions/CervixDossierAction"
 import {CervixUitstelType} from "../datatypes/cervix/CervixUitstelType"
 
@@ -49,5 +49,5 @@ export const saveCervixUitstel = (cervixUitstel: CervixUitstelFormulier, uitstel
 }
 
 export function getUitstellenTotDatum(cervixUitstel: CervixUitstelFormulier, uitstelBijZwangerschap: number): Date | null {
-	return (cervixUitstel.uitstelType === CervixUitstelType.ZWANGERSCHAP && cervixUitstel.uitgerekendeDatum) ? plusMaanden(cervixUitstel.uitgerekendeDatum, uitstelBijZwangerschap) : cervixUitstel.uitstellenTotDatum
+	return (cervixUitstel.uitstelType === CervixUitstelType.ZWANGERSCHAP && cervixUitstel.uitgerekendeDatum) ? plusDagen(cervixUitstel.uitgerekendeDatum, uitstelBijZwangerschap) : cervixUitstel.uitstellenTotDatum
 }

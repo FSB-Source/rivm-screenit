@@ -73,7 +73,7 @@ const WijzigingenReducer: Reducer<boolean> = (stateSlice = false, action) => {
 					laatsteIndentificatie = action.formField.value.identificatienummer
 				}
 			}
-			return stateSlice
+			return true
 		case KIES_HUISARTS:
 		case KIES_GEEN_HUISARTS_OPTIE:
 		case BEZWAAR_AANVRAGEN:

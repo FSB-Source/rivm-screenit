@@ -71,7 +71,7 @@ public class WachtwoordWijzigenController extends BaseController
 		}
 
 		Huisarts huisarts = getIngelogdeHuisarts();
-		huisarts = huisartsService.updatePassword(huisarts, wachtwoordDto.getNieuweWachtwoord());
+		huisarts = huisartsService.updateWachtwoord(huisarts, wachtwoordDto.getNieuweWachtwoord());
 		huisartsRepository.save(huisarts);
 
 		return ResponseEntity.ok(null);

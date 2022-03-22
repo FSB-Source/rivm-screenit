@@ -38,6 +38,7 @@ import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.comparator.BezwaarComparator;
 import nl.rivm.screenit.dao.CoordinatenDao;
+import nl.rivm.screenit.dto.alg.client.contact.DeelnamewensDto;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningVerzetClientenDto;
@@ -72,6 +73,7 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
+import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -116,6 +118,8 @@ import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.DeelnamemodusDossierService;
+import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
@@ -254,6 +258,12 @@ public class ClientContactServiceImpl implements ClientContactService
 	@Autowired
 	private MammaAfmeldService mammaAfmeldService;
 
+	@Autowired
+	private DossierFactory dossierFactory;
+
+	@Autowired
+	private DeelnamemodusDossierService deelnamemodusDossierService;
+
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { HibernateJdbcException.class, MammaTijdNietBeschikbaarException.class, GenericJDBCException.class,
 		MammaStandplaatsVanPostcodeOnbekendException.class })
@@ -295,6 +305,9 @@ public class ClientContactServiceImpl implements ClientContactService
 			case INZAGE_PERSOONSGEGEVENS:
 				overdrachtPersoonsgegevensService.maakOverdrachtVerzoek(client);
 				break;
+			case DEELNAMEWENSEN:
+				actie = deelnamewensenRegistreren(actie, client, extraOpslaanParams, account);
+				break;
 			case COLON_AFMELDEN:
 			case CERVIX_AFMELDEN:
 			case MAMMA_AFMELDEN:
@@ -313,9 +326,6 @@ public class ClientContactServiceImpl implements ClientContactService
 				break;
 			case CERVIX_HERDRUK:
 				actie = cervixHerdruk(actiesToDelete, actie, client, extraOpslaanParams, account);
-				break;
-			case CERVIX_FRISSE_START:
-				actie = cervixFrisseStart(actiesToDelete, actie, client, extraOpslaanParams, account);
 				break;
 			case COLON_HUISARTS_WIJZIGEN:
 			case MAMMA_HUISARTS_WIJZIGEN:
@@ -375,6 +385,20 @@ public class ClientContactServiceImpl implements ClientContactService
 			logService.logGebeurtenis(LogGebeurtenis.CLIENTCONTACT_REGISTREREN, account, client, "Aangemaakt met vervolgstap(pen): " + uitgevoerdeActies);
 			hibernateService.saveOrUpdate(contact);
 		}
+	}
+
+	private ClientContactActie deelnamewensenRegistreren(ClientContactActie actie, Client client, Map<ExtraOpslaanKey, Object> extraOpslaanParams, Account account)
+	{
+		DeelnamewensDto deelnamewensDto = (DeelnamewensDto) extraOpslaanParams.get(ExtraOpslaanKey.DEELNAMEWENSEN);
+		if (deelnamewensDto != null)
+		{
+			deelnamemodusDossierService.pasDeelnamewensToe(client, deelnamewensDto, account);
+		}
+		else
+		{
+			actie = null;
+		}
+		return actie;
 	}
 
 	private void mammaAnnuleerBeoordeling(Client client, InstellingGebruiker ingelogdeGebruiker)
@@ -561,13 +585,13 @@ public class ClientContactServiceImpl implements ClientContactService
 	private ClientContactActie mammaMinderValideNietMeerOnderzoekZiekenhuis(ClientContactActie actie, Client client, Account account)
 	{
 		MammaScreeningRonde laatsteRonde = client.getMammaDossier().getLaatsteScreeningRonde();
-		MammaBrief laatsteBrief = laatsteRonde.getLaatsteBrief();
+		Brief laatsteBrief = laatsteRonde.getLaatsteBrief();
 		laatsteRonde.setMinderValideOnderzoekZiekenhuis(false);
 		if (laatsteBrief != null && BriefType.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS.equals(laatsteBrief.getBriefType()))
 		{
-			if (!laatsteBrief.isGegenereerd())
+			if (!BriefUtil.isGegenereerd(laatsteBrief))
 			{
-				laatsteBrief.setTegenhouden(true);
+				laatsteBrief = BriefUtil.setTegenhouden(laatsteBrief, true);
 				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, account, client,
 					BriefUtil.getBriefTypeNaam(laatsteBrief) + ", wordt tegengehouden.", laatsteBrief.getBriefType().getOnderzoeken());
 			}
@@ -694,20 +718,6 @@ public class ClientContactServiceImpl implements ClientContactService
 		CervixBrief cervixBrief = (CervixBrief) extraOpslaanParams.get(ExtraOpslaanKey.CERVIX_HERDRUK_BRIEF);
 		cervixBrief.setAangevraagdeHerdruk(true);
 		briefHerdrukkenService.opnieuwAanmaken(cervixBrief, account);
-		return actie;
-	}
-
-	private ClientContactActie cervixFrisseStart(List<ClientContactActie> actiesToDelete, ClientContactActie actie, Client client, Map<ExtraOpslaanKey, Object> extraOpslaanParams,
-		Account account)
-	{
-		CervixScreeningRonde laatsteRonde = client.getCervixDossier().getLaatsteScreeningRonde();
-
-		if (laatsteRonde.getUitstel() != null)
-		{
-			cervixBaseScreeningrondeService.annuleerUitstel(laatsteRonde);
-			LOG.info("Uitstel geannuleerd nav frisse start voor clientId: {}", client.getId());
-		}
-		factory.maakUitnodiging(laatsteRonde, laatsteRonde.getLeeftijdcategorie().getUitnodigingsBrief());
 		return actie;
 	}
 
@@ -968,13 +978,13 @@ public class ClientContactServiceImpl implements ClientContactService
 		switch (actieType)
 		{
 		case GEEN:
-			return true;
-		case OPNIEUW_AANVRAGEN_CLIENTGEGEVENS:
-			return GbaStatus.INDICATIE_AANWEZIG.equals(client.getGbaStatus());
 		case TIJDELIJK_ADRES:
+		case DEELNAMEWENSEN:
 		case INZAGE_PERSOONSGEGEVENS:
 		case CERVIX_DEELNAME_BUITEN_BVO_BMHK:
 			return true;
+		case OPNIEUW_AANVRAGEN_CLIENTGEGEVENS:
+			return GbaStatus.INDICATIE_AANWEZIG.equals(client.getGbaStatus());
 		case BEZWAAR:
 			if (behoortTotDoelgroepCervix || behoortTotDoelgroepColon || behoortTotDoelgroepMamma)
 			{
@@ -982,6 +992,7 @@ public class ClientContactServiceImpl implements ClientContactService
 				Collections.sort(bezwaren, new BezwaarComparator());
 				return bezwaren.isEmpty() || AanvraagBriefStatus.VERWERKT.equals(bezwaren.get(0).getStatus());
 			}
+
 		default:
 			return false;
 		}
@@ -1068,7 +1079,6 @@ public class ClientContactServiceImpl implements ClientContactService
 		boolean herdruk = false;
 		boolean uitstel = false;
 		boolean zasAanvragen = false;
-		boolean frisseStart = false;
 
 		CervixAfmelding laatsteDefinitieveAfmelding = dossier.getLaatsteAfmelding();
 		definitiefAfmelden = dossier.getStatus() == DossierStatus.ACTIEF
@@ -1079,27 +1089,22 @@ public class ClientContactServiceImpl implements ClientContactService
 			&& client.getPersoon().getGeslacht() == Geslacht.VROUW;
 
 		CervixScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-		if (ronde != null && dossier.getVolgendeRondeVanaf().after(currentDateSupplier.getDate()))
+		int leeftijd = CervixLeeftijdcategorie.getLeeftijd(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), currentDateSupplier.getLocalDateTime());
+		boolean startVolgendeRondeNogNietVerstreken = dossier.getVolgendeRondeVanaf() != null && dossier.getVolgendeRondeVanaf().after(currentDateSupplier.getDate());
+		if (ronde != null && (leeftijd < 30 || startVolgendeRondeNogNietVerstreken))
 		{
 			eenmaligHeraanmelden = !ronde.getAangemeld() && dossier.getAangemeld();
 
 			if (ronde.getStatus() == ScreeningRondeStatus.LOPEND)
 			{
 				eenmaligAfmelden = ronde.getStatus() == ScreeningRondeStatus.LOPEND;
-				uitstel = true;
+				uitstel = startVolgendeRondeNogNietVerstreken;
 
 				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
 				if (laatsteUitnodiging != null)
 				{
 					herdruk = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(laatsteUitnodiging.getBrief())
 						&& cervixMagNieuweUitnodigingAanvragen(dossier);
-				}
-				else
-				{
-					if (cervixBaseScreeningrondeService.kanFrisseStartMaken(ronde))
-					{
-						frisseStart = true;
-					}
 				}
 				if (ronde.getMonsterHpvUitslag() == null && !ronde.getUitnodigingen().isEmpty())
 				{
@@ -1121,8 +1126,6 @@ public class ClientContactServiceImpl implements ClientContactService
 			return zasAanvragen;
 		case CERVIX_HERDRUK:
 			return herdruk;
-		case CERVIX_FRISSE_START:
-			return frisseStart;
 		case CERVIX_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN:
 			if (dossier != null && dossier.getLaatsteScreeningRonde() != null)
 			{
@@ -1173,7 +1176,7 @@ public class ClientContactServiceImpl implements ClientContactService
 					.orElse(null);
 
 				infoBriefProthesenKlaarzetten = vorigeInfobriefProthesen == null
-					|| vorigeInfobriefProthesen.getMergedBrieven() != null && vorigeInfobriefProthesen.getMergedBrieven().getGeprint();
+					|| BriefUtil.isMergedBrievenGeprint(vorigeInfobriefProthesen);
 			}
 			magDoelgroepWijzigen = !minderValideNietMeerOnderzoekZiekenhuis;
 			if (dossier.getStatus() != DossierStatus.INACTIEF)

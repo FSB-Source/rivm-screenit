@@ -23,12 +23,13 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
  */
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.UUID;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.generalis.gba.GbaConstants;
 import nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step.IVo107Provider.Vo107File;
@@ -36,12 +37,13 @@ import nl.rivm.screenit.model.gba.GbaFile;
 import nl.rivm.screenit.model.gba.GbaFoutCategorie;
 import nl.rivm.screenit.model.gba.GbaFoutRegel;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
+import nl.rivm.screenit.service.FileService;
 import nl.topicuszorg.gba.vertrouwdverbonden.exceptions.Vo107ParseException;
 import nl.topicuszorg.gba.vertrouwdverbonden.model.Vo107Bericht;
 import nl.topicuszorg.gba.vertrouwdverbonden.services.VO107Service;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 
-import org.slf4j.LoggerFactory;
+import org.apache.commons.io.FileUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
@@ -50,15 +52,17 @@ import org.springframework.batch.item.ItemStream;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 {
-
-	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(Vo107ItemReader.class);
 
 	private static final String OFFSET = "key.offset";
 
 	@Autowired
 	private VO107Service vo107Service;
+
+	@Autowired
+	private FileService fileService;
 
 	private GbaVerwerkingsLog verwerkingLog;
 
@@ -136,7 +140,8 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 		fileIterator = null;
 		offset = 0;
 
-		OpenHibernate5Session.withCommittedTransaction().run(() -> {
+		OpenHibernate5Session.withCommittedTransaction().run(() ->
+		{
 			GbaVerwerkingsLog verwerkingsLog = (GbaVerwerkingsLog) stepExecution.getJobExecution().getExecutionContext().get(GbaConstants.RAPPORTAGEKEYGBA);
 
 			fileIterator = vo107Provider.getVo107Files(verwerkingsLog).iterator();
@@ -187,38 +192,33 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 	private InputStream saveStream(Vo107File vo107File, GbaFile gbaFile)
 	{
 		StringBuilder directory = new StringBuilder();
-
 		directory.append(voFileStorePath);
-
 		Calendar cal = Calendar.getInstance();
-		getDailyPath(directory, cal);
-
+		appendDateToPath(directory, cal);
 		String uniqueFileName = UUID.randomUUID().toString();
 		uniqueFileName += "-incoming.vo107";
-		File dir = new File(directory.toString());
-		dir.mkdirs();
-		File file = new File(directory.toString() + System.getProperty("file.separator") + uniqueFileName);
 
 		StringBuilder dbPath = new StringBuilder();
-		getDailyPath(dbPath, cal);
+		appendDateToPath(dbPath, cal);
 		dbPath.append(System.getProperty("file.separator"));
 		dbPath.append(uniqueFileName);
 		gbaFile.setPath(dbPath.toString());
 
-		LOG.info("Saved file: " + file.getPath());
-
 		try
 		{
-			file.createNewFile();
-			vo107File.saveToFile(file);
-			return new FileInputStream(file);
+			File tempFile = File.createTempFile("temp", ".vo107");
+			vo107File.saveToFile(tempFile);
+			String fullFilePath = directory + System.getProperty("file.separator") + uniqueFileName;
+			fileService.save(fullFilePath, tempFile);
+			FileUtils.delete(tempFile);
+			LOG.info("vo107 bestand {} opgeslagen onder {}", vo107File.getFilename(), fullFilePath);
+			return fileService.loadAsStream(fullFilePath);
 		}
 		catch (IOException e)
 		{
 			LOG.error("Error bij opslaan van vo107 bestand", e);
 			createFoutRegel(verwerkingLog, "Error bij opslaan van vo107 bestand");
 		}
-
 		return null;
 	}
 
@@ -231,7 +231,7 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 		gbaVerwerkingsLog.getFouten().add(gbaFoutRegel);
 	}
 
-	protected void getDailyPath(StringBuilder directory, Calendar cal)
+	protected void appendDateToPath(StringBuilder directory, Calendar cal)
 	{
 		directory.append(System.getProperty("file.separator"));
 		directory.append(cal.get(Calendar.YEAR));

@@ -45,6 +45,7 @@ import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.GbaStatus;
+import nl.rivm.screenit.model.enums.GbaVraagType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.model.gba.GbaVraag;
@@ -54,7 +55,6 @@ import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.input.validator.TelefoonnummerValidator;
@@ -118,6 +118,7 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		}
 
 		addAanvraagOverdrachtGegevensPanel();
+		add(new ClientInzienAlgemeneBrievenPanel("algemeneBrievenPanel", getModel()));
 
 		IndicatingAjaxLink<Void> contactAanmaken = new IndicatingAjaxLink<>("contactAanmaken")
 		{
@@ -149,7 +150,7 @@ public class ClientInzienPanel extends GenericPanel<Client>
 			{
 				List<GbaVraag> gbaVragen = new ArrayList<>(getModelObject().getGbaVragen());
 
-				return gbaVragen.stream().map(GbaVraag::getDatum).min(Comparator.naturalOrder()).orElse(null);
+				return gbaVragen.stream().filter(v -> v.getVraagType() == GbaVraagType.VERWIJDER_INDICATIE).map(GbaVraag::getDatum).max(Comparator.naturalOrder()).orElse(null);
 			}
 		}, new PatternDateConverter("dd-MM-yyyy HH:mm:ss", true))
 		{
@@ -263,18 +264,31 @@ public class ClientInzienPanel extends GenericPanel<Client>
 			}
 		});
 
+		addDossierPanels();
+	}
+
+	private void addDossierPanels()
+	{
 		add(new ClientInzienDossierPanel<ColonDossier, ColonAfmelding, ColonBrief>("colonDossier", ModelUtil.csModel(getModelObject().getColonDossier()), getModel(),
 			Bevolkingsonderzoek.COLON, dialog));
-		if (getModelObject().getPersoon().getGeslacht().equals(Geslacht.VROUW))
+
+		if (getModelObject().getCervixDossier() != null)
 		{
 			add(new ClientInzienDossierPanel<CervixDossier, CervixAfmelding, CervixBrief>("cervixDossier", ModelUtil.csModel(getModelObject().getCervixDossier()), getModel(),
 				Bevolkingsonderzoek.CERVIX, dialog));
+		}
+		else
+		{
+			add(new EmptyPanel("cervixDossier"));
+		}
+
+		if (getModelObject().getMammaDossier() != null)
+		{
 			add(new ClientInzienDossierPanel<MammaDossier, MammaAfmelding, MammaBrief>("mammaDossier", ModelUtil.csModel(getModelObject().getMammaDossier()), getModel(),
 				Bevolkingsonderzoek.MAMMA, dialog));
 		}
 		else
 		{
-			add(new EmptyPanel("cervixDossier"));
 			add(new EmptyPanel("mammaDossier"));
 		}
 	}
@@ -301,7 +315,7 @@ public class ClientInzienPanel extends GenericPanel<Client>
 			query.add(AuditEntity.id().eq(gbaAdres.getId()));
 
 			query.addOrder(AuditEntity.revisionNumber().desc());
-			List resultList = query.getResultList();
+			var resultList = query.getResultList();
 			for (Object auditRow : resultList)
 			{
 				Gemeente auditGemeente = ((BagAdres) ((Object[]) auditRow)[0]).getGbaGemeente();

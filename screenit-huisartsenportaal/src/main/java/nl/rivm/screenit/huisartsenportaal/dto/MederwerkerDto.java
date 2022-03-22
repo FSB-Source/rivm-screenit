@@ -24,44 +24,21 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.huisartsenportaal.model.enums.Recht;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonSerialize
+@Getter
+@Setter
 public class MederwerkerDto
 {
 	private Long id;
 
-	private List<Recht> rollen = new ArrayList<Recht>();
+	private List<Recht> rollen = new ArrayList<>();
 
 	private boolean isOvereenkomstGetekend;
-
-	public Long getId()
-	{
-		return id;
-	}
-
-	public void setId(Long id)
-	{
-		this.id = id;
-	}
-
-	public List<Recht> getRollen()
-	{
-		return rollen;
-	}
-
-	public void setRollen(List<Recht> rollen)
-	{
-		this.rollen = rollen;
-	}
-
-	public boolean isOvereenkomstGetekend() {
-		return isOvereenkomstGetekend;
-	}
-
-	public void setOvereenkomstGetekend(boolean overeenkomstGetekend) {
-		isOvereenkomstGetekend = overeenkomstGetekend;
-	}
 }

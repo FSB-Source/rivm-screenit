@@ -19,11 +19,7 @@
  * =========================LICENSE_END==================================
  */
 export enum Geslacht {
-    MAN = "MAN",
-    VROUW = "VROUW"
-}
-
-export const GeslachtUitgeschreven: { [key in Geslacht]: string } = {
-    [Geslacht.MAN]: "Meneer",
-    [Geslacht.VROUW]: "Mevrouw"
+	MAN = "MAN",
+	VROUW = "VROUW",
+	ONBEKEND = "ONBEKEND"
 }

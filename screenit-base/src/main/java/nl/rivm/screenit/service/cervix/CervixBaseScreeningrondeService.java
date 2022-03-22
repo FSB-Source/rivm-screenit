@@ -48,11 +48,7 @@ public interface CervixBaseScreeningrondeService
 
 	boolean heeftUitnodigingMetMonsterInLabproces(CervixScreeningRonde ronde);
 
-	boolean isFrisseStart(CervixScreeningRonde ronde);
-
-	boolean kanFrisseStartMaken(CervixScreeningRonde ronde);
-
-	boolean hasValidScreeningRonde(CervixMonster monster);
+	boolean heeftValideScreeningRondeVoorDigitaalLabformulier(CervixMonster monster);
 
 	CervixScreeningRonde getLaatsteScreeningRonde(String bsn);
 

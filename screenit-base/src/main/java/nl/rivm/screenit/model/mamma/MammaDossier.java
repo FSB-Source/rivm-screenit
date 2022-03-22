@@ -40,8 +40,13 @@ import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.DeelnamemodusDossier;
 import nl.rivm.screenit.model.Dossier;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.model.mamma.berichten.xds.XdsStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
@@ -68,7 +73,9 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 		@UniqueConstraint(columnNames = "screening_ronde_event"),
 	})
 @Audited
-public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding>
+@Getter
+@Setter
+public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding> implements DeelnamemodusDossier
 {
 	@OneToOne(mappedBy = "mammaDossier", optional = false, fetch = FetchType.LAZY)
 	private Client client;
@@ -134,85 +141,9 @@ public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding>
 	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 	private List<MammaIlmBezwaarPoging> ilmBezwaarPogingen = new ArrayList<>();
 
-	@Override
-	public Client getClient()
-	{
-		return client;
-	}
-
-	@Override
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	@Override
-	public List<MammaScreeningRonde> getScreeningRondes()
-	{
-		return screeningRondes;
-	}
-
-	@Override
-	public void setScreeningRondes(List<MammaScreeningRonde> screeningRondes)
-	{
-		this.screeningRondes = screeningRondes;
-	}
-
-	@Override
-	public MammaScreeningRonde getLaatsteScreeningRonde()
-	{
-		return laatsteScreeningRonde;
-	}
-
-	@Override
-	public void setLaatsteScreeningRonde(MammaScreeningRonde laatsteScreeningRonde)
-	{
-		this.laatsteScreeningRonde = laatsteScreeningRonde;
-	}
-
-	@Override
-	public List<MammaAfmelding> getAfmeldingen()
-	{
-		return afmeldingen;
-	}
-
-	@Override
-	public void setAfmeldingen(List<MammaAfmelding> afmeldingen)
-	{
-		this.afmeldingen = afmeldingen;
-	}
-
-	@Override
-	public MammaAfmelding getLaatsteAfmelding()
-	{
-		return laatsteAfmelding;
-	}
-
-	@Override
-	public void setLaatsteAfmelding(MammaAfmelding laatsteAfmelding)
-	{
-		this.laatsteAfmelding = laatsteAfmelding;
-	}
-
-	public MammaDoelgroep getDoelgroep()
-	{
-		return doelgroep;
-	}
-
-	public void setDoelgroep(MammaDoelgroep doelgroep)
-	{
-		this.doelgroep = doelgroep;
-	}
-
-	public MammaTehuis getTehuis()
-	{
-		return tehuis;
-	}
-
-	public void setTehuis(MammaTehuis tehuis)
-	{
-		this.tehuis = tehuis;
-	}
+	@Column(nullable = false)
+	@Enumerated(EnumType.STRING)
+	private Deelnamemodus deelnamemodus = Deelnamemodus.STANDAARD;
 
 	@Transient
 	public Boolean getUitTeNodigen()
@@ -224,95 +155,5 @@ public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding>
 	public void setUitTeNodigen(Boolean uitTeNodigen)
 	{
 		this.uitTeNodigen = uitTeNodigen;
-	}
-
-	public String getDubbeleTijdReden()
-	{
-		return dubbeleTijdReden;
-	}
-
-	public void setDubbeleTijdReden(String dubbeleTijdReden)
-	{
-		this.dubbeleTijdReden = dubbeleTijdReden;
-	}
-
-	public Date getLaatsteMammografieAfgerond()
-	{
-		return laatsteMammografieAfgerond;
-	}
-
-	public void setLaatsteMammografieAfgerond(Date laatsteMammografieAfgerond)
-	{
-		this.laatsteMammografieAfgerond = laatsteMammografieAfgerond;
-	}
-
-	public MammaStandplaatsRonde getEersteMammografieAfgerondStandplaatsRonde()
-	{
-		return eersteMammografieAfgerondStandplaatsRonde;
-	}
-
-	public void setEersteMammografieAfgerondStandplaatsRonde(MammaStandplaatsRonde eersteMammografieAfgerondStandplaatsRonde)
-	{
-		this.eersteMammografieAfgerondStandplaatsRonde = eersteMammografieAfgerondStandplaatsRonde;
-	}
-
-	public MammaKansberekeningScreeningRondeEvent getScreeningRondeEvent()
-	{
-		return screeningRondeEvent;
-	}
-
-	public void setScreeningRondeEvent(MammaKansberekeningScreeningRondeEvent screeningRondeEvent)
-	{
-		this.screeningRondeEvent = screeningRondeEvent;
-	}
-
-	public MammaDeelnamekans getDeelnamekans()
-	{
-		return deelnamekans;
-	}
-
-	public void setDeelnamekans(MammaDeelnamekans deelnamekans)
-	{
-		this.deelnamekans = deelnamekans;
-	}
-
-	public XdsStatus getXdsStatus()
-	{
-		return xdsStatus;
-	}
-
-	public void setXdsStatus(XdsStatus xdsStatus)
-	{
-		this.xdsStatus = xdsStatus;
-	}
-
-	public MammaBeoordeling getLaatsteBeoordelingMetUitslag()
-	{
-		return laatsteBeoordelingMetUitslag;
-	}
-
-	public void setLaatsteBeoordelingMetUitslag(MammaBeoordeling laatsteBeoordelingMetUitslag)
-	{
-		this.laatsteBeoordelingMetUitslag = laatsteBeoordelingMetUitslag;
-	}
-
-	public Boolean getUpdateFollowUpConclusie()
-	{
-		return updateFollowUpConclusie;
-	}
-
-	public void setUpdateFollowUpConclusie(Boolean updateFollowUpConclusie)
-	{
-		this.updateFollowUpConclusie = updateFollowUpConclusie;
-	}
-
-	public void setIlmBezwaarPogingen(List<MammaIlmBezwaarPoging> bezwaarIlmPogingen)
-	{
-		this.ilmBezwaarPogingen = bezwaarIlmPogingen;
-	}
-
-	public List<MammaIlmBezwaarPoging> getIlmBezwaarPogingen()
-	{
-		return this.ilmBezwaarPogingen;
 	}
 }

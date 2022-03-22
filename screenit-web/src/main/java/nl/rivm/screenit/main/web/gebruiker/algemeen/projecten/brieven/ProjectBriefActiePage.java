@@ -51,7 +51,7 @@ import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.model.project.ProjectType;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.util.EnumStringUtil;
@@ -84,7 +84,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 public class ProjectBriefActiePage extends ProjectBasePage
 {
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private HibernateService hibernateService;
@@ -182,7 +182,7 @@ public class ProjectBriefActiePage extends ProjectBasePage
 			{
 				try
 				{
-					fileService.saveOrUpdateUploadDocument(document, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, object.getProject().getId());
+					uploadDocumentService.saveOrUpdate(document, FileStoreLocation.PROJECT_BRIEF_TEMPLATES, object.getProject().getId());
 					object.setDocument(document);
 					object.setLaatstGewijzigd(currentDateSupplier.getDate());
 					hibernateService.saveOrUpdate(object);

@@ -68,9 +68,9 @@ public class CervixBepaalHpvBeoordelingServiceImpl implements CervixBepaalHpvBeo
 
 		List<CervixHpvAnalyseresultaat> completeAnalyseresultaten = CervixHpvMonsterWrapper.getCompleteAnalyseresultaten(analyseresultaten);
 
-		Set<CervixHpvResultValue> resultValues = completeAnalyseresultaten.stream().map(ar -> ar.getResultValue()).collect(Collectors.toSet());
-		Set<CervixHpvResultCode> resultCodes = completeAnalyseresultaten.stream().map(ar -> ar.getResultCode()).collect(Collectors.toSet());
-		Set<CervixHpvOrderCode> orderCodes = resultCodes.stream().map(rc -> rc.getOrderCode()).collect(Collectors.toSet());
+		Set<CervixHpvResultValue> resultValues = completeAnalyseresultaten.stream().map(CervixHpvAnalyseresultaat::getResultValue).collect(Collectors.toSet());
+		Set<CervixHpvResultCode> resultCodes = completeAnalyseresultaten.stream().map(CervixHpvAnalyseresultaat::getResultCode).collect(Collectors.toSet());
+		Set<CervixHpvOrderCode> orderCodes = resultCodes.stream().map(CervixHpvResultCode::getOrderCode).collect(Collectors.toSet());
 		if (orderCodes.size() == 1)
 		{
 			CervixHpvOrderCode orderCode = orderCodes.iterator().next();

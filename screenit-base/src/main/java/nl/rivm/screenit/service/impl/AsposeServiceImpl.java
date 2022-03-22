@@ -41,6 +41,8 @@ import java.util.Map.Entry;
 import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.document.DocumentCreator;
 import nl.rivm.screenit.document.VragenlijstDocumentCreator;
@@ -50,7 +52,8 @@ import nl.rivm.screenit.model.enums.MergeField;
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.ProjectAttribuut;
 import nl.rivm.screenit.service.AsposeService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
+
 import org.apache.commons.lang.StringUtils;
 import org.ghost4j.Ghostscript;
 import org.ghost4j.GhostscriptException;
@@ -65,8 +68,6 @@ import org.ghost4j.util.DiskStore;
 import org.krysalis.barcode4j.impl.AbstractBarcodeBean;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -86,13 +87,12 @@ import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
+@Slf4j
 @Service
 public class AsposeServiceImpl implements AsposeService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AsposeServiceImpl.class);
-
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private String asposeLicence;
@@ -182,6 +182,11 @@ public class AsposeServiceImpl implements AsposeService
 			Object[] values = mergeValues.values().toArray();
 			document.getMailMerge().execute(fieldNames, values);
 		}
+		catch (IllegalStateException e)
+		{
+			LOG.error("Error creating word doc, merge fout door ", e);
+			throw e;
+		}
 		catch (Exception e)
 		{
 			LOG.error("Error creating word doc, merge niet gelukt van " + veldnaam, e);
@@ -193,7 +198,7 @@ public class AsposeServiceImpl implements AsposeService
 	public Document processDocumentWithCreator(MailMergeContext context, File templateFile, DocumentCreator creator, boolean replaceMergeFieldIfNull)
 	{
 		Document document = null;
-		try (InputStream stream = new FileInputStream(templateFile);)
+		try (InputStream stream = new FileInputStream(templateFile))
 		{
 			document = new Document(stream);
 			creator.fillExecuteWithRegions(document);
@@ -365,6 +370,7 @@ public class AsposeServiceImpl implements AsposeService
 		public void imageFieldMerging(ImageFieldMergingArgs field)
 			throws IOException, InstantiationException, IllegalAccessException, RendererException, DocumentException, NoSuchMethodException, InvocationTargetException
 		{
+
 			Object afdrukObject = getAfdrukObject(field.getFieldName(), context);
 			if (afdrukObject instanceof Entry)
 			{
@@ -379,6 +385,10 @@ public class AsposeServiceImpl implements AsposeService
 				MergeField mergeField = (MergeField) afdrukObject;
 				Object mergeFieldValue = mergeField.getValue(context);
 
+				if (mergeFieldValue == null)
+				{
+					throw new IllegalStateException("MergeField " + mergeField + " heeft geen waarde");
+				}
 				if (mergeField.isBarcode())
 				{
 					AbstractBarcodeBean abstractBarcodeBean = mergeField.getBarcodeType().getConstructor().newInstance();
@@ -397,7 +407,7 @@ public class AsposeServiceImpl implements AsposeService
 
 		private void imageMerger(ImageFieldMergingArgs field, UploadDocument uploadDocument) throws IOException, RendererException, DocumentException
 		{
-			File mergeFieldFile = fileService.load(uploadDocument);
+			File mergeFieldFile = uploadDocumentService.load(uploadDocument);
 			if (uploadDocument.getContentType().equals("image/x-eps") || uploadDocument.getContentType().equals("application/postscript"))
 			{
 				PSDocument document = new PSDocument();

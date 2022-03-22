@@ -26,26 +26,22 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.Properties;
 
-import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.hibernate.SQLQuery;
 
+@Slf4j
 public class StatusServlet extends HttpServlet
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(StatusServlet.class);
 
 	private static final String ONBEKEND = "Onbekend";
 
@@ -54,7 +50,7 @@ public class StatusServlet extends HttpServlet
 	private static final String ENCODING = "UTF-8";
 
 	@Override
-	protected void doGet(HttpServletRequest httpReq, HttpServletResponse httpResp) throws ServletException, IOException
+	protected void doGet(HttpServletRequest httpReq, HttpServletResponse httpResp)
 	{
 		LOG.debug("Er is een GET verzoek binnengekomen op de StatusServlet");
 		maakResponse(httpResp);
@@ -132,14 +128,14 @@ public class StatusServlet extends HttpServlet
 	{
 		StringBuilder versieBuilder = new StringBuilder();
 		Properties applicationProperties = new Properties();
-		try (InputStream resourceAsStream = this.getClass().getResourceAsStream("/application.properties");)
+		try (InputStream resourceAsStream = this.getClass().getResourceAsStream("/build-info.properties");)
 		{
 			applicationProperties.load(resourceAsStream);
-			String version = applicationProperties.getProperty("application.version");
+			String version = applicationProperties.getProperty("build.version");
 			versieBuilder.append(version);
 			if ("SNAPSHOT".equals(version))
 			{
-				String buildnumber = applicationProperties.getProperty("application.buildnumber");
+				String buildnumber = applicationProperties.getProperty("build.number");
 
 				if (!"${BUILD_NUMBER}".equals(buildnumber))
 				{
@@ -149,7 +145,7 @@ public class StatusServlet extends HttpServlet
 		}
 		catch (IOException e)
 		{
-			LOG.error("Could not load application.properties (for version number)");
+			LOG.error("Fout bij laden van build-info.properties (voor versienummer)");
 		}
 		return versieBuilder.toString();
 	}

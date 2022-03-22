@@ -30,15 +30,18 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hibernate.Hibernate;
 import org.hibernate.envers.Audited;
 
 @Audited
 @MappedSuperclass
+@Getter
+@Setter
 public abstract class AbstractReferenceObject implements Serializable
 {
-	private static final long serialVersionUID = 1L;
-
 	@Id
 	@Access(AccessType.PROPERTY)
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -46,26 +49,6 @@ public abstract class AbstractReferenceObject implements Serializable
 
 	@Access(AccessType.PROPERTY)
 	private Long screenitId;
-
-	public Long getHuisartsportaalId()
-	{
-		return huisartsportaalId;
-	}
-
-	public void setHuisartsportaalId(Long huisartsportaalId)
-	{
-		this.huisartsportaalId = huisartsportaalId;
-	}
-
-	public Long getScreenitId()
-	{
-		return screenitId;
-	}
-
-	public void setScreenitId(Long screenitId)
-	{
-		this.screenitId = screenitId;
-	}
 
 	@Override
 	public int hashCode()

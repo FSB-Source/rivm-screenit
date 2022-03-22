@@ -48,7 +48,7 @@ public class MammaDeelnamekans extends AbstractHibernateObject
 	private MammaDossier dossier;
 
 	@Column(nullable = false, precision = HibernateMagicNumber.P6, scale = HibernateMagicNumber.S5)
-	private BigDecimal deelnamekans = new BigDecimal(0.8);
+	private BigDecimal deelnamekans = BigDecimal.valueOf(0.8);
 
 	public MammaDossier getDossier()
 	{

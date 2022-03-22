@@ -21,11 +21,15 @@ package nl.rivm.screenit.service.cervix;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.service.cervix.impl.CervixVervolg;
 
 public interface CervixVervolgService
 {
 
-	CervixVervolg bepaalVervolg(CervixMonster monster);
+	CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering);
+
+	CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering, boolean digitaalLabformulier);
 }

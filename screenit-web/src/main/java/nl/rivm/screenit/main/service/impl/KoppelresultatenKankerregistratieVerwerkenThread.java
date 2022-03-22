@@ -25,28 +25,26 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.IntervalcarcinoomProcessdataVerwerkingService;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 public class KoppelresultatenKankerregistratieVerwerkenThread extends OpenHibernate5SessionInThread
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(KoppelresultatenKankerregistratieVerwerkenThread.class);
-
 	@Autowired
 	private LogService logService;
 
@@ -57,17 +55,17 @@ public class KoppelresultatenKankerregistratieVerwerkenThread extends OpenHibern
 	private IntervalcarcinoomProcessdataVerwerkingService intervalcarcinoomProcessdataVerwerkingService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
-	private File file;
+	private final File file;
 
-	private Bevolkingsonderzoek bevolkingsonderzoek;
+	private final Bevolkingsonderzoek bevolkingsonderzoek;
 
-	private Long igId;
+	private final Long igId;
 
-	private String contentType;
+	private final String contentType;
 
-	private String fileName;
+	private final String fileName;
 
 	public KoppelresultatenKankerregistratieVerwerkenThread(File file, String contentType, String fileName, InstellingGebruiker ingelogdeGebruiker,
 		Bevolkingsonderzoek bevolkingsonderzoek)
@@ -87,7 +85,7 @@ public class KoppelresultatenKankerregistratieVerwerkenThread extends OpenHibern
 		List<String> meldingen = new ArrayList<>();
 		try (KoppelresultatenKankerregistratieVerwerkingContext context = new KoppelresultatenKankerregistratieVerwerkingContext(file, contentType, fileName, bevolkingsonderzoek))
 		{
-			fileService.saveOrUpdateUploadDocument(context.getFile(), FileStoreLocation.COLON_INTERVALCARCINOOM);
+			uploadDocumentService.saveOrUpdate(context.getFile(), FileStoreLocation.COLON_INTERVALCARCINOOM);
 
 			while (context.isErEenNieuweRegel())
 			{

@@ -37,6 +37,8 @@ import properties from "./MammaAfspraakMakenPopup.json"
 import {ArrowType} from "../../../../components/vectors/ArrowIconComponent"
 import {Formik} from "formik"
 import {Checkbox} from "@material-ui/core"
+import {getBvoBaseUrl} from "../../../../utils/UrlUtil"
+import {useNavigate} from "react-router-dom"
 
 export type MammaAfspraakMakenPopupProps = {
 	afspraak: KandidaatAfspraak,
@@ -52,11 +54,13 @@ type MammaAfspraakMakenPopupForm = {
 const MammaAfspraakMakenPopup = (props: MammaAfspraakMakenPopupProps) => {
 	const bvo = useSelectedBvo()!
 	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 	const kandidaatAfspraak = props.afspraak
 
 	const afspraakMaken = (afspraak: KandidaatAfspraak) => {
 		dispatch(maakAfspraak(bvo, afspraak)).then(
 			() => {
+				navigate(getBvoBaseUrl(bvo))
 				props.onClose()
 			},
 		).catch((error) => {
@@ -67,7 +71,7 @@ const MammaAfspraakMakenPopup = (props: MammaAfspraakMakenPopupProps) => {
 	}
 
 	const initialValues: MammaAfspraakMakenPopupForm = {
-		bevestigingsBrief: false,
+		bevestigingsBrief: props.afspraak.bevestigingsBrief,
 	}
 
 	return (
@@ -92,35 +96,35 @@ const MammaAfspraakMakenPopup = (props: MammaAfspraakMakenPopupProps) => {
 						   </div>
 						   <div className={styles.bevestigenForm}>
 							   {props.isBevestigingsPopup &&
-							   <div>
-								   <Formik<MammaAfspraakMakenPopupForm> initialValues={initialValues}
-																		onSubmit={(values) => {
-																			kandidaatAfspraak.bevestigingsBrief = values.bevestigingsBrief
-																			afspraakMaken(kandidaatAfspraak)
-																		}}>
-									   {formikProps => (
-										   <div>
-											   <div className={styles.bevestigingsBrief}>
-												   <Checkbox id={"bevestigingsBrief"}
-															 defaultChecked={false}
-															 onChange={(event) => formikProps.setFieldValue("bevestigingsBrief", event.target.checked)}/>
-												   <label htmlFor={"bevestigingsBrief"}>{getString(properties.checkbox.bevestigingsbrief)}</label>
-											   </div>
-											   <Button label={getString(properties.button.bevestigen)}
-													   disableButton={formikProps.isSubmitting}
-													   displayArrow={ArrowType.ARROW_RIGHT}
-													   onClick={() => {
-														   formikProps.handleSubmit()
-													   }}/>
-										   </div>)}
-								   </Formik>
-								   <NavLink onClick={props.onClose} className={styles.andereOptie}>
-									   {getString(properties.button.andere_afspraak)}</NavLink>
-							   </div>}
+								   <div>
+									   <Formik<MammaAfspraakMakenPopupForm> initialValues={initialValues}
+																			onSubmit={(values) => {
+																				kandidaatAfspraak.bevestigingsBrief = values.bevestigingsBrief
+																				afspraakMaken(kandidaatAfspraak)
+																			}}>
+										   {formikProps => (
+											   <div>
+												   <div className={classNames(styles.bevestigingsBrief, !props.afspraak.toonBevestigingsBriefOptie && styles.hide)}>
+													   <Checkbox id={"bevestigingsBrief"}
+																 defaultChecked={initialValues.bevestigingsBrief}
+																 onChange={(event) => formikProps.setFieldValue("bevestigingsBrief", event.target.checked)}/>
+													   <label htmlFor={"bevestigingsBrief"}>{getString(properties.checkbox.bevestigingsbrief)}</label>
+												   </div>
+												   <Button label={getString(properties.button.bevestigen)}
+														   disableButton={formikProps.isSubmitting}
+														   displayArrow={ArrowType.ARROW_RIGHT}
+														   onClick={() => {
+															   formikProps.handleSubmit()
+														   }}/>
+											   </div>)}
+									   </Formik>
+									   <NavLink onClick={props.onClose} className={styles.andereOptie}>
+										   {getString(properties.button.andere_afspraak)}</NavLink>
+								   </div>}
 							   {!props.isBevestigingsPopup &&
-							   <Button label={getString(properties.button.andere_afspraak)}
-									   onClick={props.onClose}
-									   displayArrow={ArrowType.ARROW_RIGHT}/>}
+								   <Button label={getString(properties.button.andere_afspraak)}
+										   onClick={props.onClose}
+										   displayArrow={ArrowType.ARROW_RIGHT}/>}
 						   </div>
 					   </div>
 				   }

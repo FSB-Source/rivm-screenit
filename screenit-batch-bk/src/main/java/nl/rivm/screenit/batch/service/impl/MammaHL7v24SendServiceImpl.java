@@ -33,14 +33,11 @@ import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7CreateMessageService;
 import nl.rivm.screenit.batch.service.MammaHL7v24SendService;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24AdtBerichtTriggerDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.berichten.ScreenITResponseV24MessageWrapper;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7ADTBerichtType;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -128,18 +125,8 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 	public void sendClientORMMessage(MammaHL7v24OrmBerichtTriggerMetClientDto hl7BerichtTrigger, MammaHL7Connectie messageConnection)
 		throws HL7CreateMessageException, HL7SendMessageException
 	{
-		LOG.info("Creating HL7v24 ORM message {} for client id {}", hl7BerichtTrigger.getStatus().getLabel(), hl7BerichtTrigger.getClientId());
-		Client client = hibernateService.load(Client.class, hl7BerichtTrigger.getClientId());
-		reloadClientData(client);
-		Message bericht = createORMMessage(client, hl7BerichtTrigger);
-		sendMessageAndHandleResponse(bericht, messageConnection);
-	}
-
-	@Override
-	public void sendUploadBeeldenORMMessage(MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger, MammaHL7Connectie messageConnection)
-		throws HL7CreateMessageException, HL7SendMessageException
-	{
-		LOG.info("Creating HL7v24 ORM message {} upload beelden for client id {}", hl7BerichtTrigger.getStatus().getLabel(), hl7BerichtTrigger.getClientId());
+		LOG.info("Creating HL7v24 ORM message {} for client id {} {}", hl7BerichtTrigger.getStatus().getLabel(), hl7BerichtTrigger.getClientId(),
+			(hl7BerichtTrigger.isUploaded() ? "ihkv. upload beelden" : ""));
 		Client client = hibernateService.load(Client.class, hl7BerichtTrigger.getClientId());
 		reloadClientData(client);
 		Message bericht = createORMMessage(client, hl7BerichtTrigger);
@@ -153,7 +140,7 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 		LOG.info("Creating HL7v24 ORM message {} for kwaliteitsopname", hl7BerichtTrigger.getStatus().getLabel());
 		try
 		{
-			Message bericht = hl7CreateMessageService.maakKwaliteitsopnameORMBericht(hl7BerichtTrigger.getStatus(), hl7BerichtTrigger);
+			Message bericht = hl7CreateMessageService.maakKwaliteitsopnameORMBericht(hl7BerichtTrigger);
 			sendMessageAndHandleResponse(bericht, messageConnection);
 		}
 		catch (Exception e)
@@ -207,39 +194,11 @@ public class MammaHL7v24SendServiceImpl implements MammaHL7v24SendService
 	{
 		try
 		{
-			if (hl7BerichtTrigger instanceof MammaHL7v24OrmBerichtTriggerIlmDto)
-			{
-				return hl7CreateMessageService.maakOrmIlmBericht(client, (MammaHL7v24OrmBerichtTriggerIlmDto) hl7BerichtTrigger);
-			}
-			else
-			{
-				return hl7CreateMessageService.maakClientORMBericht(hl7BerichtTrigger.getStatus(), client);
-			}
+			return hl7CreateMessageService.maakClientORMBericht(hl7BerichtTrigger, client);
 		}
 		catch (Exception e)
 		{
 			String melding = "Fout bij aanmaken HL7 ORM bericht!";
-			LOG.error(melding, e);
-			throw new HL7CreateMessageException(melding, e);
-		}
-	}
-
-	private ORM_O01 createORMMessage(Client client, MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger) throws HL7CreateMessageException
-	{
-		try
-		{
-			if (MammaHL7v24ORMBerichtStatus.DELETE.equals(hl7BerichtTrigger.getStatus()))
-			{
-				return hl7CreateMessageService.maakUploadBeeldenORMILMBericht(hl7BerichtTrigger.getStatus(), hl7BerichtTrigger, client);
-			}
-			else
-			{
-				return hl7CreateMessageService.maakUploadBeeldenORMBericht(hl7BerichtTrigger.getStatus(), hl7BerichtTrigger, client);
-			}
-		}
-		catch (Exception e)
-		{
-			String melding = "Fout bij aanmaken HL7 ORM bericht (upload beelden)!";
 			LOG.error(melding, e);
 			throw new HL7CreateMessageException(melding, e);
 		}

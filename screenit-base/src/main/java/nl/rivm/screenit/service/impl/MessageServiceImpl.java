@@ -93,7 +93,6 @@ public class MessageServiceImpl implements MessageService
 		Object contentDto = null;
 		if (message != null)
 		{
-			String content = message.getContent();
 			try
 			{
 				contentDto = objectMapper.readValue(message.getContent(), message.getType().getContentType());

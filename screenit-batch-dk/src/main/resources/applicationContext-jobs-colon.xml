@@ -42,8 +42,10 @@
     <beans:bean id="noShowHuisartberichtReader" class="nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow.HuisartsNoShowReader"/>
     <beans:bean id="noShowHuisartberichtWriter" class="nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow.HuisartsNoShowWriter"/>
     
-    <beans:bean id="herinneringClientWilAnderIntakeLocatieBriefReader" class="nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereintakelocatie.HerinneringClientWilAnderIntakeLocatieBriefReader"/>
-    <beans:bean id="herinneringClientWilAnderIntakeLocatieBriefWriter" class="nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereintakelocatie.HerinneringClientWilAnderIntakeLocatieBriefWriter"/>
+    <beans:bean id="herinneringClientWilAnderIntakeLocatieBriefReader"
+                class="nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereintakelocatie.HerinneringClientWilAnderIntakeLocatieBriefReader"/>
+    <beans:bean id="herinneringClientWilAnderIntakeLocatieBriefWriter"
+                class="nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereintakelocatie.HerinneringClientWilAnderIntakeLocatieBriefWriter"/>
 
     <beans:bean id="vervolgIntakeConclusieJobListener" class="nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.VervolgIntakeConclusieJobListener"/>
 
@@ -108,8 +110,9 @@
     <beans:bean id="colonVerlopenRondesWriter" class="nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep.ColonVerlopenRondesWriter"/>
     <beans:bean id="colonVerlopenRondesReader" class="nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep.ColonVerlopenRondesReader"/>
 
-
-	<beans:bean id="preSelectieStepTasklet" class="nl.rivm.screenit.batch.jobs.preselectie.ClientPreSelectieTasklet"/>
+    <beans:bean id="preSelectieStepTasklet" class="nl.rivm.screenit.batch.jobs.preselectie.ClientPreSelectieTasklet">
+        <beans:property name="bvo" value="COLON"/>
+    </beans:bean>
 
     
     <beans:bean id="colonClientSelectiePromotionListener" class="org.springframework.batch.core.listener.ExecutionContextPromotionListener">
@@ -470,6 +473,24 @@
         </step>
         <listeners>
             <listener ref="colonILMJobListener"/>
+        </listeners>
+    </job>
+
+    
+    <beans:bean id="colonControleMissendeUitslagenReader" class="nl.rivm.screenit.batch.jobs.colon.controleuitslag.controlestep.ColonControleMissendeUitslagenReader"/>
+    <beans:bean id="colonControleMissendeUitslagenWriter" class="nl.rivm.screenit.batch.jobs.colon.controleuitslag.controlestep.ColonControleMissendeUitslagenWriter"/>
+    <beans:bean id="colonControleMissendeUitslagenJobListener" class="nl.rivm.screenit.batch.jobs.colon.controleuitslag.ColonControleUitslagJobListener"/>
+
+    <job id="colon_controle_missende_uitslagen">
+        <step id="controle_missende_uitslagen">
+            <tasklet transaction-manager="transactionManager">
+                <chunk reader="colonControleMissendeUitslagenReader"
+                       writer="colonControleMissendeUitslagenWriter" commit-interval="50">
+                </chunk>
+            </tasklet>
+        </step>
+        <listeners>
+            <listener ref="colonControleMissendeUitslagenJobListener"/>
         </listeners>
     </job>
 

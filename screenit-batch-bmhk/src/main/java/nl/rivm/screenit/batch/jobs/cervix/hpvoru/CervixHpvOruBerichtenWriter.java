@@ -36,7 +36,7 @@ import nl.rivm.screenit.batch.model.HL7v24ResponseWrapper;
 import nl.rivm.screenit.batch.model.HapiContextType;
 import nl.rivm.screenit.batch.model.ScreenITHL7MessageContext;
 import nl.rivm.screenit.batch.service.CervixHL7BaseService;
-import nl.rivm.screenit.batch.service.CervixMaakHpvOruBerichtService;
+import nl.rivm.screenit.batch.service.CervixHpvOruBerichtService;
 import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.Client;
@@ -53,14 +53,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import ca.uhn.hl7v2.HL7Exception;
+import ca.uhn.hl7v2.app.Connection;
+import ca.uhn.hl7v2.llp.LLPException;
+
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURD;
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURDEN_TIMEOUT;
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB;
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.KEY_LABORATORIUMID;
-
-import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.app.Connection;
-import ca.uhn.hl7v2.llp.LLPException;
 
 public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde>
 {
@@ -74,7 +74,7 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 	private LogService logService;
 
 	@Autowired
-	private CervixMaakHpvOruBerichtService maakHpvOruBerichtService;
+	private CervixHpvOruBerichtService hpvOruBerichtService;
 
 	@Autowired
 	private CervixHL7BaseService hl7BaseService;
@@ -107,7 +107,7 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 						HL7v24ResponseWrapper berichtResponseWrapper = messageContext.getResponseWrapper();
 						try
 						{
-							sendMessageService.sendHL7Message(maakHpvOruBerichtService.getHpvOruBericht(monster).toString(), messageContext);
+							sendMessageService.sendHL7Message(hpvOruBerichtService.maakHpvOruBericht(monster).toString(), messageContext);
 						}
 						catch (HL7Exception | IOException | LLPException e)
 						{

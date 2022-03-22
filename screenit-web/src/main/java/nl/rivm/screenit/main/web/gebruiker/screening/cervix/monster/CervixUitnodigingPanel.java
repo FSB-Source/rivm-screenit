@@ -196,7 +196,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 		}
 		boolean ingeboektInAnderLaboratorium = getModelObject().getLaboratorium() != null && !laboratorium.equals(getModelObject().getLaboratorium());
 
-		CervixVervolgTekst vervolgTekst = vervolgService.bepaalVervolg(getModelObject()).getVervolgTekst();
+		CervixVervolgTekst vervolgTekst = vervolgService.bepaalVervolg(getModelObject(), null).getVervolgTekst();
 
 		WebMarkupContainer labformulierLaboratoriumContainer = new WebMarkupContainer("labformulierLaboratoriumContainer");
 		form.add(labformulierLaboratoriumContainer);
@@ -239,7 +239,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 			{
 				saveMonster(target);
 
-				CervixVervolgTekst vervolgstap = vervolgService.bepaalVervolg(getModelObject()).getVervolgTekst();
+				CervixVervolgTekst vervolgstap = vervolgService.bepaalVervolg(getModelObject(), null).getVervolgTekst();
 
 				fieldset.add(new AttributeModifier("class", vervolgstap.getCssClass()));
 				target.add(fieldset);

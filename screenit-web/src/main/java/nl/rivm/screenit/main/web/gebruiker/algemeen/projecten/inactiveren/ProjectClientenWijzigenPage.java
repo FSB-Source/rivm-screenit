@@ -25,6 +25,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -43,9 +45,8 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.model.project.ProjectBestand;
 import nl.rivm.screenit.model.project.ProjectBestandType;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ProjectService;
-import nl.rivm.screenit.service.impl.ProjectServiceImpl;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -62,10 +63,9 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+@Slf4j
 @SecurityConstraint(
 	actie = Actie.VERWIJDEREN,
 	checkScope = true,
@@ -74,28 +74,24 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA })
 public class ProjectClientenWijzigenPage extends ProjectBasePage
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectServiceImpl.class);
-
 	@SpringBean
 	private ProjectService projectService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private HibernateService hibernateService;
 
-	private IModel<List<FileUpload>> clientenBestanden = new ListModel<>();
+	private final IModel<List<FileUpload>> clientenBestanden = new ListModel<>();
 
-	private IModel<ProjectBestand> formModel;
+	private final IModel<ProjectBestand> formModel;
 
 	private IModel<UploadDocument> documentModel;
 
 	private final BootstrapDialog dialog;
 
-	private WebMarkupContainer passpoortContainer;
-
-	private Form<ProjectBestand> form;
+	private final Form<ProjectBestand> form;
 
 	public ProjectClientenWijzigenPage(IModel<Project> model)
 	{
@@ -118,13 +114,13 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 		clientenBestand.setLabel(Model.of("Bestand met clienten"));
 		form.add(clientenBestand);
 
-		List<ProjectBestandType> projectBestandTypes = new ArrayList<ProjectBestandType>();
+		List<ProjectBestandType> projectBestandTypes = new ArrayList<>();
 		projectBestandTypes.add(ProjectBestandType.INACTIVEREN);
 		projectBestandTypes.add(ProjectBestandType.HERACTIVEREN);
 		projectBestandTypes.add(ProjectBestandType.VERWIJDEREN);
 
-		RadioChoice<ProjectBestandType> bestandTypeRadio = new RadioChoice<ProjectBestandType>("type", projectBestandTypes,
-			new EnumChoiceRenderer<ProjectBestandType>(this));
+		RadioChoice<ProjectBestandType> bestandTypeRadio = new RadioChoice<>("type", projectBestandTypes,
+			new EnumChoiceRenderer<>(this));
 		bestandTypeRadio.setPrefix("<label class=\"radio\" style=\"padding-left:5px\">");
 		bestandTypeRadio.setSuffix("</label>");
 		bestandTypeRadio.setOutputMarkupId(true);
@@ -139,7 +135,6 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-
 				if (clientenBestanden.getObject().size() == 1)
 				{
 					FileUpload attributenBestand = clientenBestanden.getObject().get(0);
@@ -149,9 +144,6 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 					String dialogTekst = "Weet u zeker dat u deze clienten wilt " + getString("ProjectBestandType." + projectBestand.getType() + ".melding") + "?";
 					dialog.openWith(target, new ConfirmPanel(dialog.CONTENT_ID, Model.of(dialogTekst), null, new DefaultConfirmCallback()
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						public void onYesClick(AjaxRequestTarget target)
 						{
@@ -184,7 +176,7 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 			}
 
 		});
-		passpoortContainer = getPassPoortContainer();
+		WebMarkupContainer passpoortContainer = getPassPoortContainer();
 
 		add(passpoortContainer);
 	}

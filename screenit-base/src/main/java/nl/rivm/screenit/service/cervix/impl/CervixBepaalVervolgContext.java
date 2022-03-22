@@ -21,33 +21,33 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 
+import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
-import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
-import nl.rivm.screenit.service.BaseHoudbaarheidService;
+import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 public class CervixBepaalVervolgContext
 {
-
 	public CervixMonster huidigeMonster;
 
-	public Date huidigeOntvangstdatum = null;
+	public Date huidigeOntvangstdatum;
 
-	public CervixMonsterType huidigMonsterType = null;
+	public CervixMonsterType huidigMonsterType;
 
 	public CervixUitstrijkje huidigUitstrijkje = null;
 
@@ -63,9 +63,9 @@ public class CervixBepaalVervolgContext
 
 	public CervixZasStatus huidigeZasStatus = null;
 
-	public CervixBrief huidigeMonsterBrief = null;
+	public CervixBrief huidigeMonsterBrief;
 
-	public CervixScreeningRonde ontvangstRonde = null;
+	public CervixScreeningRonde ontvangstRonde;
 
 	public CervixMonster monsterHpvUitslag = null;
 
@@ -87,9 +87,30 @@ public class CervixBepaalVervolgContext
 
 	public boolean isZasHoudbaar = false;
 
-	public CervixBepaalVervolgContext(CervixMonster monster)
+	public LocalDateTime nu;
+
+	public LocalDate startDatumGenotypering;
+
+	public CervixBepaalVervolgDao bepaalVervolgDao;
+
+	public CervixMonsterService monsterService;
+
+	public int intervalControleUitstrijkje;
+
+	public CervixBepaalVervolgContext(CervixMonster monster, boolean isZasHoudbaar, LocalDateTime nu, LocalDate startDatumAanleveringGenotypering,
+		CervixBepaalVervolgDao bepaalVervolgDao, CervixMonsterService monsterService, int intervalControleUitstrijkje)
+	{
+		this(monster, isZasHoudbaar, nu, startDatumAanleveringGenotypering, bepaalVervolgDao, monsterService, intervalControleUitstrijkje, false);
+	}
+
+	public CervixBepaalVervolgContext(CervixMonster monster, boolean isZasHoudbaar, LocalDateTime nu, LocalDate startDatumAanleveringGenotypering,
+		CervixBepaalVervolgDao bepaalVervolgDao, CervixMonsterService monsterService, int intervalControleUitstrijkje, boolean digitaalLabformulier)
 	{
 		huidigeMonster = (CervixMonster) HibernateHelper.deproxy(monster);
+		this.nu = nu;
+		startDatumGenotypering = startDatumAanleveringGenotypering;
+		this.bepaalVervolgDao = bepaalVervolgDao;
+		this.monsterService = monsterService;
 
 		huidigeOntvangstdatum = huidigeMonster.getOntvangstdatum();
 		huidigeMonsterBrief = huidigeMonster.getBrief();
@@ -99,6 +120,10 @@ public class CervixBepaalVervolgContext
 			huidigMonsterType = CervixMonsterType.UITSTRIJKJE;
 			huidigUitstrijkje = (CervixUitstrijkje) huidigeMonster;
 			huidigUitstrijkjeStatus = huidigUitstrijkje.getUitstrijkjeStatus();
+			if (digitaalLabformulier && huidigUitstrijkjeStatus == CervixUitstrijkjeStatus.NIET_ONTVANGEN)
+			{
+				huidigUitstrijkjeStatus = CervixUitstrijkjeStatus.ONTVANGEN;
+			}
 			huidigLabformulier = huidigUitstrijkje.getLabformulier();
 			if (huidigLabformulier != null)
 			{
@@ -118,8 +143,7 @@ public class CervixBepaalVervolgContext
 			huidigMonsterType = CervixMonsterType.ZAS;
 			huidigeZas = (CervixZas) huidigeMonster;
 			huidigeZasStatus = huidigeZas.getZasStatus();
-			BaseHoudbaarheidService houdbaarheidService = SpringBeanProvider.getInstance().getBean(BaseHoudbaarheidService.class);
-			isZasHoudbaar = houdbaarheidService.isHoudbaar(CervixZasHoudbaarheid.class, huidigeZas.getMonsterId());
+			this.isZasHoudbaar = isZasHoudbaar;
 			ontvangstRonde = huidigeZas.getOntvangstScreeningRonde();
 		}
 
@@ -153,5 +177,6 @@ public class CervixBepaalVervolgContext
 				}
 			}
 		}
+		this.intervalControleUitstrijkje = intervalControleUitstrijkje;
 	}
 }

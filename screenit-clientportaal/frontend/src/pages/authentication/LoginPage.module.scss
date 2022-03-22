@@ -3,44 +3,48 @@
 
 .style {
 
-  .loginDigid {
-    margin-top: 30px;
-    display: block;
+	.loginDigid {
+		margin-top: 30px;
+		display: block;
 
-    img {
-      width: 35px;
-      height: 35px;
+		img {
+			width: 35px;
+			height: 35px;
 
-      margin-top: auto;
-      margin-bottom: auto;
-      margin-right: 15px;
-    }
+			margin-top: auto;
+			margin-bottom: auto;
+			margin-right: 15px;
+		}
 
-    button {
-      position: relative;
-      background-color: $blauw-base;
-      font-weight: 400;
+		button {
+			position: relative;
+			background-color: $blauw-base;
+			font-weight: 400;
 
-      &:before {
-        box-sizing: border-box;
-        background-image: url('../../scss/media/digid-logo.svg');
-        content: "";
-        height: 40px;
-        width: 40px;
-        position: absolute;
-        top: 0.4rem;
-        right: -3rem;
-      }
+			&:before {
+				box-sizing: border-box;
+				background-image: url('../../scss/media/digid-logo.svg');
+				content: "";
+				height: 40px;
+				width: 40px;
+				position: absolute;
+				top: 0.4rem;
+				right: -3rem;
 
-      &:hover {
-        background-color: $blauw-700;
-      }
+				@include respond-below(md) {
+					top: 0.15rem;
+				}
+			}
 
-      &:active {
-        background-color: #004164;
-      }
-    }
+			&:hover {
+				background-color: $blauw-700;
+			}
 
-  }
+			&:active {
+				background-color: #004164;
+			}
+		}
+
+	}
 
 }

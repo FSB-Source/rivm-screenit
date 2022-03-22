@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.helpers;
 
 /*-
@@ -28,10 +27,12 @@ import java.io.Writer;
 import java.lang.reflect.ParameterizedType;
 
 import nl.rivm.screenit.batch.jobs.BatchConstants;
+import nl.rivm.screenit.batch.service.RevisionInformationService;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.JobType;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -55,6 +56,9 @@ public abstract class BaseLogListener implements JobExecutionListener
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired
+	private RevisionInformationService revisionInformationService;
 
 	private JobExecution jobExecution = null;
 
@@ -223,9 +227,18 @@ public abstract class BaseLogListener implements JobExecutionListener
 		}
 	}
 
+	protected void unregisterRevisionKenmerk(String context)
+	{
+		revisionInformationService.unregister(context);
+	}
+
+	protected void registerRevisionKenmerk(String context, RevisionKenmerk kenmerk)
+	{
+		revisionInformationService.registerKenmerk(context, kenmerk);
+	}
+
 	protected abstract class AantalVerwerker<E extends Enum>
 	{
-
 		protected abstract void verwerk(E enumConstant, long aantal);
 	}
 }

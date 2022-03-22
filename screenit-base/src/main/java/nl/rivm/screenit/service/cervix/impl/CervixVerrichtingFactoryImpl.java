@@ -35,6 +35,7 @@ import nl.rivm.screenit.model.cervix.facturatie.CervixVerrichting;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingFactory;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.cervix.CervixHuisartsToDtoUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -80,11 +81,11 @@ public class CervixVerrichtingFactoryImpl implements CervixVerrichtingFactory
 		{
 			if (CervixMonsterUtil.isUitstrijkje(monster))
 			{
-				so = monster.getUitnodiging().getBrief().getMergedBrieven().getScreeningOrganisatie();
+				so = BriefUtil.getMergedBrieven(monster.getUitnodiging().getBrief()).getScreeningOrganisatie();
 			}
 			else
 			{
-				so = monster.getUitnodiging().getScreeningRonde().getEersteUitnodiging().getBrief().getMergedBrieven().getScreeningOrganisatie();
+				so = BriefUtil.getMergedBrieven(monster.getUitnodiging().getScreeningRonde().getEersteUitnodiging().getBrief()).getScreeningOrganisatie();
 			}
 
 		}

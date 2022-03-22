@@ -33,7 +33,6 @@ public interface IVo107Provider
 
 	interface Vo107File
 	{
-
 		void saveToFile(File targetFile);
 
 		String getFilename();

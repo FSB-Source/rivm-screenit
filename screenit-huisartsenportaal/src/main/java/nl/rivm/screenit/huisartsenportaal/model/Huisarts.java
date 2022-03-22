@@ -35,6 +35,9 @@ import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.huisartsenportaal.model.enums.AanmeldStatus;
 
 import org.hibernate.annotations.LazyCollection;
@@ -43,10 +46,10 @@ import org.hibernate.envers.Audited;
 
 @Entity
 @Audited
+@Getter
+@Setter
 public class Huisarts extends Medewerker
 {
-	private static final long serialVersionUID = 1L;
-
 	private String agbcode;
 
 	private String email;
@@ -82,135 +85,5 @@ public class Huisarts extends Medewerker
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date overeenkomstGeaccordeerdDatum;
-
-	public String getAgbcode()
-	{
-		return agbcode;
-	}
-
-	public void setAgbcode(String agbcode)
-	{
-		this.agbcode = agbcode;
-	}
-
-	public String getEmail()
-	{
-		return email;
-	}
-
-	public void setEmail(String email)
-	{
-		this.email = email;
-	}
-
-	public String getAanhef()
-	{
-		return aanhef;
-	}
-
-	public void setAanhef(String aanhef)
-	{
-		this.aanhef = aanhef;
-	}
-
-	public String getAchternaam()
-	{
-		return achternaam;
-	}
-
-	public void setAchternaam(String achternaam)
-	{
-		this.achternaam = achternaam;
-	}
-
-	public String getTussenvoegsel()
-	{
-		return tussenvoegsel;
-	}
-
-	public void setTussenvoegsel(String tussenvoegsel)
-	{
-		this.tussenvoegsel = tussenvoegsel;
-	}
-
-	public String getVoorletters()
-	{
-		return voorletters;
-	}
-
-	public void setVoorletters(String voorletters)
-	{
-		this.voorletters = voorletters;
-	}
-
-	public String getTelefoon()
-	{
-		return telefoon;
-	}
-
-	public void setTelefoon(String telefoon)
-	{
-		this.telefoon = telefoon;
-	}
-
-	public List<Locatie> getLocaties()
-	{
-		return locaties;
-	}
-
-	public void setLocaties(List<Locatie> locaties)
-	{
-		this.locaties = locaties;
-	}
-
-	public Date getOvereenkomstGeaccordeerdDatum()
-	{
-		return overeenkomstGeaccordeerdDatum;
-	}
-
-	public void setOvereenkomstGeaccordeerdDatum(Date overeenkomstGeaccordeerdDatum)
-	{
-		this.overeenkomstGeaccordeerdDatum = overeenkomstGeaccordeerdDatum;
-	}
-
-	public Adres getPostadres()
-	{
-		return postadres;
-	}
-
-	public void setPostadres(Adres postadres)
-	{
-		this.postadres = postadres;
-	}
-
-	public List<LabformulierAanvraag> getAanvragen()
-	{
-		return aanvragen;
-	}
-
-	public void setAanvragen(List<LabformulierAanvraag> aanvragen)
-	{
-		this.aanvragen = aanvragen;
-	}
-
-	public String getExtraEmails()
-	{
-		return extraEmails;
-	}
-
-	public void setExtraEmails(String extraEmails)
-	{
-		this.extraEmails = extraEmails;
-	}
-
-	public AanmeldStatus getAanmeldStatus()
-	{
-		return aanmeldStatus;
-	}
-
-	public void setAanmeldStatus(AanmeldStatus aanmeldStatus)
-	{
-		this.aanmeldStatus = aanmeldStatus;
-	}
 
 }

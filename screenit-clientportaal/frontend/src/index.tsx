@@ -28,65 +28,67 @@ import {Action, applyMiddleware, compose, createStore, Store} from "redux"
 import cpReducers from "./reducers"
 import {loadState, saveState} from "./utils/StorageUtil"
 import {Provider, useDispatch} from "react-redux"
-import {Router} from "react-router-dom"
+import {BrowserRouter} from "react-router-dom"
 import App from "./App"
 import thunk, {ThunkDispatch} from "redux-thunk"
 import {State} from "./datatypes/State"
-import {cpHistory} from "./routes/routes"
-import CpIdleTimer from "./components/idle_timer/CpIdleTimer"
+import IdleTimerWrapper from "./wrapper/IdleTimerWrapper"
 import {AuthClientEvent} from "@react-keycloak/core/lib/types"
-import {logout} from "./utils/LogoutUtil"
-import { datadogRum } from '@datadog/browser-rum';
+import {datadogRum} from "@datadog/browser-rum"
+import AuthenticationWrapper from "./wrapper/AuthenticationWrapper"
+import {setLoggingOutAction} from "./actions/AuthenticatieAction"
 
 export type ReduxThunkDispatch = ThunkDispatch<State, any, Action>;
 
 export function useThunkDispatch(): ReduxThunkDispatch {
-    return useDispatch<ReduxThunkDispatch>()
+	return useDispatch<ReduxThunkDispatch>()
 }
 
-const composeEnhancers = (process.env.NODE_ENV !== 'production' && (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ )|| compose
+const composeEnhancers = (process.env.NODE_ENV !== "production" && (window as any).__REDUX_DEVTOOLS_EXTENSION_COMPOSE__) || compose
 
 export const cpStore: Store = createStore(cpReducers, loadState(), composeEnhancers(applyMiddleware(thunk)))
 cpStore.subscribe(() => {
-    saveState()
+	saveState()
 })
 
 const automaticLogout = (authEvent: AuthClientEvent) => {
-    if (authEvent === "onAuthRefreshError") {
-        logout(keycloak, cpStore.dispatch, true)
-    }
+	if (authEvent === "onAuthRefreshError") {
+		cpStore.dispatch(setLoggingOutAction(true))
+	}
 }
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
 	datadogRum.init({
-		applicationId: '9247fc9b-d035-4f9f-9d74-f9140c41c834',
-		clientToken: 'pub4c285cbd766641dd2f560ee6b9a9cb63',
-		site: 'datadoghq.eu',
-		service:'clientportaal',
+		applicationId: "9247fc9b-d035-4f9f-9d74-f9140c41c834",
+		clientToken: "pub4c285cbd766641dd2f560ee6b9a9cb63",
+		site: "datadoghq.eu",
+		service: "clientportaal",
 		sampleRate: 100,
 		trackInteractions: true,
-		defaultPrivacyLevel: 'mask'
-	});
+		defaultPrivacyLevel: "mask",
+	})
 
-	datadogRum.startSessionReplayRecording();
+	datadogRum.startSessionReplayRecording()
 }
 
 ReactDOM.render(
-    <React.StrictMode>
-        <ReactKeycloakProvider
-            authClient={keycloak}
-            initOptions={{checkLoginIframe: false, pkceMethod: "S256"}}
-            onEvent={automaticLogout}>
-            <Provider store={cpStore}>
-                <Router history={cpHistory}>
-                    <CpIdleTimer>
-                        <App/>
-                    </CpIdleTimer>
-                </Router>
-            </Provider>
-        </ReactKeycloakProvider>
-    </React.StrictMode>,
-    document.getElementById("root"),
+	<React.StrictMode>
+		<ReactKeycloakProvider
+			authClient={keycloak}
+			initOptions={{checkLoginIframe: false, pkceMethod: "S256"}}
+			onEvent={automaticLogout}>
+			<Provider store={cpStore}>
+				<BrowserRouter>
+					<AuthenticationWrapper>
+						<IdleTimerWrapper>
+							<App/>
+						</IdleTimerWrapper>
+					</AuthenticationWrapper>
+				</BrowserRouter>
+			</Provider>
+		</ReactKeycloakProvider>
+	</React.StrictMode>,
+	document.getElementById("root"),
 )
 
 serviceWorker.unregister()

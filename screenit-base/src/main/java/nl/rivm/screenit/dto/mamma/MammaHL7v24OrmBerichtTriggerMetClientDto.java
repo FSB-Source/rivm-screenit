@@ -22,30 +22,29 @@ package nl.rivm.screenit.dto.mamma;
  */
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+
+@Getter
+@Setter
 public class MammaHL7v24OrmBerichtTriggerMetClientDto extends MammaAbstractHL7v24OrmBerichtTriggerDto implements Serializable
 {
 	private Long clientId;
 
-	private Long rondeId;
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	private LocalDateTime laatsteOnderzoekAfgerondOpDatum;
 
-	public Long getRondeId()
-	{
-		return rondeId;
-	}
+	@JsonDeserialize(using = LocalDateTimeDeserializer.class)
+	@JsonSerialize(using = LocalDateTimeSerializer.class)
+	private LocalDateTime laatsteAfspraakDatum;
 
-	public void setRondeId(Long rondeId)
-	{
-		this.rondeId = rondeId;
-	}
-
-	public Long getClientId()
-	{
-		return clientId;
-	}
-
-	public void setClientId(Long clientId)
-	{
-		this.clientId = clientId;
-	}
+	private boolean uploaded;
 }

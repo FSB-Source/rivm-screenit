@@ -18,16 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {BvoParameters} from "./BvoParameters";
+import {BvoParameters} from "./BvoParameters"
 
 export type LandingOverzicht = {
 
-    mammaParameters: BvoParameters,
-    cervixParameters: BvoParameters,
-    colonParameters: BvoParameters,
-    clientBehoortTotMammaDoelgroep: boolean,
-    clientBehoortTotCervixDoelgroep: boolean,
-    clientBehoortTotColonDoelgroep: boolean
+	mammaParameters: BvoParameters,
+	behoortTotMammaDoelgroep: boolean,
+	cervixParameters: BvoParameters,
+	behoortTotCervixDoelgroep: boolean,
+	colonParameters: BvoParameters,
+	behoortTotColonDoelgroep: boolean
 
 }
 

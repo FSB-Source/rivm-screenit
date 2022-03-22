@@ -29,7 +29,6 @@ import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
 
 import ca.uhn.hl7v2.HL7Exception;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 
 public interface MammaHL7v24SendService
 {
@@ -40,9 +39,6 @@ public interface MammaHL7v24SendService
 		throws HL7CreateMessageException, HL7SendMessageException, HL7Exception;
 
 	void verversConfiguratie();
-
-    void sendUploadBeeldenORMMessage(MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger, MammaHL7Connectie messageConnection)
-            throws HL7CreateMessageException, HL7SendMessageException;
 
     void sendKwaliteitsopnameORMMessage(MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger, MammaHL7Connectie messageContext)
 		throws HL7CreateMessageException;

@@ -37,7 +37,6 @@ import nl.rivm.screenit.mamma.planning.service.PlanningAfspraakDrempelOverzichtS
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,8 +50,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlanningStandplaatsController
 {
 
-	@Autowired
-	private PlanningAfspraakDrempelOverzichtService afspraakDrempelOverzichtService;
+	private final PlanningAfspraakDrempelOverzichtService afspraakDrempelOverzichtService;
+
+	public PlanningStandplaatsController(PlanningAfspraakDrempelOverzichtService afspraakDrempelOverzichtService)
+	{
+		this.afspraakDrempelOverzichtService = afspraakDrempelOverzichtService;
+	}
 
 	@RequestMapping(method = RequestMethod.POST)
 	public void post(@RequestBody PlanningStandplaatsDto standplaatsDto)

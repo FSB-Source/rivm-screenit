@@ -21,9 +21,6 @@ package nl.rivm.screenit.mamma.planning.dao.impl;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.mamma.planning.model.PlanningConstanten.plannenTotEnMetGeboortedatum;
-import static nl.rivm.screenit.mamma.planning.model.PlanningConstanten.plannenVanafGeboortedatum;
-
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -36,8 +33,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
@@ -67,6 +68,7 @@ import nl.rivm.screenit.mamma.planning.model.PlanningStandplaats;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsRonde;
 import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
+import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
@@ -113,56 +115,70 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.core.env.Environment;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import static nl.rivm.screenit.mamma.planning.model.PlanningConstanten.plannenTotEnMetGeboortedatum;
+import static nl.rivm.screenit.mamma.planning.model.PlanningConstanten.plannenVanafGeboortedatum;
+
 @Repository
 @Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
 public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements PlanningReadModelDao, ApplicationListener<ContextRefreshedEvent>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningReadModelDaoImpl.class);
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final Map<Long, Set<Long>> teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap = new HashMap<>();
 
-	@Autowired
-	private PlanningConceptService conceptService;
+	private final Map<Long, Set<Long>> teLezenStandplaatsRondeSetScreeningsOrganisatieMap = new HashMap<>();
 
-	@Autowired
-	private SessionFactory sessionFactory;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final SessionFactory sessionFactory;
 
-	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private MammaBaseAfspraakService afspraakService;
+	private final SimplePreferenceService simplePreferenceService;
 
-	private Map<Long, Set<Long>> teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap = new HashMap<>();
+	private final MammaBaseAfspraakService afspraakService;
 
-	private Map<Long, Set<Long>> teLezenStandplaatsRondeSetScreeningsOrganisatieMap = new HashMap<>();
+	private final PlanningConceptService conceptService;
 
-	private LocalDate herhalenVanaf;
+	private final PlanningConceptOpslaanService conceptOpslaanService;
+
+	private final Environment env;
 
 	private boolean doInit = true;
 
-	@Override
-	public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent)
+	private LocalDate herhalenVanaf;
+
+	public PlanningReadModelDaoImpl(ICurrentDateSupplier dateSupplier, SessionFactory sessionFactory, HibernateService hibernateService,
+		SimplePreferenceService simplePreferenceService, MammaBaseAfspraakService afspraakService,
+		PlanningConceptService conceptService, PlanningConceptOpslaanService conceptOpslaanService, Environment env)
 	{
-		if (doInit)
+		this.dateSupplier = dateSupplier;
+		this.sessionFactory = sessionFactory;
+		this.hibernateService = hibernateService;
+		this.simplePreferenceService = simplePreferenceService;
+		this.afspraakService = afspraakService;
+		this.conceptService = conceptService;
+		this.conceptOpslaanService = conceptOpslaanService;
+		this.env = env;
+	}
+
+	@Override
+	public void onApplicationEvent(@NonNull ContextRefreshedEvent contextRefreshedEvent)
+	{
+		if (doInit && Arrays.stream(env.getActiveProfiles()).noneMatch(s -> s.equals("test")))
 		{
 			LOG.info("doInit");
-			OpenHibernate5Session.withCommittedTransaction().run(() -> {
+			OpenHibernate5Session.withCommittedTransaction().run(() ->
+			{
 				try
 				{
 					PlanningStatusIndex.set(MammaPlanningStatus.OPSTARTEN);
@@ -179,10 +195,16 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 					doInit = false;
 				}
 			});
-
 		}
 	}
 
+	@Override
+	public LocalDate getHerhalenVanafDatum()
+	{
+		return herhalenVanaf;
+	}
+
+	@Transactional
 	@Override
 	public void readDataModel()
 	{
@@ -240,7 +262,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		readGebruikteCapaciteit();
 
 		conceptService.herhalen(herhalenVanaf);
-		conceptService.opslaan();
+		conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 	}
 
 	@Override
@@ -279,8 +301,14 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		readStandplaatsPerioden(teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap.get(screeningsOrganisatie.getId()));
 
 		PlanningDoorrekenenManager.run();
+	}
 
-		conceptService.opslaan();
+	@Override
+	public void addStandplaatsPeriode(PlanningStandplaatsPeriode standplaatsPeriode)
+	{
+		Long screeningsOrganisatieId = standplaatsPeriode.getScreeningsEenheid().getScreeningsOrganisatie().getId();
+		teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap.get(screeningsOrganisatieId).add(standplaatsPeriode.getId());
+		teLezenStandplaatsRondeSetScreeningsOrganisatieMap.get(screeningsOrganisatieId).add(standplaatsPeriode.getStandplaatsRonde().getId());
 	}
 
 	private void readConstanten()
@@ -350,20 +378,14 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			teLezenStandplaatsRondeSetScreeningsOrganisatieMap.get(result[5]).add((Long) result[3]);
 		}
 
-		Criteria crit3 = getSession().createCriteria(MammaCapaciteitBlok.class, "capaciteitBlok");
-		crit3.setProjection(Projections.max("capaciteitBlok.vanaf"));
-		Date geplandTotEnMet = (Date) crit3.uniqueResult();
-
-		if (geplandTotEnMet == null)
-		{
-			geplandTotEnMet = dateSupplier.getDateMidnight();
-		}
-		herhalenVanaf = DateUtil.toLocalDate(geplandTotEnMet).plusWeeks(1).with(DayOfWeek.MONDAY);
-
 		if (plannenVanaf == null)
 		{
 			plannenVanaf = plannenTotEnMet = dateSupplier.getDateMidnight();
 		}
+
+		Date geplandTotEnMet = getMaxGeplandeDatumCapaciteitsBlok();
+		herhalenVanaf = DateUtil.toLocalDate(geplandTotEnMet).plusWeeks(1).with(DayOfWeek.MONDAY);
+
 		LOG.info("Constanten: GeplandTotEnMet: " + geplandTotEnMet + ", plannenVanaf: " + plannenVanaf + ", plannenTotEnMet: " + plannenTotEnMet);
 
 		int vanafLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
@@ -372,6 +394,13 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		PlanningConstanten.set(DateUtil.toLocalDate(plannenVanaf),
 			Collections.max(Arrays.asList(DateUtil.toLocalDate(geplandTotEnMet), DateUtil.toLocalDate(plannenTotEnMet).plusMonths(6))), dateSupplier.getLocalDateTime(),
 			vanafLeeftijd, totEnMetLeeftijd);
+	}
+
+	private Date getMaxGeplandeDatumCapaciteitsBlok()
+	{
+		Criteria criteria = getSession().createCriteria(MammaCapaciteitBlok.class, "capaciteitBlok");
+		criteria.setProjection(Projections.max("capaciteitBlok.vanaf"));
+		return Optional.of(((Date) criteria.uniqueResult())).orElseGet(() -> dateSupplier.getDateMidnight());
 	}
 
 	private void readScreeningsOrganisaties()
@@ -1107,14 +1136,6 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 
 		LOG.info("End vorigeScreeningRondeCreatieDatumMap. " + vorigeScreeningRondeCreatieDatumMap.size() + " vorige screening rondes.");
 		return vorigeScreeningRondeCreatieDatumMap;
-	}
-
-	@Override
-	public void addStandplaatsPeriode(PlanningStandplaatsPeriode standplaatsPeriode)
-	{
-		Long screeningsOrganisatieId = standplaatsPeriode.getScreeningsEenheid().getScreeningsOrganisatie().getId();
-		teLezenStandplaatsPeriodeSetScreeningsOrganisatieMap.get(screeningsOrganisatieId).add(standplaatsPeriode.getId());
-		teLezenStandplaatsRondeSetScreeningsOrganisatieMap.get(screeningsOrganisatieId).add(standplaatsPeriode.getStandplaatsRonde().getId());
 	}
 
 }

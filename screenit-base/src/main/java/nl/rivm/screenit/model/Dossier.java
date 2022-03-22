@@ -32,6 +32,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Transient;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -41,15 +44,15 @@ import org.hibernate.Hibernate;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
+import org.hibernate.envers.NotAudited;
 
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public abstract class Dossier<SR extends ScreeningRonde<?, ?, ?, ?>, AF extends Afmelding<?, ?, ?>> extends TablePerClassHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@Enumerated(EnumType.STRING)
 	private DossierStatus status;
 
@@ -61,6 +64,15 @@ public abstract class Dossier<SR extends ScreeningRonde<?, ?, ?, ?>, AF extends 
 
 	@Temporal(TemporalType.DATE)
 	private Date inactiefTotMet;
+
+	@Temporal(TemporalType.DATE)
+	private Date datumLaatstGecontroleerdeSignalering;
+
+	@NotAudited
+	@Getter
+	@Setter
+	@Column(nullable = true)
+	private Boolean wachtOpStartProject = false;
 
 	public abstract Client getClient();
 
@@ -82,36 +94,6 @@ public abstract class Dossier<SR extends ScreeningRonde<?, ?, ?, ?>, AF extends 
 
 	public abstract void setLaatsteAfmelding(AF laatsteAfmelding);
 
-	public DossierStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(DossierStatus status)
-	{
-		this.status = status;
-	}
-
-	public Boolean getAangemeld()
-	{
-		return aangemeld;
-	}
-
-	public void setAangemeld(Boolean aangemeld)
-	{
-		this.aangemeld = aangemeld;
-	}
-
-	public Date getInactiefVanaf()
-	{
-		return inactiefVanaf;
-	}
-
-	public void setInactiefVanaf(Date inactiefVanaf)
-	{
-		this.inactiefVanaf = inactiefVanaf;
-	}
-
 	@Transient
 	public Bevolkingsonderzoek getBevolkingsonderzoek()
 	{
@@ -132,13 +114,4 @@ public abstract class Dossier<SR extends ScreeningRonde<?, ?, ?, ?>, AF extends 
 		return bevolkingsonderzoek;
 	}
 
-	public Date getInactiefTotMet()
-	{
-		return inactiefTotMet;
-	}
-
-	public void setInactiefTotMet(Date inactiefTotMet)
-	{
-		this.inactiefTotMet = inactiefTotMet;
-	}
 }

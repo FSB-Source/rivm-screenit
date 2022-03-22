@@ -109,7 +109,7 @@ public class TestenBasePage extends GebruikerBasePage
 
 	protected void addClientBsnGenererenButtons(WebMarkupContainer container, IModel<TestTimelineModel> model)
 	{
-		container.add(new IndicatingAjaxLink<TestTimelineModel>("bsnGenereren", model)
+		container.add(new IndicatingAjaxLink<>("bsnGenereren", model)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -127,7 +127,7 @@ public class TestenBasePage extends GebruikerBasePage
 			}
 		});
 
-		container.add(new IndicatingAjaxLink<TestTimelineModel>("bsnToevoegen", model)
+		container.add(new IndicatingAjaxLink<>("bsnToevoegen", model)
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -217,8 +217,13 @@ public class TestenBasePage extends GebruikerBasePage
 				{
 					try
 					{
+						String openTab = "window.open('%s', '_blank')";
+						if (Boolean.getBoolean("clientportaalSameTab"))
+						{
+							openTab = "window.open('%s', '_self')";
+						}
 						String url = constructAutoInlogClientportaalUrl(bsns.get(0));
-						target.appendJavaScript(String.format("window.open('%s', '_blank')", url));
+						target.appendJavaScript(String.format(openTab, url));
 					}
 					catch (RuntimeException e)
 					{
@@ -234,7 +239,7 @@ public class TestenBasePage extends GebruikerBasePage
 
 			private String constructAutoInlogClientportaalUrl(String bsn)
 			{
-				String url = "";
+				String url;
 				try
 				{
 					url = String.format(newClientportaalUrlAutoLogin, bsn, TARGET_URI_PLACEHOLDER, DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(LocalDateTime.now()));
@@ -262,7 +267,7 @@ public class TestenBasePage extends GebruikerBasePage
 
 			private byte[] calcHmacSha256(byte[] secretKey, byte[] message)
 			{
-				byte[] hmacSha256 = null;
+				byte[] hmacSha256;
 				try
 				{
 					Mac mac = Mac.getInstance("HmacSHA256");
@@ -293,7 +298,7 @@ public class TestenBasePage extends GebruikerBasePage
 
 	private List<GebruikerMenuItem> createContextMenu()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("menu.testen.bmhk.hpvbericht", TestHpvBerichtPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.testen.colon.ifobtbericht", TestHL7BerichtPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("menu.postcode.testen.tools", TestPostcodePage.class));

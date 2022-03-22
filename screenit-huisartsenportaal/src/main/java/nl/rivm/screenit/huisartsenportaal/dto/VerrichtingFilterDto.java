@@ -23,6 +23,11 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class VerrichtingFilterDto
 {
 	private String clientNaam;
@@ -39,73 +44,4 @@ public class VerrichtingFilterDto
 
 	private boolean alleenZonderBetalingskenmerk = false;
 
-	public String getClientNaam()
-	{
-		return clientNaam;
-	}
-
-	public void setClientNaam(String clientNaam)
-	{
-		this.clientNaam = clientNaam;
-	}
-
-	public Date getVerrichtingsDatumVanaf()
-	{
-		return verrichtingsDatumVanaf;
-	}
-
-	public void setVerrichtingsDatumVanaf(Date verrichtingsDatumVanaf)
-	{
-		this.verrichtingsDatumVanaf = verrichtingsDatumVanaf;
-	}
-
-	public Date getVerrichtingsDatumTotenmet()
-	{
-		return verrichtingsDatumTotenmet;
-	}
-
-	public void setVerrichtingsDatumTotenmet(Date verrichtingsDatumTotenmet)
-	{
-		this.verrichtingsDatumTotenmet = verrichtingsDatumTotenmet;
-	}
-
-	public Date getDatumUitstrijkje()
-	{
-		return datumUitstrijkje;
-	}
-
-	public void setDatumUitstrijkje(Date datumUitstrijkje)
-	{
-		this.datumUitstrijkje = datumUitstrijkje;
-	}
-
-	public LocatieDto getLocatie()
-	{
-		return locatie;
-	}
-
-	public void setLocatie(LocatieDto locatie)
-	{
-		this.locatie = locatie;
-	}
-
-	public String getBetalingskenmerk()
-	{
-		return betalingskenmerk;
-	}
-
-	public void setBetalingskenmerk(String betalingskenmerk)
-	{
-		this.betalingskenmerk = betalingskenmerk;
-	}
-
-	public boolean isAlleenZonderBetalingskenmerk()
-	{
-		return alleenZonderBetalingskenmerk;
-	}
-
-	public void setAlleenZonderBetalingskenmerk(boolean alleenZonderBetalingskenmerk)
-	{
-		this.alleenZonderBetalingskenmerk = alleenZonderBetalingskenmerk;
-	}
 }

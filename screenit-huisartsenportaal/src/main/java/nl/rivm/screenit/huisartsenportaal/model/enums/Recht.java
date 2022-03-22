@@ -21,8 +21,11 @@ package nl.rivm.screenit.huisartsenportaal.model.enums;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import org.springframework.security.core.GrantedAuthority;
 
+@AllArgsConstructor
 public enum Recht implements GrantedAuthority
 {
 
@@ -32,12 +35,7 @@ public enum Recht implements GrantedAuthority
 
 	ROLE_OVEREENKOMST("ROLE_OVEREENKOMST");
 
-	private String authority;
-
-	Recht(String authority)
-	{
-		this.authority = authority;
-	}
+	private final String authority;
 
 	@Override
 	public String getAuthority()

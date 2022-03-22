@@ -28,7 +28,7 @@ import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfVi
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.AbstractGebeurtenisDetailPanel;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -37,14 +37,14 @@ public class MammaVerslagInzienPanel extends AbstractGebeurtenisDetailPanel
 {
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	public MammaVerslagInzienPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
 		UploadDocument file = ((MammaScreeningRonde) getModelObject().getScreeningRondeGebeurtenissen().getScreeningRonde()).getLaatsteUitnodiging().getLaatsteAfspraak()
 			.getOnderzoek().getLaatsteBeoordeling().getVerslagPdf();
-		File verslag = fileService.load(file);
+		File verslag = uploadDocumentService.load(file);
 		add(new PdfViewer("verslag", verslag, false));
 	}
 }

@@ -27,6 +27,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.VragenlijstService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -47,7 +49,7 @@ import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.ProjectVragenlijst;
 import nl.rivm.screenit.model.project.ProjectVragenlijstAntwoordenHolder;
 import nl.rivm.screenit.service.AsposeService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
 
@@ -78,13 +80,12 @@ import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.time.Duration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 import com.aspose.words.DocSaveOptions;
 import com.aspose.words.Document;
 
+@Slf4j
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -93,27 +94,22 @@ import com.aspose.words.Document;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX })
 public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectVragenlijstEditPage.class);
-
 	private final TransparentWebMarkupContainer fragments;
 
 	@SpringBean
 	private VragenlijstService vragenlijstService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@SpringBean
 	private AsposeService asposeService;
 
-	private IModel<List<FileUpload>> files = new ListModel<>();
+	private final IModel<List<FileUpload>> files = new ListModel<>();
 
-	private IModel<ProjectVragenlijst> projectVragenlijstModel;
+	private final IModel<ProjectVragenlijst> projectVragenlijstModel;
 
-	private Component table;
+	private final Component table;
 
 	public ProjectVragenlijstEditPage(IModel<ProjectVragenlijst> model)
 	{
@@ -131,41 +127,30 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 
 	private Component getTable(final IModel<ProjectVragenlijst> vragenlijst)
 	{
-		List<IColumn<ScreenitFormulierInstantie, String>> columns = new ArrayList<IColumn<ScreenitFormulierInstantie, String>>();
-		columns.add(new PropertyColumn<ScreenitFormulierInstantie, String>(Model.of("Versie"), "formulierDefinitieNaam"));
-		columns.add(new DateTimePropertyColumn<ScreenitFormulierInstantie, String>(Model.of("Uploaddatum"), "creatieDatum"));
-		columns.add(new PropertyColumn<ScreenitFormulierInstantie, String>(Model.of("Uploader"), "uploader.medewerker.naamVolledig"));
+		List<IColumn<ScreenitFormulierInstantie, String>> columns = new ArrayList<>();
+		columns.add(new PropertyColumn<>(Model.of("Versie"), "formulierDefinitieNaam"));
+		columns.add(new DateTimePropertyColumn<>(Model.of("Uploaddatum"), "creatieDatum"));
+		columns.add(new PropertyColumn<>(Model.of("Uploader"), "uploader.medewerker.naamVolledig"));
 
-		columns.add(new AbstractColumn<ScreenitFormulierInstantie, String>(Model.of("Genereer template"))
+		columns.add(new AbstractColumn<>(Model.of("Genereer template"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ScreenitFormulierInstantie>> cellItem, String componentId, IModel<ScreenitFormulierInstantie> rowModel)
 			{
 				cellItem.add(new DownloadFragment(componentId, rowModel));
 			}
-
 		});
 
-		columns.add(new AbstractColumn<ScreenitFormulierInstantie, String>(Model.of("Upload definitief template"))
+		columns.add(new AbstractColumn<>(Model.of("Upload definitief template"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ScreenitFormulierInstantie>> cellItem, String componentId, final IModel<ScreenitFormulierInstantie> rowModel)
 			{
 				cellItem.add(new UploadFragment(componentId, rowModel));
 			}
-
 		});
-		columns.add(new AbstractColumn<ScreenitFormulierInstantie, String>(Model.of("Download definitief template"))
+		columns.add(new AbstractColumn<>(Model.of("Download definitief template"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ScreenitFormulierInstantie>> cellItem, String componentId, IModel<ScreenitFormulierInstantie> rowModel)
 			{
@@ -179,11 +164,8 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 				}
 			}
 		});
-		columns.add(new AbstractColumn<ScreenitFormulierInstantie, String>(Model.of("Web preview"))
+		columns.add(new AbstractColumn<>(Model.of("Web preview"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<ScreenitFormulierInstantie>> cellItem, String componentId, IModel<ScreenitFormulierInstantie> rowModel)
 			{
@@ -204,20 +186,16 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 						setResponsePage(new ProjectVragenlijstEditPage(vragenlijst));
 
 					}
-
 				});
 			}
-
 		});
 
 		Component dataTable;
 		if (vragenlijst.getObject().getId() != null)
 		{
-			dataTable = new ScreenitDataTable<ScreenitFormulierInstantie, String>("definities", columns,
+			dataTable = new ScreenitDataTable<>("definities", columns,
 				new FormulierDefinitiesProvider(ModelUtil.cModel(new ScreenitFormulierInstantie()), "formulierDefinitieNaam", vragenlijst), 10, new Model<String>("definities"))
 			{
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected boolean isRowClickable(IModel<ScreenitFormulierInstantie> rowModel)
 				{
@@ -240,7 +218,7 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("menu.algemeen.vragenlijsten", ProjectVragenlijstenPage.class));
 		contextMenuItems.add(new GebruikerMenuItem("label.vragenlijsten.vragenlijst.edit", false, ProjectVragenlijstEditPage.class));
 
@@ -249,8 +227,6 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 
 	private class EditForm extends ScreenitForm<ProjectVragenlijst>
 	{
-
-		private static final long serialVersionUID = 1L;
 
 		private final IModel<List<FileUpload>> fileUploads = new ListModel<>();
 
@@ -266,9 +242,6 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 
 			add(new IndicatingAjaxLink<Void>("annuleren")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public void onClick(AjaxRequestTarget target)
 				{
@@ -278,9 +251,6 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 
 			add(new IndicatingAjaxButton("opslaan")
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
@@ -328,14 +298,11 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 					}
 				}
 			});
-
 		}
 	}
 
 	private class UploadFragment extends Fragment
 	{
-		private static final long serialVersionUID = 1L;
-
 		public UploadFragment(String id, final IModel<ScreenitFormulierInstantie> model)
 		{
 			super(id, "fragmentUpload", fragments, new CompoundPropertyModel<>(model));
@@ -389,9 +356,6 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 
 	private class DownloadFragment extends Fragment
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		public DownloadFragment(String id, final IModel<ScreenitFormulierInstantie> model)
 		{
 			super(id, "fragmentDownload", fragments, new CompoundPropertyModel<>(model));
@@ -399,9 +363,6 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 
 			add(new ResourceLink<>("download", new AbstractResource()
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				protected ResourceResponse newResourceResponse(Attributes attributes)
 				{
@@ -438,8 +399,6 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 
 	private class DownloadDefinitiefFragment extends Fragment
 	{
-		private static final long serialVersionUID = 1L;
-
 		public DownloadDefinitiefFragment(String id, final IModel<ScreenitFormulierInstantie> model)
 		{
 			super(id, "downloadDefinitiefFragment", fragments, new CompoundPropertyModel<>(model));

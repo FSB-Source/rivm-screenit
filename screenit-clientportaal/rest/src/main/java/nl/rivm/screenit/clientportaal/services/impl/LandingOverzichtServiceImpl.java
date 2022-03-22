@@ -21,44 +21,46 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.clientportaal.model.BvoParametersDto;
 import nl.rivm.screenit.clientportaal.model.LandingOverzichtDto;
+import nl.rivm.screenit.clientportaal.services.LandingOverzichtService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixDossier;
+import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LandingOverzichtServiceImpl
+@AllArgsConstructor
+public class LandingOverzichtServiceImpl implements LandingOverzichtService
 {
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private ClientDoelgroepService doelgroepService;
+	private final ClientDoelgroepService doelgroepService;
 
 	public LandingOverzichtDto getLandingOverzicht(Client client)
 	{
+		var behoortTotCervixDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.CERVIX);
+		var behoortTotColonDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.COLON);
+		var behoortTotMammaDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.MAMMA);
 
-		boolean behoortTotCervixDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.CERVIX);
-		boolean behoortTotColonDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.COLON);
-		boolean behoortTotMammaDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.MAMMA);
-
-		return new LandingOverzichtDto(
-			getMammaParameters(client.getMammaDossier()),
-			behoortTotMammaDoelgroep,
-			getCervixParameters(client.getCervixDossier()),
-			behoortTotCervixDoelgroep,
-			getColonParameters(client.getColonDossier()),
-			behoortTotColonDoelgroep);
+		var dto = new LandingOverzichtDto();
+		dto.setMammaParameters(getMammaParameters(client.getMammaDossier()));
+		dto.setBehoortTotMammaDoelgroep(behoortTotMammaDoelgroep);
+		dto.setCervixParameters(getCervixParameters(client.getCervixDossier()));
+		dto.setBehoortTotCervixDoelgroep(behoortTotCervixDoelgroep);
+		dto.setColonParameters(getColonParameters(client.getColonDossier()));
+		dto.setBehoortTotColonDoelgroep(behoortTotColonDoelgroep);
+		return dto;
 	}
 
 	private BvoParametersDto getMammaParameters(MammaDossier dossier)
@@ -85,8 +87,8 @@ public class LandingOverzichtServiceImpl
 		}
 
 		return new BvoParametersDto(
-			30,
-			60,
+			CervixLeeftijdcategorie._30.getLeeftijd(),
+			CervixLeeftijdcategorie._60.getLeeftijd(),
 			preferenceService.getString(PreferenceKey.CERVIX_CLIENTPORTAAL_TIJDELIJKE_MELDING.name()),
 			preferenceService.getBoolean(PreferenceKey.CERVIX_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST.name(), false),
 			preferenceService.getString(PreferenceKey.CERVIX_CLIENTPORTAAL_VERVANGENDE_TEKST.name()));

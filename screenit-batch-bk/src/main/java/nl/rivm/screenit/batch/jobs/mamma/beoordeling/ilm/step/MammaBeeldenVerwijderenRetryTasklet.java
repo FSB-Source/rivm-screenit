@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener;
 import nl.rivm.screenit.batch.model.dto.MammaIlmRetryDto;
 import nl.rivm.screenit.batch.service.MammaIlmService;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportageEntry;
@@ -74,13 +73,11 @@ public class MammaBeeldenVerwijderenRetryTasklet implements Tasklet
 				if (retryEntry.isUploaded())
 				{
 					berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(retryEntry.getAccessionNumber(), retryEntry.getClientId(),
-						MammaHL7v24ORMBerichtStatus.DELETE,
-						MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
+						MammaHL7v24ORMBerichtStatus.DELETE, null);
 				}
 				else
 				{
-					berichtToBatchService.queueMammaIlmHl7v24BerichtUitgaand(retryEntry.getAccessionNumber(), retryEntry.getClientId(), MammaHL7v24ORMBerichtStatus.DELETE,
-						MammaHL7BerichtType.IMS_ORM_ILM);
+					berichtToBatchService.queueMammaHl7v24RetryDeleteBerichtUitgaand(retryEntry.getAccessionNumber(), retryEntry.getClientId());
 				}
 			});
 		}

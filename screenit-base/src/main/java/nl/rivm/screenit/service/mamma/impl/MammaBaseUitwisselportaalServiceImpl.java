@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.mamma.MammaBaseUitwisselportaalDao;
 import nl.rivm.screenit.model.Account;
@@ -41,14 +43,13 @@ import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging;
 import nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
 import nl.rivm.screenit.util.ZipUtil;
@@ -56,27 +57,23 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.google.common.collect.ImmutableMap;
+
+@Slf4j
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselportaalService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseUitwisselportaalServiceImpl.class);
-
 	@Autowired
 	private LogService logService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -153,7 +150,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	private String getVerzoekRootPath(MammaDownloadOnderzoekenVerzoek verzoek)
 	{
 		UploadDocument zipBestand = verzoek.getZipBestand();
-		File zipFile = fileService.load(zipBestand);
+		File zipFile = uploadDocumentService.load(zipBestand);
 		String verzoekRootPath = zipFile.getParent() + File.separator + zipBestand.getId();
 		return verzoekRootPath;
 	}
@@ -161,7 +158,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	@Override
 	public void zetFilesInZip(MammaDownloadOnderzoekenVerzoek verzoek) throws IOException
 	{
-		File zipBestand = fileService.load(verzoek.getZipBestand());
+		File zipBestand = uploadDocumentService.load(verzoek.getZipBestand());
 		try
 		{
 			String verzoekRootPath = getVerzoekRootPath(verzoek);
@@ -183,7 +180,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 		for (MammaDownloadOnderzoekenVerzoek verzoek : verzoeken)
 		{
-			fileService.delete(verzoek.getZipBestand(), true);
+			uploadDocumentService.delete(verzoek.getZipBestand(), true);
 			hibernateService.delete(verzoek);
 		}
 	}
@@ -196,7 +193,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 
 		for (MammaDownloadOnderzoekenVerzoek verzoek : verzoeken)
 		{
-			fileService.delete(verzoek.getZipBestand(), true);
+			uploadDocumentService.delete(verzoek.getZipBestand(), true);
 			hibernateService.delete(verzoek);
 		}
 	}
@@ -221,16 +218,14 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	{
 		for (UploadDocument bestand : uploadBeeldenPoging.getBestanden())
 		{
-			fileService.delete(bestand, true);
+			uploadDocumentService.delete(bestand, true);
 		}
 		uploadBeeldenPoging.getBestanden().clear();
 
 		if (MammaMammografieIlmStatus.beeldenMogelijkAanwezig(uploadBeeldenPoging.getIlmStatus()))
 		{
-			berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.GOINGTODELETE,
-				MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
-			berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.DELETE,
-				MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
+			berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, MammaHL7v24ORMBerichtStatus.GOINGTODELETE, null);
+			berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, MammaHL7v24ORMBerichtStatus.DELETE, null);
 			uploadBeeldenPoging.setIlmStatus(MammaMammografieIlmStatus.TE_VERWIJDEREN);
 			uploadBeeldenPoging.setIlmStatusDatum(dateSupplier.getDate());
 			baseIlmService.maakIlmBezwaarPoging(uploadBeeldenPoging.getUploadBeeldenVerzoek().getScreeningRonde().getDossier(), uploadBeeldenPoging.getAccessionNumber(), true);
@@ -242,8 +237,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	public void verwijderBeelden(MammaUploadBeeldenPoging uploadBeeldenPoging)
 	{
 		setIlmStatus(uploadBeeldenPoging, MammaMammografieIlmStatus.TE_VERWIJDEREN);
-		berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, null, MammaHL7v24ORMBerichtStatus.DELETE,
-			MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN);
+		berichtToBatchService.queueMammaUploadBeeldenHL7v24BerichtUitgaand(uploadBeeldenPoging, MammaHL7v24ORMBerichtStatus.DELETE, null);
 	}
 
 	@Override

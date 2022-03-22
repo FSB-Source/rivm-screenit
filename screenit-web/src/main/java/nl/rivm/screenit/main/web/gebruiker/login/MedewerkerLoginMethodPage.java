@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.login;
 
 /*-
@@ -22,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.ApplicationEnvironment;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.gebruiker.login.uzipas.UzipasLoginMethodPage;
@@ -30,6 +30,7 @@ import nl.rivm.screenit.model.enums.InlogMethode;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.cookies.CookieUtils;
 
 public class MedewerkerLoginMethodPage extends LoginBasePage
@@ -37,6 +38,9 @@ public class MedewerkerLoginMethodPage extends LoginBasePage
 	public static final String FEEDBACK = "feedback";
 
 	private static final long serialVersionUID = 1L;
+
+	@SpringBean(name = "applicationEnvironment")
+	private String applicationEnvironment;
 
 	public MedewerkerLoginMethodPage()
 	{
@@ -51,8 +55,15 @@ public class MedewerkerLoginMethodPage extends LoginBasePage
 
 	public MedewerkerLoginMethodPage(boolean redirect)
 	{
+		BookmarkablePageLink<Object> usernamePassword = new BookmarkablePageLink<>("usernamePassword", MedewerkerLoginPage.class);
+		if (ApplicationEnvironment.PROD.getEnvNaam().equalsIgnoreCase(applicationEnvironment) ||
+			ApplicationEnvironment.PAT.getEnvNaam().equalsIgnoreCase(applicationEnvironment) ||
+			ApplicationEnvironment.OPL.getEnvNaam().equalsIgnoreCase(applicationEnvironment))
+		{
+			usernamePassword.setVisible(false);
+		}
+		add(usernamePassword);
 		add(new BookmarkablePageLink<>("yubikeyLogin", YubipasLoginPage.class));
-		add(new BookmarkablePageLink<>("usernamePassword", MedewerkerLoginPage.class));
 		add(new BookmarkablePageLink<>("uzipasLogin", UzipasLoginMethodPage.class, new PageParameters().add(PAGE_PARAMETER_UITWISSELPORTAAL, Boolean.FALSE)));
 
 		String loginMethode = new CookieUtils().load(Constants.COOKIE_KEY_LOGIN_METHOD);
@@ -61,7 +72,12 @@ public class MedewerkerLoginMethodPage extends LoginBasePage
 			switch (InlogMethode.valueOf(loginMethode))
 			{
 			case GEBRUIKERSNAAM_WACHTWOORD:
-				setResponsePage(MedewerkerLoginPage.class);
+				if (!ApplicationEnvironment.PROD.getEnvNaam().equalsIgnoreCase(applicationEnvironment) &&
+					!ApplicationEnvironment.PAT.getEnvNaam().equalsIgnoreCase(applicationEnvironment) &&
+					!ApplicationEnvironment.OPL.getEnvNaam().equalsIgnoreCase(applicationEnvironment))
+				{
+					setResponsePage(MedewerkerLoginPage.class);
+				}
 				break;
 			case YUBIKEY:
 				setResponsePage(YubipasLoginPage.class);

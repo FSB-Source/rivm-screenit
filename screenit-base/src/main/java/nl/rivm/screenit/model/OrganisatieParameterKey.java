@@ -25,6 +25,8 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 
 public enum OrganisatieParameterKey
 {
+	COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.COLON),
+
 	CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 3000, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS(OrganisatieType.RIVM, Integer.class, 1000, Bevolkingsonderzoek.CERVIX),

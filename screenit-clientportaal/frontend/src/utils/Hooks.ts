@@ -27,7 +27,6 @@ import {State} from "../datatypes/State"
 import {createPersoonAction} from "../actions/PersoonAction"
 import ScreenitBackend from "../utils/Backend"
 import {useThunkDispatch} from "../index"
-import {useHistory} from "react-router"
 import {getRegio} from "../api/RegioThunkAction"
 import {getBeschikbareContactActies} from "../api/ContactActiesThunkAction"
 import {assertUnreachable} from "./EnumUtil"
@@ -64,7 +63,6 @@ export const useRefreshEnvironmentInfo = () => {
 
 export const useRefreshClient = () => {
 	const dispatch = useDispatch()
-	const browserHistory = useHistory()
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 	const {keycloak} = useKeycloak()
 	const location = useLocation()
@@ -76,7 +74,7 @@ export const useRefreshClient = () => {
 				dispatch(getBeschikbareContactActies())
 			})
 		}
-	}, [location.pathname, authenticatie, browserHistory, dispatch, keycloak])
+	}, [location.pathname, authenticatie, dispatch, keycloak])
 }
 
 export const useRefreshBvoDossier = () => {

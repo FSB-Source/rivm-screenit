@@ -25,31 +25,34 @@ import {useThunkDispatch} from "../../index"
 import {saveTijdelijkAdres} from "../../api/AdresWijzigenThunkAction"
 import {useSelector} from "react-redux"
 import {State} from "../../datatypes/State"
-import {navigateAndShowToast} from "../../utils/NavigationUtil"
 import properties from "./TijdelijkAdresWijzigenPage.json"
 import TijdelijkAdresWijzigenForm from "../../components/form/adres/TijdelijkAdresWijzigenForm"
+import {useNavigate} from "react-router-dom"
+import {showToast} from "../../utils/ToastUtil"
 
 const TijdelijkAdresWijzigenPage = () => {
-    const tijdelijkAdres = useSelector((state: State) => state.client.persoon.tijdelijkAdres)
-    const dispatch = useThunkDispatch()
+	const tijdelijkAdres = useSelector((state: State) => state.client.persoon.tijdelijkAdres)
+	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 
-    return (
-        <ActieBasePage
-            bvoName={""}
-            title={tijdelijkAdres ? getString(properties.page.title.wijzigen) : getString(properties.page.title.doorgeven)}
-            description={tijdelijkAdres ? getString(properties.page.description.wijzigen) : getString(properties.page.description.doorgeven)}>
+	return (
+		<ActieBasePage
+			bvoName={""}
+			title={tijdelijkAdres ? getString(properties.page.title.wijzigen) : getString(properties.page.title.doorgeven)}
+			description={tijdelijkAdres ? getString(properties.page.description.wijzigen) : getString(properties.page.description.doorgeven)}>
 
-            <TijdelijkAdresWijzigenForm huidigTijdelijkAdres={tijdelijkAdres}
-                                        onSubmitSucces={(adres) => {
-                                            if (tijdelijkAdres) {
-                                                adres.id = tijdelijkAdres.id
-                                            }
-                                            dispatch(saveTijdelijkAdres(adres)).then(() => {
-                                                navigateAndShowToast("/profiel", getString(properties.toast.title), getString(properties.toast.description))
-                                            })
-                                        }}/>
-        </ActieBasePage>
-    )
+			<TijdelijkAdresWijzigenForm huidigTijdelijkAdres={tijdelijkAdres}
+										onSubmitSucces={(adres) => {
+											if (tijdelijkAdres) {
+												adres.id = tijdelijkAdres.id
+											}
+											dispatch(saveTijdelijkAdres(adres)).then(() => {
+												showToast(getString(properties.toast.title), getString(properties.toast.description))
+												navigate("/profiel")
+											})
+										}}/>
+		</ActieBasePage>
+	)
 
 }
 

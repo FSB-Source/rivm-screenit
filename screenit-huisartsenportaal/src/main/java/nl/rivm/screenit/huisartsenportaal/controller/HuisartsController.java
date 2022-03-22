@@ -31,12 +31,12 @@ import nl.rivm.screenit.huisartsenportaal.dto.MederwerkerDto;
 import nl.rivm.screenit.huisartsenportaal.model.Huisarts;
 import nl.rivm.screenit.huisartsenportaal.model.Overeenkomst;
 import nl.rivm.screenit.huisartsenportaal.model.enums.Recht;
-import nl.rivm.screenit.huisartsenportaal.repository.HuisartsRepository;
 import nl.rivm.screenit.huisartsenportaal.repository.OvereenkomstRepository;
 import nl.rivm.screenit.huisartsenportaal.service.HuisartsService;
 import nl.rivm.screenit.huisartsenportaal.service.SynchronisatieService;
 import nl.rivm.screenit.huisartsenportaal.validator.GebruikersnaamValidator;
 import nl.rivm.screenit.huisartsenportaal.validator.HuisartsValidator;
+import nl.rivm.screenit.huisartsenportaal.validator.WachtwoordRegistrerenValidator;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,6 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -57,14 +56,15 @@ import org.springframework.web.bind.annotation.RestController;
 @PreAuthorize("isAuthenticated()")
 public class HuisartsController extends BaseController
 {
-	@Autowired
-	private HuisartsRepository huisartsRepository;
 
 	@Autowired
 	private GebruikersnaamValidator gebruikersnaamValidator;
 
 	@Autowired
 	private HuisartsValidator huisartsValidator;
+
+	@Autowired
+	private WachtwoordRegistrerenValidator wachtwoordRegistrerenValidator;
 
 	@Autowired
 	private HuisartsService huisartsService;
@@ -81,8 +81,7 @@ public class HuisartsController extends BaseController
 	@InitBinder
 	public void dataBinding(WebDataBinder binder)
 	{
-
-		binder.addValidators(gebruikersnaamValidator, huisartsValidator);
+		binder.addValidators(gebruikersnaamValidator, wachtwoordRegistrerenValidator, huisartsValidator);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
@@ -94,7 +93,7 @@ public class HuisartsController extends BaseController
 			HuisartsDto dto = new HuisartsDto();
 			modelMapper.map(getIngelogdeHuisarts(), dto);
 			dto.setUsername(arts.getGebruikersnaam());
-			return new ResponseEntity<HuisartsDto>(dto, HttpStatus.OK);
+			return new ResponseEntity<>(dto, HttpStatus.OK);
 		}
 		else
 		{
@@ -127,7 +126,7 @@ public class HuisartsController extends BaseController
 		HuisartsDto dto = new HuisartsDto();
 		modelMapper.map(getIngelogdeHuisarts(), dto);
 		dto.setUsername(getIngelogdeHuisarts().getGebruikersnaam());
-		return new ResponseEntity<HuisartsDto>(dto, HttpStatus.OK);
+		return new ResponseEntity<>(dto, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/currentuser", method = RequestMethod.GET)
@@ -136,7 +135,7 @@ public class HuisartsController extends BaseController
 		Huisarts huisarts = getIngelogdeHuisarts();
 		if (huisarts != null)
 		{
-			return new ResponseEntity<MederwerkerDto>(getMedewerkerDtoFrom(huisarts), HttpStatus.OK);
+			return new ResponseEntity<>(getMedewerkerDtoFrom(huisarts), HttpStatus.OK);
 		}
 		return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 	}
@@ -154,7 +153,7 @@ public class HuisartsController extends BaseController
 			dto.setOvereenkomstGetekend(getekend);
 			if (!getekend)
 			{
-				List<Recht> overeenkomstRechten = new ArrayList<Recht>();
+				List<Recht> overeenkomstRechten = new ArrayList<>();
 
 				if (dto.getRollen().contains(Recht.ROLE_REGISTEREN))
 				{

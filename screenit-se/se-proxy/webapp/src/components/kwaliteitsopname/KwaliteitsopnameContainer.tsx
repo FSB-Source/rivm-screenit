@@ -73,7 +73,7 @@ const startOfBeeindigKwaliteitsopname = (mammograafnr: string, volgnr: number | 
 			break
 	}
 
-	const actionOrm = createActionKwaliteitsopnameOrm(actionType, seNr, reden, patientId, accessionNumber, onderzoekscode)
+	const actionOrm = createActionKwaliteitsopnameOrm(actionType, seCode(), reden, patientId, accessionNumber, onderzoekscode)
 	dispatch(actionOrm)
 	putTransactionToScreenItCentraalPromise(undefined, actionType === START_KWALITEITSOPNAME ? "START_KWALITEITSOPNAME_TRANSACTION" : "BEEINDIG_KWALITEITSOPNAME_TRANSACTION", actionOrm)
 

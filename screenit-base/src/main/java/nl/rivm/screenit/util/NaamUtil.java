@@ -29,7 +29,6 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Huisarts;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.OnbekendeHuisarts;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
@@ -42,7 +41,6 @@ import com.google.common.base.Strings;
 
 public abstract class NaamUtil
 {
-
 	public static String getNaamGebruiker(Gebruiker gebruiker)
 	{
 		if (gebruiker == null)
@@ -66,9 +64,9 @@ public abstract class NaamUtil
 		return ingelogdeGebruikerNaam.toString();
 	}
 
-	public static List<String> getNamenInstellingGebruikers(List<InstellingGebruiker> instellingGebruikers)
+	public static List<String> getNamenGebruikers(List<Gebruiker> gebruikers)
 	{
-		return instellingGebruikers.stream().map(gebruiker -> gebruiker.getMedewerker().getNaamVolledig()).collect(Collectors.toList());
+		return gebruikers.stream().map(Gebruiker::getNaamVolledig).collect(Collectors.toList());
 	}
 
 	public static String getTussenvoegselEnAchternaam(Gebruiker gebruiker)
@@ -186,6 +184,18 @@ public abstract class NaamUtil
 			naam.append(" ");
 		}
 
+		naam.append(voorlettersTussenvoegselEnAanspreekAchternaam(client));
+		return naam.toString();
+	}
+
+	public static String voorlettersTussenvoegselEnAanspreekAchternaam(Client client)
+	{
+		if (client == null)
+		{
+			return null;
+		}
+
+		StringBuilder naam = new StringBuilder();
 		String voorletters = getVoorlettersClient(client);
 		naam.append(voorletters);
 		if (!Strings.isNullOrEmpty(voorletters))

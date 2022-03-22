@@ -23,25 +23,24 @@ package nl.rivm.screenit.batch.jobs.mamma.uitwisselportaal.cleanup;
 
 import java.io.File;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class MammaDownloadedDataCleanUpWriter extends BaseWriter<MammaDownloadOnderzoekenVerzoek>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaDownloadedDataCleanUpWriter.class);
-
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -56,7 +55,7 @@ public class MammaDownloadedDataCleanUpWriter extends BaseWriter<MammaDownloadOn
 
 		if (zipBestand != null)
 		{
-			File file = fileService.load(zipBestand);
+			File file = uploadDocumentService.load(zipBestand);
 			FileUtils.deleteQuietly(file);
 		}
 

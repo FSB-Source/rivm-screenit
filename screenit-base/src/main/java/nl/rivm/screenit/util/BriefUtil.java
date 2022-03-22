@@ -78,4 +78,92 @@ public class BriefUtil
 		return brief;
 	}
 
+	public static MergedBrieven getMergedBrieven(Brief brief)
+	{
+		brief = getBriefVoorPrintStatus(brief);
+		if (brief != null)
+		{
+			return brief.getMergedBrieven();
+		}
+		return null;
+	}
+
+	public static boolean isMergedBrievenGeprint(Brief brief)
+	{
+		MergedBrieven<?> mergedBrieven = getMergedBrieven(brief);
+		if (mergedBrieven != null)
+		{
+			return Boolean.TRUE.equals(mergedBrieven.getGeprint());
+		}
+		return false;
+	}
+
+	public static boolean isGegenereerd(Brief brief)
+	{
+		brief = getBriefVoorPrintStatus(brief);
+		if (brief != null)
+		{
+			return brief.isGegenereerd();
+		}
+		return false;
+	}
+
+	public static ClientBrief getHerdruk(ClientBrief brief)
+	{
+		brief = (ClientBrief) getOrigineleBrief(brief);
+		if (brief != null)
+		{
+			return brief.getHerdruk();
+		}
+		return null;
+	}
+
+	public static boolean isHerdruk(ClientBrief brief)
+	{
+		brief = (ClientBrief) getOrigineleBrief(brief);
+		if (brief != null)
+		{
+			return brief.getHerdruk() != null;
+		}
+		return getHerdruk(brief) != null;
+	}
+
+	public static Brief setTegenhouden(Brief brief, boolean tegenhouden)
+	{
+		brief = getBriefVoorPrintStatus(brief);
+		if (brief != null)
+		{
+			brief.setTegenhouden(tegenhouden);
+		}
+		return brief;
+	}
+
+	public static boolean isTegengehouden(Brief brief)
+	{
+		brief = getBriefVoorPrintStatus(brief);
+		if (brief != null)
+		{
+			return brief.isTegenhouden();
+		}
+		return false;
+	}
+
+	public static Brief getBriefVoorPrintStatus(Brief brief)
+	{
+		if (brief != null)
+		{
+			brief = (Brief) HibernateHelper.deproxy(brief);
+			if (brief instanceof ClientBrief)
+			{
+				ProjectBrief projectBrief = ((ClientBrief<?, ?, ?>) brief).getProjectBrief();
+				if (projectBrief != null)
+				{
+					brief = projectBrief;
+				}
+			}
+			return brief;
+		}
+		return null;
+	}
+
 }

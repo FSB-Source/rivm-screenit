@@ -33,5 +33,6 @@ public enum DossierGebeurtenisType
 
 	OVERDRACHT_PERSOONSGEGEVENS,
 
-	;
+	ALGEMENE_BRIEF,
+
 }

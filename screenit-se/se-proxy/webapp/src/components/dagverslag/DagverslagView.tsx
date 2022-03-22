@@ -4,11 +4,13 @@ import DagproductieContainer from "./DagproductieContainer"
 import DagStatistiekenContainer from "./DagStatistiekenContainer"
 import DagSynchronisatieContainer from "./DagSynchronisatieContainer"
 import DagAfrondstatusContainer from "./DagAfrondstatusContainer"
-import {Button} from "reactstrap"
+import AutorisatieButton from "../generic/AutorisatieButton"
 
 export type DagverslagViewStateProps = {
 	afsprakenDoorvoerenDisabled: boolean;
 	doorvoerenFeedback: string;
+	magOnderzoeken: boolean;
+	online: boolean;
 };
 
 export type DagverslagViewDispatchProps = {
@@ -22,11 +24,10 @@ export default class DagverslagView extends React.Component<DagverslagViewStateP
 		return <div className="dagverslag-lijst">
 			<div className="row row-dagverslag-top">
 				<div className="col-3">
-					<Button
-						className={this.props.afsprakenDoorvoerenDisabled ? "btn-primary-se disabled" : "btn-primary-se"}
-						onClick={clickAfsprakenDoorvoeren}>
-						Dag afsluiten
-					</Button>
+					<AutorisatieButton id="dagAfsluitenButton" label={"Dag afsluiten"} online={this.props.online}
+									   className={this.props.afsprakenDoorvoerenDisabled ? "disabled" : ""}
+									   heeftRecht={this.props.magOnderzoeken} rechtNaam={"Onderzoek starten op SE."}
+									   onClick={clickAfsprakenDoorvoeren}/>
 				</div>
 				<div className="col-9">
 					<div className="daglijst-blokken-rechts">

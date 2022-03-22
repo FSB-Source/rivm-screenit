@@ -37,11 +37,22 @@
     <jee:jndi-lookup id="applicatieInstantie" jndi-name="applicationInstance"/>
     <jee:jndi-lookup id="applicationUrl" jndi-name="applicationUrl"/>
     <jee:jndi-lookup id="testModus" jndi-name="testModus"/>
+
+    <jee:jndi-lookup id="locatieFilestore" jndi-name="locatieFilestore"/>
+
+    <jee:jndi-lookup id="s3bucketEnabled" jndi-name="s3bucketEnabled" expected-type="java.lang.Boolean" default-value="#{new Boolean(false)}"/>
+    <jee:jndi-lookup id="s3bucketEndpointOverride" jndi-name="s3bucketEndpointOverride" expected-type="java.lang.String" default-value="#{new String()}"/>
+    <jee:jndi-lookup id="s3bucketAccessId" jndi-name="s3bucketAccessId" expected-type="java.lang.String" default-value="#{new String()}"/>
+    <jee:jndi-lookup id="s3bucketAccessSecret" jndi-name="s3bucketAccessSecret" expected-type="java.lang.String" default-value="#{new String()}"/>
+    <jee:jndi-lookup id="s3bucketRegion" jndi-name="s3bucketRegion" expected-type="java.lang.String" default-value="#{new String()}"/>
+    <jee:jndi-lookup id="s3bucketName" jndi-name="s3bucketName" expected-type="java.lang.String" default-value="#{new String()}"/>
+
     <jee:jndi-lookup id="jgroupsCommonBindPort" jndi-name="jgroupsCommonBindPort" expected-type="java.lang.Integer"
                      default-value="#{new Integer(0)}"/>
     <jee:jndi-lookup id="jgroupsCommonIPPorts" jndi-name="jgroupsCommonIPPorts" expected-type="java.lang.String"
                      default-value="#{new String()}"/>
     <jee:jndi-lookup id="jgroupsBindIP" jndi-name="jgroupsBindIP"/>
+
     <jee:jndi-lookup id="ediAfleverAdres" jndi-name="edi/AfleverAdres" expected-type="java.lang.String"
                      default-value="devnull@topicus.nl"/>
     <jee:jndi-lookup id="versionMapping" jndi-name="hl7/versionMapping" expected-type="java.lang.String"

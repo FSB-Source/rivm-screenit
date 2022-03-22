@@ -19,77 +19,78 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {Redirect, Route, Switch} from "react-router-dom"
+import {Navigate, Route, Routes} from "react-router-dom"
 import NotFound from "../pages/NotFoundPage"
 import {ClientContactActieType} from "../datatypes/ClientContactActieType"
 import PrivateRoute from "./PrivateRoute"
 import {useSelector} from "react-redux"
 import {State} from "../datatypes/State"
 import {assertUnreachable} from "../utils/EnumUtil"
-import routes, {Doelgroep, RouteDef} from "./routes"
+import routes, {RouteDef} from "./routes"
+import {useKeycloak} from "@react-keycloak/web"
+import LadenComponent from "../components/laden/LadenComponent"
+import {LandingOverzicht} from "../datatypes/landing/LandingOverzicht"
+import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
 
-export const AppRouter = () => {
-    const contactActions = useSelector((state: State) => state.client.beschikbareActies.beschikbareActies)
-    const doelgroepen = {
-        mamma: useSelector((state: State) => state.landingOverzicht.clientBehoortTotMammaDoelgroep),
-        colon: useSelector((state: State) => state.landingOverzicht.clientBehoortTotColonDoelgroep),
-        cervix: useSelector((state: State) => state.landingOverzicht.clientBehoortTotCervixDoelgroep),
-    }
+export const AppRoutes = () => {
+	const {initialized, keycloak} = useKeycloak()
+	const authenticatie = useSelector((state: State) => state.authenticatie)
 
-    return (
-        <Switch>
-            {routes.map(route => createRoute(route, contactActions, doelgroepen))}
-            <Route component={NotFound}/>
-        </Switch>
-    )
+	const contactActions = useSelector((state: State) => state.client.beschikbareActies.beschikbareActies)
+	const landingOverzicht = useSelector((state: State) => state.landingOverzicht)
+
+	if (!initialized || authenticatie.isLoggingOut || (!authenticatie.isLoggedIn && keycloak.authenticated)) {
+		return <LadenComponent groteText/>
+	}
+
+	return (
+		<Routes>
+			{routes.map(route => createRoute(route, contactActions, landingOverzicht))}
+			<Route element={<NotFound/>}/>
+		</Routes>
+	)
 }
 
-function createRoute(route: RouteDef, contactActions: ClientContactActieType[], doelgroepen: { mamma: boolean, colon: boolean, cervix: boolean }) {
+function createRoute(route: RouteDef, contactActions: ClientContactActieType[], landingOverzicht: LandingOverzicht) {
+	const {requiredContactActions, bvo} = route
 
-    const {requiredContactActions, doelgroep} = route
-
-    if (doelgroep && behoortNietTotDoelgroep(doelgroep, doelgroepen)) {
-        return redirect(route)
-    }
-
-    if (requiredContactActions && isNotAllowed(requiredContactActions, contactActions)) {
-        return redirect(route)
-
-    }
-
-    return createPublicOrPrivateRoute(route)
-
+	if (bvo && !behoortTotDoelgroep(bvo, landingOverzicht)) {
+		return redirect(route)
+	}
+	if (requiredContactActions && isNotAllowed(requiredContactActions, contactActions)) {
+		return redirect(route)
+	}
+	return createPublicOrPrivateRoute(route)
 }
 
 function createPublicOrPrivateRoute(routeDef: RouteDef): JSX.Element {
-    return routeDef.private ?
-        <PrivateRoute key={routeDef.name} {...routeDef}/> :
-        <Route key={routeDef.name} {...routeDef}/>
+	const Component = routeDef.component
+	return <Route key={routeDef.name} path={routeDef.path} element={routeDef.private ? <PrivateRoute component={routeDef.component}/> : <Component/>}/>
 }
 
 function isNotAllowed(requiredActions: ClientContactActieType[], availableActions: ClientContactActieType[]): boolean {
-    return requiredActions
-        .map(action => availableActions.indexOf(action) > -1)
-        .filter(allowed => allowed)
-        .length === 0
+	return requiredActions
+		.map(action => availableActions.indexOf(action) > -1)
+		.filter(allowed => allowed)
+		.length === 0
 }
 
-function behoortNietTotDoelgroep(doelgroep: Doelgroep, doelgroepen: { mamma: boolean, colon: boolean, cervix: boolean }): boolean {
-    switch (doelgroep) {
-        case "cervix":
-            return !doelgroepen.cervix
-        case "colon":
-            return !doelgroepen.colon
-        case "mamma":
-            return !doelgroepen.mamma
-        default:
-            assertUnreachable(doelgroep)
-    }
-    return false
+function behoortTotDoelgroep(bvo: Bevolkingsonderzoek, landingOverzicht: LandingOverzicht): boolean {
+	switch (bvo) {
+		case Bevolkingsonderzoek.MAMMA:
+			return landingOverzicht.behoortTotMammaDoelgroep
+		case Bevolkingsonderzoek.CERVIX:
+			return landingOverzicht.behoortTotCervixDoelgroep
+		case Bevolkingsonderzoek.COLON:
+			return landingOverzicht.behoortTotColonDoelgroep
+		default:
+			assertUnreachable(bvo)
+	}
+	return false
 }
 
 function redirect(route: RouteDef) {
-    const {name, redirectPage} = route
-    return <Route key={name} {...{...route, component: undefined}}
-                  render={() => <Redirect to={redirectPage ?? "/"}/>}/>
+	const {name, redirectPage} = route
+	return <Route key={name} {...{...route, component: undefined}}
+				  element={<Navigate to={redirectPage ?? "/"}/>}/>
 }

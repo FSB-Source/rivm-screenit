@@ -21,10 +21,8 @@ package nl.rivm.screenit.dao.impl;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.dao.UploadDocumentDao;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.topicuszorg.documentupload.dao.UploadDocumentDao;
-import nl.topicuszorg.documentupload.model.IUploadDocument;
-import nl.topicuszorg.documentupload.model.IUploadDocumentParent;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.springframework.stereotype.Repository;
@@ -32,26 +30,21 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-@Transactional(propagation = Propagation.REQUIRED)
+@Transactional(propagation = Propagation.SUPPORTS)
 public class UploadDocumentDaoImpl extends AbstractAutowiredDao implements UploadDocumentDao
 {
 
 	@Override
-	public void saveOrUpdate(IUploadDocument iUploadDocument)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void saveOrUpdate(UploadDocument document)
 	{
-		getSession().saveOrUpdate(iUploadDocument);
-	}
-
-	@Override
-	public void saveOrUpdate(IUploadDocumentParent iUploadDocumentParent)
-	{
-		getSession().saveOrUpdate(iUploadDocumentParent);
+		getSession().saveOrUpdate(document);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void delete(IUploadDocument iUploadDocument)
+	public void delete(UploadDocument document)
 	{
-		getSession().delete(iUploadDocument);
+		getSession().delete(document);
 	}
 }

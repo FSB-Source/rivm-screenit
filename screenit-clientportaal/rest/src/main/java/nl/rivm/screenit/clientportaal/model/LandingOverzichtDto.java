@@ -21,26 +21,25 @@ package nl.rivm.screenit.clientportaal.model;
  * =========================LICENSE_END==================================
  */
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
+@Setter
+@NoArgsConstructor
 public class LandingOverzichtDto
 {
 
 	private BvoParametersDto mammaParameters;
 
-	private boolean clientBehoortTotMammaDoelgroep;
+	private boolean behoortTotMammaDoelgroep;
 
 	private BvoParametersDto cervixParameters;
 
-	private boolean clientBehoortTotCervixDoelgroep;
+	private boolean behoortTotCervixDoelgroep;
 
 	private BvoParametersDto colonParameters;
 
-	private boolean clientBehoortTotColonDoelgroep;
+	private boolean behoortTotColonDoelgroep;
 }

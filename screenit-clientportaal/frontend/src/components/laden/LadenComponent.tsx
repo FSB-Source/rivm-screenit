@@ -21,13 +21,17 @@
 import React from "react"
 import {getString} from "../../utils/TekstPropertyUtil"
 import properties from "./Laden.json"
+import styles from "./LadenComponent.module.scss"
+import classNames from "classnames"
 
-const LadenComponent = () => {
+export interface LadenComponentProps {
+	groteText?: boolean;
+}
 
-    return (
-        <div>{getString(properties.laden)}</div>
-    )
-
+const LadenComponent = (props: LadenComponentProps) => {
+	return (
+		<h1 className={classNames(!props.groteText && styles.kleineText)}>{getString(properties.laden)}</h1>
+	)
 }
 
 export default LadenComponent

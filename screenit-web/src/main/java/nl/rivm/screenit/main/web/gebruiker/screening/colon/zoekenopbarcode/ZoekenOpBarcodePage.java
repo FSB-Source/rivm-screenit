@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ZoekIfobtMetBarcodePanel;
 import nl.rivm.screenit.main.web.component.table.ClientColumn;
@@ -52,6 +53,7 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -62,8 +64,8 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON })
 public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 {
-
-	private static final long serialVersionUID = 1L;
+	@SpringBean
+	private IFobtDao iFobtDao;
 
 	private final IModel<Client> clientModel = new SimpleHibernateModel<>();
 
@@ -81,8 +83,6 @@ public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 		ZoekIfobtMetBarcodePanel scanForIfobttest = new ZoekIfobtMetBarcodePanel("scanForIfobttest")
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void ifobtFound(IFOBTTest ifobtTest, AjaxRequestTarget target)
 			{
@@ -95,6 +95,8 @@ public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 				}
 				else
 				{
+					boolean isVerwijderdeBarcode = iFobtDao.isVerwijderdeBarcode(getScanInput());
+					info(String.format(getString("error.barcode.niet.gekoppeld"), isVerwijderdeBarcode ? "meer " : ""));
 					info("Geen cli\u00EBnt gevonden");
 				}
 			}
@@ -122,17 +124,14 @@ public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 	{
 		List<IColumn<Client, String>> columns = new ArrayList<>();
 		columns.add(new ClientColumn<>("persoon.achternaam", ""));
-		columns.add(new PropertyColumn<Client, String>(Model.of("Bsn"), "persoon.bsn", "persoon.bsn"));
+		columns.add(new PropertyColumn<>(Model.of("Bsn"), "persoon.bsn", "persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "persoon"));
 
-		columns.add(new PropertyColumn<Client, String>(Model.of("Overlijdensdatum"), "persoon.overlijdensdatum", "persoon.overlijdensdatum"));
+		columns.add(new PropertyColumn<>(Model.of("Overlijdensdatum"), "persoon.overlijdensdatum", "persoon.overlijdensdatum"));
 
-		columns.add(new PropertyColumn<Client, String>(Model.of("Postcode"), "persoon.gbaAdres.postcode", "persoon.gbaAdres.postcode")
+		columns.add(new PropertyColumn<>(Model.of("Postcode"), "persoon.gbaAdres.postcode", "persoon.gbaAdres.postcode")
 		{
 
-			private static final long serialVersionUID = 1L;
-
-			@SuppressWarnings({ "unchecked", "rawtypes" })
 			@Override
 			public IModel<Object> getDataModel(IModel<Client> rowModel)
 			{
@@ -140,12 +139,10 @@ public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 			}
 
 		});
-		columns.add(new PropertyColumn<Client, String>(Model.of("Huisnummer"), "persoon.gbaAdres.huisnummer", "persoon.gbaAdres.huisnummer"));
+		columns.add(new PropertyColumn<>(Model.of("Huisnummer"), "persoon.gbaAdres.huisnummer", "persoon.gbaAdres.huisnummer"));
 
-		final ScreenitDataTable<Client, String> tabel = new ScreenitDataTable<Client, String>("tabel", columns, new SortableDataProvider<Client, String>()
+		final ScreenitDataTable<Client, String> tabel = new ScreenitDataTable<Client, String>("tabel", columns, new SortableDataProvider<>()
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public Iterator<? extends Client> iterator(long first, long count)
@@ -166,9 +163,6 @@ public class ZoekenOpBarcodePage extends ColonScreeningBasePage
 			}
 		}, Model.of("client(en)"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target, IModel<Client> model)
 			{

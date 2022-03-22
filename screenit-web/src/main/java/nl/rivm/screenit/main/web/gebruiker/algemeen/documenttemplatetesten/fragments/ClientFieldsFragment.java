@@ -101,10 +101,7 @@ public class ClientFieldsFragment extends Fragment
 
 	private List<Geslacht> getGeslachten()
 	{
-		return Arrays.stream(Geslacht.values())
-			.filter(geslacht -> !Geslacht.NIET_GESPECIFICEERD.equals(geslacht)
-				&& !Geslacht.ONBEKEND.equals(geslacht))
-			.collect(Collectors.toList());
+		return Arrays.stream(Geslacht.values()).filter(geslacht -> !Geslacht.NIET_GESPECIFICEERD.equals(geslacht)).collect(Collectors.toList());
 	}
 
 	private Component getGeboortedatumDateTextField()
@@ -119,7 +116,6 @@ public class ClientFieldsFragment extends Fragment
 	{
 		return new AjaxFormComponentUpdatingBehavior("change")
 		{
-
 			@Override
 			protected void onUpdate(final AjaxRequestTarget target)
 			{
@@ -140,7 +136,7 @@ public class ClientFieldsFragment extends Fragment
 
 	private IndicatingAjaxLink<Void> getBSNGenererenLink(FormComponent<String> bsnField)
 	{
-		return new IndicatingAjaxLink<Void>("bsnGenereren")
+		return new IndicatingAjaxLink<>("bsnGenereren")
 		{
 			@Override
 			public void onClick(final AjaxRequestTarget target)

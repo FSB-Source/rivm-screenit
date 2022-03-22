@@ -24,9 +24,11 @@ package nl.rivm.screenit.batch.jobs.cervix.order.aanmaakstep;
 import java.util.ArrayList;
 import java.util.List;
 
+import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.order.CervixOrderConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.batch.service.CervixMaakOrderBerichtService;
+import nl.rivm.screenit.batch.service.CervixHpvOrderBerichtService;
 import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
@@ -34,11 +36,14 @@ import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
+import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.service.cervix.impl.CervixBepaalVervolgContext;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,14 +51,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 {
-
 	private static final Logger LOG = LoggerFactory.getLogger(CervixOrderAanmaakWriter.class);
 
 	@Autowired
 	private LogService logService;
 
 	@Autowired
-	private CervixMaakOrderBerichtService maakOrderBerichtService;
+	private CervixHpvOrderBerichtService hpvOrderBerichtService;
 
 	@Autowired
 	private CervixFactory factory;
@@ -62,7 +66,16 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 	private HibernateService hibernateService;
 
 	@Autowired
+	private ICurrentDateSupplier dateSupplier;
+
+	@Autowired
 	private CervixBepaalVervolgDao bepaalVervolgDao;
+
+	@Autowired
+	private CervixMonsterService monsterService;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	@Override
 	protected void write(CervixUitstrijkje uitstrijkje) throws Exception
@@ -82,14 +95,19 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 
 	private String maakHl7v2Bericht(CervixUitstrijkje uitstrijkje, CervixCytologieReden cytologieReden)
 	{
-		return maakOrderBerichtService.maakOrderTextBericht(uitstrijkje, cytologieReden);
+		return hpvOrderBerichtService.maakOrderTextBericht(uitstrijkje, cytologieReden);
 	}
 
 	private CervixCytologieReden getCytologieReden(CervixUitstrijkje uitstrijkje) throws IllegalStateException
 	{
 		try
 		{
-			CervixBepaalVervolgContext vervolgContext = new CervixBepaalVervolgContext(uitstrijkje);
+			String startdatumAanleveringGenotyperingString = (String) getJobExecution().getExecutionContext()
+				.get(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
+
+			CervixBepaalVervolgContext vervolgContext = new CervixBepaalVervolgContext(uitstrijkje, false, dateSupplier.getLocalDateTime(),
+				DateUtil.parseLocalDateForPattern(startdatumAanleveringGenotyperingString, Constants.DATE_FORMAT_YYYYMMDD), bepaalVervolgDao, monsterService,
+				preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()));
 
 			if (vervolgContext.inVervolgonderzoekDatum != null)
 			{

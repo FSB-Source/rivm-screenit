@@ -111,53 +111,63 @@
                         <label class="control-label">Herinneringsperiode logregel onvolledig adres</label>
                         <div class="controls">
                             <input type="text" class="input-small" wicket:id="internalHerinneringsperiodeLogregelOnvolledigAdres"/> dagen
-                        </div>
-                    </div>
-                </div>
-                <div class="span6">
-                    <div class="control-group">
-                        <label class="control-label">Prefix UZI mTLS inlog zonder Zorg-ID</label>
-                        <div class="controls">
-                            <input type="text" class="input-xxlarge" wicket:id="internalUziLoginUrlPrefix"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span6">
-                    <div class="control-group">
-                        <label class="control-label">Schematron version path mapping</label>
-                        <div class="controls">
-                            <input wicket:id="internalWsbSchematronVersionpathmapping" class="input-xxlarge" type="text"/>
-                        </div>
-                    </div>
-                </div>
-                <div class="span6">
-                    <div class="control-group">
-                        <label class="control-label">SE informatie ophalen CRON (Let op: spring cron)</label>
-                        <div class="controls">
-                            <input wicket:id="internalMammaSeInformatieOphalenCron" class="input-xxlarge" type="text"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span6">
-                    <div class="control-group">
-                        <label class="control-label">BMHK Labels printen zonder PDF</label>
-                        <div class="controls">
-                            <input wicket:id="bmhkLabelPrintenZonderPdf" type="checkbox">
-                        </div>
-                    </div>
-                </div>
-                <div class="span6">
-                    <div class="btn-top dropdown right">
-                        <button wicket:id="parametersOpslaan" class="btn btn-primary" type="button">Opslaan parameters
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </fieldset> 
+						</div>
+					</div>
+				</div>
+				<div class="span6">
+					<div class="control-group">
+						<label class="control-label">Prefix UZI mTLS inlog zonder Zorg-ID</label>
+						<div class="controls">
+							<input type="text" class="input-xxlarge" wicket:id="internalUziLoginUrlPrefix"/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="control-group">
+						<label class="control-label">Schematron version path mapping</label>
+						<div class="controls">
+							<input wicket:id="internalWsbSchematronVersionpathmapping" class="input-xxlarge" type="text"/>
+						</div>
+					</div>
+				</div>
+				<div class="span6">
+					<div class="control-group">
+						<label class="control-label">SE informatie ophalen CRON (Let op: spring cron)</label>
+						<div class="controls">
+							<input wicket:id="internalMammaSeInformatieOphalenCron" class="input-xxlarge" type="text"/>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="control-group">
+						<label class="control-label">BMHK Labels printen zonder PDF</label>
+						<div class="controls">
+							<input wicket:id="bmhkLabelPrintenZonderPdf" type="checkbox">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span6">
+					<div class="control-group">
+						<label class="control-label">Blokkeer login via SafeSign</label>
+						<div class="controls">
+							<input wicket:id="safesignLoginDisabled" type="checkbox">
+						</div>
+					</div>
+				</div>
+				<div class="span6">
+					<div class="btn-top dropdown right">
+						<button wicket:id="parametersOpslaan" class="btn btn-primary" type="button">Opslaan parameters
+						</button>
+					</div>
+				</div>
+			</div>
+		</fieldset>
     </form>
     <form wicket:id="labsForm">
         <fieldset>

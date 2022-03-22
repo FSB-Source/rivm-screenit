@@ -35,15 +35,17 @@ import SubmitForm from "../../../components/form/SubmitForm"
 import {CervixUitstelFormulier} from "../../../datatypes/cervix/CervixUitstelDto"
 import {RadioGroup} from "formik-material-ui"
 import ScreenitDatePicker from "../../../components/input/ScreenitDatePicker"
-import {navigateAndShowToast} from "../../../utils/NavigationUtil"
 import properties from "./CervixUitstelAanvragenPage.json"
 import {useSelector} from "react-redux"
 import {State} from "../../../datatypes/State"
-import {formatDate, formatDateText, minMaanden, plusDagen, plusMaanden, vandaag} from "../../../utils/DateUtil"
+import {formatDate, formatDateText, minDagen, plusDagen, plusMaanden, vandaag} from "../../../utils/DateUtil"
+import {useNavigate} from "react-router-dom"
+import {showToast} from "../../../utils/ToastUtil"
 
 const CervixUitstelAanvragenPage = () => {
 	const selectedBvo = useSelectedBvo()!
 	const dispatch = useThunkDispatch()
+	const navigate = useNavigate()
 	const cervixUitstel = useSelector((state: State) => state.client.cervixDossier.uitstel)
 	const uitstelStatus = useSelector((state: State) => state.client.cervixDossier.uitstelStatus)
 
@@ -53,15 +55,15 @@ const CervixUitstelAanvragenPage = () => {
 	}, [dispatch])
 
 	const duurZwangerschap = 9
-	const minPeriodeTussenZwangerEnOnderzoek = uitstelStatus ? uitstelStatus.uitstelBijZwangerschap : 6
-	const minDatumZwangerschap = minMaanden(vandaag(), minPeriodeTussenZwangerEnOnderzoek)
+	const minPeriodeTussenZwangerEnOnderzoek = uitstelStatus ? uitstelStatus.uitstelBijZwangerschap : 42
+	const minDatumZwangerschap = minDagen(vandaag(), minPeriodeTussenZwangerEnOnderzoek)
 	const maxDatumZwangerschap = plusMaanden(vandaag(), duurZwangerschap)
 	const minDatumAnders = plusDagen(vandaag(), 1)
 	const maxDatumAnders = plusMaanden(vandaag(), 60)
 
 	function getInitialValueUitstellenTotDatum() {
 		if (cervixUitstel.uitstelType === CervixUitstelType.ZWANGERSCHAP && cervixUitstel.uitstellenTotDatum) {
-			return minMaanden(cervixUitstel.uitstellenTotDatum, minPeriodeTussenZwangerEnOnderzoek)
+			return minDagen(cervixUitstel.uitstellenTotDatum, minPeriodeTussenZwangerEnOnderzoek)
 		} else {
 			return cervixUitstel.uitstellenTotDatum || null
 		}
@@ -108,8 +110,9 @@ const CervixUitstelAanvragenPage = () => {
 												validationSchema={validatieSchema}
 												onSubmit={(values) => {
 													dispatch(saveCervixUitstel(values, minPeriodeTussenZwangerEnOnderzoek)).then(() => {
-														navigateAndShowToast("/cervix", getString(properties.toast.title, [formatDateText(getUitstellenTotDatum(
+														showToast(getString(properties.toast.title, [formatDateText(getUitstellenTotDatum(
 															values, minPeriodeTussenZwangerEnOnderzoek))]), getString(properties.toast.description))
+														navigate("/cervix")
 													})
 												}}>
 					{formikProps => (

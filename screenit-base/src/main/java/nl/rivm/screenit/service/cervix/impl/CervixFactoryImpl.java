@@ -65,6 +65,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -104,13 +105,19 @@ public class CervixFactoryImpl implements CervixFactory
 	private CervixMonsterService monsterService;
 
 	@Override
-	public CervixScreeningRonde maakRonde(CervixDossier dossier)
+	public CervixScreeningRonde maakRonde(CervixDossier dossier, boolean setDatumVolgendeRonde)
 	{
-		return maakRonde(dossier, dateSupplier.getLocalDateTime());
+		return maakRonde(dossier, dateSupplier.getLocalDateTime(), setDatumVolgendeRonde);
 	}
 
 	@Override
-	public CervixScreeningRonde maakRonde(CervixDossier dossier, LocalDateTime creatiedatum)
+	public CervixScreeningRonde maakRonde(CervixDossier dossier)
+	{
+		return maakRonde(dossier, dateSupplier.getLocalDateTime(), true);
+	}
+
+	@Override
+	public CervixScreeningRonde maakRonde(CervixDossier dossier, LocalDateTime creatiedatum, boolean setDatumVolgendeRonde)
 	{
 		LOG.info("CervixScreeningRonde aanmaken voor clientId " + dossier.getClient().getId());
 
@@ -136,23 +143,48 @@ public class CervixFactoryImpl implements CervixFactory
 		dossier.getScreeningRondes().add(ronde);
 		dossier.setLaatsteScreeningRonde(ronde);
 
-		LocalDate volgendeRondeVanaf = geboortedatum.plusYears(leeftijdcategorie.volgende().getLeeftijd());
-		if (geboortedatum.getDayOfMonth() != volgendeRondeVanaf.getDayOfMonth())
+		if (setDatumVolgendeRonde)
 		{
-
-			volgendeRondeVanaf = volgendeRondeVanaf.plusDays(1);
+			updateDossierMetVolgendeRondeDatum(dossier, creatiedatum);
 		}
-		dossier.setVolgendeRondeVanaf(DateUtil.toUtilDate(volgendeRondeVanaf));
-
 		hibernateService.saveOrUpdate(ronde);
 		hibernateService.saveOrUpdate(dossier);
 		return ronde;
 	}
 
 	@Override
+	public void updateDossierMetVolgendeRondeDatum(CervixDossier dossier, LocalDateTime creatiedatum)
+	{
+		LocalDate geboortedatum = DateUtil.toLocalDate(dossier.getClient().getPersoon().getGeboortedatum());
+		CervixLeeftijdcategorie leeftijdcategorie = CervixLeeftijdcategorie.getLeeftijdcategorie(geboortedatum, creatiedatum);
+		LocalDate volgendeRondeVanaf = geboortedatum.plusYears(leeftijdcategorie.volgende().getLeeftijd());
+
+		if (geboortedatum.getDayOfMonth() != volgendeRondeVanaf.getDayOfMonth())
+		{
+
+			volgendeRondeVanaf = volgendeRondeVanaf.plusDays(1);
+		}
+		dossier.setVolgendeRondeVanaf(DateUtil.toUtilDate(volgendeRondeVanaf));
+		hibernateService.saveOrUpdate(dossier);
+	}
+
+	@Override
 	public CervixUitnodiging maakUitnodiging(CervixScreeningRonde ronde, BriefType briefType)
 	{
 		return maakUitnodiging(ronde, briefType, false, true);
+	}
+
+	@Override
+	public void maakVooraankondiging(CervixScreeningRonde ronde)
+	{
+		var dossier = ronde.getDossier();
+		if (dossier.getVooraankondigingsBrief() == null)
+		{
+			LOG.debug("CervixVooraankondigingbrief aanmaken (clientId: " + dossier.getClient().getId() + ")");
+			var brief = briefService.maakBvoBrief(ronde, BriefType.CERVIX_VOORAANKONDIGING);
+			dossier.setVooraankondigingsBrief(brief);
+			hibernateService.saveOrUpdate(dossier);
+		}
 	}
 
 	@Override
@@ -240,11 +272,11 @@ public class CervixFactoryImpl implements CervixFactory
 		if (laatsteUitnodiging != null && laatsteUitnodiging.getMonsterType() == CervixMonsterType.UITSTRIJKJE)
 		{
 			CervixBrief brief = laatsteUitnodiging.getBrief();
-			if (brief.getMergedBrieven() == null)
+			if (BriefUtil.getMergedBrieven(brief) == null)
 			{
-				if (!screeningrondeService.isFrisseStart(laatsteScreeningRonde) && heeftEersteUitnodingOntvangen(laatsteScreeningRonde))
+				if (heeftEersteUitnodingOntvangen(laatsteScreeningRonde))
 				{
-					brief.setTegenhouden(true);
+					hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 				}
 				hibernateService.saveOrUpdate(brief);
 			}
@@ -271,8 +303,7 @@ public class CervixFactoryImpl implements CervixFactory
 	{
 		return ronde.getUitnodigingen().stream()
 			.anyMatch(uitnodiging -> BriefType.getCervixUitnodigingen().contains(uitnodiging.getBrief().getBriefType())
-				&& uitnodiging.getBrief().getMergedBrieven() != null
-				&& uitnodiging.getBrief().getMergedBrieven().getGeprint());
+				&& BriefUtil.isMergedBrievenGeprint(uitnodiging.getBrief()));
 	}
 
 	private CervixUitstrijkje maakUitstrijkje(CervixUitnodiging uitnodiging)

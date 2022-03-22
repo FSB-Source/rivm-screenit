@@ -93,7 +93,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 			.add(Projections.property("vanaf")) 
 			.add(Projections.property("tot")) 
 			.add(Projections.property("id"))
-		;
+			;
 
 		criteria.setProjection(projectionList);
 
@@ -184,7 +184,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 			.add(Projections.property("blok.id")) 
 			.add(Projections.property("dossier.doelgroep")) 
 			.add(Projections.property("dossier.tehuis.id")) 
-			.add(Projections.property("dossier.laatsteMammografieAfgerond")) 
+			.add(Projections.property("dossier.laatsteBeoordelingMetUitslag.id")) 
 			.add(Projections.property("opkomstkans.opkomstkans")) 
 			.add(Projections.property("blok.vanaf")) 
 			.add(Projections.property("blok.tot")) 
@@ -232,9 +232,9 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 			{
 				MammaDoelgroep doelgroep = (MammaDoelgroep) rowItems[2];
 				Long tehuisId = (Long) rowItems[3];
-				Date laatsteMammografieAfgerond = (Date) rowItems[4];
+				Long laatsteBeoordelingMetUitslagId = (Long) rowItems[4];
 				BigDecimal opkomstkans = (BigDecimal) rowItems[5];
-				BigDecimal factor = MammaFactorType.getFactorType(tehuisId != null, doelgroep, laatsteMammografieAfgerond).getFactor(screeningOrganisatie);
+				BigDecimal factor = MammaFactorType.getFactorType(tehuisId != null, doelgroep, laatsteBeoordelingMetUitslagId != null).getFactor(screeningOrganisatie);
 				MammaAfspraakDto afspraakDto = new MammaAfspraakDto();
 				afspraakDto.capaciteitBlokDto = capaciteitBlokDto;
 				afspraakDto.vanaf = afspraakVanaf;
@@ -270,7 +270,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 
 	private class ToDatePropertyExpression implements Criterion
 	{
-		private final TypedValue[] NO_TYPED_VALUES = new TypedValue[0];
+		private final TypedValue[] noTypedValues = new TypedValue[0];
 
 		private final String propertyName;
 
@@ -297,7 +297,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 		@Override
 		public TypedValue[] getTypedValues(Criteria criteria, CriteriaQuery criteriaQuery)
 		{
-			return NO_TYPED_VALUES;
+			return noTypedValues;
 		}
 
 		@Override

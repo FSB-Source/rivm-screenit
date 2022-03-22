@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.colon.niettebeoordelen;
 
 import java.util.Arrays;
 
+import nl.rivm.screenit.dao.colon.IFobtDao;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ZoekIfobtMetBarcodePanel;
@@ -80,6 +81,9 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 	@SpringBean
 	private InstellingService instellingService;
 
+	@SpringBean
+	private IFobtDao iFobtDao;
+
 	private final IModel<IFOBTTest> ifobtTestModel = new CglibHibernateModel<>();
 
 	private final WebMarkupContainer uitnodigingContainer;
@@ -116,7 +120,8 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 				}
 				else
 				{
-					error("Geen test gevonden bij barcode.");
+					boolean isVerwijderdeBarcode = iFobtDao.isVerwijderdeBarcode(getScanInput());
+					error(String.format(getString("error.barcode.niet.gekoppeld"), isVerwijderdeBarcode ? "meer " : ""));
 				}
 
 			}
@@ -148,8 +153,6 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 
 		statusForm.add(new AjaxLink<Void>("opnieuw")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -158,21 +161,19 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 		});
 
 		statusForm.add(
-			new ScreenitDropdown<RedenNietTeBeoordelen>("redenNietTeBeoordelen", Arrays.asList(RedenNietTeBeoordelen.values()), new EnumChoiceRenderer<RedenNietTeBeoordelen>())
+			new ScreenitDropdown<>("redenNietTeBeoordelen", Arrays.asList(RedenNietTeBeoordelen.values()), new EnumChoiceRenderer<>())
 				.setNullValid(true).setRequired(true));
 
 		Instelling ingelogdVoorInstelling = ScreenitSession.get().getInstelling();
-		statusForm.add(new ScreenitDropdown<IFobtLaboratorium>( 
+		statusForm.add(new ScreenitDropdown<>( 
 			"ifobtLaboratorium", 
 			new SimpleListHibernateModel<>(instellingService.getActieveInstellingen(IFobtLaboratorium.class)), 
-			new ChoiceRenderer<IFobtLaboratorium>("naam", "id") 
+			new ChoiceRenderer<>("naam", "id") 
 		) 
 			.setNullValid(false).setRequired(true).setEnabled(!ingelogdVoorInstelling.getOrganisatieType().equals(OrganisatieType.LABORATORIUM)));
 
 		statusForm.add(new AjaxSubmitLink("opslaan")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -186,8 +187,6 @@ public class NietTeBeoordelenMonstersPage extends ColonScreeningBasePage
 
 		statusForm.add(new AjaxLink<Void>("annuleren")
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

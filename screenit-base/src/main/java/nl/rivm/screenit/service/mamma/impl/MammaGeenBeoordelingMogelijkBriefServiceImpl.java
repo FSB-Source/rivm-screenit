@@ -34,7 +34,7 @@ import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaGeenBeoordelingMogelijkBriefCreator;
 import nl.rivm.screenit.service.mamma.MammaGeenBeoordelingMogelijkBriefService;
@@ -54,7 +54,7 @@ public class MammaGeenBeoordelingMogelijkBriefServiceImpl implements MammaGeenBe
 	private BaseBriefService briefService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private AsposeService asposeService;
@@ -104,6 +104,6 @@ public class MammaGeenBeoordelingMogelijkBriefServiceImpl implements MammaGeenBe
 	{
 		BriefDefinitie definitie = briefService.getNieuwsteBriefDefinitie(briefType);
 
-		return fileService.load(definitie.getDocument());
+		return uploadDocumentService.load(definitie.getDocument());
 	}
 }

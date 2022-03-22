@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.service.impl;
 
 /*-
@@ -34,17 +33,15 @@ import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.InstellingGebruikerRol;
-import nl.rivm.screenit.model.Mail;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rol;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.InlogMethode;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.repository.MailRepository;
 import nl.rivm.screenit.service.AuthenticatieService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -78,7 +75,7 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Override
 	public List<Gebruiker> searchMedewerkers(Gebruiker searchObject, List<Functie> selectedFuncties, List<Rol> selectedRollen,
@@ -172,7 +169,7 @@ public class MedewerkerServiceImpl implements MedewerkerService
 			medewerker.setHandtekening(null);
 			if (handtekening.getId() != null)
 			{
-				fileService.delete(handtekening, true);
+				uploadDocumentService.delete(handtekening, true);
 			}
 		}
 		if (isBestaande)
@@ -283,9 +280,9 @@ public class MedewerkerServiceImpl implements MedewerkerService
 	}
 
 	@Override
-	public List<InstellingGebruiker> getActieveInstellingGebruikersVanInstellingMetRecht(Instelling instelling, Recht recht)
+	public List<Gebruiker> getActieveGebruikersMetRecht(Recht recht)
 	{
-		return medewerkerDao.getActieveInstellingGebruikersVanInstellingMetRecht(instelling, recht);
+		return medewerkerDao.getActieveGebruikersMetRecht(recht);
 	}
 
 	@Override

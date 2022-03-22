@@ -21,6 +21,9 @@ package nl.rivm.screenit.model.mamma.enums;
  * =========================LICENSE_END==================================
  */
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum MammaBeoordelingOpschortenReden
 {
 	NIET_OPSCHORTEN,
@@ -28,4 +31,15 @@ public enum MammaBeoordelingOpschortenReden
 	AANVULLENDE_BEELDEN_NODIG_SE,
 
 	PRIORS_VAN_BUITEN_BVO;
+
+	public static List<MammaBeoordelingOpschortenReden> getMogelijkeRedenen(MammaLezingType lezingType)
+	{
+		switch (lezingType)
+		{
+		case TWEEDE_LEZING:
+			return Arrays.asList(NIET_OPSCHORTEN, PRIORS_VAN_BUITEN_BVO);
+		default:
+			return List.of(values());
+		}
+	}
 }

@@ -39,7 +39,7 @@ public class HL7Util
 		case VROUW:
 			return "F";
 		default:
-			return "U";
+			return "O";
 		}
 	}
 }

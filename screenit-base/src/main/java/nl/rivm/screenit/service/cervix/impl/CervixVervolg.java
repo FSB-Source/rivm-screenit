@@ -23,14 +23,18 @@ package nl.rivm.screenit.service.cervix.impl;
 
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 
+@Getter
 public class CervixVervolg
 {
-
+	@Setter
 	private CervixVervolgTekst vervolgTekst = null;
 
 	private BriefType briefType = null;
@@ -39,14 +43,12 @@ public class CervixVervolg
 
 	private Date inVervolgonderzoekDatum = null;
 
+	@Setter
+	private Integer intervalControleUitstrijkje;
+
 	private boolean sluitRonde = false;
 
 	private CervixLeeftijdcategorie leeftijdcategorieVolgendeRonde = null;
-
-	public void setVervolgTekst(CervixVervolgTekst vervolgTekst)
-	{
-		this.vervolgTekst = vervolgTekst;
-	}
 
 	public void setVervolg(BriefType briefType)
 	{
@@ -95,33 +97,9 @@ public class CervixVervolg
 		this.inVervolgonderzoekDatum = inVervolgonderzoekDatum;
 	}
 
-	public CervixVervolgTekst getVervolgTekst()
-	{
-		return vervolgTekst;
-	}
-
-	public BriefType getBriefType()
-	{
-		return briefType;
-	}
-
-	public HuisartsBerichtType getHuisartsBerichtType()
-	{
-		return huisartsBerichtType;
-	}
-
-	public Date getInVervolgonderzoekDatum()
-	{
-		return inVervolgonderzoekDatum;
-	}
-
 	public boolean sluitRonde()
 	{
 		return sluitRonde;
 	}
 
-	public CervixLeeftijdcategorie getLeeftijdcategorieVolgendeRonde()
-	{
-		return leeftijdcategorieVolgendeRonde;
-	}
 }

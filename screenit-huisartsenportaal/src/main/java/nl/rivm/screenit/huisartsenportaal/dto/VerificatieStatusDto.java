@@ -21,6 +21,11 @@ package nl.rivm.screenit.huisartsenportaal.dto;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class VerificatieStatusDto
 {
 	private Boolean succes;
@@ -31,43 +36,4 @@ public class VerificatieStatusDto
 
 	private String zorgmailKlantnummer;
 
-	public String getLocatieNaam()
-	{
-		return locatieNaam;
-	}
-
-	public void setLocatieNaam(String locatieNaam)
-	{
-		this.locatieNaam = locatieNaam;
-	}
-
-	public String getZorgmailKlantnummer()
-	{
-		return zorgmailKlantnummer;
-	}
-
-	public void setZorgmailKlantnummer(String zorgmailKlantnummer)
-	{
-		this.zorgmailKlantnummer = zorgmailKlantnummer;
-	}
-
-	public Boolean getSucces()
-	{
-		return succes;
-	}
-
-	public void setSucces(Boolean succes)
-	{
-		this.succes = succes;
-	}
-
-	public Boolean getReedsGeverifieerd()
-	{
-		return reedsGeverifieerd;
-	}
-
-	public void setReedsGeverifieerd(Boolean reedsGeverifieerd)
-	{
-		this.reedsGeverifieerd = reedsGeverifieerd;
-	}
 }

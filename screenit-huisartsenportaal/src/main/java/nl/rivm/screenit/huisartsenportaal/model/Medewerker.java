@@ -44,6 +44,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.huisartsenportaal.model.enums.InlogMethode;
 import nl.rivm.screenit.huisartsenportaal.model.enums.Recht;
 
@@ -56,10 +59,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Audited
 @Table(name = "org_medewerker")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@Getter
+@Setter
 public abstract class Medewerker implements UserDetails, Serializable
 {
-	private static final long serialVersionUID = 1L;
-
 	public static final int MAX_ATTEMPS = 4;
 
 	public static final int MAX_LOCKED = 15;
@@ -93,111 +96,12 @@ public abstract class Medewerker implements UserDetails, Serializable
 	@ElementCollection(targetClass = Recht.class, fetch = FetchType.EAGER)
 	@Enumerated(EnumType.STRING)
 	@CollectionTable(name = "org_medewerker_rol")
-	private List<Recht> rollen = new ArrayList<Recht>();
+	private List<Recht> rollen = new ArrayList<>();
 
-	public Long getHuisartsportaalId()
-	{
-		return huisartsportaalId;
-	}
-
-	public void setHuisartsportaalId(Long huisartsportaalId)
-	{
-		this.huisartsportaalId = huisartsportaalId;
-	}
-
-	public Long getScreenitId()
-	{
-		return screenitId;
-	}
-
-	public void setScreenitId(Long screenitId)
-	{
-		this.screenitId = screenitId;
-	}
-
+	@Override
 	public String getUsername()
 	{
 		return getHuisartsportaalId().toString();
-	}
-
-	public String getGebruikersnaam()
-	{
-		return gebruikersnaam;
-	}
-
-	public void setGebruikersnaam(String gebruikersnaam)
-	{
-		this.gebruikersnaam = gebruikersnaam;
-	}
-
-	public String getPassword()
-	{
-		return password;
-	}
-
-	public void setPassword(String password)
-	{
-		this.password = password;
-	}
-
-	public Boolean getActief()
-	{
-		return actief;
-	}
-
-	public void setActief(Boolean actief)
-	{
-		this.actief = actief;
-	}
-
-	public List<Recht> getRollen()
-	{
-		return rollen;
-	}
-
-	public void setRollen(List<Recht> rollen)
-	{
-		this.rollen = rollen;
-	}
-
-	public Integer getAttempts()
-	{
-		return attempts;
-	}
-
-	public void setAttempts(Integer attempts)
-	{
-		this.attempts = attempts;
-	}
-
-	public Date getLastAttemptDate()
-	{
-		return lastAttemptDate;
-	}
-
-	public void setLastAttemptDate(Date lastAttemptDate)
-	{
-		this.lastAttemptDate = lastAttemptDate;
-	}
-
-	public InlogMethode getInlogMethode()
-	{
-		return inlogMethode;
-	}
-
-	public void setInlogMethode(InlogMethode inlogMethode)
-	{
-		this.inlogMethode = inlogMethode;
-	}
-
-	public String getInlogCode()
-	{
-		return inlogCode;
-	}
-
-	public void setInlogCode(String inlogCode)
-	{
-		this.inlogCode = inlogCode;
 	}
 
 	@Override

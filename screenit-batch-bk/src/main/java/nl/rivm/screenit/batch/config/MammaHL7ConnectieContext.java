@@ -21,13 +21,6 @@ package nl.rivm.screenit.batch.config;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ADT;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_ILM;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_KWALITEITSOPNAME;
-import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,15 +28,18 @@ import java.util.Map;
 import nl.rivm.screenit.batch.model.HapiContextType;
 import nl.rivm.screenit.batch.model.ScreenITHL7MessageContext;
 import nl.rivm.screenit.batch.model.enums.MammaHL7Connectie;
-import nl.rivm.screenit.dto.mamma.MammaAbstractHL7v24OrmBerichtTriggerDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.model.mamma.MammaHL7v24Message;
 import nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ADT;
+import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM;
+import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_ILM;
+import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_ILM_UPLOAD_BEELDEN;
+import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_KWALITEITSOPNAME;
+import static nl.rivm.screenit.model.mamma.enums.MammaHL7BerichtType.IMS_ORM_UPLOAD_BEELDEN;
 
 public class MammaHL7ConnectieContext
 {
@@ -67,25 +63,7 @@ public class MammaHL7ConnectieContext
 
 	public MammaHL7Connectie getConnectie(MammaHL7v24Message message) throws JsonProcessingException
 	{
-		MammaHL7BerichtType hl7BerichtType = message.getHl7BerichtType();
-		MammaAbstractHL7v24OrmBerichtTriggerDto ilmTriggerDto = getIlmTriggerDto(message);
-
-		return ilmTriggerDto != null && MammaHL7v24ORMBerichtStatus.GOINGTODELETE == ilmTriggerDto.getStatus() ? connectieMap.get(IMS_ORM) : connectieMap.get(hl7BerichtType);
-	}
-
-	private MammaAbstractHL7v24OrmBerichtTriggerDto getIlmTriggerDto(MammaHL7v24Message message)
-		throws JsonProcessingException
-	{
-		MammaAbstractHL7v24OrmBerichtTriggerDto triggerDto = null;
-		if (message.getHl7BerichtType() == IMS_ORM_ILM)
-		{
-			triggerDto = objectMapper.readValue(message.getDtoJson(), MammaHL7v24OrmBerichtTriggerMetClientDto.class);
-		}
-		else if (message.getHl7BerichtType() == IMS_ORM_ILM_UPLOAD_BEELDEN)
-		{
-			triggerDto = objectMapper.readValue(message.getDtoJson(), MammaHL7v24OrmBerichtTriggerIlmDto.class);
-		}
-		return triggerDto;
+		return connectieMap.get(message.getHl7BerichtType());
 	}
 
 	public Collection<MammaHL7Connectie> getConnecties()

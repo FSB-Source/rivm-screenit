@@ -39,6 +39,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
 import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
@@ -58,6 +60,8 @@ import nl.rivm.screenit.mamma.planning.model.PlanningTehuis;
 import nl.rivm.screenit.mamma.planning.model.PopulatieMetStreefDatum;
 import nl.rivm.screenit.mamma.planning.model.rapportage.PlanningStandplaatsRondeUitnodigenRapportageDto;
 import nl.rivm.screenit.mamma.planning.model.rapportage.PlanningUitnodigenRapportageDto;
+import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
+import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigenService;
 import nl.rivm.screenit.mamma.planning.service.PlanningUitnodigingContext;
 import nl.rivm.screenit.mamma.planning.service.impl.UitnodigenCapaciteitCalculator;
@@ -86,44 +90,161 @@ import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.FlushMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/" + PlanningRestConstants.C_UITNODIGEN)
 public class PlanningUitnodigenController
 {
-	private static final Logger LOG = LoggerFactory.getLogger(PlanningUitnodigenController.class);
-
-	@Autowired
-	private PlanningReadModelDao readModelDao;
-
-	@Autowired
-	private PlanningUitnodigenService uitnodigenService;
-
-	@Autowired
-	private SimplePreferenceService preferenceService;
-
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private LogService logService;
-
-	@Autowired
-	private InstellingService instellingService;
 
 	private static final ThreadPoolExecutor executor = new ThreadPoolExecutor(0, 100, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
 
 	private static final BigDecimal MINUS_HALF = BigDecimal.valueOf(-0.5);
 
 	private static Integer uitnodigenVanafJaar;
+
+	private final PlanningReadModelDao readModelDao;
+
+	private final PlanningConceptService conceptService;
+
+	private final PlanningConceptOpslaanService conceptOpslaanService;
+
+	private final PlanningUitnodigenService uitnodigenService;
+
+	private final SimplePreferenceService preferenceService;
+
+	private final ICurrentDateSupplier dateSupplier;
+
+	private final HibernateService hibernateService;
+
+	private final LogService logService;
+
+	private final InstellingService instellingService;
+
+	public PlanningUitnodigenController(PlanningReadModelDao readModelDao, PlanningConceptService conceptService,
+		PlanningConceptOpslaanService conceptOpslaanService, PlanningUitnodigenService uitnodigenService,
+		SimplePreferenceService preferenceService, ICurrentDateSupplier dateSupplier, HibernateService hibernateService, LogService logService,
+		InstellingService instellingService)
+	{
+		this.readModelDao = readModelDao;
+		this.conceptService = conceptService;
+		this.conceptOpslaanService = conceptOpslaanService;
+		this.uitnodigenService = uitnodigenService;
+		this.preferenceService = preferenceService;
+		this.dateSupplier = dateSupplier;
+		this.hibernateService = hibernateService;
+		this.logService = logService;
+		this.instellingService = instellingService;
+	}
+
+	private static boolean teSelecteren(PlanningClient client, PlanningUitnodigingContext context, int uitnodigenTotEnMetJaar, PlanningPostcodeReeksRegio postcodeReeksRegio)
+	{
+		return client.getUitnodigenVanafJaar() <= uitnodigenTotEnMetJaar
+			&& (client.getUitnodigenTotEnMetJaar() >= uitnodigenVanafJaar
+			|| !(client.getDoelgroep() == MammaDoelgroep.MINDER_VALIDE || client.getTehuis() != null) && isUitgenodigdVorigJaar(postcodeReeksRegio.getClientSet()))
+			&& (client.isUitgenodigdHuidigeStandplaatsRonde()
+			|| client.getLaatsteMammografieAfgerondDatum() == null
+			|| client.getLaatsteMammografieAfgerondDatum().plusDays(context.minimaleIntervalMammografieOnderzoeken)
+			.isBefore(PlanningConstanten.prognoseVanafDatum))
+			&& (client.getVorigeScreeningRondeCreatieDatum() == null
+			|| client.getVorigeScreeningRondeCreatieDatum().plusDays(context.minimaleIntervalUitnodigingen)
+			.isBefore(PlanningConstanten.prognoseVanafDatum))
+			&& client.getUitstelStandplaats() == null;
+	}
+
+	private static boolean isUitgenodigdVorigJaar(Set<PlanningClient> clientSet)
+	{
+		return clientSet.stream().anyMatch(client -> client.isUitgenodigdHuidigeStandplaatsRonde()
+			&& !client.getDoelgroep().equals(MammaDoelgroep.MINDER_VALIDE)
+			&& !client.isUitgenodigdHuidigeStandplaatsRondeIsGeforceerd()
+			&& client.getLaatsteScreeningRondeCreatieDatum().getYear() < uitnodigenVanafJaar);
+	}
+
+	private static boolean uitTeNodigen(PlanningClient client)
+	{
+		return client.getAfspraakStandplaats() == null && client.getUitstelStandplaats() == null && !client.isUitgenodigdHuidigeStandplaatsRonde()
+			|| Boolean.FALSE.equals(client.getUitgenodigdNaUitstel());
+	}
+
+	private static boolean heeftUitstel(PlanningClient client)
+	{
+		return client.getUitstelStandplaats() != null && client.getUitstelReden() == MammaUitstelReden.CLIENT_CONTACT && !client.getUitgenodigdNaUitstel();
+	}
+
+	private static void scaleHuidigeStreefDatumEersteRondeClienten(NavigableSet<PlanningClient> clientNavigableSet)
+	{
+		List<PlanningClient> eClientList = new ArrayList<>(); 
+		List<PlanningClient> vClientList = new ArrayList<>(); 
+
+		for (PlanningClient client : clientNavigableSet)
+		{
+			if (client.getHuidigeStreefDatum() == null)
+			{
+				eClientList.add(client);
+			}
+			else
+			{
+				vClientList.add(client);
+			}
+		}
+
+		if (eClientList.isEmpty())
+		{
+
+			return;
+		}
+
+		if (vClientList.isEmpty())
+		{
+
+			clientNavigableSet.removeAll(eClientList);
+			for (PlanningClient client : eClientList)
+			{
+				client.setHuidigeStreefDatum(client.getGeboorteDatum().plusYears(PlanningConstanten.vanafLeeftijd));
+			}
+			clientNavigableSet.addAll(eClientList);
+			return;
+		}
+
+		int eSize = eClientList.size();
+		int eMinIndex = (int) Math.round(eSize / 20d);
+		int eMaxIndex = eSize - 1 - eMinIndex;
+		long eMin = eClientList.get(eMinIndex).getGeboorteDatum().toEpochDay();
+		double eMax = eClientList.get(eMaxIndex).getGeboorteDatum().toEpochDay();
+		double eInterval = eMax - eMin;
+
+		int vSize = vClientList.size();
+		int vMinIndex = (int) Math.round(vSize / 20d);
+		int vMaxIndex = vSize - 1 - vMinIndex;
+		long vMin = vClientList.get(vMinIndex).getHuidigeStreefDatum().toEpochDay();
+		double vMax = vClientList.get(vMaxIndex).getHuidigeStreefDatum().toEpochDay();
+		double vInterval = vMax - vMin;
+
+		clientNavigableSet.removeAll(eClientList);
+
+		if (eInterval != 0)
+		{
+			double ratio = vInterval / eInterval;
+
+			for (PlanningClient client : eClientList)
+			{
+				long eX = client.getGeboorteDatum().toEpochDay() - eMin;
+				long vX = Math.round(eX * ratio);
+				client.setHuidigeStreefDatum(LocalDate.ofEpochDay(vMin + vX));
+			}
+		}
+		else
+		{
+			for (PlanningClient client : eClientList)
+			{
+				client.setHuidigeStreefDatum(LocalDate.ofEpochDay(vMin));
+			}
+		}
+
+		clientNavigableSet.addAll(eClientList);
+	}
 
 	@RequestMapping
 	public Long uitnodigen()
@@ -135,6 +256,8 @@ public class PlanningUitnodigenController
 			uitnodigenVanafJaar = dateSupplier.getLocalDate().getYear();
 
 			readModelDao.readDataModel();
+			conceptService.herhalen(readModelDao.getHerhalenVanafDatum());
+			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 
 			hibernateService.getHibernateSession().setFlushMode(FlushMode.COMMIT);
 
@@ -143,6 +266,8 @@ public class PlanningUitnodigenController
 			uitnodigen(rapportage);
 
 			readModelDao.readDataModel();
+			conceptService.herhalen(readModelDao.getHerhalenVanafDatum());
+			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 
 			rapportage.setDatumVerwerking(dateSupplier.getDate());
 			hibernateService.save(rapportage);
@@ -174,7 +299,8 @@ public class PlanningUitnodigenController
 		LocalDate afsprakenVanafDatum = Collections
 			.max(Arrays.asList(DateUtil.plusWerkdagen(PlanningConstanten.prognoseVanafDatum, afspraakVanafAantalWerkdagen), PlanningConstanten.plannenVanafDatum));
 
-		NavigableSet<PlanningStandplaatsRonde> standplaatsRondeNavigableSet = new TreeSet<>((standplaatsRonde1, standplaatsRonde2) -> {
+		NavigableSet<PlanningStandplaatsRonde> standplaatsRondeNavigableSet = new TreeSet<>((standplaatsRonde1, standplaatsRonde2) ->
+		{
 			LocalDate vanaf1 = standplaatsRonde1.getStandplaatsPeriodeNavigableSet().first().getVanaf();
 			LocalDate vanaf2 = standplaatsRonde2.getStandplaatsPeriodeNavigableSet().first().getVanaf();
 
@@ -239,10 +365,12 @@ public class PlanningUitnodigenController
 	private void uitnodigen(PlanningStandplaatsRonde standplaatsRonde, LocalDate afsprakenVanafDatum, PlanningUitnodigenRapportageDto rapportageDto,
 		PlanningUitnodigingContext context)
 	{
-		executor.submit(() -> {
+		executor.submit(() ->
+		{
 			try
 			{
-				OpenHibernate5Session.withCommittedTransaction().run(() -> {
+				OpenHibernate5Session.withCommittedTransaction().run(() ->
+				{
 					LOG.info("uitnodigen standplaatsRonde: " + standplaatsRonde.getId());
 					PlanningStandplaats standplaats = standplaatsRonde.getStandplaats();
 					PlanningScreeningsOrganisatie screeningsOrganisatieStandplaats = standplaats.getScreeningsOrganisatie();
@@ -317,10 +445,11 @@ public class PlanningUitnodigenController
 
 					BigDecimal afspraakDrempel = new BigDecimal(
 						standplaatsRonde.getAfspraakDrempel() != null ? standplaatsRonde.getAfspraakDrempel() : screeningsOrganisatieStandplaats.getAfspraakDrempel())
-							.movePointLeft(2);
+						.movePointLeft(2);
 
 					Set<PlanningClient> openUitnodigingClientSet = new HashSet<>();
-					NavigableSet<PlanningClient> afspraakUitnodigingClientSet = new TreeSet<>((client1, client2) -> {
+					NavigableSet<PlanningClient> afspraakUitnodigingClientSet = new TreeSet<>((client1, client2) ->
+					{
 						int compareTo = client2.getDeelnamekans().compareTo(client1.getDeelnamekans());
 						if (compareTo != 0)
 						{
@@ -456,44 +585,11 @@ public class PlanningUitnodigenController
 			&& !MammaUitstelReden.MINDER_VALIDE_UITWIJK_UITSTEL.equals(client.getUitstelReden());
 	}
 
-	private static boolean teSelecteren(PlanningClient client, PlanningUitnodigingContext context, int uitnodigenTotEnMetJaar, PlanningPostcodeReeksRegio postcodeReeksRegio)
-	{
-		return client.getUitnodigenVanafJaar() <= uitnodigenTotEnMetJaar
-			&& (client.getUitnodigenTotEnMetJaar() >= uitnodigenVanafJaar
-				|| !(client.getDoelgroep() == MammaDoelgroep.MINDER_VALIDE || client.getTehuis() != null) && isUitgenodigdVorigJaar(postcodeReeksRegio.getClientSet()))
-			&& (client.isUitgenodigdHuidigeStandplaatsRonde()
-				|| client.getLaatsteMammografieAfgerondDatum() == null
-				|| client.getLaatsteMammografieAfgerondDatum().plusDays(context.minimaleIntervalMammografieOnderzoeken)
-					.isBefore(PlanningConstanten.prognoseVanafDatum))
-			&& (client.getVorigeScreeningRondeCreatieDatum() == null
-				|| client.getVorigeScreeningRondeCreatieDatum().plusDays(context.minimaleIntervalUitnodigingen)
-					.isBefore(PlanningConstanten.prognoseVanafDatum))
-			&& client.getUitstelStandplaats() == null;
-	}
-
-	private static boolean isUitgenodigdVorigJaar(Set<PlanningClient> clientSet)
-	{
-		return clientSet.stream().anyMatch(client -> client.isUitgenodigdHuidigeStandplaatsRonde()
-			&& !client.getDoelgroep().equals(MammaDoelgroep.MINDER_VALIDE)
-			&& !client.isUitgenodigdHuidigeStandplaatsRondeIsGeforceerd()
-			&& client.getLaatsteScreeningRondeCreatieDatum().getYear() < uitnodigenVanafJaar);
-	}
-
-	private static boolean uitTeNodigen(PlanningClient client)
-	{
-		return client.getAfspraakStandplaats() == null && client.getUitstelStandplaats() == null && !client.isUitgenodigdHuidigeStandplaatsRonde()
-			|| Boolean.FALSE.equals(client.getUitgenodigdNaUitstel());
-	}
-
-	private static boolean heeftUitstel(PlanningClient client)
-	{
-		return client.getUitstelStandplaats() != null && client.getUitstelReden() == MammaUitstelReden.CLIENT_CONTACT && !client.getUitgenodigdNaUitstel();
-	}
-
 	private void rapportageDtoToEntity(PlanningUitnodigenRapportageDto rapportageDto, MammaUitnodigenRapportage rapportage)
 	{
 		Instelling rivm = instellingService.getActieveInstellingen(Rivm.class).get(0);
-		rapportageDto.getStandplaatsRondeUitnodigenRapportages().forEach(standplaatsRondeUitnodigingRapportageDto -> {
+		rapportageDto.getStandplaatsRondeUitnodigenRapportages().forEach(standplaatsRondeUitnodigingRapportageDto ->
+		{
 			MammaStandplaatsRondeUitnodigenRapportage standplaatsRondeUitnodigenRapportage = new MammaStandplaatsRondeUitnodigenRapportage();
 			standplaatsRondeUitnodigenRapportage
 				.setStandplaatsRonde(hibernateService.load(MammaStandplaatsRonde.class, standplaatsRondeUitnodigingRapportageDto.getStandplaatsRondeId()));
@@ -515,7 +611,8 @@ public class PlanningUitnodigenController
 			standplaatsRondeUitnodigenRapportage.setUitnodigenRapportage(rapportage);
 			List<MammaStandplaatsPeriodeUitnodigenRapportage> standplaatsPeriodeUitnodigenRapportages = standplaatsRondeUitnodigenRapportage
 				.getStandplaatsPeriodeUitnodigenRapportages();
-			standplaatsRondeUitnodigingRapportageDto.getStandplaatsPeriodeUitnodigenRapportages().forEach(standplaatsPeriodeUitnodigenRapportageDto -> {
+			standplaatsRondeUitnodigingRapportageDto.getStandplaatsPeriodeUitnodigenRapportages().forEach(standplaatsPeriodeUitnodigenRapportageDto ->
+			{
 				boolean uitnodigenFout = MammaStandplaatsRondeRapportageStatus.FOUT.equals(standplaatsRondeUitnodigenRapportage.getStatus());
 				MammaStandplaatsPeriodeUitnodigenRapportage standplaatsPeriodeUitnodigenRapportage = new MammaStandplaatsPeriodeUitnodigenRapportage();
 				standplaatsPeriodeUitnodigenRapportage
@@ -681,78 +778,5 @@ public class PlanningUitnodigenController
 			standplaatsRondeUitnodigenRapportage.setUitTeNodigenTehuis(uitTeNodigenTehuis);
 			standplaatsRondeUitnodigenRapportage.setUitTeNodigenSuspect(uitTeNodigenSuspect);
 		}
-	}
-
-	private static void scaleHuidigeStreefDatumEersteRondeClienten(NavigableSet<PlanningClient> clientNavigableSet)
-	{
-		List<PlanningClient> eClientList = new ArrayList<>(); 
-		List<PlanningClient> vClientList = new ArrayList<>(); 
-
-		for (PlanningClient client : clientNavigableSet)
-		{
-			if (client.getHuidigeStreefDatum() == null)
-			{
-				eClientList.add(client);
-			}
-			else
-			{
-				vClientList.add(client);
-			}
-		}
-
-		if (eClientList.isEmpty())
-		{
-
-			return;
-		}
-
-		if (vClientList.isEmpty())
-		{
-
-			clientNavigableSet.removeAll(eClientList);
-			for (PlanningClient client : eClientList)
-			{
-				client.setHuidigeStreefDatum(client.getGeboorteDatum().plusYears(PlanningConstanten.vanafLeeftijd));
-			}
-			clientNavigableSet.addAll(eClientList);
-			return;
-		}
-
-		int eSize = eClientList.size();
-		int eMinIndex = (int) Math.round(eSize / 20d);
-		int eMaxIndex = eSize - 1 - eMinIndex;
-		long eMin = eClientList.get(eMinIndex).getGeboorteDatum().toEpochDay();
-		double eMax = eClientList.get(eMaxIndex).getGeboorteDatum().toEpochDay();
-		double eInterval = eMax - eMin;
-
-		int vSize = vClientList.size();
-		int vMinIndex = (int) Math.round(vSize / 20d);
-		int vMaxIndex = vSize - 1 - vMinIndex;
-		long vMin = vClientList.get(vMinIndex).getHuidigeStreefDatum().toEpochDay();
-		double vMax = vClientList.get(vMaxIndex).getHuidigeStreefDatum().toEpochDay();
-		double vInterval = vMax - vMin;
-
-		clientNavigableSet.removeAll(eClientList);
-
-		if (eInterval != 0)
-		{
-			double ratio = vInterval / eInterval;
-
-			for (PlanningClient client : eClientList)
-			{
-				long eX = client.getGeboorteDatum().toEpochDay() - eMin;
-				long vX = Math.round(eX * ratio);
-				client.setHuidigeStreefDatum(LocalDate.ofEpochDay(vMin + vX));
-			}
-		}
-		else
-		{
-			for (PlanningClient client : eClientList)
-			{
-				client.setHuidigeStreefDatum(LocalDate.ofEpochDay(vMin));
-			}
-		}
-
-		clientNavigableSet.addAll(eClientList);
 	}
 }

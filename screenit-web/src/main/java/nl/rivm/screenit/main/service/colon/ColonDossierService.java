@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.service.colon;
 
 /*-
@@ -28,6 +27,8 @@ import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
+import nl.rivm.screenit.model.dashboard.DashboardStatus;
+import nl.rivm.screenit.model.logging.LogRegel;
 
 public interface ColonDossierService
 {
@@ -45,4 +46,6 @@ public interface ColonDossierService
 	void verwijderIfobtUitslag(IFOBTTest buis, UploadDocument uploadDocument, InstellingGebruiker loggedInInstellingGebruiker);
 
 	void vervangUitslagVerwijderenDocument(IFOBTTest buis, UploadDocument uploadDocument);
+
+	boolean setUitslagenGecontroleerdEnUpdateDashboard(LogRegel logRegel, InstellingGebruiker medewerker, DashboardStatus dashboardStatus);
 }

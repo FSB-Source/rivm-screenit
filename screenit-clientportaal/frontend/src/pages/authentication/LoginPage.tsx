@@ -19,8 +19,7 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import {useCallback, useEffect} from "react"
-import {Redirect} from "react-router-dom"
+import {useCallback} from "react"
 import {useKeycloak} from "@react-keycloak/web"
 import {useDispatch, useSelector} from "react-redux"
 import {Col, Row} from "react-bootstrap"
@@ -36,53 +35,47 @@ import SpanWithHtml from "../../components/span/SpanWithHtml"
 import Button from "../../components/input/Button"
 import {ArrowType} from "../../components/vectors/ArrowIconComponent"
 import properties from "./LoginPage.json"
-import {procesLoginAndLogBrowserInfo} from "../../utils/LoginUtil"
+import {Navigate} from "react-router-dom"
 
 const LoginPage = () => {
-    const {initialized: keycloakInitialized, keycloak} = useKeycloak()
-    const dispatch = useDispatch()
-    const authenticatie = useSelector((state: State) => state.authenticatie)
+	const {initialized: keycloakInitialized, keycloak} = useKeycloak()
+	const dispatch = useDispatch()
+	const authenticatie = useSelector((state: State) => state.authenticatie)
 
-    useEffect(() => {
-        procesLoginAndLogBrowserInfo(keycloakInitialized, keycloak, dispatch, authenticatie)
-    }, [keycloakInitialized, keycloak, dispatch, authenticatie])
+	const login = useCallback(() => {
+		dispatch(setLoggingInAction(true))
+	}, [dispatch])
 
-    const login = useCallback(() => {
-        if (keycloakInitialized) {
-            dispatch(setLoggingInAction(true))
-            keycloak?.login()
-        }
-    }, [keycloakInitialized, keycloak, dispatch])
-
-    if (keycloak?.authenticated &&
+	if (keycloakInitialized && keycloak?.authenticated &&
 		((authenticatie.isLoggedIn && !authenticatie.isLoggingOut) ||
-		(!authenticatie.isLoggingIn && !authenticatie.isLoggingOut && !authenticatie.isLoggedIn && !authenticatie.isSessionExpired))) {
-        return <Redirect to={"/"}/>
-    }
-    return (
-        <div className={classNames(authenticationStyle.style, styles.style)}>
-            <Row>
-                <Col sm={8}>
-                    {(keycloak?.authenticated && authenticatie.isLoggingIn && !authenticatie.isLoggingOut) ? <div>
-                        <h1>{getString(properties.title.logging_in)}</h1>
-                    </div> : <div>
-                        <h1>{authenticatie.isSessionExpired ? getString(properties.title.opnieuw_inloggen) : getString(properties.title.inloggen)}</h1>
-                        <div className={authenticationStyle.introTextContainer}>
-                            <SpanWithHtml
-                                value={authenticatie.isSessionExpired ? getString(properties.description.opnieuw_inloggen) : getString(properties.description.inloggen)}/>
-                        </div>
-                        <div className={styles.loginDigid}>
-                            <Button label={getString(properties.button)} displayArrow={ArrowType.ARROW_RIGHT} onClick={login}/>
+			(!authenticatie.isLoggingIn && !authenticatie.isLoggingOut && !authenticatie.isLoggedIn && !authenticatie.isSessionExpired))) {
+		return <Navigate replace to={"/"}/>
+	} else {
+		return (
+			<div className={classNames(authenticationStyle.style, styles.style)}>
+				<Row>
+					<Col sm={8}>
+						{(keycloak?.authenticated && authenticatie.isLoggingIn && !authenticatie.isLoggingOut) ? <div>
+							<h1>{getString(properties.title.logging_in)}</h1>
+						</div> : <div>
+							<h1>{authenticatie.isSessionExpired ? getString(properties.title.opnieuw_inloggen) : getString(properties.title.inloggen)}</h1>
+							<div className={authenticationStyle.introTextContainer}>
+								<SpanWithHtml
+									value={authenticatie.isSessionExpired ? getString(properties.description.opnieuw_inloggen) : getString(properties.description.inloggen)}/>
+							</div>
+							<div className={styles.loginDigid}>
+								<Button label={getString(properties.button)} displayArrow={ArrowType.ARROW_RIGHT} onClick={login}/>
 
-                        </div>
-                    </div>}
-                </Col>
-                <Col sm={4}>
-                    <ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
-                </Col>
-            </Row>
-        </div>
-    )
+							</div>
+						</div>}
+					</Col>
+					<Col sm={4}>
+						<ImageBlobComponent image={blob_personen} className={authenticationStyle.blob}/>
+					</Col>
+				</Row>
+			</div>
+		)
+	}
 }
 
 export default LoginPage

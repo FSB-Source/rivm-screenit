@@ -23,9 +23,9 @@ package nl.rivm.screenit.mamma.se.security;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.envers.AccountResolver;
+import nl.rivm.screenit.model.envers.RevisionInformationResolver;
 
-public class SEAccountResolverDelegate implements AccountResolver.AccountResolverDelegate
+public class SEAccountResolverDelegate implements RevisionInformationResolver.RevisionInformationResolverDelegate
 {
 	private static ThreadLocal<InstellingGebruiker> instellingGebruiker = new ThreadLocal<>();
 

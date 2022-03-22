@@ -48,6 +48,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -72,6 +73,9 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
+
+	@Autowired
+	private SimplePreferenceService preferenceService;
 
 	@Autowired
 	private MammaBaseStandplaatsDao standplaatsDao;
@@ -132,9 +136,14 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 			kandidaatAfspraakDto.getStandplaatsPeriodeId());
 		MammaStandplaatsLocatie locatie = standplaatsService.getStandplaatsLocatie(standplaatsPeriode.getStandplaatsRonde().getStandplaats(),
 			DateUtil.toUtilDate(kandidaatAfspraakDto.getDatum()));
+
 		mammaAfspraakOptieDto.setAdres(AdresUtil.getStraatMetHuisnummerVoorStandplaatsLocatie(locatie, false));
 		mammaAfspraakOptieDto.setPostcode(locatie.getPostcode());
 		mammaAfspraakOptieDto.setPlaats(locatie.getPlaats());
+
+		boolean briefKanNietMeerVerzondenWorden = baseAfspraakService.briefKanNietMeerVerzondenWorden(DateUtil.toUtilDate(kandidaatAfspraakDto.getDatum()));
+		mammaAfspraakOptieDto.setToonBevestigingsBriefOptie(briefKanNietMeerVerzondenWorden);
+		mammaAfspraakOptieDto.setBevestigingsBrief(briefKanNietMeerVerzondenWorden);
 		return mammaAfspraakOptieDto;
 	}
 

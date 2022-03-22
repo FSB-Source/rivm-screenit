@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
 
 /*-
@@ -30,18 +29,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 
 import org.apache.commons.io.IOUtils;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class FileVo107Provider implements IVo107Provider
 {
-
-	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(FileVo107Provider.class);
-
+	@Setter
 	private String vo107File;
 
+	@Setter
 	private boolean fromClasspath;
 
 	@Override
@@ -71,19 +72,8 @@ public class FileVo107Provider implements IVo107Provider
 		return files;
 	}
 
-	public void setVo107File(String vo107File)
+	private static class Vo107ClasspathFile implements Vo107File
 	{
-		this.vo107File = vo107File;
-	}
-
-	public void setFromClasspath(boolean fromClasspath)
-	{
-		this.fromClasspath = fromClasspath;
-	}
-
-	private class Vo107ClasspathFile implements Vo107File
-	{
-
 		private final String path;
 
 		public Vo107ClasspathFile(String path)
@@ -98,7 +88,7 @@ public class FileVo107Provider implements IVo107Provider
 			FileOutputStream fileOutputStream = null;
 			try
 			{
-				fileInputStream = new FileInputStream(new File(path));
+				fileInputStream = new FileInputStream(path);
 				fileOutputStream = new FileOutputStream(targetFile);
 				IOUtils.copyLarge(fileInputStream, fileOutputStream);
 			}
@@ -142,6 +132,5 @@ public class FileVo107Provider implements IVo107Provider
 		{
 
 		}
-
 	}
 }

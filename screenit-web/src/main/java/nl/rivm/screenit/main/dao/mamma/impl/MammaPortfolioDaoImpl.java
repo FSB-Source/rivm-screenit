@@ -22,10 +22,13 @@ package nl.rivm.screenit.main.dao.mamma.impl;
  */
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import nl.rivm.screenit.main.dao.mamma.MammaPortfolioDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaPortfolioZoekObject;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.util.query.DateRestrictions;
@@ -113,7 +116,9 @@ public class MammaPortfolioDaoImpl extends AbstractAutowiredDao implements Mamma
 		subCriteria.createAlias("afspraak.uitnodiging", "uitnodiging");
 		subCriteria.createAlias("uitnodiging.screeningRonde", "screeningRonde");
 
-		subCriteria.add(Restrictions.in("afgerondDoor", zoekObject.getInstellingGebruikers()));
+		List<InstellingGebruiker> instellingGebruikers = getInstellingGebruikersVoorGebruikers(zoekObject.getGebruikers());
+
+		subCriteria.add(Restrictions.in("afgerondDoor", instellingGebruikers));
 		subCriteria.add(Restrictions.eq("ilmStatus", MammaMammografieIlmStatus.BESCHIKBAAR));
 		subCriteria.add(DateRestrictions.ge("onderzoek.creatieDatum", zoekObject.getVanaf()));
 		subCriteria.add(DateRestrictions.le("onderzoek.creatieDatum", zoekObject.getTotEnMet()));
@@ -122,4 +127,10 @@ public class MammaPortfolioDaoImpl extends AbstractAutowiredDao implements Mamma
 
 		return subCriteria;
 	}
+
+	private List<InstellingGebruiker> getInstellingGebruikersVoorGebruikers(List<Gebruiker> gebruikers)
+	{
+		return gebruikers.stream().flatMap(gebruiker -> gebruiker.getOrganisatieMedewerkers().stream()).collect(Collectors.toList());
+	}
+
 }

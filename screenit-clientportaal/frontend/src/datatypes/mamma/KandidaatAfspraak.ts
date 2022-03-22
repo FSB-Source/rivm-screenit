@@ -29,6 +29,7 @@ export type KandidaatAfspraak = {
 	postcode: string,
 	plaats: string,
 	bevestigingsBrief: boolean,
+	toonBevestigingsBriefOptie: boolean,
 	filter: AfspraakZoekFilter
 }
 

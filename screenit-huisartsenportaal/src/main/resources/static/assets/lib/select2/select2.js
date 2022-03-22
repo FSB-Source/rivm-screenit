@@ -4333,12 +4333,12 @@
 									var val = [], self = this;
 
 									this.searchContainer.show();
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 									this.searchContainer.appendTo(this.searchContainer.parent());
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 									this.resizeSearch();
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 									this.selection.find(".select2-search-choice").each(function()
 									{
 										val.push(self.opts.id($(this).data("select2-data")));
@@ -4347,7 +4347,7 @@
 									this.triggerChange();
 								},
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 								data: function(values, triggerChange)
 								{
 									var self = this, ids, old;
@@ -4462,7 +4462,7 @@
 		return (value === undefined) ? this : value;
 	};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	$.fn.select2.defaults = {
 		width: "copy",
 		loadMorePadding: 0,
@@ -4561,7 +4561,7 @@
 		}
 	};
 
-//4333dd9b-f9c5-4dc4-b754-121f2c8f8b18
+//77f7f4f5-7a97-40de-9495-0ed4bfdaa5cc
 	window.Select2 = {
 		query: {
 			ajax: ajax,

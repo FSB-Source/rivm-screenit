@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.login;
 
 /*-
@@ -22,13 +21,28 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.ApplicationEnvironment;
+
+import org.apache.wicket.spring.injection.annot.SpringBean;
+
 public class MedewerkerLoginPage extends LoginBasePage
 {
-
 	private static final long serialVersionUID = 1L;
+
+	@SpringBean(name = "applicationEnvironment")
+	private String applicationEnvironment;
 
 	public MedewerkerLoginPage()
 	{
-		add(new MedewerkerLoginPanel("panel"));
+		if (ApplicationEnvironment.PROD.getEnvNaam().equalsIgnoreCase(applicationEnvironment) ||
+			ApplicationEnvironment.PAT.getEnvNaam().equalsIgnoreCase(applicationEnvironment) ||
+			ApplicationEnvironment.OPL.getEnvNaam().equalsIgnoreCase(applicationEnvironment))
+		{
+			setResponsePage(MedewerkerLoginMethodPage.class);
+		}
+		else
+		{
+			add(new MedewerkerLoginPanel("panel"));
+		}
 	}
 }

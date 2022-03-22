@@ -31,7 +31,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-import nl.rivm.screenit.model.envers.AccountResolver;
+import nl.rivm.screenit.model.envers.RevisionInformationResolver;
 
 import org.springframework.stereotype.Component;
 
@@ -42,7 +42,7 @@ public class ResetAccountFilter implements Filter
 	@Override
 	public void init(FilterConfig filterConfig)
 	{
-		AccountResolver.registerDelegate(new CPAccountResolverDelegate());
+		RevisionInformationResolver.registerDelegate(new CPAccountResolverDelegate());
 	}
 
 	@Override

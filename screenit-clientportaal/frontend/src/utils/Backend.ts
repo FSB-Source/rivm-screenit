@@ -20,12 +20,10 @@
  */
 import axios, {AxiosError} from "axios"
 import keycloak from "../utils/Keycloak"
-import {cpStore} from "../index"
-import {createShowToastAction} from "../actions/ToastAction"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import properties from "./backend.json"
-import HttpStatusCode from "../datatypes/HttpStatus"
 import {transformDates} from "./DateTransformUtil"
+import {showToast} from "./ToastUtil"
 
 const BASE_URL = "/api"
 
@@ -42,25 +40,7 @@ ScreenitBackend.interceptors.response.use((response) => {
 	response.data = transformDates(response.data)
 	return response
 }, (error: AxiosError) => {
-	if (error.response) {
-		if (error.response.status === HttpStatusCode.FORBIDDEN) {
-			cpStore.dispatch(createShowToastAction({
-				type: ToastMessageType.ERROR,
-				description: properties.foutmelding,
-			}))
-		}
-		if (error.response.status >= HttpStatusCode.INTERNAL_SERVER_ERROR) {
-			cpStore.dispatch(createShowToastAction({
-				type: ToastMessageType.ERROR,
-				description: properties.foutmelding,
-			}))
-		}
-	} else {
-		cpStore.dispatch(createShowToastAction({
-			type: ToastMessageType.ERROR,
-			description: properties.foutmelding,
-		}))
-	}
+	showToast(undefined, properties.foutmelding, ToastMessageType.ERROR)
 	return Promise.reject(error)
 })
 

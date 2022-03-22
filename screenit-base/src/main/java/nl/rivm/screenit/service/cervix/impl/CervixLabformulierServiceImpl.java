@@ -26,12 +26,13 @@ import java.util.List;
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.dao.cervix.CervixLabformulierDao;
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
-import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
+import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -213,7 +214,7 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 			}
 			else
 			{
-				CervixMergedBrieven mergedBrieven = uitstrijkje.getUitnodiging().getBrief().getMergedBrieven();
+				MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(uitstrijkje.getUitnodiging().getBrief());
 				if (mergedBrieven == null || mergedBrieven.getPrintDatum() == null)
 				{
 					throw new IllegalStateException("geen.verzonden.uitnodiging.gevonden");

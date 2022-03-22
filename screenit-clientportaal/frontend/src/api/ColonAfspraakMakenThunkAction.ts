@@ -20,45 +20,38 @@
  */
 import {Dispatch} from "redux"
 import ScreenitBackend from "../utils/Backend"
-import {createShowToastAction} from "../actions/ToastAction"
 import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import {getString} from "../utils/TekstPropertyUtil"
 import {VrijSlotZonderKamer} from "../pages/bvo/colon/afspraak/ColonAfspraakMakenPage"
 import {ExceptieOmschrijvingDto} from "../datatypes/ExceptieOmschrijvingDto"
 import HttpStatusCode from "../datatypes/HttpStatus"
-import {navigateAndShowToast} from "../utils/NavigationUtil"
-import {getBvoBaseUrl} from "../utils/UrlUtil"
-import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
 import properties from "../pages/bvo/colon/afspraak/ColonAfspraakMakenBevestigingsPopup.json"
+import {showToast} from "../utils/ToastUtil"
 
 export const afspraakVerplaatsen = (nieuwafspraak: VrijSlotZonderKamer, onError: () => void) => (dispatch: Dispatch) => {
-    voerActieUit("/colon/afspraak/verplaatsen", nieuwafspraak, dispatch, onError)
+	return voerActieUit("/colon/afspraak/verplaatsen", nieuwafspraak, dispatch, onError)
 }
 
 export const nieuweAfspraak = (nieuwafspraak: VrijSlotZonderKamer, onError: () => void) => (dispatch: Dispatch) => {
-    voerActieUit("/colon/afspraak/maken", nieuwafspraak, dispatch, onError)
+	return voerActieUit("/colon/afspraak/maken", nieuwafspraak, dispatch, onError)
 }
 
 function voerActieUit(backendUrl: string, nieuwafspraak: VrijSlotZonderKamer, dispatch: Dispatch, onError: () => void) {
-    return ScreenitBackend.put(backendUrl, nieuwafspraak)
-        .then(() => {
-            navigateAndShowToast(getBvoBaseUrl(Bevolkingsonderzoek.COLON), getString(properties.toast.bevestiging.title), getString(properties.toast.bevestiging.message))
-        })
-        .catch((error) => {
-            if (error.response.status === HttpStatusCode.CONFLICT) {
-                setExceptieOmschrijvingDto(error.response.data, dispatch)
-            }
-            onError()
-        })
+	return ScreenitBackend.put(backendUrl, nieuwafspraak)
+		.then(() => {
+			showToast(getString(properties.toast.bevestiging.title), getString(properties.toast.bevestiging.message))
+		})
+		.catch((error) => {
+			if (error.response.status === HttpStatusCode.CONFLICT) {
+				setExceptieOmschrijvingDto(error.response.data)
+			}
+			onError()
+		})
 }
 
-function setExceptieOmschrijvingDto(data: string, dispatch: Dispatch) {
-    const propertiesExceptie = require("../pages/bvo/colon/afspraak/ColonAfspraakMakenBevestigingsPopup.json")
-    const jsonOutput: ExceptieOmschrijvingDto = JSON.parse(data)
+function setExceptieOmschrijvingDto(data: string) {
+	const propertiesExceptie = require("../pages/bvo/colon/afspraak/ColonAfspraakMakenBevestigingsPopup.json")
+	const jsonOutput: ExceptieOmschrijvingDto = JSON.parse(data)
 
-    dispatch(createShowToastAction({
-        title: getString(propertiesExceptie.toast.errors.verplaatsen[jsonOutput.keyValue]),
-        description: jsonOutput.additionalMessage,
-        type: ToastMessageType.ERROR,
-    }))
+	showToast(getString(propertiesExceptie.toast.errors.verplaatsen[jsonOutput.keyValue]), jsonOutput.additionalMessage, ToastMessageType.ERROR)
 }

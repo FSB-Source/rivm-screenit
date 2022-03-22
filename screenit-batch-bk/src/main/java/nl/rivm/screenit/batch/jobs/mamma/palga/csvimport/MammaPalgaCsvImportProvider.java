@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import nl.rivm.screenit.batch.CsvFileProvider;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,19 +38,16 @@ import au.com.bytecode.opencsv.CSVReader;
 public class MammaPalgaCsvImportProvider implements CsvFileProvider
 {
 	@Autowired
-	private String locatieFilestore;
-
-	@Autowired
 	private MammaPalgaService palgaService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Override
 	public Iterator<CSVReader> getReaders() throws FileNotFoundException
 	{
 		List<CSVReader> readers = new ArrayList<>();
-		readers.add(new CSVReader(new FileReader(fileService.load(palgaService.getImport())), ','));
+		readers.add(new CSVReader(new FileReader(uploadDocumentService.load(palgaService.getImport())), ','));
 		return new CSVReaderIterator(readers.iterator());
 	}
 }

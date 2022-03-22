@@ -32,7 +32,6 @@ import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsOrganisatie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,8 +42,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/" + PlanningRestConstants.C_SCREENINGSEENHEID)
 public class PlanningScreeningsEenheidController
 {
-	@Autowired
-	public ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
+
+	public PlanningScreeningsEenheidController(ICurrentDateSupplier dateSupplier)
+	{
+		this.dateSupplier = dateSupplier;
+	}
 
 	@RequestMapping(method = RequestMethod.POST)
 	public void post(@RequestBody PlanningScreeningsEenheidDto screeningsEenheidDto)

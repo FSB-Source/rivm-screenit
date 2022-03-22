@@ -25,6 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxSubmitLink;
@@ -45,7 +47,7 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.FileType;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixBaseUitnodigingService;
 import nl.topicuszorg.documentupload.wicket.UploadDocumentLink;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
@@ -64,11 +66,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
+@Slf4j
 @SecurityConstraint(
 	actie = Actie.INZIEN,
 	checkScope = true,
@@ -77,14 +78,11 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	bevolkingsonderzoekScopes = Bevolkingsonderzoek.CERVIX)
 public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetailPanel implements IDetachable
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixCytologieVerslagInzienPanel.class);
-
 	@SpringBean
 	private CervixBaseUitnodigingService cervixUitnodigingService;
 
 	@SpringBean
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	private BootstrapDialog confirmDialog;
 
@@ -142,7 +140,7 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 						tmpFile.deleteOnExit();
 						maakUploadDocument(fileUpload);
 						uploadDocument.setFile(tmpFile);
-						fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, getClientVanVerslag().getId());
+						uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, getClientVanVerslag().getId());
 						cervixUitnodigingService.vervangVerwijderdDocument(getVerslag().getUitstrijkje(), uploadDocument);
 						setResponsePage(new ClientDossierPage(ModelUtil.sModel(getClientVanVerslag())));
 					}
@@ -229,7 +227,7 @@ public class CervixCytologieVerslagInzienPanel extends AbstractGebeurtenisDetail
 				try
 				{
 					uploadDocument.setFile(tmpFile);
-					fileService.saveOrUpdateUploadDocument(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, getClientVanVerslag().getId());
+					uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.CERVIX_UITSLAG_VERWIJDEREN_CLIENT_BRIEF, getClientVanVerslag().getId());
 				}
 				catch (IOException e)
 				{

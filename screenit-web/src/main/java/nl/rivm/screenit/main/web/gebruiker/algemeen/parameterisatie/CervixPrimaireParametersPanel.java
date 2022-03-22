@@ -67,10 +67,12 @@ public class CervixPrimaireParametersPanel extends BasePrimaireParametersPanel
 		form.add(new TextField<>("periodeUitslagNaarHuisarts", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixHerinneringsPeriode", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixHerinneringsPeriodeZas", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(new TextField<>("cervixIntervalControleUitstrijkje", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixMaxZasAanvragenInfolijn", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 		form.add(new TextField<>("cervixMaxZasAanvragenClient", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
 
 		form.add(new TextField<>("cervixUitstelUitslagbriefPap3a2OfHoger", Integer.class).add(RangeValidator.minimum(0)).setRequired(true));
+		form.add(new TextField<>("cervixVooraankondigingsPeriode", Integer.class).add(RangeValidator.minimum(0)).add(RangeValidator.maximum(180)).setRequired(true));
 		form.add(ComponentHelper.newDatePicker("cervixStartAanleveringGenotyperingEnInvoeringTriage", magAanpassen()).setRequired(true));
 
 		addTextAreaField(form, "cervixHerinneringTekst");

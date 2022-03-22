@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameterKey;
@@ -80,11 +81,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.primitives.Ints;
 
+@Slf4j
 @Repository
 public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ProjectDaoImpl.class);
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -897,9 +897,10 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void resetWachtOpStartProject()
+	public void resetWachtOpStartProject(Bevolkingsonderzoek bvo)
 	{
-		String sql = "update gedeeld.pat_patient set wacht_op_start_project = false where wacht_op_start_project = true or wacht_op_start_project is null";
+		String sql = String.format("update %s.%s set wacht_op_start_project = false where wacht_op_start_project = true or wacht_op_start_project is null",
+				getSchema(bvo), getDossierTable(bvo));
 		Query query = getSession().createSQLQuery(sql);
 		int aantal = query.executeUpdate();
 		LOG.debug("Aantal gereset " + aantal);
@@ -907,14 +908,71 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void setNieuwWachtOpStartProject(Date nu)
+	public void setNieuwWachtOpStartProject(Bevolkingsonderzoek bvo, Date nu)
 	{
-		String sql = "update gedeeld.pat_patient set wacht_op_start_project = true WHERE id in "
-			+ "(select projectClient_.client as y0_ from gedeeld.project_client projectClient_ inner join gedeeld.project_groep groep1_ on projectClient_.groep=groep1_.id inner join algemeen.project project2_ on groep1_.project=project2_.id where project2_.type='PROJECT' and (project2_.start_datum>:startDatum or (project2_.eind_datum>:eindDatum and groep1_.actief=false)) and projectClient_.actief=true)";
+		String sql = String.format("update %s.%s set wacht_op_start_project = true WHERE id in "
+			+ "(select dossier_.id as y0_ " +
+						"from gedeeld.project_client projectClient_ " +
+						"inner join gedeeld.pat_patient patient_ on projectClient_.client=patient_.id " +
+						"inner join %s.%s dossier_ on patient_.%s=dossier_.id " +
+						"inner join gedeeld.project_groep groep1_ on projectClient_.groep=groep1_.id " +
+						"inner join algemeen.project project2_ on groep1_.project=project2_.id " +
+						"inner join algemeen.project_bevolkingsonderzoeken projectBevolkingsonderzoeken3_ on project2_.id=projectBevolkingsonderzoeken3_.project " +
+						"where project2_.type='PROJECT' " +
+						"and (project2_.start_datum>:startDatum or (project2_.eind_datum>:eindDatum and groep1_.actief=false)) " +
+						"and projectClient_.actief=true " +
+						"and projectBevolkingsonderzoeken3_.bevolkingsonderzoeken='%s')",
+				getSchema(bvo), getDossierTable(bvo), getSchema(bvo), getDossierTable(bvo), getJoinColumn(bvo), bvo.name());
 		Query query = getSession().createSQLQuery(sql);
 		query.setDate("startDatum", nu);
 		query.setDate("eindDatum", nu);
 		int aantal = query.executeUpdate();
 		LOG.debug("Aantal geset " + aantal);
 	}
+
+	private String getSchema(Bevolkingsonderzoek bvo)
+	{
+		switch (bvo)
+		{
+			case CERVIX:
+				return "cervix";
+			case COLON:
+				return "colon";
+			case MAMMA:
+				return "mamma";
+			default:
+				throw new IllegalStateException();
+		}
+	}
+
+	private String getDossierTable(Bevolkingsonderzoek bvo)
+	{
+		switch (bvo)
+		{
+			case CERVIX:
+				return "dossier";
+			case COLON:
+				return "colon_dossier";
+			case MAMMA:
+				return "dossier";
+			default:
+				throw new IllegalStateException();
+		}
+	}
+
+	private String getJoinColumn(Bevolkingsonderzoek bvo)
+	{
+		switch (bvo)
+		{
+			case CERVIX:
+				return "cervix_dossier";
+			case COLON:
+				return "colon_dossier";
+			case MAMMA:
+				return "mamma_dossier";
+			default:
+				throw new IllegalStateException();
+		}
+	}
+
 }

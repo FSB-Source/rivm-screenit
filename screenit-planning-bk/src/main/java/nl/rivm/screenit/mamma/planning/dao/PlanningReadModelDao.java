@@ -21,11 +21,15 @@ package nl.rivm.screenit.mamma.planning.dao;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsOrganisatie;
 import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
 
 public interface PlanningReadModelDao
 {
+	LocalDate getHerhalenVanafDatum();
+
 	void readDataModel();
 
 	void reset(PlanningScreeningsOrganisatie screeningsOrganisatie);

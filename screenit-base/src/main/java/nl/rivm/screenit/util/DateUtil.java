@@ -58,13 +58,7 @@ public final class DateUtil
 
 	public static DateTimeFormatter LOCAL_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
-	public static DateTimeFormatter LOCAL_TIME_FORMAT_WITH_DAY = DateTimeFormatter.ofPattern("E dd-MM-yyyy");
-
-	public static DateTimeFormatter LOCAL_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
-
-	public static DateTimeFormatter LOCAL_DATE_TIME_FORMAT_SECONDS = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
-
-	public static DateTimeFormatter LOCAL_DATE_DAG_MAAND_FORMAT = DateTimeFormatter.ofPattern("dd-MM");
+	public static DateTimeFormatter LOCAL_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern(Constants.DEFAULT_DATE_FORMAT + " HH:mm");
 
 	public static DateTimeFormatter LOCAL_DATE_UITGEBREID_DAG_UITEGEBREID_MAAND_FORMAT = DateTimeFormatter.ofPattern("EEEE dd MMMM yyyy", Constants.LOCALE_NL);
 
@@ -477,6 +471,12 @@ public final class DateUtil
 	{
 		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
 		return LocalDate.parse(date, df);
+	}
+
+	public static LocalDateTime parseLocalDateTimeForPattern(String date, String pattern)
+	{
+		DateTimeFormatter df = DateTimeFormatter.ofPattern(pattern);
+		return LocalDateTime.parse(date, df);
 	}
 
 	public static boolean isWithinRange(LocalDate start, LocalDate end, LocalDate testDate)

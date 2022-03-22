@@ -51,12 +51,12 @@ public class ScreenITUsernamePasswordAuthenticationProvider extends AbstractAuth
 	{
 		Huisarts huisarts = (Huisarts) userDetails;
 		String encodedPassword = userDetails.getPassword();
-		if (!huisartsService.controleerPassword(String.valueOf(usernamePasswordAuthenticationToken.getCredentials()), encodedPassword))
+		if (!huisartsService.controleerWachtwoord(String.valueOf(usernamePasswordAuthenticationToken.getCredentials()), encodedPassword))
 		{
-			Integer attempts = huisartsService.increaseAttemps(huisarts);
+			Integer attempts = huisartsService.incrementAttempts(huisarts);
 			throw new BadCredentialsException("Uw ingevoerde wachtwoord is ongeldig. U heeft nog " + attempts + " pogingen.");
 		}
-		huisartsService.resetAttemps(huisarts);
+		huisartsService.resetAttempts(huisarts);
 	}
 
 	@Override
@@ -78,7 +78,7 @@ public class ScreenITUsernamePasswordAuthenticationProvider extends AbstractAuth
 		}
 		if (!huisarts.isAccountNonLocked())
 		{
-			Long remainingMinutes = huisartsService.remainingMinutes(huisarts);
+			Long remainingMinutes = huisartsService.remainingMinutesLock(huisarts);
 			throw new LockedException("Inloggen mislukt. Uw account is voor " + remainingMinutes + " minuten geblokkeerd.");
 		}
 		return huisarts;

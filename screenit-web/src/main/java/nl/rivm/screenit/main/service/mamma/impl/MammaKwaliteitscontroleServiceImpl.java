@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.dao.mamma.MammaKwaliteitscontroleDao;
 import nl.rivm.screenit.main.model.mamma.beoordeling.MammaAdhocMeekijkverzoekWerklijstZoekObject;
@@ -62,8 +64,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderdeel;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVisitatieStatus;
 import nl.rivm.screenit.service.ClientService;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
@@ -73,19 +75,16 @@ import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontroleService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaKwaliteitscontroleServiceImpl.class);
-
 	@Autowired
 	private MammaKwaliteitscontroleDao kwaliteitscontroleDao;
 
@@ -108,7 +107,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 	private MammaBaseBeoordelingService baseBeoordelingService;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	@Override
 	public List<MammaFotobespreking> zoekFotobesprekingen(MammaFotobesprekingWerklijstZoekObject zoekObject, int first, int count, String sortProperty, boolean asc)
@@ -547,7 +546,7 @@ public class MammaKwaliteitscontroleServiceImpl implements MammaKwaliteitscontro
 		}
 		try
 		{
-			fileService.saveOrUpdateUploadDocument(bijlage, FileStoreLocation.MAMMA_VISITATIE_BIJLAGE, id, true);
+			uploadDocumentService.saveOrUpdate(bijlage, FileStoreLocation.MAMMA_VISITATIE_BIJLAGE, id, true);
 		}
 		catch (IllegalStateException | IOException e)
 		{

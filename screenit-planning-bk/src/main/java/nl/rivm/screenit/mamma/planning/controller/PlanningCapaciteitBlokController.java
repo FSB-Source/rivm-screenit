@@ -48,7 +48,6 @@ import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -59,11 +58,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/" + PlanningRestConstants.C_CAPACITEITBLOK)
 public class PlanningCapaciteitBlokController
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private PlanningConceptOpslaanService conceptOpslaanService;
+	private final PlanningConceptOpslaanService conceptOpslaanService;
+
+	public PlanningCapaciteitBlokController(HibernateService hibernateService, PlanningConceptOpslaanService conceptOpslaanService)
+	{
+		this.hibernateService = hibernateService;
+		this.conceptOpslaanService = conceptOpslaanService;
+	}
 
 	@RequestMapping(method = RequestMethod.POST)
 	public void post(@RequestBody PlanningCapaciteitBlokDto capaciteitBlokDto) throws OpslaanVerwijderenTijdBlokException

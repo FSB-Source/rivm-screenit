@@ -23,11 +23,9 @@ package nl.rivm.screenit.batch.service;
 
 import java.io.IOException;
 
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerIlmDto;
+import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetClientDto;
 import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto;
-import nl.rivm.screenit.dto.mamma.MammaHL7v24OrmBerichtTriggerUploadBeeldenDto;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 
 import ca.uhn.hl7v2.HL7Exception;
 import ca.uhn.hl7v2.model.v24.message.ADT_AXX;
@@ -35,20 +33,13 @@ import ca.uhn.hl7v2.model.v24.message.ORM_O01;
 
 public interface MammaHL7CreateMessageService
 {
-	ORM_O01 maakClientORMBericht(MammaHL7v24ORMBerichtStatus status, Client client) throws IOException, HL7Exception;
+	ORM_O01 maakClientORMBericht(MammaHL7v24OrmBerichtTriggerMetClientDto triggerDto, Client client) throws IOException, HL7Exception;
 
-	ORM_O01 maakUploadBeeldenORMBericht(MammaHL7v24ORMBerichtStatus status, MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger, Client client)
-		throws IOException, HL7Exception;
-
-    ORM_O01 maakUploadBeeldenORMILMBericht(MammaHL7v24ORMBerichtStatus status, MammaHL7v24OrmBerichtTriggerUploadBeeldenDto hl7BerichtTrigger, Client client)
-        throws IOException, HL7Exception;
-
-    ORM_O01 maakKwaliteitsopnameORMBericht(MammaHL7v24ORMBerichtStatus status, MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger)
+	ORM_O01 maakKwaliteitsopnameORMBericht(MammaHL7v24OrmBerichtTriggerMetKwaliteitsopnameDto hl7BerichtTrigger)
 		throws IOException, HL7Exception;
 
 	ADT_AXX maakADTBerichtPersoonsgegevensGewijzigd(Client client) throws IOException, HL7Exception;
 
 	ADT_AXX maakADTBerichtGewijzigdBsn(Client client, String oudBsn, String nieuweBsn) throws IOException, HL7Exception;
 
-	ORM_O01 maakOrmIlmBericht(Client client, MammaHL7v24OrmBerichtTriggerIlmDto triggerDto) throws IOException, HL7Exception;
 }

@@ -283,6 +283,14 @@ public enum BriefType
 
 	CLIENT_INZAGE_PERSOONSGEGEVENS_HANDTEKENING(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 
+	CLIENT_SIGNALERING_GENDER(OrganisatieType.SCREENINGSORGANISATIE, true, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
+
+	CERVIX_VOORAANKONDIGING(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		true,
+		Bevolkingsonderzoek.CERVIX),
+
 	@Deprecated
 	CERVIX_UITNODIGING(
 		OrganisatieType.SCREENINGSORGANISATIE,
@@ -448,6 +456,12 @@ public enum BriefType
 		false,
 		Bevolkingsonderzoek.CERVIX),
 
+	CERVIX_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		false,
+		Bevolkingsonderzoek.CERVIX),
+
 	CERVIX_CYTOLOGIE_AFWIJKING(
 		OrganisatieType.SCREENINGSORGANISATIE,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
@@ -461,6 +475,12 @@ public enum BriefType
 		Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		false,
+		Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER(
 		OrganisatieType.SCREENINGSORGANISATIE,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
 		false,
@@ -521,6 +541,12 @@ public enum BriefType
 		Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF(
+		OrganisatieType.SCREENINGSORGANISATIE,
+		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
+		false,
+		Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF_HPVOTHER(
 		OrganisatieType.SCREENINGSORGANISATIE,
 		new ProjectBriefActieType[] { ProjectBriefActieType.VERVANGENDEBRIEF, ProjectBriefActieType.XDAGENNAY },
 		false,

@@ -23,31 +23,16 @@ package nl.rivm.screenit.huisartsenportaal.dto;
 
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class AanvraagTotalenDto
 {
 
 	private long aantalAanvragen;
 
 	private List<AanvraagDto> aanvragen;
-
-	public long getAantalAanvragen()
-	{
-		return aantalAanvragen;
-	}
-
-	public void setAantalAanvragen(long aantalAanvragen)
-	{
-		this.aantalAanvragen = aantalAanvragen;
-	}
-
-	public List<AanvraagDto> getAanvragen()
-	{
-		return aanvragen;
-	}
-
-	public void setAanvragen(List<AanvraagDto> aanvragen)
-	{
-		this.aanvragen = aanvragen;
-	}
 
 }

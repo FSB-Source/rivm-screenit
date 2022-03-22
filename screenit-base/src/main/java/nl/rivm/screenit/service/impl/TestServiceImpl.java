@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dao.GbaBaseDao;
@@ -58,8 +60,8 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectInactiveerDocument;
 import nl.rivm.screenit.service.DossierFactory;
-import nl.rivm.screenit.service.FileService;
 import nl.rivm.screenit.service.TestService;
+import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
@@ -72,8 +74,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -83,13 +83,11 @@ import com.google.common.base.Charsets;
 
 import au.com.bytecode.opencsv.CSVParser;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class TestServiceImpl implements TestService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(TestServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -109,7 +107,7 @@ public class TestServiceImpl implements TestService
 	private DossierFactory dossierFactory;
 
 	@Autowired
-	private FileService fileService;
+	private UploadDocumentService uploadDocumentService;
 
 	private static String getValue2(String value)
 	{
@@ -617,7 +615,8 @@ public class TestServiceImpl implements TestService
 		for (ProjectClient pclient : client.getProjecten())
 		{
 			List<ProjectBrief> projectBrieven = pclient.getBrieven();
-			projectBrieven.forEach(projectBrief -> {
+			projectBrieven.forEach(projectBrief ->
+			{
 				ClientBrief clientBrief = projectBrief.getBrief();
 				if (clientBrief != null)
 				{
@@ -639,7 +638,7 @@ public class TestServiceImpl implements TestService
 				if (projectClienten.isEmpty())
 				{
 					hibernateService.delete(projectInactiveerDocument);
-					fileService.delete(projectInactiveerDocument.getUploadDocument());
+					uploadDocumentService.delete(projectInactiveerDocument.getUploadDocument());
 				}
 				else
 				{

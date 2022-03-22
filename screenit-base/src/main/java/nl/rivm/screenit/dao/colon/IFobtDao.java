@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.dao.colon;
 
 /*-
@@ -22,13 +21,19 @@ package nl.rivm.screenit.dao.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
+import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.IFOBTBestand;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 
 public interface IFobtDao
 {
-
 	IFOBTTest getIfobtTest(String barcode);
 
 	IFOBTBestand getIfobtBestand(String bestandsNaam);
+
+	IFOBTTest getLaatsteIfobtTestMetMissendeUitslagVanDossier(ColonDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum);
+
+	boolean isVerwijderdeBarcode(String barcode);
 }

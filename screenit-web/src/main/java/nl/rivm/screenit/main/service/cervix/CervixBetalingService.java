@@ -46,7 +46,7 @@ public interface CervixBetalingService
 
 	void maakSpecificatieBestand(File specificatieBestand, CervixBetaalopdracht opdracht) throws Exception;
 
-	void verwijderSepaBestanden(CervixBetaalopdracht betaalopdracht, InstellingGebruiker loggedInInstellingGebruiker);
+	void verwijderSepaBestanden(CervixBetaalopdracht betaalopdracht, InstellingGebruiker loggedInInstellingGebruiker) throws JsonProcessingException;
 
 	void archiveerBestaandeOpdrachten(ScreeningOrganisatie screeningOrganisatie);
 

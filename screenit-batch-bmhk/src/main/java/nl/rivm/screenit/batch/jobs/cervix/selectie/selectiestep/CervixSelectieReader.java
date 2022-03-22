@@ -78,8 +78,7 @@ public class CervixSelectieReader extends BaseScrollableResultReader
 		crit.add(Restrictions.eq("persoon.geslacht", Geslacht.VROUW));
 
 		crit.add(NvlRestrictions.eq("dossier.status", DossierStatus.ACTIEF, "'" + DossierStatus.ACTIEF.toString() + "'"));
-
-		ScreenitRestrictions.addExcludeProjectClientenMetProjectStatusNogTeStarten(crit);
+		crit.add(Restrictions.eq("dossier.wachtOpStartProject", false));
 
 		Integer maxAantalClienten = getMaxAantalClienten();
 		if (maxAantalClienten != null)
