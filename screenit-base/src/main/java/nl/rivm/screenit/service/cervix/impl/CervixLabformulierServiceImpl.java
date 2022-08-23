@@ -32,6 +32,7 @@ import nl.rivm.screenit.model.cervix.CervixLabformulierenFilter;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
+import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -50,6 +51,9 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 
 	@Autowired
 	private CervixLabformulierDao labformulierDao;
+
+	@Autowired
+	private CervixVervolgService vervolgService;
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -196,6 +200,7 @@ public class CervixLabformulierServiceImpl implements CervixLabformulierService
 		uitstrijkje.setLabformulier(labformulier);
 		uitstrijkje.setOntvangstScreeningRonde(dossierDao.getOntvangstRonde(uitstrijkje));
 		hibernateService.saveOrUpdate(labformulier);
+		vervolgService.digitaalLabformulierKlaarVoorCytologie(uitstrijkje);
 	}
 
 	private CervixUitstrijkje valideerLabformulierKoppeling(CervixLabformulier labformulier)

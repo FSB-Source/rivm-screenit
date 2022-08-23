@@ -25,12 +25,9 @@ import java.util.Collections;
 import java.util.List;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.LogService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,10 +48,10 @@ public abstract class MammaOnderzoekenZonderBeelenOfNietAfgeslotenBaseWriter ext
 	@Override
 	protected void write(MammaAfspraak afspraak)
 	{
-		MammaScreeningRonde screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
-		String melding = "UitnodigingsNr: " + screeningRonde.getUitnodigingsNr();
-		Client client = screeningRonde.getDossier().getClient();
-		MammaScreeningsEenheid screeningsEenheid = afspraak.getStandplaatsPeriode().getScreeningsEenheid();
+		var screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
+		var melding = "UitnodigingsNr: " + screeningRonde.getUitnodigingsNr();
+		var client = screeningRonde.getDossier().getClient();
+		var screeningsEenheid = afspraak.getStandplaatsPeriode().getScreeningsEenheid();
 		List<Instelling> dashboardOrganisaties = Collections.singletonList(client.getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
 
 		logService.logGebeurtenis(logGebeurtenis, screeningsEenheid, dashboardOrganisaties, client, melding);

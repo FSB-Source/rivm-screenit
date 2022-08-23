@@ -25,6 +25,9 @@ import nl.rivm.screenit.batch.jobs.brieven.AbstractBrievenGenererenListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CervixBriefListener extends AbstractBrievenGenererenListener
 {
 	@Override

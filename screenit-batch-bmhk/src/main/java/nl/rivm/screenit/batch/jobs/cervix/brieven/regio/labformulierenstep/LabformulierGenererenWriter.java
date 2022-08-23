@@ -70,11 +70,13 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 
 @Slf4j
+@Component
 public class LabformulierGenererenWriter implements ItemStreamWriter<Long>
 {
 

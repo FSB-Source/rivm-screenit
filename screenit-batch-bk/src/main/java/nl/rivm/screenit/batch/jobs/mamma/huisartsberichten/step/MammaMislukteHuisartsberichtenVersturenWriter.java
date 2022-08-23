@@ -21,17 +21,19 @@ package nl.rivm.screenit.batch.jobs.mamma.huisartsberichten.step;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.mamma.berichten.MammaHuisartsBericht;
 import nl.rivm.screenit.service.mamma.MammaEdiService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaMislukteHuisartsberichtenVersturenWriter extends BaseWriter<MammaHuisartsBericht>
 {
-
-	@Autowired
-	private MammaEdiService ediService;
+	private final MammaEdiService ediService;
 
 	@Override
 	protected void write(MammaHuisartsBericht item)

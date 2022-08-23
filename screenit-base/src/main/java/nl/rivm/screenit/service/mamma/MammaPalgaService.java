@@ -27,10 +27,11 @@ import java.util.List;
 import nl.rivm.screenit.dto.mamma.MammaPalgaCsvImportDto;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
 
 public interface MammaPalgaService
 {
-	List<Long> getClientenVoorPalga();
+	List<Long> getClientenVoorPalga(MammaPalgaExportConfig exportConfig);
 
 	void deleteExports(String naam, Account loggedInAccount);
 

@@ -37,8 +37,10 @@ import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
+import nl.rivm.screenit.util.functionalinterfaces.TriFunction;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.model.IModel;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BriefOmschrijvingUtil
@@ -89,17 +91,6 @@ public class BriefOmschrijvingUtil
 		omschrijving.append(")");
 	}
 
-	public static String algemeneBriefOmschrijving(Brief brief, UnaryOperator<String> getString)
-	{
-		StringBuilder omschrijving = new StringBuilder();
-		TypeGebeurtenis gebeurtenis = bepaalTypeGebeurtenis(brief);
-		omschrijving.append(getString.apply("TypeGebeurtenis." + gebeurtenis.name()));
-		omschrijving.append(" (");
-		omschrijving.append(getString.apply(EnumStringUtil.getPropertyString(brief.getBriefType())));
-		omschrijving.append(")");
-		return omschrijving.toString();
-	}
-
 	public static Date dossierGebeurtenisDatum(Brief brief)
 	{
 		var mergedBrieven = BriefUtil.getMergedBrieven(brief);
@@ -110,7 +101,7 @@ public class BriefOmschrijvingUtil
 		return brief.getCreatieDatum();
 	}
 
-	private static TypeGebeurtenis bepaalTypeGebeurtenis(Brief brief)
+	public static TypeGebeurtenis bepaalTypeGebeurtenis(Brief brief)
 	{
 		MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
 		if (isAfgedrukteMigratieBrief(brief, mergedBrieven))
@@ -134,5 +125,43 @@ public class BriefOmschrijvingUtil
 	private static boolean isAfgedrukteMigratieBrief(Brief brief, MergedBrieven<?> mergedBrieven)
 	{
 		return BriefUtil.isGegenereerd(brief) && mergedBrieven == null;
+	}
+
+	public static String verwerkExtraOmschrijvingen(String[] extraOmschrijvingen, TriFunction<String, IModel, String, String> getString)
+	{
+		String extraOmschrijving = "";
+		if (extraOmschrijvingen != null)
+		{
+			for (String omschrijving : extraOmschrijvingen)
+			{
+				if (omschrijving != null)
+				{
+					if (StringUtils.isNotBlank(extraOmschrijving))
+					{
+						if (extraOmschrijving.trim().endsWith(":"))
+						{
+							if (!extraOmschrijving.endsWith(":"))
+							{
+								extraOmschrijving += " ";
+							}
+						}
+						else
+						{
+							extraOmschrijving += ", ";
+						}
+					}
+					else
+					{
+						extraOmschrijving = "(";
+					}
+					extraOmschrijving += getString.apply(omschrijving, null, omschrijving);
+				}
+			}
+		}
+		if (StringUtils.isNotBlank(extraOmschrijving))
+		{
+			extraOmschrijving += ")";
+		}
+		return extraOmschrijving;
 	}
 }

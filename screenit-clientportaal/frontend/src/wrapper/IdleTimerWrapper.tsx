@@ -19,10 +19,10 @@
  * =========================LICENSE_END==================================
  */
 import React from "react"
-import IdleTimer from "react-idle-timer"
 import {useDispatch, useSelector} from "react-redux"
 import {State} from "../datatypes/State"
 import {setSessionExpiredAction} from "../actions/AuthenticatieAction"
+import {IdleTimerProvider} from "react-idle-timer"
 
 const IdleTimerWrapper = (props: { children: JSX.Element }) => {
 	const isLoggedIn = useSelector((state: State) => state.authenticatie.isLoggedIn)
@@ -34,11 +34,11 @@ const IdleTimerWrapper = (props: { children: JSX.Element }) => {
 		}
 	}
 	return (
-		<IdleTimer
+		<IdleTimerProvider
 			timeout={15 * 60 * 1000}
 			onIdle={onIdle}>
 			{props.children}
-		</IdleTimer>
+		</IdleTimerProvider>
 	)
 }
 

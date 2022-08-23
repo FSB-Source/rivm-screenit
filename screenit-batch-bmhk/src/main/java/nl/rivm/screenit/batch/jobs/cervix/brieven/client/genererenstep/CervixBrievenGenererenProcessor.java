@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.cervix.brieven.client.genererenstep;
 
 /*-
@@ -25,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client.genererenstep;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenProcessor;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CervixBrievenGenererenProcessor extends AbstractBrievenGenererenProcessor<CervixBrief>
 {
 

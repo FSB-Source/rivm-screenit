@@ -1,8 +1,8 @@
 server_tokens             off; # expose geen versieinformatie van nginx in server-header
 
 server {
-    listen 80;
-    listen [::]:80;
+    listen 8080;
+    listen [::]:8080;
 
     location / {
         set $cspNonce $request_id;

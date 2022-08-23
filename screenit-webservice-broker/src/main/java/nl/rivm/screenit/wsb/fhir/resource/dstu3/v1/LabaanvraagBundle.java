@@ -21,6 +21,7 @@ package nl.rivm.screenit.wsb.fhir.resource.dstu3.v1;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
@@ -50,6 +51,7 @@ import org.hl7.fhir.dstu3.model.Narrative;
 import org.hl7.fhir.dstu3.model.Organization;
 import org.hl7.fhir.dstu3.model.Patient;
 import org.hl7.fhir.dstu3.model.Practitioner;
+import org.hl7.fhir.dstu3.model.Reference;
 import org.hl7.fhir.dstu3.model.Resource;
 import org.hl7.fhir.dstu3.model.ResourceType;
 import org.hl7.fhir.utilities.xhtml.XhtmlNode;
@@ -155,25 +157,53 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 	@Override
 	public String getClientBsn()
 	{
-		return getFromSystem(getResourceStream()
-			.filter(resource -> resource.getResourceType().equals(ResourceType.Patient))
-			.map(resource -> ((Patient) resource).getIdentifier()), CodeSystem.BSN);
+		String reference = getCompositionStream()
+			.map(composition -> composition.getSubject())
+			.filter(Objects::nonNull)
+			.map(subject -> subject.getReference())
+			.findFirst().orElse(null);
+
+		return getFromSystem(
+			getResourceEntryComponentStream(reference, ResourceType.Patient)
+				.map(entry -> ((Patient) entry.getResource()).getIdentifier()),
+			CodeSystem.BSN);
 	}
 
 	@Override
 	public String getPraktijkAgb()
 	{
-		return getFromSystem(getResourceStream()
-			.filter(resource -> resource.getResourceType().equals(ResourceType.Organization))
-			.map(resource -> ((Organization) resource).getIdentifier()), CodeSystem.AGB);
+		String reference = getCompositionStream()
+			.map(composition -> composition.getCustodian())
+			.filter(Objects::nonNull)
+			.map(custodian -> custodian.getReference())
+			.findFirst().orElse(null);
+
+		return getFromSystem(
+			getResourceEntryComponentStream(reference, ResourceType.Organization)
+				.map(entry -> ((Organization) entry.getResource()).getIdentifier()),
+			CodeSystem.AGB);
 	}
 
 	@Override
 	public String getIndividueleAgb()
 	{
-		return getFromSystem(getResourceStream()
-			.filter(resource -> resource.getResourceType().equals(ResourceType.Practitioner))
-			.map(resource -> ((Practitioner) resource).getIdentifier()), CodeSystem.AGB);
+		List<Reference> authorReferences = getAuthorReferences();
+
+		if (authorReferences.size() == 1)
+		{
+			return getFromSystem(
+				getResourceEntryComponentStream(authorReferences.get(0).getReference(), ResourceType.Practitioner)
+					.map(entry -> ((Practitioner) entry.getResource()).getIdentifier()),
+				CodeSystem.AGB);
+		}
+		return null;
+	}
+
+	public List<Reference> getAuthorReferences()
+	{
+		return getCompositionStream()
+			.map(composition -> composition.getAuthor())
+			.filter(Objects::nonNull).findFirst().orElse(new ArrayList<>());
 	}
 
 	@Override
@@ -250,6 +280,25 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 			.map(BundleEntryComponent::getResource)
 			.filter(Objects::nonNull)
 			.filter(resource -> Objects.nonNull(resource.getResourceType()));
+	}
+
+	private Stream<Composition> getCompositionStream()
+	{
+		return getResourceStream()
+			.filter(resource -> resource.getResourceType().equals(ResourceType.Composition)).map(resource -> ((Composition) resource));
+	}
+
+	private Stream<Bundle.BundleEntryComponent> getEntryStreamWithResources()
+	{
+		return getEntry()
+			.stream()
+			.filter(entry -> Objects.nonNull(entry.getResource()) && Objects.nonNull(entry.getResource().getResourceType()));
+	}
+
+	private Stream<BundleEntryComponent> getResourceEntryComponentStream(String reference, ResourceType resourceType)
+	{
+		return getEntryStreamWithResources()
+			.filter(entry -> entry.getResource().getResourceType().equals(resourceType) && entry.getFullUrl().equals(reference));
 	}
 
 	private String getFromSystem(Stream<List<Identifier>> identifiersStream, CodeSystem system)
@@ -329,12 +378,21 @@ public class LabaanvraagBundle extends Bundle implements LabaanvraagResource
 	private Composition.SectionComponent getSectionComponent(CodeSystem code,
 		List<Composition.SectionComponent> sectionComponents)
 	{
-		return sectionComponents.stream()
+		List<Composition.SectionComponent> sectionComponentByCode = sectionComponents.stream()
 			.filter(sectionComponent -> Objects.nonNull(sectionComponent.getCode()))
 			.filter(sectionComponent -> Objects.nonNull(sectionComponent.getCode().getCoding()))
-			.filter(sectionComponent -> matchesCodeSystem(code, sectionComponent))
-			.findFirst()
-			.orElse(null);
+			.filter(sectionComponent -> matchesCodeSystem(code, sectionComponent)).collect(Collectors.toUnmodifiableList());
+
+		if (sectionComponentByCode.size() > 1)
+		{
+			throw new IllegalArgumentException(String.format("vraag dubbel %s [%s]", code.name(), code.getCode()));
+		}
+		if (sectionComponentByCode.size() == 1)
+		{
+			return sectionComponentByCode.get(0);
+		}
+
+		return null;
 	}
 
 	private boolean matchesCodeSystem(CodeSystem code,

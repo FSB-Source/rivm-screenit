@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.cervix.zaskoppelen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ZasKoppelenConstants
 {
-
-	private ZasKoppelenConstants()
-	{
-	}
 
 	public static final String RAPPORTAGEKEYZASKOPPELEN = "key.koppelingid";
 

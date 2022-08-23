@@ -45,9 +45,10 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 @Slf4j
 public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 {
@@ -75,7 +76,7 @@ public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 		projectNaam = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.CERVIX_PROJECT_VERLATE_DEELNAME);
 		if (StringUtils.isNotBlank(projectNaam))
 		{
-			Project zoekObject = new Project();
+			var zoekObject = new Project();
 			zoekObject.setNaam(projectNaam);
 			zoekObject.setProjectStatussen(Arrays.asList(ProjectStatus.ACTIEF));
 			zoekObject.setProjectTypes(Arrays.asList(ProjectType.PROJECT));
@@ -121,11 +122,11 @@ public class CervixVerlateDeelnameCovidJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent event = super.eindLogging(jobExecution);
+		var event = super.eindLogging(jobExecution);
 		if (event.getLevel() == Level.INFO)
 		{
 			String melding = "";
-			ExecutionContext executionContext = jobExecution.getExecutionContext();
+			var executionContext = jobExecution.getExecutionContext();
 			if (executionContext.containsKey(CervixVerlateDeelnameCovidConstants.PROJECT_ID) && StringUtils.isNotBlank(projectNaam))
 			{
 				melding = "Geen clienten gevonden. Geen herdrukbrieven aangemaakt voor project '" + projectNaam + "'";

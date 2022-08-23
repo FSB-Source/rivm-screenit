@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenProcessor;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class BezwaarBrievenGenererenProcessor extends AbstractBrievenGenererenProcessor<BezwaarBrief>
 {
 

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.wsb.vrld;
 
 /*-
@@ -32,6 +31,8 @@ import javax.jws.WebService;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.model.formulieren.IdentifierElement;
 import nl.rivm.screenit.model.formulieren.ScreenitFormulierInstantie;
 import nl.rivm.screenit.model.project.ProjectBrief;
@@ -53,27 +54,22 @@ import nl.topicuszorg.formulieren2.persistence.instantie.acties.StringShowVraagA
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("VragenlijstDefinitieService_PortType")
+@Service
 @Transactional(propagation = Propagation.SUPPORTS)
 @WebService(targetNamespace = "http://screenit.rivm.nl/", name = "VragenlijstDefinitieService")
+@AllArgsConstructor
 public class VragenlijstDefinitieServiceImpl implements VragenlijstDefinitieService
 {
 
-	@Autowired
-	private VragenlijstBaseService vragenlijstBaseService;
+	private final VragenlijstBaseService vragenlijstBaseService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	@Qualifier(value = "testModus")
-	private Boolean testModus;
+	private final Boolean testModus;
 
 	@Override
 	@WebResult(name = "return", targetNamespace = "")

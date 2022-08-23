@@ -30,15 +30,16 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.core.JobParameters;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixOrderVersturenReader extends BaseScrollableResultReader
 {
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixCytologieOrder.class);
+		var crit = session.createCriteria(CervixCytologieOrder.class);
 		crit.createAlias("uitstrijkje", "uitstrijkje");
 		crit.createAlias("uitstrijkje.laboratorium", "laboratorium");
 		crit.add(
@@ -46,7 +47,7 @@ public class CervixOrderVersturenReader extends BaseScrollableResultReader
 				Restrictions.eq("status", CervixCytologieOrderStatus.AANGEMAAKT),
 				Restrictions.eq("status", CervixCytologieOrderStatus.MISLUKT)));
 
-		JobParameters jobParameters = getStepExecution().getJobExecution().getJobParameters();
+		var jobParameters = getStepExecution().getJobExecution().getJobParameters();
 		if (jobParameters.toProperties().containsKey(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name()))
 		{
 			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())));

@@ -78,7 +78,7 @@ public class CervixMonsterServiceImpl implements CervixMonsterService
 	{
 		CervixHpvAnalyseresultaten analyseresultaten = monsterHpvUitslag.getLaatsteHpvBeoordeling().getAnalyseresultaten();
 
-		return analyseresultaten != null && !analyseresultaten.getHpv16().equals(CervixHpvResultValue.POS_HPV16) && !analyseresultaten.getHpv18()
-			.equals(CervixHpvResultValue.POS_HPV18) && analyseresultaten.getHpvohr().equals(CervixHpvResultValue.POS_OTHER_HR_HPV);
+		return analyseresultaten != null && !CervixHpvResultValue.POS_HPV16.equals(analyseresultaten.getHpv16()) && !CervixHpvResultValue.POS_HPV18.equals(
+			analyseresultaten.getHpv18()) && CervixHpvResultValue.POS_OTHER_HR_HPV.equals(analyseresultaten.getHpvohr());
 	}
 }

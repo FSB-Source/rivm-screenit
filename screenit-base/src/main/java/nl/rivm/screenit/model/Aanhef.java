@@ -21,25 +21,28 @@ package nl.rivm.screenit.model;
  * =========================LICENSE_END==================================
  */
 
-public enum Aanhef implements INaam
-{
+import java.util.Arrays;
+import java.util.List;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public enum Aanhef
+{
 	DHR("Dhr."),
 
-	MEVR("Mevr.");
+	MEVR("Mevr."),
+
+	GEACHTE_MEVROUW("Geachte mevrouw"),
+
+	GEACHTE_HEER("Geachte heer"),
+
+	GEACHTE("Geachte");
 
 	private final String naam;
-
-	private Aanhef(String naam)
-	{
-		this.naam = naam;
-	}
-
-	@Override
-	public String getNaam()
-	{
-		return this.naam;
-	}
 
 	public static Aanhef getAanhefWithName(String name)
 	{
@@ -51,5 +54,34 @@ public enum Aanhef implements INaam
 			}
 		}
 		return null;
+	}
+
+	public static Aanhef bepaalJuisteAanhef(GbaPersoon persoon)
+	{
+		if (persoon.getAanhef() != null)
+		{
+			return persoon.getAanhef();
+		}
+
+		switch (persoon.getGeslacht())
+		{
+		case MAN:
+			return GEACHTE_HEER;
+		case VROUW:
+			return GEACHTE_MEVROUW;
+		case ONBEKEND:
+		default:
+			return GEACHTE;
+		}
+	}
+
+	public static List<Aanhef> aanhefVormenClienten()
+	{
+		return Arrays.asList(Aanhef.GEACHTE_HEER, Aanhef.GEACHTE_MEVROUW, Aanhef.GEACHTE);
+	}
+
+	public static List<Aanhef> aanhefVormenMedewerkers()
+	{
+		return Arrays.asList(Aanhef.DHR, Aanhef.MEVR);
 	}
 }

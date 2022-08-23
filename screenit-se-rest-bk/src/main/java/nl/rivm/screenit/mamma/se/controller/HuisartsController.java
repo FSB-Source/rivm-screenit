@@ -30,12 +30,13 @@ import nl.rivm.screenit.mamma.se.service.InschrijvenService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/huisarts")
+@RequestMapping("/api/huisarts")
 public class HuisartsController extends CachingController<List<MammaHuisartsDto>>
 {
 	@Autowired
@@ -53,6 +54,12 @@ public class HuisartsController extends CachingController<List<MammaHuisartsDto>
 		{
 			return createErrorResponse(ex);
 		}
+	}
+
+	@DeleteMapping(value = "/resetCache")
+	public void resetHuisartsenCache(HttpServletRequest request)
+	{
+		resetCache();
 	}
 
 	@Override

@@ -62,8 +62,9 @@ public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
 
 	private String periodeProperty;
 
-	public CervixHerinnerenReader(PreferenceKey periodeParameterKey, OrganisatieParameterKey maxAantalParameterKey, String periodeProperty)
+	public CervixHerinnerenReader(int fetchSize, PreferenceKey periodeParameterKey, OrganisatieParameterKey maxAantalParameterKey, String periodeProperty)
 	{
+		super.setFetchSize(fetchSize);
 		this.periodeParameterKey = periodeParameterKey;
 		this.maxAantalParameterKey = maxAantalParameterKey;
 		this.periodeProperty = periodeProperty;
@@ -72,7 +73,7 @@ public abstract class CervixHerinnerenReader extends BaseScrollableResultReader
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixUitnodiging.class, "uitnodiging");
+		var crit = session.createCriteria(CervixUitnodiging.class, "uitnodiging");
 		crit.createAlias("uitnodiging.screeningRonde", "ronde");
 		crit.createAlias("ronde.dossier", "dossier");
 		crit.createAlias("dossier.client", "client");

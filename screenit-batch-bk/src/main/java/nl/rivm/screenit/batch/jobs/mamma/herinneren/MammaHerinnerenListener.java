@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.mamma.herinneren;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -28,14 +30,14 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaHerinnerenListener extends BaseLogListener
 {
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected LogEvent getStartLogEvent()
@@ -64,11 +66,11 @@ public class MammaHerinnerenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 
-		long totaalAantal = context.getLong(MammaHerinnerenConstants.TOTAAL_AANTAL_BRIEVEN_KEY, 0);
+		var totaalAantal = context.getLong(MammaHerinnerenConstants.TOTAAL_AANTAL_BRIEVEN_KEY, 0);
 
-		LogEvent logEvent = super.eindLogging(jobExecution);
+		var logEvent = super.eindLogging(jobExecution);
 		logEvent.setMelding("Er zijn " + totaalAantal + " herinneringen gemaakt");
 
 		hibernateService.saveOrUpdate(logEvent);

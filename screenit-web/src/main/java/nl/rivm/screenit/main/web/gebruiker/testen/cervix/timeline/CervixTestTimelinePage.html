@@ -32,7 +32,7 @@
 				<div class="row-fluid">
 					<div class="span4">
 						<div class="control-group">
-							<label for="bsn1" class="control-label span2">BSN:<i class="icon-asterisk icon-purple"></i></label>
+							<label class="control-label span2">BSN:<i class="icon-asterisk icon-purple"></i></label>
 							<div class="controls">
 								<div class="input-append">
 									<input class="form-control input-small" type="text" placeholder="123456789" wicket:id="bsn">
@@ -41,8 +41,12 @@
 								</div>
 							</div>
 						</div>
-					</div>
-					<div class="span4">
+						<div class="control-group">
+							<label class="control-label">A:</label>
+							<div class="controls">
+								<span wicket:id="aNummer" class="control-label span2">A:</span>
+							</div>
+						</div>
 						<div class="control-group">
 							<label class="control-label">Geboortedatum:</label>
 							<div class="controls">
@@ -58,10 +62,27 @@
 								</div>
 							</div>
 						</div>
+
+						<div class="control-group">
+							<label class="control-label">Leeftijd:</label>
+							<div class="controls">
+								<span wicket:id="leeftijd" class="control-label span2">Leeftijd:</span>
+							</div>
+						</div>
 					</div>
 					<div class="span4">
 						<div class="control-group">
-							<label for="" class="control-label span2">Gemeente:</label>
+							<label class="control-label">Genderidentiteit:</label>
+							<div class="controls" wicket:id="geslacht">
+								<label class="radio"> <input type="radio">Man</label>
+								<label class="radio"> <input type="radio">Genderdivers</label>
+								<label class="radio"> <input type="radio">Vrouw</label>
+							</div>
+						</div>
+					</div>
+					<div class="span4">
+						<div class="control-group">
+							<label class="control-label span2">Gemeente:</label>
 							<div class="controls">
 								<select class="form-control" wicket:id="gemeente"></select>
 							</div>
@@ -71,7 +92,8 @@
 				<div class="row-fluid">
 					<div class="span12">
 						<div class="form-actions clearfix">
-							<button class="btn btn-primary" wicket:id="clientVindOfMaak">Zoek client</button>
+							<button class="btn" name="wijzigClient" wicket:id="clientWijzigOfMaak">Wijzig of maak client</button>
+							<button class="btn btn-primary" wicket:id="clientVindOfMaak">Zoek of maak client</button>
 						</div>
 					</div>
 				</div>

@@ -399,7 +399,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 				int aantalAfsprakenTeVerwijderen = getAantalAfsprakenTeOntkoppelen(persistentBlok, blok.getDateVanaf(), blok.getDateTot(), blok.getCapaciteitBlokType());
 				if (aantalAfsprakenTeVerwijderen > 0)
 				{
-					waarschuwing = " Blok type of tijden zijn gewijzigd. Gekoppelde afspraken (#" + aantalAfsprakenTeVerwijderen + ") worden losgemaakt van deze capaciteitblok. ";
+					waarschuwing = " Blok type of tijden zijn gewijzigd. Gekoppelde afspraken (#" + aantalAfsprakenTeVerwijderen + ") worden losgemaakt van dit capaciteitblok. ";
 					ontkoppelAfspraken = true;
 				}
 				persistentBlok.setAantalOnderzoeken(blok.getAantalOnderzoeken());
@@ -489,7 +489,7 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 					MammaMeldingNiveau niveau = MammaMeldingNiveau.INFO;
 					if (!persistentBlok.getAfspraken().isEmpty())
 					{
-						melding += ". Gekoppelde afspraken (#" + persistentBlok.getAfspraken().size() + ") worden losgemaakt van deze capaciteitblok.";
+						melding += ". Gekoppelde afspraken (#" + persistentBlok.getAfspraken().size() + ") worden losgemaakt van dit capaciteitblok.";
 						niveau = MammaMeldingNiveau.WAARSCHUWING;
 					}
 					addMelding(meldingenDto, screeningsEenheid, melding, niveau, runDry);
@@ -616,8 +616,8 @@ public class PlanningConceptOpslaanServiceImpl implements PlanningConceptOpslaan
 			{
 				afspraak.setCapaciteitBlok(null);
 				hibernateService.saveOrUpdate(afspraak);
-				LOG.info("Afspraak van " + afspraak.getVanaf() + " + voor clienId " + afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getId()
-					+ " ontkoppeld van cap.blok");
+				LOG.info("Afspraak van {} voor clientId {} ontkoppeld van cap.blok", afspraak.getVanaf(),
+					afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getId());
 			}
 		}
 		persistentBlok.getAfspraken().clear();

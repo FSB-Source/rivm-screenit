@@ -23,10 +23,15 @@ package nl.rivm.screenit.model;
 
 import java.math.BigDecimal;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.project.ProjectType;
 
+@Getter
+@AllArgsConstructor
 public enum ProjectParameterKey
 {
 
@@ -36,7 +41,9 @@ public enum ProjectParameterKey
 
 	COLON_FIT_NORM_WAARDE(ProjectType.PROJECT, BigDecimal.class, Bevolkingsonderzoek.COLON, 1000, false),
 
-	COLON_WACHTTIJD_UITSLAG_STUDIETEST(ProjectType.PROJECT, Integer.class, Bevolkingsonderzoek.COLON, 999, false);
+	COLON_WACHTTIJD_UITSLAG_STUDIETEST(ProjectType.PROJECT, Integer.class, Bevolkingsonderzoek.COLON, 999, false),
+
+	COLON_AFWIJKING_UITNODIGINGSINTERVAL(ProjectType.PROJECT, Integer.class, Bevolkingsonderzoek.COLON, -5, 5, false);
 
 	private final ProjectType projectType;
 
@@ -44,41 +51,14 @@ public enum ProjectParameterKey
 
 	private final Bevolkingsonderzoek bevolkingsonderzoek;
 
+	private final Integer minValue;
+
 	private final Integer maxValue;
 
 	private final boolean isUniek;
 
 	ProjectParameterKey(ProjectType projectType, Class<?> valueType, Bevolkingsonderzoek bevolkingsonderzoek, Integer maxValue, boolean isUniek)
 	{
-		this.projectType = projectType;
-		this.valueType = valueType;
-		this.bevolkingsonderzoek = bevolkingsonderzoek;
-		this.maxValue = maxValue;
-		this.isUniek = isUniek;
-	}
-
-	public ProjectType getProjectType()
-	{
-		return projectType;
-	}
-
-	public Class<?> getValueType()
-	{
-		return valueType;
-	}
-
-	public Bevolkingsonderzoek getBevolkingsonderzoek()
-	{
-		return bevolkingsonderzoek;
-	}
-
-	public Integer getMaxValue()
-	{
-		return maxValue;
-	}
-
-	public boolean isUniek()
-	{
-		return isUniek;
+		this(projectType, valueType, bevolkingsonderzoek, 0, maxValue, isUniek);
 	}
 }

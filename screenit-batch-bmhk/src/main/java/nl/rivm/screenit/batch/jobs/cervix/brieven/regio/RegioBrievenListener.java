@@ -22,9 +22,9 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio;
  */
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
@@ -41,28 +41,27 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class RegioBrievenListener extends BaseLogListener
 {
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		BrievenGenererenBeeindigdLogEvent brievenLogEvent = new BrievenGenererenBeeindigdLogEvent();
-		Map<Long, Integer> map = new HashMap<Long, Integer>();
+		var brievenLogEvent = new BrievenGenererenBeeindigdLogEvent();
+		Map<Long, Integer> map = new HashMap<>();
 
-		List<ScreeningOrganisatie> screeningOrganisaties = hibernateService.loadAll(ScreeningOrganisatie.class);
-		for (ScreeningOrganisatie org : screeningOrganisaties)
+		var screeningOrganisaties = hibernateService.loadAll(ScreeningOrganisatie.class);
+		for (var screeningOrganisatie : screeningOrganisaties)
 		{
-			map.put(org.getId(), 0);
+			map.put(screeningOrganisatie.getId(), 0);
 		}
 		hibernateService.saveOrUpdate(brievenLogEvent);
 		jobExecution.getExecutionContext().put(RegioBrievenConstants.RAPPORTAGEKEYBRIEVEN, brievenLogEvent.getId());
@@ -90,11 +89,11 @@ public class RegioBrievenListener extends BaseLogListener
 	@Override
 	protected LogEvent getEindLogEvent()
 	{
-		String key = RegioBrievenConstants.RAPPORTAGEKEYBRIEVEN;
-		ExecutionContext executionContext = getJobExecution().getExecutionContext();
+		var key = RegioBrievenConstants.RAPPORTAGEKEYBRIEVEN;
+		var executionContext = getJobExecution().getExecutionContext();
 		if (executionContext.containsKey(key))
 		{
-			Long brievenlogEventid = (Long) getJobExecution().getExecutionContext().get(key);
+			var brievenlogEventid = (Long) getJobExecution().getExecutionContext().get(key);
 			return hibernateService.load(BrievenGenererenBeeindigdLogEvent.class, brievenlogEventid);
 		}
 		return null;
@@ -103,14 +102,14 @@ public class RegioBrievenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent logEvent = getEindLogEvent();
+		var logEvent = getEindLogEvent();
 		if (logEvent != null)
 		{
-			BrievenGenererenBeeindigdLogEvent brievenLogEvent = (BrievenGenererenBeeindigdLogEvent) logEvent;
+			var brievenLogEvent = (BrievenGenererenBeeindigdLogEvent) logEvent;
 			if (jobHasExitCode(ExitStatus.FAILED))
 			{
-				String error = "De job heeft onsuccesvol gedraaid, neem contact op met de helpdesk";
-				ExecutionContext context = jobExecution.getExecutionContext();
+				var error = "De job heeft onsuccesvol gedraaid, neem contact op met de helpdesk";
+				var context = jobExecution.getExecutionContext();
 
 				if (context.containsKey(BatchConstants.MELDING) && context.get(BatchConstants.MELDING) == null)
 				{
@@ -124,14 +123,14 @@ public class RegioBrievenListener extends BaseLogListener
 				brievenLogEvent.setLevel(Level.INFO);
 			}
 
-			BrievenGenererenRapportage rapportage = new BrievenGenererenRapportage();
+			var rapportage = new BrievenGenererenRapportage();
 			rapportage.setDatumVerwerking(currentDateSupplier.getDate());
 			brievenLogEvent.setRapportage(rapportage);
 			Map<Long, Integer> map = (Map<Long, Integer>) jobExecution.getExecutionContext().get(RegioBrievenConstants.RAPPORTAGEKEYAANTALBRIEVEN);
 
-			for (Entry<Long, Integer> entry : map.entrySet())
+			for (var entry : map.entrySet())
 			{
-				BrievenGenererenRapportageEntry rapportageEntry = new BrievenGenererenRapportageEntry();
+				var rapportageEntry = new BrievenGenererenRapportageEntry();
 				rapportageEntry.setScreeningOrganisatie(hibernateService.load(ScreeningOrganisatie.class, entry.getKey()));
 				rapportageEntry.setRapportage(rapportage);
 				rapportageEntry.setAantalBrievenPerScreeningOrganisatie(entry.getValue());
@@ -140,7 +139,7 @@ public class RegioBrievenListener extends BaseLogListener
 			}
 			hibernateService.saveOrUpdate(rapportage);
 
-			for (BrievenGenererenRapportageEntry entry : brievenLogEvent.getRapportage().getEntries())
+			for (var entry : brievenLogEvent.getRapportage().getEntries())
 			{
 				hibernateService.saveOrUpdate(entry);
 			}

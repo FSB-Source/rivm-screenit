@@ -32,6 +32,7 @@ import java.util.Set;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.service.OvereenkomstService;
@@ -107,13 +108,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.string.Strings;
 import org.hibernate.Hibernate;
 import org.hibernate.proxy.HibernateProxy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class ScreenitSession extends WebSession
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ScreenitSession.class);
-
 	private Long accountId;
 
 	private Class<? extends Account> accountClass;
@@ -158,13 +156,13 @@ public class ScreenitSession extends WebSession
 
 	private String regioCode;
 
-	private Set<File> tempFiles = new HashSet<>();
+	private final Set<File> tempFiles = new HashSet<>();
 
 	@Getter
 	@Setter
 	private boolean isInPlanningmodule;
 
-	private class ZoekStatus implements IDetachable
+	private static class ZoekStatus implements IDetachable
 	{
 		private Long pageNumber;
 
@@ -221,7 +219,7 @@ public class ScreenitSession extends WebSession
 
 	private boolean uziPasTokenAfgekeurd = false;
 
-	private Boolean ingelogdMetZorgId = null;
+	private boolean ingelogdMetZorgId = false;
 
 	public ScreenitSession(Request request)
 	{
@@ -377,7 +375,7 @@ public class ScreenitSession extends WebSession
 			authenticatieService.unlockAccount(gebruiker);
 
 			List<InstellingGebruiker> instellingGebruikers = authenticatieService.getActieveInstellingGebruikers(gebruiker);
-			if (instellingGebruikers.size() == 0)
+			if (instellingGebruikers.isEmpty())
 			{
 
 				logService.logGebeurtenis(LogGebeurtenis.INLOGGEN_MISLUKT, gebruiker, "Gebruikersnaam: " + gebruiker.getGebruikersnaam()
@@ -416,16 +414,9 @@ public class ScreenitSession extends WebSession
 		Subject currentUser = SecurityUtils.getSubject();
 		InstellingGebruikerToken token = new InstellingGebruikerToken(gebruiker.getId());
 		token.setUserAgent(WebSession.get().getClientInfo().getUserAgent());
-		if (ingelogdMetZorgId != null)
+		if (ingelogdMetZorgId)
 		{
-			if (ingelogdMetZorgId)
-			{
-				token.setUzipasInlogMethode("UZI-pas met Zorg-ID");
-			}
-			else
-			{
-				token.setUzipasInlogMethode("UZI-pas zonder Zorg-ID");
-			}
+			token.setUzipasInlogMethode("UZI-pas met Zorg-ID");
 		}
 		try
 		{
@@ -708,17 +699,16 @@ public class ScreenitSession extends WebSession
 		currentSelectedOrganisatieClass = organisatie != null ? HibernateHelper.getDeproxiedClass(organisatie) : null;
 	}
 
-	public boolean loginUzipasZonderApplet(UziCertInfo uziCertInfo, boolean zorgId)
+	public boolean loginUzipasZonderApplet(UziCertInfo uziCertInfo)
 	{
-		this.ingelogdMetZorgId = zorgId;
+		this.ingelogdMetZorgId = true;
 		uzipasMeldingen = new ArrayList<>();
-
-		UziToken token = new UziToken(uziCertInfo.getUziCode());
+		UziToken uziToken = new UziToken(uziCertInfo.getUziCode());
 		SecurityManager securityManager = SecurityUtils.getSecurityManager();
 
 		try
 		{
-			securityManager.authenticate(token);
+			securityManager.authenticate(uziToken);
 			Gebruiker gebruiker = gebruikerService.getGebruikerByUzinummer(uziCertInfo.getUziCode());
 
 			if (gebruiker != null && gebruiker.getInlogMethode() != InlogMethode.UZIPAS)
@@ -734,7 +724,7 @@ public class ScreenitSession extends WebSession
 				authenticatieService.unlockAccount(gebruiker);
 
 				List<InstellingGebruiker> instellingGebruikers = authenticatieService.getActieveInstellingGebruikers(gebruiker);
-				if (instellingGebruikers.size() == 0)
+				if (instellingGebruikers.isEmpty())
 				{
 
 					logService.logGebeurtenis(LogGebeurtenis.INLOGGEN_MISLUKT, gebruiker, "Gebruikersnaam: " + gebruiker.getGebruikersnaam()

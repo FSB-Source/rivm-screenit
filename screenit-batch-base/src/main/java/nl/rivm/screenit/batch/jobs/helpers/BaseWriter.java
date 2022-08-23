@@ -27,9 +27,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.BatchConstants;
-import nl.rivm.screenit.batch.service.RevisionInformationService;
 import nl.rivm.screenit.model.enums.Level;
-import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.topicuszorg.hibernate.object.model.HibernateObject;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -50,9 +48,6 @@ public abstract class BaseWriter<S extends HibernateObject> implements ItemWrite
 
 	@Autowired
 	private HibernateService hibernateService;
-
-	@Autowired
-	private RevisionInformationService revisionInformationService;
 
 	public static <E extends Enum> String getEnumKey(String enumKey, E enumConstant)
 	{
@@ -208,8 +203,8 @@ public abstract class BaseWriter<S extends HibernateObject> implements ItemWrite
 		aantalContextOphogen(enumKey, enumConstant);
 	}
 
-	protected void registerRevisionKenmerk(String context, RevisionKenmerk kenmerk)
+	protected <T> T getTypedValueFromExecutionContext(String key)
 	{
-		revisionInformationService.registerKenmerk(context, kenmerk);
+		return (T) getExecutionContext().get(key);
 	}
 }

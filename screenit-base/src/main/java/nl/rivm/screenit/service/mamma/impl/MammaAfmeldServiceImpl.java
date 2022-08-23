@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.AfmeldingType;
@@ -53,8 +55,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -64,10 +64,9 @@ import static nl.rivm.screenit.model.AfmeldingType.DEFINITIEF;
 
 @Component
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class MammaAfmeldServiceImpl implements MammaAfmeldService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaAfmeldServiceImpl.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 

@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
+import nl.rivm.screenit.dto.alg.client.contact.DeelnamewensDto;
 import nl.rivm.screenit.main.dao.mamma.MammaScreeningsEenheidDao;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
@@ -42,6 +44,7 @@ import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
 import nl.rivm.screenit.main.service.ClientDossierFilter;
 import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.service.MedewerkerService;
+import nl.rivm.screenit.main.service.algemeen.DeelnamemodusService;
 import nl.rivm.screenit.main.service.mamma.MammaBeoordelingService;
 import nl.rivm.screenit.main.service.mamma.MammaStandplaatsService;
 import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
@@ -83,8 +86,10 @@ import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.OnderbrokenOnderzoekOption;
 import nl.rivm.screenit.model.mamma.enums.OnvolledigOnderzoekOption;
 import nl.rivm.screenit.service.BerichtToBatchService;
+import nl.rivm.screenit.service.DeelnamemodusDossierService;
 import nl.rivm.screenit.service.EnovationHuisartsService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.TransgenderService;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
@@ -93,6 +98,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineService;
 import nl.rivm.screenit.service.mamma.MammaBaseTestTimelineTimeService;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.rivm.screenit.service.mamma.enums.MammaTestTimeLineDossierTijdstip;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -106,8 +112,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.base.Charsets;
 
 import au.com.bytecode.opencsv.CSVParser;
 import au.com.bytecode.opencsv.CSVReader;
@@ -170,6 +174,18 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Autowired
 	private MammaBaseKansberekeningService baseKansberekeningService;
 
+	@Autowired
+	private DeelnamemodusService deelnamemodusService;
+
+	@Autowired
+	private DeelnamemodusDossierService deelnamemodusDossierService;
+
+	@Autowired
+	private TransgenderService transgenderService;
+
+	@Autowired
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public String setDeelnamekansen(InputStream inputStream)
@@ -177,7 +193,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		String bsn = null;
 		String result = "Succesvol";
 		int aantal = 0;
-		try (Scanner scanner = new Scanner(inputStream, Charsets.UTF_8.name()))
+		try (Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8.name()))
 		{
 			CSVParser parser = new CSVParser(';');
 			Map<String, Integer> columnMap = new HashMap<>();
@@ -270,10 +286,9 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	public List<TestVervolgKeuzeOptie> getSnelKeuzeOpties(Client client)
 	{
 		List<TestVervolgKeuzeOptie> keuzes = new ArrayList<>();
-
-		if (client.getPersoon().getGeslacht() == Geslacht.VROUW)
+		MammaDossier dossier = client.getMammaDossier();
+		if (dossier != null)
 		{
-			MammaDossier dossier = client.getMammaDossier();
 			MammaScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
 			if (ronde != null)
 			{
@@ -403,7 +418,8 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	private MammaStandplaatsPeriode getStandplaatsPeriode(MammaScreeningRonde ronde)
 	{
 		MammaStandplaatsPeriode standplaatsPeriode = null;
-		main: for (MammaStandplaats standplaats : baseStandplaatsService
+		main:
+		for (MammaStandplaats standplaats : baseStandplaatsService
 			.getActieveStandplaatsen(ronde.getDossier().getClient().getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie()))
 		{
 			for (MammaStandplaatsRonde standplaatsRonde : standplaats.getStandplaatsRonden())
@@ -428,10 +444,10 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	{
 		MammaOnderzoek onderzoek = afspraak.getOnderzoek();
 		MammaScreeningRonde screeningRonde = afspraak.getUitnodiging().getScreeningRonde();
-		final Client client = screeningRonde.getDossier().getClient();
+		MammaDossier dossier = screeningRonde.getDossier();
+		Client client = dossier.getClient();
 		if (onderzoek == null)
 		{
-			MammaDossier dossier = screeningRonde.getDossier();
 			baseTestTimelineTimeService.rekenDossierTerug(dossier, MammaTestTimeLineDossierTijdstip.ONDERZOEK_ONTVANGEN);
 			onderzoek = maakOnderzoek(afspraak, se);
 			onderzoekAfronden(onderzoek);
@@ -446,9 +462,12 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 				screeningRonde, dossier);
 		}
 		onderzoek.setDoorgevoerd(true);
+
 		MammaMammografie mammografie = onderzoek.getMammografie();
 		mammografie.setIlmStatus(MammaMammografieIlmStatus.BESCHIKBAAR);
 		mammografie.setIlmStatusDatum(currentDateSupplier.getDate());
+		dossier.setLaatsteMammografieAfgerond(mammografie.getAfgerondOp());
+
 		MammaBeoordeling beoordeling = onderzoekService.voegInitieleBeoordelingToe(onderzoek);
 		setSignalerenVoorOnderzoek(mbber, onderzoek, false);
 
@@ -460,7 +479,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			}
 			afspraak.setStatus(MammaAfspraakStatus.BEEINDIGD);
 		}
-		hibernateService.saveOrUpdateAll(afspraak, onderzoek, mammografie, beoordeling);
+		hibernateService.saveOrUpdateAll(afspraak, onderzoek, mammografie, beoordeling, dossier);
 
 		return onderzoek;
 
@@ -523,6 +542,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			berichtToBatchService.queueMammaHL7v24BerichtUitgaand(dossier.getClient(), MammaHL7v24ORMBerichtStatus.STARTED);
 		}
 		hibernateService.saveOrUpdateAll(onderzoek, afspraak, screeningRonde, dossier);
+		volgendeUitnodigingService.updateVolgendeUitnodigingNaDeelname(afspraak.getUitnodiging().getScreeningRonde().getDossier());
 		return onderzoek;
 	}
 
@@ -569,16 +589,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 	private MammaMammografie maakMammaMammografie(MammaOnderzoek onderzoek, InstellingGebruiker mbber)
 	{
-		MammaMammografie mammografie = baseFactory.maakMammografie(onderzoek, mbber, new MammaAnnotatieAfbeelding());
-
-		MammaDossier dossier = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde().getDossier();
-		dossier.setLaatsteMammografieAfgerond(mammografie.getAfgerondOp());
-		if (dossier.getEersteMammografieAfgerondStandplaatsRonde() == null)
-		{
-			dossier.setEersteMammografieAfgerondStandplaatsRonde(onderzoek.getAfspraak().getStandplaatsPeriode().getStandplaatsRonde());
-		}
-
-		return mammografie;
+		return baseFactory.maakMammografie(onderzoek, mbber, new MammaAnnotatieAfbeelding());
 	}
 
 	@Override
@@ -590,8 +601,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	@Override
 	public void voegLezingToe(MammaBeoordeling beoordeling, MammaLezing lezing, InstellingGebruiker gebruiker, boolean verstuurHl7Berichten)
 	{
-		baseBeoordelingService.slaLezingOpEnVerwerkStatus(beoordeling, lezing, gebruiker,
-			(b) -> "Niet opgeschort");
+		baseBeoordelingService.slaLezingOpEnVerwerkStatus(beoordeling, lezing, gebruiker, b -> "Niet opgeschort");
 		baseBeoordelingService.bevestigLezing(beoordeling, verstuurHl7Berichten);
 	}
 
@@ -624,6 +634,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			Client client = maakOfVindClient(model, bsn);
 			clienten.add(client);
 			GbaPersoon gbaPersoon = client.getPersoon();
+			gbaPersoon.setGeslacht(model.getGeslacht());
 			gbaPersoon.setGeboortedatum(model.getGeboortedatum());
 			gbaPersoon.getGbaAdres().setPostcode(model.getPostcode());
 			MammaDossier dossier = client.getMammaDossier();
@@ -645,6 +656,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 				}
 			}
 
+			transgenderService.bijwerkenDeelnamemodus(client);
 			hibernateService.saveOrUpdateAll(gbaPersoon, dossier, deelnamekans);
 		}
 		return clienten;
@@ -654,7 +666,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	{
 		GbaPersoon persoon = new GbaPersoon();
 		persoon.setBsn(bsn);
-		persoon.setGeslacht(Geslacht.VROUW);
+		persoon.setGeslacht(model.getGeslacht());
 		persoon.setGeboortedatum(model.getGeboortedatum());
 
 		BagAdres adres = new BagAdres();
@@ -699,7 +711,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		if (heeftLaatsteScreeningsRonde(client))
 		{
 			MammaScreeningRonde screeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
-			if (screeningRonde.getUitnodigingen() != null && screeningRonde.getUitnodigingen().size() > 0)
+			if (screeningRonde.getUitnodigingen() != null && !screeningRonde.getUitnodigingen().isEmpty())
 			{
 				aantalUitnodigingen = screeningRonde.getUitnodigingen().size();
 			}
@@ -725,9 +737,9 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		int aantal = 0;
 		try (CSVReader reader = new CSVReader(new FileReader(file), ';'))
 		{
-			String[] huidigeLine = reader.readNext(); 
+			reader.readNext(); 
 			String[] vorigeLine = null;
-			huidigeLine = reader.readNext();
+			String[] huidigeLine = reader.readNext();
 			SimpleDateFormat formatGeboortedatum = new SimpleDateFormat("yyyy-MM-dd");
 			while (huidigeLine != null)
 			{
@@ -824,16 +836,6 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 		if (onderzoek == null)
 		{
 			onderzoek = maakOnderzoekVoorBe(dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak(), instellingGebruiker, screeningsEenheid);
-			onderzoek.setDoorgevoerd(true);
-			MammaMammografie mammografie = onderzoek.getMammografie();
-			mammografie.setAfgerondOp(onderzoek.getAfgerondOp());
-
-			dossier.setLaatsteMammografieAfgerond(mammografie.getAfgerondOp());
-			if (dossier.getEersteMammografieAfgerondStandplaatsRonde() == null)
-			{
-				dossier.setEersteMammografieAfgerondStandplaatsRonde(onderzoek.getAfspraak().getStandplaatsPeriode().getStandplaatsRonde());
-			}
-			hibernateService.saveOrUpdateAll(mammografie, dossier);
 		}
 		return onderzoek;
 	}
@@ -849,7 +851,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 
 		if (mammaBeoordeling.getEersteLezing() == null || mammaBeoordeling.getTweedeLezing() == null)
 		{
-			InstellingGebruiker radiologen[] = getTweeVerschillendeActieveErvanenRadioloog(mammaBeoordeling.getBeoordelingsEenheid());
+			InstellingGebruiker[] radiologen = getTweeVerschillendeActieveErvanenRadioloog(mammaBeoordeling.getBeoordelingsEenheid());
 			voegPocLezingToe(mammaBeoordeling, beoordelingStatus, radiologen[0]);
 			MammaLezing tweedeLezing = voegPocLezingToe(mammaBeoordeling, beoordelingStatus, radiologen[1]);
 
@@ -923,7 +925,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			.collect(Collectors.toList());
 		Iterator<InstellingGebruiker> iterator = instellingGebruikers.iterator();
 
-		InstellingGebruiker radiologen[] = new InstellingGebruiker[2];
+		InstellingGebruiker[] radiologen = new InstellingGebruiker[2];
 		radiologen[0] = iterator.next();
 
 		while (iterator.hasNext())
@@ -951,6 +953,7 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public boolean isSnelkeuzeKnopMammaBeschikbaar(Client client, TestTimelineRonde timeLineRonde)
 	{
 		GbaPersoon persoon = client.getPersoon();
@@ -967,8 +970,17 @@ public class MammaTestTimelineServiceImpl implements MammaTestTimelineService
 			&& ronde.getDossier().getLaatsteScreeningRonde().equals(ronde);
 		boolean isLopend = ScreeningRondeStatus.LOPEND.equals(ronde.getStatus());
 		boolean isAangemeld = ronde.getAangemeld();
-		boolean heeftGunstigeUitslag = onderzoek != null && onderzoek.getLaatsteBeoordeling() != null && MammaBeoordelingStatus.UITSLAG_GUNSTIG.equals(onderzoek.getLaatsteBeoordeling().getStatus());
+		boolean heeftGunstigeUitslag =
+			onderzoek != null && onderzoek.getLaatsteBeoordeling() != null && MammaBeoordelingStatus.UITSLAG_GUNSTIG.equals(onderzoek.getLaatsteBeoordeling().getStatus());
 		boolean heeftFollowUpConclusie = ronde.getFollowUpConclusieStatus() != null;
 		return !isOverleden && (isLopend || !isAangemeld || onderbrokenZonderFotosSitautie || (heeftGunstigeUitslag && !heeftFollowUpConclusie));
+	}
+
+	@Override
+	public void registreerDeelnamewens(Client client)
+	{
+		DeelnamewensDto dto = deelnamemodusService.getDeelnamewensDto(client);
+		dto.setDeelnamewensBk(true);
+		deelnamemodusDossierService.pasDeelnamewensToe(client, dto, null);
 	}
 }

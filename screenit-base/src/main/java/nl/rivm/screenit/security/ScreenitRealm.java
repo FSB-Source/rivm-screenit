@@ -21,10 +21,12 @@ package nl.rivm.screenit.security;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.security.UserAgentUtil.getParsedUserAgentInfo;
-
 import java.util.Arrays;
 import java.util.Collection;
+
+import javax.annotation.PostConstruct;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
@@ -61,16 +63,16 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.util.SimpleByteSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.security.UserAgentUtil.getParsedUserAgentInfo;
+
+@Slf4j
+@Component
 public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ScreenitRealm.class);
-
 	@Autowired
 	private GebruikersService gebruikersService;
 
@@ -93,6 +95,7 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@PostConstruct
 	public void initRealm()
 	{
 		setCredentialsMatcher(new MultipleAuthenticationSourceCredentialsMatcher(hibernateService));
@@ -126,8 +129,8 @@ public class ScreenitRealm extends AuthorizingRealm implements IScreenitRealm
 						{
 							if (!Boolean.FALSE.equals(permissie.getActief())
 								&& (CollectionUtils.containsAny(rol.getBevolkingsonderzoeken(), Arrays.asList(permissie.getRecht().getBevolkingsonderzoeken()))
-									&& CollectionUtils.containsAny(Arrays.asList(permissie.getRecht().getBevolkingsonderzoeken()), gebruiker.getBevolkingsonderzoeken())
-									|| !checkBvo))
+								&& CollectionUtils.containsAny(Arrays.asList(permissie.getRecht().getBevolkingsonderzoeken()), gebruiker.getBevolkingsonderzoeken())
+								|| !checkBvo))
 							{
 								Recht recht = permissie.getRecht();
 								if (CollectionUtils.isEmpty(recht.getOrganisatieTypes()) || recht.getOrganisatieTypes().contains(gebruiker.getOrganisatie().getOrganisatieType()))

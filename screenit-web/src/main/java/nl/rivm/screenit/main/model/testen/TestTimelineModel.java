@@ -30,6 +30,9 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
@@ -38,12 +41,14 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 
+@Getter
+@Setter
 public class TestTimelineModel implements Serializable, IDetachable
 {
 
-	private static final long serialVersionUID = 1L;
-
 	private String bsn;
+
+	private String aNummer;
 
 	private Date geboortedatum;
 
@@ -57,7 +62,9 @@ public class TestTimelineModel implements Serializable, IDetachable
 
 	private MammaDoelgroep doelgroep;
 
-	private List<TestTimelineRonde> rondes = new ArrayList<TestTimelineRonde>();
+	private List<TestTimelineRonde> rondes = new ArrayList<>();
+
+	private int leeftijd;
 
 	public TestTimelineModel()
 	{
@@ -73,31 +80,6 @@ public class TestTimelineModel implements Serializable, IDetachable
 
 	}
 
-	public List<String> getBsns()
-	{
-		return Arrays.asList(bsn.split(","));
-	}
-
-	public String getBsnsString()
-	{
-		return bsn;
-	}
-
-	public void setBsn(String bsn)
-	{
-		this.bsn = bsn;
-	}
-
-	public Date getGeboortedatum()
-	{
-		return geboortedatum;
-	}
-
-	public void setGeboortedatum(Date geboortedatum)
-	{
-		this.geboortedatum = geboortedatum;
-	}
-
 	public Gemeente getGemeente()
 	{
 		return ModelUtil.nullSafeGet(gemeente);
@@ -108,54 +90,24 @@ public class TestTimelineModel implements Serializable, IDetachable
 		this.gemeente = ModelUtil.sModel(gemeente);
 	}
 
-	public String getPostcode()
+	public List<String> getBsns()
 	{
-		return postcode;
+		return Arrays.asList(bsn.split(","));
 	}
 
-	public void setPostcode(String postcode)
+	public String getBsnsString()
 	{
-		this.postcode = postcode;
+		return bsn;
 	}
 
-	public Geslacht getGeslacht()
+	public List<String> getaNummer()
 	{
-		return geslacht;
+		return Arrays.asList(aNummer.split(","));
 	}
 
-	public void setGeslacht(Geslacht geslacht)
+	public String getaNummerString()
 	{
-		this.geslacht = geslacht;
-	}
-
-	public BigDecimal getDeelnamekans()
-	{
-		return deelnamekans;
-	}
-
-	public void setDeelnamekans(BigDecimal deelnamekans)
-	{
-		this.deelnamekans = deelnamekans;
-	}
-
-	public List<TestTimelineRonde> getRondes()
-	{
-		return rondes;
-	}
-
-	public void setRondes(List<TestTimelineRonde> rondes)
-	{
-		this.rondes = rondes;
-	}
-
-	public MammaDoelgroep getDoelgroep()
-	{
-		return doelgroep;
-	}
-
-	public void setDoelgroep(MammaDoelgroep doelgroep)
-	{
-		this.doelgroep = doelgroep;
+		return aNummer;
 	}
 
 	@Override

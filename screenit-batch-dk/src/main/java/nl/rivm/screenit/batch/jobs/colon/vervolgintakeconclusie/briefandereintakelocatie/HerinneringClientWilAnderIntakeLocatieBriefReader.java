@@ -22,8 +22,9 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereinta
  */
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
@@ -45,34 +46,30 @@ import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class HerinneringClientWilAnderIntakeLocatieBriefReader extends BaseScrollableResultReader
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(HerinneringClientWilAnderIntakeLocatieBriefReader.class);
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
-
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
+		var nu = currentDateSupplier.getLocalDateTime();
 		Integer uitnodigingsInterval = preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name());
 		if (uitnodigingsInterval == null)
 		{
 			throw new IllegalStateException("Spreidingsperiode op de parameterisatie pagina is niet gezet");
 		}
-		Date conclusieMoetGegevenZijnOp = getHerinneringClientWilAnderIntakeAfspraakDate();
-		Date uitnodigingsIntervalVerlopen = DateUtil.toUtilDate(nu.minusDays(uitnodigingsInterval).plusWeeks(2));
+		var conclusieMoetGegevenZijnOp = getHerinneringClientWilAnderIntakeAfspraakDate();
+		var uitnodigingsIntervalVerlopen = DateUtil.toUtilDate(nu.minusDays(uitnodigingsInterval).plusWeeks(2));
 
-		Criteria criteria = session.createCriteria(ColonScreeningRonde.class);
+		var criteria = session.createCriteria(ColonScreeningRonde.class);
 		criteria.createAlias("dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
@@ -87,7 +84,7 @@ public class HerinneringClientWilAnderIntakeLocatieBriefReader extends BaseScrol
 		criteria.add(Restrictions.eq("conclusie.type", ColonConclusieType.CLIENT_WIL_ANDERE_INTAKELOKATIE));
 		criteria.add(Restrictions.le("conclusie.datum", conclusieMoetGegevenZijnOp));
 
-		DetachedCriteria rondesMetHerinneringBrief = DetachedCriteria.forClass(ColonScreeningRonde.class);
+		var rondesMetHerinneringBrief = DetachedCriteria.forClass(ColonScreeningRonde.class);
 		rondesMetHerinneringBrief.createAlias("brieven", "brief");
 		rondesMetHerinneringBrief.add(Restrictions.eq("brief.briefType", BriefType.COLON_HERINNERING_ANDERE_INTAKELOCATIE));
 		rondesMetHerinneringBrief.setProjection(Projections.id());

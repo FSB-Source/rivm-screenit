@@ -25,7 +25,6 @@ import nl.rivm.screenit.model.INaam;
 
 public enum CervixZasStatus implements INaam
 {
-
 	VERSTUURD("Verstuurd"),
 
 	ONTVANGEN("Ontvangen"),

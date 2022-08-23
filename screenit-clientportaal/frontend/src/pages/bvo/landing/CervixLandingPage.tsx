@@ -37,41 +37,41 @@ import {useSelector} from "react-redux"
 import {State} from "../../../datatypes/State"
 
 type Props = {
-    dossier: CervixDossier,
-    beschikbareActies: ClientContactActieType[]
+	dossier: CervixDossier,
+	beschikbareActies: ClientContactActieType[]
 }
+
 const CervixLandingPage = (props: Props) => {
+	const beschikbareActies = props.beschikbareActies
+	const toonVervangendeTekst: boolean = useSelector((state: State) => state.landingOverzicht.cervixParameters.toonVervangendeTekst)
 
-    const beschikbareActies = props.beschikbareActies
-    const toonVervangendeTekst: boolean = useSelector((state: State) => state.landingOverzicht.cervixParameters.toonVervangendeTekst)
+	return (
+		<Container fluid className={styles.content}>
+			<KruimelpadComponent className={bvoStyles.cervix}/>
+			<Row className={landingPageStyle.inleiding}>
+				<Col md={8}>
+					<BvoInleidingComponent/>
+				</Col>
+				<Col md={4}>
+					<ImageBlobComponent image={blob_cervix}/>
+				</Col>
+			</Row>
 
-    return (
-        <Container fluid className={styles.content}>
-            <KruimelpadComponent className={bvoStyles.cervix}/>
-            <Row className={landingPageStyle.inleiding}>
-                <Col md={8}>
-                    <BvoInleidingComponent/>
-                </Col>
-                <Col md={4}>
-                    <ImageBlobComponent image={blob_cervix}/>
-                </Col>
-            </Row>
+			{!beschikbareActies.includes(ClientContactActieType.GEEN) &&
+				<CervixTopTakenComponent className={styles.topTaak}
+										 beschikbareActies={beschikbareActies}/>
+			}
 
-            {!beschikbareActies.includes(ClientContactActieType.GEEN) &&
-            <CervixTopTakenComponent className={styles.topTaak}
-                                     beschikbareActies={beschikbareActies}/>
-            }
+			{!beschikbareActies.includes(ClientContactActieType.GEEN) &&
+				<BvoTakenComponent beschikbareActies={beschikbareActies}
+								   toonVervangendeTekst={toonVervangendeTekst}/>
+			}
 
-            {!beschikbareActies.includes(ClientContactActieType.GEEN) &&
-            <BvoTakenComponent beschikbareActies={beschikbareActies}
-                               toonVervangendeTekst={toonVervangendeTekst}/>
-            }
-
-            {!toonVervangendeTekst && <BvoHistorieComponent gebeurtenissen={props.dossier.gebeurtenissenLaatsteRonde}/>}
-            <h5 className={landingPageStyle.sectieHeader}>Mijn onderzoeken</h5>
-            <BvoSelectieComponent/>
-        </Container>
-    )
+			{!toonVervangendeTekst && <BvoHistorieComponent gebeurtenissen={props.dossier.gebeurtenissenLaatsteRonde}/>}
+			<h5 className={landingPageStyle.sectieHeader}>Mijn onderzoeken</h5>
+			<BvoSelectieComponent/>
+		</Container>
+	)
 }
 
 export default CervixLandingPage

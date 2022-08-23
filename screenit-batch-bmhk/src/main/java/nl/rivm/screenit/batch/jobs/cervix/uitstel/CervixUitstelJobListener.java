@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -31,17 +33,16 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixUitstelJobListener extends BaseLogListener
 {
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected Bevolkingsonderzoek getBevolkingsonderzoek()
@@ -76,14 +77,14 @@ public class CervixUitstelJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		long aantal = context.getLong(CervixUitstelConstants.UITSTEL_AANTAL_KEY, 0);
 
-		CervixUitstelRapportage rapportage = new CervixUitstelRapportage();
+		var rapportage = new CervixUitstelRapportage();
 		rapportage.setDatumVerwerking(dateSupplier.getDate());
 		rapportage.setAantal(aantal);
 
-		CervixUitstelBeeindigdLogEvent uitstelBeeindigdLogEvent = (CervixUitstelBeeindigdLogEvent) super.eindLogging(jobExecution);
+		var uitstelBeeindigdLogEvent = (CervixUitstelBeeindigdLogEvent) super.eindLogging(jobExecution);
 		uitstelBeeindigdLogEvent.setRapportage(rapportage);
 		uitstelBeeindigdLogEvent.setMelding("Er zijn " + aantal + " client(en) uitgenodigd die uitstel hadden aangevraagd");
 

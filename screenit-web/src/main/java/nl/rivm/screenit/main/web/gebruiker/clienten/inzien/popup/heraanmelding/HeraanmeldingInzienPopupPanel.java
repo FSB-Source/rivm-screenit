@@ -39,16 +39,14 @@ import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.enums.ColonAfmeldingReden;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
-import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.BaseAfmeldService;
+import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.io.FilenameUtils;
@@ -83,13 +81,10 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 	private BriefService briefService;
 
 	@SpringBean
+	private BaseBriefService baseBriefService;
+
+	@SpringBean
 	private BriefHerdrukkenService briefHerdrukkenService;
-
-	@SpringBean
-	private HibernateService hibernateService;
-
-	@SpringBean
-	private LogService logService;
 
 	@SpringBean
 	private AutorisatieService autorisatieService;
@@ -181,11 +176,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), true);
-				hibernateService.saveOrUpdate(brief);
-
-				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
-					BriefUtil.getBriefTypeNaam(brief) + ", wordt tegengehouden.", brief.getBriefType().getOnderzoeken());
+				baseBriefService.briefTegenhouden(getLaatsteBrief(), ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
@@ -195,10 +186,7 @@ public abstract class HeraanmeldingInzienPopupPanel<A extends Afmelding<?, ?, ?>
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief brief = (ClientBrief) BriefUtil.setTegenhouden(getLaatsteBrief(), false);
-				hibernateService.saveOrUpdate(brief);
-				logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
-					brief.getBriefType() + ", was tegengehouden en wordt nu doorgevoerd.", brief.getBriefType().getOnderzoeken());
+				baseBriefService.briefNietMeerTegenhouden(getLaatsteBrief(), ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.briefactiveren"));
 				close(target);
 			}

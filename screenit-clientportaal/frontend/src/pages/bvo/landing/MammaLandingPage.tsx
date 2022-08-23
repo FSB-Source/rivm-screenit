@@ -28,7 +28,7 @@ import BvoHistorieComponent from "../../../components/bvo_historie/BvoHistorieCo
 import KruimelpadComponent from "../../../components/kruimelpad/KruimelpadComponent"
 import BvoInleidingComponent from "../../../components/bvo_inleiding/BvoInleidingComponent"
 import BvoTakenComponent from "../../../components/bvo_acties/BvoTakenComponent"
-import {useDispatch, useSelector} from "react-redux"
+import {useSelector} from "react-redux"
 import MammaTopTakenComponent from "../../../components/bvo_acties/MammaTopTakenComponent"
 import {getHuidigeAfspraak} from "../../../api/MammaAfspraakMakenThunkAction"
 import BvoLandingBlobComponent from "../../../components/blob/BvoLandingBlobComponent"
@@ -38,19 +38,21 @@ import {splitAdresString} from "../../../utils/StringUtil"
 import ImageBlobComponent from "../../../components/blob/ImageBlobComponent"
 import blob_mamma from "../../../scss/media/blob-mamma.jpg"
 import {State} from "../../../datatypes/State"
+import properties from "./MammaLandingPage.json"
+import {useThunkDispatch} from "../../../index"
 
 type Props = {
-    dossier: MammaDossier
-    beschikbareActies: ClientContactActieType[]
+	dossier: MammaDossier
+	beschikbareActies: ClientContactActieType[]
 }
-const MammaLandingPage = (props: Props) => {
 
+const MammaLandingPage = (props: Props) => {
 	const {dossier, beschikbareActies} = props
 
 	const locatieHuidigeAfspraak = dossier.huidigeAfspraak ? splitAdresString(dossier.huidigeAfspraak.adresStandplaats) : ""
 	const toonVervangendeTekst: boolean = useSelector((state: State) => state.landingOverzicht.mammaParameters.toonVervangendeTekst)
 
-	const dispatch = useDispatch()
+	const dispatch = useThunkDispatch()
 
 	useEffect(() => {
 		dispatch(getHuidigeAfspraak())
@@ -66,7 +68,8 @@ const MammaLandingPage = (props: Props) => {
 				<Col md={4}>
 					{dossier.huidigeAfspraak && !toonVervangendeTekst ?
 						<BvoLandingBlobComponent afspraakLocatie={locatieHuidigeAfspraak}
-												 afspraakMoment={dossier.huidigeAfspraak.weergaveAfspraakMoment}/> :
+												 afspraakMoment={dossier.huidigeAfspraak.weergaveAfspraakMoment}
+												 extraTekst={properties.blob.extraTekst}/> :
 						<ImageBlobComponent image={blob_mamma}/>}
 				</Col>
 			</Row>

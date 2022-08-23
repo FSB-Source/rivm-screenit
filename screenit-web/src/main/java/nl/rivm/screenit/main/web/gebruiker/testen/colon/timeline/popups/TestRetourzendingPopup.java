@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
@@ -46,13 +46,12 @@ import org.slf4j.LoggerFactory;
 
 public class TestRetourzendingPopup extends AbstractTestBasePopupPanel
 {
-
 	private static final long serialVersionUID = 1L;
 
 	private static final Logger LOG = LoggerFactory.getLogger(TestRetourzendingPopup.class);
 
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService colonTestTimelineService;
 
 	private IModel<RetourredenAfhandeling> redenModel = ModelUtil.cModel(new RetourredenAfhandeling());
 
@@ -68,7 +67,7 @@ public class TestRetourzendingPopup extends AbstractTestBasePopupPanel
 		super(id, clientModel);
 		ColonScreeningRonde ronde = getModelObject().get(0).getColonDossier().getLaatsteScreeningRonde();
 
-		List<ColonUitnodiging> uitnodigingVoorRetourzending = new ArrayList<ColonUitnodiging>();
+		List<ColonUitnodiging> uitnodigingVoorRetourzending = new ArrayList<>();
 		for (ColonUitnodiging uitnodiging : ronde.getUitnodigingen())
 		{
 			if (uitnodiging.isVerstuurdDoorInpakcentrum() && uitnodiging.getGekoppeldeTest().getUitslag() == null && uitnodiging.getAntwoordFormulier() == null)
@@ -108,10 +107,9 @@ public class TestRetourzendingPopup extends AbstractTestBasePopupPanel
 			}
 		}
 
-		ScreenitDropdown<ColonUitnodiging> uitnodigingDropDown = new ScreenitDropdown<ColonUitnodiging>("uitnodigingen", uitnodigingModel, uitnodigingenModel,
-			new IChoiceRenderer<ColonUitnodiging>()
+		ScreenitDropdown<ColonUitnodiging> uitnodigingDropDown = new ScreenitDropdown<>("uitnodigingen", uitnodigingModel, uitnodigingenModel,
+			new IChoiceRenderer<>()
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -171,7 +169,7 @@ public class TestRetourzendingPopup extends AbstractTestBasePopupPanel
 			}
 			for (ColonUitnodiging uitnodiging : uitnodigingList)
 			{
-				testTimelineService.retourzendingOntvangen(uitnodiging, reden);
+				colonTestTimelineService.retourzendingOntvangen(uitnodiging, reden);
 			}
 		}
 	}

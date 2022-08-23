@@ -24,6 +24,8 @@ package nl.rivm.screenit.service.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.service.DistributedLockService;
 
@@ -31,19 +33,17 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.retry.ExponentialBackoffRetry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 
 @Service
+@Slf4j
 public class DistributedLockServiceImpl implements DistributedLockService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(DistributedLockServiceImpl.class);
-
 	@Autowired
+	@Qualifier("zooKeeperServerUri")
 	private String zooKeeperServerUri;
 
 	@Autowired
@@ -64,12 +64,12 @@ public class DistributedLockServiceImpl implements DistributedLockService
 	public void lockAndWait(String locknaam, InstellingGebruiker gebruiker)
 	{
 		DistributedLockKey lockKey = new DistributedLockKey(createLocknaamVoorOmgeving(locknaam), gebruiker);
-		LOG.debug("Try to lock: '" + lockKey.toString() + "'");
+		LOG.debug("Try to lock: '" + lockKey + "'");
 		StopWatch stopWatch = startNewStopwatch();
 
 		lock(lockKey);
 
-		LOG.debug("Lock on '" + lockKey.toString() + "' acquired in " + eindtijdStopwatch(stopWatch) + " ms");
+		LOG.debug("Lock on '" + lockKey + "' acquired in " + eindtijdStopwatch(stopWatch) + " ms");
 	}
 
 	private synchronized void lock(DistributedLockKey lockKey)
@@ -84,7 +84,7 @@ public class DistributedLockServiceImpl implements DistributedLockService
 		}
 		catch (Exception e)
 		{
-			throw new RuntimeException("Onbekende fout bij locken van " + lockKey.toString(), e);
+			throw new RuntimeException("Onbekende fout bij locken van " + lockKey, e);
 		}
 	}
 

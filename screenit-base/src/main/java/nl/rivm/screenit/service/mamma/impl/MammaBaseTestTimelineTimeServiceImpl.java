@@ -79,9 +79,15 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 	@Override
 	public boolean rekenDossierTerug(MammaDossier dossier, int aantalDagen)
 	{
-		LOG.debug("Dossier aantal dagen terug gezet: " + aantalDagen);
+		LOG.debug("Dossier aantal dagen terug gezet: {} ", aantalDagen);
 		baseTestTimelineService.rekenObjectTerug(dossier, aantalDagen);
 		hibernateService.saveOrUpdate(dossier);
+
+		if (dossier.getVolgendeUitnodiging() != null)
+		{
+			baseTestTimelineService.rekenObjectTerug(dossier.getVolgendeUitnodiging(), aantalDagen);
+			hibernateService.saveOrUpdate(dossier.getVolgendeUitnodiging());
+		}
 
 		for (MammaIlmBezwaarPoging bezwaarPoging : dossier.getIlmBezwaarPogingen())
 		{
@@ -209,7 +215,7 @@ public class MammaBaseTestTimelineTimeServiceImpl implements MammaBaseTestTimeli
 	{
 		DateTime aantdagenReverse = new DateTime().minusDays(aantalDagen);
 		Days dagen = Days.daysBetween(aantdagenReverse.toLocalDate(), new DateTime(date).toLocalDate());
-		return dagen.getDays() > 0 ? dagen.getDays() : 0;
+		return Math.max(dagen.getDays(), 0);
 	}
 
 }

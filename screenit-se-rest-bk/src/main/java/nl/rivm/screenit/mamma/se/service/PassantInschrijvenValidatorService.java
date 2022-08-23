@@ -28,5 +28,5 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 
 public interface PassantInschrijvenValidatorService
 {
-	boolean isGeldigPassantScenario(Client client, LocalDate currentDate, MammaScreeningsEenheid se);
+	PassantValidatorResult isGeldigPassantScenario(Client client, LocalDate currentDate, MammaScreeningsEenheid se);
 }

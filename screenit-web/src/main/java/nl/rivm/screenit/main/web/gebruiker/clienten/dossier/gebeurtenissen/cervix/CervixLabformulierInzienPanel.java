@@ -31,6 +31,7 @@ import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
+import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
@@ -39,6 +40,7 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
@@ -63,23 +65,36 @@ public class CervixLabformulierInzienPanel extends AbstractGebeurtenisDetailPane
 		CervixUitnodiging uitnodiging = (CervixUitnodiging) HibernateHelper.deproxy(getModelObject().getUitnodiging());
 
 		CervixUitstrijkje uitstrijkje = CervixMonsterUtil.getUitstrijkje(uitnodiging.getMonster());
-		CervixLabformulier labformulier = uitstrijkje.getLabformulier();
+		CervixLabformulier labformulier = (CervixLabformulier) HibernateHelper.deproxy(uitstrijkje.getLabformulier());
 		String objid = labformulier.getObjid();
 		add(new Label("monsterId", uitstrijkje.getMonsterId() + ""));
 		add(new Label("huisarts", getHuisartsInfo(labformulier)));
 		add(new EnumLabel<>("status", labformulier.getStatus()));
 
 		boolean magHpvMinInzien = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_INZIEN_FORMULIER_NA_HPVMIN, Actie.INZIEN);
-
-		if (uitstrijkje.getLabformulier().getDatumGewist() == null || magHpvMinInzien)
+		var isFormulierDigitaal = labformulier.getDigitaal();
+		if (labformulier.getDatumGewist() == null || magHpvMinInzien)
 		{
-			add(new SpherionResourceLink("download", objid));
-			add(new SpherionViewerContainer("labformulier", objid));
+			if (Boolean.FALSE.equals(isFormulierDigitaal))
+			{
+				add(new SpherionResourceLink("download", objid));
+				add(new SpherionViewerContainer("labformulier", objid));
+			}
+			else
+			{
+				add(new EmptyPanel("download"));
+				add(new Label("labformulier", getString("labformulier.digitaal")));
+			}
+		}
+		else if (uitstrijkje.getLaatsteHpvBeoordeling() != null && CervixHpvBeoordelingWaarde.NEGATIEF.equals(uitstrijkje.getLaatsteHpvBeoordeling().getHpvUitslag()))
+		{
+			add(new EmptyPanel("download"));
+			add(new Label("labformulier", getString("hpvOnderzoek.negatief")));
 		}
 		else
 		{
-			add(new Label("download", ""));
-			add(new Label("labformulier", "Voor dit monster is een negatieve HPV uitslag ontvangen, waardoor het aanvraagformulier niet (meer) kan worden ingezien"));
+			add(new EmptyPanel("download"));
+			add(new Label("labformulier", getString("labformulier.verwijderd")));
 		}
 	}
 

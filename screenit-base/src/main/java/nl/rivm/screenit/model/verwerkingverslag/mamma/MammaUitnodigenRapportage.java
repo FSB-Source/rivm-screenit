@@ -33,6 +33,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -45,28 +48,20 @@ import org.hibernate.annotations.CascadeType;
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 public class MammaUitnodigenRapportage extends AbstractHibernateObject
 {
-	private static final long serialVersionUID = 1L;
-
 	@Temporal(TemporalType.TIMESTAMP)
 	@Column(nullable = false)
+	@Getter
+	@Setter
 	private Date datumVerwerking;
 
 	@OneToMany(mappedBy = "uitnodigenRapportage", fetch = FetchType.LAZY)
 	@Cascade(CascadeType.DELETE)
+	@Getter
 	private List<MammaStandplaatsRondeUitnodigenRapportage> standplaatsRondeUitnodigenRapportages = new ArrayList<>();
 
-	public Date getDatumVerwerking()
-	{
-		return datumVerwerking;
-	}
+	@OneToMany(mappedBy = "uitnodigenRapportage", fetch = FetchType.LAZY)
+	@Cascade(CascadeType.DELETE)
+	@Getter
+	private List<MammaIntervalUitnodigenRapportage> intervalUitnodigenRapportages = new ArrayList<>();
 
-	public void setDatumVerwerking(Date datumVerwerking)
-	{
-		this.datumVerwerking = datumVerwerking;
-	}
-
-	public List<MammaStandplaatsRondeUitnodigenRapportage> getStandplaatsRondeUitnodigenRapportages()
-	{
-		return standplaatsRondeUitnodigenRapportages;
-	}
 }

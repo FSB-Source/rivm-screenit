@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/zorgid")
+@RequestMapping("/rest/zorgid")
 public class ZorgidWebservice
 {
 	@Autowired

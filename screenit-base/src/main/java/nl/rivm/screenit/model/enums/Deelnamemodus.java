@@ -24,6 +24,6 @@ package nl.rivm.screenit.model.enums;
 public enum Deelnamemodus
 {
 	STANDAARD,
-	SELLECTIEBLOKKADE,
+	SELECTIEBLOKKADE,
 	EXPLICIETE_DEELNAMEWENS
 }

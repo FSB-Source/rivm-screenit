@@ -19,7 +19,6 @@
  * =========================LICENSE_END==================================
  */
 import * as React from "react"
-import ReactDOM from "react-dom"
 import {ReactKeycloakProvider} from "@react-keycloak/web"
 import keycloak from "./utils/Keycloak"
 import * as serviceWorker from "./serviceWorker"
@@ -37,6 +36,7 @@ import {AuthClientEvent} from "@react-keycloak/core/lib/types"
 import {datadogRum} from "@datadog/browser-rum"
 import AuthenticationWrapper from "./wrapper/AuthenticationWrapper"
 import {setLoggingOutAction} from "./actions/AuthenticatieAction"
+import {createRoot} from "react-dom/client"
 
 export type ReduxThunkDispatch = ThunkDispatch<State, any, Action>;
 
@@ -71,12 +71,15 @@ if (process.env.NODE_ENV !== "production") {
 	datadogRum.startSessionReplayRecording()
 }
 
-ReactDOM.render(
-	<React.StrictMode>
-		<ReactKeycloakProvider
-			authClient={keycloak}
-			initOptions={{checkLoginIframe: false, pkceMethod: "S256"}}
-			onEvent={automaticLogout}>
+const component = document.getElementById("root")
+const root = createRoot(component!)
+
+root.render(
+	<ReactKeycloakProvider
+		authClient={keycloak}
+		initOptions={{checkLoginIframe: false, pkceMethod: "S256"}}
+		onEvent={automaticLogout}>
+		<React.StrictMode>
 			<Provider store={cpStore}>
 				<BrowserRouter>
 					<AuthenticationWrapper>
@@ -86,9 +89,7 @@ ReactDOM.render(
 					</AuthenticationWrapper>
 				</BrowserRouter>
 			</Provider>
-		</ReactKeycloakProvider>
-	</React.StrictMode>,
-	document.getElementById("root"),
-)
+		</React.StrictMode>
+	</ReactKeycloakProvider>)
 
 serviceWorker.unregister()

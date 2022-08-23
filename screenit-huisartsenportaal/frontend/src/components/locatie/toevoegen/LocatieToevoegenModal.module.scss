@@ -1,0 +1,16 @@
+@import "../../../styling/scss/mixins";
+
+.style {
+
+	font-size: 0.85rem;
+
+	.gelijkAanNAW {
+		position: relative;
+
+		input[type="checkbox"] {
+			width: 20px;
+			height: 20px;
+			@include center-in-div-vertically(50%);
+		}
+	}
+}

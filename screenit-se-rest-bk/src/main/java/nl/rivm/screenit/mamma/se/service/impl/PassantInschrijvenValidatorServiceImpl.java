@@ -24,6 +24,7 @@ package nl.rivm.screenit.mamma.se.service.impl;
 import java.time.LocalDate;
 
 import nl.rivm.screenit.mamma.se.service.PassantInschrijvenValidatorService;
+import nl.rivm.screenit.mamma.se.service.PassantValidatorResult;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
@@ -45,7 +46,7 @@ public class PassantInschrijvenValidatorServiceImpl implements PassantInschrijve
 	@Autowired
 	private MammaBaseDossierService baseDossierService;
 
-	public boolean isGeldigPassantScenario(Client client, LocalDate currentDate, MammaScreeningsEenheid se)
+	public PassantValidatorResult isGeldigPassantScenario(Client client, LocalDate currentDate, MammaScreeningsEenheid se)
 	{
 		MammaScreeningRonde laatsteScreeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
 		if (laatsteScreeningRonde != null && laatsteScreeningRonde.getLaatsteUitnodiging() != null)
@@ -53,14 +54,15 @@ public class PassantInschrijvenValidatorServiceImpl implements PassantInschrijve
 			MammaAfspraak laatsteAfspraak = laatsteScreeningRonde.getLaatsteUitnodiging().getLaatsteAfspraak();
 			if (heeftAfspraakOpHuidigeDagOpSe(currentDate, se, laatsteAfspraak))
 			{
-				return false;
+				return PassantValidatorResult.ONGELDIG_ZELFDE_DAG;
 			}
 			if (heeftOnderzoekInLaatsteRonde(laatsteScreeningRonde))
 			{
-				return false;
+				return PassantValidatorResult.ONGELDIG;
 			}
 		}
-		return baseDossierService.isAfspraakMakenMogelijk(client.getMammaDossier(), false, true) || baseDossierService.isVerzettenMogelijk(client.getMammaDossier());
+		boolean isAfspraakMogelijk = baseDossierService.isAfspraakMakenMogelijk(client.getMammaDossier(), false, true) || baseDossierService.isVerzettenMogelijk(client.getMammaDossier());
+		return isAfspraakMogelijk ? PassantValidatorResult.OK : PassantValidatorResult.ONGELDIG;
 	}
 
 	private boolean heeftAfspraakOpHuidigeDagOpSe(LocalDate currentDate, MammaScreeningsEenheid se, MammaAfspraak laatsteAfspraak)

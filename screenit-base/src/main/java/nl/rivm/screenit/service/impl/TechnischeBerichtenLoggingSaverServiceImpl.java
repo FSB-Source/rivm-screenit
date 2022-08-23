@@ -51,7 +51,7 @@ public class TechnischeBerichtenLoggingSaverServiceImpl implements TechnischeBer
 	private HibernateService hibernateService;
 
 	@Autowired
-	private String applicatieInstantie;
+	private String applicationInstance;
 
 	private class TechnischeLogEvent
 	{
@@ -141,7 +141,7 @@ public class TechnischeBerichtenLoggingSaverServiceImpl implements TechnischeBer
 				TechnischeBerichtenLogRegel logRegel = new TechnischeBerichtenLogRegel();
 				logRegel.setId(logEvent.exchangeId);
 				logRegel.setService(logEvent.service);
-				logRegel.setApplicationInstance(applicatieInstantie);
+				logRegel.setApplicationInstance(applicationInstance);
 				logRegel.setRequest(logEvent.message);
 				logRegel.setRequestMoment(DateUtil.toUtilDate(logEvent.timestamp));
 				hibernateService.save(logRegel);

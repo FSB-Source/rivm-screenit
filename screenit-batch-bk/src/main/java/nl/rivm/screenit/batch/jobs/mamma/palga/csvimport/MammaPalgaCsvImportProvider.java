@@ -27,21 +27,23 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.CsvFileProvider;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+@Component
+@AllArgsConstructor
 public class MammaPalgaCsvImportProvider implements CsvFileProvider
 {
-	@Autowired
-	private MammaPalgaService palgaService;
+	private final MammaPalgaService palgaService;
 
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final UploadDocumentService uploadDocumentService;
 
 	@Override
 	public Iterator<CSVReader> getReaders() throws FileNotFoundException

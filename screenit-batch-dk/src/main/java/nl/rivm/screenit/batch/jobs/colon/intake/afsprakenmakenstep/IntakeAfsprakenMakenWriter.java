@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
 
 /*-
@@ -26,16 +25,14 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.intake.IntakeAfsprakenMakenConstants;
 import nl.rivm.screenit.batch.model.ClientAfspraak;
 import nl.rivm.screenit.dao.colon.AfspraakDefinitieDao;
 import nl.rivm.screenit.model.Afspraak;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
@@ -44,7 +41,6 @@ import nl.rivm.screenit.model.colon.Kamer;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.model.colon.planning.AfspraakDefinitie;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
-import nl.rivm.screenit.model.colon.planning.RoosterItem;
 import nl.rivm.screenit.model.colon.planning.VrijSlot;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -65,20 +61,18 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
-import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 {
 
 	private static final String SKIP_MELDING = "skipMelding";
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(IntakeAfsprakenMakenWriter.class);
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -122,8 +116,8 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 		}
 		DateTime nuPlusIntake = currentDateSupplier.getDateTime().plusDays(intakeafspraakperiode);
 
-		ExecutionContext executionContext = stepExecution.getJobExecution().getExecutionContext();
-		IntakeMakenLogEvent intakeMelding = (IntakeMakenLogEvent) executionContext.get(IntakeAfsprakenMakenConstants.RAPPORTAGEKEYINTAKE);
+		var executionContext = stepExecution.getJobExecution().getExecutionContext();
+		var intakeMelding = (IntakeMakenLogEvent) executionContext.get(IntakeAfsprakenMakenConstants.RAPPORTAGEKEYINTAKE);
 		Integer maxDistance = preferenceService.getInteger(PreferenceKey.MAX_AFSTAND_CLIENT_COLOSCOPIECENTRUM.name());
 		int ronde = executionContext.getInt(IntakeAfsprakenMakenConstants.HUIDIGE_RONDE, 0);
 		Integer maxPogingen = preferenceService.getInteger(PreferenceKey.COLON_MAX_EXTRA_POGINGEN_PLANNING_INTAKE.name());
@@ -135,32 +129,31 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 		Boolean allesVerwerkt = (Boolean) executionContext.get(IntakeAfsprakenMakenConstants.ALLE_INTAKES_VERWERKT);
 
 		boolean maxExtraDagenBereikt = intakeMelding.getAantalExtraDagen() >= preferenceService.getInteger(PreferenceKey.COLON_MAX_EXTRA_DAGEN_PLANNING_INTAKE.name());
-		for (ClientAfspraak item : items)
+		for (var afspraakOptie : items)
 		{
 			String bsn = null;
 			Long clientId = null;
 			try
 			{
-				if (maxDistance == null || item.getDistance() < maxDistance 
+				if (maxDistance == null || afspraakOptie.getDistance() < maxDistance 
 					|| ronde >= maxPogingen 
 					|| maxExtraDagenBereikt)
 				{
-					IntakeMakenLogEventRegel logRegel = new IntakeMakenLogEventRegel();
-					VrijSlot vrijSlot = item.getVrijSlot();
+					var logRegel = new IntakeMakenLogEventRegel();
+					var vrijSlot = afspraakOptie.getVrijSlot();
 					if (vrijSlot != null)
 					{
-
-						ColonScreeningRonde screeningRonde = hibernateService.load(ColonScreeningRonde.class, item.getColonScreeningRondeId());
-						Client client = screeningRonde.getDossier().getClient();
-						GbaPersoon persoon = client.getPersoon();
+						var screeningRonde = hibernateService.load(ColonScreeningRonde.class, afspraakOptie.getColonScreeningRondeId());
+						var client = screeningRonde.getDossier().getClient();
+						var persoon = client.getPersoon();
 						bsn = persoon.getBsn();
 						clientId = client.getId();
 
-						Gemeente gbaGemeente = persoon.getGbaAdres().getGbaGemeente();
+						var gbaGemeente = persoon.getGbaAdres().getGbaGemeente();
 
-						ColonIntakeAfspraak newAfspraak = new ColonIntakeAfspraak();
+						var newAfspraak = new ColonIntakeAfspraak();
 						DateTime startDatumTijd = new DateTime(vrijSlot.getStartTijd());
-						LOGGER.trace("Voor client wordt een intake afspraak gemaakt (id " + clientId + ")");
+						LOG.trace("Voor client wordt een intake afspraak gemaakt (id " + clientId + ")");
 						newAfspraak.setColonScreeningRonde(screeningRonde);
 						newAfspraak.setClient(client);
 						newAfspraak.setActief(true);
@@ -169,7 +162,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 						newAfspraak.setAfspraaknummer(System.currentTimeMillis());
 						newAfspraak.setStatus(AfspraakStatus.GEPLAND);
 
-						newAfspraak.setAfstand(BigDecimal.valueOf(item.getDistance()));
+						newAfspraak.setAfstand(BigDecimal.valueOf(afspraakOptie.getDistance()));
 						Kamer kamer = hibernateService.load(Kamer.class, vrijSlot.getKamerId());
 						ColoscopieCentrum coloscopieCentrum = kamer.getColoscopieCentrum();
 						List<AfspraakDefinitie> afspraakDefinities = afspraakDefinitieDao.getActieveActieDefinities(coloscopieCentrum);
@@ -178,14 +171,14 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 						{
 							throw new IllegalStateException("Geen of te veel afspraakDefinities in IL " + coloscopieCentrum.getNaam());
 						}
-						AfspraakDefinitie afspraakDefinitie = afspraakDefinities.get(0);
+						var afspraakDefinitie = afspraakDefinities.get(0);
 
 						newAfspraak.setStartTime(vrijSlot.getStartTijd());
 						newAfspraak.setEndTime(vrijSlot.getEindTijd());
 						newAfspraak.setDefinition(afspraakDefinitie);
 						newAfspraak.addDiscipline(afspraakDefinitie.getDisciplines().get(0));
 						newAfspraak.setLocation(kamer);
-						RoosterItem roosterItem = afspraakService.getRoosterBlokVoorAfspraak(newAfspraak);
+						var roosterItem = afspraakService.getRoosterBlokVoorAfspraak(newAfspraak);
 						String foutMessage = "Vrij slot is intussen verwijderd/verplaatst door de intakelocatie " + createMessageContext(clientId, vrijSlot, kamer);
 						for (Afspraak andereAfspraak : roosterItem.getAfspraken())
 						{
@@ -217,9 +210,9 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 						BriefType type = null;
 						ColonIntakeAfspraak laatsteIntakeAfspraak = null;
 
-						if (item.getIntakeAfspraakId() != null)
+						if (afspraakOptie.getIntakeAfspraakId() != null)
 						{
-							laatsteIntakeAfspraak = hibernateService.get(ColonIntakeAfspraak.class, item.getIntakeAfspraakId());
+							laatsteIntakeAfspraak = hibernateService.get(ColonIntakeAfspraak.class, afspraakOptie.getIntakeAfspraakId());
 						}
 						if (laatsteIntakeAfspraak == null || laatsteIntakeAfspraak.getStatus() == null || AfspraakStatus.isGeannuleerd(laatsteIntakeAfspraak.getStatus()))
 						{
@@ -227,7 +220,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 						}
 						if (type != null)
 						{
-							ColonBrief brief = briefService.maakBvoBrief(screeningRonde, type);
+							var brief = briefService.maakBvoBrief(screeningRonde, type);
 							if (BriefType.COLON_UITNODIGING_INTAKE.equals(type))
 							{
 								brief.setIfobtTest(ColonScreeningRondeUtil.getEersteOngunstigeTest(screeningRonde));
@@ -235,7 +228,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 							brief.setIntakeAfspraak(newAfspraak);
 							hibernateService.saveOrUpdate(brief);
 
-							MailMergeContext context = new MailMergeContext();
+							var context = new MailMergeContext();
 							context.setClient(client);
 							context.setColonUitnodiging(screeningRonde.getLaatsteUitnodiging());
 							context.setIntakeAfspraak(screeningRonde.getLaatsteAfspraak());
@@ -244,7 +237,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 						}
 						logRegel.setAfspraakId(newAfspraak.getId());
 
-						if (maxDistance != null && item.getDistance() > maxDistance)
+						if (maxDistance != null && afspraakOptie.getDistance() > maxDistance)
 						{
 							logService.logGebeurtenis(LogGebeurtenis.COLON_INTAKE_AFSPRAAK_BUITEN_MAX_AFSTAND, Arrays.asList(gbaGemeente.getScreeningOrganisatie()), client,
 								"Afstand is " + BigDecimalUtil.decimalToString(newAfspraak.getAfstand(), 2) + "km", Bevolkingsonderzoek.COLON);
@@ -257,7 +250,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 							{
 								intakeMelding.setLevel(Level.WARNING);
 							}
-							LOGGER.trace("Client valt buiten vrije slot max. tijd (id " + clientId + ")");
+							LOG.trace("Client valt buiten vrije slot max. tijd (id " + clientId + ")");
 							logRegel.setClientId(client.getId());
 							logRegel.setVrijSlot(
 								vrijSlot.getDatumAsString() + "," + vrijSlot.getStartTijdAsString() + "," + vrijSlot.getEindTijdAsString() + "," + vrijSlot.getKamerId());
@@ -266,7 +259,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 					}
 					else
 					{
-						logRegel.setClientId(item.getClientId());
+						logRegel.setClientId(afspraakOptie.getClientId());
 						intakeMelding.setLevel(Level.ERROR);
 					}
 					logRegel.setLogEvent(intakeMelding);
@@ -274,13 +267,15 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 				}
 				else
 				{
-					LOGGER.trace("Client is overgeslagen omdat de afstand naar de intakelocatie te groot was. Client-ID:" + item.getClientId() + ", afstand:" + item.getDistance());
+					LOG.trace(
+						"Client is overgeslagen omdat de afstand naar de intakelocatie te groot was. Client-ID:" + afspraakOptie.getClientId() + ", afstand:"
+							+ afspraakOptie.getDistance());
 					allesVerwerkt = false;
 				}
 			}
 			catch (Exception e)
 			{
-				LOGGER.error("Fout bij aanmaken intake afspraak voor client id " + clientId, e);
+				LOG.error("Fout bij aanmaken intake afspraak voor client id " + clientId, e);
 				String message = e.getMessage();
 				if (StringUtils.isBlank(message))
 				{
@@ -315,7 +310,7 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 
 	private void removeMeldingForBsn(String bsn)
 	{
-		ExecutionContext executionContext = stepExecution.getJobExecution().getExecutionContext();
+		var executionContext = stepExecution.getJobExecution().getExecutionContext();
 
 		if (executionContext.containsKey(IntakeAfsprakenMakenConstants.FOUT_BIJ_INTAKE_VASTLEGGEN))
 		{
@@ -352,10 +347,5 @@ public class IntakeAfsprakenMakenWriter implements ItemWriter<ClientAfspraak>
 	public void saveStepExecution(StepExecution stepExecution)
 	{
 		this.stepExecution = stepExecution;
-	}
-
-	public void setHuisartsBerichtService(ColonHuisartsBerichtService berichtService)
-	{
-		this.berichtService = berichtService;
 	}
 }

@@ -30,16 +30,24 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+
+@Component
 public class MammaAdresGewijzigdMarkerResetReader extends BaseScrollableResultReader
 {
+
+	public MammaAdresGewijzigdMarkerResetReader()
+	{
+		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
+	}
+
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(GbaMutatie.class, "gbaMutatie");
-
+		var criteria = session.createCriteria(GbaMutatie.class, "gbaMutatie");
 		criteria.add(Restrictions.like("gbaMutatie.aanvullendeInformatie", Constants.MAMMA_ADRES_GEWIJZIGD_MARKER, MatchMode.ANYWHERE));
-
 		return criteria;
 	}
 }

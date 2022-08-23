@@ -24,6 +24,7 @@ import {ToastMessageType} from "../datatypes/toast/ToastMessage"
 import properties from "./backend.json"
 import {transformDates} from "./DateTransformUtil"
 import {showToast} from "./ToastUtil"
+import httpStatus from "../datatypes/HttpStatus"
 
 const BASE_URL = "/api"
 
@@ -40,7 +41,9 @@ ScreenitBackend.interceptors.response.use((response) => {
 	response.data = transformDates(response.data)
 	return response
 }, (error: AxiosError) => {
-	showToast(undefined, properties.foutmelding, ToastMessageType.ERROR)
+	if (error.response?.status !== httpStatus.NOT_MODIFIED && error.response?.status !== httpStatus.CONFLICT) {
+		showToast(undefined, properties.foutmelding, ToastMessageType.ERROR)
+	}
 	return Promise.reject(error)
 })
 

@@ -33,6 +33,9 @@ import javax.jws.WebService;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixBMHKLaboratoriumDao;
@@ -56,41 +59,31 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.joda.time.DateTime;
 import org.joda.time.IllegalFieldValueException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("LabformulierService_PortType")
+@Service
 @Transactional(propagation = Propagation.SUPPORTS)
 @WebService(targetNamespace = "http://screenit.rivm.nl/", name = "LabformulierService")
+@Slf4j
+@RequiredArgsConstructor
 public class LabformulierServiceImpl implements LabformulierService
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LabformulierServiceImpl.class);
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final CervixLabformulierService labformulierService;
 
-	@Autowired
-	private CervixLabformulierService labformulierService;
+	private final CervixBMHKLaboratoriumDao bmhkLaboratoriumDao;
 
-	@Autowired
-	private CervixBMHKLaboratoriumDao bmhkLaboratoriumDao;
+	private final CervixHuisartsBaseDao huisartsDao;
 
-	@Autowired
-	private CervixHuisartsBaseDao huisartsDao;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	private Integer afkapwaardeLabformulier;
 

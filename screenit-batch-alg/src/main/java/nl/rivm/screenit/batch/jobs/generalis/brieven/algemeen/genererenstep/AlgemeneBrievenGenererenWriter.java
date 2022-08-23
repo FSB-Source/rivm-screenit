@@ -22,10 +22,11 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.genererenstep;
  */
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenWriter;
 import nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.AlgemeneBrievenConstants;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.AlgemeneMergedBrieven;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -33,7 +34,9 @@ import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AlgemeneBrievenGenererenWriter extends AbstractBrievenGenererenWriter<AlgemeneBrief, AlgemeneMergedBrieven>
 {
 	@Override
@@ -41,15 +44,36 @@ public class AlgemeneBrievenGenererenWriter extends AbstractBrievenGenererenWrit
 	{
 		ExecutionContext context = getStepExecutionContext();
 		BriefType briefType = BriefType.valueOf(context.getString(AlgemeneBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		ScreeningOrganisatie screeningOrganisatie = getHibernateService().load(ScreeningOrganisatie.class,
-			context.getLong(AlgemeneBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID));
-
 		AlgemeneMergedBrieven mergedBrieven = new AlgemeneMergedBrieven();
-		mergedBrieven.setScreeningOrganisatie(screeningOrganisatie);
 		mergedBrieven.setCreatieDatum(aangemaaktOp);
 		mergedBrieven.setBriefType(briefType);
 
 		return mergedBrieven;
+	}
+
+	@Override
+	public String getTechnischeLoggingMergedBriefAanmaken(AlgemeneMergedBrieven brieven)
+	{
+		return "Mergedocument(id = " + brieven.getId() + ") aangemaakt, brieftype " + brieven.getBriefType().name();
+	}
+
+	@Override
+	public void verhoogAantalBrievenVanScreeningOrganisatie(AlgemeneMergedBrieven brieven)
+	{
+		var map = (Map<Long, Integer>) getExecutionContext().get(getRapportageAantalBrievenKey());
+		if (map == null)
+		{
+			map = new HashMap<>();
+			getExecutionContext().put(getRapportageAantalBrievenKey(), map);
+		}
+		var currentValue = map.get(0L);
+		if (currentValue == null)
+		{
+			currentValue = 0;
+		}
+		map.put(0L, currentValue + brieven.getAantalBrieven());
+
+		getStepExecutionContext().putString(AlgemeneBrievenConstants.KEY_BRIEVEN, "JA");
 	}
 
 	@Override

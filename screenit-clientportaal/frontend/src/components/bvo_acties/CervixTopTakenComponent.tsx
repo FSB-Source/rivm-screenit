@@ -40,22 +40,22 @@ const CervixTopTakenComponent = (props: CervixTopTakenComponentProps) => {
         <Row className={props.className}>
             {props.beschikbareActies.includes(ClientContactActieType.CERVIX_ZAS_AANVRAGEN) && <Col lg={4}>
 				<TopTaakComponent icon={<ZASAanvragenIcon/>}
-								  link="/cervix/zas"
+								  link="/cervix/zas/"
 								  titel={getString(properties.zas_aanvragen)}/>
 			</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.CERVIX_HERAANMELDEN) && <Col lg={4}>
 				<TopTaakComponent icon={<HeraanmeldenIcon/>}
-								  link="/cervix/heraanmelden"
+								  link="/cervix/heraanmelden/"
 								  titel={getString(properties.heraanmelden)}/>
 			</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.CERVIX_HERDRUK) && <Col lg={4}>
 				<TopTaakComponent icon={<HerdrukkenIcon/>}
-								  link="/cervix/herdrukken"
+								  link="/cervix/herdrukken/"
 								  titel={getString(properties.herdrukken)}/>
 			</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.CERVIX_UITSTEL) && <Col lg={4}>
 				<TopTaakComponent icon={<UitstellenIcon/>}
-								  link="/cervix/uitstellen"
+								  link="/cervix/uitstellen/"
 								  titel={getString(properties.uitstellen)}/>
 			</Col>}
         </Row>

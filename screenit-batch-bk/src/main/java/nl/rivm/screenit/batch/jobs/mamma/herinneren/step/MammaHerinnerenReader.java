@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch.jobs.mamma.herinneren.step;
 
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.DossierStatus;
@@ -39,21 +41,21 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaHerinnerenReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(MammaScreeningRonde.class, "screeningRonde");
+		var criteria = session.createCriteria(MammaScreeningRonde.class, "screeningRonde");
 		criteria.createAlias("screeningRonde.dossier", "dossier");
 		criteria.createAlias("screeningRonde.laatsteUitnodiging", "uitnodiging");
 		criteria.createAlias("uitnodiging.brief", "brief");
@@ -88,13 +90,13 @@ public class MammaHerinnerenReader extends BaseScrollableResultReader
 
 	private Date getMaxGeenAfspraakPeriode()
 	{
-		Integer herinneringsPeriodeGeenAfspraak = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_GEEN_AFSPRAAK.name(), Integer.valueOf(4));
+		var herinneringsPeriodeGeenAfspraak = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_GEEN_AFSPRAAK.name(), Integer.valueOf(4));
 		return DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusWeeks(herinneringsPeriodeGeenAfspraak));
 	}
 
 	private Date getMaxNoshowPeriode()
 	{
-		Integer herinneringsPeriodeNoShow = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_NO_SHOW.name(), Integer.valueOf(2));
+		var herinneringsPeriodeNoShow = preferenceService.getInteger(PreferenceKey.MAMMA_HERINNERINGS_PERIODE_NO_SHOW.name(), Integer.valueOf(2));
 		return DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusWeeks(herinneringsPeriodeNoShow));
 	}
 }

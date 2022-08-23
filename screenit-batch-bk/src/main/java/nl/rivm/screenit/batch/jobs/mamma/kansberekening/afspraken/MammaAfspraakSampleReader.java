@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
 
 import java.util.EnumSet;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventReader;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
@@ -30,20 +32,20 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 
 import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaAfspraakSampleReader extends MammaAbstractEventReader
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
 	public Criteria getCriteria(StatelessSession session)
 	{
-		Criteria criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
+		var criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
 		criteria.createAlias("afspraak.afspraakEvent", "afspraakEvent", JoinType.LEFT_OUTER_JOIN);
 
 		criteria.add(Restrictions.in("afspraak.status", EnumSet.of(MammaAfspraakStatus.GEPLAND, MammaAfspraakStatus.BEEINDIGD)));

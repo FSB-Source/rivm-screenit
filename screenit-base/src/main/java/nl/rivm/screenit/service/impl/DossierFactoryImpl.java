@@ -92,6 +92,8 @@ public class DossierFactoryImpl implements DossierFactory
 
 	private void maakColonDossier(Client client)
 	{
+		LOG.info("ColonDossier aanmaken voor client(id: {})", client.getId());
+
 		ColonDossier colonDossier = new ColonDossier();
 		colonDossier.setStatus(DossierStatus.ACTIEF);
 		colonDossier.setAangemeld(true);
@@ -125,6 +127,7 @@ public class DossierFactoryImpl implements DossierFactory
 		mammaDossier.setDeelnamemodus(initieleDeelnameModus(client));
 		mammaDossier.setXdsStatus(XdsStatus.NIET_AANGEMELD);
 		mammaDossier.setClient(client);
+		mammaDossier.setEersteOnderzoek(true);
 		client.setMammaDossier(mammaDossier);
 
 		MammaDeelnamekans mammaDeelnamekans = new MammaDeelnamekans();
@@ -136,6 +139,6 @@ public class DossierFactoryImpl implements DossierFactory
 
 	private static Deelnamemodus initieleDeelnameModus(Client client)
 	{
-		return client.getPersoon().getGeslacht() == Geslacht.VROUW ? Deelnamemodus.STANDAARD : Deelnamemodus.SELLECTIEBLOKKADE;
+		return client.getPersoon().getGeslacht() == Geslacht.VROUW ? Deelnamemodus.STANDAARD : Deelnamemodus.SELECTIEBLOKKADE;
 	}
 }

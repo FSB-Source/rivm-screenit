@@ -23,21 +23,21 @@ package nl.rivm.screenit.clientportaal.services.impl;
 
 import java.time.LocalDate;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.services.DatumValidatieService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.util.DateUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class DatumValidatieServiceImpl implements DatumValidatieService
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public boolean datumIsInHetVerleden(LocalDate datum)

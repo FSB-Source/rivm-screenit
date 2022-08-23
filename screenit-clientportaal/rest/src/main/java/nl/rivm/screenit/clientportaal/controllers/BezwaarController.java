@@ -29,10 +29,8 @@ import java.util.stream.Collectors;
 import nl.rivm.screenit.clientportaal.mappers.BezwaarMapper;
 import nl.rivm.screenit.clientportaal.model.BezwaarDto;
 import nl.rivm.screenit.clientportaal.services.BezwaarValidatieService;
-import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
-import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.algemeen.BezwaarGroupViewWrapper;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.BezwaarService;
@@ -41,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("bezwaar")
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class BezwaarController extends AbstractController
 {
 	@Autowired
@@ -99,19 +100,14 @@ public class BezwaarController extends AbstractController
 			List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers = getBezwaarGroupViewWrappersVoorAlleBvos(client);
 
 			updateWrappersMetWijzigingenDoorClient(bevolkingsonderzoek, bezwaarDtos, bezwaarGroupViewWrappers);
-
-			boolean bezwarenGewijzigd = bezwaarService.bezwarenGewijzigd(client.getLaatstVoltooideBezwaarMoment(), bezwaarGroupViewWrappers,
-				bevolkingsonderzoek);
-			if (bezwarenGewijzigd)
+			boolean bezwarenGewijzigd = bezwaarService.bezwarenGewijzigd(client.getLaatstVoltooideBezwaarMoment(), bezwaarGroupViewWrappers, bevolkingsonderzoek);
+			if (!bezwarenGewijzigd)
 			{
-				BezwaarMoment moment = new BezwaarMoment();
-				moment.setClient(client);
-				moment.setManier(ClientContactManier.DIRECT);
-				bezwaarService.bezwaarAfronden(moment, client, bezwaarGroupViewWrappers);
-
-				return ResponseEntity.ok(wrappersToDto(bezwaarGroupViewWrappers, bevolkingsonderzoek));
+				return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
 			}
-			return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
+			bezwaarService.bezwaarAfrondenVanuitClientPortaal(client, bezwaarGroupViewWrappers);
+			return ResponseEntity.ok(wrappersToDto(bezwaarGroupViewWrappers, bevolkingsonderzoek));
+
 		}
 		return createForbiddenResponse();
 	}

@@ -1,0 +1,16 @@
+{
+  "table": {
+    "filter": {
+      "name": "Uw locaties zijn gefilterd op:"
+    },
+    "headers": {
+      "naam": "Locatienaam",
+      "adres": "Adres",
+      "postcode": "Postcode",
+      "plaats": "Plaats",
+      "status": "Status",
+      "wijzigen": "Wijzig",
+      "verwijderen": "Verwijder"
+    }
+  }
+}

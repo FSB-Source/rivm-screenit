@@ -21,6 +21,10 @@ package nl.rivm.screenit.batch.jobs.cervix.order;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixOrderConstants
 {
 

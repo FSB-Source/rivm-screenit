@@ -21,22 +21,21 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.briefandereinta
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class HerinneringClientWilAnderIntakeLocatieBriefWriter extends BaseWriter<ColonScreeningRonde>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(HerinneringClientWilAnderIntakeLocatieBriefWriter.class);
-
-	@Autowired
-	private BaseBriefService briefService;
+	private final BaseBriefService briefService;
 
 	@Override
 	protected void write(ColonScreeningRonde ronde) throws Exception

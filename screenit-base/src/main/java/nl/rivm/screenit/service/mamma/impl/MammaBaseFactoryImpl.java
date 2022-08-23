@@ -66,6 +66,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseKwaliteitscontroleService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
@@ -114,6 +115,9 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	private BerichtToBatchService berichtToBatchService;
 
 	@Autowired
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
+	@Autowired
 	@Qualifier("testModus")
 	private Boolean testModus;
 
@@ -122,7 +126,7 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	{
 		Date nu = dateSupplier.getDate();
 
-		LOG.info("MammaScreeningRonde aanmaken voor client(id: " + dossier.getClient().getId() + ")");
+		LOG.info("MammaScreeningRonde aanmaken voor client: {}", dossier.getClient().getId());
 
 		MammaScreeningRonde vorigeRonde = dossier.getLaatsteScreeningRonde();
 		if (vorigeRonde != null && vorigeRonde.getStatus() == ScreeningRondeStatus.LOPEND)
@@ -157,15 +161,9 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 	}
 
 	@Override
-	public MammaUitnodiging maakUitnodiging(MammaScreeningRonde screeningRonde, BriefType briefType)
-	{
-		return maakUitnodiging(screeningRonde, screeningRonde.getStandplaatsRonde(), briefType);
-	}
-
-	@Override
 	public MammaUitnodiging maakUitnodiging(MammaScreeningRonde screeningRonde, MammaStandplaatsRonde standplaatsRonde, BriefType briefType)
 	{
-		LOG.info("MammaUitnodiging aanmaken voor clientId " + screeningRonde.getDossier().getClient().getId());
+		LOG.info("MammaUitnodiging aanmaken voor client: {} ", screeningRonde.getDossier().getClient().getId());
 
 		Date nu = dateSupplier.getDate();
 		MammaUitnodiging uitnodiging = new MammaUitnodiging();
@@ -190,12 +188,15 @@ public class MammaBaseFactoryImpl implements MammaBaseFactory
 			brief.setUitnodiging(uitnodiging);
 			hibernateService.saveOrUpdateAll(brief, uitnodiging);
 		}
+
+		volgendeUitnodigingService.updateVolgendeUitnodigingBijNieuweUitnodiging(screeningRonde.getDossier());
+
 		return uitnodiging;
 	}
 
 	@Override
 	public MammaAfspraak maakDummyAfspraak(MammaUitnodiging uitnodiging, Date vanaf, MammaCapaciteitBlok capaciteitBlok, MammaStandplaatsPeriode standplaatsPeriode,
-										   MammaVerzettenReden verzettenReden)
+		MammaVerzettenReden verzettenReden)
 	{
 		MammaAfspraak afspraak = new MammaAfspraak();
 		GbaPersoon persoon = uitnodiging.getScreeningRonde().getDossier().getClient().getPersoon();

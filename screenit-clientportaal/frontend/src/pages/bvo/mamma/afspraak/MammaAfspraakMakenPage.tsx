@@ -105,6 +105,7 @@ const MammaAfspraakMakenPage = () => {
 				  toonBlob={!!huidigeAfspraak}
 				  blobTitle={getString(properties.blob.title)}
 				  blobText={getString(properties.blob.afspraak_moment, huidigeAfspraak && [huidigeAfspraak.weergaveAfspraakMoment])}
+				  blobExtraText={getString(properties.blob.extra_text)}
 				  blobAdresLocatie={getString(properties.blob.afspraak_locatie, gesplitsteAdresStandplaats && [gesplitsteAdresStandplaats[0], gesplitsteAdresStandplaats[1]])}>
 
 			<Row>

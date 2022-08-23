@@ -32,7 +32,9 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
 	public static final String KEY_SCREENINGORGANISATIEID = "cervix.screeningorganisatie.id";

@@ -22,28 +22,15 @@ package nl.rivm.screenit.model.mamma.enums;
  */
 
 import java.util.Arrays;
-import java.util.EnumSet;
 import java.util.List;
 
 public enum MammaFollowUpConclusieStatus
 {
-    NIET_TE_VERWACHTEN,
+	NIET_TE_VERWACHTEN,
 	FALSE_NEGATIVE,
 	TRUE_NEGATIVE,
 	FALSE_POSITIVE,
 	TRUE_POSITIVE;
-
-	public static final EnumSet<MammaFollowUpConclusieStatus> SLUIT_SUSPECT_UIT;
-
-	static
-	{
-		SLUIT_SUSPECT_UIT = EnumSet.of(FALSE_POSITIVE, TRUE_NEGATIVE);
-	}
-
-	public static boolean sluitSuspectUit(MammaFollowUpConclusieStatus status)
-	{
-		return SLUIT_SUSPECT_UIT.contains(status);
-	}
 
 	public static List<MammaFollowUpConclusieStatus> conclusieReviewStatussen()
 	{

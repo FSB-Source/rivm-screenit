@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.brieven.genererenstep;
 
 /*-
@@ -25,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.genererenstep;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenProcessor;
 import nl.rivm.screenit.model.colon.ColonBrief;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ColonBrievenGenererenProcessor extends AbstractBrievenGenererenProcessor<ColonBrief>
 {
 

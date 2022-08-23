@@ -26,17 +26,19 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaGrondslag;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
+import nl.rivm.screenit.model.enums.JobStartParameter;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
@@ -44,7 +46,6 @@ import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.StringUtil;
 import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.StepContribution;
@@ -52,10 +53,15 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
 @Slf4j
+@Component
 public class MammaPalgaCsvExportTasklet implements Tasklet
 {
 	@Autowired
@@ -73,34 +79,41 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 	@Autowired
 	private HibernateService hibernateService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@Override
-	public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws IOException
+	public RepeatStatus execute(@Nullable StepContribution contribution, ChunkContext chunkContext) throws IOException
 	{
-		String path = locatieFilestore + FileStoreLocation.MAMMA_PALGA_CSV_EXPORT.getPath();
-		String filePrefix = getFilePrefix();
-		List<UploadDocument> csvDocuments = genereerCsvDocuments(path, filePrefix);
+		var jobParameters = chunkContext.getStepContext().getStepExecution()
+			.getJobExecution().getJobParameters();
+		MammaPalgaExportConfig exportConfig = objectMapper.readValue(jobParameters.getString(JobStartParameter.MAMMA_PALGA_EXPORT.name()), MammaPalgaExportConfig.class);
+
+		var path = locatieFilestore + FileStoreLocation.MAMMA_PALGA_CSV_EXPORT.getPath();
+		var filePrefix = getFilePrefix(exportConfig);
+		var csvDocuments = genereerCsvDocuments(path, filePrefix, exportConfig);
 		palgaService.deleteExports(null, null);
 		zipExport(csvDocuments, filePrefix, path);
 
 		return RepeatStatus.FINISHED;
 	}
 
-	private List<UploadDocument> genereerCsvDocuments(String path, String filePrefix) throws IOException
+	private List<UploadDocument> genereerCsvDocuments(String path, String filePrefix, MammaPalgaExportConfig exportConfig) throws IOException
 	{
-		List<Long> clientenIds = palgaService.getClientenVoorPalga();
+		var clientenIds = palgaService.getClientenVoorPalga(exportConfig);
 		LOG.info("#clienten gevonden: " + clientenIds.size());
 		List<UploadDocument> export = new ArrayList<>();
 		if (!clientenIds.isEmpty())
 		{
-			int aantalClientenPerFile = preferenceService.getInteger(PreferenceKey.MAMMA_PALGA_CSV_EXPORT_AANTAL.name());
-			int aantalFiles = (int) Math.ceil((double) clientenIds.size() / aantalClientenPerFile);
-			for (int i = 0; i < aantalFiles; i++)
+			var aantalClientenPerFile = exportConfig.getMaxAantalPerFile();
+			var aantalFiles = (int) Math.ceil((double) clientenIds.size() / aantalClientenPerFile);
+			if (aantalFiles > 99)
 			{
-				int from = i * aantalClientenPerFile;
-				int to = Math.min((i + 1) * aantalClientenPerFile, clientenIds.size());
+				throw new IllegalStateException("Te veel files aangemaakt: " + aantalFiles);
+			}
+			for (var i = 0; i < aantalFiles; i++)
+			{
+				var from = i * aantalClientenPerFile;
+				var to = Math.min((i + 1) * aantalClientenPerFile, clientenIds.size());
 				export.add(genereerCsv(clientenIds.subList(from, to), i + 1, path, filePrefix));
 			}
 		}
@@ -113,18 +126,15 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 
 	private UploadDocument genereerCsv(List<Long> clientenIds, int fileNummer, String path, String prefix) throws IOException
 	{
-		File file = new File(path);
+		var file = new File(path);
 		file.mkdirs();
-		UploadDocument document = new UploadDocument();
-		String fileName = getFileName(prefix, fileNummer) + ".csv";
+		var document = new UploadDocument();
+		var fileName = getFileName(prefix, fileNummer) + ".csv";
 		file = new File(path + fileName);
-		try (CSVWriter csvOutput = new CSVWriter(new FileWriter(file, false), ';', CSVWriter.NO_QUOTE_CHARACTER);)
+		try (var csvOutput = new CSVWriter(new FileWriter(file, false), ';', CSVWriter.NO_QUOTE_CHARACTER))
 		{
 			LOG.info("Start vullen van CSV voor download: " + fileName + ", aantal clienten: " + clientenIds.size());
-			for (Long clientId : clientenIds)
-			{
-				csvOutput.writeNext(getGegevensVanClient(clientId).toArray(new String[] {}));
-			}
+			clientenIds.forEach(clientId -> csvOutput.writeNext(getGegevensVanClient(clientId).toArray(new String[] {})));
 		}
 		truncateLastLine(file);
 		document.setFile(file);
@@ -133,14 +143,15 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 		return document;
 	}
 
-	private String getFilePrefix()
+	private String getFilePrefix(MammaPalgaExportConfig exportConfig)
 	{
-		SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_YYYYMMDD);
-		SimpleDateFormat monthFormat = new SimpleDateFormat("MM");
-		return String.format("CHTRDS%s0033%s",
-			dateFormat.format(currentDateSupplier.getDate()),
-			monthFormat.format(currentDateSupplier.getDate()));
+		var exportdatum = currentDateSupplier.getLocalDate().format(DateTimeFormatter.ofPattern(Constants.DATE_FORMAT_YYYYMMDD));
+		return String.format("CHTRDS%s%s%02d", exportdatum, exportConfig.getGewensteUitslag().getCodeInFilePrefix(), leveringsnummerVoorFilePrefix(exportConfig));
+	}
 
+	private int leveringsnummerVoorFilePrefix(MammaPalgaExportConfig exportConfig)
+	{
+		return exportConfig.getGrondslag() == MammaPalgaGrondslag.KWALITEITSBORGING ? exportConfig.getVolgnummerKwaliteitsborging() : 0;
 	}
 
 	private String getFileName(String prefix, int fileNummer)
@@ -150,20 +161,19 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 
 	private List<String> getGegevensVanClient(Long clientId)
 	{
-		Client client = hibernateService.get(Client.class, clientId);
-		SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_YYYYMMDD);
+		var client = hibernateService.get(Client.class, clientId);
+		var dateFormat = new SimpleDateFormat(Constants.DATE_FORMAT_YYYYMMDD);
 		List<String> gegevens = new ArrayList<>();
-		GbaPersoon persoon = client.getPersoon();
+		var persoon = client.getPersoon();
 
 		gegevens.add(Long.toString(client.getMammaDossier().getId()));
-		String voorlettersClient = NaamUtil.getVoorlettersClient(client);
-		String voorletterClient = StringUtils.isNoneBlank(voorlettersClient) && voorlettersClient.length() > 0 && StringUtil.isAlfabetKarakter(voorlettersClient.charAt(0))
-			? voorlettersClient.substring(0, 1)
-			: "";
+		var voorlettersClient = NaamUtil.getVoorlettersClient(client);
+		var voorletterClient = StringUtils.isNoneBlank(voorlettersClient) && voorlettersClient.length() > 0 && StringUtil.isAlfabetKarakter(voorlettersClient.charAt(0))
+			? voorlettersClient.substring(0, 1) : "";
 		gegevens.add(voorletterClient);
 		gegevens.add(persoon.getAchternaam().trim());
 		gegevens.add(dateFormat.format(persoon.getGeboortedatum()));
-		gegevens.add(""); 
+		gegevens.add(persoon.getGeslacht().getMnem());
 		gegevens.add(persoon.getBsn());
 		hibernateService.getHibernateSession().evict(client);
 		return gegevens;
@@ -194,7 +204,7 @@ public class MammaPalgaCsvExportTasklet implements Tasklet
 
 	private void truncateLastLine(File file)
 	{
-		try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");)
+		try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw"))
 		{
 			randomAccessFile.setLength(randomAccessFile.length() - 1);
 		}

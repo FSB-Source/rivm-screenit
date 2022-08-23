@@ -21,7 +21,13 @@ package nl.rivm.screenit.batch.jobs.cervix.uitslagverwijderen;
  * =========================LICENSE_END==================================
  */
 
-class CervixHpvMinFormulierVerwijderenConstants
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class CervixHpvMinFormulierVerwijderenConstants
 {
-	final static String AANTAL_FORMULIEREN_GEWIST = "cervix.hpvmin.aantalformulierengewist";
+	public static final String AANTAL_FORMULIEREN_INHOUD_GEWIST = "cervix.hpvmin.aantalformulierengewist";
+
+	public static final String AANTAL_FORMALIEREN_DATUM_GEWIST = "cervix.aantalformulieren.datumgewist";
 }

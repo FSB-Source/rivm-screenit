@@ -1,0 +1,31 @@
+@import "../../styling/scss/colors";
+
+.style {
+
+	table {
+		margin-top: 20px;
+		margin-bottom: 20px;
+	}
+
+	.btnLocatieToevoegen {
+		display: block;
+		float: right;
+	}
+
+	.zakelijkeVoorwaardenBlock {
+		margin-top: 80px;
+		margin-bottom: 50px;
+
+		.overeenkomstLink {
+			font-weight: bold;
+			color: $blauw;
+			cursor: pointer;
+		}
+	}
+
+	a {
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+}

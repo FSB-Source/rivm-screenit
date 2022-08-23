@@ -28,36 +28,42 @@ import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixHeroverwegersReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private CervixSelectieRestrictionsService selectieRestrictionsService;
+	private final CervixSelectieRestrictionsService selectieRestrictionsService;
 
-	@Autowired
-	private InstellingService instellingService;
+	private final InstellingService instellingService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
+
+	public CervixHeroverwegersReader(CervixSelectieRestrictionsService selectieRestrictionsService, InstellingService instellingService,
+		HibernateService hibernateService)
+	{
+		super.setFetchSize(50);
+		this.selectieRestrictionsService = selectieRestrictionsService;
+		this.instellingService = instellingService;
+		this.hibernateService = hibernateService;
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(CervixCISHistorie.class);
+		var criteria = session.createCriteria(CervixCISHistorie.class);
 
-		ExecutionContext stepContext = getStepExecutionContext();
+		var stepContext = getStepExecutionContext();
 		Long bmhkLabId = (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB);
 
 		criteria.createAlias("dossier", "dossier");
@@ -81,14 +87,14 @@ public class CervixHeroverwegersReader extends BaseScrollableResultReader
 
 		criteria.add(Restrictions.isEmpty("afmelding.brieven"));
 
-		criteria.add(Restrictions.eq("persoon.geslacht", Geslacht.VROUW));
+		criteria.add(Restrictions.ne("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE));
 
 		return criteria;
 	}
 
 	private Integer getMaxAantalWekenVertraging(Long bmhkLabId)
 	{
-		BMHKLaboratorium bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
+		var bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
 		return instellingService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HEROVERWEGERS, 0);
 	}
 

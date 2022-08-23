@@ -151,9 +151,7 @@ public class TechnischeParametersPanel extends BaseTechnischBeheerParametersPane
 		form.add(new TextField<>("internalMammaImsDicomCmoveConfig", String.class).setRequired(true));
 		form.add(new TextField<>("internalMammaImsDicomCstoreConfig", String.class).setRequired(true));
 		form.add(new TextField<>("internalCervixLabFormulierValidFqdns", String.class));
-		form.add(new TextField<>("internalUziLoginUrlPrefix", String.class));
 		form.add(new CheckBox("bmhkLabelPrintenZonderPdf"));
-		form.add(new CheckBox("safesignLoginDisabled"));
 		return form;
 	}
 

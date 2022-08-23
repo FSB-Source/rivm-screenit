@@ -26,7 +26,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
@@ -45,11 +45,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class TestMDLVerslagPopup extends AbstractTestBasePopupPanel
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService colonTestTimelineService;
 
 	@SpringBean
 	private InstellingService instellingService;
@@ -69,12 +68,12 @@ public class TestMDLVerslagPopup extends AbstractTestBasePopupPanel
 
 		ScreenitDropdown<ColoscopieLocatie> coloscopieLocatieDropDown = new ScreenitDropdown<>("coloscopieLocatieOrganisatie", coloscopieLocatieModel,
 			ModelUtil.listModel(actieveColoscopieLocaties),
-			new ChoiceRenderer<ColoscopieLocatie>("naam"));
+			new ChoiceRenderer<>("naam"));
 		coloscopieLocatieDropDown.setRequired(true);
 		add(coloscopieLocatieDropDown);
 
 		ScreenitDropdown<MdlVervolgbeleid> vervolgBeleidDropDown = new ScreenitDropdown<>("vervolgbeleid", vervolgbeleidModel, Arrays.asList(MdlVervolgbeleid.values()),
-			new EnumChoiceRenderer<MdlVervolgbeleid>(this));
+			new EnumChoiceRenderer<>(this));
 
 		add(vervolgBeleidDropDown);
 
@@ -107,7 +106,7 @@ public class TestMDLVerslagPopup extends AbstractTestBasePopupPanel
 		Date datumOnderzoek = datumOnderzoekModel.getObject();
 		for (Client client : getModelObject())
 		{
-			testTimelineService.maaktMdlVerslagVoorClient(client, locatie, vervolgbeleid, datumOnderzoek);
+			colonTestTimelineService.maaktMdlVerslagVoorClient(client, locatie, vervolgbeleid, datumOnderzoek);
 		}
 	}
 

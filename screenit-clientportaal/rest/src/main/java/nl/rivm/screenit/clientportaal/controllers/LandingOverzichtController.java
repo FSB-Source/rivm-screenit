@@ -21,23 +21,27 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.LandingOverzichtDto;
 import nl.rivm.screenit.clientportaal.services.LandingOverzichtService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("landing-overzicht")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class LandingOverzichtController extends AbstractController
 {
 
-	@Autowired
-	private LandingOverzichtService landingOverzichtService;
+	private final LandingOverzichtService landingOverzichtService;
 
 	@GetMapping
 	public ResponseEntity<LandingOverzichtDto> getLandingInfo(Authentication authentication)

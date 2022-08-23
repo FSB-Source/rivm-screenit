@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.List;
 
@@ -52,7 +53,6 @@ import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.lang.Classes;
-import org.apache.wicket.util.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +95,7 @@ public class ExportToXslLink<T extends Serializable, S> extends GenericPanel<T>
 				resourceResponse.setFileName(bestandsnaam + ".xls");
 				resourceResponse.setContentDisposition(ContentDisposition.ATTACHMENT);
 				resourceResponse.setContentType("application/vnd.ms-excel");
-				resourceResponse.setCacheDuration(Duration.NONE);
+				resourceResponse.setCacheDuration(Duration.ZERO);
 				resourceResponse.setWriteCallback(new WriteCallback()
 				{
 

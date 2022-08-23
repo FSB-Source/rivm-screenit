@@ -21,32 +21,27 @@ package nl.rivm.screenit.batch.jobs.helpers;
  * =========================LICENSE_END==================================
  */
 
+import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
+import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.springframework.batch.item.NonTransientResourceException;
-import org.springframework.batch.item.ParseException;
-import org.springframework.batch.item.UnexpectedInputException;
+import org.hibernate.StatelessSession;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.internal.CriteriaImpl;
 
-public abstract class BaseScrollableResultReader extends BaseTypedScrollableResultReader<Long>
+public abstract class BaseScrollableResultReader extends BaseIdScrollableResultReader
 {
+	public abstract Criteria createCriteria(StatelessSession session) throws HibernateException;
+
 	@Override
-	public Long read() throws Exception, UnexpectedInputException, ParseException, NonTransientResourceException
+	public ScrollableResults createScrollableResults(StatelessSession session)
 	{
-		ScrollableResults scrollableResults = resultSet.get();
-		while (scrollableResults.next())
+		var crit = createCriteria(session);
+
+		if (Integer.valueOf(0).equals(((CriteriaImpl) crit).getMaxResults()))
 		{
-			Long id = getScrollableResult(scrollableResults);
-
-			if (!processedIds.contains(id))
-			{
-				processedIds.add(id);
-				return id;
-			}
+			crit.add(Restrictions.sqlRestriction("1 = 0"));
 		}
-		return null;
-	}
-
-	protected Long getScrollableResult(ScrollableResults scrollableResults)
-	{
-		return scrollableResults.getLong(0);
+		return crit.setFetchSize(fetchSize).setProjection(getProjection()).scroll(ScrollMode.FORWARD_ONLY);
 	}
 }

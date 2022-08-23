@@ -54,6 +54,8 @@ import nl.rivm.screenit.util.SkipFieldForDiff;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
@@ -112,8 +114,8 @@ public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding> i
 	@Column(nullable = true)
 	private Date laatsteMammografieAfgerond;
 
-	@OneToOne(optional = true, fetch = FetchType.LAZY)
-	private MammaStandplaatsRonde eersteMammografieAfgerondStandplaatsRonde;
+	@Column(nullable = false)
+	private Boolean eersteOnderzoek;
 
 	@Transient
 	@SkipFieldForDiff
@@ -144,6 +146,12 @@ public class MammaDossier extends Dossier<MammaScreeningRonde, MammaAfmelding> i
 	@Column(nullable = false)
 	@Enumerated(EnumType.STRING)
 	private Deelnamemodus deelnamemodus = Deelnamemodus.STANDAARD;
+
+	@OneToOne(optional = true, mappedBy = "dossier", fetch = FetchType.LAZY)
+	@Cascade(CascadeType.DELETE)
+	@Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
+	@NotAudited
+	private MammaVolgendeUitnodiging volgendeUitnodiging;
 
 	@Transient
 	public Boolean getUitTeNodigen()

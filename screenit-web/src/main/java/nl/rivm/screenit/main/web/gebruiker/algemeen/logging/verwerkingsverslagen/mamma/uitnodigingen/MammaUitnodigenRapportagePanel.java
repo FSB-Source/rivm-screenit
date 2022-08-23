@@ -31,8 +31,8 @@ import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIntervalUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage;
-import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaUitnodigenRapportage;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -49,18 +49,7 @@ public class MammaUitnodigenRapportagePanel extends GenericPanel<MammaUitnodigen
 		super(id, model);
 		MammaUitnodigenRapportage uitnodigenRapportage = model.getObject();
 
-		Map<ScreeningOrganisatie, List<MammaStandplaatsPeriodeUitnodigenRapportage>> map = new HashMap<>();
-		for (MammaStandplaatsRondeUitnodigenRapportage standplaatsRondeUitnodigenRapportage : uitnodigenRapportage.getStandplaatsRondeUitnodigenRapportages())
-		{
-			ScreeningOrganisatie screeningOrganisatie = standplaatsRondeUitnodigenRapportage.getStandplaatsRonde().getStandplaats().getRegio();
-			List<MammaStandplaatsPeriodeUitnodigenRapportage> standplaatsPeriodeUitnodigenRapportages = map.get(screeningOrganisatie);
-			if (standplaatsPeriodeUitnodigenRapportages == null)
-			{
-				standplaatsPeriodeUitnodigenRapportages = new ArrayList<>();
-				map.put(screeningOrganisatie, standplaatsPeriodeUitnodigenRapportages);
-			}
-			standplaatsPeriodeUitnodigenRapportages.addAll(standplaatsRondeUitnodigenRapportage.getStandplaatsPeriodeUitnodigenRapportages());
-		}
+		var rapportagesPerRegio = splitsRapportagePerRegio(uitnodigenRapportage);
 
 		add(DateLabel.forDatePattern("datumVerwerking", new Model<>(uitnodigenRapportage.getDatumVerwerking()), "dd-MM-yyyy HH:mm:ss"));
 
@@ -69,21 +58,64 @@ public class MammaUitnodigenRapportagePanel extends GenericPanel<MammaUitnodigen
 
 		if (toegangLevel == ToegangLevel.LANDELIJK)
 		{
-			map.forEach(((screeningOrganisatie, standplaatsPeriodeUitnodigenRapportages) -> repeatingView.add(
-				new MammaUitnodigenRapportageScreeningsOrganisatiePanel(repeatingView.newChildId(), ModelUtil.listRModel(standplaatsPeriodeUitnodigenRapportages),
-					screeningOrganisatie))));
+			rapportagesPerRegio.forEach(((screeningOrganisatie, regioRapportage) -> addRegioRapportagePanel(repeatingView, screeningOrganisatie, regioRapportage)));
 		}
 		else
 		{
 			ScreeningOrganisatie screeningOrganisatie = ScreenitSession.get().getScreeningOrganisatie();
-			List<MammaStandplaatsPeriodeUitnodigenRapportage> standplaatsPeriodeUitnodigenRapportages = map.get(screeningOrganisatie);
-			if (standplaatsPeriodeUitnodigenRapportages != null)
+			var regioRapportage = rapportagesPerRegio.get(screeningOrganisatie);
+			if (regioRapportage != null)
 			{
-				repeatingView.add(new MammaUitnodigenRapportageScreeningsOrganisatiePanel(repeatingView.newChildId(), ModelUtil.listRModel(standplaatsPeriodeUitnodigenRapportages),
-					screeningOrganisatie));
+				addRegioRapportagePanel(repeatingView, screeningOrganisatie, regioRapportage);
 			}
 		}
 
 		add(repeatingView);
 	}
+
+	private Map<ScreeningOrganisatie, RegioRapportage> splitsRapportagePerRegio(MammaUitnodigenRapportage uitnodigenRapportage)
+	{
+		Map<ScreeningOrganisatie, RegioRapportage> rapportagesPerRegio = new HashMap<>();
+		splitsStandplaatsRondeRapportages(uitnodigenRapportage, rapportagesPerRegio);
+		splitsIntervalRapportages(uitnodigenRapportage, rapportagesPerRegio);
+		return rapportagesPerRegio;
+	}
+
+	private void splitsStandplaatsRondeRapportages(MammaUitnodigenRapportage uitnodigenRapportage, Map<ScreeningOrganisatie, RegioRapportage> rapportagesPerRegio)
+	{
+		for (var standplaatsRondeRapportage : uitnodigenRapportage.getStandplaatsRondeUitnodigenRapportages())
+		{
+			var screeningOrganisatie = standplaatsRondeRapportage.getStandplaatsRonde().getStandplaats().getRegio();
+			var regioRapportage = getOrCreateRapportageVoorRegio(rapportagesPerRegio, screeningOrganisatie);
+			regioRapportage.standplaatsPeriodeRapportages.addAll(standplaatsRondeRapportage.getStandplaatsPeriodeUitnodigenRapportages());
+		}
+	}
+
+	private RegioRapportage getOrCreateRapportageVoorRegio(Map<ScreeningOrganisatie, RegioRapportage> rapportagesPerRegio, ScreeningOrganisatie screeningOrganisatie)
+	{
+		return rapportagesPerRegio.computeIfAbsent(screeningOrganisatie, k -> new RegioRapportage());
+	}
+
+	private void splitsIntervalRapportages(MammaUitnodigenRapportage uitnodigenRapportage, Map<ScreeningOrganisatie, RegioRapportage> rapportagesPerRegio)
+	{
+		for (MammaIntervalUitnodigenRapportage intervalRapportage : uitnodigenRapportage.getIntervalUitnodigenRapportages())
+		{
+			var regioRapportage = getOrCreateRapportageVoorRegio(rapportagesPerRegio, intervalRapportage.getScreeningOrganisatie());
+			regioRapportage.intervalRapportage = intervalRapportage;
+		}
+	}
+
+	private void addRegioRapportagePanel(RepeatingView repeatingView, ScreeningOrganisatie screeningOrganisatie, RegioRapportage regioRapportage)
+	{
+		repeatingView.add(new MammaUitnodigenRapportageScreeningsOrganisatiePanel(repeatingView.newChildId(),
+			ModelUtil.listRModel(regioRapportage.standplaatsPeriodeRapportages), screeningOrganisatie, ModelUtil.csModel(regioRapportage.intervalRapportage)));
+	}
+
+	private static class RegioRapportage
+	{
+		List<MammaStandplaatsPeriodeUitnodigenRapportage> standplaatsPeriodeRapportages = new ArrayList<>();
+
+		MammaIntervalUitnodigenRapportage intervalRapportage;
+	}
+
 }

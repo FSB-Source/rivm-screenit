@@ -74,7 +74,6 @@ public class MammaPrimaireParametersPanel extends BasePrimaireParametersPanel
 		addTextAreaField(form, "mammaBulkVerzettenToekomstAfspraakTekst");
 		addTextAreaField(form, "mammaAfspraakLocatieWijzigingTekst");
 		form.add(new TextField<>("mammaMeekijkverzoekMailAdres", String.class).add(EmailAddressValidator.getInstance()).setRequired(true));
-		form.add(new CheckBox("mammaPalgaExportAlleenVerwezen"));
 		form.add(new CheckBox("mammaAnnoteerEersteRonde"));
 		return form;
 	}

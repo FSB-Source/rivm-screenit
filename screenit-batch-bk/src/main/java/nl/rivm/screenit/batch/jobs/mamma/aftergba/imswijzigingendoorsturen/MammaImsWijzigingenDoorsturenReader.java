@@ -28,21 +28,29 @@ import nl.rivm.screenit.model.Client;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
-import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+
+@Component
 public class MammaImsWijzigingenDoorsturenReader extends BaseScrollableResultReader
 {
+
+	public MammaImsWijzigingenDoorsturenReader()
+	{
+		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(Client.class);
+		var criteria = session.createCriteria(Client.class);
 		criteria.createAlias("gbaMutaties", "gbaMutaties");
 		criteria.createAlias("mammaDossier", "mammaDossier", JoinType.INNER_JOIN);
-		Disjunction disjunction = Restrictions.disjunction();
+		var disjunction = Restrictions.disjunction();
 		disjunction.add(Restrictions.like("gbaMutaties.aanvullendeInformatie", Constants.MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER, MatchMode.ANYWHERE));
 		disjunction.add(Restrictions.like("gbaMutaties.aanvullendeInformatie", Constants.MAMMA_IMS_CLIENT_GEGEVENS_GEWIJZIGD_MARKER, MatchMode.ANYWHERE));
 		criteria.add(disjunction);

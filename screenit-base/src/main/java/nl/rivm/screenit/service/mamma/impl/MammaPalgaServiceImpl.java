@@ -23,11 +23,8 @@ package nl.rivm.screenit.service.mamma.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +38,7 @@ import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
@@ -63,11 +61,11 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.mamma.MammaPalgaCsvImportMapping;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 import nl.rivm.screenit.service.mamma.MammaVerwerkVerslagService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -103,9 +101,9 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
-	public List<Long> getClientenVoorPalga()
+	public List<Long> getClientenVoorPalga(MammaPalgaExportConfig exportConfig)
 	{
-		return palgaDao.getClientenVoorPalga();
+		return palgaDao.getClientenVoorPalga(exportConfig);
 	}
 
 	@Override
@@ -117,7 +115,11 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 			String logRegel = String.format("Verwijderd: %s", naam);
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_PALGA_CSV_EXPORT, loggedInAccount, logRegel);
 		}
-		palgaDao.deleteExports();
+		List<UploadDocument> exports = palgaDao.getExports();
+		for (UploadDocument export : exports)
+		{
+			uploadDocumentService.delete(export, true);
+		}
 	}
 
 	@Override
@@ -182,12 +184,17 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void deleteImports()
 	{
-		palgaDao.deleteImports();
+		List<UploadDocument> imports = palgaDao.getImports();
+		for (UploadDocument importDoc : imports)
+		{
+			uploadDocumentService.delete(importDoc, true);
+		}
 	}
 
 	private UploadDocument extractImport(UploadDocument importDocument, String zipWachtwoord) throws ZipException
 	{
-		List<File> files = ZipUtil.extractZip(importDocument.getFile(), zipWachtwoord, locatieFilestore + File.separator + FileStoreLocation.MAMMA_PALGA_CSV_IMPORT.getPath(),
+		List<File> files = ZipUtil.extractZip(uploadDocumentService.load(importDocument), zipWachtwoord,
+			locatieFilestore + File.separator + FileStoreLocation.MAMMA_PALGA_CSV_IMPORT.getPath(),
 			true);
 		if (files.size() != 1 || !files.get(0).getName().endsWith(".csv"))
 		{
@@ -205,94 +212,11 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		LOG.debug("Begonnen met aanmaken mappings object.");
 		MammaPalgaCsvImportMapping mapping = new MammaPalgaCsvImportMapping();
 		int column = 0;
-		for (String mappingString : row)
+		for (String headerText : row)
 		{
-			if (StringUtils.isNotBlank(mappingString))
+			if (StringUtils.isNotBlank(headerText))
 			{
-				if (StringUtils.equalsIgnoreCase("PseudoID", mappingString))
-				{
-					mapping.setPseudoId(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Geboortejaar", mappingString))
-				{
-					mapping.setGeboortejaar(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("aanvang_verrichting", mappingString))
-				{
-					mapping.setAanvangVerrichting(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("einde_verrichting", mappingString))
-				{
-					mapping.setEindeVerrichting(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("datum_ontvangst_materiaal", mappingString))
-				{
-					mapping.setDatumOntvangstMateriaal(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("datum_eerste_autorisatie", mappingString))
-				{
-					mapping.setDatumEersteAutorisatie(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Verkrijgingswijze", mappingString))
-				{
-					mapping.setVerkrijgingswijze(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Zijdigheid", mappingString))
-				{
-					mapping.setZijdigheid(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Locatie_topografie", mappingString))
-				{
-					mapping.setLocatie(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Locatie_in_uren", mappingString))
-				{
-					mapping.setLocatieInUren(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Oestrogeen_receptor_status", mappingString))
-				{
-					mapping.setOestrogeenReceptorStatus(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Progesteron_receptor_status", mappingString))
-				{
-					mapping.setProgesteronReceptorStatus(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("HER2_status", mappingString))
-				{
-					mapping.setHer2Status(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("B_classificatie", mappingString))
-				{
-					mapping.setbClassificatie(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("C_classificatie", mappingString))
-				{
-					mapping.setcClassificatie(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Maligniteitsgraad", mappingString))
-				{
-					mapping.setMaligniteitsgraad(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("pTNM", mappingString))
-				{
-					mapping.setPtnm(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Stadiering", mappingString))
-				{
-					mapping.setStadiering(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Versie_protocol", mappingString))
-				{
-					mapping.setVersieProtocol(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Reeds_aangeleverd", mappingString))
-				{
-					mapping.setIsReedsAangeleverd(column);
-				}
-				else if (StringUtils.equalsIgnoreCase("Matchniveau", mappingString))
-				{
-					mapping.setMatchniveau(column);
-				}
+				vulMappingVoorKolom(mapping, headerText, column);
 			}
 			column++;
 		}
@@ -300,7 +224,94 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		return mapping;
 	}
 
-	private DSValue getDsValue(String code, String varName, Class clazz, boolean ignoreCase) throws NoSuchFieldException
+	private void vulMappingVoorKolom(MammaPalgaCsvImportMapping mapping, String headerTekst, int column)
+	{
+		switch (headerTekst.toLowerCase())
+		{
+		case "pseudoid":
+			mapping.setPseudoId(column);
+			break;
+		case "geboortejaar":
+			mapping.setGeboortejaar(column);
+			break;
+		case "aanvang_verrichting":
+			mapping.setAanvangVerrichting(column);
+			break;
+		case "einde_verrichting":
+			mapping.setEindeVerrichting(column);
+			break;
+		case "datum_ontvangst_materiaal":
+			mapping.setDatumOntvangstMateriaal(column);
+			break;
+		case "datum_eerste_autorisatie":
+			mapping.setDatumEersteAutorisatie(column);
+			break;
+		case "verkrijgingswijze":
+			mapping.setVerkrijgingswijze(column);
+			break;
+		case "zijdigheid":
+			mapping.setZijdigheid(column);
+			break;
+		case "locatie_topografie":
+			mapping.setLocatie(column);
+			break;
+		case "locatie_in_uren":
+			mapping.setLocatieInUren(column);
+			break;
+		case "oestrogeen_receptor_status":
+			mapping.setOestrogeenReceptorStatus(column);
+			break;
+		case "progesteron_receptor_status":
+			mapping.setProgesteronReceptorStatus(column);
+			break;
+		case "her2_status":
+			mapping.setHer2Status(column);
+			break;
+		case "b_classificatie":
+			mapping.setBClassificatie(column);
+			break;
+		case "c_classificatie":
+			mapping.setCClassificatie(column);
+			break;
+		case "maligniteitsgraad":
+			mapping.setMaligniteitsgraad(column);
+			break;
+		case "pt":
+			mapping.setPt(column);
+			break;
+		case "pn":
+			mapping.setPn(column);
+			break;
+		case "type_invasieve_tumor_overige":
+			mapping.setTypeInvasieveTumor(column);
+			break;
+		case "gradering_dcis":
+			mapping.setGraderingDcis(column);
+			break;
+		case "type_niet_eenduidig_benigne_laesies":
+			mapping.setTypeNietEenduidigBenigneLaesies(column);
+			break;
+		case "type_eenduidig_benigne_laesies":
+			mapping.setTypeEenduidigBenigneLaesies(column);
+			break;
+		case "type_cis":
+			mapping.setTypeCis(column);
+			break;
+		case "versie_protocol":
+			mapping.setVersieProtocol(column);
+			break;
+		case "reeds_aangeleverd":
+			mapping.setIsReedsAangeleverd(column);
+			break;
+		case "matchniveau":
+			mapping.setMatchniveau(column);
+			break;
+		default:
+			throw new IllegalStateException("Ongeldige kolomnaam: " + headerTekst);
+		}
+	}
+
+	private DSValue getDsValue(String code, String varName, Class<?> clazz) throws NoSuchFieldException
 	{
 		if (code == null)
 		{
@@ -313,46 +324,13 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		DSValueSet dsValueSet = clazz.getDeclaredField(varName).getAnnotation(DSValueSet.class);
 		for (DSValueSetValue dsValue : dsValueSet.values())
 		{
-			if ((ignoreCase ? dsValue.code().toLowerCase() : dsValue.code()).equals(ignoreCase ? code.toLowerCase() : code))
+			if (dsValue.code().equals(code))
 			{
 				String codeSystem = dsValue.codeSystem();
-				return verslagDao.getDsValue(code, codeSystem, dsValueSet.name(), ignoreCase);
+				return verslagDao.getDsValue(code, codeSystem, dsValueSet.name(), false);
 			}
 		}
 		throw new IllegalArgumentException(clazz.getSimpleName() + ":" + varName + ", " + code + " not found");
-	}
-
-	private DSValue getDsValue(String code, String varName, Class clazz) throws NoSuchFieldException
-	{
-		return getDsValue(code, varName, clazz, false);
-	}
-
-	private String getPtString(String code)
-	{
-		if (code != null)
-		{
-			Pattern pattern = Pattern.compile("(?<=[Pp])(.*?)(?=[Nn(])");
-			Matcher matcher = pattern.matcher(code);
-			if (matcher.find())
-			{
-				code = matcher.group(1);
-			}
-		}
-		return code;
-	}
-
-	private String getPnString(String code)
-	{
-		if (code != null)
-		{
-			Pattern pattern = Pattern.compile("([Nn].*?)(?=\\(|$)");
-			Matcher matcher = pattern.matcher(code);
-			if (matcher.find())
-			{
-				code = matcher.group(1);
-			}
-		}
-		return code;
 	}
 
 	private long getPatid3MatchCount(GbaPersoon persoon)
@@ -366,7 +344,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 	{
 		MammaDossier dossier = hibernateService.get(MammaDossier.class, dto.getPseudoId());
 		GbaPersoon persoon = dossier.getClient().getPersoon();
-		if (!DateUtils.truncate(persoon.getGeboortedatum(), Calendar.YEAR).equals(dto.getGeboortejaar()))
+		if (dto.getGeboortejaar() != DateUtil.toLocalDate(persoon.getGeboortedatum()).getYear())
 		{
 			return "geboortejaar";
 		}
@@ -396,25 +374,24 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		monstermateriaal.setVerkrijgingswijze(getDsValue(dto.getVerkrijgingswijze(), "verkrijgingswijze", MammaFollowUpMonstermateriaal.class));
 		monstermateriaal.setZijdigheid(getDsValue(dto.getZijdigheid(), "zijdigheid", MammaFollowUpMonstermateriaal.class));
 		followupPa.setMonstermateriaal(monstermateriaal);
-		followupPa.setCclassificatiePunctie(getDsValue(dto.getcClassificatie(), "cclassificatiePunctie", MammaFollowUpFollowupPa.class));
+		followupPa.setCclassificatiePunctie(getDsValue(dto.getCClassificatie(), "cclassificatiePunctie", MammaFollowUpFollowupPa.class));
 		followupPa.setOestrogeenReceptorStatus(getDsValue(dto.getOestrogeenReceptorStatus(), "oestrogeenReceptorStatus", MammaFollowUpFollowupPa.class));
 		followupPa.setProgesteronReceptorStatus(getDsValue(dto.getProgesteronReceptorStatus(), "progesteronReceptorStatus", MammaFollowUpFollowupPa.class));
 		followupPa.setHer2Status(getDsValue(dto.getHer2Status(), "her2Status", MammaFollowUpFollowupPa.class));
-		followupPa.setBclassificatieOpMammabiopt(getDsValue(dto.getbClassificatie(), "bclassificatieOpMammabiopt", MammaFollowUpFollowupPa.class));
+		followupPa.setBclassificatieOpMammabiopt(getDsValue(dto.getBClassificatie(), "bclassificatieOpMammabiopt", MammaFollowUpFollowupPa.class));
 		followupPa.setMaligniteitsgraad(getDsValue(dto.getMaligniteitsgraad(), "maligniteitsgraad", MammaFollowUpFollowupPa.class));
+		followupPa.setTypeInvasieveTumorwhoOverige(getDsValue(dto.getTypeInvasieveTumor(), "typeInvasieveTumorwhoOverige", MammaFollowUpFollowupPa.class));
+		followupPa.setGraderingDcis(getDsValue(dto.getGraderingDcis(), "graderingDcis", MammaFollowUpFollowupPa.class));
+		vulMeerkeuzeVeldPa(followupPa.getTypeNietEenduidigBenigneLaesies(), dto.getTypeNietEenduidigBenigneLaesies(), "typeNietEenduidigBenigneLaesies");
+		vulMeerkeuzeVeldPa(followupPa.getTypeEenduidigBenigneLaesies(), dto.getTypeEenduidigBenigneLaesies(), "typeEenduidigBenigneLaesies");
+		vulMeerkeuzeVeldPa(followupPa.getTypeCis(), dto.getTypeCis(), "typeCis");
 
-		String ptnmCode = dto.getPtnm();
 		MammaFollowUpPtnmEnGradering ptnmEnGradering = new MammaFollowUpPtnmEnGradering();
-		if (dto.getPtnm() != null && dto.getPtnm().charAt(0) != 'y')
+		if (dto.getPt() != null || dto.getPn() != null)
 		{
 			ptnmEnGradering.setFollowupPa(followupPa);
-			ptnmEnGradering.setPtnmbreastGradering(getDsValue(dto.getStadiering(), "ptnmbreastGradering", MammaFollowUpPtnmEnGradering.class));
-			boolean isAsku = ptnmCode.contains("ASKU");
-			String ptString = isAsku ? "ASKU" : getPtString(ptnmCode);
-			ptnmEnGradering.setPt(getDsValue(ptString, "pt", MammaFollowUpPtnmEnGradering.class, true));
-			String pnString = isAsku ? "ASKU" : getPnString(ptnmCode);
-			ptnmEnGradering.setPn(getDsValue(pnString, "pn", MammaFollowUpPtnmEnGradering.class, true));
-			ptnmEnGradering.setPm(getDsValue("ASKU", "pm", MammaFollowUpPtnmEnGradering.class));
+			ptnmEnGradering.setPt(getDsValue(dto.getPt(), "pt", MammaFollowUpPtnmEnGradering.class));
+			ptnmEnGradering.setPn(getDsValue(dto.getPn(), "pn", MammaFollowUpPtnmEnGradering.class));
 		}
 		followupPa.setPtnmEnGradering(ptnmEnGradering);
 		verslagContent.setFollowupPa(Collections.singletonList(followupPa));
@@ -436,10 +413,10 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		verslag.setVerslagContent(verslagContent);
 
 		verslag.setStatus(VerslagStatus.AFGEROND);
-		verslag.setType(VerslagType.MAMMA_PA_FOLLOW_UP);
+		verslag.setType(VerslagType.MAMMA_PA_FOLLOW_UP); 
 		verslag.setDatumVerwerkt(currentDateSupplier.getDate());
 
-		String validatieFout = valideerVerslag(verslag, dto.getVersieProtocol() != null, ptnmCode != null && ptnmCode.charAt(0) == 'y');
+		String validatieFout = valideerVerslag(verslag, dto.getVersieProtocol() != null);
 		if (validatieFout != null)
 		{
 			return "semantisch " + validatieFout;
@@ -451,18 +428,45 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		return null;
 	}
 
+	private void vulMeerkeuzeVeldPa(List<DSValue> targetList, String dtoTeksten, String varName) throws NoSuchFieldException
+	{
+		if (dtoTeksten == null)
+		{
+			return;
+		}
+
+		for (String optie : dtoTeksten.split("\\|"))
+		{
+			targetList.add(getDsValue(optie, varName, MammaFollowUpFollowupPa.class));
+		}
+
+		if (targetList.size() != targetList.stream().distinct().count())
+		{
+			throw new IllegalStateException("Dubbele waarde in meerkeuzeveld " + varName);
+		}
+	}
+
 	private boolean heeftBezwaar(Client client)
 	{
 		return palgaDao.heeftBezwaar(client);
 	}
 
-	private String valideerVerslag(MammaFollowUpVerslag verslag, boolean isProtocol, boolean skipPtnm)
+	private String valideerVerslag(MammaFollowUpVerslag verslag, boolean isProtocol)
 	{
 		MammaFollowUpVerslagContent verslagContent = verslag.getVerslagContent();
-		return verslag.getScreeningRonde() == null ? "screeningsronde"
-			: !isValideMedischeObservatie(verslagContent.getPathologieMedischeObservatie()) ? "medische observatie"
-			: !isValideVerrichting(verslagContent.getVerrichting()) ? "verrichting"
-			: valideerFollowUpPa(verslagContent.getFollowupPa().get(0), isProtocol, skipPtnm);
+		if (verslag.getScreeningRonde() == null)
+		{
+			return "screeningsronde";
+		}
+		if (!isValideMedischeObservatie(verslagContent.getPathologieMedischeObservatie()))
+		{
+			return "medische observatie";
+		}
+		if (!isValideVerrichting(verslagContent.getVerrichting()))
+		{
+			return "verrichting";
+		}
+		return valideerFollowUpPa(verslagContent.getFollowupPa().get(0), isProtocol);
 	}
 
 	private boolean isValideVerrichting(MammaFollowUpVerrichting verrichting)
@@ -486,16 +490,7 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 				ptnmEnGradering.getPm() == null);
 	}
 
-	private boolean ptnmIsCompleet(MammaFollowUpPtnmEnGradering ptnmEnGradering)
-	{
-		return ptnmEnGradering != null &&
-			ptnmEnGradering.getPtnmbreastGradering() != null &&
-			ptnmEnGradering.getPt() != null &&
-			ptnmEnGradering.getPn() != null &&
-			ptnmEnGradering.getPm() != null;
-	}
-
-	private String valideerFollowUpPa(MammaFollowUpFollowupPa followupPa, boolean isProtocol, boolean skipPtnm)
+	private String valideerFollowUpPa(MammaFollowUpFollowupPa followupPa, boolean isProtocol)
 	{
 		MammaFollowUpMonstermateriaal monstermateriaal = followupPa.getMonstermateriaal();
 		DSValue verkrijgingswijze = monstermateriaal.getVerkrijgingswijze();
@@ -516,32 +511,35 @@ public class MammaPalgaServiceImpl implements MammaPalgaService
 		switch (verkrijgingswijze.getCode())
 		{
 		case "129300006": 
-			return !(followupPa.getOestrogeenReceptorStatus() == null &&
-				followupPa.getProgesteronReceptorStatus() == null &&
-				followupPa.getHer2Status() == null &&
-				followupPa.getBclassificatieOpMammabiopt() == null &&
-				ptnmIsNull(ptnmEnGradering) &&
-				(followupPa.getCclassificatiePunctie() != null || !isProtocol)) ? "punctie" : null;
+			return !punctieValide(followupPa, ptnmEnGradering) ? "punctie" : null;
 
 		case "129249002": 
-			return !(followupPa.getCclassificatiePunctie() == null &&
-				ptnmIsNull(ptnmEnGradering) &&
-				(followupPa.getOestrogeenReceptorStatus() != null &&
-					followupPa.getProgesteronReceptorStatus() != null &&
-					followupPa.getHer2Status() != null
-					&& followupPa.getBclassificatieOpMammabiopt() != null ||
-					!isProtocol)) ? "biopt" : null;
+			return !bioptValide(followupPa, ptnmEnGradering) ? "biopt" : null;
 
 		case "65801008": 
-			return !(followupPa.getCclassificatiePunctie() == null &&
-				followupPa.getBclassificatieOpMammabiopt() == null &&
-				(followupPa.getOestrogeenReceptorStatus() != null &&
-					followupPa.getProgesteronReceptorStatus() != null &&
-					followupPa.getHer2Status() != null &&
-					(skipPtnm && ptnmIsNull(ptnmEnGradering) || ptnmIsCompleet(ptnmEnGradering))
-					|| !isProtocol)) ? "excisie" : null;
+			return !excisieValide(followupPa) ? "excisie" : null;
 		default:
 			return "verkrijginswijze code";
 		}
+	}
+
+	private boolean punctieValide(MammaFollowUpFollowupPa followupPa, MammaFollowUpPtnmEnGradering ptnmEnGradering)
+	{
+		return followupPa.getOestrogeenReceptorStatus() == null &&
+			followupPa.getProgesteronReceptorStatus() == null &&
+			followupPa.getHer2Status() == null &&
+			followupPa.getBclassificatieOpMammabiopt() == null &&
+			ptnmIsNull(ptnmEnGradering);
+	}
+
+	private boolean bioptValide(MammaFollowUpFollowupPa followupPa, MammaFollowUpPtnmEnGradering ptnmEnGradering)
+	{
+		return followupPa.getCclassificatiePunctie() == null && ptnmIsNull(ptnmEnGradering);
+
+	}
+
+	private boolean excisieValide(MammaFollowUpFollowupPa followupPa)
+	{
+		return followupPa.getCclassificatiePunctie() == null && followupPa.getBclassificatieOpMammabiopt() == null;
 	}
 }

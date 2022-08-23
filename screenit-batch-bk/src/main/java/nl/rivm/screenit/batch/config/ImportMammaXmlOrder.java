@@ -30,13 +30,7 @@ import org.springframework.core.annotation.Order;
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ImportResource(
 	locations = {
-		"classpath:applicationContext-jobs-mamma.xml",
-		"classpath:applicationContext-jndi.xml",
 		"classpath:applicationContext-ihe-base.xml",
-		"classpath:applicationContext-edi.xml",
-
-		"classpath:applicationContext-xds.xml",
-		"classpath:applicationContext-xds-base.xml",
 		"classpath:applicationContext-bppc-jaxb-autowired.xml",
 		"classpath:applicationContext-cda-jaxb-autowired.xml"
 	})

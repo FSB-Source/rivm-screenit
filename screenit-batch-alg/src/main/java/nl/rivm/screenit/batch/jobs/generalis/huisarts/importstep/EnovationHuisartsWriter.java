@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.generalis.huisarts.importstep;
 import java.text.ParseException;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.batch.jobs.generalis.huisarts.EnovationHuisartsJobListener;
 import nl.rivm.screenit.model.enums.Level;
@@ -32,18 +34,17 @@ import nl.rivm.screenit.service.ZorgmailImportService;
 import nl.rivm.screenit.service.ZorgmailImportVoortgang;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class EnovationHuisartsWriter implements ItemWriter<Object[]>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(EnovationHuisartsWriter.class);
 
 	@Autowired
 	private ZorgmailImportService zorgmailImportService;

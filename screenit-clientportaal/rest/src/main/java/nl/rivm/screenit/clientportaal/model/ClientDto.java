@@ -21,11 +21,11 @@ package nl.rivm.screenit.clientportaal.model;
  * =========================LICENSE_END==================================
  */
 
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 @Getter
 @Setter
@@ -34,6 +34,8 @@ public class ClientDto extends ClientportaalBaseDto
 {
 
 	private String voorletters;
+
+	private String aanhef;
 
 	private String aanspreekTussenvoegselEnAchternaam;
 

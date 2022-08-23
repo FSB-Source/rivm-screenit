@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.component.table;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,7 +37,6 @@ import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ContentDisposition;
-import org.apache.wicket.util.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +72,7 @@ public class ExportToCsvLink<T extends Serializable, S> extends GenericPanel<T>
 				resourceResponse.setFileName(bestandsnaam + ".csv");
 				resourceResponse.setContentDisposition(ContentDisposition.ATTACHMENT);
 				resourceResponse.setContentType("application/vnd.ms-excel");
-				resourceResponse.setCacheDuration(Duration.NONE);
+				resourceResponse.setCacheDuration(Duration.ZERO);
 				resourceResponse.setWriteCallback(new WriteCallback()
 				{
 
@@ -84,6 +83,7 @@ public class ExportToCsvLink<T extends Serializable, S> extends GenericPanel<T>
 						{
 							CSVDataExporter csvDataExporter = new CSVDataExporter()
 							{
+								@Override
 								protected String quoteValue(String value)
 								{
 									return value;

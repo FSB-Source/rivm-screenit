@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodecoordstep;
 
 /*-
@@ -24,24 +23,24 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodecoordstep;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class PostcodeCoordinatenWriter implements ItemWriter<String>
 {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PostcodeCoordinatenWriter.class);
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private final CoordinatenDao coordinatenDao;
 
 	@Override
 	public void write(List<? extends String> items)
@@ -61,6 +60,6 @@ public class PostcodeCoordinatenWriter implements ItemWriter<String>
 		}
 		hibernateService.getHibernateSession().flush();
 		hibernateService.getHibernateSession().clear();
-		LOGGER.info("alive");
+		LOG.info("alive");
 	}
 }

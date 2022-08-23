@@ -33,19 +33,19 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RegioBrievenGenererenWriter extends AbstractBrievenGenererenWriter<CervixRegioBrief, CervixRegioMergedBrieven>
 {
 	@Override
 	protected CervixRegioMergedBrieven createConcreteMergedBrieven(Date aangemaaktOp)
 	{
-		ExecutionContext context = getStepExecutionContext();
-		BriefType briefType = BriefType.valueOf(context.getString(RegioBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		ScreeningOrganisatie screeningOrganisatie = getHibernateService().load(ScreeningOrganisatie.class,
-			context.getLong(RegioBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID));
+		var context = getStepExecutionContext();
+		var briefType = BriefType.valueOf(context.getString(RegioBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		var screeningOrganisatie = getHibernateService().load(ScreeningOrganisatie.class, context.getLong(RegioBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID));
 
-		CervixRegioMergedBrieven mergedBrieven = new CervixRegioMergedBrieven();
+		var mergedBrieven = new CervixRegioMergedBrieven();
 		mergedBrieven.setScreeningOrganisatie(screeningOrganisatie);
 		mergedBrieven.setCreatieDatum(aangemaaktOp);
 		mergedBrieven.setBriefType(briefType);
@@ -55,7 +55,7 @@ public class RegioBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 	@Override
 	public void additionalMergedContext(MailMergeContext context)
 	{
-		CervixRegioBrief brief = (CervixRegioBrief) context.getBrief();
+		var brief = (CervixRegioBrief) context.getBrief();
 		context.putValue(MailMergeContext.CONTEXT_CERVIX_HUISARTS, brief.getHuisarts());
 	}
 

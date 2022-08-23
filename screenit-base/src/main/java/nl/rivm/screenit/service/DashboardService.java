@@ -28,6 +28,7 @@ import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.dashboard.DashboardType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogRegel;
 
 public interface DashboardService
@@ -39,8 +40,11 @@ public interface DashboardService
 
 	List<DashboardStatus> getDashboardStatussen(DashboardType item);
 
+	boolean verwijderLogRegelsVanDashboards(List<LogGebeurtenis> gebeurtenissen, String bsn, String melding);
+
+	boolean verwijderLogRegelsVanDashboards(List<LogRegel> logRegels);
+
 	Level getHoogsteLevelDashboardItems(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken);
 
 	List<DashboardStatus> getListOfDashboardStatussen(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken);
-
 }

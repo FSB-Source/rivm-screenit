@@ -25,7 +25,6 @@ import java.util.Base64;
 
 import nl.rivm.screenit.service.TechnischeBerichtenLoggingSaverService;
 import nl.rivm.screenit.util.StringUtil;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.ext.logging.event.EventType;
@@ -33,16 +32,13 @@ import org.apache.cxf.ext.logging.event.LogEvent;
 import org.apache.cxf.ext.logging.event.LogEventSender;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ScreenITLoggingSaver implements LogEventSender
 {
 
+	@Autowired
 	private TechnischeBerichtenLoggingSaverService technischeBerichtenLoggingSaverService;
-
-	public ScreenITLoggingSaver()
-	{
-		technischeBerichtenLoggingSaverService = SpringBeanProvider.getInstance().getBean(TechnischeBerichtenLoggingSaverService.class);
-	}
 
 	@Override
 	public void send(LogEvent event)

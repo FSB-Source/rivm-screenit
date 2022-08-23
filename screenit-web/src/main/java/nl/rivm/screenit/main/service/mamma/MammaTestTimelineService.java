@@ -84,4 +84,6 @@ public interface MammaTestTimelineService
 	void doorvoerenOnderzoekStarten(MammaAfspraak afspraak, InstellingGebruiker ingelogdeInstellingGebruiker, boolean verstuurHl7Berichten);
 
 	boolean isSnelkeuzeKnopMammaBeschikbaar(Client client, TestTimelineRonde timeLineRonde);
+
+	void registreerDeelnamewens(Client client);
 }

@@ -46,7 +46,7 @@ export const AppRoutes = () => {
 	return (
 		<Routes>
 			{routes.map(route => createRoute(route, contactActions, landingOverzicht))}
-			<Route element={<NotFound/>}/>
+			<Route path={"*"} element={<NotFound/>}/>
 		</Routes>
 	)
 }

@@ -373,13 +373,19 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 	}
 
 	@Override
-	public boolean heeftBestaandeLogregelBinnenPeriode(List<LogGebeurtenis> gebeurtenis, String bsn, String melding, int dagen)
+	public boolean heeftGeenBestaandeLogregelBinnenPeriode(List<LogGebeurtenis> gebeurtenissen, String bsn, String melding, int dagen)
+	{
+		return heeftGeenBestaandeLogregelBinnenPeriode(gebeurtenissen, bsn, List.of(Level.INFO), melding, dagen);
+	}
+
+	@Override
+	public boolean heeftGeenBestaandeLogregelBinnenPeriode(List<LogGebeurtenis> gebeurtenissen, String bsn, List<Level> levels, String melding, int dagen)
 	{
 		LoggingZoekCriteria loggingZoekCriteria = new LoggingZoekCriteria();
-		loggingZoekCriteria.setGebeurtenis(gebeurtenis);
+		loggingZoekCriteria.setGebeurtenis(gebeurtenissen);
 		loggingZoekCriteria.setBsnClient(bsn);
 		loggingZoekCriteria.setMelding(melding);
-		loggingZoekCriteria.setLevel(List.of(Level.INFO));
+		loggingZoekCriteria.setLevel(levels);
 
 		loggingZoekCriteria.setVanaf(currentDateSupplier.getDateTime()
 			.minusDays(dagen).toDate());
@@ -387,6 +393,18 @@ public class LogServiceImpl implements LogService, ILogInformatieService<ILogInf
 		List<LogRegel> result = getLogRegels(loggingZoekCriteria, 0, 1, new SortState<>("gebeurtenisDatum", Boolean.FALSE));
 
 		return result.isEmpty();
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public boolean verwijderLogRegelsVanDashboards(List<LogRegel> logRegels, InstellingGebruiker ingelogdeGebruiker, LogGebeurtenis logGebeurtenisVoorVerwijderActie)
+	{
+		if (!logRegels.isEmpty())
+		{
+			LogRegel logRegel = logRegels.get(0);
+			logGebeurtenis(logGebeurtenisVoorVerwijderActie, ingelogdeGebruiker, logRegel.getClient(), logRegel.getBevolkingsonderzoeken().toArray(Bevolkingsonderzoek[]::new));
+		}
+		return dashboardService.verwijderLogRegelsVanDashboards(logRegels);
 	}
 
 	private LogEvent getLogEvent(Level level, String melding)

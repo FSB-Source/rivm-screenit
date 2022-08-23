@@ -47,22 +47,22 @@ public class ScreenitRestrictions
 		return alias;
 	}
 
-	public static Conjunction getLeeftijdsgrensRestrictions(Integer minLeeftijd, Integer maxLeeftijd, LocalDate pijlDatum)
+	public static Conjunction getLeeftijdsgrensRestrictions(Integer minLeeftijd, Integer maxLeeftijd, LocalDate peildatum)
 	{
-		return getLeeftijdsgrensRestrictions(minLeeftijd, maxLeeftijd, null, pijlDatum);
+		return getLeeftijdsgrensRestrictions(minLeeftijd, maxLeeftijd, null, peildatum);
 	}
 
-	public static Conjunction getLeeftijdsgrensRestrictions(Integer minLeeftijd, Integer maxLeeftijd, Integer interval, LocalDate pijlDatum)
+	public static Conjunction getLeeftijdsgrensRestrictions(Integer minLeeftijd, Integer maxLeeftijd, Integer interval, LocalDate peildatum)
 	{
 		Conjunction conjunction = Restrictions.conjunction();
 		if (minLeeftijd != null)
 		{
-			LocalDate geboortedatumMaximaal = pijlDatum.minusYears(minLeeftijd);
+			LocalDate geboortedatumMaximaal = peildatum.minusYears(minLeeftijd);
 			conjunction.add(Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMaximaal)));
 		}
 		if (maxLeeftijd != null)
 		{
-			LocalDate geboortedatumMinimaal = pijlDatum.minusYears(maxLeeftijd + 1);
+			LocalDate geboortedatumMinimaal = peildatum.minusYears(maxLeeftijd + 1L);
 			if (interval != null)
 			{
 				geboortedatumMinimaal = geboortedatumMinimaal.minusDays(interval);
@@ -101,6 +101,14 @@ public class ScreenitRestrictions
 	{
 		return persoonAlias + ".overlijdensdatum is null"
 			+ " and " + persoonAlias + ".datum_vertrokken_uit_nederland is null";
+	}
+
+	public static Conjunction addClientActiefInProjectCriteria(String projectClientAlias, String projectGroepAlias, String projectAlias, LocalDate peildatum)
+	{
+		return Restrictions.and(Restrictions.eq(fixAlias(projectClientAlias) + "actief", true),
+			Restrictions.eq(fixAlias(projectGroepAlias) + "actief", true),
+			Restrictions.gt(fixAlias(projectAlias) + "eindDatum", DateUtil.toUtilDate(peildatum)),
+			Restrictions.le(fixAlias(projectAlias) + "startDatum", DateUtil.toUtilDate(peildatum)));
 	}
 
 }

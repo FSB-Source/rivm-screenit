@@ -53,7 +53,11 @@ public final class PlanningRestConstants
 
 	public static final String C_ACTIE = "actie";
 
+	public static final String C_READMODEL = "readModel";
+
 	public static final String C_UITNODIGEN = "uitnodigen";
 
 	public static final String C_CLIENT = "client";
+
+	public static final String C_DAG_KOPIEREN = "dagKopieren";
 }

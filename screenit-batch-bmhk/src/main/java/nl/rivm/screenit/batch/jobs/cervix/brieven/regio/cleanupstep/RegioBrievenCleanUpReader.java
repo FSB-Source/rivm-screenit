@@ -22,10 +22,12 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio.cleanupstep;
  */
 
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
-import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixRegioMergedBrieven;
 
-public class RegioBrievenCleanUpReader<MB extends MergedBrieven<?>> extends AbstractBrievenCleanUpReader<CervixRegioMergedBrieven>
+import org.springframework.stereotype.Component;
+
+@Component
+public class RegioBrievenCleanUpReader extends AbstractBrievenCleanUpReader<CervixRegioMergedBrieven>
 {
 
 }

@@ -30,7 +30,9 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.DossierFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class DossierWriter extends BaseWriter<Client>
 {
 	@Autowired

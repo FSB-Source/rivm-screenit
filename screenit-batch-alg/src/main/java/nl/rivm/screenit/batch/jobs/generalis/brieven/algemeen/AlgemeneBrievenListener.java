@@ -21,11 +21,25 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen;
  * =========================LICENSE_END==================================
  */
 
+import java.util.HashMap;
+
 import nl.rivm.screenit.batch.jobs.brieven.AbstractBrievenGenererenListener;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
+import org.springframework.batch.core.JobExecution;
+import org.springframework.stereotype.Component;
+
+@Component
 public class AlgemeneBrievenListener extends AbstractBrievenGenererenListener
 {
+	@Override
+	protected void beforeStarting(JobExecution jobExecution)
+	{
+		var map = new HashMap<Long, Integer>();
+		map.put(0L, 0);
+		jobExecution.getExecutionContext().put(getRapportageAantalBrievenKey(), map);
+	}
+
 	@Override
 	protected String getRapportageAantalBrievenKey()
 	{
@@ -43,4 +57,5 @@ public class AlgemeneBrievenListener extends AbstractBrievenGenererenListener
 	{
 		return LogGebeurtenis.ALGEMENE_BRIEVEN_BATCH_AFGEROND;
 	}
+
 }

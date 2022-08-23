@@ -80,7 +80,7 @@ public class TechnischeColonIntervalParameters extends GenericPanel<List<ColonUi
 				List<ColonUitnodigingsinterval> parameters = model.getObject();
 				if (valideParameters(parameters))
 				{
-					parameterisatieService.saveIntervalParameters(parameters);
+					parameterisatieService.saveColonIntervalParameters(parameters);
 					dossierBaseService.updateIntervalReferentieDatums();
 					info("Parameters zijn opgeslagen.");
 				}
@@ -93,7 +93,8 @@ public class TechnischeColonIntervalParameters extends GenericPanel<List<ColonUi
 	private boolean valideParameters(List<ColonUitnodigingsinterval> parameters)
 	{
 		final boolean[] valide = { true };
-		parameters.forEach(parameter -> {
+		parameters.forEach(parameter ->
+		{
 			if (parameter.getAantal() != null && parameter.getAantal() == 0)
 			{
 				parameter.setAantal(null);

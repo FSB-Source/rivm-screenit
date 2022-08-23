@@ -25,6 +25,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.batch.model.dto.MammaIlmRetryDto;
 import nl.rivm.screenit.model.Client;
@@ -42,9 +44,10 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaIlmJobListener extends BaseLogListener
 {
 	public static final String KEY_BEELDEN_VERWIJDERD_AANTAL = "beeldenVerwijderdAantal";
@@ -65,11 +68,9 @@ public class MammaIlmJobListener extends BaseLogListener
 
 	private static final String REVISION_KENMERK_CONTEXT = "ILM";
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private InstellingService instellingService;
+	private final InstellingService instellingService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
@@ -112,8 +113,8 @@ public class MammaIlmJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		MammaIlmLogEvent logEvent = (MammaIlmLogEvent) super.eindLogging(jobExecution);
-		ExecutionContext executionContext = getJobExecution().getExecutionContext();
+		var logEvent = (MammaIlmLogEvent) super.eindLogging(jobExecution);
+		var executionContext = getJobExecution().getExecutionContext();
 		addMelding(logEvent,
 			"Rondes beelden verwijderd: " + (executionContext.containsKey(KEY_BEELDEN_VERWIJDERD_AANTAL) ? executionContext.getLong(KEY_BEELDEN_VERWIJDERD_AANTAL) : 0));
 
@@ -134,15 +135,15 @@ public class MammaIlmJobListener extends BaseLogListener
 
 	private void addRapportage(JobExecution jobExecution, MammaIlmLogEvent logEvent)
 	{
-		MammaIlmBeeldenStatusRapportage rapportage = new MammaIlmBeeldenStatusRapportage();
-		addEntries(jobExecution, rapportage);
-		logEvent.setRapportage(rapportage);
+		var statusRapportage = new MammaIlmBeeldenStatusRapportage();
+		addEntries(jobExecution, statusRapportage);
+		logEvent.setRapportage(statusRapportage);
 
-		long aantalFailedRetries = getAantalFailedEntries(rapportage);
-		long aantalRetries = getAantalRetries(rapportage);
+		var aantalFailedRetries = getAantalFailedEntries(statusRapportage);
+		var aantalRetries = getAantalRetries(statusRapportage);
 
-		rapportage.setAantalRetries(aantalRetries);
-		rapportage.setAantalFailedRetries(aantalFailedRetries);
+		statusRapportage.setAantalRetries(aantalRetries);
+		statusRapportage.setAantalFailedRetries(aantalFailedRetries);
 
 		addMelding(logEvent, "Beelden verwijderen opnieuw geprobeerd : " + aantalRetries);
 		addMelding(logEvent, "Beelden verwijderen opnieuw proberen gefaald: " + aantalFailedRetries);
@@ -152,7 +153,7 @@ public class MammaIlmJobListener extends BaseLogListener
 			logEvent.setLevel(Level.WARNING);
 		}
 
-		hibernateService.saveOrUpdate(rapportage);
+		hibernateService.saveOrUpdate(statusRapportage);
 	}
 
 	private long getAantalFailedEntries(MammaIlmBeeldenStatusRapportage rapportage)
@@ -173,8 +174,8 @@ public class MammaIlmJobListener extends BaseLogListener
 		{
 			for (MammaIlmRetryDto dto : dtoList)
 			{
-				Client client = hibernateService.get(Client.class, dto.getClientId());
-				MammaIlmBeeldenStatusRapportageEntry rapportageEntry = new MammaIlmBeeldenStatusRapportageEntry(
+				var client = hibernateService.get(Client.class, dto.getClientId());
+				var rapportageEntry = new MammaIlmBeeldenStatusRapportageEntry(
 					dto.getStatusDatum(),
 					dto.getAccessionNumber(),
 					client,

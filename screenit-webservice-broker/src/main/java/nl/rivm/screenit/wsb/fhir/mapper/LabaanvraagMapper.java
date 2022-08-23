@@ -44,8 +44,14 @@ public interface LabaanvraagMapper
 	LabaanvraagMapper INSTANCE = Mappers.getMapper(LabaanvraagMapper.class);
 
 	@Mapping(source = "scanDatum", target = "scanDatum")
-	@Mapping(source = "uitstrijkje.monsterId", target = "barcode")
-	@Mapping(source = "objid", target = "objid")
+	@Mapping(
+		source = "uitstrijkje.monsterId",
+		target = "barcode",
+		qualifiedByName = "getTrimmedAnswer")
+	@Mapping(
+		source = "objid",
+		target = "objid",
+		qualifiedByName = "getTrimmedLowercaseAnswer")
 	@Mapping(source = "laboratorium", target = "laboratorium")
 	@Mapping(source = "uitstrijkje", target = "uitstrijkje")
 	@Mapping(source = "huisartsLocatie", target = "huisartsLocatie")
@@ -80,7 +86,10 @@ public interface LabaanvraagMapper
 		source = "klachten",
 		target = "klachtenAndersNamelijk",
 		qualifiedByName = "klachtenAndersNamelijk")
-	@Mapping(source = "klachtenVrijeTekst", target = "klachtenAndersNamelijkTekst")
+	@Mapping(
+		source = "klachtenVrijeTekst",
+		target = "klachtenAndersNamelijkTekst",
+		qualifiedByName = "getTrimmedAnswer")
 	@Mapping(
 		source = "menstruatie",
 		target = "menstruatieNormaal",
@@ -133,7 +142,10 @@ public interface LabaanvraagMapper
 		source = "gebruikHormonen",
 		target = "gebruikHormonenJaVanwege",
 		qualifiedByName = "gebruikHormonenJaVanwege")
-	@Mapping(source = "gebruikHormonenVrijeTekst", target = "gebruikHormonenJaVanwegeTekst")
+	@Mapping(
+		source = "gebruikHormonenVrijeTekst",
+		target = "gebruikHormonenJaVanwegeTekst",
+		qualifiedByName = "getTrimmedAnswer")
 	@Mapping(
 		source = "gebruikHormonen",
 		target = "gebruikHormonenGeen",
@@ -150,9 +162,15 @@ public interface LabaanvraagMapper
 		source = "aspectCervix",
 		target = "aspectCervixAbnormaalOfVerdachtePortio",
 		qualifiedByName = "aspectCervixAbnormaalOfVerdachtePortio")
-	@Mapping(source = "aspectCervixVrijeTekst", target = "aspectCervixAbnormaalOfVerdachtePortioTekst")
+	@Mapping(
+		source = "aspectCervixVrijeTekst",
+		target = "aspectCervixAbnormaalOfVerdachtePortioTekst",
+		qualifiedByName = "getTrimmedAnswer")
 	@Mapping(source = "opmerkingenTekst", target = "opmerkingen", qualifiedByName = "isNotBlank")
-	@Mapping(source = "opmerkingenTekst", target = "opmerkingenTekst")
+	@Mapping(
+		source = "opmerkingenTekst",
+		target = "opmerkingenTekst",
+		qualifiedByName = "getTrimmedAnswer")
 	CervixLabformulier toLabformulier(LabaanvraagBundle bundle);
 
 	@Named("stringToDate")
@@ -252,7 +270,8 @@ public interface LabaanvraagMapper
 	@Named("anticonceptieIudMirena")
 	static boolean anticonceptieIudMirena(String string)
 	{
-		return "iud mirena".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
+		return "iud mirena".equalsIgnoreCase(getTrimmedLowercaseAnswer(string))
+			|| "hormoonhoudend spiraal".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
 	}
 
 	@Named("anticonceptieAnders")
@@ -294,13 +313,22 @@ public interface LabaanvraagMapper
 	@Named("aspectCervixAbnormaalOfVerdachtePortio")
 	static boolean aspectCervixAbnormaalOfVerdachtePortio(String string)
 	{
-		return "abnormaal of verdachte portio, licht toe...".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
+		return "abnormaal of verdachte portio, licht toe...".equalsIgnoreCase(getTrimmedLowercaseAnswer(string))
+			|| "abnormaal of verdachte portio".equalsIgnoreCase(getTrimmedLowercaseAnswer(string));
 	}
 
+	@Named("getTrimmedAnswer")
+	static String getTrimmedAnswer(String string)
+	{
+		return StringUtils.trim(string);
+	}
+
+	@Named("getTrimmedLowercaseAnswer")
 	static String getTrimmedLowercaseAnswer(String string)
 	{
 		return string != null
 			? string.trim().toLowerCase()
 			: string;
 	}
+
 }

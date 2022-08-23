@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen.cleanupstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
 import nl.rivm.screenit.batch.service.UitnodigingenCleanUpService;
 import nl.rivm.screenit.model.colon.ColonMergedBrieven;
@@ -28,13 +30,13 @@ import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class ColonUitnodigingenBrievenCleanUpReader extends AbstractBrievenCleanUpReader<ColonMergedBrieven>
 {
-
-	@Autowired
-	private UitnodigingenCleanUpService uitnodigingenCleanUpService;
+	private final UitnodigingenCleanUpService uitnodigingenCleanUpService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException

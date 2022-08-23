@@ -44,7 +44,7 @@
 	font-size: 0.875rem;
 	letter-spacing: 0;
 	line-height: 1.375rem;
-	padding-left: 2.6rem;
+	padding-left: 1.9rem;
 	padding-right: 0.625rem;
 
 	@include respond-below(xs) {
@@ -74,11 +74,12 @@
 	}
 
 	.toonVerbergInformatie {
+		margin-top: 5px;
 		color: $blauw-base;
 	}
 
 	div:nth-child(2) {
-		margin-top: 1.25rem;
+		margin-top: 10px;
 	}
 }
 

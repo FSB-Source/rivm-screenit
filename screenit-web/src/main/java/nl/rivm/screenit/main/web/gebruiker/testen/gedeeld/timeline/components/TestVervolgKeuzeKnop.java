@@ -84,16 +84,15 @@ public abstract class TestVervolgKeuzeKnop extends GenericPanel<List<Client>>
 		this.dialog = dialog;
 		add(new AttributeAppender("class", Model.of(" Mogelijke opties")));
 		List<TestVervolgKeuzeOptie> opties = getOptions();
-		boolean snelkeuzeVisible = opties.size() != 0;
+		boolean snelkeuzeVisible = !opties.isEmpty();
 		boolean snelkeuzes = opties.size() > 1;
 
 		WebMarkupContainer caretContainer = new WebMarkupContainer("caret");
-		Component button = null;
+		Component button;
 		if (!snelkeuzes && snelkeuzeVisible)
 		{
 			IndicatingAjaxLink<Void> link = new IndicatingAjaxLink<Void>("button")
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -108,10 +107,6 @@ public abstract class TestVervolgKeuzeKnop extends GenericPanel<List<Client>>
 			caretContainer.setVisible(false);
 			link.add(caretContainer);
 			button = link;
-			if (StringUtils.isNotBlank(getNameAttribuut()))
-			{
-				button.add(new AttributeAppender("name", getNameAttribuut()));
-			}
 		}
 		else
 		{
@@ -129,18 +124,18 @@ public abstract class TestVervolgKeuzeKnop extends GenericPanel<List<Client>>
 			caretContainer.setVisible(true);
 			buttonContainer.add(caretContainer);
 			button = buttonContainer;
-			if (StringUtils.isNotBlank(getNameAttribuut()))
-			{
-				button.add(new AttributeAppender("name", getNameAttribuut()));
-			}
+		}
+		if (StringUtils.isNotBlank(getNameAttribuut()))
+		{
+			button.add(new AttributeAppender("name", getNameAttribuut()));
 		}
 		add(button);
 
 		WebMarkupContainer container = new WebMarkupContainer("dropdownList");
-		container.setVisible((snelkeuzeVisible || !snelkeuzes) && isVisible());
+		container.setVisible(isVisible());
 		add(container);
 
-		ListView<TestVervolgKeuzeOptie> acties = new ListView<TestVervolgKeuzeOptie>("snelkeuze", opties)
+		ListView<TestVervolgKeuzeOptie> acties = new ListView<>("snelkeuze", opties)
 		{
 
 			private static final long serialVersionUID = 1L;
@@ -149,7 +144,7 @@ public abstract class TestVervolgKeuzeKnop extends GenericPanel<List<Client>>
 			protected void populateItem(ListItem<TestVervolgKeuzeOptie> item)
 			{
 				final TestVervolgKeuzeOptie option = item.getModelObject();
-				IndicatingAjaxLink<TestVervolgKeuzeOptie> link = new IndicatingAjaxLink<TestVervolgKeuzeOptie>("link")
+				IndicatingAjaxLink<TestVervolgKeuzeOptie> link = new IndicatingAjaxLink<>("link")
 				{
 
 					private static final long serialVersionUID = 1L;
@@ -208,7 +203,6 @@ public abstract class TestVervolgKeuzeKnop extends GenericPanel<List<Client>>
 	{
 		dialog.openWith(target, new TestVervolgKeuzePopupBasePanel(IDialog.CONTENT_ID, Model.of(optie), getModel())
 		{
-
 			private static final long serialVersionUID = 1L;
 
 			@Override

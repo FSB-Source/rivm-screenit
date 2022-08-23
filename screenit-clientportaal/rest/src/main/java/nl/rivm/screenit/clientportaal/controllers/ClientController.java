@@ -21,17 +21,22 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.mappers.ClientMapper;
 import nl.rivm.screenit.clientportaal.mappers.TijdelijkAdresMapper;
+import nl.rivm.screenit.clientportaal.model.AanhefDto;
 import nl.rivm.screenit.clientportaal.model.ClientDto;
 import nl.rivm.screenit.clientportaal.model.TelefoonnummerDto;
 import nl.rivm.screenit.clientportaal.model.TijdelijkAdresDto;
 import nl.rivm.screenit.clientportaal.services.ClientGegevensService;
+import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.TijdelijkAdres;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,17 +45,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("persoon")
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@AllArgsConstructor
 public class ClientController extends AbstractController
 {
 
-	@Autowired
-	private ClientMapper clientMapper;
+	private final ClientMapper clientMapper;
 
-	@Autowired
-	private TijdelijkAdresMapper tijdelijkAdresMapper;
+	private final TijdelijkAdresMapper tijdelijkAdresMapper;
 
-	@Autowired
-	private ClientGegevensService clientGegevensService;
+	private final ClientGegevensService clientGegevensService;
 
 	@GetMapping
 	public ResponseEntity<ClientDto> getCurrentUser(Authentication authentication)
@@ -59,19 +63,29 @@ public class ClientController extends AbstractController
 	}
 
 	@PutMapping("/telefoonnummer")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<ClientDto> setTelefoonnummer(@RequestBody TelefoonnummerDto telefoonnummerDto, Authentication authentication)
 	{
-		clientGegevensService.setTelefoonnummer(telefoonnummerDto.getTelefoonnummer1(), telefoonnummerDto.getTelefoonnummer2(),
-			getClient(authentication));
-		return ResponseEntity.ok(clientMapper.clientToDto(getClient(authentication)));
+		Client client = getClient(authentication);
+		clientGegevensService.setTelefoonnummer(telefoonnummerDto.getTelefoonnummer1(), telefoonnummerDto.getTelefoonnummer2(), client);
+		return ResponseEntity.ok(clientMapper.clientToDto(client));
 	}
 
 	@PutMapping("/tijdelijk-adres")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<ClientDto> setTijdelijkAdres(@RequestBody TijdelijkAdresDto tijdelijkAdresDto, Authentication authentication)
 	{
+		Client client = getClient(authentication);
 		TijdelijkAdres tijdelijkAdres = tijdelijkAdresMapper.dtoToTijdelijkAdres(tijdelijkAdresDto);
-		clientGegevensService.setTijdelijkAdres(tijdelijkAdres, getClient(authentication));
+		clientGegevensService.setTijdelijkAdres(tijdelijkAdres, client);
+		return ResponseEntity.ok(clientMapper.clientToDto(client));
+	}
 
-		return ResponseEntity.ok(clientMapper.clientToDto(getClient(authentication)));
+	@PutMapping("/aanhef")
+	public ResponseEntity<ClientDto> setAanhef(@RequestBody AanhefDto aanhefDto, Authentication authentication)
+	{
+		Client client = getClient(authentication);
+		clientGegevensService.setAanhef(aanhefDto.getAanhef(), client);
+		return ResponseEntity.ok(clientMapper.clientToDto(client));
 	}
 }

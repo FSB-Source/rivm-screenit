@@ -69,7 +69,7 @@ public class AddTriggerPanel extends Panel
 
 		for (JobType jt : JobType.values())
 		{
-			if (!jt.hasJobFlag(JobFlag.BLOCK_MANUAL_START))
+			if (!jt.hasJobFlag(JobFlag.BLOCK_CRON_TRIGGER))
 			{
 				jobtypes.add(jt);
 			}

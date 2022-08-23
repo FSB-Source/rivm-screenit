@@ -31,6 +31,7 @@ import nl.rivm.screenit.mamma.planning.index.PlanningPostcodeReeksIndex;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
+import nl.rivm.screenit.model.mamma.enums.MammaUitnodigingsintervalType;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 
 @Getter
@@ -89,14 +90,14 @@ public final class PlanningClient extends PlanningEntiteit
 
 	private boolean isNoShow = false;
 
-	private final boolean suspect;
+	private final MammaUitnodigingsintervalType uitnodigingsintervalType;
 
 	private LocalDate huidigeStreefDatum = null;
 
 	public PlanningClient(Long id, LocalDate geboorteDatum, String postcode, boolean eersteOnderzoek, MammaDoelgroep doelgroep, BigDecimal deelnamekans,
 		Boolean deelnamekansVervolgRonde, PlanningScreeningsOrganisatie screeningsOrganisatie, PlanningStandplaats uitstelStandplaats, LocalDate uitstelStreefDatum,
 		Boolean uitgenodigdNaUitstel, MammaUitstelReden uitstelReden, PlanningStandplaats afspraakStandplaats, PlanningTehuis tehuis, LocalDate laatsteScreeningRondeCreatieDatum,
-		LocalDate laatsteMammografieAfgerondDatum, boolean suspect, LocalDate laatsteUitnodigingDatum)
+		LocalDate laatsteMammografieAfgerondDatum, MammaUitnodigingsintervalType uitnodigingsintervalType, LocalDate laatsteUitnodigingDatum)
 	{
 		super(id);
 		this.geboorteDatum = geboorteDatum;
@@ -113,7 +114,7 @@ public final class PlanningClient extends PlanningEntiteit
 		this.laatsteScreeningRondeCreatieDatum = laatsteScreeningRondeCreatieDatum;
 		this.laatsteMammografieAfgerondDatum = laatsteMammografieAfgerondDatum;
 		this.laatsteUitnodigingDatum = laatsteUitnodigingDatum;
-		this.suspect = suspect;
+		this.uitnodigingsintervalType = uitnodigingsintervalType;
 		this.uitstelReden = uitstelReden;
 
 		uitnodigenVanafJaar = geboorteDatum.getYear() + PlanningConstanten.vanafLeeftijd;
@@ -192,5 +193,15 @@ public final class PlanningClient extends PlanningEntiteit
 	public boolean inTehuis()
 	{
 		return tehuis != null;
+	}
+
+	public boolean isSuspect()
+	{
+		return MammaUitnodigingsintervalType.isSuspect(uitnodigingsintervalType);
+	}
+
+	public boolean isSuspectOfHoogRisico()
+	{
+		return MammaUitnodigingsintervalType.isSuspectOfHoogRisico(uitnodigingsintervalType);
 	}
 }

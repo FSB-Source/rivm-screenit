@@ -21,6 +21,10 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixHuisartsberichtenConstants
 {
 
@@ -38,7 +42,4 @@ public class CervixHuisartsberichtenConstants
 
 	public static final String BERICHT_TYPE_VERSTUREN_MISLUKT = "huisartsberichten.berichtType.versturen.mislukt.";
 
-	private CervixHuisartsberichtenConstants()
-	{
-	}
 }

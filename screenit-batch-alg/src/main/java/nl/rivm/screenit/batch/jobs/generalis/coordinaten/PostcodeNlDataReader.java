@@ -27,31 +27,34 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 
-import nl.rivm.screenit.batch.service.impl.PostcodeNlRestService;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.service.impl.PostcodeNlProductCode;
+import nl.rivm.screenit.batch.service.impl.PostcodeNlRestService;
+
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemStream;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class PostcodeNlDataReader implements ItemReader<String>, ItemStream
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PostcodeNlDataReader.class);
-
-	private BufferedReader reader;
-
-	private boolean ready = false;
-
-	private String productCode;
-
-	private File tempFile;
 
 	@Autowired
 	private PostcodeNlRestService postcodeNlRestService;
+
+	private BufferedReader reader;
+
+	@Getter
+	@Setter
+	private String productCode;
+
+	private File tempFile;
 
 	@Override
 	public String read() throws IOException
@@ -62,15 +65,11 @@ public class PostcodeNlDataReader implements ItemReader<String>, ItemStream
 			if (reader != null)
 			{
 				nextLine = reader.readLine();
-				if (nextLine == null)
-				{
-					ready = true;
-				}
 			}
 		}
 		catch (IOException e)
 		{
-			LOGGER.error("Error bij starten reader: " + e.getMessage());
+			LOG.error("Error bij starten reader: " + e.getMessage());
 			throw e;
 		}
 		return nextLine;
@@ -79,7 +78,7 @@ public class PostcodeNlDataReader implements ItemReader<String>, ItemStream
 	@Override
 	public void open(ExecutionContext executionContext)
 	{
-		LOGGER.info("Inputstream voor " + productCode + " wordt geopend en ingelezen.");
+		LOG.info("Inputstream voor " + productCode + " wordt geopend en ingelezen.");
 		try
 		{
 			InputStream inputStream = postcodeNlRestService.getDelivery(PostcodeNlProductCode.valueOf(productCode));
@@ -91,13 +90,13 @@ public class PostcodeNlDataReader implements ItemReader<String>, ItemStream
 			}
 			else
 			{
-				LOGGER.info("Geen input voor " + productCode + " gevonden");
+				LOG.info("Geen input voor " + productCode + " gevonden");
 			}
 		}
 		catch (IOException e)
 		{
 			close();
-			LOGGER.error("Error bij openen inputstream: " + e.getMessage());
+			LOG.error("Error bij openen inputstream: " + e.getMessage());
 			throw new ItemStreamException(e);
 		}
 	}
@@ -121,20 +120,10 @@ public class PostcodeNlDataReader implements ItemReader<String>, ItemStream
 			}
 			catch (IOException e)
 			{
-				LOGGER.error("Error bij sluiten reader: " + e.getMessage());
+				LOG.error("Error bij sluiten reader: " + e.getMessage());
 				throw new ItemStreamException(e);
 			}
 		}
-	}
-
-	public String getProductCode()
-	{
-		return productCode;
-	}
-
-	public void setProductCode(String productCode)
-	{
-		this.productCode = productCode;
 	}
 
 }

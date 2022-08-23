@@ -21,52 +21,38 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-
-import javax.annotation.CheckForNull;
 
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
+import nl.rivm.screenit.main.util.GebeurtenisUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.main.web.component.BriefTypeLabel;
-import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
-import nl.rivm.screenit.main.web.component.modal.IDialog;
-import nl.rivm.screenit.main.web.gebruiker.algemeen.documenttemplatetesten.PdfViewerPanel;
+import nl.rivm.screenit.main.web.gebruiker.gedeeld.BriefOpnieuwAanmakenPanel;
+import nl.rivm.screenit.main.web.gebruiker.gedeeld.TemplateInzienPanel;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
-import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.ClientBrief;
-import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
-import nl.rivm.screenit.service.BriefHerdrukkenService;
-import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.BriefUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
-
-import com.aspose.words.Document;
 
 @Slf4j
 @SecurityConstraint(
@@ -79,24 +65,7 @@ import com.aspose.words.Document;
 public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 {
 	@SpringBean
-	private BriefHerdrukkenService briefHerdrukkenService;
-
-	@SpringBean
 	private BaseBriefService baseBriefService;
-
-	@SpringBean
-	private HibernateService hibernateService;
-
-	@SpringBean
-	private LogService logService;
-
-	@SpringBean
-	private AsposeService asposeService;
-
-	@SpringBean
-	private UploadDocumentService uploadDocumentService;
-
-	private BootstrapDialog pdfDialog = new BootstrapDialog("pdfDialog");
 
 	private WebMarkupContainer tegenhoudenContainer;
 
@@ -111,175 +80,10 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 	protected void onInitialize()
 	{
 		super.onInitialize();
-
-		Date datum = geefDatum();
-		maakBriefInzienContent(datum);
-		maakBriefOpnieuwAanmakenContent(datum);
+		add(new TemplateInzienPanel("templateInzienPanel", new CompoundPropertyModel(new PropertyModel(getModel(), "brief"))));
+		add(new BriefOpnieuwAanmakenPanel("briefOpnieuwAanmakenPanel", new CompoundPropertyModel(new PropertyModel(getModel(), "brief"))));
 		tegenhoudenContainer = maakBriefTegenhoudenContent();
 		add(tegenhoudenContainer);
-	}
-
-	private Date geefDatum()
-	{
-		ClientBrief<?, ?, ?> brief = getModelObject().getBrief();
-		MergedBrieven<?> mergedBrieven = BriefUtil.getMergedBrieven(brief);
-		if (BriefUtil.isGegenereerd(brief) && mergedBrieven != null)
-		{
-			if (mergedBrieven.getPrintDatum() != null)
-			{
-				return mergedBrieven.getPrintDatum();
-			}
-			else
-			{
-				return mergedBrieven.getCreatieDatum();
-			}
-		}
-		else
-		{
-			return brief.getCreatieDatum();
-		}
-	}
-
-	private void maakBriefInzienContent(Date datum)
-	{
-		add(pdfDialog);
-
-		WebMarkupContainer inzienContainer = new WebMarkupContainer("inzienContainer");
-		inzienContainer.setOutputMarkupId(true);
-
-		WebMarkupContainer inzienGroep = new WebMarkupContainer("inzienGroep");
-
-		final ClientBrief brief = getModelObject().getBrief();
-		Label inzienMsg;
-		if (brief.getBriefDefinitie() != null)
-		{
-			inzienMsg = new Label("inzienMelding");
-			inzienMsg.setVisible(false);
-
-			final File file = uploadDocumentService.load(brief.getBriefDefinitie().getDocument());
-			inzienGroep.add(new IndicatingAjaxLink<Void>("inzien")
-			{
-				@Override
-				public void onClick(AjaxRequestTarget ajaxRequestTarget)
-				{
-					final Document document = genereerAsposeDocument(file);
-					if (document != null)
-					{
-						showPdf(ajaxRequestTarget, document);
-					}
-				}
-			});
-		}
-		else
-		{
-			inzienMsg = new Label("inzienMelding", "Gebruikte template niet beschikbaar, want deze brief is " +
-				(brief.getTemplateNaam() == null ? "nog niet verzonden" : "verzonden voordat ScreenIT de templates van de verzonden brieven ging bewaren, of nog niet verzonden"));
-			inzienGroep.setVisible(false);
-		}
-		WebMarkupContainer inzienMeldingGroup = new WebMarkupContainer("inzienMeldingGroup");
-		inzienMeldingGroup.setOutputMarkupId(true);
-		inzienMeldingGroup.add(inzienMsg);
-		inzienMeldingGroup.setVisible(inzienMsg.isVisible());
-		inzienContainer.add(inzienMeldingGroup);
-
-		voegBriefTypeOfNaamBriefToe(inzienGroep, brief);
-
-		inzienGroep.add(DateLabel.forDatePattern("brief.creatieDatum", Model.of(datum), "dd-MM-yyyy"));
-		inzienGroep.setOutputMarkupId(true);
-
-		inzienContainer.add(inzienGroep);
-		add(inzienContainer);
-	}
-
-	private void voegBriefTypeOfNaamBriefToe(WebMarkupContainer inzienGroep, Brief brief)
-	{
-		Label templateNaam = new Label("brief.templateNaam");
-		templateNaam.setVisible(brief.getBriefType() == null);
-		inzienGroep.add(templateNaam);
-
-		BriefTypeLabel briefTypeLabel = new BriefTypeLabel("brief.briefType");
-		briefTypeLabel.setVisible(brief.getBriefType() != null);
-		inzienGroep.add(briefTypeLabel);
-	}
-
-	private boolean showPdf(AjaxRequestTarget target, Document document)
-	{
-		try
-		{
-
-			target.appendJavaScript("$('.modal.fade.in').not('#sessieVerlopenDialog').addClass('previousDialog').modal('hide');");
-
-			pdfDialog.openWith(target, new PdfViewerPanel(IDialog.CONTENT_ID, baseBriefService.genereerPdf(document, "brieftemplate_inzien", false)));
-		}
-		catch (Exception e)
-		{
-			LOG.error(e.getMessage());
-			return true;
-		}
-		return false;
-	}
-
-	@CheckForNull
-	private Document genereerAsposeDocument(File file)
-	{
-		try
-		{
-			FileInputStream stream = new FileInputStream(file);
-			return new Document(stream);
-		}
-		catch (Exception e)
-		{
-			LOG.error(e.getMessage());
-			return null;
-		}
-	}
-
-	private void maakBriefOpnieuwAanmakenContent(Date datum)
-	{
-		WebMarkupContainer opnieuwContainer = new WebMarkupContainer("opnieuwContainer");
-		opnieuwContainer.setOutputMarkupId(true);
-		ClientBrief<?, ?, ?> brief = getModelObject().getBrief();
-		opnieuwContainer.setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_BRIEVEN_OPNIEUW_KLAARZETTEN, Actie.AANPASSEN)
-			&& !tegenhoudenNietMogelijkBriefTypes.contains(brief.getBriefType()));
-
-		WebMarkupContainer opnieuwMogelijkContainer = new WebMarkupContainer("opnieuwMogelijk");
-
-		voegBriefTypeOfNaamBriefToe(opnieuwMogelijkContainer, brief);
-
-		boolean magOpnieuwAanvragen = briefHerdrukkenService.magHerdrukken(brief);
-
-		WebMarkupContainer nietOpnieuw = new WebMarkupContainer("nietOpnieuw");
-		nietOpnieuw.setOutputMarkupId(true);
-		String melding = getString("message.nietmogelijkbriefopnieuw");
-		if (BriefUtil.isHerdruk(brief))
-		{
-			melding = getString("message.briefisaleenherdruk");
-		}
-		nietOpnieuw.add(new Label("tekstNietOpnieuw", Model.of(melding)));
-		nietOpnieuw.setVisible(!magOpnieuwAanvragen);
-
-		opnieuwMogelijkContainer.add(DateLabel.forDatePattern("brief.creatieDatum", Model.of(datum), "dd-MM-yyyy"));
-		opnieuwMogelijkContainer.setOutputMarkupId(true);
-		opnieuwMogelijkContainer.add(new IndicatingAjaxLink<Void>("aanmaken")
-		{
-
-			@Override
-			public void onClick(AjaxRequestTarget target)
-			{
-				briefHerdrukkenService.opnieuwAanmaken(BriefKlaargezetPanel.this.getModelObject().getBrief(), ScreenitSession.get().getLoggedInAccount());
-				info(getString("info.briefaangemaakt"));
-				opnieuwMogelijkContainer.setVisible(false);
-				nietOpnieuw.setVisible(true);
-				target.add(opnieuwContainer);
-			}
-		});
-
-		opnieuwMogelijkContainer.setVisible(magOpnieuwAanvragen);
-
-		opnieuwContainer.add(opnieuwMogelijkContainer);
-
-		opnieuwContainer.add(nietOpnieuw);
-		add(opnieuwContainer);
 	}
 
 	private WebMarkupContainer maakBriefTegenhoudenContent()
@@ -290,7 +94,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 		WebMarkupContainer mogelijk = new WebMarkupContainer("mogelijk");
 		ClientBrief<?, ?, ?> brief = getModelObject().getBrief();
 
-		voegBriefTypeOfNaamBriefToe(mogelijk, brief);
+		GebeurtenisUtil.voegBriefTypeOfNaamBriefToe(mogelijk, brief);
 
 		mogelijk.add(DateLabel.forDatePattern("brief.creatieDatum", Model.of(brief.getCreatieDatum()), Constants.DEFAULT_DATE_FORMAT));
 		boolean tegenhoudenNietMogelijkBevatBriefType = tegenhoudenNietMogelijkBriefTypes.contains(brief.getBriefType());
@@ -301,10 +105,7 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				ClientBrief<?, ?, ?> brief = (ClientBrief<?, ?, ?>) BriefUtil.setTegenhouden(BriefKlaargezetPanel.this.getModelObject().getBrief(), true);
-				hibernateService.saveOrUpdate(brief);
-				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
-					BriefUtil.getBriefTypeNaam(brief) + ", wordt tegengehouden.", brief.getBriefType().getOnderzoeken());
+				baseBriefService.briefTegenhouden(BriefKlaargezetPanel.this.getModelObject().getBrief(), ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.brieftegenhouden"));
 				verversTegenhouden(target);
 			}
@@ -319,15 +120,12 @@ public class BriefKlaargezetPanel extends AbstractGebeurtenisDetailPanel
 			{
 				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = BriefKlaargezetPanel.this.getModelObject();
 				screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_TEGENHOUDEN);
-				ClientBrief<?, ?, ?> brief = (ClientBrief<?, ?, ?>) BriefUtil.setTegenhouden(screeningRondeGebeurtenis.getBrief(), false);
-				hibernateService.saveOrUpdate(brief);
-				logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, ScreenitSession.get().getLoggedInAccount(), brief.getClient(),
-					BriefUtil.getBriefTypeNaam(brief) + ", was tegengehouden en wordt nu doorgevoerd.", brief.getBriefType().getOnderzoeken());
+				baseBriefService.briefNietMeerTegenhouden(BriefKlaargezetPanel.this.getModelObject().getBrief(), ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.briefactiveren"));
 				verversTegenhouden(target);
 			}
 		}.setVisible(BriefUtil.isTegengehouden(brief)));
-		mogelijk.setVisible(!BriefUtil.isGegenereerd(brief) && !tegenhoudenNietMogelijkBevatBriefType);
+		mogelijk.setVisible(BriefUtil.isNietGegenereerdEnNietVervangen(brief) && !tegenhoudenNietMogelijkBevatBriefType);
 		tegenhoudenContainer.add(mogelijk);
 
 		WebMarkupContainer nietmogelijk = new WebMarkupContainer("nietMogelijk");

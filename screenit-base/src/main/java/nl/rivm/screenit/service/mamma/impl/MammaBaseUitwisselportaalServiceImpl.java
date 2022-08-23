@@ -48,8 +48,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaMammografieIlmStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.UploadDocumentService;
+import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.rivm.screenit.service.mamma.MammaBaseVerslagService;
 import nl.rivm.screenit.util.ZipUtil;
@@ -58,9 +58,11 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
 import com.google.common.collect.ImmutableMap;
 
 @Slf4j
@@ -91,6 +93,7 @@ public class MammaBaseUitwisselportaalServiceImpl implements MammaBaseUitwisselp
 	private BerichtToBatchService berichtToBatchService;
 
 	@Autowired
+	@Lazy
 	private MammaBaseIlmService baseIlmService;
 
 	@Override

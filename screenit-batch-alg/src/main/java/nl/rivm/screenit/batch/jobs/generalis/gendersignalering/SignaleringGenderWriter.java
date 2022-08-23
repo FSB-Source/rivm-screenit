@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.generalis.gendersignalering;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
@@ -28,13 +29,14 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@AllArgsConstructor
+@Component
 public class SignaleringGenderWriter extends BaseWriter<Client>
 {
-	@Autowired
-	private BaseBriefService briefService;
+	private final BaseBriefService briefService;
 
 	@Override
 	protected void write(Client client) throws Exception

@@ -196,10 +196,16 @@ public class MammaDicomCStroreServiceProviderImpl
 					MammaDownloadOnderzoek downloadOnderzoek = getDownloadOnderzoek(accessionNumber);
 					if (downloadOnderzoek != null)
 					{
-						File newFile = new File("IMG" + StringUtils.leftPad(instanceNumber, 5, "0") + ".dcm");
-						file.renameTo(newFile);
-						file = newFile;
-						uitwisselPortaalService.kopieerDicomBestandNaarDownloadVerzoekMap(file, seriesNumber, downloadOnderzoek);
+						File newFile = new File(System.getProperty("java.io.tmpdir") + File.separator + "IMG" + StringUtils.leftPad(instanceNumber, 5, "0") + ".dcm");
+						if (file.renameTo(newFile))
+						{
+							file = newFile;
+							uitwisselPortaalService.kopieerDicomBestandNaarDownloadVerzoekMap(file, seriesNumber, downloadOnderzoek);
+						}
+						else
+						{
+							throw new IOException("Rename van " + file + " naar " + newFile + "is niet gelukt");
+						}
 					}
 					else
 					{

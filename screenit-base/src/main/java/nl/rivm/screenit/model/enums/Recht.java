@@ -52,6 +52,12 @@ public enum Recht implements INaam
 
 	GEBRUIKER_INZIEN_LOGGING("Loginformatie", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
+	GEBRUIKER_INZIEN_A_NUMMER(
+		"Inzien A-Nummer",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN),
+
 	GEBRUIKER_BATCH_STATUS(
 		"Batch status",
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
@@ -426,17 +432,25 @@ public enum Recht implements INaam
 
 	GEBRUIKER_CLIENT_SR_HUISARTSBERICHT_OPNIEUW_VERZENDEN(
 		"Huisarts bericht opnieuw verzenden",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX },
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		null,
 		Actie.AANPASSEN),
 
 	GEBRUIKER_CLIENT_SR_HUISARTS_KOPPELEN(
 		"Huisarts koppelen",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
 		Actie.AANPASSEN),
 
-	GEBRUIKER_SCREENING_PRINTER("Screening brieven printen", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
+	GEBRUIKER_SCREENING_PRINTER(
+		"Screening brieven printen",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
+
+	GEBRUIKER_SCREENING_PRINTER_LANDELIJK(
+		"Screening brieven algemeen printen",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.VERWIJDEREN),
 
 	GEBRUIKER_SCREENING_PRINTER_PROJECTBRIEVEN(
 		"Screening projectbrieven printen",
@@ -677,9 +691,9 @@ public enum Recht implements INaam
 
 	GEBRUIKER_CERVIX_STATUS_MONSTER("Status monster", new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX }, new ToegangLevel[] { ToegangLevel.INSTELLING }, Actie.INZIEN),
 
-	GEBRUIKER_CLIENT_SR_CERVIX_HUISARTSBERICHT_DETAILS(
+	GEBRUIKER_CLIENT_SR_HUISARTSBERICHT_DETAILS(
 		"Huisartsbericht details",
-		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX },
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.COLON },
 		new ToegangLevel[] { ToegangLevel.REGIO, ToegangLevel.LANDELIJK },
 		Actie.INZIEN),
 
@@ -1093,7 +1107,12 @@ public enum Recht implements INaam
 		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX },
 		new ToegangLevel[] { ToegangLevel.LANDELIJK },
 		Actie.AANPASSEN
-	);
+	),
+	GEBRUIKER_TOON_GENDERINDETITEIT(
+		"Toon genderidentiteit",
+		new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA, Bevolkingsonderzoek.CERVIX },
+		new ToegangLevel[] { ToegangLevel.LANDELIJK },
+		Actie.INZIEN);
 
 	private final String omschrijving;
 

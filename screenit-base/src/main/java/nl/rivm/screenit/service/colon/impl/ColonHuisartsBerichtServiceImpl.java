@@ -102,24 +102,34 @@ public class ColonHuisartsBerichtServiceImpl implements ColonHuisartsBerichtServ
 	public void verstuurColonHuisartsBericht(Client client, ColonScreeningRonde colonScreeningRonde, HuisartsBerichtType berichtType,
 		MailMergeContext context)
 	{
-		verstuurColonHuisartsBericht(client, colonScreeningRonde, berichtType, context, false);
+		verstuurColonHuisartsBericht(client, colonScreeningRonde, colonScreeningRonde.getColonHuisarts(), berichtType, context, false);
 	}
 
 	@Override
-	public void verstuurColonHuisartsBericht(Client client, ColonScreeningRonde colonScreeningRonde, HuisartsBerichtType berichtType,
+	public ColonHuisartsBericht verstuurHuisartsBericht(ColonHuisartsBericht huidigBericht, EnovationHuisarts huisarts)
+	{
+		MailMergeContext context = new MailMergeContext();
+		context.setClient(huidigBericht.getClient());
+		return verstuurColonHuisartsBericht(huidigBericht.getClient(), huidigBericht.getScreeningsRonde(), huisarts, huidigBericht.getBerichtType(), context, true);
+	}
+
+	@Override
+	public ColonHuisartsBericht verstuurColonHuisartsBericht(Client client, ColonScreeningRonde colonScreeningRonde, EnovationHuisarts huisarts, HuisartsBerichtType berichtType,
 		MailMergeContext context, boolean opnieuwVerzonden)
 	{
 		if (colonScreeningRonde == null
 			|| BezwaarUtil.isBezwaarActiefVoor(client, BezwaarType.GEEN_UITWISSELING_MET_DE_HUISARTS, Bevolkingsonderzoek.COLON))
 		{
-			return;
+			return null;
 		}
-		EnovationHuisarts huisarts = colonScreeningRonde.getColonHuisarts();
+
 		if (huisarts != null)
 		{
 			ColonHuisartsBericht huisartsBericht = ediService.maakHuisartsBericht(berichtType, ColonHuisartsBerichtStatus.CONTROLE_NIET_NODIG, client,
 				huisarts, context, opnieuwVerzonden);
 			ediService.verstuurMedVry(huisartsBericht);
+			return huisartsBericht;
 		}
+		return null;
 	}
 }

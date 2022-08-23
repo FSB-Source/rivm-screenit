@@ -23,23 +23,24 @@ package nl.rivm.screenit.batch.jms.listener;
 
 import javax.jms.Session;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.service.MammaVerzamelDownloadOnderzoekDataService;
 
 import org.apache.activemq.command.ActiveMQTextMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(propagation = Propagation.SUPPORTS)
+@Slf4j
+@Component
+@AllArgsConstructor
 public class JMSVerzamelOnderzoekDataBerichtListener implements SessionAwareMessageListener<ActiveMQTextMessage>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(JMSVerzamelOnderzoekDataBerichtListener.class);
-
-	@Autowired
-	private MammaVerzamelDownloadOnderzoekDataService verzamelDownloadOnderzoekDataService;
+	private final MammaVerzamelDownloadOnderzoekDataService verzamelDownloadOnderzoekDataService;
 
 	@Override
 	public void onMessage(ActiveMQTextMessage message, Session session)

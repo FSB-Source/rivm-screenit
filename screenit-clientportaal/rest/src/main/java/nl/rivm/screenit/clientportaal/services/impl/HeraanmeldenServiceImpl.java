@@ -21,28 +21,30 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.services.HeraanmeldenService;
+import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.util.AfmeldingUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@AllArgsConstructor
+@Transactional(propagation = Propagation.REQUIRED)
 public class HeraanmeldenServiceImpl implements HeraanmeldenService
 {
 
-	@Autowired
-	private BaseAfmeldService baseAfmeldService;
+	private final BaseAfmeldService baseAfmeldService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED)
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = MammaStandplaatsVanPostcodeOnbekendException.class)
 	public void saveHeraanmeldenVerzoek(Client client, Bevolkingsonderzoek bevolkingsonderzoek, boolean clientWilNieuweUitnodiging)
 	{
 		Afmelding<?, ?, ?> afmelding;

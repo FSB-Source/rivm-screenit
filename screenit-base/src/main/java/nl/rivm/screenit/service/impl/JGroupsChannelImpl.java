@@ -24,6 +24,8 @@ package nl.rivm.screenit.service.impl;
 import java.net.InetSocketAddress;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.service.JGroupsChannel;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,18 +34,18 @@ import org.jgroups.JChannel;
 import org.jgroups.protocols.TCP;
 import org.jgroups.protocols.TCPGOSSIP;
 import org.jgroups.util.Util;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service(value = "jGroupsChannel")
+@Profile("!test")
+@Slf4j
 public class JGroupsChannelImpl implements JGroupsChannel
 {
-	private static final Logger LOG = LoggerFactory.getLogger(JGroupsChannelImpl.class);
 
 	@Autowired
-	private String applicatieInstantie;
+	private String applicationInstance;
 
 	@Autowired
 	private Integer jgroupsCommonBindPort;
@@ -80,7 +82,7 @@ public class JGroupsChannelImpl implements JGroupsChannel
 					TCPGOSSIP tcpGossipProtocol = channel.getProtocolStack().findProtocol(TCPGOSSIP.class);
 					tcpGossipProtocol.setInitialHosts(initialHosts);
 
-					channel.setName("jgCommon-" + applicatieInstantie.toLowerCase());
+					channel.setName("jgCommon-" + applicationInstance.toLowerCase());
 					channel.connect("jgCommon-GROUP");
 					LOG.info(channel.toString(true));
 				}

@@ -26,6 +26,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.AfmeldOptiesDto;
 import nl.rivm.screenit.clientportaal.model.AfmeldingDto;
 import nl.rivm.screenit.clientportaal.services.AfmeldenService;
@@ -44,17 +46,16 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.util.EnumStringUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class AfmeldenServiceImpl implements AfmeldenService
 {
-	@Autowired
-	private ClientContactService clientContactService;
+	private final ClientContactService clientContactService;
 
 	@Override
 	public AfmeldOptiesDto getAfmeldOpties(Client client, Bevolkingsonderzoek bvo)
@@ -68,8 +69,7 @@ public class AfmeldenServiceImpl implements AfmeldenService
 		{
 		case CERVIX:
 			afmeldOpties = clientContactService.getAvailableAfmeldoptiesCervix(client, true);
-			Arrays.stream(CervixAfmeldingReden.values())
-				.forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
+			Arrays.stream(CervixAfmeldingReden.values()).forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
 			break;
 		case COLON:
 			afmeldOpties = clientContactService.getAvailableAfmeldoptiesColon(client, true);
@@ -78,19 +78,15 @@ public class AfmeldenServiceImpl implements AfmeldenService
 					&& !afmeldingReden.equals(ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK))
 				.collect(Collectors.toList());
 
-			gefilterdeColonAfmeldingRedenen.stream()
-				.forEach(afmeldingReden -> afmeldRedenenEenmalig.add(EnumStringUtil.getPropertyString(afmeldingReden)));
-			gefilterdeColonAfmeldingRedenen.stream()
-				.forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
+			gefilterdeColonAfmeldingRedenen.forEach(afmeldingReden -> afmeldRedenenEenmalig.add(EnumStringUtil.getPropertyString(afmeldingReden)));
+			gefilterdeColonAfmeldingRedenen.forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
 
 			heeftOpenIntakeAfspraak = clientContactService.heeftOpenIntakeAfspraak(client);
 			break;
 		case MAMMA:
 			afmeldOpties = clientContactService.getAvailableAfmeldoptiesMamma(client, true);
-			MammaAfmeldingReden.eenmaligeRedenen()
-				.forEach(afmeldingReden -> afmeldRedenenEenmalig.add(EnumStringUtil.getPropertyString(afmeldingReden)));
-			MammaAfmeldingReden.definitieveRedenen()
-				.forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
+			MammaAfmeldingReden.eenmaligeRedenen().forEach(afmeldingReden -> afmeldRedenenEenmalig.add(EnumStringUtil.getPropertyString(afmeldingReden)));
+			MammaAfmeldingReden.definitieveRedenen().forEach(afmeldingReden -> afmeldRedenenDefinitief.add(EnumStringUtil.getPropertyString(afmeldingReden)));
 			break;
 		}
 		return new AfmeldOptiesDto(afmeldOpties, afmeldRedenenEenmalig, afmeldRedenenDefinitief, heeftOpenIntakeAfspraak);

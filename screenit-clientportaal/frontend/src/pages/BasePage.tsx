@@ -29,17 +29,18 @@ import TextBlobComponent from "../components/blob/TextBlobComponent"
 import KruimelpadComponent from "../components/kruimelpad/KruimelpadComponent"
 
 export type BasePageProps = {
-    bvoName: string,
-    title: string,
-    description: string,
-    hint?: string,
-    toonBlob: boolean,
-    blobTitle?: string,
-    blobText?: string,
-    blobAdresLocatie?: string,
-    onBlobLinkClick?: () => void,
-    blobLinkText?: string,
-    children: React.ReactNode,
+	bvoName: string,
+	title: string,
+	description: string,
+	hint?: string,
+	toonBlob: boolean,
+	blobTitle?: string,
+	blobText?: string,
+	blobExtraText?: string,
+	blobAdresLocatie?: string,
+	onBlobLinkClick?: () => void,
+	blobLinkText?: string,
+	children: React.ReactNode,
 }
 
 const BasePage = (props: BasePageProps) => {
@@ -56,13 +57,14 @@ const BasePage = (props: BasePageProps) => {
                                         toonAlgemeneInleidingTekst={false}/>
                 </Col>
                 <Col md={4}>
-                    {props.toonBlob &&
-                    <TextBlobComponent
-                        titel={props.blobTitle ? props.blobTitle : ""}
-                        tekst={props.blobText ? props.blobText : ""}
-                        adresLocatie={props.blobAdresLocatie}
-                        onLinkClick={props.onBlobLinkClick}
-                        linkTekst={props.blobLinkText}/>}
+					{props.toonBlob &&
+						<TextBlobComponent
+							titel={props.blobTitle ? props.blobTitle : ""}
+							tekst={props.blobText ? props.blobText : ""}
+							extraTekst={props.blobExtraText ? props.blobExtraText : ""}
+							adresLocatie={props.blobAdresLocatie}
+							onLinkClick={props.onBlobLinkClick}
+							linkTekst={props.blobLinkText}/>}
                 </Col>
             </Row>
             <div className={styles.childrenContainer}>

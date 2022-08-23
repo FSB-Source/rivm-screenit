@@ -21,24 +21,28 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.service.ClientService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("regio")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class RegioController extends AbstractController
 {
 
-	@Autowired
-	ClientService clientService;
+	private final ClientService clientService;
 
 	@GetMapping
 	public ResponseEntity<String> getRegio(Authentication authentication)

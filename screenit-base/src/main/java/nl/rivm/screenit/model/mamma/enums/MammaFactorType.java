@@ -49,7 +49,7 @@ public enum MammaFactorType
 		}
 	}
 
-	public static MammaFactorType getFactorType(boolean isTehuisClient, MammaDoelgroep doelgroep, boolean heeftOoitUitslagGehad)
+	public static MammaFactorType getFactorType(boolean isTehuisClient, MammaDoelgroep doelgroep, boolean eersteOnderzoek)
 	{
 		if (isTehuisClient)
 		{
@@ -59,7 +59,7 @@ public enum MammaFactorType
 		switch (doelgroep)
 		{
 		case REGULIER:
-			return heeftOoitUitslagGehad ? GEEN : EERSTE_ONDERZOEK;
+			return eersteOnderzoek ? EERSTE_ONDERZOEK : GEEN;
 		case DUBBELE_TIJD:
 			return DUBBELE_TIJD;
 		case MINDER_VALIDE:

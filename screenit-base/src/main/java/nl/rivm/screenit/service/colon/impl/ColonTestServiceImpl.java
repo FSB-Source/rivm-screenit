@@ -624,7 +624,7 @@ public class ColonTestServiceImpl implements ColonTestService
 	}
 
 	@Override
-	public void huisartsBerichtKlaarzettten(GbaPersoon filter, HuisartsBerichtType berichtType)
+	public void huisartsBerichtKlaarzetten(GbaPersoon filter, HuisartsBerichtType berichtType)
 	{
 		Client client = geefClient(filter.getBsn(), filter.getGeboortedatum(), filter.getOverlijdensdatum());
 		geefAdres(client, filter.getGbaAdres().getGbaGemeente());

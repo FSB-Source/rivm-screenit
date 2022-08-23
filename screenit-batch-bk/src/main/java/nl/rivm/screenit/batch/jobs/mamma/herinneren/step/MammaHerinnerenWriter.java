@@ -21,29 +21,29 @@ package nl.rivm.screenit.batch.jobs.mamma.herinneren.step;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.jobs.mamma.herinneren.MammaHerinnerenConstants;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaHerinnerenWriter extends BaseWriter<MammaScreeningRonde>
 {
+	private final BaseBriefService briefService;
 
-	@Autowired
-	private BaseBriefService briefService;
-
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void write(MammaScreeningRonde ronde) throws Exception
 	{
-		MammaUitnodiging laatsteUitnodiging = ronde.getLaatsteUitnodiging();
+		var laatsteUitnodiging = ronde.getLaatsteUitnodiging();
 		laatsteUitnodiging.setHerinnered(true);
 		hibernateService.saveOrUpdate(laatsteUitnodiging);
 

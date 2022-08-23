@@ -26,6 +26,8 @@ import java.util.Properties;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.distribution.CacheManagerPeerProvider;
 import net.sf.ehcache.distribution.CacheManagerPeerProviderFactory;
@@ -33,13 +35,10 @@ import net.sf.ehcache.distribution.jgroups.JGroupsCacheManagerPeerProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jgroups.Global;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class JNDIJGroupsCacheManagerPeerProviderFactory extends CacheManagerPeerProviderFactory
 {
-	private static final Logger LOG = LoggerFactory.getLogger(JNDIJGroupsCacheManagerPeerProviderFactory.class);
-
 	public static String initialHosts;
 
 	public static String bindIp;

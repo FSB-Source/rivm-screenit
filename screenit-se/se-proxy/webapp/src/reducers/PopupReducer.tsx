@@ -6,7 +6,7 @@ import {Reducer} from "redux"
 
 const emptyPopup: Popup = {
 	titel: "",
-	body: {},
+	body: undefined,
 	visible: false,
 	annulerenString: "Annuleren",
 	akkoordString: "Akkoord",

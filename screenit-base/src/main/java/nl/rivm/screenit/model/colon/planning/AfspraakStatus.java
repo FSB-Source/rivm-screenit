@@ -39,12 +39,16 @@ public enum AfspraakStatus
 
 	GEANNULEERD_OPEN_UITNODIGING("Geannuleerd ivm open aanmaken uitnodiging"),
 
-	VERPLAATST("Verplaatst");
+	GEANNULEERD_ONBEKEND("Geannuleerd onbekende reden"),
+
+	VERPLAATST("Verplaatst"),
+
+	;
 
 	public static final EnumSet<AfspraakStatus> VOOR_AGENDA = EnumSet.of(GEPLAND, UITGEVOERD);
 
 	public static final EnumSet<AfspraakStatus> GEANNULEERD = EnumSet.of(GEANNULEERD_OPEN_UITNODIGING, GEANNULEERD_CLIENT, GEANNULEERD_VIA_INFOLIJN, GEANNULEERD_OVERLIJDEN,
-		GEANNULEERD_AFMELDEN);
+		GEANNULEERD_AFMELDEN, GEANNULEERD_ONBEKEND);
 
 	private String omschrijving;
 

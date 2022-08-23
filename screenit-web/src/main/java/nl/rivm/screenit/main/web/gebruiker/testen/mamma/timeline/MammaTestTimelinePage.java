@@ -25,7 +25,6 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -35,6 +34,7 @@ import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
 import nl.rivm.screenit.main.service.mamma.MammaTestTimelineService;
+import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.PercentageBigDecimalField;
@@ -46,6 +46,7 @@ import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.GebeurtenisComparator;
 import nl.rivm.screenit.main.web.gebruiker.testen.TestenBasePage;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
+import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestEnumRadioChoice;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestVervolgKeuzeKnop;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.BijzondereClientDatumPopup;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -54,12 +55,11 @@ import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
-import nl.rivm.screenit.service.BerichtToBatchService;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseTestService;
 import nl.rivm.screenit.util.TestBsnGenerator;
@@ -70,7 +70,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.model.DetachableListModel;
 import nl.topicuszorg.wicket.model.SortingListModel;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -84,6 +83,7 @@ import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -112,15 +112,11 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 		Bevolkingsonderzoek.MAMMA })
 public class MammaTestTimelinePage extends TestenBasePage
 {
-
 	@SpringBean
 	private MammaTestTimelineService testTimelineService;
 
 	@SpringBean
 	private HibernateService hibernateService;
-
-	@SpringBean
-	private ClientService clientService;
 
 	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
@@ -131,32 +127,25 @@ public class MammaTestTimelinePage extends TestenBasePage
 	@SpringBean
 	private MammaScreeningsEenheidDao screeningsEenheidDao;
 
-	@SpringBean
-	private BerichtToBatchService berichtToBatchService;
-
-	private IModel<TestTimelineModel> model;
+	private final IModel<TestTimelineModel> model;
 
 	private IModel<List<Client>> clientModel;
 
 	private IModel<List<TestTimelineRonde>> rondesModel;
 
-	private IModel<List<Gemeente>> gemeentenModel;
+	private final IModel<List<Gemeente>> gemeentenModel;
 
-	private Form<TestTimelineModel> form;
+	private final Form<TestTimelineModel> form;
 
 	private WebMarkupContainer formComponents;
 
-	private DatePicker<Date> geboortedatum;
-
-	private TextField<BigDecimal> deelnamekansField;
-
 	private final BootstrapDialog dialog;
 
-	private IModel<List<FileUpload>> pocfilesUploaded = new ListModel<>();
+	private final IModel<List<FileUpload>> pocfilesUploaded = new ListModel<>();
 
 	private IModel<MammaScreeningsEenheid> screeningsEenheid;
 
-	private IModel<ImportPocOpties> importPocOptiesIModel;
+	private final IModel<ImportPocOpties> importPocOptiesIModel;
 
 	public MammaTestTimelinePage()
 	{
@@ -277,6 +266,9 @@ public class MammaTestTimelinePage extends TestenBasePage
 		bsnField.setOutputMarkupId(true);
 		container.add(bsnField);
 
+		Label aNummer = new Label("aNummer");
+		container.add(aNummer);
+
 		bsnField.add(new AjaxEventBehavior("change")
 		{
 
@@ -295,29 +287,30 @@ public class MammaTestTimelinePage extends TestenBasePage
 
 		addClientBsnGenererenButtons(container, model);
 
-		geboortedatum = ComponentHelper.monthYearDatePicker("geboortedatum");
+		DatePicker<Date> geboortedatum = ComponentHelper.monthYearDatePicker("geboortedatum");
 		geboortedatum.setOutputMarkupId(true);
 		container.add(geboortedatum);
 
-		deelnamekansField = new PercentageBigDecimalField("deelnamekans");
+		List<Geslacht> geslachten = new ArrayList<>(Arrays.asList(Geslacht.values()));
+		geslachten.remove(Geslacht.NIET_GESPECIFICEERD);
+		RadioChoice<Geslacht> geslachtRadio = new TestEnumRadioChoice<>("geslacht", geslachten, new EnumChoiceRenderer<>(this));
+		geslachtRadio.setPrefix("<label class=\"radio\">");
+		geslachtRadio.setSuffix("</label>");
+		geslachtRadio.setOutputMarkupId(true);
+		container.add(geslachtRadio);
+
+		TextField<BigDecimal> deelnamekansField = new PercentageBigDecimalField("deelnamekans");
 
 		container.add(deelnamekansField);
 
-		List<Geslacht> geslachten = new ArrayList<>(Arrays.asList(Geslacht.values()));
-		geslachten.remove(Geslacht.NIET_GESPECIFICEERD);
-		geslachten.remove(Geslacht.ONBEKEND);
+		container.add(new DropDownChoice<>("gemeente", gemeentenModel, new ChoiceRenderer<>("naam")));
 
-		container.add(new DropDownChoice<>("gemeente", gemeentenModel, new ChoiceRenderer<Gemeente>("naam")));
-
-		container.add(new DropDownChoice<MammaDoelgroep>("doelgroep", Arrays.asList(MammaDoelgroep.values()), new EnumChoiceRenderer<MammaDoelgroep>()).setNullValid(true));
+		container.add(new DropDownChoice<>("doelgroep", Arrays.asList(MammaDoelgroep.values()), new EnumChoiceRenderer<>()).setNullValid(true));
 
 		container.add(new PostcodeField("postcode"));
 
 		IndicatingAjaxSubmitLink clientVindOfMaak = new IndicatingAjaxSubmitLink("clientVindOfMaak")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -336,7 +329,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 				clientModel = ModelUtil.listModel(clienten);
 				MammaTestTimelinePage.this.info("Client(en) zijn gevonden en/of succesvol aangemaakt");
 
-				if (clienten.size() > 0)
+				if (!clienten.isEmpty())
 				{
 					refreshTimelineModel(timelineModel, clienten);
 					WebMarkupContainer fCcontainer = getFormComponentsContainer();
@@ -355,14 +348,11 @@ public class MammaTestTimelinePage extends TestenBasePage
 		container.add(clientVindOfMaak);
 		IndicatingAjaxSubmitLink clientWijzigOfMaak = new IndicatingAjaxSubmitLink("clientWijzigOfMaak")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
 				TestTimelineModel timelineModel = model.getObject();
-				if ((timelineModel.getDoelgroep() != null) != (timelineModel.getDeelnamekans() != null))
+				if ((timelineModel.getDoelgroep() == null) == (timelineModel.getDeelnamekans() != null))
 				{
 					error("Als de doelgroep ingevuld is moet ook de deelnamekans ingevuld worden en vice versa");
 					return;
@@ -376,7 +366,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 				clientModel = ModelUtil.listModel(clienten);
 				MammaTestTimelinePage.this.info("Client(en) zijn succesvol gewijzigd of aangemaakt");
 
-				if (clienten.size() > 0)
+				if (!clienten.isEmpty())
 				{
 					refreshTimelineModel(timelineModel, clienten);
 					WebMarkupContainer fCcontainer = getFormComponentsContainer();
@@ -406,14 +396,11 @@ public class MammaTestTimelinePage extends TestenBasePage
 		{
 			reloadClienten();
 			List<TestTimelineRonde> rondes = testTimelineService.getTimelineRondes(clientModel.getObject().get(0));
-			Collections.sort(rondes, (o1, o2) -> o2.getRondeNummer().compareTo(o1.getRondeNummer()));
+			rondes.sort((o1, o2) -> o2.getRondeNummer().compareTo(o1.getRondeNummer()));
 			rondesModel = new DetachableListModel<>(rondes);
 
 			TestVervolgKeuzeKnop snelkeuzeRonde = new TestVervolgKeuzeKnop("nieuweRonde", clientModel, dialog)
 			{
-
-				private static final long serialVersionUID = 1L;
-
 				@Override
 				public boolean refreshContainer(AjaxRequestTarget target)
 				{
@@ -436,14 +423,18 @@ public class MammaTestTimelinePage extends TestenBasePage
 				public List<TestVervolgKeuzeOptie> getOptions()
 				{
 					List<TestVervolgKeuzeOptie> keuzes = new ArrayList<>();
-					if (clientModel.getObject().get(0).getPersoon().getGeslacht() == Geslacht.VROUW)
+					if (!Deelnamemodus.SELECTIEBLOKKADE.equals(clientModel.getObject().get(0).getMammaDossier().getDeelnamemodus()))
 					{
 						keuzes.add(TestVervolgKeuzeOptie.MAMMA_NIEUWE_RONDE_MET_AFSPRAAK_UITNODIGING);
 						keuzes.add(TestVervolgKeuzeOptie.MAMMA_NIEUWE_RONDE_MET_OPEN_UITNODIGING);
-						if (clientModel.getObject().get(0).getMammaDossier().getLaatsteScreeningRonde() != null)
-						{
-							keuzes.add(TestVervolgKeuzeOptie.MAMMA_VERZET_TIJD);
-						}
+					}
+					else
+					{
+						keuzes.add(TestVervolgKeuzeOptie.MAMMA_DEELNAME_WENS);
+					}
+					if (clientModel.getObject().get(0).getMammaDossier().getLaatsteScreeningRonde() != null)
+					{
+						keuzes.add(TestVervolgKeuzeOptie.MAMMA_VERZET_TIJD);
 					}
 					return keuzes;
 				}
@@ -485,7 +476,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 
 	private ListView<TestTimelineRonde> getListView()
 	{
-		ListView<TestTimelineRonde> listView = new ListView<TestTimelineRonde>("rondes", rondesModel)
+		return new ListView<>("rondes", rondesModel)
 		{
 
 			@Override
@@ -528,7 +519,7 @@ public class MammaTestTimelinePage extends TestenBasePage
 				SortingListModel<ScreeningRondeGebeurtenis> sortingListModel = new SortingListModel<>(
 					new PropertyModel<>(item.getModel(), "mammaScreeningRondeDossier.gebeurtenissen"), new GebeurtenisComparator());
 
-				item.add(new PropertyListView<ScreeningRondeGebeurtenis>("gebeurtenissen", sortingListModel)
+				item.add(new PropertyListView<>("gebeurtenissen", sortingListModel)
 				{
 
 					private static final long serialVersionUID = 1L;
@@ -550,47 +541,13 @@ public class MammaTestTimelinePage extends TestenBasePage
 							{
 								ScreeningRondeGebeurtenis gebeurtenis2 = item.getModelObject();
 								String[] extraOmschrijvingen = gebeurtenis2.getExtraOmschrijving();
-								String extraOmschrijving = "";
-								if (extraOmschrijvingen != null)
-								{
-									for (String omschrijving : extraOmschrijvingen)
-									{
-										if (omschrijving != null)
-										{
-											if (StringUtils.isNotBlank(extraOmschrijving))
-											{
-												if (extraOmschrijving.trim().endsWith(":"))
-												{
-													if (!extraOmschrijving.endsWith(":"))
-													{
-														extraOmschrijving += " ";
-													}
-												}
-												else
-												{
-													extraOmschrijving += ", ";
-												}
-											}
-											else
-											{
-												extraOmschrijving = "(";
-											}
-											extraOmschrijving += getString(omschrijving, null, omschrijving);
-										}
-									}
-								}
-								if (StringUtils.isNotBlank(extraOmschrijving))
-								{
-									extraOmschrijving += ")";
-								}
-								return extraOmschrijving;
+								return BriefOmschrijvingUtil.verwerkExtraOmschrijvingen(extraOmschrijvingen, MammaTestTimelinePage.this::getString);
 							}
 						}));
 					}
 				});
 			}
 		};
-		return listView;
 	}
 
 	private void addbuttons(WebMarkupContainer container)

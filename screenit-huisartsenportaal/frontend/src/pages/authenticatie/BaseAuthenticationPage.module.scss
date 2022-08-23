@@ -1,0 +1,25 @@
+@import "../../styling/scss/colors";
+
+.style {
+	padding-top: 20px;
+
+	.panel {
+		max-width: 500px;
+		background-color: $wit-doorzichtig;
+
+		h3 {
+			text-align: center;
+		}
+
+		.form {
+			input {
+				width: 100%;
+			}
+			button {
+				width: 100%;
+				height: 40px;
+			}
+		}
+	}
+
+}

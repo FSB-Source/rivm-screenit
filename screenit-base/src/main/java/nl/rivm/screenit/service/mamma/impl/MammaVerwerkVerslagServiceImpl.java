@@ -42,6 +42,7 @@ import nl.rivm.screenit.service.mamma.MammaVerwerkVerslagService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -144,9 +145,6 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 			&& Objects.equals(nieuwMonstermateriaal.getZijdigheid(), oudMonstermateriaal.getZijdigheid())
 			&& Objects.equals(nieuwMonstermateriaal.getLocatietopologie(), oudMonstermateriaal.getLocatietopologie())
 			&& Objects.equals(nieuwMonstermateriaal.getLocatieuren(), oudMonstermateriaal.getLocatieuren())
-			&& Objects.equals(nieuwMonstermateriaal.getVerkrijgingswijze(), oudMonstermateriaal.getVerkrijgingswijze())
-			&& Objects.equals(nieuwMonstermateriaal.getVerkrijgingswijze(), oudMonstermateriaal.getVerkrijgingswijze())
-			&& Objects.equals(nieuwMonstermateriaal.getZijdigheid(), oudMonstermateriaal.getZijdigheid())
 			&& Objects.equals(nieuwFollowupPa.getCclassificatiePunctie(), oudFollowupPa.getCclassificatiePunctie())
 			&& Objects.equals(nieuwFollowupPa.getOestrogeenReceptorStatus(), oudFollowupPa.getOestrogeenReceptorStatus())
 			&& Objects.equals(nieuwFollowupPa.getProgesteronReceptorStatus(), oudFollowupPa.getProgesteronReceptorStatus())
@@ -154,8 +152,13 @@ public class MammaVerwerkVerslagServiceImpl implements MammaVerwerkVerslagServic
 			&& Objects.equals(nieuwFollowupPa.getBclassificatieOpMammabiopt(), oudFollowupPa.getBclassificatieOpMammabiopt())
 			&& Objects.equals(nieuwFollowupPa.getMaligniteitsgraad(), oudFollowupPa.getMaligniteitsgraad())
 			&& isIdentiekePtnm(nieuwPtnmEnGradering, oudPtnmEnGradering)
+			&& Objects.equals(nieuwFollowupPa.getTypeInvasieveTumorwhoOverige(), oudFollowupPa.getTypeInvasieveTumorwhoOverige())
+			&& Objects.equals(nieuwFollowupPa.getGraderingDcis(), oudFollowupPa.getGraderingDcis())
+			&& CollectionUtils.isEqualCollection(nieuwFollowupPa.getTypeNietEenduidigBenigneLaesies(), oudFollowupPa.getTypeNietEenduidigBenigneLaesies())
+			&& CollectionUtils.isEqualCollection(nieuwFollowupPa.getTypeEenduidigBenigneLaesies(), oudFollowupPa.getTypeEenduidigBenigneLaesies())
+			&& CollectionUtils.isEqualCollection(nieuwFollowupPa.getTypeCis(), oudFollowupPa.getTypeCis())
 			&& Objects.equals(DateUtil.toLocalDate(nieuwPathologieMedischeObservatie.getDatumOntvangstMateriaal()),
-				DateUtil.toLocalDate(oudPathologieMedischeObservatie.getDatumOntvangstMateriaal()))
+			DateUtil.toLocalDate(oudPathologieMedischeObservatie.getDatumOntvangstMateriaal()))
 			&& Objects.equals(nieuwPathologieMedischeObservatie.getTnummerLaboratorium(), oudPathologieMedischeObservatie.getTnummerLaboratorium())
 			&& Objects.equals(nieuwPathologieMedischeObservatie.getVersieProtocol(), oudPathologieMedischeObservatie.getVersieProtocol())
 			&& Objects.equals(nieuwVerrichting.getAanvangVerrichting(), oudVerrichting.getAanvangVerrichting())

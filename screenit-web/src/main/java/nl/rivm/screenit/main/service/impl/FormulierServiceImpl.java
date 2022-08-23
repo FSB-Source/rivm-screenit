@@ -83,6 +83,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -227,151 +228,151 @@ public class FormulierServiceImpl implements FormulierService
 
 	private void importVraagDefinties(InputStream inputStream, String domein) throws InvalidFormatException, IOException, ClassNotFoundException
 	{
-		Workbook workbook = WorkbookFactory.create(new PushbackInputStream(inputStream));
-
-		Sheet sheet = workbook.getSheet("Vragen");
-		if (sheet == null)
+		try (Workbook workbook = WorkbookFactory.create(new PushbackInputStream(inputStream)))
 		{
-			throw new IllegalStateException("Geen sheet genaamd 'Vragen' gevonden");
-		}
-
-		int index = 1;
-		boolean continueReading = true;
-		while (continueReading)
-		{
-			Row row = sheet.getRow(index);
-
-			if (row != null)
+			Sheet sheet = workbook.getSheet("Vragen");
+			if (sheet == null)
 			{
-				Cell cell3 = row.getCell(3);
-				if (isCellNotEmpty(cell3))
+				throw new IllegalStateException("Geen sheet genaamd 'Vragen' gevonden");
+			}
+
+			int index = 1;
+			boolean continueReading = true;
+			while (continueReading)
+			{
+				Row row = sheet.getRow(index);
+
+				if (row != null)
 				{
-					String identifier = cell3.getStringCellValue();
-					VraagDefinitie vraag = screenitFormulierDao.findSimpleVraagDefinitieImplByIdentifier(identifier, domein);
-					if (vraag == null)
+					Cell cell3 = row.getCell(3);
+					if (isCellNotEmpty(cell3))
 					{
-
-						if (isCellNotEmpty(row.getCell(4)) && isCellNotEmpty(row.getCell(5)))
-						{
-							SimpleAntwoordKeuzeVraagDefinitieImpl nieuweVraag = new SimpleAntwoordKeuzeVraagDefinitieImpl<>();
-							nieuweVraag.setRenderType(AntwoordRenderType.valueOf(row.getCell(4).getStringCellValue()));
-							if (row.getCell(1) != null)
-							{
-								nieuweVraag.setAanvullendeInformatie(row.getCell(1).getStringCellValue());
-							}
-
-							maakMogelijkheden(row, nieuweVraag);
-
-							if (isVerplichteVraag(row))
-							{
-								nieuweVraag.setVerplichting(new VerplichtingImpl());
-							}
-							vraag = nieuweVraag;
-						}
-						else if (isCellNotEmpty(row.getCell(4)))
+						String identifier = cell3.getStringCellValue();
+						VraagDefinitie vraag = screenitFormulierDao.findSimpleVraagDefinitieImplByIdentifier(identifier, domein);
+						if (vraag == null)
 						{
 
-							SimpleKeuzeVraagDefinitieImpl nieuweVraag = new SimpleKeuzeVraagDefinitieImpl<>();
-							nieuweVraag.setRenderType(AntwoordRenderType.valueOf(row.getCell(4).getStringCellValue()));
-
-							if (isVerplichteVraag(row))
+							if (isCellNotEmpty(row.getCell(4)) && isCellNotEmpty(row.getCell(5)))
 							{
-								nieuweVraag.setVerplichting(new VerplichtingImpl());
-							}
+								SimpleAntwoordKeuzeVraagDefinitieImpl nieuweVraag = new SimpleAntwoordKeuzeVraagDefinitieImpl<>();
+								nieuweVraag.setRenderType(AntwoordRenderType.valueOf(row.getCell(4).getStringCellValue()));
+								if (row.getCell(1) != null)
+								{
+									nieuweVraag.setAanvullendeInformatie(row.getCell(1).getStringCellValue());
+								}
 
-							vraag = nieuweVraag;
+								maakMogelijkheden(row, nieuweVraag);
+
+								if (isVerplichteVraag(row))
+								{
+									nieuweVraag.setVerplichting(new VerplichtingImpl());
+								}
+								vraag = nieuweVraag;
+							}
+							else if (isCellNotEmpty(row.getCell(4)))
+							{
+
+								SimpleKeuzeVraagDefinitieImpl nieuweVraag = new SimpleKeuzeVraagDefinitieImpl<>();
+								nieuweVraag.setRenderType(AntwoordRenderType.valueOf(row.getCell(4).getStringCellValue()));
+
+								if (isVerplichteVraag(row))
+								{
+									nieuweVraag.setVerplichting(new VerplichtingImpl());
+								}
+
+								vraag = nieuweVraag;
+							}
+							else
+							{
+
+								SimpleVraagDefinitieImpl nieuweVraag = new SimpleVraagDefinitieImpl<>();
+
+								if (isVerplichteVraag(row))
+								{
+									nieuweVraag.setVerplichting(new VerplichtingImpl());
+								}
+
+								vraag = nieuweVraag;
+							}
+							if (row.getCell(8) != null && row.getCell(8).getCellType() == CellType.STRING)
+							{
+								vraag.setExpressieVariabele(row.getCell(8).getStringCellValue());
+							}
+							vraag.setVraag(row.getCell(0).getStringCellValue());
+							vraag.setAntwoordTypeClass(Class.forName(row.getCell(2).getStringCellValue()));
+							if (vraag instanceof IdentifierElement)
+							{
+								((IdentifierElement) vraag).setIdentifier(identifier);
+							}
 						}
 						else
 						{
-
-							SimpleVraagDefinitieImpl nieuweVraag = new SimpleVraagDefinitieImpl<>();
-
-							if (isVerplichteVraag(row))
+							if (vraag instanceof SimpleAntwoordKeuzeVraagDefinitieImpl)
 							{
-								nieuweVraag.setVerplichting(new VerplichtingImpl());
+								SimpleAntwoordKeuzeVraagDefinitieImpl simpleAntwoordKeuzeVraagDefinitie = (SimpleAntwoordKeuzeVraagDefinitieImpl) vraag;
+								if (isVerplichteVraag(row))
+								{
+									simpleAntwoordKeuzeVraagDefinitie.setVerplichting(new VerplichtingImpl());
+								}
+								else
+								{
+									simpleAntwoordKeuzeVraagDefinitie.setVerplichting(null);
+								}
+
+								if (CollectionUtils.isNotEmpty(simpleAntwoordKeuzeVraagDefinitie.getMogelijkeAntwoorden()))
+								{
+									hibernateService.deleteAll(simpleAntwoordKeuzeVraagDefinitie.getMogelijkeAntwoorden());
+								}
+								simpleAntwoordKeuzeVraagDefinitie.getMogelijkeAntwoorden().clear();
+								maakMogelijkheden(row, simpleAntwoordKeuzeVraagDefinitie);
+							}
+							else if (vraag instanceof SimpleKeuzeVraagDefinitieImpl)
+							{
+								SimpleKeuzeVraagDefinitieImpl simpleKeuzeVraagDefinitie = (SimpleKeuzeVraagDefinitieImpl) vraag;
+								if (isVerplichteVraag(row))
+								{
+									simpleKeuzeVraagDefinitie.setVerplichting(new VerplichtingImpl());
+								}
+								else
+								{
+									simpleKeuzeVraagDefinitie.setVerplichting(null);
+								}
+							}
+							else if (vraag instanceof SimpleVraagDefinitieImpl)
+							{
+								SimpleVraagDefinitieImpl simpleVraagDefinitie = (SimpleVraagDefinitieImpl) vraag;
+								if (isVerplichteVraag(row))
+								{
+									simpleVraagDefinitie.setVerplichting(new VerplichtingImpl());
+								}
+								else
+								{
+									simpleVraagDefinitie.setVerplichting(null);
+								}
+							}
+							if (row.getCell(8) != null && row.getCell(8).getCellType() == CellType.STRING)
+							{
+								vraag.setExpressieVariabele(row.getCell(8).getStringCellValue());
 							}
 
-							vraag = nieuweVraag;
+							vraag.setVraag(row.getCell(0).getStringCellValue());
+							vraag.setAntwoordTypeClass(Class.forName(row.getCell(2).getStringCellValue()));
 						}
-						if (row.getCell(8) != null && row.getCell(8).getCellType() == Cell.CELL_TYPE_STRING)
-						{
-							vraag.setExpressieVariabele(row.getCell(8).getStringCellValue());
-						}
-						vraag.setVraag(row.getCell(0).getStringCellValue());
-						vraag.setAntwoordTypeClass(Class.forName(row.getCell(2).getStringCellValue()));
 						if (vraag instanceof IdentifierElement)
 						{
-							((IdentifierElement) vraag).setIdentifier(identifier);
+							((IdentifierElement) vraag).setDomein(domein);
 						}
+						hibernateService.saveOrUpdate((HibernateObject) vraag);
 					}
-					else
-					{
-						if (vraag instanceof SimpleAntwoordKeuzeVraagDefinitieImpl)
-						{
-							SimpleAntwoordKeuzeVraagDefinitieImpl simpleAntwoordKeuzeVraagDefinitie = (SimpleAntwoordKeuzeVraagDefinitieImpl) vraag;
-							if (isVerplichteVraag(row))
-							{
-								simpleAntwoordKeuzeVraagDefinitie.setVerplichting(new VerplichtingImpl());
-							}
-							else
-							{
-								simpleAntwoordKeuzeVraagDefinitie.setVerplichting(null);
-							}
-
-							if (CollectionUtils.isNotEmpty(simpleAntwoordKeuzeVraagDefinitie.getMogelijkeAntwoorden()))
-							{
-								hibernateService.deleteAll(simpleAntwoordKeuzeVraagDefinitie.getMogelijkeAntwoorden());
-							}
-							simpleAntwoordKeuzeVraagDefinitie.getMogelijkeAntwoorden().clear();
-							maakMogelijkheden(row, simpleAntwoordKeuzeVraagDefinitie);
-						}
-						else if (vraag instanceof SimpleKeuzeVraagDefinitieImpl)
-						{
-							SimpleKeuzeVraagDefinitieImpl simpleKeuzeVraagDefinitie = (SimpleKeuzeVraagDefinitieImpl) vraag;
-							if (isVerplichteVraag(row))
-							{
-								simpleKeuzeVraagDefinitie.setVerplichting(new VerplichtingImpl());
-							}
-							else
-							{
-								simpleKeuzeVraagDefinitie.setVerplichting(null);
-							}
-						}
-						else if (vraag instanceof SimpleVraagDefinitieImpl)
-						{
-							SimpleVraagDefinitieImpl simpleVraagDefinitie = (SimpleVraagDefinitieImpl) vraag;
-							if (isVerplichteVraag(row))
-							{
-								simpleVraagDefinitie.setVerplichting(new VerplichtingImpl());
-							}
-							else
-							{
-								simpleVraagDefinitie.setVerplichting(null);
-							}
-						}
-						if (row.getCell(8) != null && row.getCell(8).getCellType() == Cell.CELL_TYPE_STRING)
-						{
-							vraag.setExpressieVariabele(row.getCell(8).getStringCellValue());
-						}
-
-						vraag.setVraag(row.getCell(0).getStringCellValue());
-						vraag.setAntwoordTypeClass(Class.forName(row.getCell(2).getStringCellValue()));
-					}
-					if (vraag instanceof IdentifierElement)
-					{
-						((IdentifierElement) vraag).setDomein(domein);
-					}
-					hibernateService.saveOrUpdate((HibernateObject) vraag);
 				}
-			}
-			else
-			{
-				break;
-			}
-			index++;
+				else
+				{
+					break;
+				}
+				index++;
 
+			}
 		}
-
 	}
 
 	private void maakMogelijkheden(Row row, SimpleAntwoordKeuzeVraagDefinitieImpl vraag)
@@ -425,7 +426,7 @@ public class FormulierServiceImpl implements FormulierService
 		boolean bool = false;
 		if (row.getCell(7) != null)
 		{
-			if (row.getCell(7).getCellType() == Cell.CELL_TYPE_STRING)
+			if (row.getCell(7).getCellType() == CellType.STRING)
 			{
 				String value = row.getCell(7).getStringCellValue();
 				if (StringUtils.equalsIgnoreCase("TRUE", value) || StringUtils.equalsIgnoreCase("WAAR", value) || StringUtils.equalsIgnoreCase("JA", value))
@@ -433,7 +434,7 @@ public class FormulierServiceImpl implements FormulierService
 					bool = true;
 				}
 			}
-			else if (row.getCell(7).getCellType() == Cell.CELL_TYPE_BOOLEAN)
+			else if (row.getCell(7).getCellType() == CellType.BOOLEAN)
 			{
 				bool = row.getCell(7).getBooleanCellValue();
 			}

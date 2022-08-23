@@ -21,13 +21,10 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.repository.NieuwsRepository.baseSpecification;
-import static nl.rivm.screenit.repository.NieuwsRepository.isOngelezen;
-import static nl.rivm.screenit.repository.NieuwsRepository.publicerenTot;
-import static nl.rivm.screenit.repository.NieuwsRepository.publicerenVanaf;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.model.Gebruiker;
 import nl.rivm.screenit.model.nieuws.NieuwsItem;
@@ -36,23 +33,25 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.NieuwsService;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import static nl.rivm.screenit.repository.NieuwsRepository.baseSpecification;
+import static nl.rivm.screenit.repository.NieuwsRepository.isOngelezen;
+import static nl.rivm.screenit.repository.NieuwsRepository.publicerenTot;
+import static nl.rivm.screenit.repository.NieuwsRepository.publicerenVanaf;
+
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
+@AllArgsConstructor
 public class NieuwsServiceImpl implements NieuwsService
 {
+	private final NieuwsRepository nieuwsRepository;
 
-	@Autowired
-	private NieuwsRepository nieuwsRepository;
-
-	@Autowired
-	ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
 	public List<NieuwsItem> getNieuwsItems(boolean inclusiefVerlopenNieuwsItems)
@@ -60,7 +59,7 @@ public class NieuwsServiceImpl implements NieuwsService
 		Specification<NieuwsItem> specification = baseSpecification();
 		if (!inclusiefVerlopenNieuwsItems)
 		{
-			specification.and(publicerenTot(dateSupplier.getDate()));
+			specification = specification.and(publicerenTot(dateSupplier.getDate()));
 		}
 		return nieuwsRepository.findAll(specification, Sort.by(Sort.Order.desc("publicerenVanaf")));
 	}

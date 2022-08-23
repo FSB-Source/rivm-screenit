@@ -22,7 +22,6 @@ package nl.rivm.screenit.batch.jms.listener;
  */
 
 import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.Session;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,27 +40,31 @@ import org.springframework.batch.core.launch.JobExecutionNotRunningException;
 import org.springframework.batch.core.launch.JobOperator;
 import org.springframework.batch.core.launch.NoSuchJobException;
 import org.springframework.batch.core.launch.NoSuchJobExecutionException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.JmsException;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
 
-	@Autowired
-	private JobOperator jobOperator;
+	private final JobOperator jobOperator;
 
-	@Autowired
-	private JmsTemplate jmsTemplate;
+	private final JmsTemplate jmsTemplate;
 
-	@Autowired
-	private Scheduler scheduler;
+	private final Scheduler scheduler;
+
+	public JMSJobStatusListener(JobOperator jobOperator, JmsTemplate jmsTemplate, Scheduler scheduler)
+	{
+		this.jobOperator = jobOperator;
+		this.jmsTemplate = jmsTemplate;
+		this.scheduler = scheduler;
+	}
 
 	@Override
-	public void onMessage(ActiveMQObjectMessage message, Session session) throws JMSException
+	public void onMessage(ActiveMQObjectMessage message, Session session)
 	{
 		try
 		{
@@ -69,77 +72,69 @@ public class JMSJobStatusListener implements SessionAwareMessageListener<ActiveM
 			var object = message.getObject();
 			if (object instanceof GetBatchStatusRequest)
 			{
-				jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
+				jmsTemplate.send(message.getJMSReplyTo(), session1 ->
 				{
-					@Override
-					public Message createMessage(Session session) throws JMSException
+					var jobs = jobOperator.getJobNames();
+					var serverStatus = new BatchServerStatus();
+
+					try
 					{
-						var jobs = jobOperator.getJobNames();
-						var serverStatus = new BatchServerStatus();
+						serverStatus.setInstanceName(scheduler.getSchedulerInstanceId());
+					}
+					catch (SchedulerException e)
+					{
+						LOG.error("Could not resolve scheduler name", e);
+					}
+
+					for (var jobName : jobs)
+					{
+						var job = new Job();
+						job.setJobName(jobName);
+						serverStatus.getJobs().add(job);
 
 						try
 						{
-							serverStatus.setInstanceName(scheduler.getSchedulerInstanceId());
-						}
-						catch (SchedulerException e)
-						{
-							LOG.error("Could not resolve scheduler name", e);
-						}
-
-						for (var jobName : jobs)
-						{
-							var job = new Job();
-							job.setJobName(jobName);
-							serverStatus.getJobs().add(job);
-
-							try
+							var executionIDs = jobOperator.getRunningExecutions(jobName);
+							for (var executionID : executionIDs)
 							{
-								var executionIDs = jobOperator.getRunningExecutions(jobName);
-								for (var executionID : executionIDs)
-								{
-									var jobInstance = new JobInstance();
-									job.getInstances().add(jobInstance);
-									jobInstance.setSamenvatting(jobOperator.getSummary(executionID));
-								}
+								var jobInstance = new JobInstance();
+								job.getInstances().add(jobInstance);
+								jobInstance.setSamenvatting(jobOperator.getSummary(executionID));
 							}
-							catch (NoSuchJobException | NoSuchJobExecutionException e)
-							{
-								LOG.error("Job not found", e);
-							}
-
 						}
-						return ActiveMQHelper.getActiveMqObjectMessage(serverStatus);
+						catch (NoSuchJobException | NoSuchJobExecutionException e)
+						{
+							LOG.error("Job not found", e);
+						}
+
 					}
+					return ActiveMQHelper.getActiveMqObjectMessage(serverStatus);
 				});
 			}
 			else if (object instanceof StopAllBatchJobsRequest)
 			{
-				jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
+				jmsTemplate.send(message.getJMSReplyTo(), session12 ->
 				{
-					@Override
-					public Message createMessage(Session session) throws JMSException
+					var jobs = jobOperator.getJobNames();
+
+					for (var jobName : jobs)
 					{
-						var jobs = jobOperator.getJobNames();
-
-						for (var jobName : jobs)
+						LOG.info("Stop job " + jobName);
+						try
 						{
-							LOG.info("Stop job " + jobName);
-							try
+							var executionIDs = jobOperator.getRunningExecutions(jobName);
+							for (var executionID : executionIDs)
 							{
-								var executionIDs = jobOperator.getRunningExecutions(jobName);
-								for (var executionID : executionIDs)
-								{
-									jobOperator.stop(executionID);
-								}
+								jobOperator.stop(executionID);
 							}
-							catch (NoSuchJobException | NoSuchJobExecutionException | JobExecutionNotRunningException e)
-							{
-								LOG.error("Fout bij stoppen job " + jobName, e);
-							}
-
 						}
-						return ActiveMQHelper.getActiveMqObjectMessage(true);
+						catch (NoSuchJobException | NoSuchJobExecutionException | JobExecutionNotRunningException e)
+						{
+							LOG.error("Fout bij stoppen job " + jobName, e);
+						}
+
 					}
+					return ActiveMQHelper.getActiveMqObjectMessage(true);
 				});
 			}
 

@@ -22,7 +22,6 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  */
 
 import java.util.Collection;
-import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
@@ -32,7 +31,6 @@ import nl.rivm.screenit.dao.colon.ColonUitnodigingsDao;
 import nl.rivm.screenit.model.UitnodigingsGebied;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.enums.JobStartParameter;
-import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageGewijzigdGebiedEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -41,12 +39,16 @@ import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+@Component
+@StepScope
 public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelectieReader
 {
 
@@ -68,12 +70,17 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	public ClientSelectieMetCapaciteitItemReader()
+	{
+		super.setFetchSize(50);
+	}
+
 	private Collection<ColonUitnodigingsgebiedSelectieContext> uitnodigingsgebieden;
 
 	@Override
 	public ClientCategorieEntry read()
 	{
-		ClientCategorieEntry clientCategorieEntry = getNextEntry();
+		var clientCategorieEntry = getNextEntry();
 
 		if (clientCategorieEntry == null)
 		{
@@ -136,9 +143,9 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 			throw new IllegalStateException("Wachttijd verzenden pakket bij 2 op 1 adres op de parameterisatie pagina is niet gezet");
 		}
 
-		List<ProjectGroep> projectGroepen = projectService.getActieveProjectGroepenVoorUitnodigingDK();
+		var projectGroepen = projectService.getActieveProjectGroepenVoorUitnodigingDK();
 
-		ColonClientSelectieContext selectieContext = new ColonClientSelectieContext();
+		var selectieContext = new ColonClientSelectieContext();
 		selectieContext.clientDao = clientDao;
 		selectieContext.uitnodigingsDao = uitnodigingsDao;
 		selectieContext.hibernateService = hibernateService;
@@ -156,15 +163,15 @@ public class ClientSelectieMetCapaciteitItemReader extends AbstractClientSelecti
 	private void rapporteerLeegLopendeGebieden()
 	{
 		Long selectieRapportageId = stepExecution.getJobExecution().getExecutionContext().getLong(SelectieConstants.RAPPORTAGEKEYSELECTIE);
-		SelectieRapportage selectieRapportage = hibernateService.get(SelectieRapportage.class, selectieRapportageId);
+		var selectieRapportage = hibernateService.get(SelectieRapportage.class, selectieRapportageId);
 		if (selectieRapportage != null)
 		{
-			for (ColonUitnodigingsgebiedSelectieContext uitnodigingsgebied : uitnodigingsgebieden)
+			for (var uitnodigingsgebied : uitnodigingsgebieden)
 			{
 				int capaciteitToevoegingOfOver = uitnodigingsgebied.getUitnodigingscapaciteitToevoegingOfOver();
 				if (capaciteitToevoegingOfOver > 0 || uitnodigingsgebied.isLeeglopendGebied())
 				{
-					SelectieRapportageGewijzigdGebiedEntry gewijzigdGebiedEntry = new SelectieRapportageGewijzigdGebiedEntry();
+					var gewijzigdGebiedEntry = new SelectieRapportageGewijzigdGebiedEntry();
 					gewijzigdGebiedEntry.setPercentage(capaciteitToevoegingOfOver);
 					gewijzigdGebiedEntry.setUitnodigingsGebied(hibernateService.load(UitnodigingsGebied.class, uitnodigingsgebied.getUitnodigingsgebiedId()));
 					gewijzigdGebiedEntry.setRapportage(selectieRapportage);

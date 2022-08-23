@@ -23,6 +23,7 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.step;
 
 import java.util.Date;
 
+import lombok.NonNull;
 import lombok.Setter;
 
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.ilm.MammaIlmJobListener;
@@ -33,16 +34,15 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
 
+@Setter
 public class MammaIlmDecider implements JobExecutionDecider
 {
-	@Setter
 	private String stepKey;
 
-	@Setter
 	private boolean observesTimeLimit;
 
 	@Override
-	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution)
+	public @NonNull FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution)
 	{
 		boolean executeStep = jobExecution.getExecutionContext().containsKey(stepKey) && (boolean) jobExecution.getExecutionContext().get(stepKey);
 		if (executeStep && !hasExceededTimeLimit(jobExecution) && !hasProcessedAllScreeningRondes(jobExecution))

@@ -21,7 +21,6 @@ package nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.enums.RetourzendingStatus;

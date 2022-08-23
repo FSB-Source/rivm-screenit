@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.controle;
 import nl.rivm.screenit.batch.jobs.brieven.controle.AbstractBrievenControleWriter;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaBrievenControleWriter extends AbstractBrievenControleWriter<MammaMergedBrieven>
 {
 }

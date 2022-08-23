@@ -237,6 +237,7 @@ public class CervixEdiServiceImpl extends EdiServiceBaseImpl implements CervixEd
 		case VERSTUURD:
 		case OPNIEUW_VERSTUURD:
 		case OPNIEUW_VERSTUREN_MISLUKT:
+			huisartsBericht.setEenOpnieuwVerzondenBericht(true);
 			return CervixHuisartsBerichtStatus.OPNIEUW_VERSTUURD;
 		default:
 			throw new IllegalStateException();

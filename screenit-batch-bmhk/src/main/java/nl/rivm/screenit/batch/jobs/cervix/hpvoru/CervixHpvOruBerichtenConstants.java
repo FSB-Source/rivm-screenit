@@ -21,6 +21,10 @@ package nl.rivm.screenit.batch.jobs.cervix.hpvoru;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixHpvOruBerichtenConstants
 {
 	public static final String CERVIX_HPV_ORU_BERICHT_VERSTUURD = "cervix.hpvoru.verstuurd";

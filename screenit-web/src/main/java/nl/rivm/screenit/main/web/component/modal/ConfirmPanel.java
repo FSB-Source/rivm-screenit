@@ -21,12 +21,14 @@ package nl.rivm.screenit.main.web.component.modal;
  * =========================LICENSE_END==================================
  */
 
+import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
@@ -47,8 +49,9 @@ public class ConfirmPanel extends Panel
 		{
 			add(new Label("content", "").setVisible(false));
 		}
-		add(createCustomComponent("customComponent"));
-
+		Form<Void> customForm = new Form<>("form");
+		createCustomComponent("customComponent", customForm);
+		add(customForm);
 		add(new IndicatingAjaxLink<Void>("close")
 		{
 			private static final long serialVersionUID = 1L;
@@ -61,12 +64,12 @@ public class ConfirmPanel extends Panel
 			}
 		});
 
-		add(new IndicatingAjaxLink<Void>("ja")
+		add(new IndicatingAjaxSubmitLink("ja", customForm)
 		{
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void onClick(AjaxRequestTarget target)
+			public void onSubmit(AjaxRequestTarget target)
 			{
 				dialog.close(target);
 				callback.onYesClick(target);
@@ -85,8 +88,8 @@ public class ConfirmPanel extends Panel
 		});
 	}
 
-	protected Component createCustomComponent(String id)
+	protected void createCustomComponent(String id, Form<?> form)
 	{
-		return new WebMarkupContainer(id).setVisible(false);
+		form.add(new WebMarkupContainer(id).setVisible(false));
 	}
 }

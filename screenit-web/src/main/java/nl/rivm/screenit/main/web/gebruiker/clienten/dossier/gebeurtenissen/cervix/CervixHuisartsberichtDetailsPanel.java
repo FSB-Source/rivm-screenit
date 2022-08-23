@@ -23,6 +23,8 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cerv
 
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.web.ScreenitSession;
+import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
+import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.ClientDossierPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.AbstractGebeurtenisDetailPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.GebeurtenisPopupBasePanel;
@@ -52,6 +54,7 @@ import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.shiro.ShiroConstraint;
@@ -59,7 +62,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 @SecurityConstraint(
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
-	recht = Recht.GEBRUIKER_CLIENT_SR_CERVIX_HUISARTSBERICHT_DETAILS,
+	recht = Recht.GEBRUIKER_CLIENT_SR_HUISARTSBERICHT_DETAILS,
 	bevolkingsonderzoekScopes = Bevolkingsonderzoek.CERVIX)
 public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetailPanel
 {
@@ -96,6 +99,8 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 
 	private PanelState panelState;
 
+	private BootstrapDialog dialog;
+
 	public CervixHuisartsberichtDetailsPanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, model);
@@ -115,11 +120,14 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 
 		huisartsLocatiePanel = maakHuisartsLocatieContainer();
 		add(huisartsLocatiePanel);
+
+		dialog = new BootstrapDialog("dialog");
+		add(dialog);
 	}
 
 	private PanelState getInitialPanelState()
 	{
-		CervixHuisartsBericht huisartsBericht = getModelObject().getHuisartsBericht();
+		CervixHuisartsBericht huisartsBericht = getHuisartsBericht();
 		CervixUitstrijkje uitstrijkje = huisartsBericht.getUitstrijkje(); 
 		boolean magHuisartsKoppelen = ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_HUISARTS_KOPPELEN, Actie.AANPASSEN, huisartsBericht.getClient())
 			&& uitstrijkje != null && uitstrijkje.getUitstrijkjeStatus() != CervixUitstrijkjeStatus.NIET_ONTVANGEN;
@@ -175,10 +183,10 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 			@Override
 			public void setHuisartsLocatie(AjaxRequestTarget target, CervixHuisartsLocatie huisartsLocatie)
 			{
-				CervixHuisartsBericht huisartsBericht = CervixHuisartsberichtDetailsPanel.this.getModelObject().getHuisartsBericht();
+				CervixHuisartsBericht huisartsBericht = getHuisartsBericht();
 				if (panelState == PanelState.ExtraHuisarts && huisartsLocatie.equals(huisartsBericht.getHuisartsLocatie()))
 				{
-					ScreenitSession.get().error(getString("extralocatie.zelfde.als.origineel"));
+					ScreenitSession.get().error(getString("huisartsbericht.extralocatie.zelfde.als.origineel"));
 				}
 				else
 				{
@@ -221,7 +229,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 		}
 		else if (selectedHuisartsLocatie != null)
 		{
-			result = new Label(labelId, selectedHuisartsLocatie.getObject().getZorgmailklantnummer());
+			result = new Label(labelId, getSelectedHuisartsLocatie().getZorgmailklantnummer());
 		}
 		else
 		{
@@ -258,7 +266,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 
 	private boolean berichtVerstuurbaar()
 	{
-		switch (getModelObject().getHuisartsBericht().getStatus())
+		switch (getHuisartsBericht().getStatus())
 		{
 		case VERSTUREN_MISLUKT:
 		case VERSTUURD:
@@ -273,7 +281,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 	private boolean heeftRechtOpnieuwVersturen()
 	{
 		return ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_SR_HUISARTSBERICHT_OPNIEUW_VERZENDEN, Actie.AANPASSEN,
-			getModelObject().getHuisartsBericht().getClient());
+			getHuisartsBericht().getClient());
 	}
 
 	@Override
@@ -286,7 +294,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				CervixHuisartsBericht huisartsBericht = CervixHuisartsberichtDetailsPanel.this.getModelObject().getHuisartsBericht();
+				CervixHuisartsBericht huisartsBericht = getHuisartsBericht();
 				if (panelState == PanelState.KoppelHuisarts && huisartsBericht.getStatus() == CervixHuisartsBerichtStatus.HUISARTS_ONBEKEND)
 				{
 					koppelHuisartsEtc(huisartsBericht);
@@ -307,24 +315,24 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 	{
 		if (panelState == PanelState.KoppelHuisarts)
 		{
-			return getString("huisarts.koppelen");
+			return getString("huisartsbericht.huisarts.koppelen");
 		}
-		else if (getModelObject().getHuisartsBericht().getStatus() == CervixHuisartsBerichtStatus.VERSTUREN_MISLUKT)
+		else if (getHuisartsBericht().getStatus() == CervixHuisartsBerichtStatus.VERSTUREN_MISLUKT)
 		{
-			return getString("versturen");
+			return getString("huisartsbericht.versturen");
 		}
 		else
 		{
-			return getString("opnieuw.versturen");
+			return getString("huisartsbericht.opnieuw.versturen");
 		}
 	}
 
 	private void koppelHuisartsEtc(CervixHuisartsBericht huisartsBericht)
 	{
-		huisartsBericht.setHuisartsLocatie(selectedHuisartsLocatie.getObject());
+		huisartsBericht.setHuisartsLocatie(getSelectedHuisartsLocatie());
 		cervixVerrichtingFactory.maakHuisartsVerrichting(huisartsBericht.getUitstrijkje(), CervixTariefType.HUISARTS_UITSTRIJKJE,
 			currentDateSupplier.getDate(),
-			selectedHuisartsLocatie.getObject());
+			getSelectedHuisartsLocatie());
 		huisartsBericht.setStatus(CervixHuisartsBerichtStatus.AANGEMAAKT);
 		hibernateService.saveOrUpdate(huisartsBericht);
 	}
@@ -336,19 +344,19 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 		switch (huisartsBericht.getStatus())
 		{
 		case VERSTUURD:
-			ScreenitSession.get().info(getString("verstuurd"));
+			ScreenitSession.get().info(getString("huisartsbericht.verstuurd"));
 			break;
 		case VERSTUREN_MISLUKT:
-			ScreenitSession.get().error(getString("versturen.mislukt"));
+			ScreenitSession.get().error(getString("huisartsbericht.versturen.mislukt"));
 			break;
 		case OPNIEUW_VERSTUURD:
-			ScreenitSession.get().info(getString("opnieuw.verstuurd"));
+			ScreenitSession.get().info(getString("huisartsbericht.opnieuw.verstuurd"));
 			break;
 		case OPNIEUW_VERSTUREN_MISLUKT:
-			ScreenitSession.get().error(getString("opnieuw.versturen.mislukt"));
+			ScreenitSession.get().error(getString("huisartsbericht.opnieuw.versturen.mislukt"));
 			break;
 		case KLANTNUMMER_NIET_GEVERIFIEERD:
-			ScreenitSession.get().error(getString("opnieuw.versturen.niet.mogelijk.klantnummer.niet.geverifieerd"));
+			ScreenitSession.get().error(getString("huisartsbericht.opnieuw.versturen.niet.mogelijk.klantnummer.niet.geverifieerd"));
 			break;
 		default:
 			throw new IllegalStateException();
@@ -358,7 +366,7 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 	@Override
 	protected void addExtraButton(String id, GebeurtenisPopupBasePanel parent)
 	{
-		extraHuisartsButton = new IndicatingAjaxLink<Void>(id)
+		extraHuisartsButton = new ConfirmingIndicatingAjaxLink<Void>(id, dialog, "question.opnieuwversturen")
 		{
 			private static final long serialVersionUID = 1L;
 
@@ -372,10 +380,23 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 				}
 				else
 				{
-					CervixHuisartsBericht huisartsBericht = CervixHuisartsberichtDetailsPanel.this.getModelObject().getHuisartsBericht();
-					verstuurHuisartsBerichtNaarExtraLocatie(huisartsBericht, selectedHuisartsLocatie.getObject());
+					verstuurHuisartsBerichtNaarExtraLocatie(getHuisartsBericht(), getSelectedHuisartsLocatie());
 					setResponsePageClientDossier();
 				}
+			}
+
+			@Override
+			protected IModel<String> getContentStringModel()
+			{
+				String formatted = String.format(super.getContentStringModel().getObject(), getSelectedHuisartsLocatie().getNaam(),
+					getHuisartsBericht().getHuisartsLocatie().getNaam());
+				return Model.of(formatted);
+			}
+
+			@Override
+			protected boolean skipConfirmation()
+			{
+				return selectedHuisartsLocatie == null;
 			}
 
 		};
@@ -383,8 +404,13 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 		extraHuisartsButton.setVisible(isExtraHuisartsButtonVisible());
 		extraHuisartsButton.setOutputMarkupId(true);
 		extraHuisartsButton.setOutputMarkupPlaceholderTag(true);
-		extraHuisartsButton.add(new Label("label", getString("versturen.extra.huisarts")));
+		extraHuisartsButton.add(new Label("label", getString("huisartsbericht.versturen.extra.huisarts")));
 		parent.add(extraHuisartsButton);
+	}
+
+	private CervixHuisartsLocatie getSelectedHuisartsLocatie()
+	{
+		return ModelUtil.nullSafeGet(selectedHuisartsLocatie);
 	}
 
 	private void verstuurHuisartsBerichtNaarExtraLocatie(CervixHuisartsBericht huisartsBericht, CervixHuisartsLocatie locatie)
@@ -394,20 +420,20 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 		switch (status)
 		{
 		case VERSTUURD:
-			ScreenitSession.get().info(getString("opnieuw.verstuurd"));
+			ScreenitSession.get().info(getString("huisartsbericht.opnieuw.verstuurd"));
 			break;
 		case VERSTUREN_MISLUKT:
-			ScreenitSession.get().error(getString("opnieuw.versturen.mislukt"));
+			ScreenitSession.get().error(getString("huisartsbericht.opnieuw.versturen.mislukt"));
 			break;
 		case KLANTNUMMER_NIET_GEVERIFIEERD:
-			ScreenitSession.get().error(getString("opnieuw.versturen.niet.mogelijk.klantnummer.niet.geverifieerd"));
+			ScreenitSession.get().error(getString("huisartsbericht.opnieuw.versturen.niet.mogelijk.klantnummer.niet.geverifieerd"));
 			break;
 		}
 	}
 
 	private void setResponsePageClientDossier()
 	{
-		setResponsePage(new ClientDossierPage(ModelUtil.sModel(getModelObject().getHuisartsBericht().getClient())));
+		setResponsePage(new ClientDossierPage(ModelUtil.sModel(getHuisartsBericht().getClient())));
 	}
 
 	@Override
@@ -416,4 +442,10 @@ public class CervixHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetail
 		super.onDetach();
 		ModelUtil.nullSafeDetach(selectedHuisartsLocatie);
 	}
+
+	private CervixHuisartsBericht getHuisartsBericht()
+	{
+		return getModelObject().getHuisartsBericht();
+	}
+
 }

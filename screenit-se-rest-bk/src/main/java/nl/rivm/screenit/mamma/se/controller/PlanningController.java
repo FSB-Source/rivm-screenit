@@ -46,7 +46,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/planning")
+@RequestMapping("/api/planning")
 public class PlanningController extends AuthorizedController
 {
 	@Autowired

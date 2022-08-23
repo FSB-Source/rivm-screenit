@@ -24,13 +24,14 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.AjaxDownload;
 import nl.rivm.screenit.main.web.component.ScreenitDateTextField;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
@@ -57,7 +58,6 @@ import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
-import nl.topicuszorg.wicket.input.enumdropdownchoice.EnumChoiceRenderer;
 import nl.topicuszorg.wicket.input.validator.BSNValidator;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -68,6 +68,7 @@ import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
@@ -102,7 +103,7 @@ public class ColonTestProcesPage extends TestenBasePage
 	private TestService testService;
 
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService testTimelineService;
 
 	@SpringBean
 	private ClientService clientService;
@@ -135,7 +136,7 @@ public class ColonTestProcesPage extends TestenBasePage
 		bsnField.setRequired(true);
 		bsnField.setOutputMarkupId(true);
 		form.add(bsnField);
-		form.add(new IndicatingAjaxLink<GbaPersoon>("bsnGenereren", filterModel)
+		form.add(new IndicatingAjaxLink<>("bsnGenereren", filterModel)
 		{
 			private static final long serialVersionUID = 1L;
 
@@ -158,7 +159,9 @@ public class ColonTestProcesPage extends TestenBasePage
 			}
 		}));
 
-		form.add(new ScreenitDropdown<Geslacht>("geslacht", Arrays.asList(Geslacht.values()), new EnumChoiceRenderer<Geslacht>()));
+		List<Geslacht> geslachten = new ArrayList<>(Arrays.asList(Geslacht.values()));
+		geslachten.remove(Geslacht.NIET_GESPECIFICEERD);
+		form.add(new ScreenitDropdown<>("geslacht", geslachten, new EnumChoiceRenderer<>(this)));
 
 		form.add(new ScreenitDateTextField("overlijdensdatum").setOutputMarkupId(true).add(new AjaxFormComponentUpdatingBehavior("change")
 		{
@@ -173,7 +176,7 @@ public class ColonTestProcesPage extends TestenBasePage
 
 		form.add(new DropDownChoice<Gemeente>("gbaAdres.gbaGemeente", ModelUtil.listRModel(
 			hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie")).addOrder(Order.asc("naam")).list(), false),
-			new ChoiceRenderer<Gemeente>("naam")));
+			new ChoiceRenderer<>("naam")));
 
 		form.add(new AjaxButton("maakClient", form)
 		{
@@ -183,7 +186,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				testService.maakClient((GbaPersoon) form.getModelObject());
+				testService.maakClient(form.getModelObject());
 				info("Client aangemaakt");
 			}
 		});
@@ -194,7 +197,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.maakAfspraakEnConclusie((GbaPersoon) form.getModelObject(), null);
+				colonTestService.maakAfspraakEnConclusie(form.getModelObject(), null);
 				info("Afspraak met coloscopie conclusie aangemaakt");
 			}
 		});
@@ -206,7 +209,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.maakAfspraak((GbaPersoon) form.getModelObject(), null);
+				colonTestService.maakAfspraak(form.getModelObject(), null);
 				info("Afspraak aangemaakt");
 			}
 		});
@@ -219,7 +222,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
-				String bsn = ((GbaPersoon) form.getModelObject()).getBsn();
+				String bsn = (form.getModelObject()).getBsn();
 				Client client = clientService.getClientByBsn(bsn);
 				if (client != null)
 				{
@@ -240,7 +243,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnOngunstig((GbaPersoon) form.getModelObject());
+				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnOngunstig(form.getModelObject());
 				info("Deze Client heeft nu een FIT teruggestuurd! Status Ifobttest is " + test.getStatus() + " met normwaarde: " + test.getNormWaarde() + " met uitslag: "
 					+ test.getUitslag());
 			}
@@ -254,7 +257,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnGunstig((GbaPersoon) form.getModelObject());
+				IFOBTTest test = colonTestService.maakHuidigeIFobtOntvangenEnGunstig(form.getModelObject());
 				info("Deze Client heeft nu een FIT teruggestuurd! Status Ifobttest is " + test.getStatus() + " met normwaarde: " + test.getNormWaarde() + " met uitslag: "
 					+ test.getUitslag());
 			}
@@ -269,7 +272,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.maakClientKlaarVoorAfronden((GbaPersoon) form.getModelObject());
+				colonTestService.maakClientKlaarVoorAfronden(form.getModelObject());
 				info("Client klaar gezet voor afronden");
 			}
 		});
@@ -282,7 +285,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.huidigeIFOBTvoorRapelDatum((GbaPersoon) form.getModelObject());
+				colonTestService.huidigeIFOBTvoorRapelDatum(form.getModelObject());
 				info("De huidige datum van FIT is voor de rapel datum gezet");
 			}
 
@@ -296,7 +299,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest ifobt = colonTestService.zetVelorenIfobt((GbaPersoon) form.getModelObject(), Boolean.TRUE, Boolean.TRUE);
+				IFOBTTest ifobt = colonTestService.zetVelorenIfobt(form.getModelObject(), Boolean.TRUE, Boolean.TRUE);
 				info("FIT heeft een uitslag gekregen! Status: " + ifobt.getStatus().name());
 			}
 
@@ -310,7 +313,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				IFOBTTest ifobt = colonTestService.zetVelorenIfobt((GbaPersoon) form.getModelObject(), Boolean.TRUE, Boolean.FALSE);
+				IFOBTTest ifobt = colonTestService.zetVelorenIfobt(form.getModelObject(), Boolean.TRUE, Boolean.FALSE);
 				info("FIT heeft een uitslag gekregen! Status: " + ifobt.getStatus().name());
 			}
 
@@ -324,7 +327,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				GbaPersoon gbaPersoon = (GbaPersoon) form.getModelObject();
+				GbaPersoon gbaPersoon = form.getModelObject();
 				TestTimelineModel model = new TestTimelineModel();
 				model.setBsn(gbaPersoon.getBsn());
 				model.setGeslacht(gbaPersoon.getGeslacht());
@@ -347,7 +350,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.huisartsBerichtKlaarzettten((GbaPersoon) form.getModelObject(), HuisartsBerichtType.ONGUNSTIGE_UITSLAG);
+				colonTestService.huisartsBerichtKlaarzetten(form.getModelObject(), HuisartsBerichtType.ONGUNSTIGE_UITSLAG);
 				info("HuisartsBericht klaar gezet");
 			}
 
@@ -360,7 +363,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.huisartsBerichtKlaarzettten((GbaPersoon) form.getModelObject(), HuisartsBerichtType.WIJZIGING_INTAKEAFSPRAAK);
+				colonTestService.huisartsBerichtKlaarzetten(form.getModelObject(), HuisartsBerichtType.WIJZIGING_INTAKEAFSPRAAK);
 				info("HuisartsBericht klaar gezet");
 			}
 
@@ -373,7 +376,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.huisartsBerichtKlaarzettten((GbaPersoon) form.getModelObject(), HuisartsBerichtType.ANNULEREN_INTAKEAFSPRAAK);
+				colonTestService.huisartsBerichtKlaarzetten(form.getModelObject(), HuisartsBerichtType.ANNULEREN_INTAKEAFSPRAAK);
 				info("HuisartsBericht klaar gezet");
 			}
 		});
@@ -385,7 +388,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				colonTestService.huisartsBerichtKlaarzettten((GbaPersoon) form.getModelObject(), HuisartsBerichtType.NO_SHOW_INTAKE);
+				colonTestService.huisartsBerichtKlaarzetten(form.getModelObject(), HuisartsBerichtType.NO_SHOW_INTAKE);
 				info("HuisartsBericht klaar gezet");
 			}
 		});
@@ -472,7 +475,7 @@ public class ColonTestProcesPage extends TestenBasePage
 			public void onClick(AjaxRequestTarget target)
 			{
 				int aantalRoosterBlokkenVerwijderd = colonTestService.verwijderRoosterBlokken();
-				String infoBericht = "Er zijn " + Integer.toString(aantalRoosterBlokkenVerwijderd) + " roosterblokken verwijderd";
+				String infoBericht = "Er zijn " + aantalRoosterBlokkenVerwijderd + " roosterblokken verwijderd";
 				info(infoBericht);
 			}
 		});
@@ -487,20 +490,19 @@ public class ColonTestProcesPage extends TestenBasePage
 
 	protected IResourceStream createResourceStream(GbaPersoon modelObject)
 	{
-		FileResourceStream fileOutputStream = null;
+		FileResourceStream fileResourceStream = null;
 		try
 		{
-			File file = new File("vo107.txt");
-			FileOutputStream stream = new FileOutputStream(file);
-			File vo107template = new File(ColonTestProcesPage.class.getResource("/vo107_template.txt").getFile());
-			testService.createGbaFile(modelObject, vo107template, stream);
-			fileOutputStream = new FileResourceStream(file);
+			File outputFile = new File("vo107.txt");
+			FileOutputStream outputStream = new FileOutputStream(outputFile);
+			testService.createGbaFile(modelObject, getClass().getResourceAsStream("/vo107_template.txt"), outputStream);
+			fileResourceStream = new FileResourceStream(outputFile);
 		}
 		catch (FileNotFoundException e)
 		{
 			LOG.error("Er is een fout opgetreden!", e);
 		}
-		return fileOutputStream;
+		return fileResourceStream;
 
 	}
 }

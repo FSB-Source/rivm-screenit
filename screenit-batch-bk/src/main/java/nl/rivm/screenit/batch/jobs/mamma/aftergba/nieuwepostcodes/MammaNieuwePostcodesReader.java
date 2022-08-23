@@ -27,9 +27,18 @@ import org.hibernate.HibernateException;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.type.StandardBasicTypes;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+
+@Component
 public class MammaNieuwePostcodesReader extends BaseSqlScrollableResultReader
 {
+
+	public MammaNieuwePostcodesReader()
+	{
+		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
+	}
 
 	@Override
 	public SQLQuery createCriteria(StatelessSession session) throws HibernateException
@@ -48,7 +57,6 @@ public class MammaNieuwePostcodesReader extends BaseSqlScrollableResultReader
 			+ "and pc.datum_vertrokken_uit_nederland is null "
 			+ "and pc.overlijdensdatum is null "
 			+ "and c.gba_status = 'INDICATIE_AANWEZIG'"
-			+ "and pc.geslacht = 'VROUW'"
 			+ "and c.mamma_dossier is not null");
 		criteria.addScalar("id", StandardBasicTypes.LONG);
 		return criteria;

@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.step;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.cervix.CervixLabPartitioner;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
@@ -46,24 +48,23 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixVerlateDeelnameCovidReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private InstellingService instellingService;
+	private final InstellingService instellingService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		ExecutionContext stepContext = getStepExecutionContext();
+		var stepContext = getStepExecutionContext();
 		Long bmhkLabId = (Long) stepContext.get(CervixLabPartitioner.KEY_BMHK_LAB);
 
-		Criteria crit = session.createCriteria(Client.class, "client");
+		var crit = session.createCriteria(Client.class, "client");
 		crit.createAlias("client.cervixDossier", "dossier");
 		crit.createAlias("dossier.laatsteScreeningRonde", "ronde");
 		crit.createAlias("ronde.laatsteUitnodiging", "uitnodiging");
@@ -94,7 +95,7 @@ public class CervixVerlateDeelnameCovidReader extends BaseScrollableResultReader
 			DateUtil.parseDateForPattern("01-10-2019", Constants.DEFAULT_DATE_FORMAT),
 			DateUtil.parseDateForPattern("01-07-2021", Constants.DEFAULT_DATE_FORMAT)));
 
-		DetachedCriteria subquery = DetachedCriteria.forClass(CervixMonster.class, "monsterSub");
+		var subquery = DetachedCriteria.forClass(CervixMonster.class, "monsterSub");
 		subquery.add(Restrictions.eqProperty("monsterSub.ontvangstScreeningRonde", "brief.screeningRonde"));
 		subquery.add(Restrictions.gtProperty("monsterSub.ontvangstdatum", "brief.creatieDatum"));
 		subquery.setProjection(Projections.id());
@@ -108,7 +109,7 @@ public class CervixVerlateDeelnameCovidReader extends BaseScrollableResultReader
 
 	private Integer getMaxAantalClienten(Long bmhkLabId)
 	{
-		BMHKLaboratorium bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
+		var bmhkLab = hibernateService.get(BMHKLaboratorium.class, bmhkLabId);
 		return instellingService.getOrganisatieParameter(bmhkLab, OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME);
 	}
 

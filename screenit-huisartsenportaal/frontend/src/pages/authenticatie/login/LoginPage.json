@@ -1,0 +1,13 @@
+{
+  "title": "Inloggen huisartsenportaal",
+  "description": "U logt in op een systeem met vertrouwelijke informatie. Door verder te gaan verklaart u akkoord te gaan met de verantwoording die bij deze informatie hoort. Deze gegevens dienen te allen tijde vertrouwelijk behandeld te worden.",
+  "form": {
+    "labels": {
+      "username": "Gebruikersnaam",
+      "password": "Wachtwoord"
+    },
+    "buttons": {
+      "submit": "Inloggen"
+    }
+  }
+}

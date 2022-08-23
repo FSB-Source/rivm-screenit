@@ -21,23 +21,24 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.BezwaarDto;
 import nl.rivm.screenit.clientportaal.services.BezwaarValidatieService;
-
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.ClientDoelgroepService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class BezwaarValidatieServiceImpl implements BezwaarValidatieService
 {
-	@Autowired
-	private ClientDoelgroepService doelgroepService;
+	private final ClientDoelgroepService doelgroepService;
 
 	@Override
 	public void valideerOfClientBehoortTotDoelgroep(Client client, Bevolkingsonderzoek bevolkingsonderzoek)

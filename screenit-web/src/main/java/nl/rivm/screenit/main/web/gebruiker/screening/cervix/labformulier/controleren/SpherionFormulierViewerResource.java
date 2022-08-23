@@ -23,12 +23,12 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
 
 import java.io.IOException;
 import java.net.URLConnection;
+import java.time.Duration;
 import java.util.Base64;
 
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.ScannedFormulierViewerResourceExternal;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.util.time.Duration;
 
 public class SpherionFormulierViewerResource extends ScannedFormulierViewerResourceExternal
 {

@@ -27,6 +27,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenPartitioner;
 import nl.rivm.screenit.model.OrganisatieType;
@@ -41,11 +44,12 @@ import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
 	public static final String KEY_SCREENINGORGANISATIEID = "mamma.screeningorganisatie.id";
@@ -60,10 +64,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	public static final String KEY_EERSTE_RONDE = "_ronde1";
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MammaBrievenGenererenPartitioner.class);
-
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	protected void fillingData(Map<String, ExecutionContext> partities, ScreeningOrganisatie organisatie)
@@ -77,7 +78,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 			if (BriefType.getMammaBriefApart().contains(briefType))
 			{
-				Boolean isEersteRondeBrief = isEersteRondeBrief(briefType);
+				var isEersteRondeBrief = isEersteRondeBrief(briefType);
 
 				partitionBuilders(partities, organisatie.getId(), briefType, true, null, false, isEersteRondeBrief);
 
@@ -101,12 +102,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	private List<BriefType> getBriefTypes()
 	{
-		List<BriefType> briefTypes = new ArrayList<BriefType>();
-		for (BriefType briefType : BriefType.getBriefTypes(true, Bevolkingsonderzoek.MAMMA))
-		{
-			briefTypes.add(briefType);
-		}
-		return briefTypes;
+		return new ArrayList<>(BriefType.getBriefTypes(true, Bevolkingsonderzoek.MAMMA));
 	}
 
 	private Set<Long> getStandplaatsenIdsMetBrief(Long screeningOrganisatieId, BriefType brieftype)
@@ -116,14 +112,14 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 		standplaatsenIds.addAll(getUitnodigingStandplaatsenIdsMetBrief(screeningOrganisatieId, brieftype));
 		if (!standplaatsenIds.isEmpty())
 		{
-			LOGGER.info(String.format("%d standplaats(en) gevonden met brieftype %s en organisatieId %d", standplaatsenIds.size(), brieftype.name(), screeningOrganisatieId));
+			LOG.info(String.format("%d standplaats(en) gevonden met brieftype %s en organisatieId %d", standplaatsenIds.size(), brieftype.name(), screeningOrganisatieId));
 		}
 		return standplaatsenIds;
 	}
 
 	private List<Long> getAfspraakStandplaatsenIdsMetBrief(Long screeningOrganisatieId, BriefType briefType)
 	{
-		Criteria crit = getBaseCriteria(screeningOrganisatieId, briefType);
+		var crit = getBaseCriteria(screeningOrganisatieId, briefType);
 
 		crit.add(Restrictions.isNotNull("laatsteAfspraak.id"));
 
@@ -138,7 +134,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	private List<Long> getUitnodigingStandplaatsenIdsMetBrief(Long screeningOrganisatieId, BriefType briefType)
 	{
-		Criteria crit = getBaseCriteria(screeningOrganisatieId, briefType);
+		var crit = getBaseCriteria(screeningOrganisatieId, briefType);
 
 		crit.add(Restrictions.isNull("laatsteAfspraak.id"));
 
@@ -152,7 +148,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	private Criteria getBaseCriteria(Long screeningOrganisatieId, BriefType briefType)
 	{
-		Criteria crit = getHibernateSession().createCriteria(MammaBrief.class);
+		var crit = getHibernateSession().createCriteria(MammaBrief.class);
 		crit.createAlias("client", "client");
 		crit.createAlias("client.persoon", "persoon");
 		crit.createAlias("persoon.gbaAdres", "gbaAdres");
@@ -181,7 +177,7 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 	private Boolean isEersteRondeBrief(BriefType briefType)
 	{
 
-		Boolean annoteerEersteRonde = preferenceService.getBoolean(PreferenceKey.MAMMA_ANNOTEER_EERSTE_RONDE.name());
+		var annoteerEersteRonde = preferenceService.getBoolean(PreferenceKey.MAMMA_ANNOTEER_EERSTE_RONDE.name());
 		return Boolean.TRUE.equals(annoteerEersteRonde) && BriefType.getMammaEersteRondeBrieftype().contains(briefType);
 	}
 
@@ -200,23 +196,23 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 	}
 
 	private void partitionBuilder(
-			Map<String, ExecutionContext> partities,
-			long organisatieID,
-			BriefType briefType,
-			boolean briefApart,
-			Long standPlaatsID,
-			Boolean tijdelijk,
-			Boolean eersteBrief)
+		Map<String, ExecutionContext> partities,
+		long organisatieID,
+		BriefType briefType,
+		boolean briefApart,
+		Long standPlaatsID,
+		Boolean tijdelijk,
+		Boolean eersteBrief)
 	{
-		String partitionIdentifier = organisatieID + briefType.name();
-		ExecutionContext ec = new ExecutionContext();
+		var partitionIdentifier = organisatieID + briefType.name();
+		var executionContext = new ExecutionContext();
 
-		ec.put(KEY_SCREENINGORGANISATIEID, organisatieID);
-		ec.put(KEY_BRIEFTYPE, briefType.name());
-		ec.put(KEY_BRIEFTYPEAPART, briefApart);
-		ec.put(KEY_MAMMASTANDPLAATSID, standPlaatsID);
-		ec.put(KEY_TIJDELIJK, tijdelijk);
-		ec.put(KEY_EERSTE_RONDE, eersteBrief);
+		executionContext.put(KEY_SCREENINGORGANISATIEID, organisatieID);
+		executionContext.put(KEY_BRIEFTYPE, briefType.name());
+		executionContext.put(KEY_BRIEFTYPEAPART, briefApart);
+		executionContext.put(KEY_MAMMASTANDPLAATSID, standPlaatsID);
+		executionContext.put(KEY_TIJDELIJK, tijdelijk);
+		executionContext.put(KEY_EERSTE_RONDE, eersteBrief);
 
 		if (Boolean.TRUE.equals(tijdelijk))
 		{
@@ -241,6 +237,6 @@ public class MammaBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 			partitionIdentifier += "_ERF";
 		}
 
-		partities.put(partitionIdentifier, ec);
+		partities.put(partitionIdentifier, executionContext);
 	}
 }

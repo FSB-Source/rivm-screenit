@@ -1,7 +1,7 @@
 import {connect} from "react-redux"
 import type {PaspoortProps} from "./PaspoortView"
 import PaspoortView from "./PaspoortView"
-import {ligtTussenData, vandaagISO} from "../../util/DateUtil"
+import {ligtTussenData, vandaagDate} from "../../util/DateUtil"
 import {RootState} from "../../Store"
 import {Client} from "../../datatypes/Client"
 import {Afspraak} from "../../datatypes/Afspraak"
@@ -14,7 +14,7 @@ export type PaspoortContainerProps = {
 const mapStateToProps = (state: RootState, ownProps: PaspoortContainerProps): PaspoortProps => {
 	const tijdelijkAdres = ownProps.client.tijdelijkAdres
 
-	if (tijdelijkAdres && ligtTussenData(vandaagISO(), tijdelijkAdres.startDatum, tijdelijkAdres.eindDatum)) {
+	if (tijdelijkAdres && ligtTussenData(vandaagDate(), tijdelijkAdres.startDatum, tijdelijkAdres.eindDatum)) {
 		return {
 			...ownProps,
 			tijdelijkAdresValue: "Er is een tijdelijk adres beschikbaar",

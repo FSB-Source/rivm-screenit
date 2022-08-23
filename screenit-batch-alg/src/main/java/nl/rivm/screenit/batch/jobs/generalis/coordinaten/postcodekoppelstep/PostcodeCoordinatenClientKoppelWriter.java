@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
 
 /*-
@@ -22,23 +21,24 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
 import nl.rivm.screenit.util.AdresUtil;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class PostcodeCoordinatenClientKoppelWriter extends BaseWriter<BagAdres>
 {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PostcodeCoordinatenClientKoppelWriter.class);
-
-	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private final CoordinatenDao coordinatenDao;
 
 	@Override
 	protected void write(BagAdres item)
@@ -47,11 +47,11 @@ public class PostcodeCoordinatenClientKoppelWriter extends BaseWriter<BagAdres>
 		item.setPostcodeCoordinaten(coordinaten);
 		if (coordinaten != null)
 		{
-			LOGGER.info("Coordinaten voor adres " + item.getId() + " gevonden.");
+			LOG.info("Coordinaten voor adres " + item.getId() + " gevonden.");
 		}
 		else
 		{
-			LOGGER.warn("Geen coordinaten gevonden voor adres " + item.getId() + " " + AdresUtil.getVolledigeAdresString(item));
+			LOG.warn("Geen coordinaten gevonden voor adres " + item.getId() + " " + AdresUtil.getVolledigeAdresString(item));
 		}
 		getHibernateService().saveOrUpdate(item);
 	}

@@ -25,6 +25,9 @@ import nl.rivm.screenit.batch.jobs.aftergba.BaseAfterGbaListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class AfterGbaListener extends BaseAfterGbaListener
 {
 

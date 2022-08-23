@@ -198,33 +198,39 @@ public class AfspraakServiceImpl implements AfspraakService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void annuleerAfspraak(Afspraak afspraak, Account account, AfspraakStatus status, boolean briefTegenhouden)
+	public void annuleerAfspraak(Afspraak afspraak, Account account, AfspraakStatus status, boolean communicatieTegenhouden)
 	{
 		LocalDateTime nu = currentDateSupplier.getLocalDateTime();
 		Client client = afspraak.getClient();
 		String afzegReden = "";
 		if (afspraak instanceof ColonIntakeAfspraak)
 		{
-			ColonIntakeAfspraak colonIntakeAfspraak = (ColonIntakeAfspraak) afspraak;
-			afspraakAfzeggen(colonIntakeAfspraak, status, nu, briefTegenhouden);
+			ColonIntakeAfspraak intakeAfspraak = (ColonIntakeAfspraak) afspraak;
+			afspraakAfzeggen(intakeAfspraak, status, nu, communicatieTegenhouden);
 
-			ColonScreeningRonde colonScreeningRonde = colonIntakeAfspraak.getColonScreeningRonde();
-			if (colonScreeningRonde.getOpenUitnodiging() == null) 
+			ColonScreeningRonde screeningRonde = intakeAfspraak.getColonScreeningRonde();
+			if (screeningRonde.getOpenUitnodiging() == null) 
 
 			{
-				colonScreeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);
-				colonScreeningRonde.setAfgerondReden(colonIntakeAfspraak.getRedenAfzeggen().toString());
-				colonScreeningRonde.setStatusDatum(DateUtil.toUtilDate(nu));
+				if (screeningRonde.getStatus() == ScreeningRondeStatus.LOPEND)
+				{
+					screeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);
+					screeningRonde.setStatusDatum(DateUtil.toUtilDate(nu));
+					if (intakeAfspraak.getRedenAfzeggen() != null)
+					{
+						screeningRonde.setAfgerondReden(intakeAfspraak.getRedenAfzeggen().toString());
+					}
+				}
 			}
 			else
 			{
-				OpenUitnodiging uitnodiging = colonScreeningRonde.getOpenUitnodiging();
+				OpenUitnodiging uitnodiging = screeningRonde.getOpenUitnodiging();
 				uitnodiging.setUitslag(null);
 				uitnodiging.setDatum(null);
 				uitnodiging.setAfspraak(null);
 				hibernateService.saveOrUpdate(uitnodiging);
 			}
-			RedenAfspraakAfzeggen redenAfzeggen = colonIntakeAfspraak.getRedenAfzeggen();
+			RedenAfspraakAfzeggen redenAfzeggen = intakeAfspraak.getRedenAfzeggen();
 			if (redenAfzeggen != null)
 			{
 				afzegReden = " (Reden: " + redenAfzeggen + ")";
@@ -240,7 +246,7 @@ public class AfspraakServiceImpl implements AfspraakService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean briefTegenhouden)
+	public void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean communicatieTegenhouden)
 	{
 		setAfspraakStatus(afspraak, status);
 		afspraak.setAfzegDatum(DateUtil.toUtilDate(nu.plus(100, ChronoUnit.MILLIS)));
@@ -255,20 +261,21 @@ public class AfspraakServiceImpl implements AfspraakService
 			if (!client.getPersoon().getGbaAdres().getGbaGemeente().getCode().equals(Gemeente.RNI_CODE))
 			{
 				ColonBrief colonBrief = briefService.maakBvoBrief(screeningRonde, BriefType.COLON_INTAKE_AFMELDING, DateUtil.toUtilDate(nu.plus(150, ChronoUnit.MILLIS)));
-				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(colonBrief, briefTegenhouden));
+				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(colonBrief, communicatieTegenhouden));
 
-				MailMergeContext context = new MailMergeContext();
-				context.setClient(client);
-				context.setIntakeAfspraak(afspraak);
-				if (screeningRonde != null && screeningRonde.getLaatsteUitnodiging() != null)
+				if (!communicatieTegenhouden)
 				{
-					context.setColonUitnodiging(screeningRonde.getLaatsteUitnodiging());
-				}
+					MailMergeContext context = new MailMergeContext();
+					context.setClient(client);
+					context.setIntakeAfspraak(afspraak);
+					if (screeningRonde.getLaatsteUitnodiging() != null)
+					{
+						context.setColonUitnodiging(screeningRonde.getLaatsteUitnodiging());
+					}
 
-				if (!briefTegenhouden)
-				{
 					berichtenService.verstuurColonHuisartsBericht(client, screeningRonde, HuisartsBerichtType.ANNULEREN_INTAKEAFSPRAAK, context);
 				}
+
 			}
 		}
 	}
@@ -569,7 +576,7 @@ public class AfspraakServiceImpl implements AfspraakService
 
 		try
 		{
-			berichtenService.verstuurColonHuisartsBericht(client, laatsteScreeningRonde, berichtType, context, true);
+			berichtenService.verstuurColonHuisartsBericht(client, laatsteScreeningRonde, laatsteScreeningRonde.getColonHuisarts(), berichtType, context, true);
 		}
 		catch (Exception e)
 		{

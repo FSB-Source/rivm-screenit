@@ -23,6 +23,8 @@ package nl.rivm.screenit.clientportaal.services.cervix.impl;
 
 import java.time.LocalDate;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.clientportaal.exception.NotValidException;
 import nl.rivm.screenit.clientportaal.mappers.cervix.CervixUitstelMapper;
@@ -40,34 +42,29 @@ import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixUitstellenServiceImpl implements CervixUitstellenService
 {
 
-	@Autowired
-	private CervixBaseScreeningrondeService screeningrondeService;
+	private final CervixBaseScreeningrondeService screeningrondeService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private CervixUitstelMapper cervixUitstelMapper;
+	private final CervixUitstelMapper cervixUitstelMapper;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private DatumValidatieService datumValidatieService;
+	private final DatumValidatieService datumValidatieService;
 
-	private final int DUUR_ZWANGERSCHAP = 9;
+	private final static int DUUR_ZWANGERSCHAP = 9;
 
-	private final int MAX_TERMIJN_UITSTELLEN = 60;
+	private final static int MAX_TERMIJN_UITSTELLEN = 60;
 
 	@Override
 	public CervixUitstellenStatusDto getUitstelStatus(Client client)
@@ -135,8 +132,8 @@ public class CervixUitstellenServiceImpl implements CervixUitstellenService
 		}
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public void vraagUitstelAan(Client client, CervixUitstelDto uitstellenDto)
 	{
 		screeningrondeService.uitstelAanvragen(client, cervixUitstelMapper.dtoToCervixUitstel(uitstellenDto), client);

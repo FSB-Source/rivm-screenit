@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixBriefConstants
 {
-
-	private CervixBriefConstants()
-	{
-	}
 
 	@Deprecated
 	public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";

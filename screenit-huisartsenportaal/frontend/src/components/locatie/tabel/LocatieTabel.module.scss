@@ -1,0 +1,27 @@
+@import "../../../styling/scss/mixins";
+
+.style {
+
+	p {
+		margin-top: 5px;
+	}
+
+	button {
+		font-size: 0.85rem;
+		padding: 4px;
+		line-height: 1;
+	}
+
+	th, td {
+		text-align: center;
+	}
+
+	td {
+		position: relative;
+	}
+
+	i {
+		cursor: pointer;
+	}
+
+}

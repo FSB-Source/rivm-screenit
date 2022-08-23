@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.mamma.huisartsberichten.step;
 import java.time.LocalDateTime;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.mamma.berichten.MammaHuisartsBericht;
@@ -35,20 +37,20 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaMislukteHuisartsberichtenVersturenReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-
 		final LocalDateTime huisartsBerichtWachtTijd = currentDateSupplier.getLocalDateTime().minusMinutes(Constants.BK_HA_BATCH_BERICHTEN_AANMAAK_OUDER_DAN);
 		final Date huisartsberichtWachttijdDate = DateUtil.toUtilDate(huisartsBerichtWachtTijd);
-		Criteria criteria = session.createCriteria(MammaHuisartsBericht.class, "huisartsbericht");
+		var criteria = session.createCriteria(MammaHuisartsBericht.class, "huisartsbericht");
 		criteria.add(Restrictions.or(
 			Restrictions.eq("huisartsbericht.status", MammaHuisartsBerichtStatus.VERSTUREN_MISLUKT),
 			Restrictions.and(

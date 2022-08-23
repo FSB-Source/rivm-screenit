@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -29,12 +31,13 @@ import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaKansberekeningListener extends BaseLogListener
 {
-	@Autowired
-	private MammaBaseKansberekeningService kansberekeningService;
+	private final MammaBaseKansberekeningService kansberekeningService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)

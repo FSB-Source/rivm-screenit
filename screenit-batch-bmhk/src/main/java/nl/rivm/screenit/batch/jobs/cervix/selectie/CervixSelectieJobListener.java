@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -31,17 +33,15 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixSelectieJobListener extends BaseLogListener
 {
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected Bevolkingsonderzoek getBevolkingsonderzoek()
@@ -76,16 +76,17 @@ public class CervixSelectieJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		long aantal = context.getLong(CervixSelectieConstants.SELECTIE_AANTAL_KEY, 0);
+		long aantalVooraankondiging = context.getLong(CervixSelectieConstants.VOORAANKONDIGING_SELECTIE_AANTAL_KEY, 0);
 
-		CervixSelectieRapportage rapportage = new CervixSelectieRapportage();
+		var rapportage = new CervixSelectieRapportage();
 		rapportage.setDatumVerwerking(dateSupplier.getDate());
 		rapportage.setAantal(aantal);
 
-		CervixSelectieBeeindigdLogEvent selectieBeeindigdLogEvent = (CervixSelectieBeeindigdLogEvent) super.eindLogging(jobExecution);
+		var selectieBeeindigdLogEvent = (CervixSelectieBeeindigdLogEvent) super.eindLogging(jobExecution);
 		selectieBeeindigdLogEvent.setRapportage(rapportage);
-		selectieBeeindigdLogEvent.setMelding("Er zijn " + aantal + " client(en) uitgenodigd");
+		selectieBeeindigdLogEvent.setMelding("Er zijn " + aantal + " client(en) uitgenodigd en " + aantalVooraankondiging + " vooraankondiging(en) gemaakt.");
 
 		hibernateService.saveOrUpdate(rapportage);
 		hibernateService.saveOrUpdate(selectieBeeindigdLogEvent);

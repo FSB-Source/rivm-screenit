@@ -1,0 +1,24 @@
+@import "../../styling/scss/colors";
+
+.style {
+
+	.tableContainer {
+		overflow-x: scroll;
+		overflow-y: hidden;
+	}
+
+	.aanvraagForm {
+		background-color: $wit;
+		box-shadow: 5px 20px 30px 3px rgba(0, 0, 0, 0.2);
+
+		h4 {
+			display: block;
+			text-align: center;
+		}
+
+		button {
+			width: 100%;
+		}
+	}
+
+}

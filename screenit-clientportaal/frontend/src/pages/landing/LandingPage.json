@@ -4,6 +4,11 @@
     "middag": "Goedemiddag",
     "avond": "Goedenavond"
   },
+  "aanspreekvormen": {
+    "onbekend": "%s %s",
+    "heer": "Heer %s",
+    "mevrouw": "Mevrouw %s"
+  },
   "inleiding": "Welkom bij Mijn Bevolkingsonderzoek. Hier kunt u zaken regelen voor uw bevolkingsonderzoek(en). U kunt bijvoorbeeld een afspraak maken of wijzigen, persoonlijke gegevens doorgeven, u afmelden of weer aanmelden voor een onderzoek en tests aanvragen. </br></br>In Nederland zijn er drie bevolkingsonderzoeken naar kanker. </br>U beslist zelf of u wilt meedoen. De onderzoeken zijn gratis.",
   "link": "Meer informatie op %s",
   "bvocard": "Ik kom voor:"

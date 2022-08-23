@@ -257,7 +257,7 @@ public class MedewerkerBasisgegevens extends MedewerkerBeheer
 
 			ComponentHelper.addTextField(this, "achternaam", true, 100, inzien).add(new AchternaamValidator()).setLabel(Model.of("Achternaam"));
 
-			ComponentHelper.addDropDownChoiceINaam(this, "aanhef", false, Arrays.asList(Aanhef.values()), inzien);
+			ComponentHelper.addDropDownChoice(this, "aanhef", false, Aanhef.aanhefVormenMedewerkers(), inzien);
 
 			ScreenitDropdown<Titel> titel = ComponentHelper.addDropDownChoiceINaam(this, "titel", false, ModelUtil.listRModel(stamtabellenService.getTitels(medewerker), false),
 				inzien);

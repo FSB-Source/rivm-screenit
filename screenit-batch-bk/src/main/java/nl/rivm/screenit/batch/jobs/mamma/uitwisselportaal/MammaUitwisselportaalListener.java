@@ -26,13 +26,11 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MammaUitwisselportaalListener extends BaseLogListener
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(MammaUitwisselportaalListener.class);
 
 	@Override
 	protected LogEvent getStartLogEvent()

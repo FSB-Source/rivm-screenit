@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
 
 import java.time.LocalDate;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventReader;
 import nl.rivm.screenit.model.DossierStatus;
@@ -31,40 +33,38 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaScreeningRondeEventReader extends MammaAbstractEventReader
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	protected Criteria getCriteria(StatelessSession session)
 	{
-		Criteria criteria = session.createCriteria(MammaDossier.class, "dossier");
+		var criteria = session.createCriteria(MammaDossier.class, "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
 
-		Integer maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
-		Integer minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
+		var maximaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name());
+		var minimaleLeeftijd = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name());
 
-		int huidigJaar = dateSupplier.getLocalDate().getYear();
-		int vanafGeboorteJaar = huidigJaar - maximaleLeeftijd - 1;
-		int totEnMetGeboorteJaar = huidigJaar - minimaleLeeftijd + 3;
+		var huidigJaar = dateSupplier.getLocalDate().getYear();
+		var vanafGeboorteJaar = huidigJaar - maximaleLeeftijd - 1;
+		var totEnMetGeboorteJaar = huidigJaar - minimaleLeeftijd + 3;
 
 		criteria.add(Restrictions.ge("persoon.geboortedatum", DateUtil.toUtilDate(LocalDate.of(vanafGeboorteJaar, 1, 1))));
 		criteria.add(Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(LocalDate.of(totEnMetGeboorteJaar, 12, 31))));
 
-		criteria.add(Restrictions.eq("persoon.geslacht", Geslacht.VROUW));
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
 		criteria.add(NvlRestrictions.eq("dossier.status", DossierStatus.ACTIEF, "'" + DossierStatus.ACTIEF.toString() + "'"));
 		criteria.add(Restrictions.isNull("dossier.screeningRondeEvent"));

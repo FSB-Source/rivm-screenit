@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IfobtVerwerkingConstants
 {
-
-	private IfobtVerwerkingConstants()
-	{
-	}
 
 	public static final String RAPPORTAGEKEYVERWERKING = "key.verwerkingid";
 

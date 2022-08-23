@@ -21,17 +21,17 @@ package nl.rivm.screenit.batch.jobs.mamma.conceptmodel;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaConceptModelConstants
 {
 
-    private MammaConceptModelConstants()
-    {
-    }
+	@Deprecated
+	public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";
 
-    @Deprecated
-    public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";
+	public static final String RAPPORTAGEKEYAANTALBRIEVEN = "key.brieven.rapportage";
 
-    public static final String RAPPORTAGEKEYAANTALBRIEVEN = "key.brieven.rapportage";
-
-    public static final String RAPPORTAGEKEYAANTALPERMERGEDEBRIEVEN = "key.brieven.rapportage.per.merged";
+	public static final String RAPPORTAGEKEYAANTALPERMERGEDEBRIEVEN = "key.brieven.rapportage.per.merged";
 }

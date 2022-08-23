@@ -75,10 +75,23 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 	const [dossierVerverst, setDossierVerverst] = useState<boolean>(false)
 	const [gekozenPlaats, setGekozenPlaats] = useState<string | undefined>(huidigeStandplaats ? huidigeStandplaats : undefined)
 	const [gekozenAfstand, setGekozenAfstand] = useState<string | undefined>(undefined)
+	const formikRef = useRef<FormikProps<MammaAfspraakFormValues>>(null)
 
 	useEffect(() => {
 		beschikbaarheidOpgehaald && props.setDagenBeschikbaar(beschikbareDagen.length !== 0)
 	}, [beschikbaarheidOpgehaald, beschikbareDagen, props])
+
+	useEffect(() => {
+		if (beschikbareDagen.length !== 0 && beschikbaarheidOpgehaald) {
+			if (formikRef.current) {
+				if (formikRef.current.initialValues.vanaf == null) {
+					formikRef.current.initialValues.vanaf = beschikbareDagen[0]
+				}
+				formikRef.current.handleSubmit()
+			} else {
+			}
+		}
+	}, [beschikbaarheidOpgehaald, beschikbareDagen])
 
 	useEffect(() => {
 		if (huidigeStandplaats != null) {
@@ -90,13 +103,16 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 	useEffect(() => {
 		if (dossierVerverst) {
 			setBeschikbaarheidOpgehaald(false)
-			const url = gekozenPlaats ? `/mamma/afspraak/beschikbaarheid/plaats/${gekozenPlaats}` : `/mamma/afspraak/beschikbaarheid/afstand/${gekozenAfstand}`
-			ScreenitBackend.get(url)
-				.then((response: AxiosResponse<Date[]>) => {
-					setBeschikbareDagen(response.data)
-					setBeschikbaarheidOpgehaald(true)
-					handleBeschikbaarheid()
-				})
+			const url = "/mamma/afspraak/beschikbaarheid" + (gekozenPlaats ? `/plaats` : `/afstand/${gekozenAfstand}`)
+
+			ScreenitBackend.request({
+				url: url,
+				method: gekozenPlaats ? "POST" : "GET",
+				data: gekozenPlaats && {plaats: gekozenPlaats},
+			}).then((response: AxiosResponse<Date[]>) => {
+				setBeschikbareDagen(response.data)
+				setBeschikbaarheidOpgehaald(true)
+			})
 		}
 	}, [dossierVerverst, gekozenPlaats, gekozenAfstand])
 
@@ -133,13 +149,6 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 			})),
 	})
 
-	const formikRef = useRef<FormikProps<MammaAfspraakFormValues>>(null)
-	const handleBeschikbaarheid = () => {
-		if (formikRef.current) {
-			formikRef.current.handleSubmit()
-		}
-	}
-
 	return <Formik innerRef={formikRef}
 				   enableReinitialize
 				   initialValues={initialValues}
@@ -148,7 +157,6 @@ const MammaAfspraakMakenForm = (props: MammaAfspraakMakenFormProps) => {
 
 		{formikProps => (
 			<SearchForm className={styles.style} title={getString(properties.form.titel)}>
-
 				<ScreenitDropdown propertyName={"plaats"}
 								  invalidMessage={formikProps.errors.plaats}
 								  value={formikProps.values.plaats}

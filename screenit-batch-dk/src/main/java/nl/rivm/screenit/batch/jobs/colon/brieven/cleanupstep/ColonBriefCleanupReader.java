@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.brieven.cleanupstep;
 
 /*-
@@ -32,14 +31,16 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ColonBriefCleanupReader extends AbstractBrievenCleanUpReader<ColonMergedBrieven>
 {
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = super.createCriteria(session);
+		var criteria = super.createCriteria(session);
 		criteria.add(Restrictions.in("briefType", BriefType.getBriefTypesMetOrganisatieType(true, OrganisatieType.SCREENINGSORGANISATIE, Bevolkingsonderzoek.COLON)));
 		return criteria;
 	}

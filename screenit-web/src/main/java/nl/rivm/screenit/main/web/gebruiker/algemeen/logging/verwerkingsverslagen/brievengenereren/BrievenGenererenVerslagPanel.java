@@ -27,19 +27,16 @@ import nl.rivm.screenit.model.verwerkingverslag.BrievenGenererenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.BrievenGenererenRapportageEntry;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.PropertyListView;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class BrievenGenererenVerslagPanel extends GenericPanel<BrievenGenererenRapportage>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public BrievenGenererenVerslagPanel(String id, IModel<BrievenGenererenRapportage> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
@@ -48,52 +45,28 @@ public class BrievenGenererenVerslagPanel extends GenericPanel<BrievenGenererenR
 
 		List<BrievenGenererenRapportageEntry> entries = model.getObject().getEntries();
 
-		add(new Label("AantalTotaalBrieven", getAantalTotaalBrieven(entries)));
+		add(new Label("aantalTotaalBrieven", getAantalTotaalBrieven(entries)));
 		add(new Label("aantalTotaalScreeningOrganisaties", getAantalTotaalScreeningOrganisaties(entries)));
 
-		add(new PropertyListView<BrievenGenererenRapportageEntry>("verwerkingen", ModelUtil.listRModel(entries, false))
+		add(new PropertyListView<>("verwerkingen", ModelUtil.listRModel(entries, false))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<BrievenGenererenRapportageEntry> item)
 			{
-				item.add(new Label("screeningOrganisatie", item.getModelObject().getScreeningOrganisatie().getNaam()));
+				item.add(new Label("screeningOrganisatie.naam"));
 				item.add(new Label("aantalBrievenPerScreeningOrganisatie"));
 			}
-
 		});
 	}
 
-	private Long getAantalTotaalBrieven(List<BrievenGenererenRapportageEntry> verwerkingen)
+	private Integer getAantalTotaalBrieven(List<BrievenGenererenRapportageEntry> verwerkingen)
 	{
-		if (verwerkingen.isEmpty())
-		{
-			return (long) 0;
-		}
-		else
-		{
-			Long restulaten = (long) 0;
-			for (BrievenGenererenRapportageEntry entry : verwerkingen)
-			{
-				restulaten += entry.getAantalBrievenPerScreeningOrganisatie();
-			}
-			return restulaten;
-		}
-
+		return verwerkingen.stream().mapToInt(BrievenGenererenRapportageEntry::getAantalBrievenPerScreeningOrganisatie).sum();
 	}
 
 	private Integer getAantalTotaalScreeningOrganisaties(List<BrievenGenererenRapportageEntry> verwerkingen)
 	{
-		if (verwerkingen.isEmpty())
-		{
-			return 0;
-		}
-		else
-		{
-			return verwerkingen.size();
-		}
+		return Math.toIntExact(verwerkingen.stream().filter(v -> v.getScreeningOrganisatie() != null).count());
 	}
 
 }

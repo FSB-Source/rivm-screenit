@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.huisarts;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
@@ -136,7 +135,7 @@ public abstract class CervixKlaarzettenHuisartsPanel extends GenericPanel<Cervix
 			}
 		}).setRequired(true));
 
-		ComponentHelper.addDropDownChoiceINaam(form, "organisatieMedewerkers[0].medewerker.aanhef", false, Arrays.asList(Aanhef.values()), false).setNullValid(true);
+		ComponentHelper.addDropDownChoice(form, "organisatieMedewerkers[0].medewerker.aanhef", false, Aanhef.aanhefVormenMedewerkers(), false).setNullValid(true);
 
 		ComponentHelper.addTextField(form, "organisatieMedewerkers[0].medewerker.achternaam", true, 50, false).add(new AchternaamValidator());
 		ComponentHelper.addTextField(form, "organisatieMedewerkers[0].medewerker.voorletters", false, 20, false).add(new VoorlettersValidator());

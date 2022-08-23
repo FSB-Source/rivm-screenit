@@ -25,6 +25,9 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken.CervixGevolgenLabprocesVerwerkenConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
@@ -32,15 +35,12 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
-import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixOmissieType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
@@ -68,51 +68,38 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMonster>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixGevolgenLabprocesVerwerkenWriter.class);
+	private final ApplicationContext appContext;
 
-	@Autowired
-	private ApplicationContext appContext;
+	private final CervixVervolgService vervolgService;
 
-	@Autowired
-	private CervixVervolgService vervolgService;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final BaseAfmeldService baseAfmeldService;
 
-	@Autowired
-	private BaseAfmeldService baseAfmeldService;
+	private final BaseBriefService briefService;
 
-	@Autowired
-	private BaseBriefService briefService;
+	private final CervixHuisartsBerichtService huisartsBerichtService;
 
-	@Autowired
-	private CervixHuisartsBerichtService huisartsBerichtService;
+	private final CervixFactory factory;
 
-	@Autowired
-	private CervixFactory factory;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final CervixBaseScreeningrondeService screeningrondeService;
 
-	@Autowired
-	private CervixBaseScreeningrondeService screeningrondeService;
+	private final CervixMailService mailService;
 
-	@Autowired
-	private CervixMailService mailService;
-
-	@Autowired
-	private BezwaarService bezwaarService;
+	private final BezwaarService bezwaarService;
 
 	@Override
 	protected void write(CervixMonster monster) throws Exception
@@ -121,7 +108,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		CervixVervolg vervolg;
 		try
 		{
-			String startdatumAanleveringGenotyperingString = (String) getJobExecution().getExecutionContext()
+			var startdatumAanleveringGenotyperingString = (String) getJobExecution().getExecutionContext()
 				.get(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
 			vervolg = vervolgService.bepaalVervolg(monster, DateUtil.parseLocalDateForPattern(startdatumAanleveringGenotyperingString, "yyyyMMdd"));
 		}
@@ -171,7 +158,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 					{
 						aantalContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_IN_LABPROCES_KEY);
 
-						CervixHuisartsBericht uitstrijkjeOntbreektHuisartsBericht = omissie.getUitstrijkjeOntbreektHuisartsBericht();
+						var uitstrijkjeOntbreektHuisartsBericht = omissie.getUitstrijkjeOntbreektHuisartsBericht();
 						if (uitstrijkjeOntbreektHuisartsBericht != null)
 						{
 							aantallenContextOphogen(CervixGevolgenLabprocesVerwerkenConstants.TOTAAL_AANTAL_HUISARTSBERICHTEN_KEY,
@@ -200,13 +187,14 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 	private void labprocesAfronden(CervixMonster monster, CervixVervolg vervolg)
 	{
 		volgendeRondeVanaf(monster, vervolg);
-		PreferenceKey heraanmeldenTekstKey = heraanmelden(monster);
-		CervixBrief brief = brief(monster, vervolg, heraanmeldenTekstKey);
+		var heraanmeldenTekstKey = heraanmelden(monster);
+		var brief = brief(monster, vervolg, heraanmeldenTekstKey);
 		huisartsbericht(monster, vervolg);
 		uitnodiging(monster, brief);
 		vervolgonderzoek(monster, vervolg);
 		rondeSluiten(monster, vervolg);
 		verwerkBezwaar(monster);
+		vervolgService.digitaalLabformulierKlaarVoorCytologie(monster, vervolg.getVervolgTekst());
 	}
 
 	private void labprocesAfronden(CervixMonster monster, CervixOmissiesLabproces.Omissie omissie)
@@ -235,7 +223,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void annuleringen(CervixMonster monster)
 	{
-		CervixScreeningRonde ontvangstRonde = monster.getOntvangstScreeningRonde();
+		var ontvangstRonde = monster.getOntvangstScreeningRonde();
 		screeningrondeService.annuleerHerinnering(ontvangstRonde);
 		screeningrondeService.annuleerNietVerstuurdeZAS(ontvangstRonde);
 		screeningrondeService.annuleerUitstel(ontvangstRonde);
@@ -257,7 +245,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 					if (ontvangstRonde.getUitstrijkjeCytologieUitslag() == null && ontvangstRonde.getMonsterHpvUitslag() != null
 						&& ontvangstRonde.getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getHpvUitslag() == CervixHpvBeoordelingWaarde.POSITIEF
 						|| ontvangstRonde.getUitstrijkjeVervolgonderzoekUitslag() == null && ontvangstRonde.getInVervolgonderzoekDatum() != null
-							&& uitstrijkje.getOntvangstdatum().after(ontvangstRonde.getInVervolgonderzoekDatum()))
+						&& uitstrijkje.getOntvangstdatum().after(ontvangstRonde.getInVervolgonderzoekDatum()))
 					{
 						PreferenceKey heraanmeldenTekstKey = heraanmelden(monster);
 						CervixBrief huisartsOnbekendBrief = briefService.maakBvoBrief(ontvangstRonde, BriefType.CERVIX_HUISARTS_ONBEKEND);
@@ -276,13 +264,13 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void volgendeRondeVanaf(CervixMonster monster, CervixVervolg vervolg)
 	{
-		CervixLeeftijdcategorie leeftijdcategorieVolgendeRonde = vervolg.getLeeftijdcategorieVolgendeRonde();
+		var leeftijdcategorieVolgendeRonde = vervolg.getLeeftijdcategorieVolgendeRonde();
 		if (leeftijdcategorieVolgendeRonde != null)
 		{
-			CervixDossier dossier = monster.getOntvangstScreeningRonde().getDossier();
-			DateTime geboortedatum = new DateTime(dossier.getClient().getPersoon().getGeboortedatum());
+			var dossier = monster.getOntvangstScreeningRonde().getDossier();
+			var geboortedatum = new DateTime(dossier.getClient().getPersoon().getGeboortedatum());
 
-			DateTime volgendeRondeVanaf = geboortedatum.plusYears(leeftijdcategorieVolgendeRonde.getLeeftijd());
+			var volgendeRondeVanaf = geboortedatum.plusYears(leeftijdcategorieVolgendeRonde.getLeeftijd());
 			if (geboortedatum.getDayOfMonth() != volgendeRondeVanaf.getDayOfMonth())
 			{
 
@@ -302,8 +290,8 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 		{
 			CervixAfmelding afmelding = null;
 
-			CervixScreeningRonde ontvangstRonde = monster.getOntvangstScreeningRonde();
-			CervixDossier dossier = ontvangstRonde.getDossier();
+			var ontvangstRonde = monster.getOntvangstScreeningRonde();
+			var dossier = ontvangstRonde.getDossier();
 			if (!dossier.getAangemeld())
 			{
 				afmelding = dossier.getLaatsteAfmelding();
@@ -339,7 +327,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private CervixBrief brief(CervixMonster monster, BriefType briefType, PreferenceKey heraanmeldenTekstKey, @Nullable CervixOmissieType omissieType)
 	{
-		CervixBrief brief = briefService.maakBvoBrief(monster.getOntvangstScreeningRonde(), briefType);
+		var brief = briefService.maakBvoBrief(monster.getOntvangstScreeningRonde(), briefType);
 		monster.setBrief(brief);
 		brief.setMonster(monster);
 		brief.setHeraanmeldenTekstKey(heraanmeldenTekstKey);
@@ -368,7 +356,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void huisartsbericht(CervixMonster monster, HuisartsBerichtType huisartsBerichtType, CervixOmissieType omissieType)
 	{
-		Client client = monster.getOntvangstScreeningRonde().getDossier().getClient();
+		var client = monster.getOntvangstScreeningRonde().getDossier().getClient();
 		if (monster instanceof CervixUitstrijkje)
 		{
 			huisartsBerichtService.maakCervixHuisartsBericht(huisartsBerichtType, client, (CervixUitstrijkje) HibernateHelper.deproxy(monster), omissieType);
@@ -380,7 +368,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void uitnodiging(CervixMonster monster, CervixBrief brief)
 	{
-		BriefType briefType = brief.getBriefType();
+		var briefType = brief.getBriefType();
 		if (CervixMonsterType.getMonsterType(briefType) != null)
 		{
 			boolean herinneren = briefType != BriefType.CERVIX_UITSTRIJKJE_TWEEDE_KEER_ONBEOORDEELBAAR && briefType != BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR;
@@ -403,7 +391,7 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private void rondeSluiten(CervixMonster monster, CervixVervolg vervolg)
 	{
-		CervixScreeningRonde ontvangstRonde = monster.getOntvangstScreeningRonde();
+		var ontvangstRonde = monster.getOntvangstScreeningRonde();
 		if (vervolg.sluitRonde() && ontvangstRonde.getStatus() != ScreeningRondeStatus.AFGEROND)
 		{
 			ontvangstRonde.setStatus(ScreeningRondeStatus.AFGEROND);
@@ -416,18 +404,18 @@ public class CervixGevolgenLabprocesVerwerkenWriter extends BaseWriter<CervixMon
 
 	private boolean afgemeldNaOntvangstMonster(CervixMonster monster)
 	{
-		CervixScreeningRonde ontvangstRonde = monster.getOntvangstScreeningRonde();
+		var ontvangstRonde = monster.getOntvangstScreeningRonde();
 		if (!ontvangstRonde.getAangemeld())
 		{
 			Date peildatum = monster.getOntvangstdatum();
 			if (monster instanceof CervixUitstrijkje)
 			{
-				CervixLabformulier labformulier = ((CervixUitstrijkje) monster).getLabformulier();
+				var labformulier = ((CervixUitstrijkje) monster).getLabformulier();
 				if (labformulier != null
 					&& (peildatum == null || labformulier.getScanDatum().before(peildatum))
 					&& (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD
-						|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE
-						|| labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND))
+					|| labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE
+					|| labformulier.getStatus() == CervixLabformulierStatus.HUISARTS_ONBEKEND))
 				{
 					peildatum = labformulier.getScanDatum();
 				}

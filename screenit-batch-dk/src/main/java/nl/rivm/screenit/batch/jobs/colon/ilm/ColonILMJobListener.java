@@ -28,7 +28,9 @@ import nl.rivm.screenit.model.envers.RevisionKenmerk;
 import nl.rivm.screenit.model.logging.LogEvent;
 
 import org.springframework.batch.core.JobExecution;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ColonILMJobListener extends BaseLogListener
 {
 	private static final String REVISION_KENMERK_CONTEXT = "ILM";

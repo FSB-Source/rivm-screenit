@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -42,22 +44,22 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class BezwaarBrievenListener extends BaseLogListener
 {
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
 		BrievenGenererenBeeindigdLogEvent brievenLogEvent = new BrievenGenererenBeeindigdLogEvent();
-		Map<Long, Integer> map = new HashMap<Long, Integer>();
+		Map<Long, Integer> map = new HashMap<>();
 
 		List<ScreeningOrganisatie> screeningOrganisaties = hibernateService.loadAll(ScreeningOrganisatie.class);
 		for (ScreeningOrganisatie org : screeningOrganisaties)

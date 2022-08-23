@@ -25,7 +25,6 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.comparator.BezwaarComparator;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.dto.alg.client.contact.DeelnamewensDto;
 import nl.rivm.screenit.dto.mamma.afspraken.IMammaAfspraakWijzigenFilter;
@@ -44,20 +42,22 @@ import nl.rivm.screenit.dto.mamma.afspraken.MammaKandidaatAfspraakDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningVerzetClientenDto;
 import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.exceptions.MammaTijdNietBeschikbaarException;
+import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.AanvraagBriefStatus;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.AfmeldingType;
-import nl.rivm.screenit.model.Afspraak;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.ClientContact;
 import nl.rivm.screenit.model.ClientContactActie;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.ClientContactManier;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.DossierStatus;
+import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.NieuweIntakeAfspraakMakenReden;
 import nl.rivm.screenit.model.ScreeningRonde;
@@ -88,6 +88,7 @@ import nl.rivm.screenit.model.colon.enums.IFOBTTestStatus;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -146,7 +147,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.IFOBTTestUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Hibernate;
@@ -265,8 +265,10 @@ public class ClientContactServiceImpl implements ClientContactService
 	private DeelnamemodusDossierService deelnamemodusDossierService;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { HibernateJdbcException.class, MammaTijdNietBeschikbaarException.class, GenericJDBCException.class,
-		MammaStandplaatsVanPostcodeOnbekendException.class })
+	@Transactional(
+		propagation = Propagation.REQUIRED,
+		rollbackFor = { HibernateJdbcException.class, MammaTijdNietBeschikbaarException.class, GenericJDBCException.class,
+			MammaStandplaatsVanPostcodeOnbekendException.class })
 	public void saveClientContact(ClientContact contact, Map<ClientContactActieType, Map<ExtraOpslaanKey, Object>> extraOpslaanObjecten, Account account)
 	{
 		@SuppressWarnings("unchecked")
@@ -292,6 +294,9 @@ public class ClientContactServiceImpl implements ClientContactService
 				break;
 			case TIJDELIJK_ADRES:
 				tijdelijkAdres(account, client, actie, extraOpslaanParams);
+				break;
+			case AANPASSEN_AANHEF:
+				aanhefWijzigen(account, client, actie, extraOpslaanParams);
 				break;
 			case COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN:
 				actie = afspraakWijzigenAfzeggen(account, actiesToDelete, actie, extraOpslaanParams);
@@ -585,15 +590,13 @@ public class ClientContactServiceImpl implements ClientContactService
 	private ClientContactActie mammaMinderValideNietMeerOnderzoekZiekenhuis(ClientContactActie actie, Client client, Account account)
 	{
 		MammaScreeningRonde laatsteRonde = client.getMammaDossier().getLaatsteScreeningRonde();
-		Brief laatsteBrief = laatsteRonde.getLaatsteBrief();
+		ClientBrief laatsteBrief = laatsteRonde.getLaatsteBrief();
 		laatsteRonde.setMinderValideOnderzoekZiekenhuis(false);
 		if (laatsteBrief != null && BriefType.MAMMA_MINDER_VALIDE_ONDERZOEK_ZIEKENHUIS.equals(laatsteBrief.getBriefType()))
 		{
 			if (!BriefUtil.isGegenereerd(laatsteBrief))
 			{
-				laatsteBrief = BriefUtil.setTegenhouden(laatsteBrief, true);
-				logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, account, client,
-					BriefUtil.getBriefTypeNaam(laatsteBrief) + ", wordt tegengehouden.", laatsteBrief.getBriefType().getOnderzoeken());
+				baseBriefService.briefTegenhouden(laatsteBrief, account);
 			}
 		}
 		hibernateService.saveOrUpdateAll(laatsteBrief, laatsteRonde);
@@ -769,6 +772,30 @@ public class ClientContactServiceImpl implements ClientContactService
 		logService.logGebeurtenis(LogGebeurtenis.WIJZIG_TIJDELIJK_ADRES, account, client);
 	}
 
+	private ClientContactActie aanhefWijzigen(Account account, Client client, ClientContactActie actie, Map<ExtraOpslaanKey, Object> extraOpslaanParams)
+	{
+		Aanhef aanhef = (Aanhef) extraOpslaanParams.get(ExtraOpslaanKey.AANHEF);
+		if (Aanhef.aanhefVormenClienten().contains(aanhef))
+		{
+			saveAanhef(account, client, aanhef);
+		}
+		else
+		{
+			actie = null;
+		}
+		return actie;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void saveAanhef(Account account, Client client, Aanhef aanhef)
+	{
+		GbaPersoon persoon = client.getPersoon();
+		persoon.setAanhef(aanhef);
+		hibernateService.saveOrUpdate(persoon);
+		logService.logGebeurtenis(LogGebeurtenis.WIJZIG_AANHEF, account, client, String.format("Aanhef gewijzigd naar: %s", aanhef.getNaam()));
+	}
+
 	private ClientContactActie nieuweAfspraakMaken(Account account, Client client, List<ClientContactActie> actiesToDelete, ClientContactActie actie,
 		Map<ExtraOpslaanKey, Object> extraOpslaanParams)
 	{
@@ -917,7 +944,7 @@ public class ClientContactServiceImpl implements ClientContactService
 
 		if (clientInBuitenland)
 		{
-			return List.of(ClientContactActieType.GEEN);
+			return List.of(ClientContactActieType.GEEN, ClientContactActieType.INZAGE_PERSOONSGEGEVENS);
 		}
 
 		boolean toonVervangendeTekstMammaOpClientPortaal = viaClientportaal
@@ -939,25 +966,30 @@ public class ClientContactServiceImpl implements ClientContactService
 				continue;
 			}
 			if (Bevolkingsonderzoek.heeftAlleBevolkingsonderzoeken(actieType.getBevolkingsonderzoeken())
-				&& availableGen(client, actieType, behoortTotDoelgroepCervix, behoortTotDoelgroepColon, behoortTotDoelgroepMamma))
+				&& availableGen(client, actieType, viaClientportaal))
 			{
 				availableActies.add(actieType);
 			}
-			else if (behoortTotDoelgroepColon && Bevolkingsonderzoek.alleenDarmkanker(actieType.getBevolkingsonderzoeken())
+			else if (behoortTotDoelgroepColon
+				&& Bevolkingsonderzoek.alleenDarmkanker(actieType.getBevolkingsonderzoeken())
 				&& availableColon(client, actieType, viaClientportaal)
 				&& !toonVervangendeTekstColonOpClientPortaal)
 			{
 				availableActies.add(actieType);
 			}
-			else if (behoortTotDoelgroepCervix && Bevolkingsonderzoek.alleenBaarmoederhalskanker(actieType.getBevolkingsonderzoeken())
+			else if (behoortTotDoelgroepCervix
+				&& Bevolkingsonderzoek.alleenBaarmoederhalskanker(actieType.getBevolkingsonderzoeken())
 				&& availableCervix(client, actieType, viaClientportaal)
-				&& !toonVervangendeTekstCervixOpClientPortaal)
+				&& !toonVervangendeTekstCervixOpClientPortaal
+				&& client.getCervixDossier().getDeelnamemodus() != Deelnamemodus.SELECTIEBLOKKADE)
 			{
 				availableActies.add(actieType);
 			}
-			else if (behoortTotDoelgroepMamma && Bevolkingsonderzoek.alleenBorstkanker(actieType.getBevolkingsonderzoeken())
+			else if (behoortTotDoelgroepMamma
+				&& Bevolkingsonderzoek.alleenBorstkanker(actieType.getBevolkingsonderzoeken())
 				&& availableMamma(client, actieType, viaClientportaal)
-				&& !toonVervangendeTekstMammaOpClientPortaal)
+				&& !toonVervangendeTekstMammaOpClientPortaal
+				&& client.getMammaDossier().getDeelnamemodus() != Deelnamemodus.SELECTIEBLOKKADE)
 			{
 				availableActies.add(actieType);
 			}
@@ -972,26 +1004,21 @@ public class ClientContactServiceImpl implements ClientContactService
 		return beschikbareActies.contains(benodigdeActie);
 	}
 
-	private boolean availableGen(Client client, ClientContactActieType actieType, boolean behoortTotDoelgroepCervix, boolean behoortTotDoelgroepColon,
-		boolean behoortTotDoelgroepMamma)
+	private boolean availableGen(Client client, ClientContactActieType actieType, boolean viaClientportaal)
 	{
 		switch (actieType)
 		{
 		case GEEN:
+		case AANPASSEN_AANHEF:
 		case TIJDELIJK_ADRES:
 		case DEELNAMEWENSEN:
 		case INZAGE_PERSOONSGEGEVENS:
 		case CERVIX_DEELNAME_BUITEN_BVO_BMHK:
 			return true;
+		case BEZWAAR:
+			return viaClientportaal || bezwaarService.getNogNietVerwerkteBezwaarBrief(client.getBezwaarMomenten()) == null;
 		case OPNIEUW_AANVRAGEN_CLIENTGEGEVENS:
 			return GbaStatus.INDICATIE_AANWEZIG.equals(client.getGbaStatus());
-		case BEZWAAR:
-			if (behoortTotDoelgroepCervix || behoortTotDoelgroepColon || behoortTotDoelgroepMamma)
-			{
-				List<BezwaarMoment> bezwaren = client.getBezwaarMomenten();
-				Collections.sort(bezwaren, new BezwaarComparator());
-				return bezwaren.isEmpty() || AanvraagBriefStatus.VERWERKT.equals(bezwaren.get(0).getStatus());
-			}
 
 		default:
 			return false;
@@ -1018,14 +1045,7 @@ public class ClientContactServiceImpl implements ClientContactService
 		boolean isLaatsteAfmeldingProefBevolking = isLaatsteDefinitieveAfmeldingVerwerkt
 			&& ColonAfmeldingReden.PROEF_BEVOLKINGSONDERZOEK.equals(laatsteDefinitieveAfmelding.getReden());
 
-		boolean magAfspaakWijzigenAfzeggen = false;
-		for (Afspraak afspraak : client.getAfspraken())
-		{
-			if (magAfspaakWijzigenAfzeggen = afspraakService.magWijzigenAfzeggen(afspraak))
-			{
-				break;
-			}
-		}
+		boolean magAfspaakWijzigenAfzeggen = client.getAfspraken().stream().anyMatch(afspraak -> afspraakService.magWijzigenAfzeggen(afspraak));
 
 		switch (actieType)
 		{
@@ -1072,77 +1092,79 @@ public class ClientContactServiceImpl implements ClientContactService
 	{
 		CervixDossier dossier = client.getCervixDossier();
 
-		boolean definitiefAfmelden = true;
-		boolean definitiefHeraanmelden = false;
-		boolean eenmaligAfmelden = false;
-		boolean eenmaligHeraanmelden = false;
-		boolean herdruk = false;
-		boolean uitstel = false;
-		boolean zasAanvragen = false;
-
-		CervixAfmelding laatsteDefinitieveAfmelding = dossier.getLaatsteAfmelding();
-		definitiefAfmelden = dossier.getStatus() == DossierStatus.ACTIEF
-			&& (laatsteDefinitieveAfmelding == null || laatsteDefinitieveAfmelding.getHeraanmeldStatus() == AanvraagBriefStatus.VERWERKT || viaClientportaal);
-		definitiefHeraanmelden = laatsteDefinitieveAfmelding != null
-			&& laatsteDefinitieveAfmelding.getAfmeldingStatus() == AanvraagBriefStatus.VERWERKT
-			&& laatsteDefinitieveAfmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT
-			&& client.getPersoon().getGeslacht() == Geslacht.VROUW;
-
-		CervixScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-		int leeftijd = CervixLeeftijdcategorie.getLeeftijd(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), currentDateSupplier.getLocalDateTime());
-		boolean startVolgendeRondeNogNietVerstreken = dossier.getVolgendeRondeVanaf() != null && dossier.getVolgendeRondeVanaf().after(currentDateSupplier.getDate());
-		if (ronde != null && (leeftijd < 30 || startVolgendeRondeNogNietVerstreken))
+		if (dossier != null)
 		{
-			eenmaligHeraanmelden = !ronde.getAangemeld() && dossier.getAangemeld();
+			boolean definitiefAfmelden = true;
+			boolean definitiefHeraanmelden = false;
+			boolean eenmaligAfmelden = false;
+			boolean eenmaligHeraanmelden = false;
+			boolean herdruk = false;
+			boolean uitstel = false;
+			boolean zasAanvragen = false;
 
-			if (ronde.getStatus() == ScreeningRondeStatus.LOPEND)
+			CervixAfmelding laatsteDefinitieveAfmelding = dossier.getLaatsteAfmelding();
+			definitiefAfmelden = dossier.getStatus() == DossierStatus.ACTIEF
+				&& (laatsteDefinitieveAfmelding == null || laatsteDefinitieveAfmelding.getHeraanmeldStatus() == AanvraagBriefStatus.VERWERKT || viaClientportaal);
+			definitiefHeraanmelden = laatsteDefinitieveAfmelding != null
+				&& laatsteDefinitieveAfmelding.getAfmeldingStatus() == AanvraagBriefStatus.VERWERKT
+				&& laatsteDefinitieveAfmelding.getHeraanmeldStatus() != AanvraagBriefStatus.VERWERKT;
+
+			CervixScreeningRonde laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
+			int leeftijd = CervixLeeftijdcategorie.getLeeftijd(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), currentDateSupplier.getLocalDate());
+			boolean startVolgendeRondeNogNietVerstreken = dossier.getVolgendeRondeVanaf() != null && dossier.getVolgendeRondeVanaf().after(currentDateSupplier.getDate());
+			if (laatsteScreeningRonde != null && (leeftijd < 30 || startVolgendeRondeNogNietVerstreken))
 			{
-				eenmaligAfmelden = ronde.getStatus() == ScreeningRondeStatus.LOPEND;
-				uitstel = startVolgendeRondeNogNietVerstreken;
+				eenmaligHeraanmelden = !laatsteScreeningRonde.getAangemeld() && dossier.getAangemeld();
 
-				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
-				if (laatsteUitnodiging != null)
+				if (laatsteScreeningRonde.getStatus() == ScreeningRondeStatus.LOPEND)
 				{
-					herdruk = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(laatsteUitnodiging.getBrief())
-						&& cervixMagNieuweUitnodigingAanvragen(dossier);
+					eenmaligAfmelden = laatsteScreeningRonde.getStatus() == ScreeningRondeStatus.LOPEND;
+					uitstel = true;
+
+					CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(laatsteScreeningRonde, false);
+					if (laatsteUitnodiging != null)
+					{
+						herdruk = !baseBriefService.briefTypeWachtOpKlaarzettenInDezeRonde(laatsteUitnodiging.getBrief())
+							&& cervixMagNieuweUitnodigingAanvragen(dossier);
+					}
+					if (laatsteScreeningRonde.getMonsterHpvUitslag() == null && !laatsteScreeningRonde.getUitnodigingen().isEmpty())
+					{
+						CervixUitnodiging laatsteZasUitnodiging = laatsteScreeningRonde.getLaatsteZasUitnodiging();
+						zasAanvragen = laatsteZasUitnodiging == null || laatsteZasUitnodiging.getGeannuleerdDatum() != null || laatsteZasUitnodiging.getMonster() != null;
+					}
 				}
-				if (ronde.getMonsterHpvUitslag() == null && !ronde.getUitnodigingen().isEmpty())
+
+			}
+
+			switch (actieType)
+			{
+			case CERVIX_AFMELDEN:
+				return definitiefAfmelden || eenmaligAfmelden;
+			case CERVIX_HERAANMELDEN:
+				return definitiefHeraanmelden || eenmaligHeraanmelden;
+			case CERVIX_UITSTEL:
+				return uitstel;
+			case CERVIX_ZAS_AANVRAGEN:
+				return zasAanvragen;
+			case CERVIX_HERDRUK:
+				return herdruk;
+			case CERVIX_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN:
+				if (laatsteScreeningRonde != null)
 				{
-					CervixUitnodiging laatsteZasUitnodiging = ronde.getLaatsteZasUitnodiging();
-					zasAanvragen = laatsteZasUitnodiging == null || laatsteZasUitnodiging.getGeannuleerdDatum() != null || laatsteZasUitnodiging.getMonster() != null;
+					boolean laatsteMonsterKanUitslagVerwijderdWorden = laatsteScreeningRonde.getLaatsteUitnodiging() != null
+						&& laatsteScreeningRonde.getLaatsteUitnodiging().getMonster() != null
+						&& laatsteScreeningRonde.getLaatsteUitnodiging().getMonster().equals(cervixUitnodigingService.getUitnodigingMagVerwijderdWorden(laatsteScreeningRonde));
+					boolean laatsteZasKanVerwijderdWorden = laatsteScreeningRonde.getLaatsteZasUitnodiging() != null
+						&& laatsteScreeningRonde.getLaatsteZasUitnodiging().getMonster() != null
+						&& laatsteScreeningRonde.getLaatsteZasUitnodiging().getMonster().equals(cervixUitnodigingService.getUitnodigingMagVerwijderdWorden(laatsteScreeningRonde));
+					return laatsteMonsterKanUitslagVerwijderdWorden || laatsteZasKanVerwijderdWorden;
 				}
+				return false;
+			default:
+				return false;
 			}
 		}
-
-		switch (actieType)
-		{
-		case CERVIX_AFMELDEN:
-			return definitiefAfmelden || eenmaligAfmelden;
-		case CERVIX_HERAANMELDEN:
-			return definitiefHeraanmelden || eenmaligHeraanmelden;
-		case CERVIX_UITSTEL:
-			return uitstel;
-		case CERVIX_ZAS_AANVRAGEN:
-			return zasAanvragen;
-		case CERVIX_HERDRUK:
-			return herdruk;
-		case CERVIX_VERWIJDEREN_UITSLAG_BRIEF_AANVRAGEN:
-			if (dossier != null && dossier.getLaatsteScreeningRonde() != null)
-			{
-				boolean laatsteMonsterKanUitslagVerwijderdWorden = dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging() != null
-					&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getMonster() != null
-					&& dossier.getLaatsteScreeningRonde().getLaatsteUitnodiging().getMonster().equals(cervixUitnodigingService.getUitnodigingMagVerwijderdWorden(
-					dossier.getLaatsteScreeningRonde()));
-				boolean laatsteZasKanVerwijderdWorden = dossier.getLaatsteScreeningRonde().getLaatsteZasUitnodiging() != null
-					&& dossier.getLaatsteScreeningRonde().getLaatsteZasUitnodiging().getMonster() != null
-					&& dossier.getLaatsteScreeningRonde().getLaatsteZasUitnodiging().getMonster().equals(cervixUitnodigingService.getUitnodigingMagVerwijderdWorden(
-					dossier.getLaatsteScreeningRonde()));
-				return laatsteMonsterKanUitslagVerwijderdWorden || laatsteZasKanVerwijderdWorden;
-			}
-			return false;
-		default:
-			return false;
-		}
+		return false;
 	}
 
 	private boolean availableMamma(Client client, ClientContactActieType actieType, boolean viaClientportaal)

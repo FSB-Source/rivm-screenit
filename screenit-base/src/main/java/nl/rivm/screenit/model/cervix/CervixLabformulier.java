@@ -41,6 +41,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.ScannedFormulier;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
@@ -50,6 +53,8 @@ import nl.rivm.screenit.util.SkipFieldForDiff;
 
 import org.hibernate.envers.Audited;
 
+@Getter
+@Setter
 @Entity
 @Table(
 	schema = "cervix",
@@ -198,6 +203,10 @@ public class CervixLabformulier extends ScannedFormulier
 	@Column(length = 240)
 	@SkipFieldForDiff
 	private String opmerkingenTekst;
+
+	@Column(length = 255)
+	@SkipFieldForDiff
+	private String leverancierFqdn;
 
 	public BMHKLaboratorium getLaboratorium()
 	{

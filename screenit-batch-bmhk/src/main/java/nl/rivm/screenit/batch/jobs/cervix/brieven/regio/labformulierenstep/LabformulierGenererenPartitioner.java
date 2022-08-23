@@ -27,7 +27,9 @@ import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenPar
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class LabformulierGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
 
@@ -36,7 +38,7 @@ public class LabformulierGenererenPartitioner extends AbstractBrievenGenererenPa
 	@Override
 	protected void fillingData(Map<String, ExecutionContext> map, ScreeningOrganisatie organisatie)
 	{
-		ExecutionContext executionContext = new ExecutionContext();
+		var executionContext = new ExecutionContext();
 		executionContext.putLong(KEY_SCREENINGORGANISATIEID, organisatie.getId());
 		map.put("ScreeningOrganisatie_" + organisatie.getId().toString(), executionContext);
 	}

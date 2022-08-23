@@ -1,0 +1,15 @@
+{
+  "title": "Wachtwoord opnieuw aanvragen",
+  "form": {
+    "labels": {
+      "nieuweWachtwoord": "Nieuwe wachtwoord",
+      "nieuweWachtwoordControle": "Nieuwe wachtwoord (controle)"
+    },
+    "buttons": {
+      "submit": "Wachtwoord invoeren"
+    }
+  },
+  "toast": {
+    "success": "Wachtwoord succesvol gewijzigd."
+  }
+}

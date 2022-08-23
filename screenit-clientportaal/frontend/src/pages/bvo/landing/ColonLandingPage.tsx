@@ -33,11 +33,12 @@ import blob_personen from "../../../scss/media/blob-personen.jpg"
 import {ColonDossier} from "../../../datatypes/ColonDossier"
 import {ClientContactActieType} from "../../../datatypes/ClientContactActieType"
 import bvoStyles from "../../../components/BvoStyle.module.scss"
-import {useDispatch, useSelector} from "react-redux"
+import {useSelector} from "react-redux"
 import {getHuidigeIntakeAfspraak} from "../../../api/ColonAfspraakAfzeggenThunkAction"
 import BvoLandingBlobComponent from "../../../components/blob/BvoLandingBlobComponent"
 import {splitAdresString} from "../../../utils/StringUtil"
 import {State} from "../../../datatypes/State"
+import {useThunkDispatch} from "../../../index"
 
 type Props = {
     dossier: ColonDossier,
@@ -45,20 +46,20 @@ type Props = {
 }
 
 const ColonLandingPage = (props: Props) => {
-    const {dossier, beschikbareActies} = props
+	const {dossier, beschikbareActies} = props
 
-    const dispatch = useDispatch()
-    const locatieIntakeAfspraak = dossier.intakeAfspraak ? dossier.intakeAfspraak.naamInstelling + "<br>" + splitAdresString(dossier.intakeAfspraak.adresString) : ""
-    const toonVervangendeTekst: boolean = useSelector((state: State) => state.landingOverzicht.colonParameters.toonVervangendeTekst)
+	const dispatch = useThunkDispatch()
+	const locatieIntakeAfspraak = dossier.intakeAfspraak ? dossier.intakeAfspraak.naamInstelling + "<br>" + splitAdresString(dossier.intakeAfspraak.adresString) : ""
+	const toonVervangendeTekst: boolean = useSelector((state: State) => state.landingOverzicht.colonParameters.toonVervangendeTekst)
 
-    useEffect(() => {
-        dispatch(getHuidigeIntakeAfspraak())
-    }, [dispatch])
+	useEffect(() => {
+		dispatch(getHuidigeIntakeAfspraak())
+	}, [dispatch])
 
-    return (
-        <Container fluid className={styles.content}>
-            <KruimelpadComponent className={bvoStyles.colon}/>
-            <Row className={landingPageStyle.inleiding}>
+	return (
+		<Container fluid className={styles.content}>
+			<KruimelpadComponent className={bvoStyles.colon}/>
+			<Row className={landingPageStyle.inleiding}>
                 <Col md={8}>
                     <BvoInleidingComponent/>
                 </Col>

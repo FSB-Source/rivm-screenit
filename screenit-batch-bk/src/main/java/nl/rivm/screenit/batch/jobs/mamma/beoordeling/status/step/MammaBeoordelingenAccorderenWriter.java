@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.status.step;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.status.MammaBeoordelingenAccorderenListener;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -32,19 +34,19 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.util.NaamUtil;
 
-import org.springframework.batch.core.StepExecution;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaBeoordelingenAccorderenWriter extends BaseWriter<MammaBeoordeling>
 {
 
-	@Autowired
-	private MammaBaseBeoordelingService baseBeoordelingService;
+	private final MammaBaseBeoordelingService baseBeoordelingService;
 
 	@Override
 	protected void write(MammaBeoordeling beoordeling) throws Exception
 	{
-		String naam = getRadioloogNaamVoorAccorderen(beoordeling);
+		var naam = getRadioloogNaamVoorAccorderen(beoordeling);
 		geefNaamDoor(naam);
 		hoogAantalBeoordelingenOp();
 
@@ -68,7 +70,7 @@ public class MammaBeoordelingenAccorderenWriter extends BaseWriter<MammaBeoordel
 
 	private void geefNaamDoor(String naam)
 	{
-		StepExecution stepExecution = getStepExecution();
+		var stepExecution = getStepExecution();
 
 		Set<String> radiologen = (Set<String>) stepExecution.getJobExecution().getExecutionContext()
 			.get(MammaBeoordelingenAccorderenListener.MAMMA_RADIOLOGEN_BEOORDELINGEN_GEACCORDEERD);
@@ -84,7 +86,7 @@ public class MammaBeoordelingenAccorderenWriter extends BaseWriter<MammaBeoordel
 
 	private void hoogAantalBeoordelingenOp()
 	{
-		StepExecution stepExecution = getStepExecution();
+		var stepExecution = getStepExecution();
 		long aantalBeoordelingen = stepExecution.getJobExecution().getExecutionContext()
 			.getLong(MammaBeoordelingenAccorderenListener.MAMMA_RADIOLOGEN_BEOORDELINGEN_GEACCORDEERD_AANTAL, 0L);
 

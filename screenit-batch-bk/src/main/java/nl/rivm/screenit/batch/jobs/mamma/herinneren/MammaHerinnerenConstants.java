@@ -21,7 +21,11 @@ package nl.rivm.screenit.batch.jobs.mamma.herinneren;
  * =========================LICENSE_END==================================
  */
 
-public abstract class MammaHerinnerenConstants
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class MammaHerinnerenConstants
 {
 	public static final String TOTAAL_AANTAL_BRIEVEN_KEY = "herinnering.totaal.aantal.brieven";
 

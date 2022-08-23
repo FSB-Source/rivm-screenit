@@ -23,24 +23,23 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.hibernate.Criteria;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.criterion.Restrictions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public abstract class MammaAbstractEventWriter<T> implements ItemWriter<Long>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaAbstractEventWriter.class);
-
 	private ExecutionContext executionContext;
 
 	@Autowired
@@ -60,7 +59,7 @@ public abstract class MammaAbstractEventWriter<T> implements ItemWriter<Long>
 		}
 		else
 		{
-			long aantal = executionContext.getLong(key) + 1L;
+			var aantal = executionContext.getLong(key) + 1L;
 			executionContext.putLong(key, aantal);
 
 			if (aantal % 10000 == 0)
@@ -73,11 +72,11 @@ public abstract class MammaAbstractEventWriter<T> implements ItemWriter<Long>
 	@Override
 	public void write(List<? extends Long> ids)
 	{
-		Session session = hibernateService.getHibernateSession();
+		var session = hibernateService.getHibernateSession();
 		session.setFlushMode(FlushMode.COMMIT);
 		session.enableFetchProfile("kansberekening");
 
-		Criteria criteria = getCriteria(session);
+		var criteria = getCriteria(session);
 		criteria.add(Restrictions.in("id", ids));
 
 		for (T item : (List<T>) criteria.list())

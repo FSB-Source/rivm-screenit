@@ -21,20 +21,20 @@ package nl.rivm.screenit.batch.jobs.cervix.cismigranten;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class CervixCISMigrantenJobListener extends BaseLogListener
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixCISMigrantenJobListener.class);
 
 	@Override
 	protected Bevolkingsonderzoek getBevolkingsonderzoek()
@@ -69,12 +69,12 @@ public class CervixCISMigrantenJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent selectieBeeindigdLogEvent = super.eindLogging(jobExecution);
+		var selectieBeeindigdLogEvent = super.eindLogging(jobExecution);
 
-		ExecutionContext context = jobExecution.getExecutionContext();
-		long aantal = context.getLong(CervixCISMigrantenConstants.MIGRANT_UITNODIGINGEN_AANTAL_KEY, 0L);
+		var context = jobExecution.getExecutionContext();
+		var aantal = context.getLong(CervixCISMigrantenConstants.MIGRANT_UITNODIGINGEN_AANTAL_KEY, 0L);
 
-		String melding = String.format("Er zijn %s client(en) uitgenodigd.", aantal);
+		var melding = String.format("Er zijn %s client(en) uitgenodigd.", aantal);
 		LOG.info(melding);
 		selectieBeeindigdLogEvent.setMelding(melding);
 

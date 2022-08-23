@@ -50,8 +50,8 @@ import nl.rivm.screenit.service.mamma.MammaBaseUitwisselportaalService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.util.collections.CollectionUtils;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -267,12 +267,6 @@ public class MammaBaseScreeningrondeServiceImpl implements MammaBaseScreeningron
 		return laatsteScreeningRondeMetPositieveUitslag != null
 			? DateUtil.toLocalDate(laatsteScreeningRondeMetPositieveUitslag.getLaatsteOnderzoek().getCreatieDatum()).getYear()
 			: null;
-	}
-
-	@Override
-	public MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client, Date voorDatum)
-	{
-		return baseScreeningrondeDao.getLaatsteScreeningRondeMetPositieveUitslag(client, voorDatum);
 	}
 
 	@Override

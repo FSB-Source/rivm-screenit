@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -37,19 +39,17 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixGevolgenLabprocesVerwerkenJobListener extends BaseLogListener
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
@@ -93,8 +93,8 @@ public class CervixGevolgenLabprocesVerwerkenJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
-		CervixGevolgenLabprocesVerwerkenRapportage rapportage = new CervixGevolgenLabprocesVerwerkenRapportage();
+		var context = jobExecution.getExecutionContext();
+		var rapportage = new CervixGevolgenLabprocesVerwerkenRapportage();
 
 		rapportage.setDatumVerwerking(dateSupplier.getDate());
 		rapportage.setAantalInLabproces(context.getLong(CervixGevolgenLabprocesVerwerkenConstants.AANTAL_IN_LABPROCES_KEY, 0));
@@ -125,8 +125,7 @@ public class CervixGevolgenLabprocesVerwerkenJobListener extends BaseLogListener
 			}
 		});
 
-		CervixGevolgenLabprocesVerwerkenBeeindigdLogEvent gevolgenLabprocesVerwerkenBeeindigdLogEvent = (CervixGevolgenLabprocesVerwerkenBeeindigdLogEvent) super.eindLogging(
-			jobExecution);
+		var gevolgenLabprocesVerwerkenBeeindigdLogEvent = (CervixGevolgenLabprocesVerwerkenBeeindigdLogEvent) super.eindLogging(jobExecution);
 		gevolgenLabprocesVerwerkenBeeindigdLogEvent.setRapportage(rapportage);
 
 		hibernateService.saveOrUpdate(rapportage);

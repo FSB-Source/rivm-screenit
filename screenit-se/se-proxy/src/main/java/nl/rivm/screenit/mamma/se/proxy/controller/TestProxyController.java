@@ -78,19 +78,4 @@ public class TestProxyController
 		statusService.setTestOnline(true);
 		return ResponseEntity.ok().build();
 	}
-
-	@RequestMapping(value = "/clearProxyCache", method = RequestMethod.POST)
-	public ResponseEntity<String> clearProxyCache(HttpSession httpSession)
-	{
-		if (!SeProxyApplication.getEnvironmentInfo().getEnvironment().equals("Test"))
-		{
-			LOG.warn("Omgeving is niet Test en er is een request uitgevoerd voor een reset van de cache van de SE.");
-			return ResponseEntity.status(HttpStatus.CONFLICT).build();
-		}
-
-		proxyService.clearTestCache();
-
-		return ResponseEntity.ok().build();
-	}
-
 }

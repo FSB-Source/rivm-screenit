@@ -23,27 +23,26 @@ package nl.rivm.screenit.batch.jobs.mamma.palga.csvimport.step;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.dto.mamma.MammaPalgaCsvImportDto;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImportDto>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaPalgaCsvImportWriter.class);
-
 	private JobExecution jobExecution;
-
-	private StepExecution stepExecution;
 
 	private static final int HEADER_ROW = 1;
 
@@ -55,7 +54,7 @@ public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImport
 	{
 		for (MammaPalgaCsvImportDto dto : items)
 		{
-			if (dto.getRegelNummer() != HEADER_ROW && !dto.heeftFout())
+			if (dto.getRegelNummer() != HEADER_ROW && !dto.isFout())
 			{
 				String logMeldingPrefix = "#" + dto.getRegelNummer() + ": ";
 				try
@@ -111,7 +110,6 @@ public class MammaPalgaCsvImportWriter implements ItemWriter<MammaPalgaCsvImport
 	@BeforeStep
 	public void saveStepExecution(StepExecution stepExecution)
 	{
-		this.stepExecution = stepExecution;
 		this.jobExecution = stepExecution.getJobExecution();
 	}
 

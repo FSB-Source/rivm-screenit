@@ -21,9 +21,10 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenWriter;
 import nl.rivm.screenit.batch.jobs.mamma.brieven.client.MammaBriefConstants;
@@ -35,7 +36,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.mamma.MammaStandplaats;
@@ -47,35 +47,31 @@ import nl.rivm.screenit.service.mamma.be.verslag.MammaVerslagDocumentCreator;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.aspose.words.Document;
 import com.aspose.words.ImportFormatMode;
 
+@Component
+@AllArgsConstructor
 public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<MammaBrief, MammaMergedBrieven>
 {
-	@Autowired
-	private ClientService clientService;
+	private final ClientService clientService;
 
-	@Autowired
-	private MammaBaseBeoordelingService beoordelingService;
+	private final MammaBaseBeoordelingService beoordelingService;
 
-	@Autowired
-	private AsposeService asposeService;
+	private final AsposeService asposeService;
 
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final UploadDocumentService uploadDocumentService;
 
 	@Override
 	protected MammaMergedBrieven createConcreteMergedBrieven(Date aangemaaktOp)
 	{
-		ExecutionContext context = getStepExecutionContext();
-		BriefType briefType = BriefType.valueOf(context.getString(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		ScreeningOrganisatie screeningOrganisatie = getHibernateService().load(ScreeningOrganisatie.class,
-			context.getLong(MammaBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID));
+		var executionContext = getStepExecutionContext();
+		var briefType = BriefType.valueOf(executionContext.getString(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		var screeningOrganisatie = getHibernateService().load(ScreeningOrganisatie.class, executionContext.getLong(MammaBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID));
 
-		MammaMergedBrieven mergedBrieven = new MammaMergedBrieven();
+		var mergedBrieven = new MammaMergedBrieven();
 		mergedBrieven.setScreeningOrganisatie(screeningOrganisatie);
 		mergedBrieven.setCreatieDatum(aangemaaktOp);
 		mergedBrieven.setBriefType(briefType);
@@ -86,26 +82,25 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 	@Override
 	public String getMergedBrievenNaam(MammaMergedBrieven brieven)
 	{
-		Long standplaatsId = (Long) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
-		Boolean tijdelijk = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
-
-		Boolean eersteRonde = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_EERSTE_RONDE);
+		var standplaatsId = (Long) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
+		var tijdelijk = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
+		var eersteRonde = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_EERSTE_RONDE);
 
 		String naam = "";
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
+		var dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH.mm");
 		if (brieven.getCreatieDatum() != null)
 		{
-			naam += sdf.format(brieven.getCreatieDatum()) + "-";
+			naam += dateFormat.format(brieven.getCreatieDatum()) + "-";
 		}
 		if (brieven.getScreeningOrganisatie() != null)
 		{
-			String soNaam = brieven.getScreeningOrganisatie().getNaam();
+			var soNaam = brieven.getScreeningOrganisatie().getNaam();
 			soNaam = soNaam.replaceAll(" ", "_");
 			naam += soNaam + "-";
 		}
 		if (standplaatsId != null)
 		{
-			MammaStandplaats standplaats = getHibernateService().load(MammaStandplaats.class, standplaatsId);
+			var standplaats = getHibernateService().load(MammaStandplaats.class, standplaatsId);
 			naam += standplaats.getNaam().replaceAll(" ", "_") + "-";
 		}
 		if (Boolean.TRUE.equals(tijdelijk))
@@ -135,13 +130,13 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 
 	private void mergeBijlagen(MailMergeContext context, Document chunkDocument) throws Exception
 	{
-		Boolean briefTypeApart = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPEAPART);
-		Long standplaatsId = (Long) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
+		var briefTypeApart = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPEAPART);
+		var standplaatsId = (Long) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
 
 		if (Boolean.TRUE.equals(briefTypeApart) && standplaatsId != null)
 		{
-			Boolean tijdelijk = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
-			MammaStandplaats standplaats = getHibernateService().load(MammaStandplaats.class, standplaatsId);
+			var tijdelijk = (Boolean) getStepExecutionContext().get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
+			var standplaats = getHibernateService().load(MammaStandplaats.class, standplaatsId);
 			UploadDocument standplaatsLocatieBijlage;
 			if (Boolean.TRUE.equals(tijdelijk))
 			{
@@ -154,9 +149,9 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 
 			if (standplaatsLocatieBijlage != null && standplaatsLocatieBijlage.getActief())
 			{
-				File bijlage = uploadDocumentService.load(standplaatsLocatieBijlage);
-				byte[] bijlageBytes = FileUtils.readFileToByteArray(bijlage);
-				Document bijlageDocument = asposeService.processDocument(bijlageBytes, context);
+				var bijlage = uploadDocumentService.load(standplaatsLocatieBijlage);
+				var bijlageBytes = FileUtils.readFileToByteArray(bijlage);
+				var bijlageDocument = asposeService.processDocument(bijlageBytes, context);
 				chunkDocument.getLastSection().getHeadersFooters().linkToPrevious(false);
 				chunkDocument.appendDocument(bijlageDocument, ImportFormatMode.KEEP_SOURCE_FORMATTING);
 			}
@@ -199,8 +194,7 @@ public class MammaBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 		if (BriefType.MAMMA_ONGUNSTIGE_UITSLAG_BIRADS_4_5_ZONDER_HUISARTS.equals(context.getBrief().getBriefType()) ||
 			BriefType.MAMMA_ONGUNSTIGE_UITSLAG_BIRADS_0_ZONDER_HUISARTS.equals(context.getBrief().getBriefType()) && context.getClient() != null)
 		{
-			MammaBeoordeling beoordeling = beoordelingService
-				.getBeoordelingMetVerslagLezing(MammaScreeningRondeUtil.getAfspraakVanLaatsteOnderzoek(context.getClient().getMammaDossier()));
+			var beoordeling = beoordelingService.getBeoordelingMetVerslagLezing(MammaScreeningRondeUtil.getAfspraakVanLaatsteOnderzoek(context.getClient().getMammaDossier()));
 			if (beoordeling != null)
 			{
 				beoordeling.getVerslagLezing().setBeoordeling(beoordeling);

@@ -21,11 +21,12 @@ package nl.rivm.screenit.batch.jobs.cervix.hpvoru;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.cervix.CervixBaseLogListener;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -34,19 +35,18 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB;
+
+@Component
+@Slf4j
+@AllArgsConstructor
 public class CervixHpvOruBerichtenListener extends CervixBaseLogListener
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHpvOruBerichtenListener.class);
-
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected LogEvent getStartLogEvent()
@@ -75,18 +75,19 @@ public class CervixHpvOruBerichtenListener extends CervixBaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent event = super.eindLogging(jobExecution);
+		var event = super.eindLogging(jobExecution);
 
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		long verstuurd = context.getLong(CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURD, 0);
 		if (StringUtils.isBlank(event.getMelding()))
 		{
-			StringBuilder melding = new StringBuilder();
+			var melding = new StringBuilder();
 			melding.append("Er zijn ");
 			melding.append(verstuurd);
 
 			Optional.ofNullable((Map<Long, Integer>) jobExecution.getExecutionContext().get(CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB))
-				.ifPresent(map -> {
+				.ifPresent(map ->
+				{
 					melding.append(" (");
 					melding.append(map.entrySet().stream()
 						.map(entry -> hibernateService.load(BMHKLaboratorium.class, entry.getKey()).getNaam() + ": " + entry.getValue())

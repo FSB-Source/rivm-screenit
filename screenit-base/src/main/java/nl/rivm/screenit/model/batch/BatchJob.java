@@ -26,26 +26,20 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.JobType;
 
+@Getter
+@Setter
 public class BatchJob implements Serializable
 {
-
 	private static final long serialVersionUID = -1615797420971302370L;
 
 	private JobType jobType;
 
 	private final Map<String, Object> jobParameters = new HashMap<>();
-
-	public JobType getJobType()
-	{
-		return jobType;
-	}
-
-	public void setJobType(JobType jobType)
-	{
-		this.jobType = jobType;
-	}
 
 	public Map<String, Object> getJobParameters()
 	{

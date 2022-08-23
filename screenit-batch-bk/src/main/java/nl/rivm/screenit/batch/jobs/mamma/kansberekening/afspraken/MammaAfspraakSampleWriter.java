@@ -21,17 +21,11 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
  * =========================LICENSE_END==================================
  */
 
-import java.util.EnumSet;
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaKansberekeningConstants;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
-import nl.rivm.screenit.util.DateUtil;
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaAfspraakSampleWriter extends MammaAbstractAfspraakEventWriter
 {
 	@Override

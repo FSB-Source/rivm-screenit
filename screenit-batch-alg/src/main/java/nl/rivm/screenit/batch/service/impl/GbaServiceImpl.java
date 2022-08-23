@@ -32,7 +32,7 @@ import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.batch.jobs.generalis.gba.exception.GbaImportException;
 import nl.rivm.screenit.batch.jobs.generalis.gba.wrappers.GbaValidatieWrapper;
 import nl.rivm.screenit.batch.service.GbaService;
-import nl.rivm.screenit.batch.service.TransgenderService;
+import nl.rivm.screenit.service.TransgenderService;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;

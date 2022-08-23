@@ -22,18 +22,16 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
  */
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
-import nl.rivm.screenit.model.BagAdres;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.GbaPersoon;
-import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 
@@ -42,15 +40,12 @@ import org.hibernate.Criteria;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
 
+@Slf4j
 public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 {
 	private static final String UITNODIGINGSCAT = "key.uitnodigingscat";
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientSelectieItemCursor.class);
 
 	private ColonUitnodigingCategorie colonUitnodigingCategorie = ColonUitnodigingCategorie.U3;
 
@@ -115,9 +110,9 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 				Object[] data = cursor.get();
 				Client client = (Client) data[0];
 
-				GbaPersoon persoon = client.getPersoon();
-				BagAdres adres = persoon.getGbaAdres();
-				Gemeente gemeente = adres.getGbaGemeente();
+				var persoon = client.getPersoon();
+				var adres = persoon.getGbaAdres();
+				var gemeente = adres.getGbaGemeente();
 				if (gemeente.getScreeningOrganisatie() == null)
 				{
 					if (!context.containsKey(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES))
@@ -134,8 +129,8 @@ public class ClientSelectieItemCursor implements ClientSelectieItemIterator
 					return next();
 				}
 
-				List<Client> clientenOpAdres = clientDao.getClientenOpAdres(adres, minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval);
-				Client andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
+				var clientenOpAdres = clientDao.getClientenOpAdres(adres, minimaleLeeftijd, maximaleLeeftijd, uitnodigingsInterval);
+				var andereClient = ColonRestrictions.getAndereClient(clientenOpAdres, client);
 
 				boolean geenAndereClientMetZelfdeAdresEnActieveIfobt = clientenOpAdres.size() != 2
 					|| !ColonRestrictions.isIfobtActief(andereClient, uitgenodigdeClientIds)

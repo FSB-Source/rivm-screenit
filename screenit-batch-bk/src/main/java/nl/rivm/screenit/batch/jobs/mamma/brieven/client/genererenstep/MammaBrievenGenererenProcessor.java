@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenProcessor;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaBrievenGenererenProcessor extends AbstractBrievenGenererenProcessor<MammaBrief>
 {
 }

@@ -27,7 +27,7 @@ import InleidingComponent from "../../components/bvo_inleiding/InleidingComponen
 import BvoSelectieComponent from "../../components/bvo_selectie/BvoSelectieComponent"
 import KruimelpadComponent from "../../components/kruimelpad/KruimelpadComponent"
 import {getString} from "../../utils/TekstPropertyUtil"
-import {heeftTelefoonnummer} from "../../datatypes/Persoon"
+import {heeftAanspreekVorm, heeftTelefoonnummer, Persoon} from "../../datatypes/Persoon"
 import {formatDateText, isDatumVandaagOfLater} from "../../utils/DateUtil"
 import {getAdresStringMetHtmlSeparator} from "../../utils/AdresUtil"
 import SpanWithHtml from "../../components/span/SpanWithHtml"
@@ -39,6 +39,8 @@ import HuisIcon from "../../scss/media/icons_toptaken/AdresWijzigenIcon/HuisIcon
 import properties from "./ProfielPage.json"
 import {ClientContactActieType} from "../../datatypes/ClientContactActieType"
 import {TijdelijkAdres} from "../../datatypes/adres/TijdelijkAdres"
+import {AanhefType} from "../../datatypes/aanhef/AanhefType"
+import AanspreekVormIcon from "../../scss/media/icons_toptaken/AanspreekVormIcon/AanspreekVormIcon"
 
 const ProfielPage = () => {
 	const persoon = useSelector((state: State) => state.client.persoon)
@@ -72,19 +74,25 @@ const ProfielPage = () => {
 				<Row className={styles.topTaakSelectie}>
 					<Col lg={4}>
 						<TopTaakComponent icon={<TelefoonnummerIcon/>}
-										  link="/profiel/telefoonnummer"
+										  link="/profiel/telefoonnummer/"
 										  titel={getString(properties.toptaak.title.telefoonnummer)}
 										  subTitel={heeftTelefoonnummer(persoon) ? getString(properties.toptaak.subtitle.telefoonnummer) : ""}
 										  subTekst={heeftTelefoonnummer(persoon) ? (persoon.telefoonnummer1 ? persoon.telefoonnummer1 + "<br/>" : "") + (persoon.telefoonnummer2 ? persoon.telefoonnummer2 : "") : ""}/>
 					</Col>
 					<Col lg={4}>
 						<TopTaakComponent icon={<HuisIcon/>}
-										  link="/profiel/adres"
+										  link="/profiel/adres/"
 										  titel={getString(toonTijdelijkAdres ? properties.toptaak.title.adres.wijzigen : properties.toptaak.title.adres.opgeven)}
 										  subTitel={toonTijdelijkAdres ? getDatumVermeldingTijdelijkAdres(persoon.tijdelijkAdres!) : ""}
 										  subTekst={toonTijdelijkAdres ? getAdresStringMetHtmlSeparator(persoon.tijdelijkAdresTekst) : ""}/>
 					</Col>
-
+					<Col lg={4}>
+						<TopTaakComponent icon={<AanspreekVormIcon/>}
+										  link="/profiel/aanspreekvorm/"
+										  titel={getString(properties.toptaak.title.aanspreekvorm)}
+										  subTitel={heeftAanspreekVorm(persoon) ? getString(properties.toptaak.subtitle.aanspreekvorm) : ""}
+										  subTekst={heeftAanspreekVorm(persoon) ? getAanhef(persoon) : ""}/>
+					</Col>
 				</Row>
 			}
 			<div className={styles.bvoSelectie}>
@@ -101,6 +109,16 @@ const ProfielPage = () => {
 			return getString(properties.toptaak.subtitle.adres, ["", "voor onbepaalde tijd"])
 		} else {
 			return getString(properties.toptaak.subtitle.adres, ["", "t/m " + formatDateText(tijdelijkAdres.eindDatum)])
+		}
+	}
+
+	function getAanhef(persoon: Persoon): string {
+		if (persoon.aanhef === AanhefType.GEACHTE_MEVROUW) {
+			return getString(properties.toptaak.subtitle.aanspreekvormen.geachte_mevrouw, [persoon.aanspreekTussenvoegselEnAchternaam])
+		} else if (persoon.aanhef === AanhefType.GEACHTE_HEER) {
+			return getString(properties.toptaak.subtitle.aanspreekvormen.geachte_heer, [persoon.aanspreekTussenvoegselEnAchternaam])
+		} else {
+			return getString(properties.toptaak.subtitle.aanspreekvormen.geachte, [persoon.voorletters, persoon.aanspreekTussenvoegselEnAchternaam])
 		}
 	}
 

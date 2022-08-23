@@ -29,9 +29,6 @@ import org.apache.wicket.model.IModel;
 
 public class TestEnumRadioChoice<E extends Enum<E>> extends RadioChoice<E>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public TestEnumRadioChoice(String id, IModel<E> model, List<E> values, IChoiceRenderer<E> renderer)
 	{
 		super(id, model, values, renderer);
@@ -46,7 +43,7 @@ public class TestEnumRadioChoice<E extends Enum<E>> extends RadioChoice<E>
 
 	public TestEnumRadioChoice(String id, List<E> values, IChoiceRenderer<E> renderer)
 	{
-		super(id, values);
+		super(id, values, renderer);
 		setMarkupId(id);
 	}
 

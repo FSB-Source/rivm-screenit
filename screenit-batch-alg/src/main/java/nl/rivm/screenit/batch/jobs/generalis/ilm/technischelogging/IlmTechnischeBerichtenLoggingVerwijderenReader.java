@@ -35,7 +35,9 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class IlmTechnischeBerichtenLoggingVerwijderenReader extends BaseScrollableResultReader
 {
 	@Autowired

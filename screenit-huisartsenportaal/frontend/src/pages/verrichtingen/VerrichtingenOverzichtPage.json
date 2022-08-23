@@ -1,0 +1,27 @@
+{
+  "title": "Overzicht verrichtingen",
+  "table": {
+    "header": {
+      "huisartsLocatie": "Huisartslocatie",
+      "clientNaam": "Naam cliënt",
+      "monsterId": "Monster-id",
+      "datumUitstrijkje": "Datum uitstrijk",
+      "verrichtingsDatum": "Datum verrichting",
+      "formulierOntvangstDatum": "Ontvangst formulier",
+      "regio": "Screeningsorganisatie"
+    },
+    "totaal": "Aantal verrichtingen:",
+    "export": "Exporteren"
+  },
+  "form": {
+    "labels": {
+      "locatie": "Locatie",
+      "clientNaam": "Naam cliënt",
+      "monsterId": "Monster-id",
+      "datumUitstrijkje": "Datum uitstrijkje",
+      "verrichtingsDatumVanaf": "Verrichtingsdatum vanaf",
+      "verrichtingsDatumTot": "Verrichtingsdatum t/m"
+    },
+    "submit": "Filteren"
+  }
+}

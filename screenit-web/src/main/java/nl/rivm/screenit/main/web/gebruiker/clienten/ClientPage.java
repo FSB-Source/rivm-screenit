@@ -144,9 +144,9 @@ public abstract class ClientPage extends GebruikerBasePage
 		return contextMenuItems;
 	}
 
-	private IModel<Client> getClientModel()
+	protected IModel<Client> getClientModel()
 	{
-		return new SimpleHibernateModel<Client>(Client.class, ((Client) getDefaultModelObject()).getId());
+		return new SimpleHibernateModel<>(Client.class, ((Client) getDefaultModelObject()).getId());
 	}
 
 	private abstract class ClientGebruikerMenuItem extends GebruikerMenuItem

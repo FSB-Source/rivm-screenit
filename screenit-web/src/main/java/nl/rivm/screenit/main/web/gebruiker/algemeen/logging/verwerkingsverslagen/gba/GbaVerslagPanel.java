@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.logging.verwerkingsverslage
  */
 
 import java.io.File;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +40,6 @@ import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.SimpleListHibernateModel;
 
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -52,13 +52,10 @@ import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.request.resource.ResourceStreamResource;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.resource.FileResourceStream;
-import org.apache.wicket.util.time.Duration;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private HibernateService hibernateService;
 
@@ -75,19 +72,16 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 		add(new Label("aantalNieuweColonDossiers"));
 		add(new Label("aantalNieuweCervixDossiers"));
 		add(new Label("aantalNieuweMammaDossiers"));
-
 		add(new PropertyListView<GbaFile>("bestanden")
 		{
 			@Override
 			protected void populateItem(ListItem<GbaFile> item)
 			{
-				StringBuilder directory = new StringBuilder();
-				directory.append(voFileStorePath);
-				directory.append(item.getModelObject().getPath());
+				String directory = voFileStorePath + item.getModelObject().getPath();
 
-				ResourceStreamResource resource = new ResourceStreamResource(new FileResourceStream(new File(directory.toString())))
+				ResourceStreamResource resource = new ResourceStreamResource(new FileResourceStream(new File(directory)))
 					.setContentDisposition(ContentDisposition.ATTACHMENT)
-					.setCacheDuration(Duration.NONE)
+					.setCacheDuration(Duration.ZERO)
 					.setFileName(System.currentTimeMillis() + "-" + item.getModelObject().getNaam());
 				ResourceLink<Void> resourceLink = new ResourceLink<>("resource", resource);
 				resourceLink.add(new Label("naam"));
@@ -100,11 +94,8 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 		{
 			fouten = model.getObject().getFouten();
 		}
-		add(new PropertyListView<GbaFoutRegel>("fouten", filterFouten(fouten))
+		add(new PropertyListView<>("fouten", filterFouten(fouten))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<GbaFoutRegel> item)
 			{
@@ -112,7 +103,6 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 			}
 		});
 	}
-
 	private String getAantalNieuweBurgers(IModel<GbaVerwerkingsLog> model)
 	{
 		if (model.getObject() == null)
@@ -137,7 +127,6 @@ public class GbaVerslagPanel extends GenericPanel<GbaVerwerkingsLog>
 		}
 		return null;
 	}
-
 	private String getAantalBijgewerkteBurgers(IModel<GbaVerwerkingsLog> model)
 	{
 		if (model.getObject() == null)

@@ -1,3 +1,4 @@
+
 package nl.rivm.screenit.model.mamma.verslag.followup;
 
 /*-
@@ -21,9 +22,14 @@ package nl.rivm.screenit.model.mamma.verslag.followup;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -70,7 +76,7 @@ public class MammaFollowUpFollowupPa
 		@DSValueSetValue(code = "416053008", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "441117001", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(displayName = "Oestrogeen receptor status", extraTekst = "Oestrogeen receptor status", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300020", isVerplicht = true)
+	@VraagElement(displayName = "Oestrogeen receptor status", extraTekst = "Oestrogeen receptor status", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300020")
 	private DSValue oestrogeenReceptorStatus;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -80,7 +86,7 @@ public class MammaFollowUpFollowupPa
 		@DSValueSetValue(code = "416561008", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "441118006", codeSystem = "2.16.840.1.113883.6.96")
 	})
-	@VraagElement(displayName = "Progesteron receptor status", extraTekst = "Progesteron receptor status", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300030", isVerplicht = true)
+	@VraagElement(displayName = "Progesteron receptor status", extraTekst = "Progesteron receptor status", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300030")
 	private DSValue progesteronReceptorStatus;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -91,7 +97,7 @@ public class MammaFollowUpFollowupPa
 		@DSValueSetValue(code = "427685000", codeSystem = "2.16.840.1.113883.6.96"),
 		@DSValueSetValue(code = "OHT-8", codeSystem = "2.16.840.1.113883.2.4.3.36.77.0.2.5.1")
 	})
-	@VraagElement(displayName = "HER2 status", extraTekst = "HER2 (human epidermal growth factor receptor 2) status", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300040", isVerplicht = true)
+	@VraagElement(displayName = "HER2 status", extraTekst = "HER2 (human epidermal growth factor receptor 2) status", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300040")
 	private DSValue her2Status;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -122,6 +128,92 @@ public class MammaFollowUpFollowupPa
 	@OneToOne(fetch = FetchType.LAZY, mappedBy = "followupPa", cascade = CascadeType.ALL)
 	@VraagElement(displayName = "pTNM en gradering", extraTekst = "pTNM en gradering", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300070", isReference = true)
 	private MammaFollowUpPtnmEnGradering ptnmEnGradering;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@DSValueSet(name = "TypeInvasieveTumorWHO_bk", values = {
+		@DSValueSetValue(code = "82711006", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "127575007", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "22694002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "79143006", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "30156004", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "89740008", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "4631006", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "72495009", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "128705006", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "45410002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "11671000", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "139771000146103", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "4079000", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "128702009", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "703578005", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "55937004", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "156691000146102", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
+	})
+	@VraagElement(displayName = "Type invasieve tumor (WHO) + overige", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.320637")
+	private DSValue typeInvasieveTumorwhoOverige;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@DSValueSet(name = "GraderingDCIS_bk", values = {
+		@DSValueSetValue(code = "190041000146109", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "190051000146107", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "190061000146105", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "384741006", codeSystem = "2.16.840.1.113883.6.96")
+	})
+	@VraagElement(displayName = "Gradering DCIS", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.320636")
+	private DSValue graderingDcis;
+
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(schema = "mamma", name = "mamma_follow_up_followup_pa_type_niet_eenduidig_benigne_laesies")
+	@DSValueSet(name = "TypeNietEenduidigBenigneLaesies_bk", values = {
+		@DSValueSetValue(code = "5244003", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "58811002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "31390008", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "6660000", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "67011000146101", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "133855003", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "16566002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "1156873009*16566002*282292002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
+	})
+	@VraagElement(displayName = "Type niet eenduidig benigne laesie(s)", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.320635")
+	private List<DSValue> typeNietEenduidigBenigneLaesies = new ArrayList<>();
+
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(schema = "mamma", name = "mamma_follow_up_followup_pa_type_eenduidig_benigne_laesies")
+	@DSValueSet(name = "TypeEenduidigBenigneLaesies_bk", values = {
+		@DSValueSetValue(code = "1156873009", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "67617000", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "1156654007", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "58811002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "367643001", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "8360001", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "367647000", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "447956004", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "705153001", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "51398009", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "81274009", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "57597008", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "112674009", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
+	})
+	@VraagElement(displayName = "Type eenduidig benigne laesie(s)", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.320634")
+	private List<DSValue> typeEenduidigBenigneLaesies = new ArrayList<>();
+
+	@ManyToMany(fetch = FetchType.LAZY)
+	@JoinTable(schema = "mamma", name = "mamma_follow_up_followup_pa_type_cis")
+	@DSValueSet(name = "TypeCIS_bk", values = {
+		@DSValueSetValue(code = "1162814007", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "77284006", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "30566004", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "444591006", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "190021000146103", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "703545003", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "703546002", codeSystem = "2.16.840.1.113883.6.96"),
+		@DSValueSetValue(code = "OTH", codeSystem = "2.16.840.1.113883.5.1008")
+	})
+	@VraagElement(displayName = "Type CIS", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.320633")
+	private List<DSValue> typeCis = new ArrayList<>();
 
 	public MammaFollowUpVerslagContent getVerslagContent()
 	{
@@ -211,6 +303,56 @@ public class MammaFollowUpFollowupPa
 	public void setPtnmEnGradering(MammaFollowUpPtnmEnGradering ptnmEnGradering)
 	{
 		this.ptnmEnGradering = ptnmEnGradering;
+	}
+
+	public DSValue getTypeInvasieveTumorwhoOverige()
+	{
+		return typeInvasieveTumorwhoOverige;
+	}
+
+	public void setTypeInvasieveTumorwhoOverige(DSValue typeInvasieveTumorwhoOverige)
+	{
+		this.typeInvasieveTumorwhoOverige = typeInvasieveTumorwhoOverige;
+	}
+
+	public DSValue getGraderingDcis()
+	{
+		return graderingDcis;
+	}
+
+	public void setGraderingDcis(DSValue graderingDcis)
+	{
+		this.graderingDcis = graderingDcis;
+	}
+
+	public List<DSValue> getTypeNietEenduidigBenigneLaesies()
+	{
+		return typeNietEenduidigBenigneLaesies;
+	}
+
+	public void setTypeNietEenduidigBenigneLaesies(List<DSValue> typeNietEenduidigBenigneLaesies)
+	{
+		this.typeNietEenduidigBenigneLaesies = typeNietEenduidigBenigneLaesies;
+	}
+
+	public List<DSValue> getTypeEenduidigBenigneLaesies()
+	{
+		return typeEenduidigBenigneLaesies;
+	}
+
+	public void setTypeEenduidigBenigneLaesies(List<DSValue> typeEenduidigBenigneLaesies)
+	{
+		this.typeEenduidigBenigneLaesies = typeEenduidigBenigneLaesies;
+	}
+
+	public List<DSValue> getTypeCis()
+	{
+		return typeCis;
+	}
+
+	public void setTypeCis(List<DSValue> typeCis)
+	{
+		this.typeCis = typeCis;
 	}
 
 }

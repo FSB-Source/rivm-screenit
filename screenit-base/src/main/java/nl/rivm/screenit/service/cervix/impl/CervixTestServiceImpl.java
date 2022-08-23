@@ -21,15 +21,13 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.io.File;
-import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
 import nl.rivm.screenit.dao.ClientDao;
-import nl.rivm.screenit.dao.UitnodigingsDao;
 import nl.rivm.screenit.dao.cervix.CervixDossierDao;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.BMHKLaboratorium;
@@ -80,7 +78,6 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.util.collections.CollectionUtils;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +85,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.FileCopyUtils;
 
 import com.aspose.words.Document;
 import com.google.common.collect.ImmutableMap;
@@ -118,9 +116,6 @@ public class CervixTestServiceImpl implements CervixTestService
 
 	@Autowired
 	private AsposeService asposeService;
-
-	@Autowired
-	private UitnodigingsDao uitnodigingsDao;
 
 	@Autowired
 	private CervixDossierDao dossierDao;
@@ -412,15 +407,11 @@ public class CervixTestServiceImpl implements CervixTestService
 		MailMergeContext context = new MailMergeContext();
 		context.setCervixUitnodiging(uitnodiging);
 		context.setClient(uitnodiging.getScreeningRonde().getDossier().getClient());
-		try
+
+		try (InputStream inputStream = getClass().getResourceAsStream("/CervixUitnodigingsSticker.doc"))
 		{
-			File briefTemplate = new File(getClass().getClassLoader().getResource("CervixUitnodigingsSticker.doc").toURI());
-			byte[] briefTemplateBytes = FileUtils.readFileToByteArray(briefTemplate);
+			byte[] briefTemplateBytes = FileCopyUtils.copyToByteArray(inputStream);
 			document = asposeService.processDocument(briefTemplateBytes, context);
-		}
-		catch (IOException e)
-		{
-			LOG.error(e.getMessage());
 		}
 		catch (Exception e)
 		{

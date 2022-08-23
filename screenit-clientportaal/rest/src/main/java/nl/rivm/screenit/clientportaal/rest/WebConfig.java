@@ -23,26 +23,37 @@ package nl.rivm.screenit.clientportaal.rest;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.rest.mapping.CustomObjectMapper;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @EnableWebMvc
+@AllArgsConstructor
 @Configuration
 public class WebConfig implements WebMvcConfigurer
 {
 
 	private final CustomObjectMapper customObjectMapper;
 
-	public WebConfig(CustomObjectMapper customObjectMapper)
+	@Bean
+	public FilterRegistrationBean<OpenSessionInViewFilter> openSessionInViewFilter()
 	{
-		this.customObjectMapper = customObjectMapper;
+		var filter = new FilterRegistrationBean<OpenSessionInViewFilter>();
+		filter.setFilter(new OpenSessionInViewFilter());
+		filter.addInitParameter("sessionFactoryBeanName", "hibernateSessionFactory");
+		filter.addUrlPatterns("/*");
+		return filter;
 	}
 
 	@Override

@@ -22,14 +22,13 @@ package nl.rivm.screenit.batch;
  * =========================LICENSE_END==================================
  */
 
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import com.jcraft.jsch.Logger;
 
+@Slf4j
 public class JschLogger implements Logger
 {
-
-	private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(JschLogger.class);
 
 	@Override
 	public boolean isEnabled(int level)

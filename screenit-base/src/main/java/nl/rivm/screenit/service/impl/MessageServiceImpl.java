@@ -51,7 +51,7 @@ public class MessageServiceImpl implements MessageService
 	private HibernateService hibernateService;
 
 	@Autowired
-	@Qualifier(value = "applicatieInstantie")
+	@Qualifier(value = "applicationInstance")
 	private String applicationInstance;
 
 	@Autowired

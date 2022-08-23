@@ -21,6 +21,8 @@ package nl.rivm.screenit.clientportaal.controllers.mamma;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.clientportaal.mappers.HuisartsMapper;
 import nl.rivm.screenit.clientportaal.model.HuisartsDto;
@@ -33,9 +35,10 @@ import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
 import nl.rivm.screenit.service.mamma.MammaHuisartsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,18 +48,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("huisarts/mamma")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaHuisartsController extends AbstractController
 {
-	@Autowired
-	private MammaHuisartsService mammaHuisartsService;
+	private final MammaHuisartsService mammaHuisartsService;
 
-	@Autowired
-	private HuisartsMapper huisartsMapper;
+	private final HuisartsMapper huisartsMapper;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@PostMapping
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> koppelMammaHuisarts(Authentication authentication, @RequestParam long id)
 	{
 		Client client = getClient(authentication);
@@ -80,6 +83,7 @@ public class MammaHuisartsController extends AbstractController
 	}
 
 	@DeleteMapping
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> ontkoppelMammaHuisarts(Authentication authentication)
 	{
 		Client client = getClient(authentication);
@@ -189,6 +193,7 @@ public class MammaHuisartsController extends AbstractController
 	}
 
 	@PostMapping(path = "/vorige")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> bevestigVorigeMammaHuisarts(Authentication authentication)
 	{
 		Client client = getClient(authentication);

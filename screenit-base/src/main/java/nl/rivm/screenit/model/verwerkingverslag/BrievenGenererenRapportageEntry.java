@@ -42,7 +42,7 @@ public class BrievenGenererenRapportageEntry extends AbstractHibernateObject
 	@ManyToOne
 	private ScreeningOrganisatie screeningOrganisatie;
 
-	private Integer AantalBrievenPerScreeningOrganisatie;
+	private Integer aantalBrievenPerScreeningOrganisatie;
 
 	public BrievenGenererenRapportage getRapportage()
 	{
@@ -66,11 +66,11 @@ public class BrievenGenererenRapportageEntry extends AbstractHibernateObject
 
 	public Integer getAantalBrievenPerScreeningOrganisatie()
 	{
-		return AantalBrievenPerScreeningOrganisatie;
+		return aantalBrievenPerScreeningOrganisatie;
 	}
 
 	public void setAantalBrievenPerScreeningOrganisatie(Integer aantalBrievenPerScreeningOrganisatie)
 	{
-		AantalBrievenPerScreeningOrganisatie = aantalBrievenPerScreeningOrganisatie;
+		this.aantalBrievenPerScreeningOrganisatie = aantalBrievenPerScreeningOrganisatie;
 	}
 }

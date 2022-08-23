@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.intake.afsprakenmakenstep;
 
 /*-
@@ -52,8 +51,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+@Component
 public class IntakeAfsprakenMakenReader implements ItemReader<ClientAfspraak>, ItemStream
 {
 	@Autowired

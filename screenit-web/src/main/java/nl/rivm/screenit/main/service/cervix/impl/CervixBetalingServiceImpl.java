@@ -26,6 +26,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -83,6 +84,7 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.validator.routines.IBANValidator;
 import org.hibernate.HibernateException;
@@ -134,7 +136,16 @@ public class CervixBetalingServiceImpl implements CervixBetalingService
 	public CervixBetalingServiceImpl()
 	{
 		executorService = Executors.newSingleThreadExecutor();
-		template = new File(getClass().getClassLoader().getResource("aspose/BetalingSpecificatie.docx").getFile());
+
+		try (InputStream inputStream = getClass().getResourceAsStream("/aspose/BetalingSpecificatie.docx"))
+		{
+			template = File.createTempFile("BetalingSpecificatie", ".docx");
+			FileUtils.copyInputStreamToFile(inputStream, template);
+		}
+		catch (IOException e)
+		{
+			LOG.error("Fout bij laden BetalingSpecificatie.docx", e);
+		}
 	}
 
 	private String getBetalingsKenmerk(Date date)

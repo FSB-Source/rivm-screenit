@@ -13,7 +13,8 @@
   "blob": {
     "title": "Mijn afspraak",
     "afspraak_moment": "%s&nbsp;uur",
-    "afspraak_locatie": "%s <br> %s"
+    "afspraak_locatie": "%s <br> %s",
+    "extra_text": "Neem uw uitnodigingsbrief mee"
   },
   "form": {
     "titel": "Zoeken",

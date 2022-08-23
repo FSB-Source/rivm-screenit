@@ -98,9 +98,9 @@ public interface ProjectDao
 
 	ProjectClientAttribuut getProjectClientAttribuut(ProjectClient client, ProjectAttribuut attribuut);
 
-	Iterator<ProjectClientAttribuut> getAttributenVoorProjectClient(ProjectClientAttribuut filterModel, long first, long count, SortState<String> sortState);
+	Iterator<ProjectClientAttribuut> getAttributenVoorProjectClient(ProjectClient filter, long first, long count, SortState<String> sortState);
 
-	Long getAantalAttributenVoorProjectClient(ProjectClientAttribuut filterModel);
+	Long getAantalAttributenVoorProjectClient(ProjectClient filter);
 
 	ProjectClient getProjectClient(Client client, ProjectBestand bestand);
 

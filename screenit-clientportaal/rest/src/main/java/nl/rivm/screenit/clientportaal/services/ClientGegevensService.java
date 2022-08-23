@@ -21,6 +21,7 @@ package nl.rivm.screenit.clientportaal.services;
  * =========================LICENSE_END==================================
  */
 
+import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.TijdelijkAdres;
 
@@ -29,4 +30,6 @@ public interface ClientGegevensService
 	Client setTelefoonnummer(String telefoonnummer1, String telefoonnummer2, Client client);
 
 	Client setTijdelijkAdres(TijdelijkAdres tijdelijkAdres, Client client);
+
+	Client setAanhef(Aanhef aanhef, Client client);
 }

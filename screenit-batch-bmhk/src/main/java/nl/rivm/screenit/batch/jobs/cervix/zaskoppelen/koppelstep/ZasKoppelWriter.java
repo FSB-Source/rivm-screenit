@@ -30,6 +30,8 @@ import java.util.Map;
 
 import javax.persistence.NonUniqueResultException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.KoppelConstants;
 import nl.rivm.screenit.batch.jobs.cervix.zaskoppelen.ZasKoppelenConstants;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
@@ -41,19 +43,19 @@ import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import generated.KOPPELDATA.VERZONDENUITNODIGING;
 import generated.KOPPELDATA.VERZONDENUITNODIGING.MATCHINGFIELDS.MATCHINGFIELD;
 
+@Component
+@Slf4j
 public class ZasKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ZasKoppelWriter.class);
 
 	@Autowired
 	private HibernateService hibernateService;
@@ -70,7 +72,7 @@ public class ZasKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 	{
 		logEvent = (ZasKoppelingBeeindigdLogEvent) stepExecution.getJobExecution().getExecutionContext().get(ZasKoppelenConstants.RAPPORTAGEKEYZASKOPPELEN);
 
-		SimpleDateFormat verzendDatumFormat = new SimpleDateFormat("dd-MM-yyyy");
+		var verzendDatumFormat = new SimpleDateFormat("dd-MM-yyyy");
 		for (VERZONDENUITNODIGING verzondenUitnodiging : items)
 		{
 
@@ -85,7 +87,7 @@ public class ZasKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 
 				Map<String, Long> parameters = new HashMap<String, Long>();
 				parameters.put("uitnodigingsId", verzondenUitnodiging.getID());
-				CervixUitnodiging cervixUitnodiging = hibernateService.getUniqueByParameters(CervixUitnodiging.class, parameters);
+				var cervixUitnodiging = hibernateService.getUniqueByParameters(CervixUitnodiging.class, parameters);
 
 				cervixUitnodiging.setVerstuurdDoorInpakcentrum(true);
 				cervixUitnodiging.setTrackTraceId(trackTraceId);

@@ -38,7 +38,9 @@ import org.springframework.batch.item.ParseException;
 import org.springframework.batch.item.UnexpectedInputException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
+import org.springframework.stereotype.Component;
 
+@Component
 public class GbaVraagItemReader implements ItemReader<Long>, ItemStream
 {
 	private static final String CURRENT_ROWNUMBER = "key.rownumber";

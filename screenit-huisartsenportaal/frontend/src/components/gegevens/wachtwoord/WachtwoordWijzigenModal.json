@@ -1,0 +1,17 @@
+{
+  "title": "Wachtwoord wijzigen",
+  "form": {
+    "fields": {
+      "oudeWachtwoord": "Huidig wachtwoord",
+      "nieuweWachtwoord": "Wachtwoord",
+      "nieuweWachtwoordControle": "Wachtwoord controle"
+    },
+    "button": {
+      "close": "Sluiten",
+      "submit": "Wijzig wachtwoord"
+    }
+  },
+  "toast": {
+    "success": "Uw wachtwoord is succesvol gewijzigd"
+  }
+}

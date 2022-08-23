@@ -59,6 +59,11 @@ abstract class CachingController<TCache> extends AuthorizedController
 		}
 	}
 
+	protected void resetCache()
+	{
+		lastCachedMoment = null;
+	}
+
 	abstract protected TCache getDataToPutInCache();
 
 	private boolean needCacheRefresh()

@@ -23,6 +23,7 @@ package nl.rivm.screenit.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -44,7 +45,7 @@ public interface TestService
 
 	Client maakClient(GbaPersoon persoon);
 
-	void createGbaFile(GbaPersoon persoon, File vo107template, OutputStream outputStream);
+	void createGbaFile(GbaPersoon persoon, InputStream vo107template, OutputStream outputStream);
 
 	void importClientenViaCsv(File file, ImportBvoViaCsv importBvoViaCsv) throws IOException, ParseException;
 

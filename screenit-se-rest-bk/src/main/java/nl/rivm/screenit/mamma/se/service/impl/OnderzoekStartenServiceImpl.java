@@ -28,7 +28,6 @@ import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.OnderzoekStartenService;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
@@ -38,6 +37,7 @@ import nl.rivm.screenit.model.mamma.enums.MammaHL7v24ORMBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.service.BerichtToBatchService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
@@ -62,12 +62,16 @@ public class OnderzoekStartenServiceImpl implements OnderzoekStartenService
 	@Autowired
 	private MammaAfspraakService afspraakService;
 
+	@Autowired
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
 	@Override
 	public void starten(OnderzoekStartenDto action, MammaScreeningsEenheid screeningsEenheid, LocalDateTime transactieDatumTijd, InstellingGebruiker gebruiker)
 	{
 		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), gebruiker);
 		zetAfspraakInOnderzoek(afspraak);
 		maakOnderzoek(afspraak, screeningsEenheid, action.getAmputatie(), transactieDatumTijd);
+		volgendeUitnodigingService.updateVolgendeUitnodigingNaDeelname(afspraak.getUitnodiging().getScreeningRonde().getDossier());
 		hl7BerichtenToBatchService.queueMammaHL7v24BerichtUitgaand(afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient(), MammaHL7v24ORMBerichtStatus.STARTED);
 	}
 

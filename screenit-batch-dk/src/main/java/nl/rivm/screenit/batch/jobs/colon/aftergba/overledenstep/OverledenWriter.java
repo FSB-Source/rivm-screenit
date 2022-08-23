@@ -21,19 +21,22 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.overledenstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.enums.RedenAfspraakAfzeggen;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.service.colon.AfspraakService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class OverledenWriter extends BaseWriter<ColonIntakeAfspraak>
 {
 
-	@Autowired
-	private AfspraakService afspraakService;
+	private final AfspraakService afspraakService;
 
 	@Override
 	public void write(ColonIntakeAfspraak afspraak) throws Exception

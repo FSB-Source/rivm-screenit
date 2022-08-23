@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jms.listener.QuartzJobHelper;
 import nl.rivm.screenit.model.batch.BatchJob;
 import nl.rivm.screenit.model.enums.JobType;
@@ -34,14 +36,11 @@ import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.JobExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
+@Slf4j
 public class JobLauncherDetails extends QuartzJobBean
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(JobLauncherDetails.class);
 
 	@Override
 	protected void executeInternal(JobExecutionContext context)

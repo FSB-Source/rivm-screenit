@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -40,23 +42,22 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class UitnodigingenVersturenListener extends BaseLogListener
 {
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
-		for (ColonUitnodigingCategorie categorie : ColonUitnodigingCategorie.getCategorieen())
+		var context = jobExecution.getExecutionContext();
+		for (var categorie : ColonUitnodigingCategorie.getCategorieen())
 		{
 			context.putLong(categorie.name(), 0);
 		}
@@ -96,13 +97,13 @@ public class UitnodigingenVersturenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		UitnodigingVersturenLogEvent event = (UitnodigingVersturenLogEvent) super.eindLogging(jobExecution);
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var event = (UitnodigingVersturenLogEvent) super.eindLogging(jobExecution);
+		var context = jobExecution.getExecutionContext();
 
 		long totaalVerstuurd = 0;
 
-		SelectieRapportage rapportage = new SelectieRapportage();
-		for (ColonUitnodigingCategorie categorie : ColonUitnodigingCategorie.getCategorieen())
+		var rapportage = new SelectieRapportage();
+		for (var categorie : ColonUitnodigingCategorie.getCategorieen())
 		{
 			Long aantal = context.getLong(categorie.name());
 
@@ -116,13 +117,12 @@ public class UitnodigingenVersturenListener extends BaseLogListener
 		}
 		rapportage.setDatumVerwerking(currentDateSupplier.getDate());
 
-		List<UitnodigingenVersturenProjectGroepCounterHolder> projectCounterHolders = (List<UitnodigingenVersturenProjectGroepCounterHolder>) context
-			.get(UitnodigingenVersturenConstants.PROJECTENCOUNTERS);
-		List<SelectieRapportageProjectGroepEntry> rapportageProjectGroepen = new ArrayList<SelectieRapportageProjectGroepEntry>();
-		for (UitnodigingenVersturenProjectGroepCounterHolder projectCounterHolder : projectCounterHolders)
+		var projectCounterHolders = (List<UitnodigingenVersturenProjectGroepCounterHolder>) context.get(UitnodigingenVersturenConstants.PROJECTENCOUNTERS);
+		var rapportageProjectGroepen = new ArrayList<SelectieRapportageProjectGroepEntry>();
+		for (var projectCounterHolder : projectCounterHolders)
 		{
-			ProjectGroep projectGroep = hibernateService.get(ProjectGroep.class, projectCounterHolder.getProjectGroepId());
-			SelectieRapportageProjectGroepEntry projectGroepEntry = new SelectieRapportageProjectGroepEntry();
+			var projectGroep = hibernateService.get(ProjectGroep.class, projectCounterHolder.getProjectGroepId());
+			var projectGroepEntry = new SelectieRapportageProjectGroepEntry();
 			projectGroepEntry.setProjectGroep(projectGroep);
 			projectGroepEntry.setAantal(projectCounterHolder.getAantalVerstuurd());
 			projectGroepEntry.setRapportage(rapportage);

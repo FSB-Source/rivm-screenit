@@ -133,6 +133,8 @@ public class ProxyServiceImpl implements ProxyService
 	public void clearTestCache()
 	{
 		cachedResponses.clear();
+		deleteRequest(RequestTypeCentraal.RESET_HUISARTSEN_CACHE);
+		deleteRequest(RequestTypeCentraal.RESET_ZORGINSTELLINGEN_CACHE);
 	}
 
 	@Override
@@ -160,6 +162,11 @@ public class ProxyServiceImpl implements ProxyService
 	{
 		RequestEntity.BodyBuilder requestBuilder = getProxyRequestEntity(pathPostfix, HttpMethod.GET);
 		return sendCachableProxyRequest(requestBuilder.build(), String.class, cacheProxyActie);
+	}
+
+	private void deleteRequest(RequestTypeCentraal pathPostfix)
+	{
+		restTemplate.delete(requestUrl(pathPostfix));
 	}
 
 	@Override

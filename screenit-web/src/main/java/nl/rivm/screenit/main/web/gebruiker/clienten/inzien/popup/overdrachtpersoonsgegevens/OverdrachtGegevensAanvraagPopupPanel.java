@@ -164,10 +164,14 @@ public abstract class OverdrachtGegevensAanvraagPopupPanel extends GenericPanel<
 
 	private void addBvoKeuzeCheckboxes()
 	{
-		form.add(ComponentHelper.newCheckBox("bkGegevens").setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT));
-		form.add(ComponentHelper.newCheckBox("bkBeelden").setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT));
-		form.add(ComponentHelper.newCheckBox("bmhkGegevens").setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT));
-		form.add(ComponentHelper.newCheckBox("dkGegevens").setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT));
+		form.add(ComponentHelper.newCheckBox("bkGegevens")
+			.setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT && getModelObject().getClient().getMammaDossier() != null));
+		form.add(ComponentHelper.newCheckBox("bkBeelden")
+			.setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT && getModelObject().getClient().getMammaDossier() != null));
+		form.add(ComponentHelper.newCheckBox("bmhkGegevens")
+			.setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT && getModelObject().getClient().getCervixDossier() != null));
+		form.add(ComponentHelper.newCheckBox("dkGegevens")
+			.setEnabled(getModelObject().getStatus() != AanvraagBriefStatus.VERWERKT && getModelObject().getClient().getColonDossier() != null));
 	}
 
 	private void addVervangenPanel()

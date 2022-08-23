@@ -1,0 +1,21 @@
+@import "../../../styling/scss/colors";
+
+.style {
+	background-color: $rood;
+	color: $wit;
+	font-size: 0.9rem;
+
+	p {
+		display: block;
+		margin-bottom: 0;
+	}
+
+	.locatie {
+		span {
+			&:first-of-type {
+				margin-right: 15px;
+				font-weight: bold;
+			}
+		}
+	}
+}

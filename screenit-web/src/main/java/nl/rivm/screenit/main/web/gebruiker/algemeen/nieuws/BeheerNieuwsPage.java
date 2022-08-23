@@ -47,18 +47,12 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(actie = Actie.VERWIJDEREN, constraint = ShiroConstraint.HasPermission, recht = Recht.NIEUWS_WIJZIGEN, bevolkingsonderzoekScopes = { Bevolkingsonderzoek.COLON,
 	Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA })
 public class BeheerNieuwsPage extends AlgemeenPage
 {
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(BeheerNieuwsPage.class);
-
 	@SpringBean
 	private NieuwsService nieuwsService;
 
@@ -94,8 +88,7 @@ public class BeheerNieuwsPage extends AlgemeenPage
 		NieuwsItem nieuwsItem = new NieuwsItem();
 		nieuwsItem.setGemaaktDoor(((ScreenitSession) getSession()).getLoggedInInstellingGebruiker());
 		nieuwsItem.setGemaakt(currentDateSupplier.getDate());
-		IModel<NieuwsItem> nieuwsItemIModel = ModelUtil.cModel(nieuwsItem);
-		return nieuwsItemIModel;
+		return ModelUtil.cModel(nieuwsItem);
 	}
 
 	private class EditForm extends ScreenitForm<NieuwsItem>

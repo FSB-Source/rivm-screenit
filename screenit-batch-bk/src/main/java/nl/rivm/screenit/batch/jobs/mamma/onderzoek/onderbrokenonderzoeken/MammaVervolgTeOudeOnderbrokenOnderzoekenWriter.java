@@ -21,20 +21,21 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.onderbrokenonderzoeken;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class MammaVervolgTeOudeOnderbrokenOnderzoekenWriter extends BaseWriter<MammaOnderzoek>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaVervolgTeOudeOnderbrokenOnderzoekenWriter.class);
-
-	@Autowired
-	private MammaBaseOnderzoekService onderzoekService;
+	private final MammaBaseOnderzoekService onderzoekService;
 
 	@Override
 	protected void write(MammaOnderzoek onderzoek)

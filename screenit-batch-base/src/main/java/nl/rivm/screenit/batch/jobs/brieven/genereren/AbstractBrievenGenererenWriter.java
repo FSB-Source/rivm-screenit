@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.document.BaseDocumentCreator;
 import nl.rivm.screenit.model.Brief;
@@ -44,8 +46,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -55,11 +55,11 @@ import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.NamedThreadLocal;
 
+@Slf4j
 public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends MergedBrieven<?>> implements ItemStreamWriter<T>, IBrievenGeneratorHelper<T, S>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractBrievenGenererenWriter.class);
 
-	private static final ThreadLocal<Map<Object, Object>> resources = new NamedThreadLocal<Map<Object, Object>>("Brief writer resources");
+	private static final ThreadLocal<Map<Object, Object>> resources = new NamedThreadLocal<>("Brief writer resources");
 
 	private static final String KEY_MERGEDDOCUMENTID = "mergedDocumentid";
 
@@ -85,7 +85,8 @@ public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends 
 	@Override
 	public void open(ExecutionContext executionContext) throws ItemStreamException
 	{
-		OpenHibernate5Session.withCommittedTransaction().run(() -> {
+		OpenHibernate5Session.withCommittedTransaction().run(() ->
+		{
 
 			Map<Object, Object> resourcesMap = resources.get();
 			if (resourcesMap == null)
@@ -232,7 +233,8 @@ public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends 
 	@Override
 	public void close() throws ItemStreamException
 	{
-		OpenHibernate5Session.withCommittedTransaction().run(() -> {
+		OpenHibernate5Session.withCommittedTransaction().run(() ->
+		{
 			try
 			{
 				Map<Object, Object> resourcesMap = resources.get();
@@ -240,13 +242,13 @@ public abstract class AbstractBrievenGenererenWriter<T extends Brief, S extends 
 				S mergedBrieven = hibernateService.load(getMergedBrievenClass(), id);
 				boolean heeftBrieven = stepExecution.getExecutionContext().containsKey(KEY_BRIEVEN);
 
-				if (!heeftBrieven)
+				if (heeftBrieven)
 				{
-					hibernateService.delete(mergedBrieven);
+					briefService.completePdf(mergedBrieven);
 				}
 				else
 				{
-					briefService.completePdf(mergedBrieven);
+					hibernateService.delete(mergedBrieven);
 				}
 			}
 			catch (IllegalStateException e)

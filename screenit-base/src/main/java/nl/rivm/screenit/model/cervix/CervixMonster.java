@@ -41,6 +41,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.model.SingleTableHibernateObject;
 import nl.rivm.screenit.model.UploadDocument;
@@ -54,6 +57,8 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Setter
+@Getter
 @Entity
 @Table(
 	schema = "cervix",
@@ -137,173 +142,4 @@ public abstract class CervixMonster extends SingleTableHibernateObject
 	@Column
 	private String overigeSignalering;
 
-	public UploadDocument getVerwijderdBrief()
-	{
-		return verwijderdBrief;
-	}
-
-	public void setVerwijderdBrief(UploadDocument verwijderdBrief)
-	{
-		this.verwijderdBrief = verwijderdBrief;
-	}
-
-	public CervixUitnodiging getUitnodiging()
-	{
-		return uitnodiging;
-	}
-
-	public void setUitnodiging(CervixUitnodiging uitnodiging)
-	{
-		this.uitnodiging = uitnodiging;
-	}
-
-	public BMHKLaboratorium getLaboratorium()
-	{
-		return laboratorium;
-	}
-
-	public void setLaboratorium(BMHKLaboratorium laboratorium)
-	{
-		this.laboratorium = laboratorium;
-	}
-
-	public String getMonsterId()
-	{
-		return monsterId;
-	}
-
-	public void setMonsterId(String monsterId)
-	{
-		this.monsterId = monsterId;
-	}
-
-	public Date getOntvangstdatum()
-	{
-		return ontvangstdatum;
-	}
-
-	public void setOntvangstdatum(Date ontvangstdatum)
-	{
-		this.ontvangstdatum = ontvangstdatum;
-	}
-
-	public CervixBrief getBrief()
-	{
-		return brief;
-	}
-
-	public void setBrief(CervixBrief brief)
-	{
-		this.brief = brief;
-	}
-
-	public List<CervixHpvBeoordeling> getHpvBeoordelingen()
-	{
-		return hpvBeoordelingen;
-	}
-
-	public void setHpvBeoordelingen(List<CervixHpvBeoordeling> hpvBeoordelingen)
-	{
-		this.hpvBeoordelingen = hpvBeoordelingen;
-	}
-
-	public CervixHpvBeoordeling getLaatsteHpvBeoordeling()
-	{
-		return laatsteHpvBeoordeling;
-	}
-
-	public void setLaatsteHpvBeoordeling(CervixHpvBeoordeling laatsteHpvBeoordeling)
-	{
-		this.laatsteHpvBeoordeling = laatsteHpvBeoordeling;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public List<CervixVerrichting> getVerrichtingen()
-	{
-		return verrichtingen;
-	}
-
-	public void setVerrichtingen(List<CervixVerrichting> verrichtingen)
-	{
-		this.verrichtingen = verrichtingen;
-	}
-
-	public Date getVerwijderdDatum()
-	{
-		return verwijderdDatum;
-	}
-
-	public void setVerwijderdDatum(Date verwijderdDatum)
-	{
-		this.verwijderdDatum = verwijderdDatum;
-	}
-
-	public Date getDatumOruVerstuurd()
-	{
-		return datumOruVerstuurd;
-	}
-
-	public void setDatumOruVerstuurd(Date datumOruVerstuurd)
-	{
-		this.datumOruVerstuurd = datumOruVerstuurd;
-	}
-
-	public CervixScreeningRonde getOntvangstScreeningRonde()
-	{
-		return ontvangstScreeningRonde;
-	}
-
-	public void setOntvangstScreeningRonde(CervixScreeningRonde ontvangstScreeningRonde)
-	{
-		this.ontvangstScreeningRonde = ontvangstScreeningRonde;
-	}
-
-	public CervixNietAnalyseerbaarReden getNietAnalyseerbaarReden()
-	{
-		return nietAnalyseerbaarReden;
-	}
-
-	public void setNietAnalyseerbaarReden(CervixNietAnalyseerbaarReden nietAnalyseerbaarReden)
-	{
-		this.nietAnalyseerbaarReden = nietAnalyseerbaarReden;
-	}
-
-	public List<CervixMonsterSignalering> getSignaleringen()
-	{
-		return signaleringen;
-	}
-
-	public void setSignaleringen(List<CervixMonsterSignalering> signaleringen)
-	{
-		this.signaleringen = signaleringen;
-	}
-
-	public List<Date> getBarcodeAfgedrukt()
-	{
-		return barcodeAfgedrukt;
-	}
-
-	public void setBarcodeAfgedrukt(List<Date> barcodeAfgedrukt)
-	{
-		this.barcodeAfgedrukt = barcodeAfgedrukt;
-	}
-
-	public String getOverigeSignalering()
-	{
-		return overigeSignalering;
-	}
-
-	public void setOverigeSignalering(String overigeSignalering)
-	{
-		this.overigeSignalering = overigeSignalering;
-	}
 }

@@ -30,10 +30,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional(propagation = Propagation.SUPPORTS)
+@Component
 public class JMSVerwerkIMSBerichtListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
 	private static final Logger LOG = LoggerFactory.getLogger(JMSVerwerkIMSBerichtListener.class);
@@ -45,7 +47,8 @@ public class JMSVerwerkIMSBerichtListener implements SessionAwareMessageListener
 	public void onMessage(ActiveMQObjectMessage message, Session session)
 	{
 		imsBerichtInlezenService.getAlleNietVerwerkteIMSBerichten()
-			.forEach(bericht -> {
+			.forEach(bericht ->
+			{
 				try
 				{
 					imsBerichtInlezenService.verwerkBericht(bericht);

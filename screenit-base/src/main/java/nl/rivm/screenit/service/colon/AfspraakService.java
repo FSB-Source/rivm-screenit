@@ -41,7 +41,6 @@ import nl.topicuszorg.planning.model.IAppointment;
 import nl.topicuszorg.wicket.planning.model.appointment.Location;
 import nl.topicuszorg.wicket.planning.services.AppointmentService;
 
-import org.joda.time.DateTime;
 import org.joda.time.Interval;
 
 public interface AfspraakService extends AppointmentService
@@ -53,7 +52,7 @@ public interface AfspraakService extends AppointmentService
 
 	void verplaatsAfspraak(ColonIntakeAfspraak nieuweAfspraak, Account account, BriefType briefType, boolean briefTegenhouden, boolean uitRooster);
 
-	void annuleerAfspraak(Afspraak afspraak, Account account, AfspraakStatus status, boolean briefTegenhouden);
+	void annuleerAfspraak(Afspraak afspraak, Account account, AfspraakStatus status, boolean communicatieTegenhouden);
 
 	void maakNieuweAfspraak(Client client, NieuweIntakeAfspraakMakenReden reden, ColonIntakeAfspraak nieuweAfspraak, boolean briefTegenhouden, boolean uitRooster,
 		BriefType briefType, Account account);
@@ -81,7 +80,7 @@ public interface AfspraakService extends AppointmentService
 
 	Date getLaatsteWijzigingsdatumAfspraak(HibernateObject entity);
 
-	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean briefTegenhouden);
+	void afspraakAfzeggen(ColonIntakeAfspraak afspraak, AfspraakStatus status, LocalDateTime nu, boolean communicatieTegenhouden);
 
 	List<Object> getRoosterItemsBezetMetAfspraak(Long roosterItemId, Interval currentViewInterval);
 

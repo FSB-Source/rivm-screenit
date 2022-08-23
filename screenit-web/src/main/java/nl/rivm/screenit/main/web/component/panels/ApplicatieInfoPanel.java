@@ -41,18 +41,18 @@ public class ApplicatieInfoPanel extends Panel
 	@SpringBean(name = "applicationEnvironment")
 	private String applicationEnvironment;
 
-	@SpringBean(name = "applicatieNaam")
-	private String applicatieNaam;
+	@SpringBean(name = "applicationName")
+	private String applicationName;
 
-	@SpringBean(name = "applicatieInstantie")
-	private String applicatieInstance;
+	@SpringBean(name = "applicationInstance")
+	private String applicationInstance;
 
 	public ApplicatieInfoPanel(String id)
 	{
 		super(id);
 
 		add(new Label("version", ScreenitApplication.get().getVersionString()));
-		add(new Label("applicatie", applicatieNaam));
+		add(new Label("name", applicationName));
 
 		WebMarkupContainer environmentContainer = new WebMarkupContainer("environmentContainer");
 		environmentContainer.setOutputMarkupPlaceholderTag(Boolean.TRUE);
@@ -66,6 +66,6 @@ public class ApplicatieInfoPanel extends Panel
 	private String omgevingTekst()
 	{
 		String omgevingTekst = ApplicationEnvironment.PROD.getEnvNaam().equalsIgnoreCase(applicationEnvironment) ? null : applicationEnvironment;
-		return Stream.of(omgevingTekst, applicatieInstance).filter(Objects::nonNull).collect(Collectors.joining(" - "));
+		return Stream.of(omgevingTekst, applicationInstance).filter(Objects::nonNull).collect(Collectors.joining(" - "));
 	}
 }

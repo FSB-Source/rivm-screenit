@@ -15,7 +15,7 @@
   "INTAKE_AFSPRAAK_GEWIJZIGD": "U heeft uw  afspraak voor een gesprek over vervolgonderzoek verzet.",
   "INTAKE_AFSPRAAK_NO_SHOW": "U heeft niet gereageerd op de uitnodiging voor een gesprek over vervolgonderzoek.",
   "MAMMA_AFSPRAAK_GEMAAKT": "Uw afspraak is gepland op %s om %s&nbsp;uur in '%s'",
-  "MAMMA_AFSPRAAK_VERPLAATST": "U heeft uw afspraak verzet.",
+  "MAMMA_AFSPRAAK_VERPLAATST": "Uw afspraak is verzet.",
   "MAMMA_AFSPRAAK_GEANNULEERD": "U heeft uw afspraak geannuleerd.",
   "MAMMA_OPEN_UITNODIGING": "Wij hebben uw uitnodiging aangemaakt. U krijgt de uitnodiging met de post. Wanneer u de uitnodiging heeft ontvangen, kunt u een afspraak maken voor het borstonderzoek.",
   "MAMMA_UITSTEL": "U heeft uw deelname uitgesteld. U ontvangt rond %s een uitnodiging voor het onderzoek in %s.",

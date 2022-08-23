@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.zaskoppelen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
@@ -31,13 +33,13 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class ZasKoppelenListener extends BaseLogListener
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
@@ -68,7 +70,7 @@ public class ZasKoppelenListener extends BaseLogListener
 	protected LogEvent getEindLogEvent()
 	{
 		String key = ZasKoppelenConstants.RAPPORTAGEKEYZASKOPPELEN;
-		ExecutionContext context = getJobExecution().getExecutionContext();
+		var context = getJobExecution().getExecutionContext();
 		if (context.containsKey(key))
 		{
 			return (ZasKoppelingBeeindigdLogEvent) context.get(key);
@@ -85,10 +87,10 @@ public class ZasKoppelenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent logEvent = getEindLogEvent();
+		var logEvent = getEindLogEvent();
 		if (logEvent != null)
 		{
-			ZasKoppelingBeeindigdLogEvent koppelLogEvent = (ZasKoppelingBeeindigdLogEvent) logEvent;
+			var koppelLogEvent = (ZasKoppelingBeeindigdLogEvent) logEvent;
 			if (!Level.ERROR.equals(koppelLogEvent.getLevel()) && jobHasExitCode(ExitStatus.FAILED))
 			{
 				koppelLogEvent.setMelding("De job heeft onsuccesvol gedraaid, neem contact op met de helpdesk");

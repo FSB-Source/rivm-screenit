@@ -29,7 +29,7 @@ import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.service.ClientDossierFilter;
 import nl.rivm.screenit.main.service.DossierService;
-import nl.rivm.screenit.util.EnumStringUtil;
+import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
@@ -41,7 +41,6 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.contact.ClientContactPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.GebeurtenisPopupBasePanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagPage;
 import nl.rivm.screenit.main.web.gebruiker.clienten.verslag.ClientVerslagenPage;
-import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.ScreeningRonde;
@@ -50,6 +49,7 @@ import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.project.ProjectClient;
@@ -57,13 +57,13 @@ import nl.rivm.screenit.service.AutorisatieService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.model.DetachableListModel;
 import nl.topicuszorg.wicket.model.SortingListModel;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -233,9 +233,9 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(gebeurtenis.getDetailPanelClass())
 					&& (!gebeurtenis.equals(TypeGebeurtenis.UITNODIGING) || item.getIndex() == 0)
 					|| (gebeurtenis.equals(TypeGebeurtenis.INTAKEAFSPRAAKGEMAAKT) || gebeurtenis.equals(TypeGebeurtenis.INTAKEAFSPRAAKAFGEZEGD))
-						&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientAgendaPage.class)
+					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientAgendaPage.class)
 					|| (gebeurtenis.equals(TypeGebeurtenis.UITSLAGCOLOSCOPIEONTVANGEN) || gebeurtenis.equals(TypeGebeurtenis.UITSLAGPATHOLOGIEONTVANGEN))
-						&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientVerslagenPage.class))
+					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientVerslagenPage.class))
 				{
 					item.add(new AttributeAppender("class", new Model<String>("badge-clickable"), " "));
 				}
@@ -244,7 +244,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					item.add(new AttributeAppender("class", new Model<String>("badge-not-clickable"), " "));
 				}
 
-				addExtraOmschrijvingItem(item, "extraOmschrijving");
+				addExtraOmschrijvingItem(item);
 
 				if ((gebeurtenis.equals(TypeGebeurtenis.INTAKEAFSPRAAKGEMAAKT) || gebeurtenis.equals(TypeGebeurtenis.INTAKEAFSPRAAKAFGEZEGD))
 					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientAgendaPage.class))
@@ -278,20 +278,15 @@ public class ClientDossierPanel extends GenericPanel<Client>
 						@Override
 						protected void onEvent(AjaxRequestTarget target)
 						{
-							dialog.setCloseCallback(new IDialogCloseCallback()
+							dialog.setCloseCallback((IDialogCloseCallback) target1 ->
 							{
-
-								@Override
-								public void onCloseClick(AjaxRequestTarget target)
-								{
-									ListView<ScreeningRondeGebeurtenissen> list = getGebeurtenissenContainer(clientDossierFilter);
-									WebMarkupContainer nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
-									nieuwGebCont.setOutputMarkupId(true);
-									nieuwGebCont.add(list);
-									gebeurtenissenContainer.replaceWith(nieuwGebCont);
-									gebeurtenissenContainer = nieuwGebCont;
-									target.add(gebeurtenissenContainer);
-								}
+								ListView<ScreeningRondeGebeurtenissen> list = getGebeurtenissenContainer(clientDossierFilter);
+								WebMarkupContainer nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
+								nieuwGebCont.setOutputMarkupId(true);
+								nieuwGebCont.add(list);
+								gebeurtenissenContainer.replaceWith(nieuwGebCont);
+								gebeurtenissenContainer = nieuwGebCont;
+								target1.add(gebeurtenissenContainer);
 							});
 							dialog.openWith(target, new GebeurtenisPopupBasePanel(IDialog.CONTENT_ID, item.getModel()));
 						}
@@ -330,7 +325,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(gebeurtenis.getDetailPanelClass())
 					&& (!gebeurtenis.equals(TypeGebeurtenis.UITNODIGING) || item.getIndex() == 0)
 					|| gebeurtenis.equals(TypeGebeurtenis.BMHK_CYTOLOGISCHE_BEOORDELING)
-						&& ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CERVIX_CYTOLOGIE_VERSLAG, Actie.INZIEN, ClientDossierPanel.this.getModelObject()))
+					&& ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CERVIX_CYTOLOGIE_VERSLAG, Actie.INZIEN, ClientDossierPanel.this.getModelObject()))
 				{
 					item.add(new AttributeAppender("class", new Model<>("badge-clickable"), " "));
 				}
@@ -339,7 +334,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					item.add(new AttributeAppender("class", new Model<>("badge-not-clickable"), " "));
 				}
 
-				addExtraOmschrijvingItem(item, "extraOmschrijving");
+				addExtraOmschrijvingItem(item);
 
 				if (screeningRondeGebeurtenis.isClickable() && gebeurtenis.getDetailPanelClass() != null
 					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(gebeurtenis.getDetailPanelClass()))
@@ -349,7 +344,8 @@ public class ClientDossierPanel extends GenericPanel<Client>
 						@Override
 						protected void onEvent(AjaxRequestTarget target)
 						{
-							dialog.setCloseCallback((IDialogCloseCallback) target1 -> {
+							dialog.setCloseCallback((IDialogCloseCallback) target1 ->
+							{
 								ListView<ScreeningRondeGebeurtenissen> list = getGebeurtenissenContainer(clientDossierFilter);
 								WebMarkupContainer nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
 								nieuwGebCont.setOutputMarkupId(true);
@@ -393,9 +389,9 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(gebeurtenis.getDetailPanelClass())
 					&& (!gebeurtenis.equals(TypeGebeurtenis.UITNODIGING) || item.getIndex() == 0)
 					|| gebeurtenis.equals(TypeGebeurtenis.MAMMA_AFSPRAAK)
-						&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientAgendaPage.class)
+					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientAgendaPage.class)
 					|| gebeurtenis.equals(TypeGebeurtenis.MAMMA_FOLLOW_UP_PATHOLOGIE_VERSLAG)
-						&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientVerslagenPage.class))
+					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientVerslagenPage.class))
 				{
 					item.add(new AttributeAppender("class", new Model<>("badge-clickable"), " "));
 				}
@@ -404,7 +400,7 @@ public class ClientDossierPanel extends GenericPanel<Client>
 					item.add(new AttributeAppender("class", new Model<>("badge-not-clickable"), " "));
 				}
 
-				addExtraOmschrijvingItem(item, "extraOmschrijving");
+				addExtraOmschrijvingItem(item);
 				if ((gebeurtenis.equals(TypeGebeurtenis.MAMMA_AFSPRAAK))
 					&& ScreenitSession.get().getAuthorizationStrategy().isInstantiationAuthorized(ClientAgendaPage.class))
 				{
@@ -431,20 +427,15 @@ public class ClientDossierPanel extends GenericPanel<Client>
 						@Override
 						protected void onEvent(AjaxRequestTarget target)
 						{
-							dialog.setCloseCallback(new IDialogCloseCallback()
+							dialog.setCloseCallback((IDialogCloseCallback) target1 ->
 							{
-
-								@Override
-								public void onCloseClick(AjaxRequestTarget target)
-								{
-									ListView<ScreeningRondeGebeurtenissen> list = getGebeurtenissenContainer(clientDossierFilter);
-									WebMarkupContainer nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
-									nieuwGebCont.setOutputMarkupId(true);
-									nieuwGebCont.add(list);
-									gebeurtenissenContainer.replaceWith(nieuwGebCont);
-									gebeurtenissenContainer = nieuwGebCont;
-									target.add(gebeurtenissenContainer);
-								}
+								ListView<ScreeningRondeGebeurtenissen> list = getGebeurtenissenContainer(clientDossierFilter);
+								WebMarkupContainer nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
+								nieuwGebCont.setOutputMarkupId(true);
+								nieuwGebCont.add(list);
+								gebeurtenissenContainer.replaceWith(nieuwGebCont);
+								gebeurtenissenContainer = nieuwGebCont;
+								target1.add(gebeurtenissenContainer);
 							});
 							dialog.openWith(target, new GebeurtenisPopupBasePanel(IDialog.CONTENT_ID, item.getModel()));
 						}
@@ -478,54 +469,15 @@ public class ClientDossierPanel extends GenericPanel<Client>
 		});
 	}
 
-	private void addExtraOmschrijvingItem(final ListItem<ScreeningRondeGebeurtenis> item, String id)
+	private void addExtraOmschrijvingItem(final ListItem<ScreeningRondeGebeurtenis> item)
 	{
-		item.add(new Label("extraOmschrijving", new IModel<String>()
+		item.add(new Label("extraOmschrijving", (IModel<String>) () ->
 		{
-
-			@Override
-			public String getObject()
-			{
-				ScreeningRondeGebeurtenis gebeurtenis2 = item.getModelObject();
-				String[] extraOmschrijvingen = gebeurtenis2.getExtraOmschrijving();
-				String extraOmschrijving = "";
-				if (extraOmschrijvingen != null)
-				{
-					for (String omschrijving : extraOmschrijvingen)
-					{
-						if (omschrijving != null)
-						{
-							if (StringUtils.isNotBlank(extraOmschrijving))
-							{
-								if (extraOmschrijving.trim().endsWith(":"))
-								{
-									if (!extraOmschrijving.endsWith(":"))
-									{
-										extraOmschrijving += " ";
-									}
-								}
-								else
-								{
-									extraOmschrijving += ", ";
-								}
-							}
-							else
-							{
-								extraOmschrijving = "(";
-							}
-							extraOmschrijving += getString(omschrijving, null, omschrijving);
-						}
-					}
-				}
-				if (StringUtils.isNotBlank(extraOmschrijving))
-				{
-					extraOmschrijving += ")";
-				}
-				return extraOmschrijving;
-			}
+			ScreeningRondeGebeurtenis screeningRondeGebeurtenis = item.getModelObject();
+			String[] extraOmschrijvingen = screeningRondeGebeurtenis.getExtraOmschrijving();
+			return BriefOmschrijvingUtil.verwerkExtraOmschrijvingen(extraOmschrijvingen, ClientDossierPanel.this::getString);
 		})
 		{
-
 			@Override
 			protected void onConfigure()
 			{
@@ -534,16 +486,6 @@ public class ClientDossierPanel extends GenericPanel<Client>
 			}
 
 		});
-	}
-
-	public IModel<List<ScreeningRondeGebeurtenissen>> getDossierModel()
-	{
-		return dossierModel;
-	}
-
-	public void setDossierModel(IModel<List<ScreeningRondeGebeurtenissen>> dossierModel)
-	{
-		this.dossierModel = dossierModel;
 	}
 
 	@Override

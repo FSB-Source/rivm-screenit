@@ -23,6 +23,8 @@ package nl.rivm.screenit.wsb.service.impl;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.handler.CervixHpvHL7v251Handler;
 import nl.rivm.screenit.handler.ColonIFobtHL7v251Handler;
 import nl.rivm.screenit.handler.MammaHL7v24Handler;
@@ -30,11 +32,9 @@ import nl.rivm.screenit.wsb.service.ScreenITHL7v2ServerService;
 import nl.rivm.screenit.wsb.service.mamma.MammaBeeldenOntvangenService;
 import nl.rivm.screenit.wsb.service.mamma.MammaBeeldenVerwijderdService;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,32 +46,33 @@ import ca.uhn.hl7v2.model.v251.message.OUL_R22;
 import ca.uhn.hl7v2.protocol.ApplicationWrapper;
 
 @Service
+@DependsOn("springBeanProvider")
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class ScreenITHL7v2ServerServiceImpl implements ScreenITHL7v2ServerService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ScreenITHL7v2ServerServiceImpl.class);
 
 	@Autowired
-	@Qualifier("hpvPorts")
-	private String incomingHpvPorts;
+	@Qualifier("hpvPort")
+	private Integer incomingHpvPort;
 
 	@Autowired
-	@Qualifier("ifobtPorts")
-	private String incomingIfobtPorts;
+	@Qualifier("hl7IfobtPort")
+	private Integer incomingIfobtPort;
 
 	@Autowired
 	@Qualifier("hl7ImsPort")
-	private Integer incomingORMIMSPoort;
+	private Integer incomingORMIMSPort;
 
 	@Autowired
 	@Qualifier("hl7IlmPort")
-	private Integer incomingILMPoort;
+	private Integer incomingILMPort;
 
 	@PostConstruct
 	public void init()
 	{
-		createHpvServers();
-		createIfobtServers();
+		createHpvServer();
+		createIfobtServer();
 		createMammaServers();
 	}
 
@@ -83,12 +84,12 @@ public class ScreenITHL7v2ServerServiceImpl implements ScreenITHL7v2ServerServic
 
 	private void createIMSServer()
 	{
-		if (incomingORMIMSPoort != null)
+		if (incomingORMIMSPort != null)
 		{
-			LOG.info("IMS ORM server wordt opgezet, op poort: " + incomingORMIMSPoort);
+			LOG.info("IMS ORM server wordt opgezet, op poort: {}", incomingORMIMSPort);
 			Application handler = new MammaHL7v24Handler(ORM_O01.class, MammaBeeldenOntvangenService.class);
 			ApplicationWrapper wrapper = new ApplicationWrapper(handler);
-			createServer(wrapper, incomingORMIMSPoort);
+			createServer(wrapper, incomingORMIMSPort);
 			LOG.info("IMS ORM server is aangemaakt.");
 		}
 		else
@@ -99,12 +100,12 @@ public class ScreenITHL7v2ServerServiceImpl implements ScreenITHL7v2ServerServic
 
 	private void createILMServer()
 	{
-		if (incomingILMPoort != null)
+		if (incomingILMPort != null)
 		{
-			LOG.info("IMS ILM ORM server wordt opgezet, op poort: " + incomingILMPoort);
+			LOG.info("IMS ILM ORM server wordt opgezet, op poort: {}", incomingILMPort);
 			Application handler = new MammaHL7v24Handler(ORM_O01.class, MammaBeeldenVerwijderdService.class);
 			ApplicationWrapper wrapper = new ApplicationWrapper(handler);
-			createServer(wrapper, incomingILMPoort);
+			createServer(wrapper, incomingILMPort);
 			LOG.info("IMS ILM ORM server is aangemaakt.");
 		}
 		else
@@ -113,42 +114,36 @@ public class ScreenITHL7v2ServerServiceImpl implements ScreenITHL7v2ServerServic
 		}
 	}
 
-	private void createHpvServers()
+	private void createHpvServer()
 	{
-		if (incomingHpvPorts != null && !StringUtils.isBlank(incomingHpvPorts))
+		if (incomingHpvPort != null)
 		{
-			LOG.info("HPV HL7v251 servers worden opgezet!");
-
+			LOG.info("HPV HL7v251 server wordt opgezet, op poort: {}", incomingHpvPort);
 			Application handler = new CervixHpvHL7v251Handler(OUL_R22.class);
 			ApplicationWrapper wrapper = new ApplicationWrapper(handler);
-
-			for (String poort : incomingHpvPorts.split(","))
-			{
-				createServer(wrapper, Integer.parseInt(poort.trim()));
-			}
-			LOG.info("Alle HPV HL7v251 servers zijn aangemaakt");
-			return;
+			createServer(wrapper, incomingHpvPort);
+			LOG.info("HPV HL7v251 server is aangemaakt.");
 		}
-		LOG.warn("Geen poortnummers in de configuratie gevonden voor HPV servers;");
+		else
+		{
+			LOG.warn("Geen poortnummers in de configuratie gevonden voor HPV servers;");
+		}
 	}
 
-	private void createIfobtServers()
+	private void createIfobtServer()
 	{
-		if (incomingIfobtPorts != null && !StringUtils.isBlank(incomingIfobtPorts))
+		if (incomingIfobtPort != null)
 		{
-			LOG.info("FIT HL7v251 servers worden opgezet!");
-
+			LOG.info("FIT HL7v251 server wordt opgezet, op poort: {}", incomingIfobtPort);
 			Application handler = new ColonIFobtHL7v251Handler(OUL_R22.class);
 			ApplicationWrapper wrapper = new ApplicationWrapper(handler);
-
-			for (String poort : incomingIfobtPorts.split(","))
-			{
-				createServer(wrapper, Integer.parseInt(poort.trim()));
-			}
-			LOG.info("Alle FIT HL7v251 servers zijn aangemaakt");
-			return;
+			createServer(wrapper, incomingIfobtPort);
+			LOG.info("FIT HL7v251 server is aangemaakt.");
 		}
-		LOG.warn("Geen poortnummers in de configuratie gevonden voor FIT servers;");
+		else
+		{
+			LOG.warn("Geen poortnummers in de configuratie gevonden voor FIT servers;");
+		}
 	}
 
 	private void createServer(ApplicationWrapper wrapper, int port)

@@ -234,8 +234,6 @@ public enum PreferenceKey
 
 	BMHK_LABEL_PRINTEN_ZONDER_PDF("BMHK label printen zonder PDF", Boolean.class),
 
-	SAFESIGN_LOGIN_DISABLED("Blokkeer login via SafeSign", Boolean.class),
-
 	CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE("Startdatum aanlevering genotypering analyseresultaten en invoering triage BMHK", Date.class),
 
 	MAMMA_MINIMALE_LEEFTIJD("Minimale leeftijd", Integer.class),
@@ -294,8 +292,6 @@ public enum PreferenceKey
 
 	MAMMA_MEEKIJKVERZOEK_MAIL_ADRES("E-mail adres(sen) voor meekijkverzoek", String.class),
 
-	MAMMA_PALGA_EXPORT_ALLEEN_VERWEZEN("Alleen clienten met een BVO BK uitslag \"ongunstig\" verwezen naar ziekenhuis exporteren voor Palga", Boolean.class),
-
 	MAMMA_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST("BK clientportaal: Toon vervangende tekst", Boolean.class),
 
 	MAMMA_CLIENTPORTAAL_VERVANGENDE_TEKST("BK clientportaal: Vervangende tekst", String.class),
@@ -352,8 +348,6 @@ public enum PreferenceKey
 
 	INTERNAL_CERVIX_LAB_FORMULIER_VALID_FQDNS("Valided FQDNs (BMHK)", String.class),
 
-	INTERNAL_UZI_LOGIN_URL_PREFIX("Prefix voor mTLS inlog UZI pas (zonder Zorg-ID)", String.class),
-
 	INTERNAL_MAMMA_SE_INFORMATIE_OPHALEN_CRON("SE informatie ophalen CRON", String.class),
 
 	INTERNAL_OPENID_CONNECT_IDP_KEYSTOREPASSWORD("OpenID Connect IPD keystore password", String.class),
@@ -385,8 +379,6 @@ public enum PreferenceKey
 	POSTCODE_NL_API_TARGET_NUM("Target laatste update NUM", String.class),
 
 	MAMMA_DICOM_SOP_CONFIG("DICOM SOP configuratie", String.class),
-
-	MAMMA_PALGA_CSV_EXPORT_AANTAL("Aantal unieke cliënten per palga export csv file", Integer.class),
 
 	MAMMA_ONDERZOEKSCAPACITEIT_NIET_BESCHIKBAAR_BINNEN_WERKDAGEN("Onderzoekscapaciteit niet beschikbaar binnen werkdagen", Integer.class),
 

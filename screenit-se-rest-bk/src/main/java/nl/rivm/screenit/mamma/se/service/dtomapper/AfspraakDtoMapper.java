@@ -26,7 +26,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import nl.rivm.screenit.comparator.BezwaarComparator;
 import nl.rivm.screenit.mamma.se.dto.AdresSeDto;
 import nl.rivm.screenit.mamma.se.dto.AfspraakSeDto;
 import nl.rivm.screenit.mamma.se.dto.AfspraakStatusSe;
@@ -36,8 +35,6 @@ import nl.rivm.screenit.mamma.se.dto.TijdelijkAdresSeDto;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.MammografieSeDto;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.OnderzoekSeDto;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.SignalerenSeDto;
-import nl.rivm.screenit.model.AanvraagBriefStatus;
-import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.GbaPersoon;
@@ -69,7 +66,7 @@ public class AfspraakDtoMapper
 		afspraakSeDto.setUitnodigingsNr(afspraak.getUitnodiging().getScreeningRonde().getUitnodigingsNr());
 		afspraakSeDto.setIdentificatiesoort(afspraak.getIdentificatiesoort());
 		afspraakSeDto.setIdentificatienummer(afspraak.getIdentificatienummer());
-		afspraakSeDto.setBezwaarAangevraagd(heeftEenNogNietVerwerkteBezwaarBrief(afspraak));
+		afspraakSeDto.setBezwaarAangevraagd(afspraak.getBezwaarAangevraagd());
 		afspraakSeDto.setHuidigOnderzoek(createHuidigOnderzoekDto(afspraak));
 		afspraakSeDto.setMammografie(createMammografieDto(afspraak));
 		afspraakSeDto.setSignaleren(createSignalerenDto(afspraak));
@@ -83,13 +80,6 @@ public class AfspraakDtoMapper
 		afspraakSeDto.setGeforceerd(afspraak.isGeforceerdeAfspraak());
 
 		return afspraakSeDto;
-	}
-
-	private boolean heeftEenNogNietVerwerkteBezwaarBrief(MammaAfspraak afspraak)
-	{
-		List<BezwaarMoment> bezwaren = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient().getBezwaarMomenten();
-		bezwaren.sort(new BezwaarComparator());
-		return !bezwaren.isEmpty() && AanvraagBriefStatus.BRIEF.equals(bezwaren.get(0).getStatus());
 	}
 
 	public PassantSeDto createPassantDto(MammaDossier mammaDossier)

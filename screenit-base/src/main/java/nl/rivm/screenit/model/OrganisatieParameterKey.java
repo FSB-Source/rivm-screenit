@@ -27,6 +27,8 @@ public enum OrganisatieParameterKey
 {
 	COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.COLON),
 
+	CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.CERVIX),
+
 	CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE(OrganisatieType.BMHK_LABORATORIUM, Integer.class, 3000, Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS(OrganisatieType.RIVM, Integer.class, 1000, Bevolkingsonderzoek.CERVIX),
@@ -41,6 +43,8 @@ public enum OrganisatieParameterKey
 
 	CERVIX_PROJECT_VERLATE_DEELNAME(OrganisatieType.RIVM, String.class, null, Bevolkingsonderzoek.CERVIX),
 
+	CERVIX_ORDER_NIEUWE_STIJL(OrganisatieType.BMHK_LABORATORIUM, Boolean.class, null, Bevolkingsonderzoek.CERVIX),
+
 	MAX_MERGED_BRIEVEN_PDF_SIZE_MB(OrganisatieType.SCREENINGSORGANISATIE, Integer.class, 999, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA),
 
 	MAMMA_ILM_BEELDEN_STATUS_SIGNALEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
@@ -49,7 +53,8 @@ public enum OrganisatieParameterKey
 	MAMMA_ILM_PALGA_IMPORT_VERSLAGEN_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
 	MAMMA_ILM_APPLICATIE_LOGGING_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
 	MAMMA_ILM_RONDES_VERWIJDEREN_UITVOEREN(OrganisatieType.RIVM, Boolean.class, null, Bevolkingsonderzoek.MAMMA),
-	MAMMA_ILM_MAX_TIJD_MINUTEN(OrganisatieType.RIVM, Integer.class, 600, Bevolkingsonderzoek.MAMMA);
+	MAMMA_ILM_MAX_TIJD_MINUTEN(OrganisatieType.RIVM, Integer.class, 600, Bevolkingsonderzoek.MAMMA),
+	MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN(OrganisatieType.RIVM, Integer.class, 366, Bevolkingsonderzoek.MAMMA);
 
 	private final OrganisatieType organisatieType;
 

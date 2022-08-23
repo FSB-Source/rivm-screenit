@@ -28,9 +28,9 @@ public class ScreenITLoggingOutInterceptor extends LoggingOutInterceptor
 {
 	private final static int LIMIT = 100 * 1024;
 
-	public ScreenITLoggingOutInterceptor()
+	public ScreenITLoggingOutInterceptor(ScreenITLoggingSaver loggingSaver)
 	{
-		super(new ScreenITLoggingSaver());
+		super(loggingSaver);
 		setLimit(LIMIT);
 	}
 

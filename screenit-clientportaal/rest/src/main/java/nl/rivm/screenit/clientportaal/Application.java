@@ -32,7 +32,6 @@ import org.apache.catalina.Container;
 import org.apache.catalina.core.StandardHost;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration;
 import org.springframework.boot.autoconfigure.websocket.servlet.TomcatWebSocketServletWebServerCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
@@ -43,7 +42,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Slf4j
 @EnableJpaRepositories(basePackages = { "nl.rivm.screenit" })
 @ComponentScan(
-	basePackages = { "nl.rivm.screenit.clientportaal", "nl.rivm.screenit", "nl.topicuszorg" },
+	basePackages = { "nl.rivm.screenit", "nl.topicuszorg" },
 	excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = DistributedLockService.class),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = BsnService.class),
@@ -53,7 +52,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = OpenHibernate5Session.class),
 		@ComponentScan.Filter(type = FilterType.REGEX, pattern = "nl.topicuszorg.hl7.*")
 	})
-@SpringBootApplication(exclude = JmsAutoConfiguration.class)
+@SpringBootApplication
 public class Application
 {
 
@@ -70,7 +69,8 @@ public class Application
 			@Override
 			public void customize(TomcatServletWebServerFactory factory)
 			{
-				factory.addContextCustomizers((context) -> {
+				factory.addContextCustomizers((context) ->
+				{
 					Container parent = context.getParent();
 					if (parent instanceof StandardHost)
 					{

@@ -79,6 +79,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseLezingService;
 import nl.rivm.screenit.service.mamma.MammaBaseOnderzoekService;
 import nl.rivm.screenit.service.mamma.MammaHuisartsBerichtService;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.rivm.screenit.util.functionalinterfaces.StringResolver;
@@ -143,6 +144,9 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 
 	@Autowired
 	private BaseScreeningRondeService baseScreeningRondeService;
+
+	@Autowired
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -470,6 +474,10 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 			dossier.setLaatsteBeoordelingMetUitslag(beoordeling);
 			hibernateService.saveOrUpdate(dossier);
 			followUpService.refreshUpdateFollowUpConclusie(dossier);
+			if (status == MammaBeoordelingStatus.UITSLAG_ONGUNSTIG)
+			{
+				volgendeUitnodigingService.updateVolgendeUitnodigingNaVerwijziging(dossier);
+			}
 		}
 	}
 
@@ -584,7 +592,7 @@ public class MammaBaseBeoordelingServiceImpl implements MammaBaseBeoordelingServ
 						final EnovationHuisarts huisarts = beoordeling.getOnderzoek().getAfspraak().getUitnodiging().getScreeningRonde().getHuisarts();
 						if (huisarts != null && gunstigeUitslagBriefIsGemaakt)
 						{
-							huisartsBerichtService.verstuurHuisartsBericht(beoordeling, huisarts, HuisartsBerichtType.MAMMA_PROTHESE_MEER_DAN_80_PROCENT);
+							huisartsBerichtService.verstuurHuisartsBericht(beoordeling, huisarts, HuisartsBerichtType.MAMMA_PROTHESE_MEER_DAN_80_PROCENT, false);
 						}
 						break;
 					case GEEN_BEOORDELING_MOGELIJK:

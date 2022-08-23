@@ -25,20 +25,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.time.Duration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ContentDisposition;
-import org.apache.wicket.util.time.Duration;
 
+@Slf4j
 public class ScannedFormulierViewerResourceExternal extends AbstractResource
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ScannedFormulierViewerResourceExternal.class);
-
 	private final boolean alsAttachement;
 
 	private Duration cacheDuration;

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.dao.impl;
 
 /*-
@@ -138,4 +137,5 @@ public class BriefDaoImpl extends AbstractAutowiredDao implements BriefDao
 		crit.add(Restrictions.eq("bezwaarMoment", moment));
 		return crit.list();
 	}
+
 }

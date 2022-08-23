@@ -67,6 +67,15 @@ public enum VerslagType
 		CdaOID.CONCEPTS_ROOT_OID_BK,
 		LogGebeurtenis.MAMMA_VERSLAG_FOLLOW_UP_VERWIJDERD,
 		LogGebeurtenis.MAMMA_VERSLAG_FOLLOW_UP_HEROPEND,
+		MammaFollowUpVerslag.class),
+
+	MAMMA_PA_FOLLOW_UP_MONITOR(
+		Bevolkingsonderzoek.MAMMA,
+		null,
+		VerslagGeneratie.V2,
+		CdaOID.CONCEPTS_ROOT_OID_BK,
+		LogGebeurtenis.MAMMA_VERSLAG_FOLLOW_UP_VERWIJDERD,
+		null,
 		MammaFollowUpVerslag.class);
 
 	private final Bevolkingsonderzoek bevolkingsonderzoek;

@@ -33,7 +33,13 @@ public abstract class PollingAbstractAjaxTimerBehavior extends AbstractAjaxTimer
 
 	private boolean isFirstStart = false;
 
+	@Deprecated
 	protected PollingAbstractAjaxTimerBehavior(Duration updateInterval)
+	{
+		super(updateInterval);
+	}
+
+	protected PollingAbstractAjaxTimerBehavior(java.time.Duration updateInterval)
 	{
 		super(updateInterval);
 	}

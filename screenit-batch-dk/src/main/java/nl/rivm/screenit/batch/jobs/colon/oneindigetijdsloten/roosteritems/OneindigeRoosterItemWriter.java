@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten.roosteritems;
 
 /*-
@@ -25,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten.roosteritems;
 import nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten.OneindigeTijdslotWriter;
 import nl.rivm.screenit.model.colon.planning.RoosterItem;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class OneindigeRoosterItemWriter extends OneindigeTijdslotWriter<RoosterItem>
 {
 }

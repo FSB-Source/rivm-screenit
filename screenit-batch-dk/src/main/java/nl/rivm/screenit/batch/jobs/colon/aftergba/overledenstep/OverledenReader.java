@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.overledenstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
@@ -30,18 +32,19 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class OverledenReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private ICurrentDateSupplier currentDateDispatcher;
+	private final ICurrentDateSupplier currentDateDispatcher;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(ColonIntakeAfspraak.class);
+		var crit = session.createCriteria(ColonIntakeAfspraak.class);
 		crit.createAlias("client", "client");
 		crit.createAlias("client.persoon", "persoon");
 

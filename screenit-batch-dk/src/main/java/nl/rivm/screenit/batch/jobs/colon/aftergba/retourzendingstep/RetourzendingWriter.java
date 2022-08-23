@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.retourzendingstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep.BaseRetourzendingWriter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.colon.ColonDossier;
@@ -29,16 +31,16 @@ import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class RetourzendingWriter extends BaseRetourzendingWriter<Client, ColonUitnodiging, ColonScreeningRonde, ColonDossier>
 {
 
-	@Autowired
-	private ColonScreeningsrondeService screeningsrondeService;
+	private final ColonScreeningsrondeService screeningsrondeService;
 
-	@Autowired
-	private ColonUitnodigingService uitnodigingsService;
+	private final ColonUitnodigingService uitnodigingsService;
 
 	@Override
 	protected ColonUitnodiging maakNieuweUitnodiging(ColonUitnodiging uitnoding)

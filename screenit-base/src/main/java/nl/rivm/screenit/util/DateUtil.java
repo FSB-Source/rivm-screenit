@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Period;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -543,5 +544,14 @@ public final class DateUtil
 	public static Date plusTijdseenheid(Date datum, int hoeveelheid, ChronoUnit tijdseenheid)
 	{
 		return toUtilDate(toLocalDateTime(datum).plus(hoeveelheid, tijdseenheid));
+	}
+
+	public static int getAantalJaarTussenTweeDatums(LocalDate start, LocalDate eind)
+	{
+		if (start == null || eind == null)
+		{
+			return 0;
+		}
+		return Period.between(start, eind).getYears();
 	}
 }

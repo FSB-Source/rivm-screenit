@@ -197,6 +197,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 		boolean ingeboektInAnderLaboratorium = getModelObject().getLaboratorium() != null && !laboratorium.equals(getModelObject().getLaboratorium());
 
 		CervixVervolgTekst vervolgTekst = vervolgService.bepaalVervolg(getModelObject(), null).getVervolgTekst();
+		vervolgService.digitaalLabformulierKlaarVoorCytologie(getModelObject(), vervolgTekst);
 
 		WebMarkupContainer labformulierLaboratoriumContainer = new WebMarkupContainer("labformulierLaboratoriumContainer");
 		form.add(labformulierLaboratoriumContainer);
@@ -240,6 +241,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 				saveMonster(target);
 
 				CervixVervolgTekst vervolgstap = vervolgService.bepaalVervolg(getModelObject(), null).getVervolgTekst();
+				vervolgService.digitaalLabformulierKlaarVoorCytologie(getModelObject(), vervolgstap);
 
 				fieldset.add(new AttributeModifier("class", vervolgstap.getCssClass()));
 				target.add(fieldset);
@@ -326,7 +328,7 @@ public abstract class CervixUitnodigingPanel<M extends CervixMonster> extends Ge
 		boolean geenSignaleringAdvies = bezwaarService.checkBezwaarInLaatsteBezwaarMomentAanwezigIs(client, BezwaarType.GEEN_SIGNALERING_VERWIJSADVIES);
 		if (geenGebruikLichaamsMateriaal || geenSignaleringAdvies)
 		{
-			CervixMonsterBezwaarDialog cervixMonsterBezwaarDialog = new CervixMonsterBezwaarDialog(IDialog.CONTENT_ID, getModel(), geenGebruikLichaamsMateriaal,
+			CervixMonsterBezwaarDialog cervixMonsterBezwaarDialog = new CervixMonsterBezwaarDialog<M>(IDialog.CONTENT_ID, getModel(), geenGebruikLichaamsMateriaal,
 				geenSignaleringAdvies)
 			{
 				@Override

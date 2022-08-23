@@ -24,13 +24,15 @@ package nl.rivm.screenit.batch.jobs.cervix.order.aanmaakstep;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.order.CervixOrderConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.service.CervixHpvOrderBerichtService;
 import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
@@ -42,39 +44,28 @@ import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.service.cervix.impl.CervixBepaalVervolgContext;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
+@Slf4j
 public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixOrderAanmaakWriter.class);
 
-	@Autowired
 	private LogService logService;
 
-	@Autowired
 	private CervixHpvOrderBerichtService hpvOrderBerichtService;
 
-	@Autowired
 	private CervixFactory factory;
 
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
-	@Autowired
 	private CervixBepaalVervolgDao bepaalVervolgDao;
 
-	@Autowired
 	private CervixMonsterService monsterService;
 
-	@Autowired
 	private SimplePreferenceService preferenceService;
 
 	@Override
@@ -82,7 +73,7 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 	{
 		try
 		{
-			CervixCytologieReden cytologieReden = getCytologieReden(uitstrijkje);
+			var cytologieReden = getCytologieReden(uitstrijkje);
 			factory.maakCytologieOrder(uitstrijkje, cytologieReden, maakHl7v2Bericht(uitstrijkje, cytologieReden));
 
 			aantalContextOphogen(CervixOrderConstants.KEY_ORDER_AANGEMAAKT);
@@ -105,7 +96,7 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 			String startdatumAanleveringGenotyperingString = (String) getJobExecution().getExecutionContext()
 				.get(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
 
-			CervixBepaalVervolgContext vervolgContext = new CervixBepaalVervolgContext(uitstrijkje, false, dateSupplier.getLocalDateTime(),
+			var vervolgContext = new CervixBepaalVervolgContext(uitstrijkje, false, dateSupplier.getLocalDateTime(),
 				DateUtil.parseLocalDateForPattern(startdatumAanleveringGenotyperingString, Constants.DATE_FORMAT_YYYYMMDD), bepaalVervolgDao, monsterService,
 				preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()));
 
@@ -143,7 +134,7 @@ public class CervixOrderAanmaakWriter extends BaseWriter<CervixUitstrijkje>
 	{
 		List<Instelling> instellingen = new ArrayList<>();
 		instellingen.add(uitstrijkje.getLaboratorium());
-		Client client = uitstrijkje.getOntvangstScreeningRonde().getDossier().getClient();
+		var client = uitstrijkje.getOntvangstScreeningRonde().getDossier().getClient();
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_ORDER_AANMAKEN_MISLUKT, instellingen, client, melding, Bevolkingsonderzoek.CERVIX);
 	}
 }

@@ -45,7 +45,7 @@ public abstract class AbstractDeelnamemodusReader extends BaseScrollableResultRe
 
 		var vrouwMetSelectieblokkade = Restrictions.and(
 			Restrictions.eq("persoon.geslacht", Geslacht.VROUW),
-			Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELLECTIEBLOKKADE));
+			Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE));
 
 		criteria.add(Restrictions.or(manOfOnbekendMetDeelnamemodusStandaard, vrouwMetSelectieblokkade));
 

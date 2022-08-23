@@ -26,6 +26,7 @@ import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.hibernate.Criteria;
@@ -33,13 +34,19 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixLaatsteRondeSluitenReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
+
+	public CervixLaatsteRondeSluitenReader(ICurrentDateSupplier dateSupplier)
+	{
+		super.setFetchSize(50);
+		this.dateSupplier = dateSupplier;
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
@@ -48,16 +55,20 @@ public class CervixLaatsteRondeSluitenReader extends BaseScrollableResultReader
 		DateTime geboortedatumMaximaal = nu.minusYears(CervixLeeftijdcategorie._65.getLeeftijd());
 		DateTime geboortedatumMaximaalVervolgonderzoekNegatief = nu.minusYears(CervixLeeftijdcategorie._70.getLeeftijd());
 
-		Criteria crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
+		var crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
 		crit.createAlias("ronde.dossier", "dossier");
 		crit.createAlias("dossier.client", "client");
 		crit.createAlias("client.persoon", "persoon");
 
 		crit.add(Restrictions.or(
-				Restrictions.le("persoon.geboortedatum", geboortedatumMaximaalVervolgonderzoekNegatief.toDate()),
-				Restrictions.and(
-					Restrictions.le("persoon.geboortedatum", geboortedatumMaximaal.toDate()),
-					Restrictions.ne("ronde.leeftijdcategorie", CervixLeeftijdcategorie._65))));
+			Restrictions.and(
+				Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE),
+				Restrictions.le("dossier.volgendeRondeVanaf", nu.toDate())
+			),
+			Restrictions.le("persoon.geboortedatum", geboortedatumMaximaalVervolgonderzoekNegatief.toDate()),
+			Restrictions.and(
+				Restrictions.le("persoon.geboortedatum", geboortedatumMaximaal.toDate()),
+				Restrictions.ne("ronde.leeftijdcategorie", CervixLeeftijdcategorie._65))));
 
 		crit.add(Restrictions.eq("ronde.status", ScreeningRondeStatus.LOPEND));
 		crit.add(Restrictions.eq("dossier.status", DossierStatus.ACTIEF));

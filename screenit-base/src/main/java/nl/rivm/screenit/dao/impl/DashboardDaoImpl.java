@@ -31,14 +31,12 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.dashboard.DashboardType;
-import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
@@ -55,18 +53,6 @@ public class DashboardDaoImpl extends AbstractAutowiredDao implements DashboardD
 	{
 		BaseCriteria<DashboardStatus> criteria = new BaseCriteria<DashboardStatus>(DashboardStatus.class);
 		criteria.add(Restrictions.eq("type", item));
-		return criteria.list(getSession());
-	}
-
-	@Override
-	public List<DashboardStatus> getListOfDashboardStatussen(ToegangLevel toegang)
-	{
-		BaseCriteria<DashboardStatus> criteria = new BaseCriteria<DashboardStatus>(DashboardStatus.class);
-		if (toegang != null)
-		{
-			criteria.add(Restrictions.eq("toegang", toegang));
-		}
-		criteria.addOrder(Order.asc("id"));
 		return criteria.list(getSession());
 	}
 

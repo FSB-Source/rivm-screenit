@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.service.ColonUitnodigingsgebiedCapaciteitService;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
 import nl.rivm.screenit.dao.ClientDao;
@@ -33,13 +35,10 @@ import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.hibernate.Session;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class ColonClientSelectieContext
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ColonClientSelectieContext.class);
 
 	interface UitnodigingsTaak
 	{
@@ -121,7 +120,7 @@ public class ColonClientSelectieContext
 
 	public void init(List<Integer> uitnodigingsJaren, List<ProjectGroep> projectGroepen)
 	{
-		for (ProjectGroep groep : projectGroepen)
+		for (var groep : projectGroepen)
 		{
 			taken.add(new ProjectGroupUitnodiging(groep.getId()));
 			LOG.info("Project " + groep.getProject().getNaam() + "/" + groep.getNaam() + " (groepId:" + groep.getId() + ")");

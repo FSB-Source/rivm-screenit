@@ -268,7 +268,7 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Override
 	public void zetBrievenKlaarVoorStandplaatsVoorAfdrukken(List<MammaBrief> brieven, MammaStandplaats standplaats)
 	{
-		if (brieven.size() > 0)
+		if (!brieven.isEmpty())
 		{
 			Date nu = dateSupplier.getDate();
 
@@ -320,15 +320,15 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 			if (brieven.getScreeningOrganisatie() != null)
 			{
 				String soNaam = brieven.getScreeningOrganisatie().getNaam();
-				soNaam = soNaam.replaceAll(" ", "_");
+				soNaam = soNaam.replace(" ", "_");
 				naam += soNaam + "-";
 			}
-			naam += standplaats.getNaam().replaceAll(" ", "_") + "-";
+			naam += standplaats.getNaam().replace(" ", "_") + "-";
 			if (brieven.getBriefType() != null)
 			{
 				naam += brieven.getBriefType().name().toLowerCase();
 			}
-			return naam += ".pdf";
+			return naam + ".pdf";
 		}
 
 		@Override
@@ -404,8 +404,13 @@ public class MammaBaseStandplaatsServiceImpl implements MammaBaseStandplaatsServ
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public MammaStandplaatsRonde getStandplaatsRondeVanStandplaats(MammaStandplaats standplaats)
 	{
-		LocalDate vandaag = dateSupplier.getLocalDate();
 		MammaStandplaatsPeriode eerstvolgendePeriodeStandplaats = getEerstvolgendeStandplaatsPeriode(standplaats);
+		if (eerstvolgendePeriodeStandplaats == null)
+		{
+			return null;
+		}
+
+		LocalDate vandaag = dateSupplier.getLocalDate();
 		MammaScreeningsEenheid screeningsEenheid = eerstvolgendePeriodeStandplaats.getScreeningsEenheid();
 		List<MammaStandplaatsPeriode> gefilterdeStandplaatsPeriodes = screeningsEenheid.getStandplaatsPerioden().stream()
 			.filter(p -> p.getTotEnMet().after(DateUtil.toUtilDate(vandaag)) || DateUtil.compareEquals(p.getTotEnMet(), DateUtil.toUtilDate(vandaag)))

@@ -23,6 +23,11 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.exception;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class GbaImportException extends Exception
 {
 	private Serializable clientId;
@@ -30,15 +35,5 @@ public class GbaImportException extends Exception
 	public GbaImportException(String message, Throwable cause)
 	{
 		super(message, cause);
-	}
-
-	public void setClientId(Serializable clientId)
-	{
-		this.clientId = clientId;
-	}
-
-	public Serializable getClientId()
-	{
-		return clientId;
 	}
 }

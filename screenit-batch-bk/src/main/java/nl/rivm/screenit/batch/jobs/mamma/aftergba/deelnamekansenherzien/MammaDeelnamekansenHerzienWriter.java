@@ -21,16 +21,19 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.deelnamekansenherzien;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaDeelnamekansenHerzienWriter extends BaseWriter<MammaDossier>
 {
-	@Autowired
-	private MammaBaseKansberekeningService baseKansberekeningService;
+	private final MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Override
 	protected void write(MammaDossier dossier)

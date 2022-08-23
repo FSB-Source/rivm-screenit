@@ -23,9 +23,6 @@ package nl.rivm.screenit.main.service;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
-import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.ClientBrief;
@@ -45,5 +42,4 @@ public interface BriefService
 	List<? extends ClientBrief> getBrievenVanAfmelding(Afmelding afmelding, boolean heraanmelding);
 
 	List<BezwaarBrief> getBrievenVanBezwaar(BezwaarMoment moment);
-
 }

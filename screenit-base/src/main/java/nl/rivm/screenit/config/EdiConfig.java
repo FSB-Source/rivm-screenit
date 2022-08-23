@@ -24,12 +24,14 @@ package nl.rivm.screenit.config;
 import lombok.Getter;
 import lombok.Setter;
 
+import nl.rivm.screenit.edi.service.ValidatedMessageFactory;
 import nl.rivm.screenit.edi.service.impl.EdiMessageServiceImpl;
 import nl.rivm.screenit.edi.service.impl.ValidatedMessageFactoryImpl;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.loginformatie.model.Gebeurtenis;
 import nl.topicuszorg.loginformatie.services.ILogInformatieService;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -44,7 +46,7 @@ public class EdiConfig
 	@Autowired
 	private LogService logInformatieService;
 
-	private String ediAfleverAdres;
+	private String afleverAdres;
 
 	private String fromAddress;
 
@@ -104,9 +106,9 @@ public class EdiConfig
 	}
 
 	@Bean
-	public ValidatedMessageFactoryImpl validatedMessageFactory()
+	public ValidatedMessageFactory validatedMessageFactory()
 	{
-		final ValidatedMessageFactoryImpl validatedMessageFactory = new ValidatedMessageFactoryImpl();
+		var validatedMessageFactory = new ValidatedMessageFactoryImpl();
 		validatedMessageFactory.setEdifactHandlingProperties("nl/rivm/screenit/edi/xml/edimessages.properties");
 		validatedMessageFactory.setApplicationId(applicationId());
 		validatedMessageFactory.init();
@@ -152,30 +154,30 @@ public class EdiConfig
 	@Bean
 	public String smtpAuthUsername()
 	{
-		return smtp != null ? smtp.auth.username : "";
+		return smtp != null && smtp.auth != null ? smtp.auth.username : "";
 	}
 
 	@Bean
 	public String smtpAuthPassword()
 	{
-		return smtp != null ? smtp.auth.password : "";
+		return smtp != null && smtp.auth != null ? smtp.auth.password : "";
 	}
 
 	@Bean
 	public String fromAddress()
 	{
-		return fromAddress != null ? fromAddress : "";
+		return StringUtils.defaultIfBlank(fromAddress, "");
 	}
 
 	@Bean
 	public String ediAfleverAdres()
 	{
-		return ediAfleverAdres != null ? ediAfleverAdres : "devnull@topicus.nl";
+		return StringUtils.defaultIfBlank(afleverAdres, "devnull@topicus.nl");
 	}
 
 	@Bean
 	public String applicationId()
 	{
-		return applicationId != null ? applicationId : "";
+		return StringUtils.defaultIfBlank(applicationId, "");
 	}
 }

@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch.jobs.generalis.gendersignalering;
 
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.Client;
@@ -39,15 +41,15 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class SignaleringGenderReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
@@ -62,8 +64,8 @@ public class SignaleringGenderReader extends BaseScrollableResultReader
 		criteria.add(Restrictions.isNull("signaleringsbrief.id"));
 
 		criteria.add(Restrictions.or(
-			Restrictions.eq("mammaDossier.deelnamemodus", Deelnamemodus.SELLECTIEBLOKKADE),
-			Restrictions.eq("cervixDossier.deelnamemodus", Deelnamemodus.SELLECTIEBLOKKADE)));
+			Restrictions.eq("mammaDossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE),
+			Restrictions.eq("cervixDossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE)));
 
 		criteria.add(Restrictions.gt("persoon.geboortedatum", maxGeboorteDatumVoorDoelgroep()));
 

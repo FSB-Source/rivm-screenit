@@ -40,13 +40,15 @@ public interface CervixTestTimelineService
 
 	List<Client> maakOfVindClienten(TestTimelineModel model);
 
+	List<Client> maakOfWijzigClienten(TestTimelineModel timelineModel);
+
 	List<String> validateTestClienten(List<Client> clienten);
 
 	boolean magOntvangen(CervixUitnodiging uitnodiging);
 
-    boolean magAanvraag(CervixUitnodiging uitnodiging);
+	boolean magAanvraag(CervixUitnodiging uitnodiging);
 
-    boolean magNietAnalyseerbaar(CervixUitnodiging uitnodiging);
+	boolean magNietAnalyseerbaar(CervixUitnodiging uitnodiging);
 
 	boolean magGeanalyseerdOpHpv(CervixUitnodiging uitnodiging);
 
@@ -71,4 +73,6 @@ public interface CervixTestTimelineService
 	boolean magHerdruk(CervixScreeningRonde ronde);
 
 	void herdruk(CervixScreeningRonde ronde, Account account);
+
+	void registreerDeelnamewens(Client client);
 }

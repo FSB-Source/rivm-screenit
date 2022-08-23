@@ -31,15 +31,16 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.batch.core.JobParameters;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixOrderAanmaakReader extends BaseScrollableResultReader
 {
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixUitstrijkje.class, "uitstrijkje");
+		var crit = session.createCriteria(CervixUitstrijkje.class, "uitstrijkje");
 		crit.createAlias("uitstrijkje.labformulier", "labformulier");
 		crit.createAlias("laboratorium", "laboratorium");
 		crit.add(Restrictions.ne("uitstrijkje.uitstrijkjeStatus", CervixUitstrijkjeStatus.NIET_ONTVANGEN));
@@ -48,7 +49,7 @@ public class CervixOrderAanmaakReader extends BaseScrollableResultReader
 		crit.add(Restrictions.isNull("cytologieOrder"));
 		crit.add(Restrictions.eq("labformulier.status", CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE));
 
-		JobParameters jobParameters = getStepExecution().getJobExecution().getJobParameters();
+		var jobParameters = getStepExecution().getJobExecution().getJobParameters();
 		if (jobParameters.toProperties().containsKey(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name()))
 		{
 			crit.add(Restrictions.eq("laboratorium.id", jobParameters.getLong(JobStartParameter.CERVIX_ORDER_LABORATORIUM.name())));

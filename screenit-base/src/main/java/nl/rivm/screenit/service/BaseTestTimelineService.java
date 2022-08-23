@@ -26,6 +26,8 @@ import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 public interface BaseTestTimelineService
 {
+	void setTerugrekenenEnabled(boolean terugrekenenEnabled);
+
 	void rekenAllePersoonsDatumTerug(GbaPersoon persoon, int aantalDagen);
 
 	boolean rekenObjectTerug(HibernateObject object, int aantalDagen);

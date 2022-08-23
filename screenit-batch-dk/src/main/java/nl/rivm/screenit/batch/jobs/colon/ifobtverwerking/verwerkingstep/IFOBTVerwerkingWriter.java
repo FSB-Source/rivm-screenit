@@ -24,10 +24,10 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.verwerkingstep;
 import java.math.BigDecimal;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.IfobtVerwerkingConstants;
 import nl.rivm.screenit.dao.colon.IFobtDao;
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.IFOBTBestand;
 import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.colon.IFOBTType;
@@ -43,16 +43,16 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.colon.IFobtService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(IFOBTVerwerkingWriter.class);
 
 	@Autowired
 	private IFobtDao ifobtDao;
@@ -74,17 +74,17 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 	@Override
 	public void write(List<? extends IFOBTUitslag> items)
 	{
-		IfobtVerwerkingBeeindigdLogEvent logEvent = (IfobtVerwerkingBeeindigdLogEvent) stepExecution.getJobExecution().getExecutionContext()
+		var logEvent = (IfobtVerwerkingBeeindigdLogEvent) stepExecution.getJobExecution().getExecutionContext()
 			.get(IfobtVerwerkingConstants.RAPPORTAGEKEYVERWERKING);
 
-		List<IfobtVerwerkingRapportageEntry> bestanden = logEvent.getRapportage().getBestanden();
+		var bestanden = logEvent.getRapportage().getBestanden();
 
 		IFOBTBestand bestand = null;
 		IfobtVerwerkingRapportageEntry verslagEntry = null;
 
-		for (IFOBTUitslag ifobtResult : items)
+		for (var ifobtResult : items)
 		{
-			IFOBTTest ifobtTest = ifobtDao.getIfobtTest(ifobtResult.getBarcode());
+			var ifobtTest = ifobtDao.getIfobtTest(ifobtResult.getBarcode());
 
 			if (bestand == null || !bestand.equals(ifobtResult.getBestand()))
 			{
@@ -93,7 +93,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 			}
 			if (verslagEntry == null)
 			{
-				for (IfobtVerwerkingRapportageEntry entry : bestanden)
+				for (var entry : bestanden)
 				{
 					if (entry.getIfobtBestandId().equals(bestand.getId()))
 					{
@@ -113,7 +113,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 
 			if (ifobtTest != null && !IFOBTTestStatus.NIETTEBEOORDELEN.equals(ifobtTest.getStatus()) && ifobtTest.getType().equals(IFOBTType.GOLD))
 			{
-				Client client = ifobtTest.getColonScreeningRonde().getDossier().getClient();
+				var client = ifobtTest.getColonScreeningRonde().getDossier().getClient();
 
 				if (ifobtTest.getUitslag() == null)
 				{
@@ -170,7 +170,7 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 
 	private boolean correctForInpakcentrumIncident(IFOBTTest ifobtTest)
 	{
-		ColonUitnodiging colonUitnodiging = ifobtTest.getColonUitnodiging();
+		var colonUitnodiging = ifobtTest.getColonUitnodiging();
 		if (colonUitnodiging != null)
 		{
 			String trackTraceId = colonUitnodiging.getTrackTraceId();
@@ -183,31 +183,6 @@ public class IFOBTVerwerkingWriter implements ItemWriter<IFOBTUitslag>
 			}
 		}
 		return true;
-	}
-
-	public void setIfobtDao(IFobtDao ifobtDao)
-	{
-		this.ifobtDao = ifobtDao;
-	}
-
-	public void setHibernateService(HibernateService hibernateService)
-	{
-		this.hibernateService = hibernateService;
-	}
-
-	public void setCurrentDateSupplier(ICurrentDateSupplier currentDateSupplier)
-	{
-		this.currentDateSupplier = currentDateSupplier;
-	}
-
-	public LogService getLogService()
-	{
-		return logService;
-	}
-
-	public void setLogService(LogService logService)
-	{
-		this.logService = logService;
 	}
 
 	@BeforeStep

@@ -21,6 +21,8 @@ package nl.rivm.screenit.clientportaal.security.config;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.filter.MDCLogFilter;
 import nl.rivm.screenit.clientportaal.security.ScreenItKeycloakAuthenticationProvider;
 import nl.rivm.screenit.clientportaal.security.userdetails.ScreenitUserDetailsService;
@@ -53,11 +55,11 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 @EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
 @ComponentScan(basePackageClasses = KeycloakSecurityComponents.class)
 @KeycloakConfiguration
+@AllArgsConstructor
 public class WebSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapter
 {
 
-    @Autowired
-    private ScreenitUserDetailsService userDetailsService;
+	private final ScreenitUserDetailsService userDetailsService;
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder authenticationManagerBuilder)
@@ -74,37 +76,37 @@ public class WebSecurityConfiguration extends KeycloakWebSecurityConfigurerAdapt
         return new NullAuthenticatedSessionStrategy();
     }
 
-    @Bean
-    public FilterRegistrationBean keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter filter)
-    {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
-    }
+	@Bean
+	public FilterRegistrationBean<KeycloakAuthenticationProcessingFilter> keycloakAuthenticationProcessingFilterRegistrationBean(KeycloakAuthenticationProcessingFilter filter)
+	{
+		var registrationBean = new FilterRegistrationBean<>(filter);
+		registrationBean.setEnabled(false);
+		return registrationBean;
+	}
 
-    @Bean
-    public FilterRegistrationBean keycloakPreAuthActionsFilterRegistrationBean(KeycloakPreAuthActionsFilter filter)
-    {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
-    }
+	@Bean
+	public FilterRegistrationBean<KeycloakPreAuthActionsFilter> keycloakPreAuthActionsFilterRegistrationBean(KeycloakPreAuthActionsFilter filter)
+	{
+		var registrationBean = new FilterRegistrationBean<>(filter);
+		registrationBean.setEnabled(false);
+		return registrationBean;
+	}
 
-    @Bean
-    public FilterRegistrationBean keycloakAuthenticatedActionsFilterBean(KeycloakAuthenticatedActionsFilter filter)
-    {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
-    }
+	@Bean
+	public FilterRegistrationBean<KeycloakAuthenticatedActionsFilter> keycloakAuthenticatedActionsFilterBean(KeycloakAuthenticatedActionsFilter filter)
+	{
+		var registrationBean = new FilterRegistrationBean<>(filter);
+		registrationBean.setEnabled(false);
+		return registrationBean;
+	}
 
-    @Bean
-    public FilterRegistrationBean keycloakSecurityContextRequestFilterBean(KeycloakSecurityContextRequestFilter filter)
-    {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean(filter);
-        registrationBean.setEnabled(false);
-        return registrationBean;
-    }
+	@Bean
+	public FilterRegistrationBean<KeycloakSecurityContextRequestFilter> keycloakSecurityContextRequestFilterBean(KeycloakSecurityContextRequestFilter filter)
+	{
+		var registrationBean = new FilterRegistrationBean<>(filter);
+		registrationBean.setEnabled(false);
+		return registrationBean;
+	}
 
     @Bean
     @Override

@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/dagverslag")
+@RequestMapping("/api/dagverslag")
 public class DagverslagController extends AuthorizedController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(DagverslagController.class);

@@ -24,11 +24,11 @@ package nl.rivm.screenit.batch.jobs.preselectie;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.ProjectService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
@@ -37,11 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @Getter
 @Setter
+@Slf4j
 public class ClientPreSelectieTasklet implements Tasklet
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientPreSelectieTasklet.class);
-
 	@Autowired
 	private ProjectService projectService;
 

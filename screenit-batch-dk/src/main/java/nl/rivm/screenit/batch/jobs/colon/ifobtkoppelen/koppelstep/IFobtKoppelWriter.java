@@ -30,6 +30,8 @@ import java.util.Map;
 
 import javax.persistence.NonUniqueResultException;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.KoppelConstants;
 import nl.rivm.screenit.batch.jobs.colon.ifobtkoppelen.IfobtKoppelenConstants;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
@@ -44,20 +46,19 @@ import nl.rivm.screenit.service.colon.IFobtService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import generated.KOPPELDATA.VERZONDENUITNODIGING;
 import generated.KOPPELDATA.VERZONDENUITNODIGING.MATCHINGFIELDS.MATCHINGFIELD;
 
+@Component
+@Slf4j
 public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(IFobtKoppelWriter.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 
@@ -73,7 +74,7 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 	{
 		logEvent = (IfobtKoppelingBeeindigdLogEvent) stepExecution.getJobExecution().getExecutionContext().get(IfobtKoppelenConstants.RAPPORTAGEKEYIFOBTKOPPELEN);
 
-		SimpleDateFormat verzendDatumFormat = new SimpleDateFormat("dd-MM-yyyy");
+		var verzendDatumFormat = new SimpleDateFormat("dd-MM-yyyy");
 		for (VERZONDENUITNODIGING verzondenUitnodiging : items)
 		{
 			String ifobtBarcodeGold = null;
@@ -101,7 +102,7 @@ public class IFobtKoppelWriter implements ItemWriter<VERZONDENUITNODIGING>
 				uitnodiging.setTrackTraceId(trackTraceId);
 				Date datumVerstuurd = verzendDatumFormat.parse(getMatchingFieldValue(verzondenUitnodiging, KoppelConstants.KOPPEL_DATUM_VERZENDING, true));
 
-				ColonScreeningRonde screeningRonde = uitnodiging.getScreeningRonde();
+				var screeningRonde = uitnodiging.getScreeningRonde();
 
 				koppelTestIndienMogelijk(ifobtBarcodeGold, IFOBTType.GOLD, uitnodiging, datumVerstuurd, screeningRonde);
 				koppelTestIndienMogelijk(ifobtBarcodeExtra, IFOBTType.STUDIE, uitnodiging, datumVerstuurd, screeningRonde);

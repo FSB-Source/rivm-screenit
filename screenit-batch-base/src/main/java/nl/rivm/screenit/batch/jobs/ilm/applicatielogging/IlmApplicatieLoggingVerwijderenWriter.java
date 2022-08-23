@@ -23,18 +23,20 @@ package nl.rivm.screenit.batch.jobs.ilm.applicatielogging;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.logging.RetourzendingLogEvent;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class IlmApplicatieLoggingVerwijderenWriter extends BaseWriter<LogRegel>
 {
 	@Override
 	protected void write(LogRegel logRegel)
 	{
-		LogEvent logEvent = logRegel.getLogEvent();
-		UploadDocument sanddBestand = logEvent != null && RetourzendingLogEvent.class.equals(HibernateHelper.getDeproxiedClass(logEvent))
+		var logEvent = logRegel.getLogEvent();
+		var sanddBestand = logEvent != null && RetourzendingLogEvent.class.equals(HibernateHelper.getDeproxiedClass(logEvent))
 			? ((RetourzendingLogEvent) HibernateHelper.deproxy(logEvent)).getSanddBestand()
 			: null;
 		getHibernateService().delete(logRegel);

@@ -23,6 +23,8 @@ package nl.rivm.screenit.clientportaal.services.cervix.impl;
 
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.exception.NotValidException;
 import nl.rivm.screenit.clientportaal.model.cervix.CervixZasStatusDto;
 import nl.rivm.screenit.clientportaal.services.cervix.CervixZasService;
@@ -36,24 +38,21 @@ import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.util.DateUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixZasServiceImpl implements CervixZasService
 {
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private CervixBaseScreeningrondeService screeningrondeService;
+	private final CervixBaseScreeningrondeService screeningrondeService;
 
-	@Autowired
-	private CervixFactory factory;
+	private final CervixFactory factory;
 
 	@Override
 	public CervixZasStatusDto getZasStatus(Client client)

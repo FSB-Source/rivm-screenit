@@ -29,5 +29,5 @@ export function showToast(toastTitel: string | undefined, toastMessage: string, 
 			description: toastMessage,
 			type: toastType,
 		}))
-	})
+	},50)
 }

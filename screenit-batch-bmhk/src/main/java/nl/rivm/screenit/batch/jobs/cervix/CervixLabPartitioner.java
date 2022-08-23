@@ -25,32 +25,36 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BasePartitioner;
 import nl.rivm.screenit.model.BMHKLaboratorium;
 import nl.rivm.screenit.service.InstellingService;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixLabPartitioner extends BasePartitioner
 {
 
 	public final static String KEY_BMHK_LAB = "bmhk_lab";
 
-	@Autowired
-	private InstellingService instellingService;
+	private final InstellingService instellingService;
 
 	@Override
 	public Map<String, ExecutionContext> setPartition(int gridSize)
 	{
-		Map<String, ExecutionContext> partities = new HashMap<String, ExecutionContext>(gridSize);
-		OpenHibernate5Session.withoutTransaction().run(() -> {
+		Map<String, ExecutionContext> partities = new HashMap<>(gridSize);
+		OpenHibernate5Session.withoutTransaction().run(() ->
+		{
 			List<BMHKLaboratorium> bmhkLabs = instellingService.getActieveInstellingen(BMHKLaboratorium.class);
 
-			for (BMHKLaboratorium bmhkLab : bmhkLabs)
+			for (var bmhkLab : bmhkLabs)
 			{
-				ExecutionContext executionContext = new ExecutionContext();
+				var executionContext = new ExecutionContext();
 				executionContext.put(KEY_BMHK_LAB, bmhkLab.getId());
 				partities.put("bmhkLabId:" + bmhkLab.getId(), executionContext);
 			}

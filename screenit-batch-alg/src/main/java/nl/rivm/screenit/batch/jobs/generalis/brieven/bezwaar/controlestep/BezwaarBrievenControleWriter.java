@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.controlestep;
 import nl.rivm.screenit.batch.jobs.brieven.controle.AbstractBrievenControleWriter;
 import nl.rivm.screenit.model.algemeen.BezwaarMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class BezwaarBrievenControleWriter extends AbstractBrievenControleWriter<BezwaarMergedBrieven>
 {
 

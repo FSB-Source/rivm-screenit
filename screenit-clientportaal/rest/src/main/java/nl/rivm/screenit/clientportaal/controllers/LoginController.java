@@ -21,28 +21,34 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.security.UserAgentUtil.getParsedUserAgentInfo;
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.clientportaal.model.LoginBrowserInfoDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static nl.rivm.screenit.security.UserAgentUtil.getParsedUserAgentInfo;
+
 @RestController
 @RequestMapping("login")
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@AllArgsConstructor
 public class LoginController extends AbstractController
 {
-	@Autowired
-	private LogService logService;
 
+	private final LogService logService;
+
+	@Transactional(propagation = Propagation.REQUIRED)
 	@PutMapping
 	public ResponseEntity<Void> logLoggingInAction(@RequestBody LoginBrowserInfoDto loginBrowserInfo, Authentication authentication)
 	{

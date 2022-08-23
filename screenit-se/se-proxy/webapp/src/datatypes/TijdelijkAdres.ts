@@ -6,8 +6,8 @@ export type TijdelijkAdres = {
 	huisnummerAanduiding?: string;
 	postcode: string;
 	plaats: string;
-	startDatum?: string;
-	eindDatum?: string;
+	startDatum: Date | null;
+	eindDatum: Date | null;
 };
 export const getLocatie = (tijdelijkAdres: TijdelijkAdres): string => {
 	return `${tijdelijkAdres.straat || ""} ${tijdelijkAdres.huisnummer || ""} ${tijdelijkAdres.huisletter || ""} ${tijdelijkAdres.huisnummerToevoeging || ""} ${tijdelijkAdres.huisnummerAanduiding || ""}`

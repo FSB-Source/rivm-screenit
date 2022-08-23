@@ -54,7 +54,7 @@ public class ErrorPage extends BasePage
 
 	private final Model<String> errorId;
 
-	@SpringBean(name = "applicatieInstantie")
+	@SpringBean(name = "applicationInstance")
 	private String applicatieInstance;
 
 	public ErrorPage()

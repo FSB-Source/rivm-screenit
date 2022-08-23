@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIntervalUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeRapportageStatus;
 import nl.topicuszorg.wicket.model.SortingListModel;
@@ -34,15 +35,15 @@ import nl.topicuszorg.wicket.model.SortingListModel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.PropertyListView;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 
 public class MammaUitnodigenRapportageScreeningsOrganisatiePanel extends GenericPanel<List<MammaStandplaatsPeriodeUitnodigenRapportage>>
 {
-
 	public MammaUitnodigenRapportageScreeningsOrganisatiePanel(String id, IModel<List<MammaStandplaatsPeriodeUitnodigenRapportage>> model,
-		ScreeningOrganisatie screeningOrganisatie)
+		ScreeningOrganisatie screeningOrganisatie, IModel<MammaIntervalUitnodigenRapportage> intervalRapportage)
 	{
 		super(id, model);
 
@@ -52,12 +53,12 @@ public class MammaUitnodigenRapportageScreeningsOrganisatiePanel extends Generic
 			Comparator
 				.comparing((Function<MammaStandplaatsPeriodeUitnodigenRapportage, String> & Serializable) (
 					MammaStandplaatsPeriodeUitnodigenRapportage standplaatsPeriodeUitnodigenRapportage) -> standplaatsPeriodeUitnodigenRapportage.getStandplaatsPeriode()
-						.getScreeningsEenheid().getNaam())
+					.getScreeningsEenheid().getNaam())
 				.thenComparing((Function<MammaStandplaatsPeriodeUitnodigenRapportage, String> & Serializable) (
 					MammaStandplaatsPeriodeUitnodigenRapportage standplaatsPeriodeUitnodigenRapportage) -> standplaatsPeriodeUitnodigenRapportage
-						.getStandplaatsRondeUitnodigenRapportage().getStandplaatsRonde().getStandplaats().getNaam()));
+					.getStandplaatsRondeUitnodigenRapportage().getStandplaatsRonde().getStandplaats().getNaam()));
 
-		add(new PropertyListView<MammaStandplaatsPeriodeUitnodigenRapportage>("standplaatsPeriodeUitnodigenRapportages", sortingListModel)
+		add(new PropertyListView<>("standplaatsPeriodeUitnodigenRapportages", sortingListModel)
 		{
 			@Override
 			protected void populateItem(ListItem<MammaStandplaatsPeriodeUitnodigenRapportage> listItem)
@@ -73,8 +74,11 @@ public class MammaUitnodigenRapportageScreeningsOrganisatiePanel extends Generic
 				listItem.add(new Label("uitgenodigdSuspect", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgenodigdSuspect()));
 				listItem.add(new Label("uitgenodigdNaUitstel", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgenodigdNaUitstel()));
 				listItem.add(new Label("uitgesteldAchtervangUitstel", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgesteldAchtervangUitstel()));
-				listItem.add(new Label("uitgesteldMinderValideUitgewijktUitstel", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgesteldMinderValideUitgewijktUitstel()));
+				listItem.add(
+					new Label("uitgesteldMinderValideUitgewijktUitstel", uitnodigenFout ? "" : listItem.getModel().getObject().getUitgesteldMinderValideUitgewijktUitstel()));
 			}
 		});
+
+		add(intervalRapportage != null ? new MammaUitnodigenIntervalRapportagePanel("intervalRapportagePanel", intervalRapportage) : new EmptyPanel("intervalRapportagePanel"));
 	}
 }

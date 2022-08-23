@@ -20,85 +20,17 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="modal-header">
-        <button data-dismiss="modal" class="close" type="button">x</button>
-        <h3>Huisarts selecteren</h3>
-    </div>
-    <div class="modal-body">
-        <div id="zoeken" style="display: block;">
-            <form wicket:id="zoekForm" class="not-tracked-for-changes-on-page">
-                <div class="form-container huisarts-zoek-form">
-                	<div class=row-fluid>
-	            		<div class="span6">
-                    		<div class="control-group">
-                        		<label class="control-label" style="width: 340px;">Naam huisarts/huisartsenpraktijk</label>
-                        		<div class="controls">
-                            		<input type="text" style="width: 340px;" wicket:id="achternaam"/>
-                        		</div>
-                    		</div>
-                    	</div>
-                    	<div class="span6">
-	                    	<div class="control-group">
-	                        	<label class="control-label">Straatnaam</label>
-	                        	<div class="controls">
-	                            	<input type="text" style="width: 340px;" wicket:id="adres.straat"/>
-	                        	</div>
-	                    	</div>
-						</div>
-					</div>
-                	<div class=row-fluid>
-	            		<div class="span2" style="width: 65px;">
-                    		<div class="control-group">
-                        		<label class="control-label">Postcode</label>
-                       			<div class="controls">
-                           			<input type="text" style="width: 55px;" wicket:id="adres.postcode"/>
-                       			</div>
-                   			</div>
-                    	</div>
-	            		<div class="span8">
-		                    <div class="control-group">
-        		                <label class="control-label">Plaats</label>
-                		        <div class="controls">
-                        	    	<input type="text" style="width: 258px;" wicket:id="adres.plaats"/>
-                        		</div>
-                    		</div>
-                    	</div>             
-                   		<div class="span2">
-                       		<div class="buttons" style="margin-top: 20px; margin-left: 42px;">
-                           		<button type="button" class="btn btn-primary" wicket:id="zoeken"><i class="icon-search icon-white"></i>Zoeken</button>
-                       		</div>
-                    	</div>
-                	</div>
-                </div>
-            </form>
+	<div class="modal-header">
+		<button data-dismiss="modal" class="close" type="button">x</button>
+		<h3>Huisarts selecteren</h3>
+	</div>
 
-            <div class="huisarts-geen-zoekresultaten" style="display: none;">
-                Zoek met behulp van bovenstaand formulier naar de huisarts van de cli&euml;nt.
-            </div>
+	<div class="modal-body">
+		<div wicket:id="huisartsZoeken"></div>
+	</div>
 
-            <div class="huisarts-zoekresultaten"
-                 wicket:id="zoekResultatenContainer">
-                <h2 wicket:id="aantalResultaten"></h2>
-                <div wicket:id="zoekResultaten">
-                    <ul class="zoekresultaten">
-                        <li>
-                            <div class="naam">Vries, H. de</div>
-                            <address>
-                                Plaats 9a <br> 8224AB Lelystad
-                            </address>
-                            <div class="praktijknaam">Huisartspraktijk de Kameleon</div>
-                            <div class="selectie">
-                                <button class="btn btn-primary">Selecteren</button>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal-footer">
-        <button data-dismiss="modal" class="btn" wicket:id="annuleren">Annuleren</button>
-    </div>
+	<div class="modal-footer">
+		<button data-dismiss="modal" class="btn" wicket:id="annuleren">Annuleren</button>
+	</div>
 </wicket:panel>
 </html>

@@ -24,9 +24,10 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.discrepantie.step;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.discrepantie.MammaDiscrepantieNaarArbitrageListener;
-import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaLezing;
 import nl.rivm.screenit.model.mamma.enums.MammaLezingType;
@@ -34,16 +35,16 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseBeoordelingService;
 import nl.rivm.screenit.util.NaamUtil;
 
-import org.springframework.batch.core.StepExecution;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaDiscrepantieNaarArbitrageWriter extends BaseWriter<MammaBeoordeling>
 {
-	@Autowired
-	private MammaBaseBeoordelingService baseBeoordelingService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final MammaBaseBeoordelingService baseBeoordelingService;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void write(MammaBeoordeling beoordeling) throws Exception
@@ -57,9 +58,9 @@ public class MammaDiscrepantieNaarArbitrageWriter extends BaseWriter<MammaBeoord
 
 	private void zetAutomatischDoorNaarArbitrage(MammaBeoordeling beoordeling)
 	{
-		MammaLezing discrepantieLezing = new MammaLezing();
+		var discrepantieLezing = new MammaLezing();
 		discrepantieLezing.setBeoordeling(beoordeling);
-		String defaultOpmerkingAutomatischDoorNaarArbitrage = "Discrepantie niet op tijd afgehandeld, daarom automatisch doorgezet naar arbitrage.";
+		var defaultOpmerkingAutomatischDoorNaarArbitrage = "Discrepantie niet op tijd afgehandeld, daarom automatisch doorgezet naar arbitrage.";
 		discrepantieLezing.setBiradsOpmerking(defaultOpmerkingAutomatischDoorNaarArbitrage);
 		discrepantieLezing.setBeoordelingDatum(currentDateSupplier.getDate());
 		discrepantieLezing.setLezingType(MammaLezingType.DISCREPANTIE_LEZING);
@@ -68,15 +69,15 @@ public class MammaDiscrepantieNaarArbitrageWriter extends BaseWriter<MammaBeoord
 
 	private String getRadioloogNamenVoorDoorzettenNaarArbitrage(MammaBeoordeling beoordeling)
 	{
-		InstellingGebruiker radioloog1 = beoordeling.getEersteLezing().getBeoordelaar();
-		InstellingGebruiker radioloog2 = beoordeling.getTweedeLezing().getBeoordelaar();
+		var radioloog1 = beoordeling.getEersteLezing().getBeoordelaar();
+		var radioloog2 = beoordeling.getTweedeLezing().getBeoordelaar();
 
 		return NaamUtil.getNaamGebruiker(radioloog1.getMedewerker()) + " & " + NaamUtil.getNaamGebruiker(radioloog2.getMedewerker());
 	}
 
 	private void geefNamenDoor(String namen)
 	{
-		StepExecution stepExecution = getStepExecution();
+		var stepExecution = getStepExecution();
 
 		Set<String> radiologen = (Set<String>) stepExecution.getJobExecution().getExecutionContext()
 			.get(MammaDiscrepantieNaarArbitrageListener.MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE);
@@ -92,9 +93,8 @@ public class MammaDiscrepantieNaarArbitrageWriter extends BaseWriter<MammaBeoord
 
 	private void hoogAantalBeoordelingenOp()
 	{
-		StepExecution stepExecution = getStepExecution();
-		long aantalBeoordelingen = stepExecution.getJobExecution().getExecutionContext()
-			.getLong(MammaDiscrepantieNaarArbitrageListener.MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE_AANTAL, 0L);
+		var jobExecutionContext = getStepExecution().getJobExecution().getExecutionContext();
+		var aantalBeoordelingen = jobExecutionContext.getLong(MammaDiscrepantieNaarArbitrageListener.MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE_AANTAL, 0L);
 
 		getExecutionContext().put(MammaDiscrepantieNaarArbitrageListener.MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE_AANTAL, aantalBeoordelingen + 1);
 	}

@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.cleanupstep;
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpWriter;
 import nl.rivm.screenit.model.project.ProjectMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ProjectBriefCleanUpWriter extends AbstractBrievenCleanUpWriter<ProjectMergedBrieven>
 {
 

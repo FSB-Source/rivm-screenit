@@ -24,7 +24,6 @@ package nl.rivm.screenit.batch;
 import java.util.Hashtable;
 
 import javax.naming.Context;
-import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 
 import org.apache.xbean.spring.jndi.DefaultContext;
@@ -34,7 +33,7 @@ public class BatchIntialContextFactory implements InitialContextFactory
 	private static DefaultContext context;
 
 	@Override
-	public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException
+	public Context getInitialContext(Hashtable<?, ?> environment)
 	{
 		if (context == null)
 		{

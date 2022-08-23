@@ -21,6 +21,8 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.clientportaal.filter.CPAccountResolverDelegate;
 import nl.rivm.screenit.clientportaal.security.userdetails.ScreenitUserDetails;
 import nl.rivm.screenit.model.Client;
@@ -28,17 +30,14 @@ import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 
+@Slf4j
 public abstract class AbstractController
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractController.class);
-
 	@Autowired
 	private HibernateService hibernateService;
 

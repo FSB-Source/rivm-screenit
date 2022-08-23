@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestEnumRadioChoice;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
@@ -36,18 +36,12 @@ import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class TestHerinneringPopup extends AbstractTestBasePopupPanel
 {
-
 	private static final long serialVersionUID = 1L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(TestScreeningRondePopUp.class);
-
 	@SpringBean
-	private TestTimelineService testTimeLineService;
+	private ColonTestTimelineService colonTestTimeLineService;
 
 	private Form<Void> form;
 
@@ -56,14 +50,14 @@ public class TestHerinneringPopup extends AbstractTestBasePopupPanel
 	public TestHerinneringPopup(String id, IModel<List<Client>> clientModel)
 	{
 		super(id, clientModel);
-		dossierTijdStipModel = new CompoundPropertyModel<TestTimeLineDossierTijdstip>(TestTimeLineDossierTijdstip.DAG_HERINNERING_VERSTUREN);
+		dossierTijdStipModel = new CompoundPropertyModel<>(TestTimeLineDossierTijdstip.DAG_HERINNERING_VERSTUREN);
 
-		List<TestTimeLineDossierTijdstip> redenen = new ArrayList<TestTimeLineDossierTijdstip>();
+		List<TestTimeLineDossierTijdstip> redenen = new ArrayList<>();
 		redenen.add(TestTimeLineDossierTijdstip.DAG_HERINNERING_VERSTUREN);
 		redenen.add(TestTimeLineDossierTijdstip.DAG_NA_HERINNERING_VERSTUREN);
 
-		RadioChoice<TestTimeLineDossierTijdstip> reden = new TestEnumRadioChoice<TestTimeLineDossierTijdstip>("reden", dossierTijdStipModel, redenen,
-			new EnumChoiceRenderer<TestTimeLineDossierTijdstip>(this));
+		RadioChoice<TestTimeLineDossierTijdstip> reden = new TestEnumRadioChoice<>("reden", dossierTijdStipModel, redenen,
+			new EnumChoiceRenderer<>(this));
 		reden.setPrefix("<label class=\"radio\">");
 		reden.setSuffix("</label>");
 		reden.setOutputMarkupId(true);
@@ -76,7 +70,7 @@ public class TestHerinneringPopup extends AbstractTestBasePopupPanel
 		TestTimeLineDossierTijdstip tijdStip = dossierTijdStipModel.getObject();
 		for (Client client : getModelObject())
 		{
-			testTimeLineService.ifobtHerinneringVersturen(client, tijdStip);
+			colonTestTimeLineService.ifobtHerinneringVersturen(client, tijdStip);
 		}
 	}
 

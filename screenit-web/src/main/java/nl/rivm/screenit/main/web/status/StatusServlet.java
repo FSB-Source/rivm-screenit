@@ -71,9 +71,9 @@ public class StatusServlet extends HttpServlet
 
 		try
 		{
-			applicatieNaam = SpringBeanProvider.getInstance().getBean(String.class, "applicatieNaam");
+			applicatieNaam = SpringBeanProvider.getInstance().getBean(String.class, "applicationName");
 			applicatieEnviroment = SpringBeanProvider.getInstance().getBean(String.class, "applicationEnvironment");
-			applicatieInstantie = SpringBeanProvider.getInstance().getBean(String.class, "applicatieInstantie");
+			applicatieInstantie = SpringBeanProvider.getInstance().getBean(String.class, "applicationInstance");
 			HibernateService hibernateService = SpringBeanProvider.getInstance().getBean(HibernateService.class);
 			SQLQuery sqlQuery = hibernateService.getHibernateSession().createSQLQuery("select count(*) from algemeen.pref_prefitem;");
 			Object result = sqlQuery.uniqueResult();

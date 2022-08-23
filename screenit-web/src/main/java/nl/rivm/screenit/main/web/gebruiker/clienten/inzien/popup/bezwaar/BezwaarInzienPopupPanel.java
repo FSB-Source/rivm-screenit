@@ -35,6 +35,7 @@ import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
+import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.UploadDocumentService;
@@ -72,6 +73,9 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 
 	@SpringBean
 	private BriefService briefService;
+
+	@SpringBean
+	private BaseBriefService baseBriefService;
 
 	@SpringBean
 	private BriefHerdrukkenService briefHerdrukkenService;
@@ -143,8 +147,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				BezwaarBrief brief = getLaatsteBrief();
-				bezwaarService.algemeneBezwaarBriefTegenhouden(brief, ScreenitSession.get().getLoggedInAccount());
+				baseBriefService.briefTegenhouden(getLaatsteBrief(), ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.brieftegenhouden"));
 				close(target);
 			}
@@ -155,8 +158,7 @@ public abstract class BezwaarInzienPopupPanel extends GenericPanel<BezwaarMoment
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				BezwaarBrief brief = getLaatsteBrief();
-				bezwaarService.algemeneBezwaarBriefDoorvoeren(brief, ScreenitSession.get().getLoggedInAccount());
+				baseBriefService.briefNietMeerTegenhouden(getLaatsteBrief(), ScreenitSession.get().getLoggedInAccount());
 				info(getString("info.briefactiveren"));
 				close(target);
 			}

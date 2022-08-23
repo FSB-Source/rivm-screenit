@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.service.impl;
 
 /*-
@@ -27,6 +26,8 @@ import java.time.LocalDateTime;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.service.CurrentDateDispatcher;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.JGroupsChannel;
@@ -35,16 +36,15 @@ import org.jgroups.blocks.RequestOptions;
 import org.jgroups.blocks.ResponseMode;
 import org.jgroups.blocks.RpcDispatcher;
 import org.jgroups.util.RspList;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service(value = "currentDateDispatcher")
+@Profile("!test")
+@Slf4j
 public class CurrentDateDispatcherImpl implements CurrentDateDispatcher
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CurrentDateDispatcherImpl.class);
 
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;

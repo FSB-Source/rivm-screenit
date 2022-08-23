@@ -43,6 +43,7 @@ import nl.rivm.screenit.model.colon.ColonConclusie;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.colon.enums.ColonConclusieOnHoldReden;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonGeenOnderzoekReden;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
@@ -512,7 +513,7 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 					};
 					break;
 				case ON_HOLD:
-					newContainer = new GevolgFragment(containerId, new StringResourceModel(EnumStringUtil.getPropertyString(type) + ".gevolg"));
+					newContainer = new OnHoldRedenFragment(containerId);
 					break;
 				default:
 					break;
@@ -647,6 +648,19 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 
 	}
 
+	private class OnHoldRedenFragment extends Fragment
+	{
+		public OnHoldRedenFragment(String id)
+		{
+			super(id, "onHoldRedenFragment", ColonConclusieVastleggenPanel.this);
+			setOutputMarkupId(true);
+			IModel<ColonConclusieOnHoldReden> conclusieRedenModel = new PropertyModel<>(getModel(), "conclusie.onHoldReden");
+			Component onHoldReden = new AjaxButtonGroup<>("conclusie.onHoldReden", conclusieRedenModel, new ListModel<>(Arrays.asList(ColonConclusieOnHoldReden.values())),
+				new EnumChoiceRenderer<>(this));
+			add(onHoldReden);
+		}
+	}
+
 	private class GevolgFragment extends Fragment
 	{
 
@@ -713,6 +727,10 @@ public abstract class ColonConclusieVastleggenPanel extends GenericPanel<ColonIn
 		if (vervolgonderzoekDto.terugNaarScreening == null || !vervolgonderzoekDto.terugNaarScreening)
 		{
 			vervolgonderzoekDto.aantalJarenTerugNaarScreening = null;
+		}
+		if (!ColonConclusieType.ON_HOLD.equals(conclusie.getType()) && conclusie.getOnHoldReden() != null)
+		{
+			conclusie.setOnHoldReden(null);
 		}
 	}
 

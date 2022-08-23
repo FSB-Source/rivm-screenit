@@ -33,21 +33,27 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixVervolgonderzoekReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
+
+	public CervixVervolgonderzoekReader(ICurrentDateSupplier dateSupplier, SimplePreferenceService preferenceService)
+	{
+		super.setFetchSize(50);
+		this.dateSupplier = dateSupplier;
+		this.preferenceService = preferenceService;
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
+		var crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
 		crit.createAlias("ronde.dossier", "dossier");
 		crit.createAlias("ronde.uitstel", "uitstel", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("dossier.client", "client");
@@ -64,7 +70,7 @@ public class CervixVervolgonderzoekReader extends BaseScrollableResultReader
 		crit.add(Restrictions.le("ronde.controleUitstrijkjeDatum", dateSupplier.getLocalDate()));
 
 		crit.add(Restrictions.sqlRestriction(
-			"{alias}.id NOT IN (SELECT DISTINCT r.id FROM cervix.screening_ronde r JOIN cervix.monster m ON r.id = m.ontvangst_screening_ronde LEFT JOIN cervix.labformulier l ON m.labformulier = l.id AND (l.status = 'GECONTROLEERD' OR l.status = 'GECONTROLEERD_CYTOLOGIE' OR l.status = 'HUISARTS_ONBEKEND') WHERE r.in_vervolgonderzoek_datum NOTNULL AND (r.in_vervolgonderzoek_datum < m.ontvangstdatum AND l.scan_datum ISNULL OR r.in_vervolgonderzoek_datum < l.scan_datum AND m.ontvangstdatum ISNULL OR r.in_vervolgonderzoek_datum < m.ontvangstdatum AND r.in_vervolgonderzoek_datum < l.scan_datum))"));
+			"{alias}.id NOT IN (SELECT DISTINCT r.id FROM cervix.screening_ronde r JOIN cervix.monster m ON r.id = m.ontvangst_screening_ronde AND m.dtype != 'CervixZas' LEFT JOIN cervix.labformulier l ON m.labformulier = l.id AND (l.status = 'GECONTROLEERD' OR l.status = 'GECONTROLEERD_CYTOLOGIE' OR l.status = 'HUISARTS_ONBEKEND') WHERE r.in_vervolgonderzoek_datum NOTNULL AND (r.in_vervolgonderzoek_datum < m.ontvangstdatum AND l.scan_datum ISNULL OR r.in_vervolgonderzoek_datum < l.scan_datum AND m.ontvangstdatum ISNULL OR r.in_vervolgonderzoek_datum < m.ontvangstdatum AND r.in_vervolgonderzoek_datum < l.scan_datum))"));
 
 		return crit;
 	}

@@ -25,11 +25,13 @@ import java.util.stream.Stream;
 
 import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.model.Client;
+import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.dashboard.DashboardStatus;
+import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaOnderzoek;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaFactorType;
-import nl.rivm.screenit.service.mamma.impl.MammaKansberekeningScreeningRondeContext;
 
 public interface MammaBaseDossierService
 {
@@ -49,10 +51,6 @@ public interface MammaBaseDossierService
 
 	MammaOnderzoek getLaatsteOnderzoek(MammaDossier dossier);
 
-	boolean isSuspect(MammaDossier dossier);
-
-	boolean isSuspect(MammaKansberekeningScreeningRondeContext kansberekeningScreeningRondeContext);
-
 	boolean isAfspraakForcerenMogelijk(MammaDossier dossier);
 
 	boolean isRondeForcerenMogelijk(MammaDossier dossier);
@@ -62,4 +60,7 @@ public interface MammaBaseDossierService
 	boolean isAutomatischRondeForcerenNaHeraanmeldenMogelijk(MammaDossier dossier);
 
 	void verwijderMammaDossier(Client client);
+
+	boolean setUitslagenGecontroleerdEnUpdateDashboard(LogRegel logRegel, InstellingGebruiker medewerker, DashboardStatus dashboardStatus);
+
 }

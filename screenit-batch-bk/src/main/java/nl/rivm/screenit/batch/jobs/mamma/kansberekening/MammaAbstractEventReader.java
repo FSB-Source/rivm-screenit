@@ -37,14 +37,14 @@ public abstract class MammaAbstractEventReader implements ItemReader<Long>, Item
 	@Autowired
 	private SessionFactory sessionFactory;
 
-	private ThreadLocal<Iterator<Long>> threadLocalIterator = new ThreadLocal<>();
+	private final ThreadLocal<Iterator<Long>> threadLocalIterator = new ThreadLocal<>();
 
 	@Override
 	public void open(ExecutionContext executionContext)
 	{
-		StatelessSession session = sessionFactory.openStatelessSession();
+		var session = sessionFactory.openStatelessSession();
 
-		Criteria criteria = getCriteria(session);
+		var criteria = getCriteria(session);
 		criteria.setProjection(Projections.id());
 
 		threadLocalIterator.set(criteria.list().iterator());
@@ -55,7 +55,7 @@ public abstract class MammaAbstractEventReader implements ItemReader<Long>, Item
 	@Override
 	public Long read()
 	{
-		Iterator<Long> iterator = threadLocalIterator.get();
+		var iterator = threadLocalIterator.get();
 		if (iterator.hasNext())
 		{
 			return iterator.next();

@@ -736,7 +736,7 @@ public class ClientContactPanel extends GenericPanel<Client>
 			}
 			catch (MammaStandplaatsVanPostcodeOnbekendException e)
 			{
-				ScreenitSession.get().error(getString("standplaats.postcode.onbekend"));
+				ScreenitSession.get().error(String.format(getString("standplaats.postcode.onbekend"), client.getPersoon().getGbaAdres().getPostcode()));
 				handleContactAfrondenFout(target, contact);
 			}
 			catch (RuntimeException e)

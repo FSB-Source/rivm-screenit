@@ -39,9 +39,6 @@ import org.apache.wicket.markup.html.panel.Panel;
 
 public class SubMenuPanel extends Panel
 {
-
-	private static final long serialVersionUID = 1L;
-
 	public SubMenuPanel(String id, List<IMenuItem> model)
 	{
 		super(id);
@@ -61,11 +58,8 @@ public class SubMenuPanel extends Panel
 			}
 		}
 
-		add(new ListView<IMenuItem>("subMenuItems", model)
+		add(new ListView<>("subMenuItems", model)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<IMenuItem> item)
 			{
@@ -74,9 +68,6 @@ public class SubMenuPanel extends Panel
 					final GebruikerMenuItem gebruikerMenuItem = (GebruikerMenuItem) item.getModelObject();
 					Link<Object> link = new Link<Object>("subMenuLink")
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						public void onClick()
 						{

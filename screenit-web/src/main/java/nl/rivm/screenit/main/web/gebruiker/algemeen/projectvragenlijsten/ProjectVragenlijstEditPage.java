@@ -24,6 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.projectvragenlijsten;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,7 +80,6 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.time.Duration;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 import com.aspose.words.DocSaveOptions;
@@ -369,13 +369,13 @@ public class ProjectVragenlijstEditPage extends ProjectVragenlijstenBasePage
 					ResourceResponse resourceResponse = new ResourceResponse();
 					resourceResponse.setFileName("VragenlijstDefaultTemplate.doc");
 					resourceResponse.setContentType("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-					resourceResponse.setCacheDuration(Duration.NONE);
+					resourceResponse.setCacheDuration(Duration.ZERO);
 					resourceResponse.setWriteCallback(new WriteCallback()
 					{
 						@Override
 						public void writeData(Attributes attributes) throws IOException
 						{
-							try (OutputStream outputStream = attributes.getResponse().getOutputStream();)
+							try (OutputStream outputStream = attributes.getResponse().getOutputStream())
 							{
 								MailMergeContext mailMergeContext = new MailMergeContext();
 								mailMergeContext.setVragenlijstNaam(projectVragenlijstModel.getObject().getNaam());

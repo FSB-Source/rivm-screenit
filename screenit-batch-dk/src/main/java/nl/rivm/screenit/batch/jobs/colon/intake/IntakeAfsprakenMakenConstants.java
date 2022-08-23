@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.intake;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IntakeAfsprakenMakenConstants
 {
-
-	private IntakeAfsprakenMakenConstants()
-	{
-	}
 
 	public static final String RAPPORTAGEKEYINTAKE = "key.intakemeldingid";
 

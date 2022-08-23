@@ -74,7 +74,7 @@ public class DeelnamemodusServiceImpl implements DeelnamemodusService
 
 	private boolean heeftSelectieblokkade(DeelnamemodusDossier dossier)
 	{
-		return dossier != null && dossier.getDeelnamemodus() == Deelnamemodus.SELLECTIEBLOKKADE;
+		return dossier != null && dossier.getDeelnamemodus() == Deelnamemodus.SELECTIEBLOKKADE;
 	}
 
 	private static boolean heeftExplicieteDeelnamewens(DeelnamemodusDossier dossier)

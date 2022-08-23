@@ -27,6 +27,5 @@ public enum MammaOnderzoekStatus
 	ONDERBROKEN,
 	ONDERBROKEN_ZONDER_VERVOLG,
 	ONVOLLEDIG,
-	AFGEROND,
-	;
+	AFGEROND
 }

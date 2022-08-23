@@ -25,9 +25,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
 import javax.jms.Session;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.model.batch.AddTriggerRequest;
 import nl.rivm.screenit.model.batch.AddTriggerResponse;
@@ -49,23 +50,18 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
 import org.quartz.spi.MutableTrigger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
+@RequiredArgsConstructor
 public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
+	private final Scheduler scheduler;
 
-	private static final Logger LOG = LoggerFactory.getLogger(JMSQuartzListener.class);
-
-	@Autowired
-	private Scheduler scheduler;
-
-	@Autowired
-	private JmsTemplate jmsTemplate;
+	private final JmsTemplate jmsTemplate;
 
 	@Override
 	public void onMessage(ActiveMQObjectMessage message, Session session)
@@ -117,15 +113,7 @@ public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQOb
 					{
 						addTriggerResponse.setTriggerName(trigger.getTriggerNaam());
 					}
-					jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
-					{
-
-						@Override
-						public Message createMessage(Session session) throws JMSException
-						{
-							return ActiveMQHelper.getActiveMqObjectMessage(addTriggerResponse);
-						}
-					});
+					jmsTemplate.send(message.getJMSReplyTo(), session13 -> ActiveMQHelper.getActiveMqObjectMessage(addTriggerResponse));
 				}
 				catch (SchedulerException e)
 				{
@@ -153,16 +141,11 @@ public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQOb
 						}
 					}
 
-					jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
+					jmsTemplate.send(message.getJMSReplyTo(), session12 ->
 					{
-
-						@Override
-						public Message createMessage(Session session) throws JMSException
-						{
-							GetTriggersResponse getTriggersResponse = new GetTriggersResponse();
-							getTriggersResponse.setTriggers(triggers);
-							return ActiveMQHelper.getActiveMqObjectMessage(getTriggersResponse);
-						}
+						GetTriggersResponse getTriggersResponse = new GetTriggersResponse();
+						getTriggersResponse.setTriggers(triggers);
+						return ActiveMQHelper.getActiveMqObjectMessage(getTriggersResponse);
 					});
 
 				}
@@ -179,16 +162,11 @@ public class JMSQuartzListener implements SessionAwareMessageListener<ActiveMQOb
 					org.quartz.Trigger trigger = scheduler.getTrigger(new TriggerKey(removeTriggerRequest.getTriggerNaam()));
 					final Boolean result = scheduler.unscheduleJob(trigger.getKey());
 
-					jmsTemplate.send(message.getJMSReplyTo(), new MessageCreator()
+					jmsTemplate.send(message.getJMSReplyTo(), session1 ->
 					{
-
-						@Override
-						public Message createMessage(Session session) throws JMSException
-						{
-							RemoveTriggerResponse removeTriggerResponse = new RemoveTriggerResponse();
-							removeTriggerResponse.setRemoveResult(result);
-							return ActiveMQHelper.getActiveMqObjectMessage(removeTriggerResponse);
-						}
+						RemoveTriggerResponse removeTriggerResponse = new RemoveTriggerResponse();
+						removeTriggerResponse.setRemoveResult(result);
+						return ActiveMQHelper.getActiveMqObjectMessage(removeTriggerResponse);
 					});
 				}
 				catch (SchedulerException e)

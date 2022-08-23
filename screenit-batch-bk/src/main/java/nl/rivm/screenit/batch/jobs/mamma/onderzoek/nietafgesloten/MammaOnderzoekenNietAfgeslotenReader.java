@@ -32,14 +32,16 @@ import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MammaOnderzoekenNietAfgeslotenReader extends BaseScrollableResultReader
 {
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(MammaDossier.class, "dossier");
+		var criteria = session.createCriteria(MammaDossier.class, "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
 		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde");

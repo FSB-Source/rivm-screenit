@@ -21,9 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.technischbeheer;
  * =========================LICENSE_END==================================
  */
 
-import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -43,7 +41,7 @@ public class TechnischeParametersPage extends TechnischBeheerPage
 	@SpringBean
 	private ParameterisatieService parameterisatieService;
 
-	public TechnischeParametersPage() throws ParseException
+	public TechnischeParametersPage()
 	{
 		Parameterisatie parameterisatie = parameterisatieService.loadParameterisatie();
 		add(new TechnischeParametersPanel("parameters", new Model<>(parameterisatie)));
@@ -61,16 +59,8 @@ public class TechnischeParametersPage extends TechnischBeheerPage
 
 		add(new TechnischBeheerSopClassesPanel("sopClassesParameters", new Model<>(parameterisatieService.loadParameterisatie())));
 
-		List<ColonUitnodigingsinterval> intervalParameters = new ArrayList<>(parameterisatieService.getIntervalParameters());
-		Collections.sort(intervalParameters, new Comparator<ColonUitnodigingsinterval>()
-		{
-			@Override
-			public int compare(ColonUitnodigingsinterval o1, ColonUitnodigingsinterval o2)
-			{
-				return Integer.valueOf(o1.getType().ordinal()).compareTo(Integer.valueOf(o2.getType().ordinal()));
-			}
-		});
-		add(new TechnischeColonIntervalParameters("colonInterval", ModelUtil.listModel(intervalParameters, false)));
-
+		List<ColonUitnodigingsinterval> colonIntervalParameters = new ArrayList<>(parameterisatieService.getColonIntervalParameters());
+		colonIntervalParameters.sort(Comparator.comparing(o -> o.getType().ordinal()));
+		add(new TechnischeColonIntervalParameters("colonInterval", ModelUtil.listModel(colonIntervalParameters, false)));
 	}
 }

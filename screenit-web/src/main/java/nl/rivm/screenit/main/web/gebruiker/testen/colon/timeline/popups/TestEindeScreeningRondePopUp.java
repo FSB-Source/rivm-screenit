@@ -23,7 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups;
 
 import java.util.List;
 
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
@@ -38,7 +38,7 @@ public class TestEindeScreeningRondePopUp extends AbstractTestBasePopupPanel
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService colonTestTimelineService;
 
 	IModel<Boolean> eindeScreeningRonde = new Model(Boolean.TRUE);
 
@@ -56,7 +56,7 @@ public class TestEindeScreeningRondePopUp extends AbstractTestBasePopupPanel
 		{
 			for (Client client : getModelObject())
 			{
-				testTimelineService.naarEindeVanRonde(client);
+				colonTestTimelineService.naarEindeVanRonde(client);
 			}
 		}
 	}

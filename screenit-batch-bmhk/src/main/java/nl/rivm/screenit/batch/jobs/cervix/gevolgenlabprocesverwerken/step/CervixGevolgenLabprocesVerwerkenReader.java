@@ -28,14 +28,21 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixGevolgenLabprocesVerwerkenReader extends BaseScrollableResultReader
 {
+
+	public CervixGevolgenLabprocesVerwerkenReader()
+	{
+		super.setFetchSize(1000);
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixMonster.class, "monster");
+		var crit = session.createCriteria(CervixMonster.class, "monster");
 
 		crit.createAlias("monster.ontvangstScreeningRonde", "ronde");
 		crit.add(Restrictions.isNull("monster.brief"));

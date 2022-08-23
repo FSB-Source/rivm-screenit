@@ -32,11 +32,12 @@ import nl.rivm.screenit.model.Mail;
 import nl.rivm.screenit.model.MailVerzenden;
 import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.repository.MailRepository;
+import nl.rivm.screenit.service.LogService;
+import nl.topicuszorg.loginformatie.model.Gebeurtenis;
+import nl.topicuszorg.loginformatie.services.ILogInformatieService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -48,19 +49,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MailSenderServiceImpl implements MailSenderService
 {
+	private final JavaMailSender mailSender;
 
-	@Autowired
-	private JavaMailSender mailSender;
+	private final String afzendEmailadres;
 
-	@Autowired
-	@Qualifier("afzendEmailadres")
-	private String afzendEmailadres;
+	private final SimplePreferenceService simplePreferenceService;
 
-	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private final MailRepository mailRepository;
 
-	@Autowired
-	private MailRepository mailRepository;
+	public MailSenderServiceImpl(JavaMailSender mailSender, String afzendEmailadres, SimplePreferenceService simplePreferenceService,
+		MailRepository mailRepository)
+	{
+		this.mailSender = mailSender;
+		this.afzendEmailadres = afzendEmailadres;
+		this.simplePreferenceService = simplePreferenceService;
+		this.mailRepository = mailRepository;
+	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW)

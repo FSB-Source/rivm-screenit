@@ -25,6 +25,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import nl.rivm.screenit.config.GbaConfig;
 import nl.rivm.screenit.model.gba.GbaFoutCategorie;
 import nl.rivm.screenit.model.gba.GbaFoutRegel;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
@@ -41,16 +42,16 @@ import com.jcraft.jsch.SftpException;
 @Slf4j
 public abstract class GbaFtpConnection
 {
-	private final GbaFtpSettings ftpSettings;
+	private final GbaConfig gbaConfig;
 
 	private final GbaVerwerkingsLog gbaVerwerkingsLog;
 
 	@Getter(AccessLevel.PROTECTED)
 	private ChannelSftp channelSftp;
 
-	protected GbaFtpConnection(GbaFtpSettings ftpSettings, GbaVerwerkingsLog gbaVerwerkingsLog)
+	protected GbaFtpConnection(GbaConfig gbaConfig, GbaVerwerkingsLog gbaVerwerkingsLog)
 	{
-		this.ftpSettings = ftpSettings;
+		this.gbaConfig = gbaConfig;
 		this.gbaVerwerkingsLog = gbaVerwerkingsLog;
 	}
 
@@ -91,9 +92,9 @@ public abstract class GbaFtpConnection
 		boolean checkHostKey = Boolean.parseBoolean(System.getProperty("SFTP_CHECK_HOST_KEY"));
 		if (checkHostKey)
 		{
-			jsch.setKnownHosts(ftpSettings.getKnownHostPath());
+			jsch.setKnownHosts(gbaConfig.gbaFtpKnownHostFile());
 		}
-		Session session = jsch.getSession(ftpSettings.getUsername(), ftpSettings.getHost(), ftpSettings.getPort());
+		Session session = jsch.getSession(gbaConfig.gbaFtpUsername(), gbaConfig.gbaFtpHost(), gbaConfig.gbaFtpPort());
 		if (!checkHostKey)
 		{
 			java.util.Properties config = new java.util.Properties();
@@ -109,7 +110,7 @@ public abstract class GbaFtpConnection
 			session.setConfig("server_host_key", serverHostKey);
 			jsch.addIdentity(keyfile);
 		}
-		session.setPassword(ftpSettings.getPassword());
+		session.setPassword(gbaConfig.gbaFtpPassword());
 		session.connect();
 		return session;
 	}

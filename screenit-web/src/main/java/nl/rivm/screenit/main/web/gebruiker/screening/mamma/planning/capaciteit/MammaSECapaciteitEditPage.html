@@ -33,21 +33,24 @@
 </wicket:head>
 <wicket:extend>
     <div class="btn-top dropdown pull-right">
-        <span>Groot overzicht:</span>
-        <input type="checkbox" wicket:id="grootOverzicht">
-        <span>Herhalingsweek: </span><span wicket:id="herhalingsWeek"></span>
-        <button id="" class="btn btn-info" wicket:id="weekHerhalen" style="margin-right: 20px">
-            <span class="icon-plus-sign icon-white"/> Week herhalen
-        </button>
-        <button class="btn bk-afspraken-nav-datum" wicket:id="prevWeek">&lt;</button>
-        <input wicket:id="datum" class="datum bk-afspraken-nav-datum" type="text" value="">
-        <button class="btn bk-afspraken-nav-datum" wicket:id="nextWeek">&gt;</button>
-        <a href="javascript:void(0);" class="btn" onclick="$(this).parent().find('.datum').datepicker('show');return false;" title="Datum" tabindex="-1"><i
-                class="icon-calendar"></i></a>
-        <button class="btn" wicket:id="terug">
-            Terug
-        </button>
-    </div>
+		<span>Groot overzicht:</span>
+		<input type="checkbox" wicket:id="grootOverzicht">
+		<span>Herhalingsweek: </span><span wicket:id="herhalingsWeek"></span>
+		<button id="" class="btn btn-info" wicket:id="weekHerhalen" style="margin-right: 20px">
+			<span class="icon-plus-sign icon-white"/> Week herhalen
+		</button>
+		<button id="" class="btn btn-info" wicket:id="dagKopieren" style="margin-right: 20px">
+			<span class="icon-plus-sign icon-white"/> Dag kopiëren
+		</button>
+		<button class="btn bk-afspraken-nav-datum" wicket:id="prevWeek">&lt;</button>
+		<input wicket:id="datum" class="datum bk-afspraken-nav-datum" type="text" value="">
+		<button class="btn bk-afspraken-nav-datum" wicket:id="nextWeek">&gt;</button>
+		<a href="javascript:void(0);" class="btn" onclick="$(this).parent().find('.datum').datepicker('show');return false;" title="Datum" tabindex="-1"><i
+				class="icon-calendar"></i></a>
+		<button class="btn" wicket:id="terug">
+			Terug
+		</button>
+	</div>
     <h1 class="pageTitle">Capaciteit - Beheer weekplanning</h1>
 
     <div class="container-fluid">

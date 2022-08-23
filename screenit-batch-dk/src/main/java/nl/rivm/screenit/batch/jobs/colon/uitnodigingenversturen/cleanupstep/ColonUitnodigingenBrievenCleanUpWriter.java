@@ -22,16 +22,18 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen.cleanupstep;
  */
 
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpWriter;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ColonUitnodigingenBrievenCleanUpWriter extends AbstractBrievenCleanUpWriter<ColonMergedBrieven>
 {
 
 	@Override
 	protected void write(ColonMergedBrieven item) throws Exception
 	{
-		UploadDocument mergedBrief = item.getMergedBrieven();
+		var mergedBrief = item.getMergedBrieven();
 
 		super.write(item);
 

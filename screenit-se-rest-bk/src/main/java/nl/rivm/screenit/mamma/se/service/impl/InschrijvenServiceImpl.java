@@ -41,12 +41,14 @@ import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.TijdelijkAdres;
+import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.BezwaarService;
+import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -67,6 +69,9 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	private BezwaarService bezwaarService;
 
 	@Autowired
+	private BriefHerdrukkenService briefHerdrukkenService;
+
+	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
@@ -80,7 +85,7 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	{
 		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
 		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
-		afspraakWijzigen(action, afspraak);
+		afspraakWijzigen(action, afspraak, instellingGebruiker);
 		afspraakInschrijven(afspraak, instellingGebruiker, transactieDatumTijd);
 		opslaanClientgegevens(action, afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient());
 		hibernateService.saveOrUpdate(afspraak);
@@ -91,7 +96,7 @@ public class InschrijvenServiceImpl implements InschrijvenService
 	{
 		final MammaAfspraak afspraak = afspraakService.getOfMaakLaatsteAfspraakVanVandaag(action.getAfspraakId(), instellingGebruiker);
 		baseAfmeldService.heraanmeldenAlsClientAfgemeldIs(afspraak.getUitnodiging().getScreeningRonde().getDossier());
-		afspraakWijzigen(action, afspraak);
+		afspraakWijzigen(action, afspraak, instellingGebruiker);
 		opslaanClientgegevens(action, afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient());
 		hibernateService.saveOrUpdate(afspraak);
 	}
@@ -130,28 +135,35 @@ public class InschrijvenServiceImpl implements InschrijvenService
 		screeningsRonde.setDatumVastleggenHuisarts(currentDateSupplier.getDate());
 	}
 
-	private void vraagBezwaarAan(MammaAfspraak afspraak)
+	private void vraagBezwaarAan(MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker)
 	{
 		Client client = afspraak.getUitnodiging().getScreeningRonde().getDossier().getClient();
 
-		if (!afspraak.getBezwaarAangevraagd())
+		if (Boolean.FALSE.equals(afspraak.getBezwaarAangevraagd()))
 		{
-			BezwaarMoment nieuwBezwaarMoment = new BezwaarMoment();
-			nieuwBezwaarMoment.setClient(client);
-			nieuwBezwaarMoment.setManier(ClientContactManier.AANVRAAG_FORMULIER);
-			bezwaarService.bezwaarAanvragen(client, nieuwBezwaarMoment);
-
+			BezwaarBrief bezwaarBrief = bezwaarService.getNogNietVerwerkteBezwaarBrief(client.getBezwaarMomenten());
+			if (bezwaarBrief == null)
+			{
+				BezwaarMoment nieuwBezwaarMoment = new BezwaarMoment();
+				nieuwBezwaarMoment.setClient(client);
+				nieuwBezwaarMoment.setManier(ClientContactManier.AANVRAAG_FORMULIER);
+				bezwaarService.bezwaarAanvragen(client, nieuwBezwaarMoment);
+			}
+			else
+			{
+				briefHerdrukkenService.opnieuwAanmaken(bezwaarBrief, instellingGebruiker);
+			}
 			afspraak.setBezwaarAangevraagd(true);
 		}
 	}
 
-	private void afspraakWijzigen(InschrijvenDto action, MammaAfspraak afspraak)
+	private void afspraakWijzigen(InschrijvenDto action, MammaAfspraak afspraak, InstellingGebruiker instellingGebruiker)
 	{
 		afspraak.setIdentificatiesoort(action.getIdentificatiesoort());
 		afspraak.setIdentificatienummer(action.getIdentificatienummer());
 		if (action.getBezwaarAangevraagd())
 		{
-			vraagBezwaarAan(afspraak);
+			vraagBezwaarAan(afspraak, instellingGebruiker);
 		}
 		huisartsSelecteren(action.getHuisartsId(), action.getGeenHuisartsOptie(), afspraak.getUitnodiging().getScreeningRonde());
 	}

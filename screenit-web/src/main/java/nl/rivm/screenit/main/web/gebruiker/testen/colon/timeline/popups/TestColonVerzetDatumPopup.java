@@ -23,7 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups;
 
 import java.util.List;
 
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.util.EnversSwitch;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.TestAbstractVerzetDatumPopup;
 import nl.rivm.screenit.model.Client;
@@ -35,7 +35,7 @@ public class TestColonVerzetDatumPopup extends TestAbstractVerzetDatumPopup
 {
 
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService colonTestTimelineService;
 
 	public TestColonVerzetDatumPopup(String id, IModel<List<Client>> model)
 	{
@@ -48,7 +48,7 @@ public class TestColonVerzetDatumPopup extends TestAbstractVerzetDatumPopup
 		EnversSwitch.off();
 		for (Client client : getModelObject())
 		{
-			testTimelineService.verzetDossierAchteruitInTijd(client, getAantalDagen());
+			colonTestTimelineService.verzetDossierAchteruitInTijd(client, getAantalDagen());
 		}
 		EnversSwitch.on();
 	}

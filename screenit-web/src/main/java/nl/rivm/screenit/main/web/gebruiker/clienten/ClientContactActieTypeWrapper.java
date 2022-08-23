@@ -36,6 +36,7 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonClientCon
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonClientContactHeraanmeldenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonClientContactNieuweAfspraakAanmakenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonHuisartsWijzigenPanel;
+import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactAanhefPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactBezwaarPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactClientGegevensAanvragenPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.gen.ClientContactDeelnamewensenPanel;
@@ -77,6 +78,20 @@ public enum ClientContactActieTypeWrapper
 				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN, ClientContactActieTypeWrapper.CERVIX_DEELNAME_BUITEN_BVO_BMHK,
 					ClientContactActieTypeWrapper.COLON_AFMELDEN,
 					ClientContactActieTypeWrapper.COLON_HERAANMELDEN };
+
+			}
+		},
+
+	AANPASSEN_AANHEF(
+		ClientContactActieType.AANPASSEN_AANHEF,
+		ClientContactAanhefPanel.class,
+		Recht.GEBRUIKER_CLIENT_GEGEVENS,
+		"icon-refresh")
+		{
+			@Override
+			public ClientContactActieTypeWrapper[] getExclusie()
+			{
+				return new ClientContactActieTypeWrapper[] { ClientContactActieTypeWrapper.GEEN };
 
 			}
 		},

@@ -35,6 +35,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -43,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.BaseBriefDao;
 import nl.rivm.screenit.document.BaseDocumentCreator;
+import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Brief;
@@ -68,6 +70,7 @@ import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.rivm.screenit.model.project.ProjectBriefActie;
@@ -80,6 +83,7 @@ import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.BriefUtil;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.JavaScriptPdfHelper;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -107,7 +111,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 
 @Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class BaseBriefServiceImpl implements BaseBriefService
 {
 
@@ -199,9 +203,8 @@ public class BaseBriefServiceImpl implements BaseBriefService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename) throws IOException
+	public void saveBriefDefinitie(BriefDefinitie nieuweBriefDefinitie, File uploadFile, String contentType, String filename, UnaryOperator<String> getString) throws IOException
 	{
-		definitie.setLaatstGewijzigd(currentDateSupplier.getDate());
 
 		UploadDocument uploadDocument = new UploadDocument();
 		uploadDocument.setActief(Boolean.TRUE);
@@ -211,11 +214,19 @@ public class BaseBriefServiceImpl implements BaseBriefService
 
 		uploadDocumentService.saveOrUpdate(uploadDocument, FileStoreLocation.BRIEF_TEMPLATES);
 
-		definitie.setDocument(uploadDocument);
+		nieuweBriefDefinitie.setDocument(uploadDocument);
+		nieuweBriefDefinitie.setLaatstGewijzigd(currentDateSupplier.getDate());
 
-		hibernateService.save(definitie);
-
+		hibernateService.save(nieuweBriefDefinitie);
 		uploadFile.delete();
+
+		if (getString != null)
+		{
+			logService.logGebeurtenis(LogGebeurtenis.BRIEF_TOEGEVOEGD, nieuweBriefDefinitie.getUploader(),
+				"Brief geupload: " + nieuweBriefDefinitie.getDocument().getNaam() + ", Type: " + getString.apply(
+					EnumStringUtil.getPropertyString(nieuweBriefDefinitie.getBriefType())),
+				nieuweBriefDefinitie.getBriefType().getOnderzoeken());
+		}
 	}
 
 	private void checkVoorProjectClient(ClientBrief<?, ?, ?> brief, Client client)
@@ -255,6 +266,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public <B extends ClientBrief<?, ?, ?>> void checkVoorDubbeleBrieven(BriefType type, Client client, Class<B> briefClass)
 	{
 
@@ -281,6 +293,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public BezwaarBrief maakBezwaarBrief(@NonNull BezwaarMoment bezwaar, @NonNull BriefType type, Date date)
 	{
 		checkVoorDubbeleBrieven(type, bezwaar.getClient(), BezwaarBrief.class);
@@ -299,6 +312,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public AlgemeneBrief maakAlgemeneBrief(Client client, BriefType type)
 	{
 		checkVoorDubbeleBrieven(type, client, AlgemeneBrief.class);
@@ -313,9 +327,9 @@ public class BaseBriefServiceImpl implements BaseBriefService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public <B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment)
+	public <B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment, boolean vervangendeProjectBrief)
 	{
-		B brief = maakBvoBrief(afmelding.getDossier().getClient(), type, creatieMoment, false);
+		B brief = maakBvoBrief(afmelding.getDossier().getClient(), type, creatieMoment, false, vervangendeProjectBrief);
 		brief.setAfmelding(afmelding);
 		afmelding.getBrieven().add(brief);
 
@@ -326,30 +340,38 @@ public class BaseBriefServiceImpl implements BaseBriefService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
+	public <B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment)
+	{
+		return maakBvoBrief(afmelding, type, creatieMoment, false);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type)
 	{
-		return maakBvoBrief(ronde, type, null, false);
+		return maakBvoBrief(ronde, type, null, false, false);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, boolean gegenereerd)
 	{
-		return maakBvoBrief(ronde, type, null, gegenereerd);
+		return maakBvoBrief(ronde, type, null, gegenereerd, false);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
 	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment)
 	{
-		return maakBvoBrief(ronde, type, creatieMoment, false);
+		return maakBvoBrief(ronde, type, creatieMoment, false, false);
 	}
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment, boolean gegenereerd)
+	public <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment, boolean gegenereerd,
+		boolean vervangendeProjectBrief)
 	{
-		B brief = maakBvoBrief(ronde.getDossier().getClient(), type, creatieMoment, gegenereerd);
+		B brief = maakBvoBrief(ronde.getDossier().getClient(), type, creatieMoment, gegenereerd, vervangendeProjectBrief);
 		brief.setScreeningRonde(ronde);
 		ronde.getBrieven().add(brief);
 		ronde.setLaatsteBrief(brief);
@@ -358,7 +380,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		return brief;
 	}
 
-	private <B extends ClientBrief<?, ?, ?>> B maakBvoBrief(Client client, BriefType type, Date creatieMoment, boolean gegenereerd)
+	private <B extends ClientBrief<?, ?, ?>> B maakBvoBrief(Client client, BriefType type, Date creatieMoment, boolean gegenereerd, boolean vervangendeProjectBrief)
 	{
 		B brief = createBrief(type);
 		checkVoorDubbeleBrieven(type, client, brief.getClass());
@@ -372,7 +394,10 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		brief.setGegenereerd(gegenereerd);
 		hibernateService.saveOrUpdate(brief);
 		LOG.info("Brief klaargezet met type " + type + " (clientId: " + client.getId() + ")");
-		checkVoorProjectClient(brief, client);
+		if (!vervangendeProjectBrief)
+		{
+			checkVoorProjectClient(brief, client);
+		}
 		return brief;
 	}
 
@@ -395,6 +420,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public CervixRegioBrief maakRegioBrief(ScreeningOrganisatie so, BriefType type, Date date, CervixHuisarts arts)
 	{
 		checkVoorDubbeleBrieven(type, arts);
@@ -450,6 +476,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public <B extends Brief, MB extends MergedBrieven<?>> void createOrAddMergedBrieven(List<? extends B> chunkItems, IBrievenGeneratorHelper<B, MB> briefGenerator)
 		throws Exception
 	{
@@ -473,12 +500,15 @@ public class BaseBriefServiceImpl implements BaseBriefService
 						String onvolledigAdresMelding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken van: " + brief.getBriefType()
 							+ ". De volgende gegevens ontbreken: " + AdresUtil.bepaalMissendeAdresgegevensString(clientAdres) + ".";
 						int dagen = simplePreferenceService.getInteger(PreferenceKey.INTERNAL_HERINNERINGSPERIODE_LOGREGEL_ONVOLLEDIG_ADRES.name());
-						if (logService.heeftBestaandeLogregelBinnenPeriode(List.of(briefGenerator.getOnvolledigAdresLogGebeurtenis()), client.getPersoon().getBsn(),
+						if (logService.heeftGeenBestaandeLogregelBinnenPeriode(List.of(briefGenerator.getOnvolledigAdresLogGebeurtenis()), client.getPersoon().getBsn(),
 							onvolledigAdresMelding, dagen))
 						{
 							List<Instelling> organisaties = new ArrayList<>();
 							organisaties.add(hibernateService.loadAll(Rivm.class).get(0));
-							organisaties.add(mergedBrieven.getScreeningOrganisatie());
+							if (mergedBrieven.getScreeningOrganisatie() != null)
+							{
+								organisaties.add(mergedBrieven.getScreeningOrganisatie());
+							}
 							logService.logGebeurtenis(briefGenerator.getOnvolledigAdresLogGebeurtenis(), organisaties, client, onvolledigAdresMelding,
 								briefGenerator.getBevolkingsonderzoeken());
 						}
@@ -494,12 +524,16 @@ public class BaseBriefServiceImpl implements BaseBriefService
 				}
 				catch (Exception e)
 				{
-					LOG.error("Error bij aanmaken brief (brieftype: {})", brief.getBriefType(), e);
+					LOG.error("Error bij aanmaken brief (brieftype: {}, briefId: {})", brief.getBriefType(), brief.getId(), e);
 					Client client = getClientFromBrief(brief);
-					ScreeningOrganisatie org = mergedBrieven.getScreeningOrganisatie();
+					var dashboardOrganisaties = new ArrayList<Instelling>();
+					if (mergedBrieven.getScreeningOrganisatie() != null)
+					{
+						dashboardOrganisaties.add(mergedBrieven.getScreeningOrganisatie());
+					}
 					String melding = "Door technische reden kon de brief (brieftype: " + brief.getBriefType() + ") niet worden gegenereerd.";
 
-					logService.logGebeurtenis(briefGenerator.getMergeProbleemLogGebeurtenis(), List.of(org), client, melding, briefGenerator.getBevolkingsonderzoeken());
+					logService.logGebeurtenis(briefGenerator.getMergeProbleemLogGebeurtenis(), dashboardOrganisaties, client, melding, briefGenerator.getBevolkingsonderzoeken());
 					continue;
 				}
 			}
@@ -532,6 +566,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public <B extends Brief> void setBriefGegenereerd(B brief)
 	{
 		setBriefGegenereerdInfo(brief, getDefinitiveBriefDefinitie(brief));
@@ -545,6 +580,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 		{ 
 			brief.setBriefDefinitie((BriefDefinitie) documentDefinitie);
 		}
+		hibernateService.saveOrUpdate(brief);
 	}
 
 	private <B extends Brief, MB extends MergedBrieven<?>> Document appendDocument(UploadDocument briefTemplateDocument, B brief, Document chunkDocument,
@@ -803,7 +839,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public void setNietGegenereerdeBrievenOpTegenhouden(ScreeningRonde<?, ?, ?, ?> screeningRonde, Collection<BriefType> brieftypes)
 	{
-		screeningRonde.getBrieven().stream().filter(brief -> brieftypes.contains(brief.getBriefType()) && !BriefUtil.isGegenereerd(brief))
+		screeningRonde.getBrieven().stream().filter(brief -> brieftypes.contains(brief.getBriefType()) && BriefUtil.isNietGegenereerdEnNietVervangen(brief))
 			.forEach(brief ->
 			{
 				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
@@ -820,7 +856,7 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	public boolean briefTypeWachtOpKlaarzettenInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes)
 	{
 		return ronde.getBrieven().stream().anyMatch(
-			brief -> brieftypes.contains(brief.getBriefType()) && !BriefUtil.isGegenereerd(brief));
+			brief -> brieftypes.contains(brief.getBriefType()) && BriefUtil.isNietGegenereerdEnNietVervangen(brief));
 	}
 
 	@Override
@@ -833,5 +869,23 @@ public class BaseBriefServiceImpl implements BaseBriefService
 	public List<ClientBrief<?, ?, ?>> getClientBrieven(Client client)
 	{
 		return briefDao.getClientBrieven(client);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void briefTegenhouden(ClientBrief brief, Account account)
+	{
+		hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
+		logService.logGebeurtenis(LogGebeurtenis.BRIEF_TEGENHOUDEN, account, brief.getClient(), BriefUtil.getBriefTypeNaam(brief) + " wordt tegengehouden.",
+			BriefUtil.getOnderzoekenUitBriefType(brief));
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void briefNietMeerTegenhouden(ClientBrief brief, Account account)
+	{
+		hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, false));
+		logService.logGebeurtenis(LogGebeurtenis.BRIEF_DOORVOEREN, account, brief.getClient(), BriefUtil.getBriefTypeNaam(brief) + " was tegengehouden en wordt nu doorgevoerd.",
+			BriefUtil.getOnderzoekenUitBriefType(brief));
 	}
 }

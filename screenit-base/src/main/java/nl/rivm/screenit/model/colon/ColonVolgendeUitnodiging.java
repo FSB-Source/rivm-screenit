@@ -21,6 +21,7 @@ package nl.rivm.screenit.model.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import javax.persistence.Column;
@@ -33,6 +34,9 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
@@ -41,14 +45,22 @@ import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
 @Entity
-@Table(schema = "colon", name = "volgende_uitnodiging", uniqueConstraints = { @UniqueConstraint(columnNames = "dossier") }, indexes = { @Index(columnList = "peildatum") })
+@Table(schema = "colon",
+	name = "volgende_uitnodiging",
+	uniqueConstraints = { @UniqueConstraint(columnNames = "dossier") },
+	indexes = { @Index(columnList = "peildatum"), @Index(columnList = "projectPeildatum") })
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
+@Getter
+@Setter
 public class ColonVolgendeUitnodiging extends AbstractHibernateObject
 {
 	@Column(nullable = false)
 	@Temporal(TemporalType.DATE)
 	private Date peildatum;
+
+	@Column(nullable = true)
+	private LocalDate projectPeildatum;
 
 	@ManyToOne(optional = false)
 	private ColonUitnodigingsinterval interval;
@@ -57,33 +69,4 @@ public class ColonVolgendeUitnodiging extends AbstractHibernateObject
 	@NotAudited
 	private ColonDossier dossier;
 
-	public Date getPeildatum()
-	{
-		return peildatum;
-	}
-
-	public void setPeildatum(Date peildatum)
-	{
-		this.peildatum = peildatum;
-	}
-
-	public ColonUitnodigingsinterval getInterval()
-	{
-		return interval;
-	}
-
-	public void setInterval(ColonUitnodigingsinterval interval)
-	{
-		this.interval = interval;
-	}
-
-	public ColonDossier getDossier()
-	{
-		return dossier;
-	}
-
-	public void setDossier(ColonDossier dossier)
-	{
-		this.dossier = dossier;
-	}
 }

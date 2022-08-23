@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.geenbeelden;
 import nl.rivm.screenit.batch.jobs.mamma.onderzoek.MammaOnderzoekenZonderBeelenOfNietAfgeslotenBaseWriter;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaOnderzoekenZonderBeeldenWriter extends MammaOnderzoekenZonderBeelenOfNietAfgeslotenBaseWriter
 {
 	public MammaOnderzoekenZonderBeeldenWriter()

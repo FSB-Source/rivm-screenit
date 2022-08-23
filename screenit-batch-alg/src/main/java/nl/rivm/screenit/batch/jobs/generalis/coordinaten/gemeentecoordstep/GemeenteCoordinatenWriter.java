@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.coordinaten.gemeentecoordstep;
 
 /*-
@@ -24,24 +23,25 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.gemeentecoordstep;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.service.WoonplaatsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class GemeenteCoordinatenWriter implements ItemWriter<String>
 {
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private final CoordinatenDao coordinatenDao;
 
-	@Autowired
-	private WoonplaatsService woonplaatsService;
+	private final WoonplaatsService woonplaatsService;
 
 	@Override
 	public void write(List<? extends String> items)

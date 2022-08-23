@@ -21,20 +21,19 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.cervix.CervixBaseLogListener;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class CervixBepalenVerrichtingenListener extends CervixBaseLogListener
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixBepalenVerrichtingenListener.class);
-
 	@Override
 	protected LogEvent getStartLogEvent()
 	{
@@ -62,7 +61,7 @@ public class CervixBepalenVerrichtingenListener extends CervixBaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		long hpvUitstrijkjeAantal = context.getLong(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_UITSTRIJKJE_AANTAL_KEY, 0L);
 		long hpvZasAantal = context.getLong(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_HPV_ZAS_AANTAL_KEY, 0L);
 		long cytologieUitstrijkjeAantal = context.getLong(CervixBepalenVerrichtingenConstants.VERRICHTINGEN_LAB_CYTOLOGIE_UITSTRIJKJE_AANTAL_KEY, 0L);
@@ -77,7 +76,7 @@ public class CervixBepalenVerrichtingenListener extends CervixBaseLogListener
 		LOG.info("Aantal cytologie vervolguitstrijkje verrichtingen aangemaakt: {}", cytologieVervolgUitstrijkjeAantal);
 		LOG.info("Aantal huisarts uitstrijkje verrichtingen aangemaakt: {}", huisartsUitstrijkjeAantal);
 
-		LogEvent logEvent = super.eindLogging(jobExecution);
+		var logEvent = super.eindLogging(jobExecution);
 
 		logEvent.setMelding("Aantal verrichtingen aangemaakt: " + totaal);
 		return logEvent;

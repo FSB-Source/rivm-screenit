@@ -20,57 +20,59 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h3>Gebeurtenis:
-            <wicket:container wicket:id="gebeurtenis">Uitnodiging FIT verzonden</wicket:container>
-        </h3>
-    </div>
-    <div class="modal-body" wicket:id="gebeurtenisBody">
-        <fieldset class="hero-unit">
-            <div class="row-fluid">
-                <div class="span4">
-                    <h2 class="afspraak-titel">Bevolkingsonderzoek:</h2>
-                </div>
-                <div class="span5">
-                    <h2 class="afspraak-titel">
-                        <strong wicket:id="type">Darmkanker</strong>
-                    </h2>
-                </div>
-                <div class="span2">
-                    <h2 class="afspraak-titel">Ronde:</h2>
-                </div>
-                <div class="span1">
-                    <h2 class="afspraak-titel">
-                        <span class="badge" wicket:id="screeningRondeGebeurtenissen.rondenr">2</span>
-                    </h2>
-                </div>
-            </div>
-            <div class="row-fluid">
-                <div class="span4">
-                    <h2 class="afspraak-titel">Gebeurtenis:</h2>
-                </div>
-                <div class="span8">
-                    <h2 class="afspraak-titel">
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal">&times;</button>
+		<h3>Gebeurtenis:
+			<wicket:container wicket:id="gebeurtenis">Uitnodiging FIT verzonden</wicket:container>
+		</h3>
+	</div>
+	<div class="modal-body" wicket:id="gebeurtenisBody">
+		<fieldset class="hero-unit">
+			<wicket:enclosure child="screeningRondeGebeurtenissen.rondenr">
+				<div class="row-fluid">
+					<div class="span4">
+						<h2 class="afspraak-titel">Bevolkingsonderzoek:</h2>
+					</div>
+					<div class="span5">
+						<h2 class="afspraak-titel">
+							<strong wicket:id="type">Darmkanker</strong>
+						</h2>
+					</div>
+					<div class="span2">
+						<h2 class="afspraak-titel">Ronde:</h2>
+					</div>
+					<div class="span1">
+						<h2 class="afspraak-titel">
+							<span class="badge" wicket:id="screeningRondeGebeurtenissen.rondenr">2</span>
+						</h2>
+					</div>
+				</div>
+			</wicket:enclosure>
+			<div class="row-fluid">
+				<div class="span4">
+					<h2 class="afspraak-titel">Gebeurtenis:</h2>
+				</div>
+				<div class="span8">
+					<h2 class="afspraak-titel">
 						<span class="badge badge-inverse">
 						<wicket:container wicket:id="gebeurtenis1">Uitnodiging FIT verzonden</wicket:container> : <wicket:container wicket:id="datum">21-10-2012
                         </wicket:container></span>
-                    </h2>
-                </div>
-            </div>
-        </fieldset>
+					</h2>
+				</div>
+			</div>
+		</fieldset>
 
-        <wicket:container wicket:id="details"></wicket:container>
+		<wicket:container wicket:id="details"></wicket:container>
 
-    </div>
-    <div class="modal-footer">
-        <button class="btn" wicket:id="extraButton"><span wicket:id="label"></span></button>
-        <button class="btn" wicket:id="button"><span wicket:id="label"></span></button>
+	</div>
+	<div class="modal-footer">
+		<button class="btn" wicket:id="extraButton"><span wicket:id="label"></span></button>
+		<button class="btn" wicket:id="button"><span wicket:id="label"></span></button>
 
-        <button class="btn left" wicket:id="documentDownloadBtn"><i class="icon-download"></i> Formulier verwijderen uitslag</button>
-        <button class="btn left" wicket:id="documentVervangenBtn">Vervangen document</button>
+		<button class="btn left" wicket:id="documentDownloadBtn"><i class="icon-download"></i> Formulier verwijderen uitslag</button>
+		<button class="btn left" wicket:id="documentVervangenBtn">Vervangen document</button>
 
-        <button class="btn btn-primary" data-dismiss="modal">Sluiten</button>
-    </div>
+		<button class="btn btn-primary" data-dismiss="modal">Sluiten</button>
+	</div>
 </wicket:panel>
 </html>

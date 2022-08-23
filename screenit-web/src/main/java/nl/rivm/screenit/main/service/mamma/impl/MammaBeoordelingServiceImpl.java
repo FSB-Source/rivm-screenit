@@ -432,11 +432,11 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 		var huisarts = ronde.getHuisarts();
 		if (huisarts != null)
 		{
-			huisartsBerichtService.verstuurHuisartsBericht(beoordeling, huisarts, berichtType);
+			huisartsBerichtService.verstuurHuisartsBericht(beoordeling, huisarts, berichtType, false);
 		}
 		if (alternativeHuisarts != null)
 		{
-			huisartsBerichtService.verstuurHuisartsBericht(beoordeling, alternativeHuisarts, berichtType);
+			huisartsBerichtService.verstuurHuisartsBericht(beoordeling, alternativeHuisarts, berichtType, false);
 		}
 	}
 
@@ -591,6 +591,7 @@ public class MammaBeoordelingServiceImpl implements MammaBeoordelingService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public File genereerPdfVoorOngunstigeUitslagBrief(MammaBeoordeling beoordeling)
 	{
 		var screeningRonde = baseBeoordelingService.getScreeningRonde(beoordeling);

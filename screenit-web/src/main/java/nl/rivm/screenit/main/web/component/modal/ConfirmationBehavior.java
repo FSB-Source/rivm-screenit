@@ -21,7 +21,6 @@ package nl.rivm.screenit.main.web.component.modal;
  * =========================LICENSE_END==================================
  */
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxCallListener;
@@ -29,6 +28,7 @@ import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
@@ -73,9 +73,9 @@ public abstract class ConfirmationBehavior extends AjaxEventBehavior implements 
 		{
 
 			@Override
-			protected Component createCustomComponent(String id)
+			protected void createCustomComponent(String id, Form<?> form)
 			{
-				return ConfirmationBehavior.this.createCustomComponent(id);
+				ConfirmationBehavior.this.createCustomComponent(id, form);
 			}
 		};
 	}
@@ -84,9 +84,9 @@ public abstract class ConfirmationBehavior extends AjaxEventBehavior implements 
 
 	protected abstract IModel<String> getHeaderStringModel();
 
-	protected Component createCustomComponent(String id)
+	protected void createCustomComponent(String id, Form<?> form)
 	{
-		return new WebMarkupContainer(id).setVisible(false);
+		form.add(new WebMarkupContainer(id).setVisible(false));
 	}
 
 	@Override

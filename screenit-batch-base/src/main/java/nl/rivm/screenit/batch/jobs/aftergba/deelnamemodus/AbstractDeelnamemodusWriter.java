@@ -24,7 +24,7 @@ package nl.rivm.screenit.batch.jobs.aftergba.deelnamemodus;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.batch.service.TransgenderService;
+import nl.rivm.screenit.service.TransgenderService;
 import nl.rivm.screenit.model.DeelnamemodusDossier;
 
 import org.springframework.beans.factory.annotation.Autowired;

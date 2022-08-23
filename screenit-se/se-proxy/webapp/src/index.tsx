@@ -1,5 +1,4 @@
 import React from "react"
-import {render} from "react-dom"
 import {Provider} from "react-redux"
 import {unregister} from "./registerServiceWorker"
 import "./index.css"
@@ -10,13 +9,16 @@ import BuitensteView from "./components/app/BuitensteView"
 import {store} from "./Store"
 import {readEnvironmentInfo} from "./restclient/EnvironmentInfoRestclient"
 import {initWebSocket} from "./util/WebSocketUtil"
+import {createRoot} from "react-dom/client"
 
-const root = document.getElementById("root")
+const container = document.getElementById("root")
 
-if (root) {
-	render(<Provider store={store}>
+if (container) {
+	const root = createRoot(container)
+
+	root.render(<Provider store={store}>
 		<BuitensteView/>
-	</Provider>, root)
+	</Provider>)
 	initWebSocket()
 	readEnvironmentInfo()
 	unregister()

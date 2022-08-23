@@ -33,8 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 import nl.rivm.screenit.batch.dao.GbaDao;
 import nl.rivm.screenit.batch.jobs.generalis.gba.GbaConstants;
 import nl.rivm.screenit.batch.jobs.generalis.gba.GbaFtpConnection;
-import nl.rivm.screenit.batch.jobs.generalis.gba.GbaFtpSettings;
 import nl.rivm.screenit.batch.jobs.generalis.gba.verwerk105step.Vo105ItemWriter;
+import nl.rivm.screenit.config.GbaConfig;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 import nl.rivm.screenit.service.FileService;
 
@@ -47,12 +47,14 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.jcraft.jsch.SftpException;
 
 @Slf4j
+@Component
 public class Vo105UploadTasklet implements Tasklet, StepExecutionListener
 {
 
@@ -62,26 +64,8 @@ public class Vo105UploadTasklet implements Tasklet, StepExecutionListener
 	@Autowired
 	private FileService fileService;
 
-	@Setter
-	private String host;
-
-	@Setter
-	private int port;
-
-	@Setter
-	private String username;
-
-	@Setter
-	private String password;
-
-	@Setter
-	private String uploadPath;
-
-	@Setter
-	private String knownHostPath;
-
-	@Setter
-	private String voFileStorePath;
+	@Autowired
+	private GbaConfig gbaConfig;
 
 	@Setter
 	private StepExecution stepExecution;
@@ -94,12 +78,12 @@ public class Vo105UploadTasklet implements Tasklet, StepExecutionListener
 		GbaVerwerkingsLog verwerkingsLog = (GbaVerwerkingsLog) executionContext.get(GbaConstants.RAPPORTAGEKEYGBA);
 		String vo105Bestand = (String) executionContext.get(Vo105ItemWriter.VO105_BESTAND_KEY);
 
-		var gbaFtpConnection = new GbaFtpConnection(maakFtpSettings(), verwerkingsLog)
+		var gbaFtpConnection = new GbaFtpConnection(gbaConfig, verwerkingsLog)
 		{
 			@Override
 			protected void ftpActies() throws SftpException
 			{
-				getChannelSftp().cd(uploadPath);
+				getChannelSftp().cd(gbaConfig.gbaUploadFolder());
 
 				File file = new File(vo105Bestand);
 				saveFile(file);
@@ -125,22 +109,11 @@ public class Vo105UploadTasklet implements Tasklet, StepExecutionListener
 		return RepeatStatus.FINISHED;
 	}
 
-	private GbaFtpSettings maakFtpSettings()
-	{
-		var settings = new GbaFtpSettings();
-		settings.setHost(host);
-		settings.setPort(port);
-		settings.setUsername(username);
-		settings.setPassword(password);
-		settings.setKnownHostPath(knownHostPath);
-		return settings;
-	}
-
 	private void saveFile(File vo105File)
 	{
 		StringBuilder directory = new StringBuilder();
 
-		directory.append(voFileStorePath);
+		directory.append(gbaConfig.voFileStorePath());
 
 		Calendar cal = Calendar.getInstance();
 		directory.append(File.separator);

@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.cleanupstep;
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
 import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaBriefCleanupReader extends AbstractBrievenCleanUpReader<MammaMergedBrieven>
 {
 }

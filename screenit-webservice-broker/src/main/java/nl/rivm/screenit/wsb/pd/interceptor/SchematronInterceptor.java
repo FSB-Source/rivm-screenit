@@ -47,6 +47,8 @@ import javax.xml.transform.URIResolver;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import lombok.extern.slf4j.Slf4j;
+
 import net.sf.saxon.TransformerFactoryImpl;
 
 import nl.rivm.screenit.Constants;
@@ -65,31 +67,29 @@ import org.apache.cxf.binding.soap.interceptor.AbstractSoapInterceptor;
 import org.apache.cxf.binding.xml.XMLFault;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.phase.Phase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class SchematronInterceptor extends AbstractSoapInterceptor
 {
+	private final Map<String, Transformer> mdlTransformers = new HashMap<>();
 
-	private static final Logger LOG = LoggerFactory.getLogger(SchematronInterceptor.class);
+	private final Map<String, Transformer> paTransformers = new HashMap<>();
 
-	private Map<String, Transformer> mdlTransformers = new HashMap<>();
+	private final Map<String, Transformer> cervixCytologieTransformers = new HashMap<>();
 
-	private Map<String, Transformer> paTransformers = new HashMap<>();
-
-	private Map<String, Transformer> cervixCytologieTransformers = new HashMap<>();
-
-	private Map<String, Transformer> mammaFollowUpTransformers = new HashMap<>();
+	private final Map<String, Transformer> mammaFollowUpTransformers = new HashMap<>();
 
 	List<Map<String, Transformer>> transformers = new ArrayList<>();
 
-	private List<String> supportedVersions = new ArrayList<>();
+	private final List<String> supportedVersions = new ArrayList<>();
 
 	private String currentSchematronVersionPathMapping = null;
 
-	private Map<String, String> schematronPathMapping = new HashMap<>();
+	private final Map<String, String> schematronPathMapping = new HashMap<>();
 
 	@Autowired
 	@Qualifier("schematronLocation")

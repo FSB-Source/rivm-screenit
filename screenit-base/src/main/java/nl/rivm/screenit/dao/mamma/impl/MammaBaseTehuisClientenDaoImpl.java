@@ -25,11 +25,13 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
@@ -39,14 +41,15 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.organisatie.model.Adres;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.query.NativeQuery;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
 import static nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie.GEKOPPELD;
 import static nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie.TEHUIS_ADRES;
 import static nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie.UIT_TE_NODIGEN;
@@ -107,7 +110,7 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 		fromString += " left join mamma.screening_ronde laatste_screening_ronde on dossier.laatste_screening_ronde = laatste_screening_ronde.id";
 
 		StringBuilder whereString = new StringBuilder();
-		whereString.append(" where persoon.geslacht = \'").append(Geslacht.VROUW.name()).append("\'");
+		whereString.append(" where (dossier.deelnamemodus <> \'").append(Deelnamemodus.SELECTIEBLOKKADE.name()).append("\' or dossier.tehuis = :tehuis)");
 		whereString.append(" and persoon.geboortedatum >= :vanafGeboortedatum");
 		whereString.append(" and persoon.geboortedatum < :totGeboortedatum");
 
@@ -183,6 +186,7 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 		{
 			whereString.append(" and ").append(ScreenitRestrictions.getClientBaseRestrictions("client", "persoon"));
 
+			whereString.append(" and dossier.deelnamemodus <> \'").append(Deelnamemodus.SELECTIEBLOKKADE.name()).append("\'");
 			whereString.append(" and dossier.status = \'").append(DossierStatus.ACTIEF).append("\'");
 
 			whereString.append(" and (");
@@ -216,10 +220,8 @@ public class MammaBaseTehuisClientenDaoImpl extends AbstractAutowiredDao impleme
 
 		query.setParameter("vanafGeboortedatum", DateUtil.toUtilDate(LocalDate.of(vanafGeboortejaar, 1, 1)));
 		query.setParameter("totGeboortedatum", DateUtil.toUtilDate(LocalDate.of(totGeboortejaar, 1, 1)));
-		if (tehuisSelectie == GEKOPPELD || tehuisSelectie == UIT_TE_NODIGEN)
-		{
-			query.setParameter("tehuis", tehuis.getId());
-		}
+		query.setParameter("tehuis", tehuis.getId());
+
 		if (tehuisSelectie == UIT_TE_NODIGEN)
 		{
 			Integer minimaleIntervalMammografieOnderzoeken = preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_INTERVAL_MAMMOGRAFIE_ONDERZOEKEN.name());

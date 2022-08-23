@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractKansberekeningTasklet;
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaKansberekeningConstants;
@@ -33,24 +35,24 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.IOUtils;
 import org.hibernate.SQLQuery;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaGemiddeldenTasklet extends MammaAbstractKansberekeningTasklet
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
 	protected void execute()
 	{
 		try
 		{
-			String nu = dateSupplier.getLocalDateTime().toString();
+			var nu = dateSupplier.getLocalDateTime().toString();
 
-			String sql = IOUtils.toString(MammaGemiddeldenTasklet.class.getResourceAsStream("/updateDeelnameGemiddelden.sql"));
+			var sql = IOUtils.toString(MammaGemiddeldenTasklet.class.getResourceAsStream("/updateDeelnameGemiddelden.sql"));
 			SQLQuery sqlQuery = hibernateService.getHibernateSession().createSQLQuery(sql);
 			sqlQuery.setParameter("nu", nu);
 			sqlQuery.setParameter("deelnamekansberekening_na_weken", Constants.DEELNAMEKANSBEREKENING_NA_WEKEN);

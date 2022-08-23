@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
 
 /*-
@@ -22,19 +21,22 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.batch.service.GbaService;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class PostcodeCoordinatenClientKoppelReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private GbaService gbaService;
+	private final GbaService gbaService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException

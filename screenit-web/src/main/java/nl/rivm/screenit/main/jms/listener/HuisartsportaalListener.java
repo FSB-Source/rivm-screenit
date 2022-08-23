@@ -24,21 +24,22 @@ package nl.rivm.screenit.main.jms.listener;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.huisartsenportaal.dto.AanvraagDto;
 import nl.rivm.screenit.huisartsenportaal.dto.HuisartsDto;
 import nl.rivm.screenit.huisartsenportaal.dto.LocatieDto;
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsSyncService;
 
 import org.apache.activemq.command.ActiveMQObjectMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class HuisartsportaalListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(HuisartsportaalListener.class);
 
 	@Autowired
 	private CervixHuisartsSyncService cervixHuisartsSyncService;

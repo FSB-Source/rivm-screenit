@@ -30,7 +30,9 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RegioBrievenGenererenReader extends AbstractBrievenGenererenReader<CervixRegioBrief>
 {
 
@@ -43,8 +45,8 @@ public class RegioBrievenGenererenReader extends AbstractBrievenGenererenReader<
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		ExecutionContext stepContext = getStepExecutionContext();
-		Criteria crit = session.createCriteria(CervixRegioBrief.class);
+		var stepContext = getStepExecutionContext();
+		var crit = session.createCriteria(CervixRegioBrief.class);
 		crit.createAlias("regio", "regio");
 		crit.add(Restrictions.eq("regio.id", getScreeningOrganisatieId(stepContext)));
 

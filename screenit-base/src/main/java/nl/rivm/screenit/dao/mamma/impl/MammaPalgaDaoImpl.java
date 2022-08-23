@@ -24,18 +24,19 @@ package nl.rivm.screenit.dao.mamma.impl;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaPalgaDao;
 import nl.rivm.screenit.model.Bezwaar;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportGewensteUitslag;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportPeriodeType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BezwaarType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.StringUtil;
@@ -59,12 +60,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.SUPPORTS)
 public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalgaDao
 {
-
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
-
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;
@@ -107,26 +104,51 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 	}
 
 	@Override
-	public List<Long> getClientenVoorPalga()
+	public List<Long> getClientenVoorPalga(MammaPalgaExportConfig exportConfig)
 	{
+
 		Criteria crit = getSession().createCriteria(Client.class, "client");
-		crit.createAlias("client.mammaDossier", "mammaDossier");
-		crit.createAlias("mammaDossier.laatsteBeoordelingMetUitslag", "laatsteBeoordelingMetUitslag");
-		if (preferenceService.getBoolean(PreferenceKey.MAMMA_PALGA_EXPORT_ALLEEN_VERWEZEN.name()))
-		{
-			crit.add(Restrictions.eq("laatsteBeoordelingMetUitslag.status", MammaBeoordelingStatus.UITSLAG_ONGUNSTIG));
-		}
+		crit.createAlias("client.mammaDossier", "dossier");
 
 		crit.add(Restrictions.ne("client.gbaStatus", GbaStatus.AFGEVOERD));
 		crit.add(Restrictions.ne("client.gbaStatus", GbaStatus.BEZWAAR));
-
 		addClientBezwaarRestrictions(crit);
 
-		crit.add(
-			DateRestrictions.ge("laatsteBeoordelingMetUitslag.statusDatum", DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusMonths(30))));
-		crit.setProjection(Projections.id());
+		crit.createAlias("dossier.screeningRondes", "ronde");
+		crit.createAlias("ronde.laatsteOnderzoek", "onderzoek");
+		crit.createAlias("onderzoek.laatsteBeoordeling", "beoordeling");
+
+		if (exportConfig.getPeriodeType() == MammaPalgaExportPeriodeType.ONDERZOEKS_DATUM_AANTAL_MAANDEN_TERUG)
+		{
+			crit.add(Restrictions.in("beoordeling.status", gekozenUitslagen(exportConfig.getGewensteUitslag())));
+			crit.add(DateRestrictions.ge("onderzoek.creatieDatum",
+				DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusMonths(exportConfig.getOnderzoekAantalMaandenTerug()))));
+		}
+		else if (exportConfig.getPeriodeType() == MammaPalgaExportPeriodeType.ONDERZOEKS_DATUM_PERIODE)
+		{
+			crit.add(Restrictions.in("beoordeling.status", gekozenUitslagen(exportConfig.getGewensteUitslag())));
+			crit.add(DateRestrictions.ge("onderzoek.creatieDatum", exportConfig.getVanafOnderzoeksDatum()));
+			crit.add(DateRestrictions.le("onderzoek.creatieDatum", exportConfig.getTotEnMetOnderzoeksDatum()));
+		}
+
+		crit.setProjection(Projections.distinct(Projections.id()));
 
 		return crit.list();
+	}
+
+	private List<MammaBeoordelingStatus> gekozenUitslagen(MammaPalgaExportGewensteUitslag uitslagkeuze)
+	{
+		switch (uitslagkeuze)
+		{
+		case ALLEEN_ONGUNSTIG:
+			return List.of(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG);
+		case ALLEEN_GUNSTIG:
+			return List.of(MammaBeoordelingStatus.UITSLAG_GUNSTIG);
+		case GUNSTIG_EN_ONGUNSTIG:
+			return List.of(MammaBeoordelingStatus.UITSLAG_ONGUNSTIG, MammaBeoordelingStatus.UITSLAG_GUNSTIG);
+		default:
+			throw new IllegalStateException("Unexpected value: " + uitslagkeuze);
+		}
 	}
 
 	private void addClientBezwaarRestrictions(Criteria crit)
@@ -152,17 +174,6 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 		return crit.list().size() != 1;
 	}
 
-	@Transactional(propagation = Propagation.REQUIRED)
-	@Override
-	public void deleteExports()
-	{
-		List<UploadDocument> exports = getExports();
-		for (UploadDocument export : exports)
-		{
-			uploadDocumentService.delete(export, true);
-		}
-	}
-
 	@Override
 	public UploadDocument getExport()
 	{
@@ -171,7 +182,8 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 		return crit.list().size() != 0 ? (UploadDocument) crit.list().get(0) : null;
 	}
 
-	private List<UploadDocument> getExports()
+	@Override
+	public List<UploadDocument> getExports()
 	{
 		Criteria crit = getExportCriteria();
 		return crit.list();
@@ -194,7 +206,8 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 		return crit.list().size() != 0 ? (UploadDocument) crit.list().get(0) : null;
 	}
 
-	private List<UploadDocument> getImports()
+	@Override
+	public List<UploadDocument> getImports()
 	{
 		Criteria crit = getImportCriteria();
 		return crit.list();
@@ -203,21 +216,11 @@ public class MammaPalgaDaoImpl extends AbstractAutowiredDao implements MammaPalg
 	private Criteria getImportCriteria()
 	{
 		Criteria crit = getSession().createCriteria(UploadDocument.class);
-		crit.add(Restrictions.in("contentType", "application/octet-stream", "application/vnd.ms-excel"));
+		crit.add(Restrictions.in("contentType", "application/octet-stream", "application/vnd.ms-excel", "text/csv"));
 		crit.add(Restrictions.like("naam", ".csv", MatchMode.END));
 		crit.add(Restrictions.like("path", FileStoreLocation.MAMMA_PALGA_CSV_IMPORT.getPath().replaceAll("\\\\", "\\\\\\\\"), MatchMode.START));
 		crit.addOrder(Order.desc("naam"));
 		return crit;
-	}
-
-	@Override
-	public void deleteImports()
-	{
-		List<UploadDocument> imports = getImports();
-		for (UploadDocument importDoc : imports)
-		{
-			uploadDocumentService.delete(importDoc, true);
-		}
 	}
 
 }

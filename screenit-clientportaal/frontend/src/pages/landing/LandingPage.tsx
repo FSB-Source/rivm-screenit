@@ -21,10 +21,9 @@
 import React, {useEffect} from "react"
 import {Col, Container, Row} from "react-bootstrap"
 import styles from "./LandingPage.module.scss"
-import {useDispatch, useSelector} from "react-redux"
+import {useSelector} from "react-redux"
 import BvoSelectieComponent from "../../components/bvo_selectie/BvoSelectieComponent"
 import BvoUrlComponent from "../../components/bvo_url/BvoUrlComponent"
-import {Geslacht} from "../../datatypes/Geslacht"
 import blob_personen from "../../scss/media/blob-personen.jpg"
 import ImageBlobComponent from "../../components/blob/ImageBlobComponent"
 import {nu} from "../../utils/DateUtil"
@@ -35,9 +34,13 @@ import {getString} from "../../utils/TekstPropertyUtil"
 import SpanWithHtml from "../../components/span/SpanWithHtml"
 import {Persoon} from "../../datatypes/Persoon"
 import {State} from "../../datatypes/State"
+import {AanhefType} from "../../datatypes/aanhef/AanhefType"
+import {Geslacht} from "../../datatypes/Geslacht"
+import {isNullOfLeeg} from "../../utils/EmptyUtil"
+import {useThunkDispatch} from "../../index"
 
 const LandingPage = () => {
-	const dispatch = useDispatch()
+	const dispatch = useThunkDispatch()
 	const persoon = useSelector((state: State) => state.client.persoon)
 
 	useEffect(() => {
@@ -80,29 +83,13 @@ const getGreeting = (): string => {
 }
 
 const getPersoonAanhef = (persoon: Persoon): string => {
-	let aanhef = ""
-	switch (persoon.geslacht) {
-		case Geslacht.MAN:
-			aanhef += "Meneer"
-			break
-		case Geslacht.VROUW:
-			aanhef += "Mevrouw"
-			break
-		case Geslacht.ONBEKEND:
-			aanhef += persoon.voorletters
-			break
+	if (persoon.aanhef === AanhefType.GEACHTE_MEVROUW || (isNullOfLeeg(persoon.aanhef) && persoon.geslacht === Geslacht.VROUW)) {
+		return getString(properties.aanspreekvormen.mevrouw, [persoon.aanspreekTussenvoegselEnAchternaam.charAt(0).toUpperCase() + persoon.aanspreekTussenvoegselEnAchternaam.slice(1)])
+	} else if (persoon.aanhef === AanhefType.GEACHTE_HEER || (isNullOfLeeg(persoon.aanhef) && persoon.geslacht === Geslacht.MAN)) {
+		return getString(properties.aanspreekvormen.heer, [persoon.aanspreekTussenvoegselEnAchternaam.charAt(0).toUpperCase() + persoon.aanspreekTussenvoegselEnAchternaam.slice(1)])
+	} else {
+		return getString(properties.aanspreekvormen.onbekend, [persoon.voorletters, persoon.aanspreekTussenvoegselEnAchternaam])
 	}
-	aanhef += " "
-	switch (persoon.geslacht) {
-		case Geslacht.MAN:
-		case Geslacht.VROUW:
-			aanhef += persoon.aanspreekTussenvoegselEnAchternaam.charAt(0).toUpperCase() + persoon.aanspreekTussenvoegselEnAchternaam.slice(1)
-			break
-		case Geslacht.ONBEKEND:
-			aanhef += persoon.aanspreekTussenvoegselEnAchternaam
-			break
-	}
-	return aanhef
 }
 
 export default LandingPage

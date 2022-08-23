@@ -26,7 +26,9 @@ import nl.rivm.screenit.Constants;
 import org.apache.cxf.binding.xml.XMLFault;
 import org.apache.cxf.logging.FaultListener;
 import org.apache.cxf.message.Message;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ScreenITFaultListener implements FaultListener
 {
 

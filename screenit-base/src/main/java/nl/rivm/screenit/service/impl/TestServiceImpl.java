@@ -24,6 +24,7 @@ package nl.rivm.screenit.service.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.text.ParseException;
@@ -167,14 +168,13 @@ public class TestServiceImpl implements TestService
 	}
 
 	@Override
-	public void createGbaFile(GbaPersoon persoon, File vo107template, OutputStream vo107)
+	public void createGbaFile(GbaPersoon persoon, InputStream vo107template, OutputStream vo107)
 	{
 		OutputStreamWriter vo107Bestand = null;
 
-		try
+		try (Scanner scanner = new Scanner(vo107template, "UTF-8"))
 		{
 			vo107Bestand = new OutputStreamWriter(vo107);
-			Scanner scanner = new Scanner(vo107template, "UTF-8");
 			String vo107TemplateString = scanner.useDelimiter("\\A").next().substring(1);
 
 			int arecordNr = 1;
@@ -271,58 +271,70 @@ public class TestServiceImpl implements TestService
 			GbaPersoon persoon = new GbaPersoon();
 			client.setPersoon(persoon);
 			persoon.setGbaGeboorteLand(getGbaLand());
-			persoon.setGbaNationaliteiten(Arrays.asList(getGbaNationaliteit()));
+			persoon.setGbaNationaliteiten(List.of(getGbaNationaliteit()));
 			persoon.setGeboorteplaats("Deventer");
 			persoon.setNaamGebruik(NaamGebruik.EIGEN);
-			if (Geslacht.MAN.equals(geslacht))
+			switch (geslacht)
 			{
+			case MAN:
 				persoon.setVoornaam("J\u00F6hn");
-				persoon.setTussenvoegsel("de");
 				persoon.setAchternaam("Doe\u00E7-" + bsn);
-				persoon.setGeslacht(Geslacht.MAN);
-			}
-			else
-			{
+				break;
+			case VROUW:
 				persoon.setVoornaam("J\u00FCne");
-				persoon.setTussenvoegsel("de");
 				persoon.setAchternaam("Doe\u011F-" + bsn);
-				persoon.setGeslacht(Geslacht.VROUW);
+				break;
+			case ONBEKEND:
+				persoon.setVoornaam("J\u00E6mie");
+				persoon.setAchternaam("Doe\uA7A1-" + bsn);
+				break;
+			case NIET_GESPECIFICEERD:
+				throw new UnsupportedOperationException(geslacht + " Wordt niet gebruikt");
+			default:
+				throw new IllegalStateException("Unexpected value: " + geslacht);
 			}
+			persoon.setGeslacht(geslacht);
+			persoon.setTussenvoegsel("de");
 			persoon.setBsn(bsn);
 			persoon.setOverlijdensdatum(overlijdensDatum);
-			if (geboortedatum == null)
-			{
-				try
-				{
-					persoon.setGeboortedatum(new SimpleDateFormat("dd-MM-yyyy").parse("01-01-1950"));
-				}
-				catch (ParseException e)
-				{
-					LOG.error(e.getMessage(), e);
-				}
-			}
-			else
-			{
-				persoon.setGeboortedatum(geboortedatum);
-			}
+			zetGeboortedatum(geboortedatum, persoon);
 			persoon.setPatient(client);
 			client.setGbaStatus(GbaStatus.INDICATIE_AANWEZIG);
 			hibernateService.saveOrUpdate(persoon);
 			hibernateService.saveOrUpdate(client);
 
 			dossierFactory.maakDossiers(client);
+
 			if (client.getMammaDossier() != null)
 			{
 				baseKansberekeningService.maakDossierEvent(client.getMammaDossier());
 			}
 		}
-		else if (client != null)
-		{
-			GbaPersoon persoon = client.getPersoon();
-			persoon.setOverlijdensdatum(overlijdensDatum);
-			hibernateService.saveOrUpdate(persoon);
-		}
+
+		GbaPersoon persoon = client.getPersoon();
+		persoon.setOverlijdensdatum(overlijdensDatum);
+		hibernateService.saveOrUpdate(persoon);
+
 		return client;
+	}
+
+	public static void zetGeboortedatum(Date geboortedatum, GbaPersoon persoon)
+	{
+		if (geboortedatum == null)
+		{
+			try
+			{
+				persoon.setGeboortedatum(new SimpleDateFormat("dd-MM-yyyy").parse("01-01-1950"));
+			}
+			catch (ParseException e)
+			{
+				LOG.error(e.getMessage(), e);
+			}
+		}
+		else
+		{
+			persoon.setGeboortedatum(geboortedatum);
+		}
 	}
 
 	private BagAdres geefAdres(Client client, BagAdres bagAdres)

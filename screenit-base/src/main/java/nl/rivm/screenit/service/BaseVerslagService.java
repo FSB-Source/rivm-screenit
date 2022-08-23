@@ -23,12 +23,15 @@ package nl.rivm.screenit.service;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.berichten.Verslag;
+import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 
 public interface BaseVerslagService
 {
-	void verwijderVerslag(Verslag verslag, InstellingGebruiker instellingGebruiker, boolean heropenRondeEnDossier);
+	void verwijderVerslag(Verslag<?, ?> verslag, InstellingGebruiker instellingGebruiker, boolean heropenRondeEnDossier);
 
-	void heropenRondeEnDossier(Verslag verslag);
+	void heropenRondeEnDossier(Verslag<?, ?> verslag);
 
-	String createLogMelding(Verslag verslag);
+	String createLogMelding(Verslag<?, ?> verslag);
+
+	boolean isElektronischPalgaVerslag(MammaFollowUpVerslag followUpVerslag);
 }

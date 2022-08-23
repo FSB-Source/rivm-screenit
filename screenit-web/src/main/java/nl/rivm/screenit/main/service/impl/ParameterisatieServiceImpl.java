@@ -25,11 +25,15 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.EmailConfiguratie;
@@ -46,6 +50,8 @@ import nl.rivm.screenit.model.colon.UitnodigingCohort;
 import nl.rivm.screenit.model.colon.UitnodigingCohortGeboortejaren;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
+import nl.rivm.screenit.model.mamma.MammaUitnodigingsinterval;
+import nl.rivm.screenit.model.mamma.enums.MammaUitnodigingsintervalType;
 import nl.rivm.screenit.model.project.Project;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -57,10 +63,7 @@ import nl.topicuszorg.preferencemodule.service.PreferenceService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -68,11 +71,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Slf4j
 public class ParameterisatieServiceImpl implements ParameterisatieService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ParameterisatieServiceImpl.class);
-
 	@Autowired
 	private SimplePreferenceService simplePreferenceService;
 
@@ -154,7 +155,8 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 	{
 		List<UitnodigingCohort> cohorten = oudParameterisatieObject;
 		UitnodigingCohort oudCohort = cohorten.stream()
-			.filter(c -> {
+			.filter(c ->
+			{
 				c = (UitnodigingCohort) HibernateHelper.deproxy(c);
 				return c.getJaar().equals(nieuweGeboortejarenDto.getJaar());
 			})
@@ -164,8 +166,8 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 			return "Cohort van het jaar " + nieuweGeboortejarenDto.getJaar() + " is toegevoegd. (" +
 				nieuweGeboortejarenDto.getGeboortejaren().stream().map(Object::toString).collect(Collectors.joining(", ")) + ")";
 		}
-		if (CollectionUtils.disjunction(oudCohort.getGeboortejaren().stream().map(UitnodigingCohortGeboortejaren::getGeboortejaren).collect(Collectors.toList()),
-			nieuweGeboortejarenDto.getGeboortejaren()).size() > 0)
+		if (!CollectionUtils.disjunction(oudCohort.getGeboortejaren().stream().map(UitnodigingCohortGeboortejaren::getGeboortejaren).collect(Collectors.toList()),
+			nieuweGeboortejarenDto.getGeboortejaren()).isEmpty())
 		{
 			return "Cohort van jaar " + nieuweGeboortejarenDto.getJaar() + " is aangepast. ("
 				+ oudCohort.getGeboortejaren().stream().map(j -> j.getGeboortejaren().toString()).collect(Collectors.joining(", ")) +
@@ -178,7 +180,7 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 	public Parameterisatie loadParameterisatie()
 	{
 		Parameterisatie parameterisatie = new Parameterisatie();
-		Map<PreferenceKey, Object> values = new HashMap<>();
+		Map<PreferenceKey, Object> values = new EnumMap<>(PreferenceKey.class);
 
 		for (PreferenceKey preferenceKey : PreferenceKey.values())
 		{
@@ -343,7 +345,7 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 
 	private String getLoginformatieString(List<String> logInformatie)
 	{
-		return logInformatie.stream().map(info -> info.toString()).collect(Collectors.joining(", "));
+		return String.join(", ", logInformatie);
 	}
 
 	private String valueChanged(PreferenceKey key, Object value, Parameterisatie oudParameterObject)
@@ -364,7 +366,7 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 
 	private void put(PreferenceKey preferenceKey, Object value)
 	{
-		LOG.debug("prefkey: " + preferenceKey.name() + ", value: " + value);
+		LOG.debug("prefkey: {}, value: {}", preferenceKey.name(), value);
 		if (value == null)
 		{
 			simplePreferenceService.putString(preferenceKey.name(), null);
@@ -382,10 +384,6 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 		else if (preferenceKey.getType().equals(String.class))
 		{
 			simplePreferenceService.putString(preferenceKey.name(), String.valueOf(value));
-		}
-		else if (PreferenceKey.EDIFACTADRES.equals(preferenceKey) && value == null)
-		{
-			simplePreferenceService.putString(preferenceKey.name(), "");
 		}
 		else if (preferenceKey.getType().equals(Integer.class))
 		{
@@ -406,7 +404,7 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 
 			preferenceService.saveOrUpdate(preferenceKey.name(), new EntityWithoutIdContext(Project.class), Converters.forString(), hibernateObject.getId().toString());
 		}
-		else if (value != null)
+		else
 		{
 			throw new IllegalArgumentException("Geen mogelijkheid voor parameterisatie.");
 		}
@@ -423,20 +421,6 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 		{
 			simplePreferenceService.putInteger(preferenceKey.name(), null);
 		}
-	}
-
-	public String preferenceKeyToPropertiesName(PreferenceKey key)
-	{
-		String prefProperty = WordUtils.capitalizeFully(key.name(), new char[] { '_' });
-		prefProperty = org.apache.commons.lang.StringUtils.uncapitalize(prefProperty.replaceAll("_", ""));
-		return prefProperty;
-	}
-
-	@Override
-	public Project getProjectFromPreferences(PreferenceKey key)
-	{
-		return preferenceService.load(key.name(), new EntityWithoutIdContext(Project.class),
-			s -> hibernateService.load(Project.class, Long.valueOf(s)));
 	}
 
 	@Override
@@ -469,14 +453,48 @@ public class ParameterisatieServiceImpl implements ParameterisatieService
 	}
 
 	@Override
-	public List<ColonUitnodigingsinterval> getIntervalParameters()
+	public List<ColonUitnodigingsinterval> getColonIntervalParameters()
 	{
 		return hibernateService.loadAll(ColonUitnodigingsinterval.class);
 	}
 
 	@Override
-	public void saveIntervalParameters(List<ColonUitnodigingsinterval> intervalParameters)
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void saveColonIntervalParameters(List<ColonUitnodigingsinterval> intervalParameters)
 	{
 		hibernateService.saveOrUpdateAll(intervalParameters);
 	}
+
+	@Override
+	public List<MammaUitnodigingsinterval> getMammmaIntervalParameters()
+	{
+		return hibernateService.loadAll(MammaUitnodigingsinterval.class);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public void saveMammaIntervalParameters(List<MammaUitnodigingsinterval> nieuweParameters, Map<MammaUitnodigingsintervalType, Integer> oudeParameters, Account account)
+	{
+		hibernateService.saveOrUpdateAll(nieuweParameters);
+		String melding = mammaIntervalWijzigingLogtekst(nieuweParameters, oudeParameters);
+		logService.logGebeurtenis(LogGebeurtenis.PARAMETERISATIE_WIJZIG, account, melding, Bevolkingsonderzoek.MAMMA);
+	}
+
+	private String mammaIntervalWijzigingLogtekst(List<MammaUitnodigingsinterval> intervalParameters, Map<MammaUitnodigingsintervalType, Integer> oudeParameters)
+	{
+		var melding = new StringJoiner(", ", "Interval volgende uitnodiging aangepast: ", "");
+		melding.setEmptyValue("Geen interval aangepast");
+
+		for (var nieuwInterval : intervalParameters)
+		{
+			var oudeWaarde = oudeParameters.get(nieuwInterval.getType());
+			var nieuweWaarde = nieuwInterval.getAantalMaanden();
+			if (!Objects.equals(nieuweWaarde, oudeWaarde))
+			{
+				melding.add(String.format("%s: %d -> %d", nieuwInterval.getType(), oudeWaarde, nieuweWaarde));
+			}
+		}
+		return melding.toString();
+	}
+
 }

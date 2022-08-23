@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag.gunstigestep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag.GunstigeUitslagConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
@@ -28,16 +30,16 @@ import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class GunstigeUitslagBriefWriter extends BaseWriter<Client>
 {
 
-	@Autowired
-	private ColonScreeningsrondeService screeningsrondeService;
+	private final ColonScreeningsrondeService screeningsrondeService;
 
-	@Autowired
-	private ColonDossierBaseService dossierBaseService;
+	private final ColonDossierBaseService dossierBaseService;
 
 	@Override
 	protected void write(Client client) throws Exception

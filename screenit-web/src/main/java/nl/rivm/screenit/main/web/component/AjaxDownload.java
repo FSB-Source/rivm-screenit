@@ -21,6 +21,8 @@ package nl.rivm.screenit.main.web.component;
  * =========================LICENSE_END==================================
  */
 
+import java.time.Duration;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -31,7 +33,6 @@ import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.resource.ContentDisposition;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.time.Duration;
 
 public abstract class AjaxDownload extends AbstractAjaxBehavior
 {
@@ -82,7 +83,7 @@ public abstract class AjaxDownload extends AbstractAjaxBehavior
 			}
 		};
 		handler.setContentDisposition(ContentDisposition.ATTACHMENT);
-		handler.setCacheDuration(Duration.minutes(30));
+		handler.setCacheDuration(Duration.ofMinutes(30));
 		String contentType = getContentType();
 		if (contentType == null && fileName != null)
 		{

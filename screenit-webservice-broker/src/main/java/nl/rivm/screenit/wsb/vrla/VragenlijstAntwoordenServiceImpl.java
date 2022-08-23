@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.wsb.vrla;
 
 /*-
@@ -33,6 +32,9 @@ import javax.jws.WebService;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.formulieren.IdentifierElement;
@@ -62,29 +64,22 @@ import nl.topicuszorg.formulieren2.persistence.resultaat.StringAntwoord;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("VragenlijstAntwoordenService_PortType")
+@Service
 @Transactional(propagation = Propagation.SUPPORTS)
 @WebService(targetNamespace = "http://screenit.rivm.nl/", name = "VragenlijstAntwoordenService")
+@Slf4j
+@AllArgsConstructor
 public class VragenlijstAntwoordenServiceImpl implements VragenlijstAntwoordenService
 {
+	private final HibernateService hibernateService;
 
-	private static final Logger LOG = LoggerFactory.getLogger(VragenlijstAntwoordenServiceImpl.class);
+	private final InstellingService instellingService;
 
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private InstellingService instellingService;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	@WebResult(name = "return", targetNamespace = "")
@@ -185,21 +180,21 @@ public class VragenlijstAntwoordenServiceImpl implements VragenlijstAntwoordenSe
 		return response;
 	}
 
-	private class VragenlijstProcessor
+	private static class VragenlijstProcessor
 	{
-		private Vragenlijst gegevenAntwoorden;
+		private final Vragenlijst gegevenAntwoorden;
 
-		private ProjectBrief projectBrief;
+		private final ProjectBrief projectBrief;
 
-		private Response response;
+		private final Response response;
 
-		private Map<Integer, Set<Integer>> gegevenAntwoordenMap = new HashMap<>();
+		private final Map<Integer, Set<Integer>> gegevenAntwoordenMap = new HashMap<>();
 
-		private Map<String, Set<String>> teValiderenAntwoordenMap = new HashMap<>();
+		private final Map<String, Set<String>> teValiderenAntwoordenMap = new HashMap<>();
 
-		private Map<String, StringShowVraagActieInstantie> actieMap = new HashMap<>();
+		private final Map<String, StringShowVraagActieInstantie> actieMap = new HashMap<>();
 
-		private Set<AbstractAntwoord<?>> resultaatAntwoorden;
+		private final Set<AbstractAntwoord<?>> resultaatAntwoorden;
 
 		private int aantalVragenInDefinitie = 0;
 

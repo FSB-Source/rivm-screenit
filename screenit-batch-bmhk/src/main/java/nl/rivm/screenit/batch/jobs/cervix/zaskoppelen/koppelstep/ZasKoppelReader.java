@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.zaskoppelen.koppelstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.cervix.zaskoppelen.ZasKoppelenConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseKoppelReader;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -29,14 +31,15 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.LogService;
 
 import org.springframework.batch.item.ItemReader;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import generated.KOPPELDATA.VERZONDENUITNODIGING;
 
+@Component
+@AllArgsConstructor
 public class ZasKoppelReader extends BaseKoppelReader implements ItemReader<VERZONDENUITNODIGING>
 {
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected void logEindValidatie(LogEvent eindEvent)

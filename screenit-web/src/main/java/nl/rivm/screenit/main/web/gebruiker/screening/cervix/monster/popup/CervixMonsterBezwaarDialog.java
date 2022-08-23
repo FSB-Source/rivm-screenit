@@ -29,10 +29,10 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 
-public abstract class CervixMonsterBezwaarDialog<M extends CervixMonster> extends GenericPanel<CervixMonster>
+public abstract class CervixMonsterBezwaarDialog<M extends CervixMonster> extends GenericPanel<M>
 {
 
-	public CervixMonsterBezwaarDialog(String contentId, IModel<CervixMonster> model, boolean geenGebruikLichaamsMateriaal, boolean geenSignaleringAdvies)
+	public CervixMonsterBezwaarDialog(String contentId, IModel<M> model, boolean geenGebruikLichaamsMateriaal, boolean geenSignaleringAdvies)
 	{
 		super(contentId, model);
 		WebMarkupContainer bezwaarlichaamsmateriaal = new WebMarkupContainer("bezwaarlichaamsmateriaal");

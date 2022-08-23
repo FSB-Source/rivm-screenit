@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.verwerkingstep;
 
 /*-
@@ -33,7 +32,9 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
 
+@Component
 public class IFOBTVerwerkingReader extends BaseScrollableResultReader
 {
 
@@ -42,7 +43,7 @@ public class IFOBTVerwerkingReader extends BaseScrollableResultReader
 	{
 		try
 		{
-			Criteria crit = session.createCriteria(IFOBTUitslag.class);
+			var crit = session.createCriteria(IFOBTUitslag.class);
 
 			crit.createAlias("bestand", "bestand");
 			crit.add(Restrictions.eq("bestand.status", IFOBTBestandStatus.GEAUTORISEERD));

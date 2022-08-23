@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.uitnodingingpushstep;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseTypedScrollableResultReader;
 import nl.rivm.screenit.model.Gemeente;
@@ -31,21 +33,20 @@ import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
+import org.hibernate.Criteria;
+import org.hibernate.HibernateException;
+import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
+import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.Projections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.batch.item.NonTransientResourceException;
-import org.springframework.batch.item.ParseException;
-import org.springframework.batch.item.UnexpectedInputException;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.internal.CriteriaImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableResultReader<ClientCategorieEntry>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(AbstractUitnodigingPushReader.class);
 
 	private static final String CLIENTID = "clientId";
 
@@ -70,10 +71,10 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 	@Override
 	public ClientCategorieEntry read() throws Exception
 	{
-		ScrollableResults scrollableResults = resultSet.get();
+		var scrollableResults = resultSet.get();
 		while (scrollableResults.next())
 		{
-			Map<String, Object> results = getMapWithData(getObjectFromScrollableResult(scrollableResults));
+			var results = getMapWithData(getObjectFromScrollableResult(scrollableResults));
 			Long clientId = ((Number) results.get(CLIENTID)).longValue();
 			Long projectGroepId = ((Number) results.get(GROEPID)).longValue();
 			if (!processedIds.contains(clientId))
@@ -104,10 +105,10 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 		if (gemeenteId != null)
 		{
 			String bsn = String.valueOf(dataMap.get(CLIENTBSN));
-			Gemeente gemeente = hibernateService.get(Gemeente.class, gemeenteId);
+			var gemeente = hibernateService.get(Gemeente.class, gemeenteId);
 			if (gemeente.getScreeningOrganisatie() == null)
 			{
-				ExecutionContext context = getExecutionContext();
+				var context = getExecutionContext();
 				if (!context.containsKey(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES))
 				{
 					Map<Long, String> map = new HashMap<Long, String>();
@@ -122,6 +123,20 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 			}
 		}
 		return null;
+	}
+
+	public abstract Criteria createCriteria(StatelessSession session) throws HibernateException;
+
+	@Override
+	public ScrollableResults createScrollableResults(StatelessSession session)
+	{
+		var crit = createCriteria(session);
+
+		if (Integer.valueOf(0).equals(((CriteriaImpl) crit).getMaxResults()))
+		{
+			crit.add(Restrictions.sqlRestriction("1 = 0"));
+		}
+		return crit.setFetchSize(fetchSize).setProjection(getProjection()).scroll(ScrollMode.FORWARD_ONLY);
 	}
 
 	private Object[] getObjectFromScrollableResult(ScrollableResults scrollableResults)
@@ -142,7 +157,7 @@ public abstract class AbstractUitnodigingPushReader extends BaseTypedScrollableR
 
 	private Map<String, Object> getMapWithData(Object[] data)
 	{
-		Map<String, Object> map = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<>();
 		map.put(CLIENTID, data[0]);
 		map.put(CLIENTBSN, data[1]);
 		map.put(GROEPID, data[2]);

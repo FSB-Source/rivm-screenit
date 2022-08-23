@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.verwerkingstep;
 
 /*-
@@ -22,20 +21,22 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking.verwerkingstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.model.colon.IFOBTUitslag;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class IFOBTVerwerkingProcessor implements ItemProcessor<Long, IFOBTUitslag>
 {
-
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
-	public IFOBTUitslag process(Long item) throws Exception
+	public IFOBTUitslag process(Long item)
 	{
 		return hibernateService.load(IFOBTUitslag.class, item);
 	}

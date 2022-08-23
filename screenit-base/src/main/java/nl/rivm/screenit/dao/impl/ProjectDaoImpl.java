@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ProjectParameterKey;
@@ -72,8 +73,6 @@ import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.sql.JoinType;
 import org.hibernate.type.LongType;
 import org.hibernate.type.Type;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
@@ -423,18 +422,10 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	@Override
 	public List<ProjectClient> getValideClientenVanProject(Project project, ProjectBriefActie definitie)
 	{
-		Date vandaag = currentDateSupplier.getDateMidnight();
+		var vandaag = currentDateSupplier.getLocalDate();
 		Criteria crit = getSession().createCriteria(ProjectClient.class);
 
-		crit.add(Restrictions.eq("actief", Boolean.TRUE));
-
 		crit.createAlias("project", "project");
-		crit.add(
-			Restrictions.and(
-				Restrictions.gt("project.eindDatum", vandaag), 
-				Restrictions.le("project.startDatum", vandaag)
-			) 
-		); 
 		crit.add(Restrictions.eq("project", project));
 
 		crit.createAlias("client", "client");
@@ -464,7 +455,8 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		crit.add(Subqueries.propertyNotIn("id", subquery));
 
 		crit.createAlias("groep", "groep");
-		crit.add(Restrictions.eq("groep.actief", Boolean.TRUE));
+
+		crit.add(ScreenitRestrictions.addClientActiefInProjectCriteria("", "groep", "project", vandaag));
 
 		return crit.list();
 	}
@@ -473,7 +465,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	@Override
 	public List<Long> getActieveActiesVoorBrieven(ScreeningOrganisatie so)
 	{
-		Date vandaag = currentDateSupplier.getDate();
+		var vandaag = currentDateSupplier.getLocalDate();
 		Criteria crit = getSession().createCriteria(ProjectBrief.class);
 		crit.createAlias("projectClient", "projectClient");
 		crit.createAlias("projectClient.groep", "groep");
@@ -486,15 +478,8 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		crit.createAlias("definitie", "definitie");
 
 		crit.add(Restrictions.eq("screeningorganisatie", so));
-		crit.add(Restrictions.eq("projectClient.actief", Boolean.TRUE));
-		crit.add(Restrictions.eq("groep.actief", Boolean.TRUE));
-		crit.add(
-			Restrictions.and(
-				Restrictions.gt("project.eindDatum", vandaag), 
-				Restrictions.lt("project.startDatum", vandaag)
-			) 
-		); 
 
+		crit.add(ScreenitRestrictions.addClientActiefInProjectCriteria("projectClient", "groep", "project", vandaag));
 		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
 
 		crit.setProjection(Projections.property("definitie.id"));
@@ -521,7 +506,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	@Override
 	public List<ProjectBrief> getAllProjectBriefForHerinnering(ProjectBriefActie actie, Date verstuurdOp)
 	{
-		Date vandaag = currentDateSupplier.getDate();
+		var vandaag = currentDateSupplier.getLocalDate();
 		Criteria crit = getSession().createCriteria(ProjectBrief.class);
 		crit.createAlias("projectClient", "projectClient");
 		crit.createAlias("projectClient.groep", "projectGroep");
@@ -530,15 +515,7 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		crit.createAlias("definitie", "definitie");
 		crit.createAlias("vragenlijstAntwoordenHolder", "vragenlijstAntwoorden", JoinType.LEFT_OUTER_JOIN);
 
-		crit.add(Restrictions.eq("projectGroep.actief", Boolean.TRUE));
-		crit.add(Restrictions.eq("projectClient.actief", Boolean.TRUE));
-
-		crit.add(
-			Restrictions.and(
-				Restrictions.gt("project.eindDatum", vandaag), 
-				Restrictions.lt("project.startDatum", vandaag)
-			) 
-		); 
+		crit.add(ScreenitRestrictions.addClientActiefInProjectCriteria("projectClient", "projectGroep", "project", vandaag));
 
 		crit.add(Restrictions.isNotNull("definitie.vragenlijst"));
 
@@ -647,20 +624,18 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 	@Override
 	public ProjectBriefActie getProjectBriefActie(Client client, BriefType briefType)
 	{
-
+		var vandaag = currentDateSupplier.getLocalDate();
 		Criteria criteria = getSession().createCriteria(ProjectBriefActie.class);
 		criteria.createAlias("project", "project");
 		criteria.createAlias("project.clienten", "client");
 		criteria.createAlias("client.groep", "groep");
 
-		Date nu = currentDateSupplier.getDate();
-		criteria.add(Restrictions.le("project.startDatum", nu));
-		criteria.add(Restrictions.gt("project.eindDatum", nu));
 		criteria.add(Restrictions.eq("briefType", briefType));
 		criteria.add(Restrictions.eq("type", ProjectBriefActieType.VERVANGENDEBRIEF));
 		criteria.add(Restrictions.eq("client.client", client));
-		criteria.add(Restrictions.eq("groep.actief", Boolean.TRUE));
-		criteria.add(Restrictions.eq("client.actief", Boolean.TRUE));
+
+		criteria.add(ScreenitRestrictions.addClientActiefInProjectCriteria("client", "groep", "project", vandaag));
+
 		List list = criteria.list();
 		if (!list.isEmpty())
 		{
@@ -835,26 +810,26 @@ public class ProjectDaoImpl extends AbstractAutowiredDao implements ProjectDao
 		return (ProjectClientAttribuut) crit.uniqueResult();
 	}
 
-	private Criteria getCriteriaAttributenVoorProjectClient(ProjectClientAttribuut filterModel)
+	private Criteria getCriteriaAttributenVoorProjectClient(ProjectClient filter)
 	{
 		Criteria crit = getSession().createCriteria(ProjectClientAttribuut.class);
 		crit.createAlias("attribuut", "attribuut");
-		crit.add(Restrictions.eq("projectClient", filterModel.getProjectClient()));
+		crit.add(Restrictions.eq("projectClient", filter));
 		return crit;
 	}
 
 	@Override
-	public Long getAantalAttributenVoorProjectClient(ProjectClientAttribuut filterModel)
+	public Long getAantalAttributenVoorProjectClient(ProjectClient filter)
 	{
-		Criteria crit = getCriteriaAttributenVoorProjectClient(filterModel);
+		Criteria crit = getCriteriaAttributenVoorProjectClient(filter);
 		crit.setProjection(Projections.rowCount());
 		return ((Number) crit.uniqueResult()).longValue();
 	}
 
 	@Override
-	public Iterator<ProjectClientAttribuut> getAttributenVoorProjectClient(ProjectClientAttribuut filterModel, long first, long count, SortState<String> sortState)
+	public Iterator<ProjectClientAttribuut> getAttributenVoorProjectClient(ProjectClient filter, long first, long count, SortState<String> sortState)
 	{
-		Criteria crit = getCriteriaAttributenVoorProjectClient(filterModel);
+		Criteria crit = getCriteriaAttributenVoorProjectClient(filter);
 		crit.setMaxResults(Ints.checkedCast(count));
 		crit.setFirstResult(Ints.checkedCast(first));
 		if (sortState.isAsc())

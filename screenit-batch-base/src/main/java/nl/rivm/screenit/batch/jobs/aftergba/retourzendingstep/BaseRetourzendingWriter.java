@@ -37,7 +37,8 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class BaseRetourzendingWriter<C extends Client, U extends InpakbareUitnodiging<S>, S extends ScreeningRonde<D, ?, ?, U>, D extends Dossier<S, ?>> extends BaseWriter<C>
+public abstract class BaseRetourzendingWriter<C extends Client, U extends InpakbareUitnodiging<S>, S extends ScreeningRonde<D, ?, ?, U>, D extends Dossier<S, ?>>
+	extends BaseWriter<C>
 {
 
 	@Autowired

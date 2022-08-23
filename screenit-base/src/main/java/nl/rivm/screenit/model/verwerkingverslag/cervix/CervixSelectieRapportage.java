@@ -29,11 +29,16 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
+@Getter
+@Setter
 @Entity
 @Table(schema = "cervix", name = "selectie_rapportage")
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
@@ -45,23 +50,4 @@ public class CervixSelectieRapportage extends AbstractHibernateObject
 	@Column(nullable = false)
 	private Date datumVerwerking;
 
-	public Long getAantal()
-	{
-		return aantal;
-	}
-
-	public void setAantal(Long aantal)
-	{
-		this.aantal = aantal;
-	}
-
-	public Date getDatumVerwerking()
-	{
-		return datumVerwerking;
-	}
-
-	public void setDatumVerwerking(Date datumVerwerking)
-	{
-		this.datumVerwerking = datumVerwerking;
-	}
 }

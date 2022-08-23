@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.mappers.mamma.MammaAfspraakZoekFilterMapper;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakOptieDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakWijzigenFilterDto;
@@ -48,40 +50,29 @@ import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaAfspraakServiceImpl implements MammaAfspraakService
 {
-	@Autowired
-	private MammaAfspraakZoekFilterMapper afspraakZoekFilterMapper;
+	private final MammaAfspraakZoekFilterMapper afspraakZoekFilterMapper;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private MammaBaseFactory baseFactory;
+	private final MammaBaseFactory baseFactory;
 
-	@Autowired
-	private MammaBaseAfspraakService baseAfspraakService;
+	private final MammaBaseAfspraakService baseAfspraakService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final MammaBaseStandplaatsDao standplaatsDao;
 
-	@Autowired
-	private MammaBaseStandplaatsDao standplaatsDao;
-
-	@Autowired
-	private MammaBaseStandplaatsService standplaatsService;
+	private final MammaBaseStandplaatsService standplaatsService;
 
 	@Override
 	public List<LocalDate> getAlleDatumsMetBeschikbareAfspraken(Client client, String plaats, String afstand)

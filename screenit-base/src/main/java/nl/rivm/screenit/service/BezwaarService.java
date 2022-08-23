@@ -48,15 +48,11 @@ public interface BezwaarService
 
 	void bezwaarAfronden(BezwaarMoment moment, Account account, List<BezwaarGroupViewWrapper> groupWrappers) throws IllegalStateException;
 
-	boolean isBezwaarNieuwVergelekeVorigeBezwaarMoment(BezwaarMoment bezwaarMoment, BezwaarType bezwaarType);
+	boolean isBezwaarNieuwVergelekenMetVorigeBezwaarMoment(BezwaarMoment bezwaarMoment, BezwaarType bezwaarType);
 
 	List<BezwaarGroupViewWrapper> getGroupWrapperForClientPortaal(BezwaarMoment laatstVoltooideMoment, Bevolkingsonderzoek bevolkingsonderzoek);
 
 	void nogmaalsVersturen(BezwaarMoment bezwaarMoment, Account account);
-
-	void algemeneBezwaarBriefTegenhouden(BezwaarBrief bezwaarBrief, Account account);
-
-	void algemeneBezwaarBriefDoorvoeren(BezwaarBrief bezwaarBrief, Account account);
 
 	void bezwarenDoorvoeren(BezwaarMoment moment);
 
@@ -69,4 +65,8 @@ public interface BezwaarService
 	boolean checkBezwaarInLaatsteBezwaarMomentAanwezigIs(Client client, BezwaarType bezwaarType);
 
 	boolean heeftBezwaarIngediendInAfgelopenAantalDagen(Client client, BezwaarType bezwaarType, Bevolkingsonderzoek bevolkingsonderzoek, int aantalDagen);
+
+	BezwaarBrief getNogNietVerwerkteBezwaarBrief(List<BezwaarMoment> bezwaren);
+
+	void bezwaarAfrondenVanuitClientPortaal(Client client, List<BezwaarGroupViewWrapper> bezwaarGroupViewWrappers);
 }

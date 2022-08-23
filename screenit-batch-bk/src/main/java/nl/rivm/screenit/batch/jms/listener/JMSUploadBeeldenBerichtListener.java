@@ -21,29 +21,30 @@ package nl.rivm.screenit.batch.jms.listener;
  * =========================LICENSE_END==================================
  */
 
+import javax.jms.Session;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.MammaCStoreService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.apache.activemq.command.ActiveMQTextMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.jms.Session;
-
 @Transactional(propagation = Propagation.SUPPORTS)
+@Component
+@Slf4j
+@AllArgsConstructor
 public class JMSUploadBeeldenBerichtListener implements SessionAwareMessageListener<ActiveMQTextMessage>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(JMSUploadBeeldenBerichtListener.class);
+	private final MammaCStoreService uploadBeeldenService;
 
-	@Autowired
-	private MammaCStoreService uploadBeeldenService;
-
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	public void onMessage(ActiveMQTextMessage message, Session session)

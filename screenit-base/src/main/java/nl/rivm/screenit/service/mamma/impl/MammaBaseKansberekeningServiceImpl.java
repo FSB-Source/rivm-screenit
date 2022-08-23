@@ -25,7 +25,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
@@ -59,8 +58,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
 import nl.rivm.screenit.model.mamma.enums.MammaRegioType;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.rest.RestApiFactory;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -71,7 +70,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,7 +86,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseKansberekeningServiceImpl.class);
 
-	private static final BigDecimal MINIMUM_OPKOMSTKANS = new BigDecimal(0.01);
+	private static final BigDecimal MINIMUM_OPKOMSTKANS = BigDecimal.valueOf(0.01);
 
 	private static final int KANSBEREKENING_TIMEOUT_MS = 5000;
 
@@ -105,8 +103,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	private SimplePreferenceService preferenceService;
 
 	@Autowired
-	@Lazy
-	private MammaBaseDossierService dossierService;
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
 	@Autowired
 	@Qualifier("kansberekeningServiceUrl")
@@ -157,7 +154,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 		else
 		{
 			screeningRondeEvent.setPeilEpochDay(context.geboorteDatum.plusYears(getMinimaleLeeftijd()).toEpochDay());
-			screeningRondeEvent.setSuspect(dossierService.isSuspect(context));
+			screeningRondeEvent.setSuspect(volgendeUitnodigingService.isSuspect(context.dossier));
 		}
 
 		updateKansberekeningenEvent(screeningRondeEvent, context, context.screeningRondeCreatieDatum != null ? context.screeningRondeCreatieDatum : dateSupplier.getLocalDate());
@@ -190,7 +187,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 	{
 		kansberekeningEvent.setWijzigingsDatum(dateSupplier.getDate());
 
-		long leeftijd = ChronoUnit.YEARS.between(context.geboorteDatum, peildatum);
+		long leeftijd = DateUtil.getAantalJaarTussenTweeDatums(context.geboorteDatum, peildatum);
 		kansberekeningEvent.setLeeftijd(leeftijd);
 		kansberekeningEvent.setLeeftijdPer5(leeftijd - leeftijd % 5);
 		kansberekeningEvent.setDoelgroep(context.dossier.getDoelgroep());
@@ -305,7 +302,7 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 			try
 			{
 				BigDecimal opkomstkans = new BigDecimal(
-					restTemplate.postForObject(kansberekeningServiceUrl + "predict_afspraak", "[" + new AfspraakEventDto(afspraak).toString() + "]", String.class));
+					restTemplate.postForObject(kansberekeningServiceUrl + "predict_afspraak", "[" + new AfspraakEventDto(afspraak) + "]", String.class));
 				return opkomstkans.compareTo(MINIMUM_OPKOMSTKANS) >= 0 ? opkomstkans : MINIMUM_OPKOMSTKANS;
 			}
 			catch (RuntimeException ex)
@@ -320,13 +317,13 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 		}
 	}
 
-	private Boolean mayUseKansberekening()
+	private boolean mayUseKansberekening()
 	{
 		if (useKansbereking == null)
 		{
 			resetPreferences();
 		}
-		return useKansbereking;
+		return Boolean.TRUE.equals(useKansbereking);
 	}
 
 	private Integer getDefaultOpkomstkansZonderKansberekening()
@@ -646,8 +643,8 @@ public class MammaBaseKansberekeningServiceImpl implements MammaBaseKansberekeni
 			MammaStandplaatsRonde vorigeStandplaatsRonde = standplaatsRonde != null ? standplaatsDao.getVorigeStandplaatsRonde(standplaatsRonde) : null;
 			MammaKansberekeningStandplaatsRondeGemiddelden vorigeStandplaatsRondeGemiddelen = vorigeStandplaatsRonde != null
 				&& vorigeStandplaatsRonde.getStandplaatsRondeGemiddelden() != null
-					? vorigeStandplaatsRonde.getStandplaatsRondeGemiddelden()
-					: new MammaKansberekeningStandplaatsRondeGemiddelden();
+				? vorigeStandplaatsRonde.getStandplaatsRondeGemiddelden()
+				: new MammaKansberekeningStandplaatsRondeGemiddelden();
 
 			updateAfspraakEvent(afspraak, false);
 			MammaKansberekeningAfspraakEvent afspraakEvent = afspraak.getAfspraakEvent();

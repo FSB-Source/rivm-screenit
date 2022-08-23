@@ -38,8 +38,10 @@ import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class Vo105ItemProcessor implements ItemProcessor<Long, Vo105Bericht>
 {
 	@Autowired

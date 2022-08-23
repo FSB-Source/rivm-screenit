@@ -24,7 +24,6 @@ package nl.rivm.screenit.mamma.planning.dao.impl;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +40,8 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
+import nl.rivm.screenit.dao.mamma.MammaSelectieRestrictions;
+import nl.rivm.screenit.mamma.planning.dao.PlanningCapaciteitBlokDao;
 import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningBlokkadeIndex;
@@ -55,7 +56,6 @@ import nl.rivm.screenit.mamma.planning.index.PlanningStandplaatsPeriodeIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStandplaatsRondeIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningTehuisIndex;
-import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlokkade;
 import nl.rivm.screenit.mamma.planning.model.PlanningClient;
 import nl.rivm.screenit.mamma.planning.model.PlanningConstanten;
@@ -74,11 +74,9 @@ import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingenRoute;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.mamma.MammaBlokkade;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaMammografie;
 import nl.rivm.screenit.model.mamma.MammaPostcodeReeks;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
@@ -88,32 +86,25 @@ import nl.rivm.screenit.model.mamma.MammaStandplaatsPeriode;
 import nl.rivm.screenit.model.mamma.MammaStandplaatsRonde;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBlokkadeType;
-import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
-import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
+import nl.rivm.screenit.model.mamma.enums.MammaUitnodigingsintervalType;
 import nl.rivm.screenit.model.mamma.enums.MammaUitstelReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.util.DateUtil;
-import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.hibernate.restrictions.NvlRestrictions;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -151,15 +142,19 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 
 	private final PlanningConceptOpslaanService conceptOpslaanService;
 
+	private final PlanningCapaciteitBlokDao capaciteitBlokDao;
+
 	private final Environment env;
+
+	private final MammaSelectieRestrictions selectieRestricties;
 
 	private boolean doInit = true;
 
 	private LocalDate herhalenVanaf;
 
 	public PlanningReadModelDaoImpl(ICurrentDateSupplier dateSupplier, SessionFactory sessionFactory, HibernateService hibernateService,
-		SimplePreferenceService simplePreferenceService, MammaBaseAfspraakService afspraakService,
-		PlanningConceptService conceptService, PlanningConceptOpslaanService conceptOpslaanService, Environment env)
+		SimplePreferenceService simplePreferenceService, MammaBaseAfspraakService afspraakService, PlanningConceptService conceptService,
+		PlanningConceptOpslaanService conceptOpslaanService, PlanningCapaciteitBlokDao capaciteitBlokDao, Environment env, MammaSelectieRestrictions selectieRestricties)
 	{
 		this.dateSupplier = dateSupplier;
 		this.sessionFactory = sessionFactory;
@@ -168,7 +163,9 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		this.afspraakService = afspraakService;
 		this.conceptService = conceptService;
 		this.conceptOpslaanService = conceptOpslaanService;
+		this.capaciteitBlokDao = capaciteitBlokDao;
 		this.env = env;
+		this.selectieRestricties = selectieRestricties;
 	}
 
 	@Override
@@ -204,7 +201,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		return herhalenVanaf;
 	}
 
-	@Transactional
+	@Transactional(propagation = Propagation.REQUIRED)
 	@Override
 	public void readDataModel()
 	{
@@ -261,7 +258,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		readBlokkades();
 		readGebruikteCapaciteit();
 
-		conceptService.herhalen(herhalenVanaf);
+		conceptService.herhalen(getHerhalenVanafDatum());
 		conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 	}
 
@@ -400,7 +397,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 	{
 		Criteria criteria = getSession().createCriteria(MammaCapaciteitBlok.class, "capaciteitBlok");
 		criteria.setProjection(Projections.max("capaciteitBlok.vanaf"));
-		return Optional.of(((Date) criteria.uniqueResult())).orElseGet(() -> dateSupplier.getDateMidnight());
+		return Optional.of(((Date) criteria.uniqueResult())).orElseGet(dateSupplier::getDateMidnight);
 	}
 
 	private void readScreeningsOrganisaties()
@@ -491,32 +488,12 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 	{
 		LOG.info("readBeschikbareCapaciteit se: " + screeningsEenheid.getId());
 
-		Criteria crit = getSession().createCriteria(MammaCapaciteitBlok.class, "capaciteitBlok");
-		crit.createAlias("capaciteitBlok.screeningsEenheid", "screeningsEenheid");
-
-		crit.add(Restrictions.eq("screeningsEenheid.id", screeningsEenheid.getId()));
-		crit.add(Restrictions.ge("capaciteitBlok.vanaf", DateUtil.toUtilDate(PlanningConstanten.prognoseVanafDatum)));
-
-		crit.setProjection(Projections.projectionList()
-			.add(Projections.property("capaciteitBlok.id")) 
-			.add(Projections.property("capaciteitBlok.vanaf")) 
-			.add(Projections.property("capaciteitBlok.tot")) 
-			.add(Projections.property("capaciteitBlok.aantalOnderzoeken")) 
-			.add(Projections.property("capaciteitBlok.blokType")) 
-			.add(Projections.property("capaciteitBlok.opmerkingen")) 
-			.add(Projections.property("capaciteitBlok.minderValideAfspraakMogelijk")) 
-		);
-
-		List<Object[]> list = crit.list();
-		for (Object[] result : list)
+		var blokken = capaciteitBlokDao.leesCapaciteitBlokken(screeningsEenheid, PlanningConstanten.prognoseVanafDatum, null);
+		blokken.forEach(blok ->
 		{
-			LocalDateTime vanaf = DateUtil.toLocalDateTime((java.util.Date) result[1]);
-			PlanningBlok blok = new PlanningBlok((Long) result[0], vanaf.toLocalTime(), DateUtil.toLocalTime((Date) result[2]),
-				(Integer) result[3], (MammaCapaciteitBlokType) result[4], (String) result[5], (Boolean) result[6]);
-			blok.setScreeningsEenheid(screeningsEenheid);
-
 			screeningsEenheid.getBlokSet().add(blok);
-			PlanningDag dag = screeningsEenheid.getDagNavigableMap().get(vanaf.toLocalDate());
+
+			var dag = blok.getDag();
 			dag.getBlokSet().add(blok);
 			blok.setDag(dag);
 
@@ -526,8 +503,9 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			wijzigingenRoute.getBlokSet().add(blok);
 			wijzigingenRoute.getDagSet().add(dag);
 			wijzigingenRoute.getWeekSet().add(dag.getWeek());
-		}
-		LOG.info(list.size() + " blokken gelezen voor se: " + screeningsEenheid.getId());
+		});
+
+		LOG.info(blokken.size() + " blokken gelezen voor se: " + screeningsEenheid.getId());
 	}
 
 	private void readStandplaats(PlanningScreeningsOrganisatie screeningsOrganisatie)
@@ -736,8 +714,6 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 
 		Map<Long, Date> vorigeScreeningRondeDatumMap = vorigeScreeningRondeCreatieDatumMap();
 
-		Set<Long> suspectDossierIdSet = suspectDossierIdSet();
-
 		Criteria crit = getSession().createCriteria(Client.class, "client");
 		crit.createAlias("client.mammaDossier", "dossier");
 		crit.createAlias("dossier.deelnamekans", "deelnamekans");
@@ -752,11 +728,10 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		crit.createAlias("laatsteUitnodiging.laatsteAfspraak", "laatsteAfspraak", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("laatsteAfspraak.standplaatsPeriode", "laatsteAfspraakStandplaatsPeriode", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("dossier.screeningRondeEvent", "screeningRondeEvent", JoinType.LEFT_OUTER_JOIN);
+		crit.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging", JoinType.LEFT_OUTER_JOIN);
+		crit.createAlias("volgendeUitnodiging.interval", "uitnodigingsInterval", JoinType.LEFT_OUTER_JOIN);
 
-		crit.add(Restrictions.eq("persoon.geslacht", Geslacht.VROUW));
-		crit.add(NvlRestrictions.eq("dossier.status", DossierStatus.ACTIEF, "'" + DossierStatus.ACTIEF.toString() + "'"));
-		crit.add(Restrictions.or(Restrictions.isNotNull("adres.postcode"), Restrictions.isNotNull("tijdelijkGbaAdres.postcode")));
-		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
+		selectieRestricties.addStandaardSelectieRestricties(crit);
 
 		crit.add(Restrictions.or(
 			Restrictions.between("persoon.geboortedatum", DateUtil.toUtilDate(plannenVanafGeboortedatum), DateUtil.toUtilDate(plannenTotEnMetGeboortedatum)),
@@ -771,7 +746,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			.add(Projections.property("dossier.id")) 
 			.add(Projections.property("dossier.doelgroep")) 
 			.add(Projections.property("dossier.tehuis.id")) 
-			.add(Projections.property("dossier.eersteMammografieAfgerondStandplaatsRonde.id")) 
+			.add(Projections.property("dossier.eersteOnderzoek")) 
 			.add(Projections.property("dossier.laatsteMammografieAfgerond")) 
 			.add(Projections.property("deelnamekans.deelnamekans")) 
 			.add(Projections.property("laatsteScreeningRonde.creatieDatum")) 
@@ -788,36 +763,38 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			.add(Projections.property("laatsteUitnodiging.creatieDatum")) 
 			.add(Projections.property("laatsteAfspraak.status")) 
 			.add(Projections.property("laatsteAfspraak.vanaf")) 
+			.add(Projections.property("uitnodigingsInterval.type")) 
 		);
 
 		List<Object[]> list = new ArrayList<>(crit.list());
 		for (Object[] result : list)
 		{
-			Long clientId = (Long) result[0];
-			LocalDate geboortedatum = DateUtil.toLocalDate((Date) result[1]);
-			String gbaAdresPostcode = (String) result[2];
-			String tijdelijkGbaAdresPostcode = (String) result[3];
-			PlanningScreeningsOrganisatie screeningsOrganisatie = PlanningScreeningsOrganisatieIndex.get((Long) result[4]);
-			Long dossierId = (Long) result[5];
-			MammaDoelgroep doelgroep = (MammaDoelgroep) result[6];
-			Long tehuisId = (Long) result[7];
-			Long eersteMammografieAfgerondStandplaatsRondeId = (Long) result[8];
-			LocalDate laatsteMammografieAfgerondDatum = DateUtil.toLocalDate((Date) result[9]);
-			BigDecimal deelnamekans = (BigDecimal) result[10];
-			LocalDate screeningRondeCreatieDatum = DateUtil.toLocalDate((Date) result[11]);
-			Long screeningRondeStandplaatsRondeId = (Long) result[12];
-			Boolean screeningRondeIsGeforceerd = (Boolean) result[13];
-			Long uitstelStandplaatsId = (Long) result[14];
-			LocalDate uitstelStreefDatum = DateUtil.toLocalDate((Date) result[15]);
-			MammaUitstelReden uitstelReden = (MammaUitstelReden) result[16];
-			Long uitstelUitnodigingId = (Long) result[17];
-			Long uitnodigingStandplaatsRondeId = (Long) result[18];
-			Long afspraakStandplaatsRondeId = (Long) result[19];
-			Date afspraakAfgezegdOp = (Date) result[20];
-			Integer voorgaandeScreeningRondes = (Integer) result[21];
-			LocalDate laatsteUitnodigingDatum = DateUtil.toLocalDate((Date) result[22]);
-			MammaAfspraakStatus afspraakStatus = (MammaAfspraakStatus) result[23];
-			LocalDateTime afspraakMoment = DateUtil.toLocalDateTime((Date) result[24]);
+			var clientId = (Long) result[0];
+			var geboortedatum = DateUtil.toLocalDate((Date) result[1]);
+			var gbaAdresPostcode = (String) result[2];
+			var tijdelijkGbaAdresPostcode = (String) result[3];
+			var screeningsOrganisatie = PlanningScreeningsOrganisatieIndex.get((Long) result[4]);
+			var dossierId = (Long) result[5];
+			var doelgroep = (MammaDoelgroep) result[6];
+			var tehuisId = (Long) result[7];
+			var eersteOnderzoek = (Boolean) result[8];
+			var laatsteMammografieAfgerondDatum = DateUtil.toLocalDate((Date) result[9]);
+			var deelnamekans = (BigDecimal) result[10];
+			var screeningRondeCreatieDatum = DateUtil.toLocalDate((Date) result[11]);
+			var screeningRondeStandplaatsRondeId = (Long) result[12];
+			var screeningRondeIsGeforceerd = (Boolean) result[13];
+			var uitstelStandplaatsId = (Long) result[14];
+			var uitstelStreefDatum = DateUtil.toLocalDate((Date) result[15]);
+			var uitstelReden = (MammaUitstelReden) result[16];
+			var uitstelUitnodigingId = (Long) result[17];
+			var uitnodigingStandplaatsRondeId = (Long) result[18];
+			var afspraakStandplaatsRondeId = (Long) result[19];
+			var afspraakAfgezegdOp = (Date) result[20];
+			var voorgaandeScreeningRondes = (Integer) result[21];
+			var laatsteUitnodigingDatum = DateUtil.toLocalDate((Date) result[22]);
+			var afspraakStatus = (MammaAfspraakStatus) result[23];
+			var afspraakMoment = DateUtil.toLocalDateTime((Date) result[24]);
+			var uitnodigingsIntervalType = (MammaUitnodigingsintervalType) result[25];
 
 			String postcode = null; 
 			PlanningPostcodeReeks postcodeReeks = null;
@@ -876,7 +853,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 				clientId,
 				geboortedatum,
 				postcode,
-				eersteMammografieAfgerondStandplaatsRondeId == null || PlanningStandplaatsRondeIndex.get(eersteMammografieAfgerondStandplaatsRondeId) != null,
+				eersteOnderzoek,
 				doelgroep,
 				deelnamekans,
 				voorgaandeScreeningRondes != null && voorgaandeScreeningRondes > 0,
@@ -889,7 +866,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 				tehuis,
 				screeningRondeCreatieDatum,
 				laatsteMammografieAfgerondDatum,
-				suspectDossierIdSet.contains(dossierId),
+				uitnodigingsIntervalType,
 				laatsteUitnodigingDatum);
 
 			client.setNoShow(afspraakService.isNoShow(afspraakStatus, afspraakMoment));
@@ -980,42 +957,6 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 		LOG.info(list.size() + " clienten gelezen");
 	}
 
-	private Set<Long> suspectDossierIdSet()
-	{
-		LOG.info("Start suspectDossierIdSet ");
-		DetachedCriteria laatsteAfspraakPerDossierCriteria = DetachedCriteria.forClass(MammaDossier.class);
-		laatsteAfspraakPerDossierCriteria.createAlias("screeningRondes", "r");
-		laatsteAfspraakPerDossierCriteria.createAlias("r.laatsteUitnodiging", "u");
-		laatsteAfspraakPerDossierCriteria.createAlias("u.laatsteAfspraak", "a");
-		laatsteAfspraakPerDossierCriteria
-			.setProjection(Projections.projectionList().add(Projections.groupProperty("id")).add(Projections.max("a.creatiedatum")));
-
-		Criteria crit = getSession().createCriteria(MammaDossier.class);
-		crit.createAlias("screeningRondes", "sr");
-		crit.createAlias("sr.laatsteUitnodiging", "ui");
-		crit.createAlias("ui.laatsteAfspraak", "af");
-		crit.createAlias("af.onderzoek", "on");
-		crit.createAlias("on.laatsteBeoordeling", "be");
-
-		crit.add(Subqueries.propertiesIn(new String[] { "id", "af.creatiedatum" }, laatsteAfspraakPerDossierCriteria));
-		crit.add(Restrictions.or(
-			Restrictions.and(
-				Restrictions.eq("be.status", MammaBeoordelingStatus.UITSLAG_ONGUNSTIG),
-				Restrictions.or(
-					Restrictions.isNull("sr.followUpConclusieStatus"),
-					Restrictions.eq("sr.followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE),
-					Restrictions.eq("sr.followUpConclusieStatus", MammaFollowUpConclusieStatus.TRUE_POSITIVE))),
-			Restrictions.and(
-				Restrictions.or(Restrictions.eq("be.status", MammaBeoordelingStatus.UITSLAG_GUNSTIG), Restrictions.eq("be.status", MammaBeoordelingStatus.ONBEOORDEELBAAR)),
-				Restrictions.eq("sr.followUpConclusieStatus", MammaFollowUpConclusieStatus.FALSE_NEGATIVE))));
-
-		crit.setProjection(Projections.property("id"));
-
-		Set<Long> dossierIdSet = (Set<Long>) crit.list().stream().collect(Collectors.toSet());
-		LOG.info("End suspectDossierIdSet. " + dossierIdSet.size() + " suspect dossiers.");
-		return dossierIdSet;
-	}
-
 	private void readBlokkades()
 	{
 		LOG.info("readBlokkades");
@@ -1093,7 +1034,7 @@ public class PlanningReadModelDaoImpl extends AbstractAutowiredDao implements Pl
 			crit.add(Restrictions.lt("afspraak.vanaf", DateUtil.toUtilDate(PlanningConstanten.prognoseVanafDatum)));
 			crit.add(Restrictions.in("standplaatsPeriode.id", teLezenStandplaatsPeriodeIdSet));
 
-			crit.add(Restrictions.ge("afspraak.vanaf", DateUtil.toUtilDate(PlanningConstanten.plannenVanafDatum)));
+			crit.add(Restrictions.ge("afspraak.vanaf", DateUtil.toUtilDate(PlanningConstanten.plannenVanafDatum))); 
 
 			crit.setProjection(Projections.projectionList()
 				.add(Projections.property("client.id")) 

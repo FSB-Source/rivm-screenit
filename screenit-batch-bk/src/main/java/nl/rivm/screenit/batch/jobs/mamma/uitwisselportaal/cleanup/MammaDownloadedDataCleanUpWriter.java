@@ -23,10 +23,10 @@ package nl.rivm.screenit.batch.jobs.mamma.uitwisselportaal.cleanup;
 
 import java.io.File;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -34,24 +34,23 @@ import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 @Slf4j
 public class MammaDownloadedDataCleanUpWriter extends BaseWriter<MammaDownloadOnderzoekenVerzoek>
 {
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final UploadDocumentService uploadDocumentService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void write(MammaDownloadOnderzoekenVerzoek item) throws Exception
 	{
-		UploadDocument zipBestand = item.getZipBestand();
+		var zipBestand = item.getZipBestand();
 
 		if (zipBestand != null)
 		{

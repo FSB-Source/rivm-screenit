@@ -24,21 +24,29 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.zonderpostcode;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+
+@Component
 public class MammaZonderPostcodeReader extends BaseScrollableResultReader
 {
+
+	public MammaZonderPostcodeReader()
+	{
+		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(Client.class);
+		var criteria = session.createCriteria(Client.class);
 		criteria.createAlias("mammaDossier", "mammaDossier");
 		criteria.createAlias("persoon", "persoon");
 		criteria.createAlias("persoon.gbaAdres", "adres");
@@ -48,7 +56,6 @@ public class MammaZonderPostcodeReader extends BaseScrollableResultReader
 
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "", "persoon.");
 
-		criteria.add(Restrictions.eq("persoon.geslacht", Geslacht.VROUW));
 		criteria.add(Restrictions.isNull("adres.postcode"));
 		criteria.add(
 			Restrictions.or(

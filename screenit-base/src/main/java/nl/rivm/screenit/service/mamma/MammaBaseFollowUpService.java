@@ -21,6 +21,9 @@ package nl.rivm.screenit.service.mamma;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.List;
+
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingDto;
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingRadiologieDto;
 import nl.rivm.screenit.model.Instelling;
@@ -30,8 +33,7 @@ import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
-
-import java.util.List;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 
 public interface MammaBaseFollowUpService
 {
@@ -55,4 +57,6 @@ public interface MammaBaseFollowUpService
 	long countOpenstaandeFollowUpConclusies(ScreeningOrganisatie regio);
 
 	void refreshUpdateFollowUpConclusie(MammaDossier dossier);
+
+	LocalDate getEersteAutorisatieDatumPaVerslag(MammaScreeningRonde screeningRonde);
 }

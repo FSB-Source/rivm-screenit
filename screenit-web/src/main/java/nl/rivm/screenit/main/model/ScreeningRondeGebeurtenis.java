@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.model;
 
 /*-
@@ -25,15 +24,17 @@ package nl.rivm.screenit.main.model;
 import java.util.Arrays;
 import java.util.Date;
 
-import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.InpakbareUitnodiging;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.cervix.CervixHpvBeoordeling;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
+import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.IFOBTTest;
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
+import nl.rivm.screenit.model.mamma.berichten.MammaHuisartsBericht;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.model.IDetachable;
@@ -61,6 +62,10 @@ public class ScreeningRondeGebeurtenis implements IDetachable
 	private IModel<ColonIntakeAfspraak> afspraak;
 
 	private IModel<CervixHuisartsBericht> huisartsBericht;
+
+	private IModel<MammaHuisartsBericht> mammaHuisartsBericht;
+
+	private IModel<ColonHuisartsBericht> colonHuisartsBericht;
 
 	private IModel<CervixHpvBeoordeling> beoordeling;
 
@@ -121,6 +126,8 @@ public class ScreeningRondeGebeurtenis implements IDetachable
 		ModelUtil.nullSafeDetach(brief);
 		ModelUtil.nullSafeDetach(beoordeling);
 		ModelUtil.nullSafeDetach(huisartsBericht);
+		ModelUtil.nullSafeDetach(mammaHuisartsBericht);
+		ModelUtil.nullSafeDetach(colonHuisartsBericht);
 		ModelUtil.nullSafeDetach(screeningRonde);
 	}
 
@@ -249,5 +256,25 @@ public class ScreeningRondeGebeurtenis implements IDetachable
 	public void setScreeningsRonde(ScreeningRonde<?, ?, ?, ?> screeningsRonde)
 	{
 		this.screeningRonde = ModelUtil.sModel(screeningsRonde);
+	}
+
+	public MammaHuisartsBericht getMammaHuisartsBericht()
+	{
+		return ModelUtil.nullSafeGet(mammaHuisartsBericht);
+	}
+
+	public void setMammaHuisartsBericht(MammaHuisartsBericht mammaHuisartsBericht)
+	{
+		this.mammaHuisartsBericht = ModelUtil.sModel(mammaHuisartsBericht);
+	}
+
+	public ColonHuisartsBericht getColonHuisartsBericht()
+	{
+		return ModelUtil.nullSafeGet(colonHuisartsBericht);
+	}
+
+	public void setColonHuisartsBericht(ColonHuisartsBericht colonHuisartsBericht)
+	{
+		this.colonHuisartsBericht = ModelUtil.sModel(colonHuisartsBericht);
 	}
 }

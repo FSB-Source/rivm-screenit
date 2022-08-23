@@ -51,7 +51,7 @@ public abstract class AbstractBrievenGenererenListener extends BaseLogListener
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		Map<Long, Integer> map = new HashMap<Long, Integer>();
+		var map = new HashMap<Long, Integer>();
 		List<ScreeningOrganisatie> screeningOrganisaties = hibernateService.loadAll(ScreeningOrganisatie.class);
 		for (ScreeningOrganisatie org : screeningOrganisaties)
 		{
@@ -88,18 +88,21 @@ public abstract class AbstractBrievenGenererenListener extends BaseLogListener
 		BrievenGenererenRapportage rapportage = new BrievenGenererenRapportage();
 		rapportage.setDatumVerwerking(currentDateSupplier.getDate());
 		event.setRapportage(rapportage);
-		Map<Long, Integer> map = (Map<Long, Integer>) jobExecution.getExecutionContext().get(getRapportageAantalBrievenKey());
+		var map = (Map<Long, Integer>) jobExecution.getExecutionContext().get(getRapportageAantalBrievenKey());
 
-		for (Entry<Long, Integer> entry : map.entrySet())
+		if (map != null)
 		{
-			BrievenGenererenRapportageEntry rapportageEntry = new BrievenGenererenRapportageEntry();
-			rapportageEntry.setScreeningOrganisatie(hibernateService.load(ScreeningOrganisatie.class, entry.getKey()));
-			rapportageEntry.setRapportage(rapportage);
-			rapportageEntry.setAantalBrievenPerScreeningOrganisatie(entry.getValue());
-			rapportage.getEntries().add(rapportageEntry);
-			hibernateService.saveOrUpdate(rapportageEntry);
+			for (Entry<Long, Integer> entry : map.entrySet())
+			{
+				BrievenGenererenRapportageEntry rapportageEntry = new BrievenGenererenRapportageEntry();
+				rapportageEntry.setScreeningOrganisatie(hibernateService.get(ScreeningOrganisatie.class, entry.getKey()));
+				rapportageEntry.setRapportage(rapportage);
+				rapportageEntry.setAantalBrievenPerScreeningOrganisatie(entry.getValue());
+				rapportage.getEntries().add(rapportageEntry);
+				hibernateService.saveOrUpdate(rapportageEntry);
+			}
+			hibernateService.saveOrUpdate(rapportage);
 		}
-		hibernateService.saveOrUpdate(rapportage);
 		hibernateService.saveOrUpdate(event);
 
 		return event;

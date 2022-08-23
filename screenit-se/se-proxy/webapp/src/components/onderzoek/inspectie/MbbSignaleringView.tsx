@@ -134,16 +134,14 @@ export default class MbbSignaleringView extends Component<MbbSignaleringViewStat
 					<h6>Opmerking voor MBB&apos;er</h6>
 					<TextAreaValue value={this.props.opmerkingMbber || ""} disabled={this.props.disabled}
 								   maxLength={maxOpmerkingLengte} onChange={this.opmerkingMbberDidChange}
-								   color={"lavender"}>
-					</TextAreaValue>
+								   color={"lavender"}/>
 				</div>
 
 				<div className={"mbb-signalering-row"}>
 					<h6>Opmerking voor radioloog</h6>
 					<TextAreaValue value={this.props.opmerkingVoorRadioloog || ""} disabled={this.props.disabled}
 								   maxLength={maxOpmerkingLengte} onChange={this.opmerkingVoorRadioloogDidChange}
-								   color={"lavender"}>
-					</TextAreaValue>
+								   color={"lavender"}/>
 				</div>
 
 				<div className={"mbb-signalering-row"}>
@@ -165,8 +163,7 @@ export default class MbbSignaleringView extends Component<MbbSignaleringViewStat
 								   value={this.props.aanvullendeInformatieOperatie || ""}
 								   placeholder={"Aanvullende informatie"} disabled={this.props.disabled}
 								   maxLength={maxOpmerkingLengte} onChange={this.aanvullendeInformatieOperatieDidChange}
-								   color={"lavender"}>
-					</TextAreaValue>
+								   color={"lavender"}/>
 				</div>
 			</CardBody>
 		</Card>

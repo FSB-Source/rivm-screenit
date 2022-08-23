@@ -21,40 +21,36 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtrappel.rappelstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.colon.ifobtrappel.IfobtRappelJobConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.colon.ColonBrief;
-import nl.rivm.screenit.model.colon.ColonScreeningRonde;
-import nl.rivm.screenit.model.colon.IFOBTTest;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.LogService;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class IfobtRappelBriefWriter extends BaseWriter<Client>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(IfobtRappelBriefWriter.class);
+	private final BaseBriefService briefService;
 
-	@Autowired
-	private BaseBriefService briefService;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected void write(Client client)
 	{
-		ColonScreeningRonde csr = client.getColonDossier().getLaatsteScreeningRonde();
-		IFOBTTest ifobtTest = csr.getLaatsteIFOBTTest();
-		ColonBrief herinneringsBrief = briefService.maakBvoBrief(csr, BriefType.COLON_HERINNERING);
+		var csr = client.getColonDossier().getLaatsteScreeningRonde();
+		var ifobtTest = csr.getLaatsteIFOBTTest();
+		var herinneringsBrief = briefService.maakBvoBrief(csr, BriefType.COLON_HERINNERING);
 		logService.logGebeurtenis(LogGebeurtenis.RAPPEL_VERZONDEN, client, Bevolkingsonderzoek.COLON);
 		ifobtTest.setHerinnering(Boolean.TRUE);
 		getHibernateService().saveOrUpdate(ifobtTest);

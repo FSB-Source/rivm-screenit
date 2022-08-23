@@ -26,6 +26,9 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ColonHuisartsOntkoppelenListener extends BaseLogListener
 {
 
@@ -52,7 +55,7 @@ public class ColonHuisartsOntkoppelenListener extends BaseLogListener
 	@Override
 	protected LogEvent getEindLogEvent()
 	{
-		LogEvent logEvent = new LogEvent();
+		var logEvent = new LogEvent();
 		String melding = "Aantal DK rondes ontkoppeld: " + getJobExecution().getExecutionContext().getLong(AANTAL_RONDES_ONTKOPPELD, 0L);
 		addMelding(logEvent, melding);
 		return logEvent;

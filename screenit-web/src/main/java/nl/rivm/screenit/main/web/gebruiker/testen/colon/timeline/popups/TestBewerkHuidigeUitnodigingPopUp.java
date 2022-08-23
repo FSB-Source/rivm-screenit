@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestEnumRadioChoice;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
@@ -42,11 +42,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class TestBewerkHuidigeUitnodigingPopUp extends AbstractTestBasePopupPanel
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private TestTimelineService testTimeLineService;
+	private ColonTestTimelineService colonTestTimeLineService;
 
 	@SpringBean
 	private ICurrentDateSupplier currentDateSupplier;
@@ -91,7 +90,7 @@ public class TestBewerkHuidigeUitnodigingPopUp extends AbstractTestBasePopupPane
 		TestTimeLineDossierTijdstip tijdStip = dossierTijdStipModel.getObject();
 		for (Client client : getModelObject())
 		{
-			testTimeLineService.bewerkUitnodiging(client, tijdStip);
+			colonTestTimeLineService.bewerkUitnodiging(client, tijdStip);
 		}
 	}
 

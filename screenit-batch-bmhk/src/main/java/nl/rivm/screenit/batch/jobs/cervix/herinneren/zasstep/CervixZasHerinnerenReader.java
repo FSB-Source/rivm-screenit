@@ -25,11 +25,16 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps.CervixHerinnerenReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CervixZasHerinnerenReader extends CervixHerinnerenReader
 {
 
+	private static final int CERVIX_ZAS_HERINNEREN_READER_FETCH_SIZE = 50;
+
 	public CervixZasHerinnerenReader()
 	{
-		super(PreferenceKey.CERVIX_HERINNERINGS_PERIODE_ZAS, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS, "zas.verstuurd");
+		super(CERVIX_ZAS_HERINNEREN_READER_FETCH_SIZE, PreferenceKey.CERVIX_HERINNERINGS_PERIODE_ZAS, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_ZAS, "zas.verstuurd");
 	}
 }

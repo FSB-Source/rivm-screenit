@@ -29,10 +29,12 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.CervixHL7BaseService;
 import nl.rivm.screenit.batch.service.CervixHpvOrderBerichtService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gebruiker;
+import nl.rivm.screenit.model.OrganisatieParameterKey;
 import nl.rivm.screenit.model.cervix.CervixHpvAnalyseresultaten;
 import nl.rivm.screenit.model.cervix.CervixHuisarts;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
@@ -40,10 +42,11 @@ import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieReden;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.util.DateUtil;
+import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,11 +73,15 @@ import ca.uhn.hl7v2.model.v24.segment.PV1;
 public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtService
 {
 
-	@Autowired
-	private CervixHL7BaseService hl7BaseService;
+	private final CervixHL7BaseService hl7BaseService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
+
+	private final InstellingService instellingService;
+
+	private final SimplePreferenceService preferenceService;
+
+	private final ICurrentDateSupplier dateSupplier;
 
 	private static final String DATUM_UITSTRIJKJE = "CR_DATUMSTRIJK";
 
@@ -108,6 +115,19 @@ public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtSe
 
 	private static final String HPVTRIAGEBVO = "CR_HPVTRIAGEBVO";
 
+	public CervixHpvOrderBerichtServiceImpl(CervixHL7BaseService hl7BaseService,
+		ICurrentDateSupplier currentDateSupplier,
+		InstellingService instellingService,
+		SimplePreferenceService preferenceService,
+		ICurrentDateSupplier dateSupplier)
+	{
+		this.hl7BaseService = hl7BaseService;
+		this.currentDateSupplier = currentDateSupplier;
+		this.instellingService = instellingService;
+		this.preferenceService = preferenceService;
+		this.dateSupplier = dateSupplier;
+	}
+
 	@Override
 	public String maakOrderTextBericht(CervixUitstrijkje uitstrijkje, CervixCytologieReden cytologieReden)
 	{
@@ -130,7 +150,7 @@ public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtSe
 			vulOrderRecords(cytologieReden, labformulier, omlBericht);
 
 		}
-		catch (HL7Exception | IOException e)
+		catch (HL7Exception | IOException | IllegalStateException e)
 		{
 			LOG.error("Er is een fout opgetreden bij het maken van een order!", e);
 		}
@@ -179,7 +199,7 @@ public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtSe
 		}
 	}
 
-	private void vulOrderRecords(CervixCytologieReden cytologieReden, CervixLabformulier labformulier, OML_O21 omlBericht) throws HL7Exception
+	private void vulOrderRecords(CervixCytologieReden cytologieReden, CervixLabformulier labformulier, OML_O21 omlBericht) throws HL7Exception, IllegalStateException
 	{
 		OML_O21_ORDER_GENERAL order_general = omlBericht.getORDER_GENERAL();
 
@@ -213,7 +233,14 @@ public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtSe
 		vulOBXRegelMetOpmerkingen(omlBericht, labformulier);
 		vulOBXRegelsMetVersie(omlBericht);
 		vulOBXRegelsMetBvoRegNr(omlBericht, labformulier);
-		vulOBXRegelsMetHpvtriagebvo(omlBericht, labformulier);
+		var startDatumGenotypering =
+			DateUtil.parseLocalDateForPattern(preferenceService.getString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name()), "yyyyMMdd");
+		if (startDatumGenotypering != null
+			&& !dateSupplier.getLocalDate().isBefore(startDatumGenotypering)
+			&& instellingService.getOrganisatieParameter(labformulier.getLaboratorium(), OrganisatieParameterKey.CERVIX_ORDER_NIEUWE_STIJL, Boolean.FALSE))
+		{
+			vulOBXRegelsMetHpvtriagebvo(omlBericht, labformulier);
+		}
 	}
 
 	private void vulOBXRegelsMetKlachten(OML_O21 omlBericht, CervixLabformulier labformulier) throws HL7Exception
@@ -346,8 +373,22 @@ public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtSe
 		}
 	}
 
-	private void vulOBXRegelMetOpmerkingen(OML_O21 omlBericht, CervixLabformulier labformulier) throws HL7Exception
+	private void vulOBXRegelMetOpmerkingen(OML_O21 omlBericht, CervixLabformulier labformulier) throws HL7Exception, IllegalStateException
 	{
+
+		var startDatumGenotypering =
+			DateUtil.parseLocalDateForPattern(preferenceService.getString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name()), "yyyyMMdd");
+		var analyseresultaten = getAnalyseresultaten(labformulier);
+		if (startDatumGenotypering != null
+			&& !dateSupplier.getLocalDate().isBefore(startDatumGenotypering)
+			&& !instellingService.getOrganisatieParameter(labformulier.getLaboratorium(), OrganisatieParameterKey.CERVIX_ORDER_NIEUWE_STIJL, Boolean.FALSE)
+			&& analyseresultaten != null
+			&& analyseresultaten.getHpv16() != null)
+		{
+			vulOpmerkingenVeldMetGenotyperingenVoorLabsOudeStijl(omlBericht, labformulier);
+			return;
+		}
+
 		if (labformulier.isOpmerkingen())
 		{
 			makeNewObxRecord(omlBericht, OPMERKINGEN, "1");
@@ -362,27 +403,63 @@ public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtSe
 		}
 	}
 
+	private void vulOpmerkingenVeldMetGenotyperingenVoorLabsOudeStijl(OML_O21 omlBericht, CervixLabformulier labformulier) throws HL7Exception, IllegalStateException
+	{
+		var analyseresultaten = getAnalyseresultaten(labformulier);
+		makeNewObxRecord(omlBericht, OPMERKINGEN, "1");
+		var opmerkingenTekst = labformulier.getOpmerkingenTekst();
+		if (labformulier.isOpmerkingen()
+			&& StringUtils.isBlank(opmerkingenTekst))
+		{
+			opmerkingenTekst = "Zie ScreenIT";
+		}
+		else if (!labformulier.isOpmerkingen())
+		{
+			opmerkingenTekst = "";
+		}
+		makeNewObxRecord(omlBericht, OPMERKINGEN + 1,
+			String.format("GENOTYPERING: %s %s %s, opmerkingen: %s",
+				analyseresultaten.getHpv16(),
+				analyseresultaten.getHpv18(),
+				analyseresultaten.getHpvohr(),
+				opmerkingenTekst));
+	}
+
 	private void vulOBXRegelsMetHpvtriagebvo(OML_O21 omlBericht, CervixLabformulier labformulier) throws HL7Exception
 	{
-		if (labformulier.getUitstrijkje().getLaatsteHpvBeoordeling() != null)
+		var analyseresultaten = getAnalyseresultaten(labformulier);
+		if (analyseresultaten != null)
 		{
-			CervixHpvAnalyseresultaten analyseresultaten = labformulier.getUitstrijkje().getLaatsteHpvBeoordeling().getAnalyseresultaten();
-			if (analyseresultaten != null)
+			if (CervixHpvResultValue.POS_HPV16.equals(analyseresultaten.getHpv16()))
 			{
-				if (CervixHpvResultValue.POS_HPV16.equals(analyseresultaten.getHpv16()))
-				{
-					makeNewObxRecord(omlBericht, HPVTRIAGEBVO, "1");
-				}
-				if (CervixHpvResultValue.POS_HPV18.equals(analyseresultaten.getHpv18()))
-				{
-					makeNewObxRecord(omlBericht, HPVTRIAGEBVO, "2");
-				}
-				if (CervixHpvResultValue.POS_OTHER_HR_HPV.equals(analyseresultaten.getHpvohr()))
-				{
-					makeNewObxRecord(omlBericht, HPVTRIAGEBVO, "9");
-				}
+				makeNewObxRecord(omlBericht, HPVTRIAGEBVO, "1");
+			}
+			if (CervixHpvResultValue.POS_HPV18.equals(analyseresultaten.getHpv18()))
+			{
+				makeNewObxRecord(omlBericht, HPVTRIAGEBVO, "2");
+			}
+			if (CervixHpvResultValue.POS_OTHER_HR_HPV.equals(analyseresultaten.getHpvohr()))
+			{
+				makeNewObxRecord(omlBericht, HPVTRIAGEBVO, "9");
 			}
 		}
+	}
+
+	private CervixHpvAnalyseresultaten getAnalyseresultaten(CervixLabformulier labformulier)
+	{
+		if (labformulier.getUitstrijkje() != null
+			&& labformulier.getUitstrijkje().getOntvangstScreeningRonde() != null
+			&& labformulier.getUitstrijkje().getOntvangstScreeningRonde().getMonsterHpvUitslag() != null
+			&& labformulier.getUitstrijkje().getOntvangstScreeningRonde().getMonsterHpvUitslag().getLaatsteHpvBeoordeling() != null
+			&& labformulier.getUitstrijkje().getOntvangstScreeningRonde().getMonsterHpvUitslag().getLaatsteHpvBeoordeling().getAnalyseresultaten() != null)
+		{
+			return labformulier.getUitstrijkje()
+				.getOntvangstScreeningRonde()
+				.getMonsterHpvUitslag()
+				.getLaatsteHpvBeoordeling()
+				.getAnalyseresultaten();
+		}
+		return null;
 	}
 
 	private void makeNewObxRecord(OML_O21 message, String identifier, String value) throws HL7Exception
@@ -400,7 +477,7 @@ public class CervixHpvOrderBerichtServiceImpl implements CervixHpvOrderBerichtSe
 		newOBX.getObx3_ObservationIdentifier().getCe1_Identifier().setValue(identifier);
 
 		FT ft = new FT(message);
-		ft.setValue(value.replaceAll("\\r\\n", "*"));
+		ft.setValue(value.replace("\r\n", "*").replace("\r", "*").replace("\n", "*"));
 		newOBX.getObx5_ObservationValue(0).setData(ft);
 	}
 

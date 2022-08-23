@@ -24,16 +24,18 @@ import properties from "./BvoLandingBlobComponent.json"
 import {getString} from "../../utils/TekstPropertyUtil"
 
 export type BvoLandingBlobComponentProps = {
-    afspraakMoment: string,
-    afspraakLocatie: string
+	afspraakMoment: string,
+	afspraakLocatie: string,
+	extraTekst?: string
 }
 
 const BvoLandingBlobComponent = (props: BvoLandingBlobComponentProps) => {
     return (
-        <TextBlobComponent titel={getString(properties.afspraak.titel)}
-                           tekst={getString(properties.afspraak.moment, [props.afspraakMoment])}
-                           adresLocatie={props.afspraakLocatie}/>
-    )
+		<TextBlobComponent titel={getString(properties.afspraak.titel)}
+						   tekst={getString(properties.afspraak.moment, [props.afspraakMoment])}
+						   extraTekst={props.extraTekst}
+						   adresLocatie={props.afspraakLocatie}/>
+	)
 }
 
 export default BvoLandingBlobComponent

@@ -31,13 +31,23 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixBepalenVerrichtingenJobConfiguration.CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE;
+
+@Component
 public class CervixBepalenVerrichtingenReader extends BaseScrollableResultReader
 {
+
+	public CervixBepalenVerrichtingenReader()
+	{
+		super.setFetchSize(CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE);
+	}
+
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(CervixMonster.class, "monster");
+		var criteria = session.createCriteria(CervixMonster.class, "monster");
 		criteria.createAlias("monster.huisartsBericht", "huisartsbericht", JoinType.LEFT_OUTER_JOIN);
 		criteria.add(Restrictions.or(Restrictions.isNull("huisartsbericht.status"), Restrictions.ne("huisartsbericht.status", CervixHuisartsBerichtStatus.AANGEMAAKT)));
 		criteria.add(Restrictions.or(Restrictions.isNull("uitstrijkjeStatus"), Restrictions.ne("uitstrijkjeStatus", CervixUitstrijkjeStatus.NIET_ONTVANGEN)));

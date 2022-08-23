@@ -44,22 +44,22 @@ export default class SignalerenView extends Component<SignalerenViewStateProps &
 				<div className="onderzoek-heading">
 					<h1 className="float-left">Signaleren</h1>
 					{this.props.afspraak.status !== "BEEINDIGD" &&
-					<AutorisatieButton
-						id="afrondenButton" label={"Afronden"} heeftRecht={this.props.magSignaleren}
-						online={this.props.online} rechtNaam={"Signaleren op SE"}
-						onClick={(): void => {
-							this.props.onVolgende(afspraak, this.props.client, this.props.onderzoek, this.props.signalering, this.props.aanvullendeInformatieForm)
-						}}/>}
+						<AutorisatieButton
+							id="afrondenButton" label={"Afronden"} heeftRecht={this.props.magSignaleren}
+							online={this.props.online} rechtNaam={"Signaleren op SE"}
+							onClick={(): void => {
+								this.props.onVolgende(afspraak, this.props.client, this.props.onderzoek, this.props.signalering, this.props.aanvullendeInformatieForm)
+							}}/>
+					}
 					{this.props.heeftWijzigingen &&
-					<AutorisatieButton
-						id="opslaanButton" label={"Opslaan"} rechtNaam={"Signaleren op SE"}
-						heeftRecht={this.props.magSignaleren}
-						className="float-right btn btn-primary-se"
-						onClick={(): void => {
-							this.props.onVolgende(afspraak, this.props.client, this.props.onderzoek, this.props.signalering, this.props.aanvullendeInformatieForm, true)
-						}}>
-					</AutorisatieButton>}
-
+						<AutorisatieButton
+							id="opslaanButton" label={"Opslaan"} rechtNaam={"Signaleren op SE"}
+							heeftRecht={this.props.magSignaleren}
+							className="float-right btn btn-primary-se"
+							onClick={(): void => {
+								this.props.onVolgende(afspraak, this.props.client, this.props.onderzoek, this.props.signalering, this.props.aanvullendeInformatieForm, true)
+							}}/>
+					}
 					<button className="float-right btn btn-primary-se" onClick={(): void => {
 						this.props.onVorige(client, afspraak)
 					}}>Vorige

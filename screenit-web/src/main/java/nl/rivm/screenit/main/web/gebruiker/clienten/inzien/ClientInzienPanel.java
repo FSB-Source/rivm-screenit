@@ -118,7 +118,7 @@ public class ClientInzienPanel extends GenericPanel<Client>
 		}
 
 		addAanvraagOverdrachtGegevensPanel();
-		add(new ClientInzienAlgemeneBrievenPanel("algemeneBrievenPanel", getModel()));
+		add(new ClientInzienAlgemeneBrievenPanel("algemeneBrievenPanel", getModel(), dialog));
 
 		IndicatingAjaxLink<Void> contactAanmaken = new IndicatingAjaxLink<>("contactAanmaken")
 		{

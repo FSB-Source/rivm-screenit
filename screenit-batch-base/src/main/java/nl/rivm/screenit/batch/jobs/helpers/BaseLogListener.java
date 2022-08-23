@@ -64,7 +64,6 @@ public abstract class BaseLogListener implements JobExecutionListener
 
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-
 	}
 
 	@Override
@@ -124,7 +123,6 @@ public abstract class BaseLogListener implements JobExecutionListener
 
 	protected void beforeEindeLogging(JobExecution jobExecution)
 	{
-
 	}
 
 	protected LogEvent eindLogging(JobExecution jobExecution)
@@ -151,7 +149,7 @@ public abstract class BaseLogListener implements JobExecutionListener
 		return logEvent;
 	}
 
-	protected final static void addMelding(LogEvent logEvent, String melding)
+	protected static void addMelding(LogEvent logEvent, String melding)
 	{
 		String huidigeMelding = logEvent.getMelding();
 		if (StringUtils.isBlank(huidigeMelding))
@@ -211,6 +209,11 @@ public abstract class BaseLogListener implements JobExecutionListener
 		return this.jobExecution;
 	}
 
+	protected <T> T getTypedValueFromExecutionContext(String key)
+	{
+		return (T) getJobExecution().getExecutionContext().get(key);
+	}
+
 	protected <E extends Enum> void aantallenContextVerwerken(String enumKey, AantalVerwerker<E> aantalVerwerker)
 	{
 		ExecutionContext context = getJobExecution().getExecutionContext();
@@ -237,7 +240,7 @@ public abstract class BaseLogListener implements JobExecutionListener
 		revisionInformationService.registerKenmerk(context, kenmerk);
 	}
 
-	protected abstract class AantalVerwerker<E extends Enum>
+	protected abstract static class AantalVerwerker<E extends Enum>
 	{
 		protected abstract void verwerk(E enumConstant, long aantal);
 	}

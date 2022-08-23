@@ -21,6 +21,9 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.huisarts;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.ColonHuisartsWijzigenPanel;
@@ -29,6 +32,7 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.object.annot.objects.Transient;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -37,24 +41,28 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.spring.injection.annot.SpringBean;
 
+@Setter
+@Getter
 public abstract class HuisartsVorigeRondeDialogPanel extends GenericPanel<ColonScreeningRonde>
 {
-
-	private static final long serialVersionUID = 1L;
-
 	private IModel<EnovationHuisarts> geselecteerdModel;
 
 	@Transient
 	private IModel<EnovationHuisarts> zoekModel;
 
+	@SpringBean
+	private HibernateService hibernateService;
+
 	private BootstrapDialog dialog;
 
 	private ColonHuisartsWijzigenPanel huisartsWijzigenPanel;
 
-	public HuisartsVorigeRondeDialogPanel(String id, IModel<ColonScreeningRonde> colonScreeningRonde, IModel<EnovationHuisarts> geselecteerdModel, IModel<EnovationHuisarts> zoekModel,
-										  BootstrapDialog dialog,
-										  ColonHuisartsWijzigenPanel huisartsWijzigenPanel)
+	public HuisartsVorigeRondeDialogPanel(String id, IModel<ColonScreeningRonde> colonScreeningRonde, IModel<EnovationHuisarts> geselecteerdModel,
+		IModel<EnovationHuisarts> zoekModel,
+		BootstrapDialog dialog,
+		ColonHuisartsWijzigenPanel huisartsWijzigenPanel)
 	{
 		super(id, colonScreeningRonde);
 		setDialog(dialog);
@@ -74,21 +82,24 @@ public abstract class HuisartsVorigeRondeDialogPanel extends GenericPanel<ColonS
 		add(new Label("communicatieadres", new PropertyModel<>(getGeselecteerdModel(), "ediadres")));
 		add(new AjaxLink<ColonScreeningRonde>("terug", getModel())
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				close(target);
-				getDialog().openWith(target, new HuisartsZoekenDialogPanel(IDialog.CONTENT_ID, getModel(), getZoekModel(), getDialog(), true, getHuisartsWijzigenPanel())
+				getDialog().openWith(target, new HuisartsZoekenDialogPanel(IDialog.CONTENT_ID)
 				{
-
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void close(AjaxRequestTarget target)
 					{
+						getDialog().close(target);
+					}
+
+					@Override
+					protected void onHuisartsGekozen(AjaxRequestTarget target, EnovationHuisarts huisarts)
+					{
+						HuisartsVorigeRondeDialogPanel.this.getModelObject().setColonHuisarts(huisarts);
+						getHuisartsWijzigenPanel().verversHuisarts(target);
 						getDialog().close(target);
 					}
 				});
@@ -96,9 +107,6 @@ public abstract class HuisartsVorigeRondeDialogPanel extends GenericPanel<ColonS
 		});
 		add(new AjaxLink<Void>("annuleren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -107,9 +115,6 @@ public abstract class HuisartsVorigeRondeDialogPanel extends GenericPanel<ColonS
 		});
 		add(new AjaxLink<ColonScreeningRonde>("opslaan", getModel())
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -134,45 +139,6 @@ public abstract class HuisartsVorigeRondeDialogPanel extends GenericPanel<ColonS
 		ModelUtil.nullSafeDetach(getZoekModel());
 	}
 
-	public IModel<EnovationHuisarts> getGeselecteerdModel()
-	{
-		return geselecteerdModel;
-	}
-
-	public void setGeselecteerdModel(IModel<EnovationHuisarts> geselecteerdModel)
-	{
-		this.geselecteerdModel = geselecteerdModel;
-	}
-
-	public IModel<EnovationHuisarts> getZoekModel()
-	{
-		return zoekModel;
-	}
-
-	public void setZoekModel(IModel<EnovationHuisarts> zoekModel)
-	{
-		this.zoekModel = zoekModel;
-	}
-
 	protected abstract void close(AjaxRequestTarget target);
 
-	public BootstrapDialog getDialog()
-	{
-		return dialog;
-	}
-
-	private void setDialog(BootstrapDialog dialog)
-	{
-		this.dialog = dialog;
-	}
-
-	private ColonHuisartsWijzigenPanel getHuisartsWijzigenPanel()
-	{
-		return huisartsWijzigenPanel;
-	}
-
-	private void setHuisartsWijzigenPanel(ColonHuisartsWijzigenPanel huisartsWijzigenPanel)
-	{
-		this.huisartsWijzigenPanel = huisartsWijzigenPanel;
-	}
 }

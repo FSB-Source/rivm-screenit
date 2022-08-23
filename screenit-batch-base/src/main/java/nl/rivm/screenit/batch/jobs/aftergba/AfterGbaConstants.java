@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.aftergba;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AfterGbaConstants
 {
-
-	private AfterGbaConstants()
-	{
-	}
 
 	public static final String VERWERKT = "key.antwoordformulier.verwerkt";
 

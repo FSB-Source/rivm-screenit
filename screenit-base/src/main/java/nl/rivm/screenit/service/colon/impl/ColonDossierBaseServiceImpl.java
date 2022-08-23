@@ -75,7 +75,12 @@ public class ColonDossierBaseServiceImpl implements ColonDossierBaseService
 			return null;
 		}
 
-		return berekenDatumVolgendeUitnodiging(volgendeUitnodiging.getPeildatum(), volgendeUitnodiging.getInterval());
+		Date peildatum = volgendeUitnodiging.getPeildatum();
+		if (volgendeUitnodiging.getProjectPeildatum() != null)
+		{
+			peildatum = DateUtil.toUtilDate(volgendeUitnodiging.getProjectPeildatum());
+		}
+		return berekenDatumVolgendeUitnodiging(peildatum, volgendeUitnodiging.getInterval());
 	}
 
 	private LocalDate berekenDatumVolgendeUitnodiging(Date peildatumDate, ColonUitnodigingsinterval interval)
@@ -110,6 +115,7 @@ public class ColonDossierBaseServiceImpl implements ColonDossierBaseService
 			dossier.setVolgendeUitnodiging(volgendeUitnodiging);
 		}
 		volgendeUitnodiging.setPeildatum(getPeildatum(dossier, type));
+		volgendeUitnodiging.setProjectPeildatum(null);
 		volgendeUitnodiging.setInterval(getIntervalByType(type));
 		hibernateService.saveOrUpdate(volgendeUitnodiging);
 

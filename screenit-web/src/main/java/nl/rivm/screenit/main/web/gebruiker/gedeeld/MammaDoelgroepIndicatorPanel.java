@@ -26,8 +26,8 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.enums.MammaDoelgroep;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 
-import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -36,7 +36,7 @@ public class MammaDoelgroepIndicatorPanel extends Panel
 {
 
 	@SpringBean
-	private MammaBaseDossierService baseDossierService;
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
 	public MammaDoelgroepIndicatorPanel(String id, MammaDossier dossier, boolean toonTehuis)
 	{
@@ -44,19 +44,19 @@ public class MammaDoelgroepIndicatorPanel extends Panel
 		boolean isMinderValideClient = false;
 		boolean isDubbeleTijdClient = false;
 		boolean isTehuisClient = false;
-		boolean isSuspect = false;
+		boolean isSuspectOfHoogRisico = false;
 		if (dossier != null)
 		{
 			MammaDoelgroep doelgroep = dossier.getDoelgroep();
 			isMinderValideClient = MammaDoelgroep.MINDER_VALIDE.equals(doelgroep);
 			isDubbeleTijdClient = MammaDoelgroep.DUBBELE_TIJD.equals(doelgroep);
 			isTehuisClient = dossier.getTehuis() != null;
-			isSuspect = baseDossierService.isSuspect(dossier);
+			isSuspectOfHoogRisico = volgendeUitnodigingService.isSuspectOfHoogRisico(dossier);
 		}
 		add(new WebMarkupContainer("dubbleTijd").setVisible(isDubbeleTijdClient));
 		add(new WebMarkupContainer("minderValide").setVisible(isMinderValideClient));
 		add(new WebMarkupContainer("tehuis").setVisible(isTehuisClient && toonTehuis));
-		add(new WebMarkupContainer("suspect").setVisible(isSuspect));
+		add(new WebMarkupContainer("suspectOfHoogRisico").setVisible(isSuspectOfHoogRisico));
 
 		setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_DOSSIERGEGEVENS, Actie.INZIEN)
 			|| ScreenitSession.get().checkPermission(Recht.GEBRUIKER_SCREENING_MAMMA_AFSPRAKEN_BEHEER, Actie.INZIEN)

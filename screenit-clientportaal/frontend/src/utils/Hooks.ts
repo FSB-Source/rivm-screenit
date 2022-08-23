@@ -62,7 +62,7 @@ export const useRefreshEnvironmentInfo = () => {
 }
 
 export const useRefreshClient = () => {
-	const dispatch = useDispatch()
+	const dispatch = useThunkDispatch()
 	const authenticatie = useSelector((state: State) => state.authenticatie)
 	const {keycloak} = useKeycloak()
 	const location = useLocation()
@@ -81,7 +81,7 @@ export const useRefreshBvoDossier = () => {
 	const selectedBvo = useSelectedBvo()
 
 	const isLoggedIn = useSelector((state: State) => state.authenticatie.isLoggedIn)
-	const dispatch = useDispatch()
+	const dispatch = useThunkDispatch()
 	const {keycloak} = useKeycloak()
 
 	const pathname = useLocation().pathname

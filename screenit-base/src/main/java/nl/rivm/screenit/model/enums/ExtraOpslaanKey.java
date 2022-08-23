@@ -26,6 +26,8 @@ public enum ExtraOpslaanKey
 
 	AFSPRAAK,
 
+	AANHEF,
+
 	AFSPRAAK_STATUS,
 
 	AFMELDING,
@@ -74,5 +76,4 @@ public enum ExtraOpslaanKey
 
 	MAMMA_AFSPRAAK_FILTER,
 
-	;
 }

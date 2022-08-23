@@ -22,10 +22,12 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.cleanupstep;
  */
 
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
-import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.algemeen.BezwaarMergedBrieven;
 
-public class BezwaarBrievenCleanUpReader<MB extends MergedBrieven<?>> extends AbstractBrievenCleanUpReader<BezwaarMergedBrieven>
+import org.springframework.stereotype.Component;
+
+@Component
+public class BezwaarBrievenCleanUpReader extends AbstractBrievenCleanUpReader<BezwaarMergedBrieven>
 {
 
 }

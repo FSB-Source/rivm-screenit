@@ -25,6 +25,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.clientportaal.exception.NotValidException;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakWijzigenFilterDto;
@@ -37,11 +40,10 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,25 +51,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("mamma/uitstel")
+@Slf4j
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class UitstelController extends AbstractController
 {
-	private static final Logger LOG = LoggerFactory.getLogger(UitstelController.class);
+	private final MammaBaseStandplaatsService standplaatsService;
 
-	@Autowired
-	private MammaBaseStandplaatsService standplaatsService;
+	private final MammaAfspraakService afspraakService;
 
-	@Autowired
-	private MammaAfspraakService afspraakService;
+	private final MammaUitstelService uitstelService;
 
-	@Autowired
-	private MammaUitstelService uitstelService;
-
-	@Autowired
-	private DatumValidatieService datumValidatieService;
+	private final DatumValidatieService datumValidatieService;
 
 	@PostMapping("/zoeken")
-	public ResponseEntity<List<MammaStandplaatsperiodeOptieDto>> zoekStandplaatsPeriodes(Authentication authentication,
-		@RequestBody MammaAfspraakZoekFilterDto body)
+	public ResponseEntity<List<MammaStandplaatsperiodeOptieDto>> zoekStandplaatsPeriodes(Authentication authentication, @RequestBody MammaAfspraakZoekFilterDto body)
 	{
 		if (datumValidatieService.datumIsInHetVerleden(body.getVanaf()))
 		{
@@ -89,7 +87,8 @@ public class UitstelController extends AbstractController
 		return createForbiddenResponse();
 	}
 
-	@PostMapping()
+	@PostMapping
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<String> maakUitstel(Authentication authentication, @RequestBody MammaStandplaatsperiodeOptieDto standplaatsPeriodeDto)
 	{
 		Client client = getClient(authentication);

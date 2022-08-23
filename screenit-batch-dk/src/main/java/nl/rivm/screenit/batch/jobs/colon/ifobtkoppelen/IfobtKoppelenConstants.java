@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtkoppelen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IfobtKoppelenConstants
 {
-
-	private IfobtKoppelenConstants()
-	{
-	}
 
 	public static final String RAPPORTAGEKEYIFOBTKOPPELEN = "key.koppelingid";
 

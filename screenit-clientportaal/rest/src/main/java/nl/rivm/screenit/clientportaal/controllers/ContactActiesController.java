@@ -21,23 +21,27 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.colon.ContactActiesDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.service.ClientContactService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("acties")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ContactActiesController extends AbstractController
 {
-    @Autowired
-    ClientContactService clientContactService;
+	private final ClientContactService clientContactService;
 
     @GetMapping("/beschikbaar")
     public ResponseEntity<ContactActiesDto> getContactActies(Authentication authentication)

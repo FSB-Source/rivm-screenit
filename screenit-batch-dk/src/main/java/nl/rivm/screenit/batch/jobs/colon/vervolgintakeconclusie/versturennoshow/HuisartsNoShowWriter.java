@@ -21,39 +21,35 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.MailMergeContext;
-import nl.rivm.screenit.model.colon.ColonConclusie;
-import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
-import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
+import nl.rivm.screenit.service.colon.ColonHuisartsBerichtService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class HuisartsNoShowWriter extends BaseWriter<ColonScreeningRonde>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(HuisartsNoShowWriter.class);
+	private final ColonHuisartsBerichtService huisartsBerichtService;
 
-	@Autowired
-	private ColonHuisartsBerichtService huisartsBerichtService;
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void write(ColonScreeningRonde ronde) throws Exception
 	{
-		Client client = ronde.getDossier().getClient();
-		ColonIntakeAfspraak colonIntakeAfspraak = ronde.getLaatsteAfspraak();
-		ColonConclusie conclusie = colonIntakeAfspraak.getConclusie();
-		MailMergeContext context = new MailMergeContext();
+		var client = ronde.getDossier().getClient();
+		var colonIntakeAfspraak = ronde.getLaatsteAfspraak();
+		var conclusie = colonIntakeAfspraak.getConclusie();
+		var context = new MailMergeContext();
 		context.setClient(client);
 		context.setIntakeAfspraak(colonIntakeAfspraak);
 		if (ronde.getLaatsteUitnodiging() != null)

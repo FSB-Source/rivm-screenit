@@ -63,11 +63,13 @@ public class MdlVerslagContent
 	@OrderBy("to_number(coalesce(nullif(volgnummerLaesie.value,''),to_char(id, '9999999999')), '9999999999')")
 	private List<MdlLaesiecoloscopiecentrum> laesiecoloscopiecentrum = new ArrayList<>();
 
+	@Override
 	public MdlVerslag getVerslag()
 	{
 		return verslag;
 	}
 
+	@Override
 	public void setVerslag(MdlVerslag verslag)
 	{
 		this.verslag = verslag;

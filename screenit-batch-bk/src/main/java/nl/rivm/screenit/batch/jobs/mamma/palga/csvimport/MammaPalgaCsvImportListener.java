@@ -26,6 +26,9 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaPalgaCsvImportListener extends BaseLogListener
 {
 	@Override

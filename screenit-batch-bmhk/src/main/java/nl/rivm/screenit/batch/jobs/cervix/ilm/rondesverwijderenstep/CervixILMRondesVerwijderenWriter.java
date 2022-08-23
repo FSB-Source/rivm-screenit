@@ -25,41 +25,41 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
-import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixILMRondesVerwijderenWriter extends BaseWriter<CervixScreeningRonde>
 {
 
-	@Autowired
-	private CervixBaseScreeningrondeService cervixBaseScreeningrondeService;
+	private final CervixBaseScreeningrondeService cervixBaseScreeningrondeService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void write(CervixScreeningRonde ronde) throws Exception
 	{
-		CervixDossier dossier = ronde.getDossier();
+		var dossier = ronde.getDossier();
 		if (dossier == null)
 		{
 			return;
 		}
 
-		CervixCISHistorie cisHistorie = dossier.getCisHistorie();
+		var cisHistorie = dossier.getCisHistorie();
 		if (cisHistorie != null)
 		{
 			cisHistorie.setScreeningRonde(null);
-			cisHistorie.getCisHistorieRegels().forEach(regel -> {
+			cisHistorie.getCisHistorieRegels().forEach(regel ->
+			{
 				hibernateService.delete(regel);
 			});
 			dossier.setCisHistorie(null);
@@ -82,7 +82,7 @@ public class CervixILMRondesVerwijderenWriter extends BaseWriter<CervixScreening
 				else
 				{
 					Optional<CervixScreeningRonde> cytologieRonde = dossier.getScreeningRondes().stream().filter(r -> !r.equals(ronde)
-						&& r.getStatusDatum().after(ronde.getStatusDatum()) && r.getUitstrijkjeCytologieUitslag() != null && r.getUitstrijkjeCytologieUitslag().equals(monster))
+							&& r.getStatusDatum().after(ronde.getStatusDatum()) && r.getUitstrijkjeCytologieUitslag() != null && r.getUitstrijkjeCytologieUitslag().equals(monster))
 						.findFirst();
 
 					if (cytologieRonde.isPresent())
@@ -103,7 +103,7 @@ public class CervixILMRondesVerwijderenWriter extends BaseWriter<CervixScreening
 	private void verplaatsUitnodigingNaarRonde(CervixUitnodiging uitnodiging, CervixScreeningRonde origineleRonde, CervixScreeningRonde nieuweRonde)
 	{
 		uitnodiging.setScreeningRonde(nieuweRonde);
-		CervixBrief uitnodigingBrief = uitnodiging.getBrief();
+		var uitnodigingBrief = uitnodiging.getBrief();
 		uitnodigingBrief.setScreeningRonde(nieuweRonde);
 		if (origineleRonde.getEersteUitnodiging().equals(uitnodiging))
 		{

@@ -344,6 +344,7 @@ public class MammaAfsprakenDagOverzichtPage extends MammaAfsprakenBasePage
 			target.add(volledigDagLabel);
 			target.add(metaInfo);
 			target.add(bulkVerzetten);
+			target.appendJavaScript("$(\"[hidden]\").hide();");
 		}
 	}
 

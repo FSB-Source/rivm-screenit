@@ -33,7 +33,9 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProjectBrievenAanmaakReader extends BaseScrollableResultReader
 {
 	@Autowired
@@ -52,7 +54,7 @@ public class ProjectBrievenAanmaakReader extends BaseScrollableResultReader
 				Restrictions.and(
 					Restrictions.eq("type", ProjectBriefActieType.DATUM), 
 					Restrictions.eq("datum", vandaag) 
-		), 
+				), 
 				Restrictions.eq("type", ProjectBriefActieType.XDAGENNAY), 
 				Restrictions.eq("type", ProjectBriefActieType.XMETY), 
 				Restrictions.eq("type", ProjectBriefActieType.HERINNERING)) 
@@ -63,7 +65,7 @@ public class ProjectBrievenAanmaakReader extends BaseScrollableResultReader
 			Restrictions.and(
 				Restrictions.gt("project.eindDatum", vandaag), 
 				Restrictions.le("project.startDatum", vandaag)
-		) 
+			) 
 		); 
 
 		return crit;

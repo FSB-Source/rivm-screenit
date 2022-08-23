@@ -28,18 +28,18 @@ import nl.rivm.screenit.clientportaal.model.BvoParametersDto;
 import nl.rivm.screenit.clientportaal.model.LandingOverzichtDto;
 import nl.rivm.screenit.clientportaal.services.LandingOverzichtService;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
-import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class LandingOverzichtServiceImpl implements LandingOverzichtService
 {
 
@@ -47,6 +47,7 @@ public class LandingOverzichtServiceImpl implements LandingOverzichtService
 
 	private final ClientDoelgroepService doelgroepService;
 
+	@Override
 	public LandingOverzichtDto getLandingOverzicht(Client client)
 	{
 		var behoortTotCervixDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.CERVIX);
@@ -54,38 +55,27 @@ public class LandingOverzichtServiceImpl implements LandingOverzichtService
 		var behoortTotMammaDoelgroep = doelgroepService.behoortTotDoelgroep(client, Bevolkingsonderzoek.MAMMA);
 
 		var dto = new LandingOverzichtDto();
-		dto.setMammaParameters(getMammaParameters(client.getMammaDossier()));
+		dto.setMammaParameters(getMammaParameters());
 		dto.setBehoortTotMammaDoelgroep(behoortTotMammaDoelgroep);
-		dto.setCervixParameters(getCervixParameters(client.getCervixDossier()));
+		dto.setCervixParameters(getCervixParameters());
 		dto.setBehoortTotCervixDoelgroep(behoortTotCervixDoelgroep);
-		dto.setColonParameters(getColonParameters(client.getColonDossier()));
+		dto.setColonParameters(getColonParameters());
 		dto.setBehoortTotColonDoelgroep(behoortTotColonDoelgroep);
 		return dto;
 	}
 
-	private BvoParametersDto getMammaParameters(MammaDossier dossier)
+	private BvoParametersDto getMammaParameters()
 	{
-		if (dossier == null)
-		{
-			return null;
-		}
-
 		return new BvoParametersDto(
 			preferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name()),
 			preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()),
 			preferenceService.getString(PreferenceKey.MAMMA_CLIENTPORTAAL_TIJDELIJKE_MELDING.name()),
 			preferenceService.getBoolean(PreferenceKey.MAMMA_CLIENTPORTAAL_TOON_VERVANGENDE_TEKST.name(), false),
 			preferenceService.getString(PreferenceKey.MAMMA_CLIENTPORTAAL_VERVANGENDE_TEKST.name()));
-
 	}
 
-	private BvoParametersDto getCervixParameters(CervixDossier dossier)
+	private BvoParametersDto getCervixParameters()
 	{
-		if (dossier == null)
-		{
-			return null;
-		}
-
 		return new BvoParametersDto(
 			CervixLeeftijdcategorie._30.getLeeftijd(),
 			CervixLeeftijdcategorie._60.getLeeftijd(),
@@ -94,13 +84,8 @@ public class LandingOverzichtServiceImpl implements LandingOverzichtService
 			preferenceService.getString(PreferenceKey.CERVIX_CLIENTPORTAAL_VERVANGENDE_TEKST.name()));
 	}
 
-	private BvoParametersDto getColonParameters(ColonDossier dossier)
+	private BvoParametersDto getColonParameters()
 	{
-		if (dossier == null)
-		{
-			return null;
-		}
-
 		return new BvoParametersDto(
 			preferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name()),
 			preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()),

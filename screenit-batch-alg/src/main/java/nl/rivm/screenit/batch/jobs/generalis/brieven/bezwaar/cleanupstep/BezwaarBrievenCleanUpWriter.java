@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.cleanupstep;
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpWriter;
 import nl.rivm.screenit.model.algemeen.BezwaarMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class BezwaarBrievenCleanUpWriter extends AbstractBrievenCleanUpWriter<BezwaarMergedBrieven>
 {
 

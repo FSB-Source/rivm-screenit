@@ -21,19 +21,20 @@ package nl.rivm.screenit.clientportaal.controllers.cervix;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.clientportaal.model.cervix.CervixZasStatusDto;
 import nl.rivm.screenit.clientportaal.services.cervix.CervixZasService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
-
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,13 +43,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("cervix/zas")
 @RestController
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Slf4j
+@AllArgsConstructor
 public class CervixZasController extends AbstractController
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixZasController.class);
-
-	@Autowired
-	private CervixZasService zasService;
+	private final CervixZasService zasService;
 
 	@GetMapping("status")
 	public ResponseEntity<CervixZasStatusDto> getZasStatus(Authentication authentication)
@@ -63,6 +64,7 @@ public class CervixZasController extends AbstractController
 	}
 
 	@PostMapping("aanvragen/{ontvangenNaUitstel}")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> vraagZasAan(@PathVariable Boolean ontvangenNaUitstel, Authentication authentication)
 	{
 		Client client = getClient(authentication);

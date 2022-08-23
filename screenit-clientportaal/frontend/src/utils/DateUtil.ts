@@ -18,7 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * =========================LICENSE_END==================================
  */
-import {addBusinessDays, addDays, addMonths, max, min, startOfDay, subDays, subMonths} from "date-fns"
+import {addBusinessDays, addDays, addMonths, differenceInDays, max, min, startOfDay, subDays, subMonths} from "date-fns"
 import {isNullOfUndefined} from "./EmptyUtil"
 import {cpStore} from "../index"
 
@@ -33,6 +33,17 @@ export const nu = (): Date => {
 
 export const parseIsoDatumUitDto = (isoString: string): Date => {
 	return new Date(isoString)
+}
+
+export const parseIsoDatumNederlandseIso = (isoString: string): Date => {
+	const split = isoString.split("-")
+	if (split[2] === undefined && split[1] === undefined) {
+		return new Date(split[0])
+	}
+	if (split[2] === undefined) {
+		return new Date(+split[1], +split[0] - 1)
+	}
+	return new Date(+split[2], +split[1] - 1, +split[0])
 }
 
 export const vandaag = (): Date => {
@@ -124,6 +135,10 @@ export function lijstBevatMeegegevenDatum(lijst: Date[] | undefined, value: Date
 
 export function zoekIndex(lijst: Date[] | undefined, value: Date | undefined): number {
 	return (!!lijst && !!value) ? lijst.findIndex((d) => d.getTime() === value.getTime()) : -1
+}
+
+export function getAantalDagenTussenDatums(eersteDatum: Date, tweedeDatum: Date) {
+	return differenceInDays(eersteDatum, tweedeDatum)
 }
 
 const getDateTimeFormat = (options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat => {

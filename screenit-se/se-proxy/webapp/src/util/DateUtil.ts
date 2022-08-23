@@ -48,14 +48,15 @@ export const nuTimestamp = (): string => nu().format("HH:mm:ss.SSS")
 
 export const nuTijdUrenMinuten = (): string => nu().format("HH:mm")
 
-export const ligtTussenData = (datum: string, startDatum: string | undefined, eindDatum: string | undefined): boolean => {
+export const ligtTussenData = (datum: Date, startDatum: Date | null, eindDatum: Date | null): boolean => {
 	if (startDatum || eindDatum) {
-		return (startDatum ? getDate(startDatum) <= datum : true) && (eindDatum ? datum <= getDate(eindDatum) : true)
+		return (startDatum ? getDate(String(startDatum)) <= String(datum) : true) && (eindDatum ? String(datum) <= getDate(String(eindDatum)) : true)
 	} else {
 		return false
 	}
 }
-export const datumFormaat = (isoDatum: string | undefined): string => isoDatum ? moment(isoDatum).format("DD-MM-YYYY") : ""
+
+export const datumFormaat = (isoDatum: string | Date | null | undefined): string => isoDatum ? moment(String(isoDatum)).format("DD-MM-YYYY") : ""
 
 export const tijdFormaat = (isoTijd: string | undefined): string => isoTijd ? moment(isoTijd).format("HH:mm") : ""
 
@@ -91,4 +92,12 @@ export const getTijdGeledenTekst = (timestamp: string): string => {
 
 export const vandaagPlusDagen = (aantal: number): string => {
 	return nu().add(aantal, "d").format("YYYY-MM-DDTHH:mm:ss")
+}
+
+export const vandaagDate = (): Date => {
+	return new Date(vandaagISO())
+}
+
+export const isValideDatum = (datum: Date): boolean => {
+	return datum.getFullYear().toString().length === 4
 }

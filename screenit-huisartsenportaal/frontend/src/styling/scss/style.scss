@@ -1,0 +1,57 @@
+@import "~bootstrap/scss/functions";
+@import "colors";
+@import "~bootstrap/scss/bootstrap";
+@import "src/styling/font/fonts";
+@import "media-mixins";
+@import "~bootstrap-icons/font/bootstrap-icons.css";
+
+body {
+	font-family: 'Roboto', Helvetica, Arial, 'sans-serif';
+	font-size: 0.95rem;
+	color: $zwart;
+	background: url('../media/background.jpg') no-repeat center center fixed;
+	background-size: cover;
+
+	form {
+		p.form-error {
+			color: $rood;
+			font-size: 0.8rem;
+			margin-top: 5px;
+			margin-bottom: 0;
+		}
+	}
+
+	table {
+		width: 100%;
+		box-shadow: 5px 20px 30px 3px rgba(0, 0, 0, 0.2);
+
+		thead {
+			tr {
+				cursor: pointer;
+			}
+
+			th:hover {
+				background-color: $wit-doorzichtig;
+			}
+		}
+
+		tbody {
+			background-color: $tabel-background;
+		}
+
+		th, td {
+			padding: 10px 10px;
+		}
+
+		tbody {
+			tr:hover {
+				background-color: $wit-doorzichtig;
+			}
+		}
+
+		tr {
+			border-bottom: 1px solid #ddd;
+		}
+
+	}
+}

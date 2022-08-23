@@ -29,11 +29,9 @@ import org.springframework.core.annotation.Order;
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ImportResource(
-		locations = {
-				"classpath:applicationContext-edi.xml",
-				"classpath:applicationContext-jobs-cervix.xml",
-				"classpath:applicationContext-hl7v2-services.xml"
-		})
+	locations = {
+		"classpath:applicationContext-hl7v2-services.xml"
+	})
 public class ImportBmhkXmlOrder
 {
 }

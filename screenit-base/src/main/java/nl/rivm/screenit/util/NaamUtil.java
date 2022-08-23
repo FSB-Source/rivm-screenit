@@ -25,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gebruiker;
@@ -422,5 +423,26 @@ public abstract class NaamUtil
 			result += persoon.getAchternaam();
 		}
 		return result;
+	}
+
+	public static String getGewensteAanspreekVorm(Client client)
+	{
+		if (client != null)
+		{
+			var persoon = client.getPersoon();
+			var sb = new StringBuilder();
+			var aanhef = Aanhef.bepaalJuisteAanhef(persoon);
+			sb.append(aanhef.getNaam()).append(" ");
+			if (aanhef == Aanhef.GEACHTE)
+			{
+				sb.append(voorlettersTussenvoegselEnAanspreekAchternaam(client));
+			}
+			else
+			{
+				sb.append(StringUtils.capitalize(getAanspreekTussenvoegselEnAchternaam(client)));
+			}
+			return sb.toString();
+		}
+		return null;
 	}
 }

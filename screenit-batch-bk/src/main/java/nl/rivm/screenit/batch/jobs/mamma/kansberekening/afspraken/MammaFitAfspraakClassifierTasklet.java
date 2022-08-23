@@ -23,6 +23,9 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
 
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractKansberekeningTasklet;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaFitAfspraakClassifierTasklet extends MammaAbstractKansberekeningTasklet
 {
 	@Override

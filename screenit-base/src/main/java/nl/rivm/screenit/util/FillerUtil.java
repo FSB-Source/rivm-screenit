@@ -54,6 +54,7 @@ import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.spring.injection.SpringBeanProvider;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 import nl.topicuszorg.wicket.planning.model.appointment.definition.ActionType;
 
@@ -75,7 +76,7 @@ public class FillerUtil
 		uploadDocument.setFile(file);
 		try
 		{
-			UploadDocumentService uploadDocumentService = getApplicationContext().getBean(UploadDocumentService.class);
+			UploadDocumentService uploadDocumentService = SpringBeanProvider.getInstance().getBean(UploadDocumentService.class);
 			uploadDocumentService.saveOrUpdate(uploadDocument, fileStoreLocation, id, false);
 		}
 		catch (IOException e)
@@ -87,19 +88,14 @@ public class FillerUtil
 
 	public static void addPermissie(Rol rol, Actie actie, Recht recht, ToegangLevel level)
 	{
+		Assert.isTrue(recht.getActie() == null || recht.getActie().length == 0 || Arrays.asList(recht.getActie()).contains(actie), "Acties");
+		Assert.isTrue(recht.getLevel() == null || Arrays.asList(recht.getLevel()).contains(level), "Level");
 		Permissie permissie = new Permissie();
 		permissie.setActie(actie);
 		permissie.setRecht(recht);
 		permissie.setToegangLevel(level);
 		permissie.setRol(rol);
 		rol.getPermissies().add(permissie);
-	}
-
-	public static void addPermissieGebruiker(Rol rol, Actie actie, Recht recht, ToegangLevel level)
-	{
-		Assert.isTrue(recht.getActie() == null || recht.getActie().length == 0 || Arrays.asList(recht.getActie()).contains(actie));
-		Assert.isTrue(recht.getLevel() == null || Arrays.asList(recht.getLevel()).contains(level));
-		addPermissie(rol, actie, recht, level);
 	}
 
 	private static ProjectGroep createGroep(Project project, HibernateService hibernateService)

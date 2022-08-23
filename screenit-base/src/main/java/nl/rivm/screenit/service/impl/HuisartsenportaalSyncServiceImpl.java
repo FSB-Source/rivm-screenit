@@ -25,9 +25,6 @@ package nl.rivm.screenit.service.impl;
 import java.io.Serializable;
 
 import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
 
 import nl.rivm.screenit.model.helper.ActiveMQHelper;
 import nl.rivm.screenit.service.HuisartsenportaalSyncService;
@@ -35,7 +32,6 @@ import nl.rivm.screenit.service.HuisartsenportaalSyncService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -45,19 +41,12 @@ public class HuisartsenportaalSyncServiceImpl implements HuisartsenportaalSyncSe
 	private JmsTemplate jmsTemplate;
 
 	@Autowired
-	@Qualifier("huisartsporaalDestination")
-	private Destination huisartsporaalDestination;
+	@Qualifier("huisartsportaalDestination")
+	private Destination huisartsportaalDestination;
 
 	@Override
 	public void sendJmsBericht(Serializable object)
 	{
-		jmsTemplate.send(huisartsporaalDestination, new MessageCreator()
-		{
-			@Override
-			public Message createMessage(Session session) throws JMSException
-			{
-				return ActiveMQHelper.getActiveMqObjectMessage(object);
-			}
-		});
+		jmsTemplate.send(huisartsportaalDestination, session -> ActiveMQHelper.getActiveMqObjectMessage(object));
 	}
 }

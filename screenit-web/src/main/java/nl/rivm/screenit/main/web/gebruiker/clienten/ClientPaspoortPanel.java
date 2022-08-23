@@ -35,7 +35,6 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.NaamUtil;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
@@ -68,7 +67,6 @@ public class ClientPaspoortPanel extends GenericPanel<Client>
 		add(new Label("persoon.voornaam"));
 		add(new Label("persoon.achternaam", NaamUtil.titelVoorlettersTussenvoegselEnAanspreekAchternaam(client)));
 		add(new Label("persoon.bsn"));
-		add(new EnumLabel<>("persoon.geslacht"));
 		add(new Label("geboortenaam", NaamUtil.getGeboorteTussenvoegselEnAchternaam(persoon)));
 
 		add(new Label("persoon.geboortedatum", DateUtil.getGeboortedatum(persoon)));

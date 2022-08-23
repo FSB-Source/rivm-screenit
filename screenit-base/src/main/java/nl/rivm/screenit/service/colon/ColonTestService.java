@@ -54,13 +54,13 @@ public interface ColonTestService
 
 	void maakClientKlaarVoorRappeleren(GbaPersoon persoon);
 
-    IFOBTTest maakHuidigeIFobtOntvangenInclUitslag(GbaPersoon filter, BigDecimal normwaarde, BigDecimal uitslag);
+	IFOBTTest maakHuidigeIFobtOntvangenInclUitslag(GbaPersoon filter, BigDecimal normwaarde, BigDecimal uitslag);
 
-    void maakUitnodigingEnTestenVergelijkendOnderzoek(GbaPersoon filter);
+	void maakUitnodigingEnTestenVergelijkendOnderzoek(GbaPersoon filter);
 
-    ColonScreeningRonde maakNieuweScreeningRonde(ColonDossier dossier);
+	ColonScreeningRonde maakNieuweScreeningRonde(ColonDossier dossier);
 
-    void huisartsBerichtKlaarzettten(GbaPersoon filter, HuisartsBerichtType berichtType);
+	void huisartsBerichtKlaarzetten(GbaPersoon filter, HuisartsBerichtType berichtType);
 
 	IFOBTTest maakHuidigeIFobtOntvangenEnGunstig(GbaPersoon persoon);
 

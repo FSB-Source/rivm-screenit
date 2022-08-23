@@ -1,0 +1,15 @@
+{
+  "title": "Wachtwoord opnieuw aanvragen",
+  "form": {
+    "labels": {
+      "emailOfGebruikersnaam": "E-mail of Gebruikersnaam",
+      "inlogcode": "Inlogcode"
+    },
+    "buttons": {
+      "submit": "Wachtwoord invoeren"
+    }
+  },
+  "toast": {
+    "success": "U kunt nu een nieuwe wachtwoord aanmaken."
+  }
+}

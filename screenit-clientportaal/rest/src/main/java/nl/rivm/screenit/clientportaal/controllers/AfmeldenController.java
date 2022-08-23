@@ -21,6 +21,8 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.AfmeldOptiesDto;
 import nl.rivm.screenit.clientportaal.model.AfmeldingDto;
 import nl.rivm.screenit.clientportaal.services.AfmeldenService;
@@ -35,10 +37,11 @@ import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 import nl.rivm.screenit.service.BaseAfmeldService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,13 +52,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("afmelden")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class AfmeldenController extends AbstractController
 {
-	@Autowired
-	private BaseAfmeldService baseAfmeldService;
+	private final BaseAfmeldService baseAfmeldService;
 
-	@Autowired
-	private AfmeldenService afmeldenService;
+	private final AfmeldenService afmeldenService;
 
 	@GetMapping(value = "/{bevolkingsonderzoek}")
 	public ResponseEntity<AfmeldOptiesDto> getAfmeldOpties(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, Authentication authentication)
@@ -65,6 +68,7 @@ public class AfmeldenController extends AbstractController
 
 	@PostMapping(value = "/cervix")
 	@ResponseStatus(HttpStatus.OK)
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> saveCervixAfmelding(@RequestBody AfmeldingDto<CervixAfmeldingReden> afmeldingDto, Authentication authentication)
 	{
 		Client client = getClient(authentication);
@@ -80,6 +84,7 @@ public class AfmeldenController extends AbstractController
 
 	@PostMapping(value = "/colon")
 	@ResponseStatus(HttpStatus.OK)
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> saveColonAfmelding(@RequestBody AfmeldingDto<ColonAfmeldingReden> afmeldingDto, Authentication authentication)
 	{
 		Client client = getClient(authentication);
@@ -95,6 +100,7 @@ public class AfmeldenController extends AbstractController
 
 	@PostMapping(value = "/mamma")
 	@ResponseStatus(HttpStatus.OK)
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> saveMammaAfmelding(@RequestBody AfmeldingDto<MammaAfmeldingReden> afmeldingDto, Authentication authentication)
 	{
 		Client client = getClient(authentication);

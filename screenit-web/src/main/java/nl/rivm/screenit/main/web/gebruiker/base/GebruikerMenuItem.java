@@ -90,10 +90,8 @@ public class GebruikerMenuItem implements Serializable, IMenuItem
 
 	public IndicatingAjaxLink<?> createWicketLink(String markupId)
 	{
-		IndicatingAjaxLink<?> link = new IndicatingAjaxLink<Void>(markupId)
+		var link = new IndicatingAjaxLink<Void>(markupId)
 		{
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{

@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio.genererenstep;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenProcessor;
 import nl.rivm.screenit.model.cervix.CervixRegioBrief;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class RegioBrievenGenererenProcessor extends AbstractBrievenGenererenProcessor<CervixRegioBrief>
 {
 

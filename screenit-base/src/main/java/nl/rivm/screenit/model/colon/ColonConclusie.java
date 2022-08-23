@@ -38,6 +38,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import nl.rivm.screenit.model.InstellingGebruiker;
+import nl.rivm.screenit.model.colon.enums.ColonConclusieOnHoldReden;
 import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.enums.ColonGeenOnderzoekReden;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -59,6 +60,9 @@ public class ColonConclusie extends AbstractHibernateObject
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ColonConclusieType type;
+
+	@Enumerated(EnumType.STRING)
+	private ColonConclusieOnHoldReden onHoldReden;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private InstellingGebruiker instellingGebruiker;

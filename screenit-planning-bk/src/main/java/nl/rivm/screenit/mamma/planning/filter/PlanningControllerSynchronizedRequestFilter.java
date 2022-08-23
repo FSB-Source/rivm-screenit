@@ -37,6 +37,8 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
+import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
+import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
 import nl.rivm.screenit.util.EnvironmentUtil;
 
 import org.springframework.http.HttpStatus;
@@ -47,7 +49,7 @@ public class PlanningControllerSynchronizedRequestFilter implements Filter
 
 	private static final Integer MAX_WACHTTIJD_LANGE_PLANNING_ACTIES = EnvironmentUtil.getIntegerEnvironmentVariable("MAX_WACHTTIJD_LANGE_PLANNING_ACTIES", 50);
 
-	private Semaphore semaphore = new Semaphore(1);
+	private final Semaphore semaphore = new Semaphore(1);
 
 	@Override
 	public void init(FilterConfig filterConfig)
@@ -72,7 +74,17 @@ public class PlanningControllerSynchronizedRequestFilter implements Filter
 				{
 					try
 					{
-						chain.doFilter(request, response);
+						if (PlanningStatusIndex.get() != MammaPlanningStatus.OPERATIONEEL && !path.equals(
+							String.format("/%1$s/%2$s", PlanningRestConstants.C_ACTIE, PlanningRestConstants.C_READMODEL)))
+						{
+							LOG.info("Request naar {} afgebroken omdat de planning niet beschikbaar is", path);
+							var httpServletResponse = (HttpServletResponse) response;
+							httpServletResponse.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+						}
+						else
+						{
+							chain.doFilter(request, response);
+						}
 					}
 					finally
 					{

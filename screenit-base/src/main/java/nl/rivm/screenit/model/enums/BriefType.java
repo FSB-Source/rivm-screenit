@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.project.ProjectBriefActieType;
@@ -806,6 +808,37 @@ public enum BriefType
 
 	private static final List<BriefType> CERVIX_ZAS_BRIEVEN = Arrays.asList(BriefType.CERVIX_ZAS_UITNODIGING, BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR);
 
+	public static final List<BriefType> CERVIX_UITSLAG_BRIEVEN = Arrays.asList(
+		BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_HPV_ONBEOORDEELBAAR,
+		BriefType.CERVIX_CYTOLOGIE_ONBEOORDEELBAAR,
+		BriefType.CERVIX_UITSTRIJKJE_NIET_ANALYSEERBAAR_OF_CYTOLOGIE_ONBEOORDEELBAAR,
+		BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR,
+		BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR,
+		BriefType.CERVIX_ZAS_TWEEDE_KEER_ONBEOORDEELBAAR,
+		BriefType.CERVIX_UITSTRIJKJE_TWEEDE_KEER_ONBEOORDEELBAAR,
+		BriefType.CERVIX_HPV_NEGATIEF_VOLGENDE_RONDE_5_JAAR,
+		BriefType.CERVIX_HPV_NEGATIEF_LAATSTE_RONDE,
+		BriefType.CERVIX_HPV_NEGATIEF_VOLGENDE_RONDE_10_JAAR,
+		BriefType.CERVIX_ZAS_HPV_POSITIEF,
+		BriefType.CERVIX_CYTOLOGIE_NEGATIEF,
+		BriefType.CERVIX_CYTOLOGIE_LICHTE_AFWIJKING,
+		BriefType.CERVIX_CYTOLOGIE_AFWIJKING,
+		BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_NEGATIEF,
+		BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING,
+		BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_AFWIJKING,
+		BriefType.CERVIX_HUISARTS_ONBEKEND,
+		BriefType.CERVIX_CONTROLEUITSTRIJKJE_NEGATIEF,
+		BriefType.CERVIX_CONTROLEUITSTRIJKJE_LICHTE_AFWIJKING,
+		BriefType.CERVIX_CONTROLEUITSTRIJKJE_AFWIJKING,
+		BriefType.CERVIX_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER,
+		BriefType.CERVIX_VOLGEND_MONSTER_CYTOLOGIE_LICHTE_AFWIJKING_HPVOTHER,
+		BriefType.CERVIX_MONSTER_NA_HPV_NEGATIEF,
+		BriefType.CERVIX_ZAS_NA_HPV_POSITIEF,
+		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_ONBEOORDEELBAAR,
+		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_NEGATIEF,
+		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF,
+		BriefType.CERVIX_ZAS_NA_CYTOLOGIE_POSITIEF_HPVOTHER);
+
 	private final Bevolkingsonderzoek[] onderzoeken;
 
 	private final OrganisatieType verzendendeOrganisatieType;
@@ -907,6 +940,11 @@ public enum BriefType
 			}
 		}
 		return briefTypes;
+	}
+
+	public static List<BriefType> getMammaUitslagBriefTypen()
+	{
+		return Stream.concat(MAMMA_OVERIGE_UITSLAGEN.stream(), MAMMA_ONGUNSTIGE_UITSLAGEN.stream()).collect(Collectors.toList());
 	}
 
 	public static List<BriefType> getMammaOngunstigeUitslagBriefTypen()

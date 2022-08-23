@@ -21,6 +21,8 @@ package nl.rivm.screenit.clientportaal.controllers.colon;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.clientportaal.mappers.HuisartsMapper;
 import nl.rivm.screenit.clientportaal.model.HuisartsDto;
@@ -31,9 +33,10 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.service.colon.ColonHuisartsService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,18 +46,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("huisarts/colon")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonHuisartsController extends AbstractController
 {
-	@Autowired
-	private ColonHuisartsService colonHuisartsService;
+	private final ColonHuisartsService colonHuisartsService;
 
-	@Autowired
-	private HuisartsMapper huisartsMapper;
+	private final HuisartsMapper huisartsMapper;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@PostMapping
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> koppelColonHuisarts(Authentication authentication, @RequestParam long id)
 	{
 		Client client = getClient(authentication);
@@ -79,6 +82,7 @@ public class ColonHuisartsController extends AbstractController
 	}
 
 	@DeleteMapping
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> ontkoppelColonHuisarts(Authentication authentication)
 	{
 		Client client = getClient(authentication);
@@ -127,6 +131,7 @@ public class ColonHuisartsController extends AbstractController
 	}
 
 	@PostMapping(path = "/vorige")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> bevestigVorigeColonHuisarts(Authentication authentication)
 	{
 		Client client = getClient(authentication);

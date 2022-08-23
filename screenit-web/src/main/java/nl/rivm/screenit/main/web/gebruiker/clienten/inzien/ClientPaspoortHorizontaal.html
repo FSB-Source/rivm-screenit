@@ -55,12 +55,14 @@
 							</div>
 						</div>
 					</wicket:enclosure>
-					<div class="control-group value">
-						<label class="control-label">Geslacht</label>
-						<div class="controls">
-							<strong wicket:id="persoon.geslacht"></strong>
+					<wicket:enclosure child="persoon.geslacht">
+						<div class="control-group value">
+							<label class="control-label">Genderidentiteit</label>
+							<div class="controls">
+								<strong wicket:id="persoon.geslacht"></strong>
+							</div>
 						</div>
-					</div>
+					</wicket:enclosure>
 					<div class="control-group value">
 						<label class="control-label">Geboortenaam</label>
 						<div class="controls">

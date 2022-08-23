@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
 
 /*-
@@ -22,6 +21,9 @@ package nl.rivm.screenit.batch.jobs.generalis.coordinaten.postcodekoppelstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.dao.CoordinatenDao;
 import nl.rivm.screenit.model.PostcodeCoordinaten;
@@ -29,17 +31,15 @@ import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.topicuszorg.organisatie.model.Adres;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class PostcodeCoordinatenIntakeLocatieKoppelWriter extends BaseWriter<ColoscopieCentrum>
 {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(PostcodeCoordinatenClientKoppelWriter.class);
-
-	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private final CoordinatenDao coordinatenDao;
 
 	@Override
 	public void write(ColoscopieCentrum item)
@@ -56,14 +56,14 @@ public class PostcodeCoordinatenIntakeLocatieKoppelWriter extends BaseWriter<Col
 				}
 				else
 				{
-					LOGGER.warn("Geen coordinaten gevonden voor IL " + item.getNaam() + " " + AdresUtil.getVolledigeAdresString(adres));
+					LOG.warn("Geen coordinaten gevonden voor IL " + item.getNaam() + " " + AdresUtil.getVolledigeAdresString(adres));
 				}
 			}
 		}
 		item.setPostcodeCoordinaten(coordinaten);
 		if (coordinaten != null)
 		{
-			LOGGER.info("Coordinaten voor IL " + item.getNaam() + " gevonden.");
+			LOG.info("Coordinaten voor IL " + item.getNaam() + " gevonden.");
 		}
 		getHibernateService().saveOrUpdate(item);
 	}

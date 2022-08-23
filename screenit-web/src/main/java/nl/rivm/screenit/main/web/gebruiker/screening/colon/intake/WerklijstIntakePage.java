@@ -53,6 +53,8 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColoscopieCentrum;
 import nl.rivm.screenit.model.colon.ConclusieTypeFilter;
 import nl.rivm.screenit.model.colon.WerklijstIntakeFilter;
+import nl.rivm.screenit.model.colon.enums.ColonConclusieOnHoldReden;
+import nl.rivm.screenit.model.colon.enums.ColonConclusieType;
 import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -79,9 +81,11 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.AbstractExportableColumn;
+import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
@@ -91,6 +95,7 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.joda.time.DateTime;
@@ -305,7 +310,7 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		columns.add(new ClientColumn<>("persoon.achternaam", "client"));
 		columns.add(new PropertyColumn<>(Model.of("BSN"), "persoon.bsn", "client.persoon.bsn"));
 		columns.add(new GeboortedatumColumn<>("persoon.geboortedatum", "client.persoon"));
-		columns.add(new EnumPropertyColumn<>(Model.of("Geslacht"), "persoon.geslacht", "client.persoon.geslacht"));
+		columns.add(new EnumPropertyColumn<>(Model.of("Gender"), "persoon.geslacht", "client.persoon.geslacht"));
 		columns.add(new PropertyColumn<>(Model.of("Adres"), "client.persoon.adres.straat")
 		{
 
@@ -435,7 +440,30 @@ public abstract class WerklijstIntakePage extends ColonScreeningBasePage
 		}
 		if (!(this instanceof ColonGeplandeIntakesWerklijstPage))
 		{
-			columns.add(new EnumPropertyColumn<>(Model.of("Conclusie"), "conclusie.type", "conclusie.type"));
+			columns.add(new AbstractColumn<>(Model.of("Conclusie"), "conclusie.type")
+			{
+				@Override
+				public void populateItem(Item<ICellPopulator<ColonIntakeAfspraak>> cellItem, String componentId, IModel<ColonIntakeAfspraak> rowModel)
+				{
+
+					var conclusie = rowModel.getObject().getConclusie();
+					if (conclusie != null)
+					{
+						if (ColonConclusieType.ON_HOLD.equals(conclusie.getType()) && conclusie.getOnHoldReden() != null)
+						{
+							cellItem.add(new EnumLabel<ColonConclusieOnHoldReden>(componentId, new PropertyModel<>(rowModel, "conclusie.onHoldReden")));
+						}
+						else
+						{
+							cellItem.add(new EnumLabel<ColonConclusieType>(componentId, new PropertyModel<>(rowModel, "conclusie.type")));
+						}
+					}
+					else
+					{
+						cellItem.add(new Label(componentId, ""));
+					}
+				}
+			});
 		}
 		return columns;
 	}

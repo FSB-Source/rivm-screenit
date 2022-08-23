@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.clienten.project;
 
 /*-
@@ -28,7 +27,7 @@ import java.util.List;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.service.DossierService;
-import nl.rivm.screenit.util.EnumStringUtil;
+import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ConfirmingIndicatingAjaxLink;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -40,20 +39,20 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.ClientPaspoortPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.GebeurtenisComparator;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.GebeurtenisPopupBasePanel;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.rivm.screenit.model.project.ProjectInactiefReden;
 import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.model.DetachableListModel;
 import nl.topicuszorg.wicket.model.SortingListModel;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -66,13 +65,12 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.PropertyListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public class ClientProjectGegevens extends ClientPage
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@SpringBean
 	private ClientService clientService;
@@ -90,19 +88,12 @@ public class ClientProjectGegevens extends ClientPage
 
 	private final BootstrapDialog dialog;
 
-	private IModel<Client> clientModel;
-
-	private IModel<ProjectClientAttribuut> filterPapcModel;
-
 	private IModel<ProjectClient> projectClientModel;
 
 	public ClientProjectGegevens(IModel<ProjectClient> projectClient)
 	{
-		super(ModelUtil.cModel(projectClient.getObject().getClient()));
-		clientModel = (IModel<Client>) getDefaultModel();
+		super(new PropertyModel<>(projectClient, "client"));
 		projectClientModel = projectClient;
-		filterPapcModel = ModelUtil.cModel(new ProjectClientAttribuut());
-		filterPapcModel.getObject().setProjectClient(projectClient.getObject());
 
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
@@ -137,18 +128,15 @@ public class ClientProjectGegevens extends ClientPage
 		inactiveerContainer.setVisible(!pc.getActief());
 		add(inactiveerContainer);
 
-		add(new ClientPaspoortPanel("paspoort", clientModel));
+		add(new ClientPaspoortPanel("paspoort", getClientModel()));
 
 		add(new ConfirmingIndicatingAjaxLink<Void>("inactiveren", dialog, "question.project.inactiveer.client")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
-				clientService.projectClientInactiveren(clientModel.getObject(), ProjectInactiefReden.VIA_INFOLIJN, null);
-				setResponsePage(new ClientProjectenPage(clientModel));
+				clientService.projectClientInactiveren(getClientModel().getObject(), ProjectInactiefReden.VIA_INFOLIJN, null);
+				setResponsePage(new ClientProjectenPage(getClientModel()));
 			}
 
 			@Override
@@ -164,9 +152,6 @@ public class ClientProjectGegevens extends ClientPage
 
 		add(new ConfirmingIndicatingAjaxLink<Void>("activeren", dialog, "question.project.activeer.client")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -178,7 +163,7 @@ public class ClientProjectGegevens extends ClientPage
 				}
 				else
 				{
-					setResponsePage(new ClientProjectenPage(clientModel));
+					setResponsePage(new ClientProjectenPage(getClientModel()));
 				}
 			}
 
@@ -201,15 +186,12 @@ public class ClientProjectGegevens extends ClientPage
 
 		ProjectClient pClient = projectClientModel.getObject();
 
-		List<ScreeningRondeGebeurtenis> dg = dossierService.getProjectGebeurtenissen(pClient);
-		IModel<List<ScreeningRondeGebeurtenis>> dossierModel = new DetachableListModel<ScreeningRondeGebeurtenis>(dg);
+		List<ScreeningRondeGebeurtenis> dg = dossierService.getProjectGebeurtenissen(ModelProxyHelper.deproxy(pClient));
+		IModel<List<ScreeningRondeGebeurtenis>> dossierModel = new DetachableListModel<>(dg);
 
 		PropertyListView<ScreeningRondeGebeurtenis> gebeurtenissen = new PropertyListView<ScreeningRondeGebeurtenis>("gebeurtenissen",
-			new SortingListModel<ScreeningRondeGebeurtenis>(dossierModel, new GebeurtenisComparator()))
+			new SortingListModel<>(dossierModel, new GebeurtenisComparator()))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(final ListItem<ScreeningRondeGebeurtenis> item)
 			{
@@ -221,53 +203,20 @@ public class ClientProjectGegevens extends ClientPage
 
 				if (gebeurtenis.getDetailPanelClass() != null)
 				{
-					item.add(new AttributeAppender("class", new Model<String>("badge-clickable"), " "));
+					item.add(new AttributeAppender("class", Model.of("badge-clickable"), " "));
 				}
 				else
 				{
-					item.add(new AttributeAppender("class", new Model<String>("badge-not-clickable"), " "));
+					item.add(new AttributeAppender("class", Model.of("badge-not-clickable"), " "));
 				}
 
-				item.add(new Label("extraOmschrijving", new IModel<String>()
+				item.add(new Label("extraOmschrijving", (IModel<String>) () ->
 				{
-
-					private static final long serialVersionUID = 1L;
-
-					@Override
-					public String getObject()
-					{
-						ScreeningRondeGebeurtenis gebeurtenis2 = item.getModelObject();
-						String[] extraOmschrijvingen = gebeurtenis2.getExtraOmschrijving();
-						String extraOmschrijving = "";
-						if (extraOmschrijvingen != null)
-						{
-							for (String omschrijving : extraOmschrijvingen)
-							{
-								if (omschrijving != null)
-								{
-									if (StringUtils.isNotBlank(extraOmschrijving))
-									{
-										extraOmschrijving += ", ";
-									}
-									else
-									{
-										extraOmschrijving = "(";
-									}
-									extraOmschrijving += getString(omschrijving, null, omschrijving);
-								}
-							}
-						}
-						if (StringUtils.isNotBlank(extraOmschrijving))
-						{
-							extraOmschrijving += ")";
-						}
-						return extraOmschrijving;
-					}
+					ScreeningRondeGebeurtenis gebeurtenis2 = item.getModelObject();
+					String[] extraOmschrijvingen = gebeurtenis2.getExtraOmschrijving();
+					return BriefOmschrijvingUtil.verwerkExtraOmschrijvingen(extraOmschrijvingen, ClientProjectGegevens.this::getString);
 				})
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void onConfigure()
 					{
@@ -281,33 +230,21 @@ public class ClientProjectGegevens extends ClientPage
 					item.add(new AjaxEventBehavior("click")
 					{
 
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void onEvent(AjaxRequestTarget target)
 						{
-							if (gebeurtenis.equals(TypeGebeurtenis.PROJECT_BRIEF_TEGENHOUDEN) || gebeurtenis.equals(TypeGebeurtenis.PROJECT_BRIEF_AANGEMAAKT))
+							if (List.of(TypeGebeurtenis.PROJECT_BRIEF_TEGENHOUDEN, TypeGebeurtenis.PROJECT_BRIEF_AANGEMAAKT, TypeGebeurtenis.PROJECT_BRIEF_AFGEDRUKT,
+								TypeGebeurtenis.PROJECT_BRIEF_HERDRUK, TypeGebeurtenis.PROJECT_BRIEF_KLAARGEZET, TypeGebeurtenis.PROJECT_BRIEF_VERVANGEN).contains(gebeurtenis))
 							{
-								dialog.setCloseCallback(new IDialogCloseCallback()
+								dialog.setCloseCallback((IDialogCloseCallback) target1 ->
 								{
-
-									private static final long serialVersionUID = 1L;
-
-									@Override
-									public void onCloseClick(AjaxRequestTarget target)
-									{
-										WebMarkupContainer nieuwGebCont = getGebeurtenissenContainer();
-										gebeurtenissenContainer.replaceWith(nieuwGebCont);
-										gebeurtenissenContainer = nieuwGebCont;
-										target.add(gebeurtenissenContainer);
-									}
+									WebMarkupContainer nieuwGebCont = getGebeurtenissenContainer();
+									gebeurtenissenContainer.replaceWith(nieuwGebCont);
+									gebeurtenissenContainer = nieuwGebCont;
+									target1.add(gebeurtenissenContainer);
 								});
-								dialog.openWith(target, new GebeurtenisPopupBasePanel(IDialog.CONTENT_ID, item.getModel()));
 							}
-							else
-							{
-								dialog.openWith(target, new GebeurtenisPopupBasePanel(IDialog.CONTENT_ID, item.getModel()));
-							}
+							dialog.openWith(target, new GebeurtenisPopupBasePanel(IDialog.CONTENT_ID, item.getModel()));
 						}
 
 					});
@@ -325,8 +262,8 @@ public class ClientProjectGegevens extends ClientPage
 		container.setOutputMarkupId(true);
 
 		List<IColumn<ProjectClientAttribuut, String>> columns = new ArrayList<IColumn<ProjectClientAttribuut, String>>();
-		columns.add(new PropertyColumn<ProjectClientAttribuut, String>(Model.of("Attribuutnaam"), "attribuut.naam", "attribuut.naam"));
-		columns.add(new PropertyColumn<ProjectClientAttribuut, String>(Model.of("Attribuutwaarde"), "value", "value")
+		columns.add(new PropertyColumn<>(Model.of("Attribuutnaam"), "attribuut.naam", "attribuut.naam"));
+		columns.add(new PropertyColumn<>(Model.of("Attribuutwaarde"), "value", "value")
 		{
 			@Override
 			public IModel<?> getDataModel(IModel<ProjectClientAttribuut> rowModel)
@@ -341,11 +278,8 @@ public class ClientProjectGegevens extends ClientPage
 		});
 
 		ScreenitDataTable<ProjectClientAttribuut, String> dataTable = new ScreenitDataTable<ProjectClientAttribuut, String>("attributen", columns,
-			new ClientProjectAttributenDataProvider(filterPapcModel), 5, Model.of("Attributen"))
+			new ClientProjectAttributenDataProvider(projectClientModel), 5, Model.of("Attributen"))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected boolean isRowClickable(IModel<ProjectClientAttribuut> rowModel)
 			{
@@ -361,8 +295,6 @@ public class ClientProjectGegevens extends ClientPage
 	protected void onDetach()
 	{
 		super.onDetach();
-		ModelUtil.nullSafeDetach(clientModel);
 		ModelUtil.nullSafeDetach(projectClientModel);
-		ModelUtil.nullSafeDetach(filterPapcModel);
-	};
+	}
 }

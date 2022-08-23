@@ -1,8 +1,7 @@
 import React, {ChangeEvent, Component} from "react"
 import {Button, Col, Input, Label, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap"
 import DatePicker, {registerLocale} from "react-datepicker"
-import moment from "moment"
-import {datumFormaat, vandaagISO} from "../../../util/DateUtil"
+import {isValideDatum, vandaagDate} from "../../../util/DateUtil"
 import {store} from "../../../Store"
 import {createActionSetTijdelijkAdres} from "../../../actions/ClientActions"
 import type {TijdelijkAdres} from "../../../datatypes/TijdelijkAdres"
@@ -34,8 +33,8 @@ export default class TijdelijkAdresWijzigenView extends Component<TijdelijkAdres
 				huisnummerAanduiding: tijdelijkAdres.huisnummerAanduiding || "",
 				postcode: tijdelijkAdres.postcode || "",
 				plaats: tijdelijkAdres.plaats || "",
-				startDatum: tijdelijkAdres.startDatum || vandaagISO(),
-				eindDatum: tijdelijkAdres.eindDatum || undefined,
+				startDatum: tijdelijkAdres.startDatum ? new Date(tijdelijkAdres.startDatum) : vandaagDate(),
+				eindDatum: tijdelijkAdres.eindDatum ? new Date(tijdelijkAdres.eindDatum) : null,
 			}
 		} else {
 			this.state = {
@@ -46,8 +45,8 @@ export default class TijdelijkAdresWijzigenView extends Component<TijdelijkAdres
 				huisnummerAanduiding: "",
 				postcode: "",
 				plaats: "",
-				startDatum: vandaagISO(),
-				eindDatum: undefined,
+				startDatum: vandaagDate(),
+				eindDatum: null,
 			}
 		}
 	}
@@ -70,19 +69,19 @@ export default class TijdelijkAdresWijzigenView extends Component<TijdelijkAdres
 			this.setState(veranderdeWaarde)
 		}
 	}
-	changeVanafDatum = (datum: Date | [Date | null, Date | null] | null): void => {
+	changeVanafDatum = (datum: Date | null): void => {
 		this.setState({
-			startDatum: datum ? moment(String(datum)).format("YYYY-MM-DD") : undefined,
+			startDatum: datum,
 		})
 	}
-	changeTotMetDatum = (datum: Date | [Date | null, Date | null] | null): void => {
+	changeTotMetDatum = (datum: Date | null): void => {
 		this.setState({
-			eindDatum: datum ? moment(String(datum)).format("YYYY-MM-DD") : undefined,
+			eindDatum: datum,
 		})
 	}
 	clearEindDatum = (): void => {
 		this.setState({
-			eindDatum: undefined,
+			eindDatum: null,
 		})
 	}
 	invoeren = (): void => {
@@ -138,15 +137,24 @@ export default class TijdelijkAdresWijzigenView extends Component<TijdelijkAdres
 		if (this.state.plaats.length <= 0) {
 			afkeurRedenen.push("Geen plaatsnaam ingevuld")
 		}
-		if (!this.state.startDatum) {
-			afkeurRedenen.push("Geen startdatum gevuld")
-		} else if (this.state.eindDatum) {
-			if (this.state.eindDatum < this.state.startDatum) {
-				afkeurRedenen.push("Einddatum moet na startdatum liggen")
+
+		if (this.state.startDatum) {
+			if (!isValideDatum(this.state.startDatum)) {
+				afkeurRedenen.push("Startdatum is ongeldig")
 			}
-			if (this.state.eindDatum < vandaagISO()) {
-				afkeurRedenen.push("Einddatum moet na vandaag liggen")
+			if (this.state.eindDatum) {
+				if (this.state.eindDatum < this.state.startDatum) {
+					afkeurRedenen.push("Einddatum moet na startdatum liggen")
+				}
+				if (this.state.eindDatum < vandaagDate()) {
+					afkeurRedenen.push("Einddatum moet na vandaag liggen")
+				}
+				if (!isValideDatum(this.state.eindDatum)) {
+					afkeurRedenen.push("Einddatum is ongeldig")
+				}
 			}
+		} else {
+			afkeurRedenen.push("Geen startdatum ingevuld")
 		}
 		return afkeurRedenen
 	}
@@ -243,7 +251,11 @@ export default class TijdelijkAdresWijzigenView extends Component<TijdelijkAdres
 							<Col md={5} className={"adres-datumkiezer"}>
 								<div className={"form-row mb-2"}>
 									<Col md={10}>
-										<DatePicker value={datumFormaat(this.state.startDatum)} className="clickable" locale="nl" onChange={this.changeVanafDatum}/>
+										{}
+										<DatePicker
+											selected={this.state.startDatum} className="clickable" locale="nl" dateFormat={"dd-MM-yyyy"}
+											onChange={this.changeVanafDatum}
+										/>
 									</Col>
 									<Col md={1}>
 										<i className="fa fa-calendar px-1 py-1 float-left"/>
@@ -255,13 +267,15 @@ export default class TijdelijkAdresWijzigenView extends Component<TijdelijkAdres
 							</p>
 							<Col md={5} className={"adres-datumkiezer"}>
 								<div className={"form-row mb-2"}>
-									<Col md={1} id={this.state.eindDatum ? "clear-adres-datumkiezer" : "clear-adres-datumkiezer-hidden"} onClick={this.clearEindDatum}>
-										<i className="fa fa-trash px-1 py-1 float-left"/>
-									</Col>
 									<Col md={10}>
+										{}
 										<DatePicker
-											value={this.state.eindDatum ? datumFormaat(this.state.eindDatum) : ""} className="clickable" locale="nl"
-											onChange={this.changeTotMetDatum}/>
+											selected={this.state.eindDatum} className="clickable" locale="nl" dateFormat={"dd-MM-yyyy"}
+											onChange={this.changeTotMetDatum}
+										/>
+										<div id={this.state.eindDatum ? "clear-adres-datumkiezer" : "clear-adres-datumkiezer-hidden"} onClick={this.clearEindDatum}>
+											<i className="fa fa-trash px-1 py-1"/>
+										</div>
 									</Col>
 									<Col md={1}>
 										<i className="fa fa-calendar px-1 py-1 float-left"/>

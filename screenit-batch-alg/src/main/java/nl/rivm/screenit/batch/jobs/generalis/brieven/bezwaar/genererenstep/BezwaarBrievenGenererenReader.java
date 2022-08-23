@@ -25,10 +25,13 @@ import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenRea
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
+
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class BezwaarBrievenGenererenReader extends AbstractBrievenGenererenReader<BezwaarBrief>
 {
 

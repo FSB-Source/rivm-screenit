@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten.blokkades;
 
 /*-
@@ -25,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten.blokkades;
 import nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten.OneindigeTijdslotReader;
 import nl.rivm.screenit.model.colon.planning.ColonBlokkade;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class OneindigeBlokkadeReader extends OneindigeTijdslotReader<ColonBlokkade>
 {
 

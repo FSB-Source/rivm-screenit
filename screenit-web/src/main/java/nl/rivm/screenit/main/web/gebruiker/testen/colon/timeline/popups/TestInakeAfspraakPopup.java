@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups;
 import java.util.ArrayList;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
@@ -39,11 +39,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class TestInakeAfspraakPopup extends AbstractTestBasePopupPanel
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService colonTestTimelineService;
 
 	@SpringBean
 	private InstellingService instellingService;
@@ -69,7 +68,7 @@ public class TestInakeAfspraakPopup extends AbstractTestBasePopupPanel
 		ColoscopieCentrum locatie = intakeLocatieModel.getObject();
 		for (Client client : getModelObject())
 		{
-			testTimelineService.maaktIntakeAfspraakVoorClient(client, locatie);
+			colonTestTimelineService.maaktIntakeAfspraakVoorClient(client, locatie);
 		}
 	}
 

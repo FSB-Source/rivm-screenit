@@ -27,7 +27,9 @@ public enum RequestTypeCentraal
 {
 	GET_MAMMOGRAFEN("/mammografen"),
 	GET_HUISARTSEN("/huisarts/all"),
+	RESET_HUISARTSEN_CACHE("/huisarts/resetCache"),
 	GET_ZORGINSTELLINGEN("/zorginstelling/metMammapoliOfRadiologie"),
+	RESET_ZORGINSTELLINGEN_CACHE("/zorginstelling/resetCache"),
 	GET_DAGLIJST("/daglijst"),
 	GET_PLANNING("/planning"),
 	POST_STATUS("/status");

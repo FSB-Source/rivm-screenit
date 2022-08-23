@@ -141,17 +141,19 @@ public class PlanningUitnodigenController
 
 	private static boolean teSelecteren(PlanningClient client, PlanningUitnodigingContext context, int uitnodigenTotEnMetJaar, PlanningPostcodeReeksRegio postcodeReeksRegio)
 	{
-		return client.getUitnodigenVanafJaar() <= uitnodigenTotEnMetJaar
-			&& (client.getUitnodigenTotEnMetJaar() >= uitnodigenVanafJaar
-			|| !(client.getDoelgroep() == MammaDoelgroep.MINDER_VALIDE || client.getTehuis() != null) && isUitgenodigdVorigJaar(postcodeReeksRegio.getClientSet()))
-			&& (client.isUitgenodigdHuidigeStandplaatsRonde()
-			|| client.getLaatsteMammografieAfgerondDatum() == null
-			|| client.getLaatsteMammografieAfgerondDatum().plusDays(context.minimaleIntervalMammografieOnderzoeken)
-			.isBefore(PlanningConstanten.prognoseVanafDatum))
-			&& (client.getVorigeScreeningRondeCreatieDatum() == null
-			|| client.getVorigeScreeningRondeCreatieDatum().plusDays(context.minimaleIntervalUitnodigingen)
-			.isBefore(PlanningConstanten.prognoseVanafDatum))
-			&& client.getUitstelStandplaats() == null;
+		var tehuisClient = client.getTehuis() != null;
+		var oudGenoeg = client.getUitnodigenVanafJaar() <= uitnodigenTotEnMetJaar;
+		var jongGenoeg = client.getUitnodigenTotEnMetJaar() >= uitnodigenVanafJaar
+			|| client.getDoelgroep() != MammaDoelgroep.MINDER_VALIDE && !tehuisClient && isUitgenodigdVorigJaar(postcodeReeksRegio.getClientSet());
+		var mammografieMogelijk = client.getLaatsteMammografieAfgerondDatum() == null
+			|| client.getLaatsteMammografieAfgerondDatum().plusDays(context.minimaleIntervalMammografieOnderzoeken).isBefore(PlanningConstanten.prognoseVanafDatum);
+		var uitnodigenMogelijk = client.getVorigeScreeningRondeCreatieDatum() == null
+			|| client.getVorigeScreeningRondeCreatieDatum().plusDays(context.minimaleIntervalUitnodigingen).isBefore(PlanningConstanten.prognoseVanafDatum);
+		var geenActiefUitstel = client.getUitstelStandplaats() == null;
+		var clientSpecifiekUitnodigenViaInterval = client.isSuspectOfHoogRisico() && !tehuisClient;
+
+		return oudGenoeg && jongGenoeg && uitnodigenMogelijk && geenActiefUitstel && !clientSpecifiekUitnodigenViaInterval
+			&& (client.isUitgenodigdHuidigeStandplaatsRonde() || mammografieMogelijk);
 	}
 
 	private static boolean isUitgenodigdVorigJaar(Set<PlanningClient> clientSet)
@@ -256,8 +258,6 @@ public class PlanningUitnodigenController
 			uitnodigenVanafJaar = dateSupplier.getLocalDate().getYear();
 
 			readModelDao.readDataModel();
-			conceptService.herhalen(readModelDao.getHerhalenVanafDatum());
-			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 
 			hibernateService.getHibernateSession().setFlushMode(FlushMode.COMMIT);
 
@@ -266,8 +266,6 @@ public class PlanningUitnodigenController
 			uitnodigen(rapportage);
 
 			readModelDao.readDataModel();
-			conceptService.herhalen(readModelDao.getHerhalenVanafDatum());
-			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 
 			rapportage.setDatumVerwerking(dateSupplier.getDate());
 			hibernateService.save(rapportage);

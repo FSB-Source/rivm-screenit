@@ -25,16 +25,24 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.SessionHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+@Component
+@StepScope
 public class ClientSelectieItemReader extends AbstractClientSelectieReader
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
+
+	public ClientSelectieItemReader(ICurrentDateSupplier currentDateSupplier)
+	{
+		super.setFetchSize(50);
+		this.currentDateSupplier = currentDateSupplier;
+	}
 
 	@Override
 	public void open(ExecutionContext executionContext) throws ItemStreamException

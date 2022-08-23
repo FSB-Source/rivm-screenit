@@ -1,0 +1,32 @@
+{
+  "title": {
+    "toevoegen": "Locatie toevoegen",
+    "wijzigen": "Locatie wijzigen"
+  },
+  "form": {
+    "fields": {
+      "naam": "Locatienaam",
+      "zorgmailklantnummer": "Zorgmail klantnummer",
+      "iban": "IBAN",
+      "ibanTenaamstelling": "Tenaamstelling",
+      "gelijkAanNAW": "Gelijk aan NAW gegevens",
+      "locatieAdres": {
+        "straat": "Straat",
+        "huisnummertoevoeging": "Huisnummer + toevoeging",
+        "postcode": "Postcode",
+        "woonplaats": "Plaats"
+      }
+    },
+    "placeholder": {
+      "zorgmailklantnummer": "bijv. 500010007",
+      "iban": "bijv. NL12ABNA12345678"
+    },
+    "button": {
+      "close": "Sluiten",
+      "submit": "Locatie opslaan"
+    }
+  },
+  "message": {
+    "zorgmailVerificatie": "Om uw Zorgmail klantnummer te bevestigen is een bericht met een verificatiecode naar uw zorgmailadres (HIS) gestuurd. Volg de instructies in de mail om uw Zorgmail klantnummer te bevestigen."
+  }
+}

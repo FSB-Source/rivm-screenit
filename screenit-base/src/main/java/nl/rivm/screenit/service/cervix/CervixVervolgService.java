@@ -24,6 +24,7 @@ package nl.rivm.screenit.service.cervix;
 import java.time.LocalDate;
 
 import nl.rivm.screenit.model.cervix.CervixMonster;
+import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
 import nl.rivm.screenit.service.cervix.impl.CervixVervolg;
 
 public interface CervixVervolgService
@@ -32,4 +33,9 @@ public interface CervixVervolgService
 	CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering);
 
 	CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering, boolean digitaalLabformulier);
+
+	void digitaalLabformulierKlaarVoorCytologie(CervixMonster monster);
+
+	void digitaalLabformulierKlaarVoorCytologie(CervixMonster monster, CervixVervolgTekst vervolgTekst);
+
 }

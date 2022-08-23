@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.dao.CervixUitnodigingsDao;
 import nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.ProjectCounterHolder;
@@ -37,7 +40,6 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.MailMergeContext;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.UploadDocument;
-import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -56,37 +58,29 @@ import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
+@Slf4j
 public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVersturenTasklet<CervixUitnodiging>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ZasUitnodigingenVersturenTasklet.class);
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private BaseBriefDao briefDao;
+	private final BaseBriefDao briefDao;
 
-	@Autowired
-	private CervixUitnodigingsDao uitnodigingsDao;
+	private final CervixUitnodigingsDao uitnodigingsDao;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private ClientService clientService;
+	private final ClientService clientService;
 
-	@Autowired
-	private InstellingService instellingService;
+	private final InstellingService instellingService;
 
-	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private final SimplePreferenceService simplePreferenceService;
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -104,8 +98,8 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected void setMergedBrieven(CervixUitnodiging uitnodiging, UploadDocument uploadDocument, BriefDefinitie briefDefinitie)
 	{
-		CervixBrief cervixBrief = uitnodiging.getBrief();
-		CervixMergedBrieven cervixMergedBrieven = new CervixMergedBrieven();
+		var cervixBrief = uitnodiging.getBrief();
+		var cervixMergedBrieven = new CervixMergedBrieven();
 		cervixMergedBrieven.setMergedBrieven(uploadDocument);
 		cervixMergedBrieven.setCreatieDatum(currentDateSupplier.getDate());
 		cervixMergedBrieven.setBriefType(cervixBrief.getBriefType());
@@ -117,7 +111,7 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected void setGegenereerd(CervixUitnodiging uitnodiging)
 	{
-		CervixBrief cervixBrief = uitnodiging.getBrief();
+		var cervixBrief = uitnodiging.getBrief();
 		cervixBrief.setGegenereerd(true);
 		hibernateService.saveOrUpdate(cervixBrief);
 	}
@@ -141,7 +135,7 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 		Long aantalVerstuurd = getExecutionContext().getLong(uitnodiging.getBrief().getBriefType().name());
 		getExecutionContext().put(uitnodiging.getBrief().getBriefType().name(), aantalVerstuurd + 1);
 
-		Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
+		var client = uitnodiging.getScreeningRonde().getDossier().getClient();
 		List<BriefType> briefTypes = new ArrayList<>();
 		briefTypes.add(BriefType.CERVIX_ZAS_UITNODIGING);
 		briefTypes.add(BriefType.CERVIX_ZAS_NIET_ANALYSEERBAAR_OF_ONBEOORDEELBAAR);
@@ -150,10 +144,10 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 		if (briefTypes.contains(uitnodiging.getBrief().getBriefType()) && client != null && client.getProjecten() != null && projectClienten.size() > 0)
 		{
 			List<ProjectCounterHolder> projectCounterHolders = (List<ProjectCounterHolder>) getExecutionContext().get(ZasUitnodigingenVersturenConstants.PROJECTENCOUNTERS);
-			for (ProjectClient projectClient : projectClienten)
+			for (var projectClient : projectClienten)
 			{
 				boolean projectInList = false;
-				for (ProjectCounterHolder projectCounterHolder : projectCounterHolders)
+				for (var projectCounterHolder : projectCounterHolders)
 				{
 					if (projectCounterHolder.getProjectGroepId().equals(projectClient.getGroep().getId()))
 					{
@@ -199,9 +193,9 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected boolean geenUitzonderingGevonden(CervixUitnodiging uitnodiging)
 	{
-		StringBuilder melding = new StringBuilder();
+		var melding = new StringBuilder();
 		MergeField.getBmhkRetouradresMetMelding(uitnodiging, melding);
-		Client client = uitnodiging.getScreeningRonde().getDossier().getClient();
+		var client = uitnodiging.getScreeningRonde().getDossier().getClient();
 		if (melding.length() > 0)
 		{
 			melding.append("ZAS uitnodiging niet verstuurd naar inpakcentrum!");
@@ -211,10 +205,11 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 		}
 		if (!AdresUtil.isVolledigAdresVoorInpakcentrum(client))
 		{
-			String onvolledigAdresMelding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken. De volgende gegevens ontbreken: "
+			var onvolledigAdresMelding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken. De volgende gegevens ontbreken: "
 				+ AdresUtil.bepaalMissendeAdresgegevensString(AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getDateTime())) + ".";
 			int dagen = simplePreferenceService.getInteger(PreferenceKey.INTERNAL_HERINNERINGSPERIODE_LOGREGEL_ONVOLLEDIG_ADRES.name());
-			if (logService.heeftBestaandeLogregelBinnenPeriode(Collections.singletonList(LogGebeurtenis.CERVIX_ADRES_ONVOLLEDIG_VOOR_INPAKCENTRUM), client.getPersoon().getBsn(),
+			if (logService.heeftGeenBestaandeLogregelBinnenPeriode(Collections.singletonList(LogGebeurtenis.CERVIX_ADRES_ONVOLLEDIG_VOOR_INPAKCENTRUM),
+				client.getPersoon().getBsn(),
 				onvolledigAdresMelding, dagen))
 			{
 				melding.append(onvolledigAdresMelding);
@@ -240,7 +235,7 @@ public class ZasUitnodigingenVersturenTasklet extends AbstractUitnodigingenVerst
 	@Override
 	protected void setUitnodigingVersturenTijd(List<Long> uitnodigingIds)
 	{
-		String uitnodigingUpdate = "UPDATE cervix.uitnodiging SET verstuurd_datum = :datum WHERE id in ( :uitnodigingIds )";
+		var uitnodigingUpdate = "UPDATE cervix.uitnodiging SET verstuurd_datum = :datum WHERE id in ( :uitnodigingIds )";
 		hibernateService.getHibernateSession().createNativeQuery(uitnodigingUpdate)
 			.setParameter("datum", currentDateSupplier.getDate())
 			.setParameter("uitnodigingIds", uitnodigingIds)

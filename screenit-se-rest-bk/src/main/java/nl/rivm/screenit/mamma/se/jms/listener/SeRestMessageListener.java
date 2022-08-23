@@ -24,28 +24,29 @@ package nl.rivm.screenit.mamma.se.jms.listener;
 import javax.jms.JMSException;
 import javax.jms.Session;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.mamma.se.service.DaglijstService;
 import nl.rivm.screenit.mamma.se.websocket.socket.SeProxyWebsocket;
 import nl.rivm.screenit.websocket.WebsocketBerichtType;
 
 import org.apache.activemq.command.ActiveMQObjectMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class SeRestMessageListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(SeRestMessageListener.class);
+	private final DaglijstService daglijstService;
 
-	@Autowired
-	private DaglijstService daglijstService;
-
-	@Autowired
-	private SeProxyWebsocket seProxyWebsocket;
+	private final SeProxyWebsocket seProxyWebsocket;
 
 	@Override
-	public void onMessage(ActiveMQObjectMessage message, Session session) throws JMSException
+	public void onMessage(ActiveMQObjectMessage message, @NonNull Session session)
 	{
 		try
 		{

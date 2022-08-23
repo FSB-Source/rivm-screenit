@@ -21,24 +21,27 @@ package nl.rivm.screenit.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
 import nl.rivm.screenit.model.Account;
+import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
-import nl.rivm.screenit.model.cervix.CervixAfmelding;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
-import nl.rivm.screenit.model.colon.ColonAfmelding;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.mamma.MammaAfmelding;
 import nl.rivm.screenit.model.mamma.MammaBrief;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.project.ProjectBrief;
+import nl.rivm.screenit.model.project.ProjectBriefActieType;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -74,7 +77,7 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 	@Autowired
 	private BaseBriefService baseBriefService;
 
-	@Autowired
+	@Autowired(required = false)
 	private CervixFactory cervixFactory;
 
 	@Override
@@ -104,6 +107,10 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		{
 			opnieuwAanmakenBezwaarbrief(brief);
 		}
+		else if (AlgemeneBrief.class.equals(briefClass))
+		{
+			opnieuwAanmakenAlgemenebrief((AlgemeneBrief) brief);
+		}
 
 		BriefType type = brief.getBriefType();
 		if (type == null)
@@ -117,13 +124,27 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		}
 	}
 
+	private void opnieuwAanmakenAlgemenebrief(AlgemeneBrief oudeBrief)
+	{
+		BriefType briefType = oudeBrief.getBriefType();
+		baseBriefService.checkVoorDubbeleBrieven(briefType, oudeBrief.getClient(), AlgemeneBrief.class);
+		AlgemeneBrief nieuweBrief = new AlgemeneBrief();
+		nieuweBrief.setBriefDefinitie(oudeBrief.getBriefDefinitie());
+		nieuweBrief.setTemplateNaam(oudeBrief.getTemplateNaam());
+		nieuweBrief.setClient(oudeBrief.getClient());
+		nieuweBrief.setGegenereerd(false);
+		nieuweBrief.setHerdruk(oudeBrief);
+		nieuweBrief.setCreatieDatum(currentDateSupplier.getDate());
+		nieuweBrief.setBriefType(oudeBrief.getBriefType());
+		oudeBrief.getClient().getAlgemeneBrieven().add(nieuweBrief);
+		hibernateService.saveOrUpdate(nieuweBrief);
+	}
+
 	private void opnieuwAanmakenBezwaarbrief(ClientBrief<?, ?, ?> brief)
 	{
 		BezwaarBrief oudeBrief = (BezwaarBrief) brief;
-		BriefType briefType = oudeBrief.getBriefType();
-		baseBriefService.checkVoorDubbeleBrieven(briefType, brief.getClient(), BezwaarBrief.class);
-
 		BezwaarBrief nieuweBrief = new BezwaarBrief();
+		nieuweBrief.setBriefDefinitie(oudeBrief.getBriefDefinitie());
 		nieuweBrief.setTemplateNaam(oudeBrief.getTemplateNaam());
 		nieuweBrief.setMergedBrieven(null);
 		nieuweBrief.setClient(brief.getClient());
@@ -150,17 +171,24 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		nieuweProjectBrief.setCreatieDatum(currentDateSupplier.getDate());
 		nieuweProjectBrief.setBriefType(oudeProjectBrief.getBriefType());
 
+		ClientBrief nieuweBrief = null;
 		if (oudeBrief instanceof CervixBrief)
 		{
-			nieuweProjectBrief.setBrief(opnieuwAanmakenCervixBrief((CervixBrief) oudeBrief));
+			nieuweBrief = opnieuwAanmakenCervixBrief((CervixBrief) oudeBrief);
 		}
 		else if (oudeBrief instanceof ColonBrief)
 		{
-			nieuweProjectBrief.setBrief(opnieuwAanmakenColonBrief((ColonBrief) oudeBrief));
+			nieuweBrief = opnieuwAanmakenColonBrief((ColonBrief) oudeBrief);
 		}
 		else if (oudeBrief instanceof MammaBrief)
 		{
-			nieuweProjectBrief.setBrief(opnieuwAanmakenMammaBrief((MammaBrief) oudeBrief));
+			nieuweBrief = opnieuwAanmakenMammaBrief((MammaBrief) oudeBrief);
+		}
+		if (nieuweBrief != null)
+		{
+			nieuweBrief.setProjectBrief(nieuweProjectBrief);
+			nieuweBrief.setVervangendeProjectBrief(true);
+			nieuweProjectBrief.setBrief(nieuweBrief);
 		}
 
 		hibernateService.saveOrUpdate(nieuweProjectBrief);
@@ -168,15 +196,8 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 
 	private MammaBrief opnieuwAanmakenMammaBrief(MammaBrief bestaandeBrief)
 	{
-		MammaAfmelding afmelding = bestaandeBrief.getAfmelding();
-
-		MammaBrief nieuweBrief = afmelding != null ? baseBriefService.maakBvoBrief(afmelding, bestaandeBrief.getBriefType(), null) :
-			baseBriefService.maakBvoBrief(bestaandeBrief.getScreeningRonde(), bestaandeBrief.getBriefType(), null);
-
+		MammaBrief nieuweBrief = opnieuwAanmakenClientBrief(bestaandeBrief);
 		nieuweBrief.setUitnodiging(bestaandeBrief.getUitnodiging());
-		nieuweBrief.setTemplateNaam(bestaandeBrief.getTemplateNaam());
-		nieuweBrief.setHerdruk(bestaandeBrief);
-
 		hibernateService.saveOrUpdate(nieuweBrief);
 		return nieuweBrief;
 	}
@@ -198,36 +219,36 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 			}
 		}
 
-		ColonAfmelding afmelding = bestaandeBrief.getAfmelding();
-
-		ColonBrief nieuweBrief = afmelding != null ? baseBriefService.maakBvoBrief(afmelding, briefType, null)
-			: baseBriefService.maakBvoBrief(screeningRonde, briefType);
-
+		ColonBrief nieuweBrief = opnieuwAanmakenClientBrief(bestaandeBrief);
 		nieuweBrief.setIntakeAfspraak(bestaandeBrief.getIntakeAfspraak());
 		nieuweBrief.setVorigeIntakeAfspraak(bestaandeBrief.getVorigeIntakeAfspraak());
-		nieuweBrief.setTemplateNaam(bestaandeBrief.getTemplateNaam());
-		nieuweBrief.setHerdruk(bestaandeBrief);
 		hibernateService.saveOrUpdate(nieuweBrief);
-
 		return nieuweBrief;
 	}
 
 	private CervixBrief opnieuwAanmakenCervixBrief(CervixBrief bestaandeBrief)
 	{
-		CervixAfmelding afmelding = bestaandeBrief.getAfmelding();
-		CervixScreeningRonde screeningRonde = bestaandeBrief.getScreeningRonde();
-		CervixBrief nieuwBrief = afmelding != null ? baseBriefService.maakBvoBrief(afmelding, bestaandeBrief.getBriefType(), null) :
-			baseBriefService.maakBvoBrief(screeningRonde, bestaandeBrief.getBriefType());
-
-		nieuwBrief.setTemplateNaam(bestaandeBrief.getTemplateNaam());
-		nieuwBrief.setHerdruk(bestaandeBrief);
-		nieuwBrief.setAangevraagdeHerdruk(bestaandeBrief.isAangevraagdeHerdruk());
-		hibernateService.saveOrUpdate(nieuwBrief);
+		CervixBrief nieuweBrief = opnieuwAanmakenClientBrief(bestaandeBrief);
+		nieuweBrief.setAangevraagdeHerdruk(bestaandeBrief.isAangevraagdeHerdruk());
+		hibernateService.saveOrUpdate(nieuweBrief);
 		if (CervixMonsterType.getMonsterType(bestaandeBrief.getBriefType()) == CervixMonsterType.UITSTRIJKJE)
 		{
-			cervixFactory.maakUitnodiging(screeningRonde, nieuwBrief);
+			cervixFactory.maakUitnodiging(bestaandeBrief.getScreeningRonde(), nieuweBrief);
 		}
-		return nieuwBrief;
+		return nieuweBrief;
+	}
+
+	private <B extends ClientBrief<S, A, B>, A extends Afmelding<S, ?, B>, S extends ScreeningRonde<?, B, A, ?>> B opnieuwAanmakenClientBrief(B bestaandeBrief)
+	{
+		A afmelding = bestaandeBrief.getAfmelding();
+		S screeningRonde = bestaandeBrief.getScreeningRonde();
+		BriefType briefType = bestaandeBrief.getBriefType();
+		B nieuweBrief = afmelding != null ? baseBriefService.maakBvoBrief(afmelding, briefType, null, bestaandeBrief.isVervangendeProjectBrief()) :
+			baseBriefService.maakBvoBrief(screeningRonde, briefType, null, false, bestaandeBrief.isVervangendeProjectBrief());
+
+		nieuweBrief.setTemplateNaam(bestaandeBrief.getTemplateNaam());
+		nieuweBrief.setHerdruk(bestaandeBrief);
+		return nieuweBrief;
 	}
 
 	@Override
@@ -270,6 +291,30 @@ public class BriefHerdrukkenServiceImpl implements BriefHerdrukkenService
 		else if (origineleBrief instanceof ColonBrief)
 		{
 			magHerdrukken = BriefUtil.isGegenereerd(brief);
+		}
+		else if (origineleBrief instanceof ProjectBrief && brief instanceof ProjectBrief)
+		{
+			ProjectBrief projectBrief = (ProjectBrief) brief;
+			var bvoOnafhankelijkeBriefActieTypes = new ArrayList<>(List.of(ProjectBriefActieType.values()));
+			bvoOnafhankelijkeBriefActieTypes.remove(ProjectBriefActieType.VERVANGENDEBRIEF);
+			if (bvoOnafhankelijkeBriefActieTypes.contains(projectBrief.getDefinitie().getType())
+				&& projectBrief.getProjectClient().getBrieven().stream()
+				.filter(b -> b.getDefinitie().equals(projectBrief.getDefinitie()))
+				.anyMatch(BriefUtil::isNietGegenereerdEnNietVervangen))
+			{
+				magHerdrukken = false;
+			}
+		}
+		else if (origineleBrief instanceof AlgemeneBrief)
+		{
+			AlgemeneBrief algemeneBrief = (AlgemeneBrief) origineleBrief;
+			magHerdrukken = BriefUtil.isGegenereerd(brief);
+			if (algemeneBrief.getBriefDefinitie() != null && algemeneBrief.getClient().getAlgemeneBrieven().stream()
+				.filter(b -> b.getBriefDefinitie().equals(algemeneBrief.getBriefDefinitie()))
+				.anyMatch(BriefUtil::isNietGegenereerdEnNietVervangen))
+			{
+				magHerdrukken = false;
+			}
 		}
 
 		magHerdrukken &= !BriefUtil.isHerdruk(brief);

@@ -21,30 +21,35 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.inzien;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import nl.rivm.screenit.Constants;
-import nl.rivm.screenit.main.model.BriefDossierGebeurtenis;
-import nl.rivm.screenit.main.model.DossierGebeurtenis;
-import nl.rivm.screenit.main.model.DossierGebeurtenisType;
+import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.service.DossierService;
 import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
+import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
+import nl.rivm.screenit.main.web.component.modal.IDialog;
+import nl.rivm.screenit.main.web.component.modal.IDialogCloseCallback;
+import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.GebeurtenisComparator;
+import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.GebeurtenisPopupBasePanel;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.topicuszorg.wicket.model.DetachableListModel;
+import nl.topicuszorg.wicket.model.SortingListModel;
 
+import org.apache.wicket.ajax.AjaxEventBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.list.PropertyListView;
 import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
@@ -53,58 +58,102 @@ public class ClientInzienAlgemeneBrievenPanel extends GenericPanel<Client>
 	@SpringBean
 	private DossierService dossierService;
 
-	ClientInzienAlgemeneBrievenPanel(String id, IModel<Client> model)
+	private final BootstrapDialog dialog;
+
+	private WebMarkupContainer gebeurtenissenContainer;
+
+	private ListView<ScreeningRondeGebeurtenis> listView;
+
+	ClientInzienAlgemeneBrievenPanel(String id, IModel<Client> model, BootstrapDialog dialog)
 	{
 		super(id, model);
+		this.dialog = dialog;
+
+		gebeurtenissenContainer = new WebMarkupContainer("gebeurtenissenContainer");
+		gebeurtenissenContainer.setOutputMarkupId(true);
+
+		listView = getGebeurtenissenListView();
+		gebeurtenissenContainer.add(listView);
+		add(gebeurtenissenContainer);
 	}
 
 	@Override
 	protected void onInitialize()
 	{
 		super.onInitialize();
-
-		WebMarkupContainer container = new WebMarkupContainer("gebeurtenissenContainer");
-		container.setOutputMarkupPlaceholderTag(true);
-
-		var gebeurtenissen = getGebeurtenissen();
-
-		container.add(new ListView<>("gebeurtenissen", gebeurtenissen)
-		{
-			@Override
-			protected void populateItem(ListItem<BriefDossierGebeurtenis> item)
-			{
-				var gebeurtenis = item.getModelObject();
-				WebMarkupContainer gebeurtenisContainer = new WebMarkupContainer("gebeurtenis");
-				gebeurtenisContainer.add(new Label("omschrijving", new PropertyModel<>(gebeurtenis, "omschrijving")));
-				gebeurtenisContainer.add(DateLabel.forDatePattern("moment", Model.of(gebeurtenis.getTijd()), Constants.DEFAULT_DATE_TIME_SECONDS_FORMAT));
-				gebeurtenisContainer.add(new EnumLabel<>("bron", Model.of(gebeurtenis.getBron())));
-				item.add(gebeurtenisContainer);
-			}
-		});
-
-		add(container);
-
-		setVisible(!gebeurtenissen.isEmpty());
 	}
 
-	private List<BriefDossierGebeurtenis> getGebeurtenissen()
+	private ListView<ScreeningRondeGebeurtenis> getGebeurtenissenListView()
 	{
-		var gebeurtenissen = new ArrayList<BriefDossierGebeurtenis>();
-		for (var brief : teTonenBrieven())
+		List<ScreeningRondeGebeurtenis> algemeneBriefGebeurtenissen = dossierService.getAlgemeneBriefGebeurtenissen(teTonenBrieven());
+		IModel<List<ScreeningRondeGebeurtenis>> dossierModel = new DetachableListModel<>(algemeneBriefGebeurtenissen);
+		PropertyListView<ScreeningRondeGebeurtenis> gebeurtenissenListView = new PropertyListView<>("gebeurtenissen",
+			new SortingListModel<>(dossierModel, new GebeurtenisComparator()))
 		{
-			var gebeurtenis = new BriefDossierGebeurtenis(BriefOmschrijvingUtil.algemeneBriefOmschrijving(brief, this::getString),
-				BriefOmschrijvingUtil.dossierGebeurtenisDatum(brief));
-			gebeurtenis.setDossierGebeurtenisType(DossierGebeurtenisType.ALGEMENE_BRIEF);
-			gebeurtenis.setBron(dossierService.bepaalGebeurtenisBron(brief));
-			gebeurtenissen.add(gebeurtenis);
-		}
+			@Override
+			protected void populateItem(ListItem<ScreeningRondeGebeurtenis> item)
+			{
+				var gebeurtenis = item.getModelObject();
+				item.add(DateLabel.forDatePattern("datum", Model.of(gebeurtenis.getDatum()), Constants.DEFAULT_DATE_TIME_SECONDS_FORMAT));
+				item.add(new EnumLabel<>("gebeurtenis", gebeurtenis.getGebeurtenis()));
+				addExtraOmschrijvingItem(item);
+				item.add(new EnumLabel<>("bron", gebeurtenis.getBron()));
+				item.add(new AjaxEventBehavior("click")
+				{
+					@Override
+					protected void onEvent(AjaxRequestTarget target)
+					{
+						dialog.setCloseCallback((IDialogCloseCallback) target1 ->
+						{
+							listView = getGebeurtenissenListView();
+							WebMarkupContainer nieuwGebCont = new WebMarkupContainer("gebeurtenissenContainer");
+							nieuwGebCont.setOutputMarkupId(true);
+							nieuwGebCont.add(listView);
+							gebeurtenissenContainer.replaceWith(nieuwGebCont);
+							gebeurtenissenContainer = nieuwGebCont;
+							target1.add(gebeurtenissenContainer);
+						});
+						dialog.openWith(target, new GebeurtenisPopupBasePanel(IDialog.CONTENT_ID, item.getModel()));
+					}
+				});
+			}
+		};
 
-		gebeurtenissen.sort(Comparator.comparing(DossierGebeurtenis::getTijd).reversed());
-		return gebeurtenissen;
+		gebeurtenissenListView.setVisible(!algemeneBriefGebeurtenissen.isEmpty());
+		gebeurtenissenListView.setOutputMarkupId(true);
+		return gebeurtenissenListView;
 	}
 
 	private List<AlgemeneBrief> teTonenBrieven()
 	{
-		return getModelObject().getAlgemeneBrieven().stream().filter(b -> b.getBriefType() == BriefType.CLIENT_SIGNALERING_GENDER).collect(Collectors.toList());
+		return getModelObject().getAlgemeneBrieven()
+			.stream()
+			.filter(b -> b.getBriefType() != BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_AANVRAAG && b.getBriefType() != BriefType.CLIENT_INZAGE_PERSOONSGEGEVENS_HANDTEKENING)
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public boolean isVisible()
+	{
+		return !teTonenBrieven().isEmpty();
+	}
+
+	private void addExtraOmschrijvingItem(final ListItem<ScreeningRondeGebeurtenis> item)
+	{
+		item.add(new Label("extraOmschrijving", (IModel<String>) () ->
+		{
+			ScreeningRondeGebeurtenis screeningRondeGebeurtenis = item.getModelObject();
+			String[] extraOmschrijvingen = screeningRondeGebeurtenis.getExtraOmschrijving();
+			return BriefOmschrijvingUtil.verwerkExtraOmschrijvingen(extraOmschrijvingen, ClientInzienAlgemeneBrievenPanel.this::getString);
+		})
+		{
+			@Override
+			protected void onConfigure()
+			{
+				super.onConfigure();
+				setVisible(item.getModelObject().getExtraOmschrijving() != null);
+			}
+
+		});
 	}
 }

@@ -29,8 +29,6 @@ import nl.rivm.screenit.main.service.mamma.MammaFollowUpService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
 
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -41,7 +39,7 @@ public class TestMammaFollowUpVastleggenPopup extends TestMammaAbstractPopupPane
 	@SpringBean
 	private MammaFollowUpService followUpService;
 
-	private IModel<MammaFollowUpConclusieChoice> conclusieEnumModel = new Model<>();
+	private final IModel<MammaFollowUpConclusieChoice> conclusieEnumModel = new Model<>();
 
 	public TestMammaFollowUpVastleggenPopup(String id, IModel<List<Client>> clientModel)
 	{
@@ -53,7 +51,7 @@ public class TestMammaFollowUpVastleggenPopup extends TestMammaAbstractPopupPane
 	{
 		super.onInitialize();
 
-		List<MammaFollowUpConclusieChoice> followUpConclusieKeuzes = Arrays.asList(MammaFollowUpConclusieChoice.values());
+		var followUpConclusieKeuzes = Arrays.asList(MammaFollowUpConclusieChoice.values());
 
 		ComponentHelper.addDropDownChoice(this, "followUpConclusies", true, followUpConclusieKeuzes, false)
 			.setModel(conclusieEnumModel);
@@ -62,9 +60,11 @@ public class TestMammaFollowUpVastleggenPopup extends TestMammaAbstractPopupPane
 	@Override
 	protected void opslaan()
 	{
-		MammaScreeningRonde screeningRonde = getModelObject().get(0).getMammaDossier().getLaatsteScreeningRonde();
-		MammaFollowUpConclusieStatus conclusieStatus = followUpService.bepaalFollowUpConclusie(screeningRonde, conclusieEnumModel.getObject());
-
-		followUpService.saveFollowUpConclusieStatus(screeningRonde, conclusieStatus, ScreenitSession.get().getLoggedInAccount());
+		for (var client : getModelObject())
+		{
+			var screeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
+			var conclusieStatus = followUpService.bepaalFollowUpConclusie(screeningRonde, conclusieEnumModel.getObject());
+			followUpService.saveFollowUpConclusieStatus(screeningRonde, conclusieStatus, ScreenitSession.get().getLoggedInAccount());
+		}
 	}
 }

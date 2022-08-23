@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
 
 /*-
@@ -27,6 +26,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.selectie.SelectieConstants;
 import nl.rivm.screenit.dao.UitnodigingsDao;
@@ -39,12 +41,14 @@ import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.rivm.screenit.model.colon.ColonBrief;
 import nl.rivm.screenit.model.colon.ColonDossier;
+import nl.rivm.screenit.model.colon.ColonIntakeAfspraak;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.colon.ColonUitnodiging;
 import nl.rivm.screenit.model.colon.ColonVooraankondiging;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingsintervalType;
+import nl.rivm.screenit.model.colon.planning.AfspraakStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Level;
@@ -61,6 +65,7 @@ import nl.rivm.screenit.model.verwerkingverslag.SelectieRapportageProjectGroepEn
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.colon.AfspraakService;
 import nl.rivm.screenit.service.colon.ColonDossierBaseService;
 import nl.rivm.screenit.service.colon.ColonUitnodigingService;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
@@ -69,65 +74,59 @@ import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.hibernate.Criteria;
 import org.hibernate.criterion.Projections;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@StepScope
+@Slf4j
+@RequiredArgsConstructor
 public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ClientSelectieItemWriter.class);
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final SimplePreferenceService simplePreferenceService;
 
-	@Autowired
-	private SimplePreferenceService simplePreferenceService;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final BaseBriefService briefService;
 
-	@Autowired
-	private BaseBriefService briefService;
+	private final UitnodigingsDao uitnodigingsDao;
+
+	private final ColonUitnodigingService uitnodigingService;
+
+	private final ColonDossierBaseService dossierBaseService;
+
+	private final AfspraakService afspraakService;
 
 	private StepExecution stepExecution;
-
-	@Autowired
-	private UitnodigingsDao uitnodigingsDao;
-
-	@Autowired
-	private ColonUitnodigingService uitnodigingService;
-
-	@Autowired
-	private ColonDossierBaseService dossierBaseService;
 
 	@Override
 	public void write(List<? extends ClientCategorieEntry> items)
 	{
-		SelectieRapportage selectieRapportage = hibernateService.load(SelectieRapportage.class,
+		var selectieRapportage = hibernateService.load(SelectieRapportage.class,
 			stepExecution.getJobExecution().getExecutionContext().getLong(SelectieConstants.RAPPORTAGEKEYSELECTIE));
 		int aantalRondesUitnodigingsbriefZonderFit = simplePreferenceService.getInteger(PreferenceKey.COLON_AANTAL_RONDES_UITNODIGINGSBRIEF_ZONDER_FIT.name());
 
-		for (ClientCategorieEntry categorieEntry : items)
+		for (var categorieEntry : items)
 		{
-			Client client = hibernateService.load(Client.class, categorieEntry.getClientId());
+			var client = hibernateService.load(Client.class, categorieEntry.getClientId());
 
-			ColonUitnodigingCategorie categorie = categorieEntry.getCategorie();
+			var categorie = categorieEntry.getCategorie();
 
 			boolean magUitnodigingMetFitMaken = ColonScreeningRondeUtil.magUitnodigingMetFitMaken(client.getColonDossier(), aantalRondesUitnodigingsbriefZonderFit)
 				|| categorie != ColonUitnodigingCategorie.U1 && categorie != ColonUitnodigingCategorie.U2;
 
-			ColonScreeningRonde ronde = maakNieuweOrGeefLaatsteRonde(client, categorie, categorieEntry.getGepusht());
+			var ronde = maakNieuweOrGeefLaatsteRonde(client, categorie, categorieEntry.getGepusht());
 
 			if (magUitnodigingMetFitMaken)
 			{
@@ -150,7 +149,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 
 	private void rapportageBijwerken(SelectieRapportage selectieRapportage, ClientCategorieEntry categorieEntry, Client client)
 	{
-		ColonUitnodigingCategorie categorie = categorieEntry.getCategorie();
+		var categorie = categorieEntry.getCategorie();
 
 		if (client.getColonDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging() == null)
 		{
@@ -288,10 +287,15 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 	private void sluitVorigeRonde(ColonDossier dossier)
 	{
 		ColonScreeningRonde eerdereScreeningRonde = dossier.getLaatsteScreeningRonde();
-		if (eerdereScreeningRonde.getStatus() == ScreeningRondeStatus.LOPEND)
+		if (eerdereScreeningRonde != null && eerdereScreeningRonde.getStatus() == ScreeningRondeStatus.LOPEND)
 		{
+			ColonIntakeAfspraak laatsteAfspraak = eerdereScreeningRonde.getLaatsteAfspraak();
 			eerdereScreeningRonde.setStatus(ScreeningRondeStatus.AFGEROND);
 			eerdereScreeningRonde.setStatusDatum(currentDateSupplier.getDate());
+			if (laatsteAfspraak != null && laatsteAfspraak.getStatus() == AfspraakStatus.GEPLAND)
+			{
+				afspraakService.annuleerAfspraak(laatsteAfspraak, null, AfspraakStatus.GEANNULEERD_ONBEKEND, true);
+			}
 			logService.logGebeurtenis(LogGebeurtenis.RONDE_VERLOPEN, dossier.getClient(), Bevolkingsonderzoek.COLON);
 			hibernateService.saveOrUpdate(eerdereScreeningRonde);
 		}
@@ -423,7 +427,7 @@ public class ClientSelectieItemWriter implements ItemWriter<ClientCategorieEntry
 
 			Set<Integer> alleGeboortejarenVanActiveCohorten = uitnodigingService.getAlleGeboortejarenTotMetHuidigJaar();
 
-			Criteria criteria = ColonRestrictions.getQueryVooraankondigen(hibernateService.getHibernateSession(), null, new ArrayList<>(alleGeboortejarenVanActiveCohorten),
+			var criteria = ColonRestrictions.getQueryVooraankondigen(hibernateService.getHibernateSession(), null, new ArrayList<>(alleGeboortejarenVanActiveCohorten),
 				true, minimaleLeeftijd, maximaleLeeftijd, projectGroep.getId(), null, currentDateSupplier.getLocalDate());
 			criteria.setProjection(Projections.rowCount());
 			Long aantalNogTeGaan = (Long) criteria.uniqueResult();

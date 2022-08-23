@@ -27,14 +27,13 @@ import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
+import nl.rivm.screenit.model.MergedBrievenFilter;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.algemeen.BezwaarBrief;
 import nl.rivm.screenit.model.enums.BriefType;
-import nl.rivm.screenit.model.MergedBrievenFilter;
 
 public interface BriefDao
 {
-
 	<MB extends MergedBrieven<?>> List<MB> getMergedBrieven(ScreeningOrganisatie screeningOrganisatie, MergedBrievenFilter<MB> filter, long first, long count, String sortProperty,
 		boolean ascending);
 

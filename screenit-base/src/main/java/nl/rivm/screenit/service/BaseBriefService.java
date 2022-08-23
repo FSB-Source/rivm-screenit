@@ -29,8 +29,10 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.UnaryOperator;
 
 import nl.rivm.screenit.document.BaseDocumentCreator;
+import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Afmelding;
 import nl.rivm.screenit.model.BezwaarMoment;
 import nl.rivm.screenit.model.Brief;
@@ -62,13 +64,15 @@ public interface BaseBriefService
 
 	List<BriefDefinitie> getBriefDefinities(BvoZoekCriteria briefType, Comparator<BriefType> comparator);
 
-	void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename) throws IOException;
+	void saveBriefDefinitie(BriefDefinitie definitie, File uploadFile, String contentType, String filename, UnaryOperator<String> getString) throws IOException;
 
 	BezwaarBrief maakBezwaarBrief(BezwaarMoment bezwaar, BriefType type, Date date);
 
 	AlgemeneBrief maakAlgemeneBrief(Client client, BriefType type);
 
 	ProjectBrief maakProjectBrief(ProjectClient pClient, ProjectBriefActie actie);
+
+	<B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment, boolean vervangendeProjectBrief);
 
 	<B extends ClientBrief<?, A, ?>, A extends Afmelding<?, ?, B>> B maakBvoBrief(A afmelding, BriefType type, Date creatieMoment);
 
@@ -78,7 +82,8 @@ public interface BaseBriefService
 
 	<B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, boolean gegenereerd);
 
-	<B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment, boolean gegenereerd);
+	<B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> B maakBvoBrief(SR ronde, BriefType type, Date creatieMoment, boolean gegenereerd,
+		boolean vervangendeProjectBrief);
 
 	CervixRegioBrief maakRegioBrief(ScreeningOrganisatie so, BriefType type, Date date, CervixHuisarts arts);
 
@@ -113,4 +118,8 @@ public interface BaseBriefService
 	boolean briefTypeAlVerstuurdInDezeRonde(ScreeningRonde<?, ?, ?, ?> ronde, Collection<BriefType> brieftypes);
 
 	List<ClientBrief<?, ?, ?>> getClientBrieven(Client client);
+
+	void briefTegenhouden(ClientBrief brief, Account account);
+
+	void briefNietMeerTegenhouden(ClientBrief brief, Account account);
 }

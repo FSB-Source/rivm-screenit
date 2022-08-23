@@ -21,8 +21,9 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.afrondenstep;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
@@ -43,29 +44,29 @@ import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class ColonVerlopenRondesReader extends BaseScrollableResultReader
 {
 
 	private static final int DAGEN_WACHTTIJD_CONCLUSIE = 5;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		LocalDate currentDate = currentDateSupplier.getLocalDate();
+		var currentDate = currentDateSupplier.getLocalDate();
 
 		Date maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1));
 		Date maxLengteRonde = DateUtil.toUtilDate(currentDate.minusDays(preferenceService.getInteger(PreferenceKey.UITNODIGINGSINTERVAL.name())));
 		Date wachttijdNaAfspraak = DateUtil.toUtilDate(currentDate.minusDays(DAGEN_WACHTTIJD_CONCLUSIE));
 
-		Criteria criteria = session.createCriteria(ColonScreeningRonde.class, "ronde");
+		var criteria = session.createCriteria(ColonScreeningRonde.class, "ronde");
 		criteria.createAlias("ronde.dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");

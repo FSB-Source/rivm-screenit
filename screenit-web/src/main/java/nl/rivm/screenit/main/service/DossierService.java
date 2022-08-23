@@ -29,6 +29,7 @@ import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContact;
+import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.project.ProjectClient;
@@ -48,6 +49,8 @@ public interface DossierService
 	List<DossierGebeurtenis> getMammaDossierGebeurtenissen(Client client);
 
 	List<ScreeningRondeGebeurtenis> getProjectGebeurtenissen(ProjectClient pClient);
+
+	List<ScreeningRondeGebeurtenis> getAlgemeneBriefGebeurtenissen(List<AlgemeneBrief> client);
 
 	GebeurtenisBron bepaalGebeurtenisBron(HibernateObject entity);
 

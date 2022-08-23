@@ -25,19 +25,26 @@ import java.time.LocalDate;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.cervix.CervixBepaalVervolgDao;
+import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.CervixZas;
 import nl.rivm.screenit.model.cervix.CervixZasHoudbaarheid;
+import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.BaseHoudbaarheidService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.service.cervix.CervixVervolgService;
+import nl.rivm.screenit.service.cervix.enums.CervixVervolgTekst;
+import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixVervolgServiceImpl implements CervixVervolgService
 {
 	@Autowired
@@ -55,6 +62,9 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 	@Autowired
 	private CervixMonsterService monsterService;
 
+	@Autowired
+	private HibernateService hibernateService;
+
 	@Override
 	public CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering)
 	{
@@ -65,7 +75,7 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 	public CervixVervolg bepaalVervolg(CervixMonster monster, LocalDate startdatumGenotypering, boolean digitaalLabformulier)
 	{
 		boolean isZasHoudbaar = false;
-		if (monster instanceof CervixZas)
+		if (CervixMonsterUtil.isZAS(monster))
 		{
 			isZasHoudbaar = houdbaarheidService.isHoudbaar(CervixZasHoudbaarheid.class, monster.getMonsterId());
 		}
@@ -73,5 +83,53 @@ public class CervixVervolgServiceImpl implements CervixVervolgService
 		return new CervixBepaalVervolgLabproces(
 			new CervixBepaalVervolgContext(monster, isZasHoudbaar, dateSupplier.getLocalDateTime(), startdatumGenotypering, bepaalVervolgDao, monsterService,
 				preferenceService.getInteger(PreferenceKey.CERVIX_INTERVAL_CONTROLE_UITSTRIJKJE.name()), digitaalLabformulier)).bepaalVervolg();
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public void digitaalLabformulierKlaarVoorCytologie(CervixMonster monster)
+	{
+		if (!CervixMonsterUtil.isUitstrijkje(monster))
+		{
+			return;
+		}
+
+		CervixLabformulier labformulier = CervixMonsterUtil.getUitstrijkje(monster).getLabformulier();
+
+		if (labformulier != null && labformulier.getDigitaal())
+		{
+			CervixVervolgTekst vervolgTekst = bepaalVervolg(monster, null, false).getVervolgTekst();
+			digitaalLabformulierKlaarVoorCytologie(vervolgTekst, labformulier);
+		}
+	}
+
+	@Transactional(propagation = Propagation.REQUIRED)
+	@Override
+	public void digitaalLabformulierKlaarVoorCytologie(CervixMonster monster, CervixVervolgTekst vervolgTekst)
+	{
+		if (!CervixMonsterUtil.isUitstrijkje(monster))
+		{
+			return;
+		}
+
+		CervixLabformulier labformulier = CervixMonsterUtil.getUitstrijkje(monster).getLabformulier();
+
+		if (labformulier != null && labformulier.getDigitaal())
+		{
+			digitaalLabformulierKlaarVoorCytologie(vervolgTekst, labformulier);
+		}
+
+	}
+
+	private void digitaalLabformulierKlaarVoorCytologie(CervixVervolgTekst vervolgTekst, CervixLabformulier labformulier)
+	{
+		if (labformulier.getStatus() != CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE &&
+			(vervolgTekst == CervixVervolgTekst.UITSTRIJKJE_HPV_POSITIEF_NAAR_CYTOLOGIE
+				|| vervolgTekst == CervixVervolgTekst.UITSTRIJKJE_REEDS_HPV_UITSLAG_NAAR_CYTOLOGIE
+				|| vervolgTekst == CervixVervolgTekst.UITSTRIJKJE_VERVOLGONDERZOEK_NAAR_CYTOLOGIE))
+		{
+			labformulier.setStatus(CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE);
+			hibernateService.saveOrUpdate(labformulier);
+		}
 	}
 }

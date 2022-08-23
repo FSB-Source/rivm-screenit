@@ -22,6 +22,7 @@ package nl.rivm.screenit.service.mamma.impl;
  */
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +37,7 @@ import javax.annotation.PostConstruct;
 import nl.rivm.screenit.dto.mamma.planning.PlanningBlokkadeDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningCapaciteitBlokDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto;
+import nl.rivm.screenit.dto.mamma.planning.PlanningDagKopierenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningHerhalenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningPostcodeReeksDto;
@@ -533,5 +535,20 @@ public class MammaBaseConceptPlanningsApplicatieImpl implements MammaBaseConcept
 
 		}
 		return new PlanningStatusDto(MammaPlanningStatus.OFFLINE, null);
+	}
+
+	@Override
+	public void kopieerDag(MammaScreeningsEenheid bronScreeningsEenheid, MammaScreeningsEenheid doelScreeningsEenheid, LocalDate bronDag, LocalTime bronVanTijd,
+		LocalTime bronTotTijd, LocalDate doelDag, InstellingGebruiker ingelogdeInstellingGebruiker)
+	{
+		var dto = new PlanningDagKopierenDto();
+		dto.bronScreeningsEenheidId = bronScreeningsEenheid.getId();
+		dto.doelScreeningsEenheidId = doelScreeningsEenheid.getId();
+		dto.bronDatum = bronDag;
+		dto.bronVanTijd = bronVanTijd;
+		dto.bronTotTijd = bronTotTijd;
+		dto.doelDatum = doelDag;
+
+		sendToPlanningApplicatie(PlanningRestConstants.C_DAG_KOPIEREN, dto, false, ingelogdeInstellingGebruiker);
 	}
 }

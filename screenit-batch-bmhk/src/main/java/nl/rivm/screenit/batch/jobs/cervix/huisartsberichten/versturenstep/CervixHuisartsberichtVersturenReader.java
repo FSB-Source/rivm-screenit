@@ -30,14 +30,23 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.CervixHuisartsberichtenJobConfiguration.CERVIX_HUISARTSENBERICHTEN_JOB_READERS_FETCH_SIZE;
+
+@Component
 public class CervixHuisartsberichtVersturenReader extends BaseScrollableResultReader
 {
+
+	public CervixHuisartsberichtVersturenReader()
+	{
+		super.setFetchSize(CERVIX_HUISARTSENBERICHTEN_JOB_READERS_FETCH_SIZE);
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixHuisartsBericht.class, "huisartsbericht");
+		var crit = session.createCriteria(CervixHuisartsBericht.class, "huisartsbericht");
 
 		crit.add(Restrictions.or(
 			Restrictions.eq("huisartsbericht.status", CervixHuisartsBerichtStatus.AANGEMAAKT),

@@ -78,8 +78,8 @@ public class PlanningScreeningsEenheid extends PlanningEntiteit
 		weekNavigableMap.clear();
 		for (LocalDate date = PlanningConstanten.plannenVanafDatum; date.compareTo(PlanningConstanten.plannenTotEnMetDatum) <= 0; date = date.plusDays(1))
 		{
-			PlanningDag dag = new PlanningDag(date, this);
-			dagNavigableMap.put(date, dag);
+			var dag = new PlanningDag(date, this);
+			putDag(date, dag);
 
 			LocalDate weekDag = date.with(MONDAY);
 			PlanningWeek week = weekNavigableMap.get(weekDag);
@@ -200,6 +200,16 @@ public class PlanningScreeningsEenheid extends PlanningEntiteit
 	public PlanningWeek getWeek(LocalDate maandag)
 	{
 		return weekNavigableMap.get(maandag);
+	}
+
+	public void putDag(LocalDate date, PlanningDag dag)
+	{
+		dagNavigableMap.put(date, dag);
+	}
+
+	public PlanningDag getDag(LocalDate dag)
+	{
+		return dagNavigableMap.get(dag);
 	}
 
 	public int getVolgNrOffset()

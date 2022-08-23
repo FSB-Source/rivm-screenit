@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
 
 /*-
@@ -25,7 +24,8 @@ package nl.rivm.screenit.batch.jobs.generalis.gba.verwerk107step;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
+import java.nio.file.Files;
+import java.time.LocalDate;
 import java.util.Iterator;
 import java.util.UUID;
 
@@ -38,12 +38,16 @@ import nl.rivm.screenit.model.gba.GbaFoutCategorie;
 import nl.rivm.screenit.model.gba.GbaFoutRegel;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 import nl.rivm.screenit.service.FileService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.ZipUtil;
 import nl.topicuszorg.gba.vertrouwdverbonden.exceptions.Vo107ParseException;
 import nl.topicuszorg.gba.vertrouwdverbonden.model.Vo107Bericht;
 import nl.topicuszorg.gba.vertrouwdverbonden.services.VO107Service;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
 import org.springframework.batch.item.ExecutionContext;
@@ -51,6 +55,8 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemStream;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
@@ -58,11 +64,16 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 
 	private static final String OFFSET = "key.offset";
 
+	private static final String ZIP_FILE_EXTENSION = ".zip";
+
 	@Autowired
 	private VO107Service vo107Service;
 
 	@Autowired
 	private FileService fileService;
+
+	@Autowired
+	private ICurrentDateSupplier dateSupplier;
 
 	private GbaVerwerkingsLog verwerkingLog;
 
@@ -115,7 +126,8 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 		{
 			if (currentFile != null)
 			{
-				String melding = "Error parsing file " + currentFile.getFilename() + " Melding: " + e.getMessage();
+				var isOngeldigBestand = !StringUtils.isAsciiPrintable(e.getMessage());
+				var melding = "Leesfout in GBA-bestand " + currentFile.getFilename() + " door: " + (isOngeldigBestand ? e.getMessage() : "Ongeldig bestand");
 				LOG.error(melding);
 				createFoutRegel(verwerkingLog, melding);
 			}
@@ -133,6 +145,7 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.NEVER)
 	public void open(ExecutionContext executionContext) throws ItemStreamException
 	{
 		berichtIterator = null;
@@ -171,17 +184,31 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 
 	private void nextInputstream(GbaVerwerkingsLog verwerkingsLog)
 	{
+		deleteCurrentFileIfExists();
+
 		if (fileIterator.hasNext())
 		{
 			currentFile = fileIterator.next();
 
-			GbaFile gbaFile = new GbaFile();
-			gbaFile.setNaam(currentFile.getFilename());
-			gbaFile.setGbaVerwerkingsLog(verwerkingsLog);
-			verwerkingsLog.getBestanden().add(gbaFile);
+			try
+			{
+				var tempGbaFile = getGbaTempFile(currentFile);
+				var relativeFileStoreLocation = saveToFilestoreAsZip(currentFile);
 
-			fileInputStream = saveStream(currentFile, gbaFile);
-			berichtIterator = vo107Service.fetchVo107Berichten(fileInputStream, "UTF8", true);
+				var gbaFile = new GbaFile();
+				gbaFile.setNaam(FilenameUtils.removeExtension(currentFile.getFilename()) + ZIP_FILE_EXTENSION);
+				gbaFile.setGbaVerwerkingsLog(verwerkingsLog);
+				gbaFile.setPath(relativeFileStoreLocation);
+				verwerkingsLog.getBestanden().add(gbaFile);
+
+				fileInputStream = Files.newInputStream(tempGbaFile.toPath());
+				berichtIterator = vo107Service.fetchVo107Berichten(fileInputStream, "UTF8", true);
+			}
+			catch (IOException e)
+			{
+				LOG.error("Error bij ophalen van vo107 bestand", e);
+				createFoutRegel(verwerkingLog, "Error bij ophalen van vo107 bestand");
+			}
 		}
 		else
 		{
@@ -189,37 +216,52 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 		}
 	}
 
-	private InputStream saveStream(Vo107File vo107File, GbaFile gbaFile)
+	private File getGbaTempFile(Vo107File vo107File) throws IOException
 	{
-		StringBuilder directory = new StringBuilder();
-		directory.append(voFileStorePath);
-		Calendar cal = Calendar.getInstance();
-		appendDateToPath(directory, cal);
-		String uniqueFileName = UUID.randomUUID().toString();
-		uniqueFileName += "-incoming.vo107";
+		var tempVo107File = File.createTempFile(FilenameUtils.removeExtension(vo107File.getFilename()), ".vo107");
+		vo107File.saveToTempFile(tempVo107File);
+		return tempVo107File;
+	}
 
-		StringBuilder dbPath = new StringBuilder();
-		appendDateToPath(dbPath, cal);
-		dbPath.append(System.getProperty("file.separator"));
-		dbPath.append(uniqueFileName);
-		gbaFile.setPath(dbPath.toString());
+	private String saveToFilestoreAsZip(Vo107File vo107File)
+	{
+		var fileName = UUID.randomUUID() + "-incoming" + ZIP_FILE_EXTENSION;
+		var datePath = dateToPath(dateSupplier.getLocalDate());
+
+		var relativeFilestorePath = datePath + fileName;
+		var fileStorePath = voFileStorePath + System.getProperty("file.separator") + relativeFilestorePath;
+
+		File tempZipFile = null;
 
 		try
 		{
-			File tempFile = File.createTempFile("temp", ".vo107");
-			vo107File.saveToFile(tempFile);
-			String fullFilePath = directory + System.getProperty("file.separator") + uniqueFileName;
-			fileService.save(fullFilePath, tempFile);
-			FileUtils.delete(tempFile);
-			LOG.info("vo107 bestand {} opgeslagen onder {}", vo107File.getFilename(), fullFilePath);
-			return fileService.loadAsStream(fullFilePath);
+			tempZipFile = File.createTempFile(fileName, ZIP_FILE_EXTENSION);
+			ZipUtil.zipFileOrDirectory(vo107File.getTempFile().getPath(), tempZipFile.getPath(), true);
+
+			fileService.save(fileStorePath, tempZipFile);
+
+			LOG.info("vo107 bestand {} opgeslagen onder {}", vo107File.getFilename(), fileStorePath);
 		}
 		catch (IOException e)
 		{
-			LOG.error("Error bij opslaan van vo107 bestand", e);
-			createFoutRegel(verwerkingLog, "Error bij opslaan van vo107 bestand");
+			LOG.error("Error bij zippen en opslaan van vo107 bestand", e);
+			createFoutRegel(verwerkingLog, "Error bij zippen en opslaan van vo107 bestand");
 		}
-		return null;
+		finally
+		{
+			if (tempZipFile != null && tempZipFile.exists())
+			{
+				try
+				{
+					FileUtils.delete(tempZipFile);
+				}
+				catch (IOException e)
+				{
+					LOG.error("Fout bij verwijderen tijdelijk ZIP bestand");
+				}
+			}
+		}
+		return relativeFilestorePath;
 	}
 
 	private void createFoutRegel(GbaVerwerkingsLog gbaVerwerkingsLog, String foutregel)
@@ -231,15 +273,25 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 		gbaVerwerkingsLog.getFouten().add(gbaFoutRegel);
 	}
 
-	protected void appendDateToPath(StringBuilder directory, Calendar cal)
+	protected String dateToPath(LocalDate date)
 	{
-		directory.append(System.getProperty("file.separator"));
-		directory.append(cal.get(Calendar.YEAR));
-		directory.append(System.getProperty("file.separator"));
-		directory.append(cal.get(Calendar.MONTH) + 1);
-		directory.append(System.getProperty("file.separator"));
-		directory.append(cal.get(Calendar.DAY_OF_MONTH));
-		directory.append(System.getProperty("file.separator"));
+		var separator = System.getProperty("file.separator");
+		return separator + date.getYear() + separator + date.getMonthValue() + separator + date.getDayOfMonth() + separator;
+	}
+
+	private void deleteCurrentFileIfExists()
+	{
+		if (currentFile != null && currentFile.getTempFile() != null && currentFile.getTempFile().exists())
+		{
+			try
+			{
+				FileUtils.delete(currentFile.getTempFile());
+			}
+			catch (Exception e)
+			{
+				LOG.error("Fout bij verwijderen van tijdelijke Vo107 bestand {}", currentFile.getFilename(), e);
+			}
+		}
 	}
 
 	@Override
@@ -251,6 +303,7 @@ public class Vo107ItemReader implements ItemReader<Vo107Bericht>, ItemStream
 	@Override
 	public void close() throws ItemStreamException
 	{
+		deleteCurrentFileIfExists();
 	}
 
 	@BeforeStep

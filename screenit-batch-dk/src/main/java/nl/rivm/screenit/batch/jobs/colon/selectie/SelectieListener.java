@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -42,45 +44,42 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.StepExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class SelectieListener extends BaseLogListener
 {
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		SelectieRapportage selectieRapportage = new SelectieRapportage();
+		var selectieRapportage = new SelectieRapportage();
 		selectieRapportage.setDatumVerwerking(currentDateSupplier.getDate());
 
-		SelectieRapportageEntry entry = new SelectieRapportageEntry();
-		entry.setAantal(0L);
-		entry.setWaarvanGepusht(0L);
-		entry.setRapportage(selectieRapportage);
-		entry.setColonUitnodigingCategorie(ColonUitnodigingCategorie.U2_4);
-		entry.setSelectieType(SelectieType.UITNODIGING_GEMAAKT);
-		selectieRapportage.getEntries().add(entry);
+		var selectieRapportageEntry = new SelectieRapportageEntry();
+		selectieRapportageEntry.setAantal(0L);
+		selectieRapportageEntry.setWaarvanGepusht(0L);
+		selectieRapportageEntry.setRapportage(selectieRapportage);
+		selectieRapportageEntry.setColonUitnodigingCategorie(ColonUitnodigingCategorie.U2_4);
+		selectieRapportageEntry.setSelectieType(SelectieType.UITNODIGING_GEMAAKT);
+		selectieRapportage.getEntries().add(selectieRapportageEntry);
 
-		for (ColonUitnodigingCategorie colonUitnodigingCategorie : ColonUitnodigingCategorie.getCategorieen())
+		for (var colonUitnodigingCategorie : ColonUitnodigingCategorie.getCategorieen())
 		{
-			entry = new SelectieRapportageEntry();
-			entry.setAantal(0L);
-			entry.setWaarvanGepusht(0L);
-			entry.setRapportage(selectieRapportage);
-			entry.setColonUitnodigingCategorie(colonUitnodigingCategorie);
-			entry.setSelectieType(SelectieType.UITNODIGING_GEMAAKT);
-			selectieRapportage.getEntries().add(entry);
+			selectieRapportageEntry = new SelectieRapportageEntry();
+			selectieRapportageEntry.setAantal(0L);
+			selectieRapportageEntry.setWaarvanGepusht(0L);
+			selectieRapportageEntry.setRapportage(selectieRapportage);
+			selectieRapportageEntry.setColonUitnodigingCategorie(colonUitnodigingCategorie);
+			selectieRapportageEntry.setSelectieType(SelectieType.UITNODIGING_GEMAAKT);
+			selectieRapportage.getEntries().add(selectieRapportageEntry);
 		}
 
 		hibernateService.saveOrUpdate(selectieRapportage);
@@ -116,7 +115,7 @@ public class SelectieListener extends BaseLogListener
 	@Override
 	protected void beforeEindeLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		int waarschuwingClienten = context.getInt(SelectieConstants.COLONSELECTIEWAARSCHUWINGIFOBTS);
 		int maximaalClienten = context.getInt(SelectieConstants.COLONSELECTIEMAXIMAALIFOBTS);
 		if (waarschuwingClienten != 0 || maximaalClienten != 0)
@@ -126,9 +125,9 @@ public class SelectieListener extends BaseLogListener
 		}
 
 		List<Long> gemeenteLongs = new ArrayList<Long>();
-		for (StepExecution stepExecution : getJobExecution().getStepExecutions())
+		for (var stepExecution : getJobExecution().getStepExecutions())
 		{
-			ExecutionContext stepContext = stepExecution.getExecutionContext();
+			var stepContext = stepExecution.getExecutionContext();
 			if (stepContext.containsKey(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES))
 			{
 				Map<Long, String> map = (Map<Long, String>) stepContext.get(SelectieConstants.GEMEENTE_ZONDER_SCREENING_ORGANISATIES);
@@ -136,7 +135,7 @@ public class SelectieListener extends BaseLogListener
 				{
 					if (!gemeenteLongs.contains(entry.getKey()))
 					{
-						LogEvent logEvent = new LogEvent("Gemeente " + entry.getValue() + " is niet gekoppeld aan een screeningsorganisatie.");
+						var logEvent = new LogEvent("Gemeente " + entry.getValue() + " is niet gekoppeld aan een screeningsorganisatie.");
 						logEvent.setLevel(Level.WARNING);
 						logService.logGebeurtenis(LogGebeurtenis.COLON_GEMEENTE_NIET_GEKOPPELD_AAN_SCREENING_ORGANISATIE, logEvent, Bevolkingsonderzoek.COLON);
 						gemeenteLongs.add(entry.getKey());
@@ -148,7 +147,7 @@ public class SelectieListener extends BaseLogListener
 
 	private LogEvent getLogEventLimietIfobts(int waarschuwingClienten, int maximaalClienten)
 	{
-		LogEvent logEvent = new LogEvent();
+		var logEvent = new LogEvent();
 		Level level = Level.INFO;
 		String melding = "";
 		if (waarschuwingClienten > 0)
@@ -169,7 +168,7 @@ public class SelectieListener extends BaseLogListener
 	@Override
 	protected LogEvent getEindLogEvent()
 	{
-		SelectieRondeBeeindigdLogEvent result = new SelectieRondeBeeindigdLogEvent();
+		var result = new SelectieRondeBeeindigdLogEvent();
 		result.setResultaat(jobHasExitCode(ExitStatus.COMPLETED));
 		result.setLevel(Level.INFO);
 		if (getJobExecution().getExecutionContext().containsKey(SelectieConstants.RAPPORTAGEKEYSELECTIE))
@@ -182,7 +181,7 @@ public class SelectieListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent logEvent = getEindLogEvent();
+		var logEvent = getEindLogEvent();
 		if (logEvent != null)
 		{
 			SelectieRondeBeeindigdLogEvent result = (SelectieRondeBeeindigdLogEvent) logEvent;

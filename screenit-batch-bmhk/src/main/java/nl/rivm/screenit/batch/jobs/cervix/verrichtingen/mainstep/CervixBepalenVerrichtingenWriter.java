@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.mainstep;
 
 import java.util.Date;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixAbstractVerrichtingenWriter;
 import nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixBepalenVerrichtingenConstants;
 import nl.rivm.screenit.model.cervix.CervixMonster;
@@ -31,13 +33,12 @@ import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class CervixBepalenVerrichtingenWriter extends CervixAbstractVerrichtingenWriter<CervixMonster>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixBepalenVerrichtingenWriter.class);
 
 	@Override
 	protected void write(CervixMonster monster) throws Exception
@@ -51,7 +52,7 @@ public class CervixBepalenVerrichtingenWriter extends CervixAbstractVerrichtinge
 			}
 			if (CervixMonsterType.UITSTRIJKJE.equals(monster.getUitnodiging().getMonsterType()))
 			{
-				CervixUitstrijkje uitstrijkje = (CervixUitstrijkje) monster;
+				var uitstrijkje = (CervixUitstrijkje) monster;
 				if (!CervixHuisartsBerichtStatus.HUISARTS_ONBEKEND.equals(uitstrijkje.getHuisartsBericht().getStatus()))
 				{
 					verrichtingenFactory.maakHuisartsVerrichting(monster, CervixTariefType.HUISARTS_UITSTRIJKJE, uitstrijkje.getOntvangstdatum(),

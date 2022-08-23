@@ -68,6 +68,7 @@ import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.cervix.enums.CervixNietAnalyseerbaarReden;
+import nl.rivm.screenit.model.cervix.enums.CervixUitstelType;
 import nl.rivm.screenit.model.cervix.enums.CervixUitstrijkjeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 import nl.rivm.screenit.model.cervix.verslag.cytologie.CervixCytologieCytologieUitslagBvoBmhk;
@@ -81,6 +82,7 @@ import nl.rivm.screenit.service.cervix.CervixBaseTestTimelineService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.service.cervix.CervixMonsterService;
 import nl.rivm.screenit.service.cervix.CervixTestTimelineTimeService;
+import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.service.cervix.enums.CervixTestTimeLineDossierTijdstip;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
@@ -126,6 +128,9 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 
 	@Autowired
 	private CervixMonsterService monsterService;
+
+	@Autowired
+	private CervixVervolgService vervolgService;
 
 	@Override
 	public CervixBaseTestTimelineService ontvangen(CervixUitnodiging uitnodiging, BMHKLaboratorium laboratorium)
@@ -220,6 +225,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 			}
 			uitstrijkje.setStatusDatum(dateSupplier.getDate());
 			hibernateService.saveOrUpdate(uitstrijkje);
+			vervolgService.digitaalLabformulierKlaarVoorCytologie(uitstrijkje);
 			break;
 		case ZAS:
 			CervixZas zas = (CervixZas) monster;
@@ -398,7 +404,7 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		CervixUitnodiging uitnodiging = null;
 
 		LocalDate geboorteDatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
-		if (CervixLeeftijdcategorie.getLeeftijd(geboorteDatum, dateSupplier.getLocalDateTime()) < 30)
+		if (CervixLeeftijdcategorie.getLeeftijd(geboorteDatum, dateSupplier.getLocalDate()) < 30)
 		{
 			ronde = factory.maakRonde(dossier, false);
 			maakVooraankondiging(client, ronde);
@@ -437,6 +443,13 @@ public class CervixBaseTestTimelineServiceImpl implements CervixBaseTestTimeline
 		factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 		verzendLaatsteBrief(ronde);
 
+	}
+
+	@Override
+	public void uitstelVoorZwangerschap(CervixScreeningRonde ronde)
+	{
+		Date uitstellenTotDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().plusDays(preferenceService.getInteger(PreferenceKey.UITSTEL_BIJ_ZWANGERSCHAP_CERVIX.name())));
+		factory.maakUitstel(ronde, uitstellenTotDatum, CervixUitstelType.ZWANGERSCHAP);
 	}
 
 	private CervixCISHistorie createCISHistorie(CervixDossier dossier)

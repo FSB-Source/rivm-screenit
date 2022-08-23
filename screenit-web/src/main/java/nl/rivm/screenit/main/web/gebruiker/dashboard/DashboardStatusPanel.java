@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.Constants;
+import nl.rivm.screenit.main.service.cervix.CervixDossierService;
 import nl.rivm.screenit.main.service.colon.ColonDossierService;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
@@ -47,6 +48,8 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.logging.LogRegel;
 import nl.rivm.screenit.service.DashboardService;
+import nl.rivm.screenit.service.LogService;
+import nl.rivm.screenit.service.mamma.MammaBaseDossierService;
 import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -66,7 +69,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+import static nl.rivm.screenit.model.dashboard.DashboardType.CERVIX_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.model.dashboard.DashboardType.CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN;
 import static nl.rivm.screenit.model.dashboard.DashboardType.COLON_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.model.dashboard.DashboardType.MAMMA_CONTROLE_MISSENDE_UITSLAGEN;
 
 public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 {
@@ -77,16 +83,25 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 	private DashboardService dashboardService;
 
 	@SpringBean
+	private LogService logService;
+
+	@SpringBean
 	private ColonDossierService colonDossierService;
+
+	@SpringBean
+	private CervixDossierService cervixDossierService;
+
+	@SpringBean
+	private MammaBaseDossierService mammaDossierService;
 
 	private final WebMarkupContainer dashboardTabelContainer = new WebMarkupContainer("dashboardTabelContainer");
 
-	private final BootstrapDialog controleerMissendeUitslagDialog = new BootstrapDialog("controleerMissendeUitslagDialog");
+	private final BootstrapDialog controleerdVastleggenDialog = new BootstrapDialog("controleerdVastleggenDialog");
 
 	public DashboardStatusPanel(String id, DashboardStatus dashboardStatus)
 	{
 		super(id, ModelUtil.ccModel(dashboardStatus));
-		add(controleerMissendeUitslagDialog);
+		add(controleerdVastleggenDialog);
 
 		List<IColumn<LogRegel, String>> columns = new ArrayList<>();
 
@@ -117,11 +132,12 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 				item.add(new Label(componentId, getDataModel(rowModel)).setEscapeModelStrings(false));
 			}
 		});
-		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_DASHBOARD_GEZIEN_KNOP, Actie.INZIEN) && !isDashboardMetGecontroleerdKnop())
+		boolean dashboardMetGecontroleerdKnop = isDashboardMetGecontroleerdKnop();
+		if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_BEHEER_DASHBOARD_GEZIEN_KNOP, Actie.INZIEN) && !dashboardMetGecontroleerdKnop)
 		{
 			columns.add(maakGezienKnop());
 		}
-		else if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CONTROLEREN_MISSENDE_UITSLAGEN, Actie.AANPASSEN) && isDashboardMetGecontroleerdKnop())
+		else if (ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CONTROLEREN_MISSENDE_UITSLAGEN, Actie.AANPASSEN) && dashboardMetGecontroleerdKnop)
 		{
 			columns.add(maakGecontroleerdKnop());
 		}
@@ -164,7 +180,7 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 						@Override
 						protected void onClick(AjaxRequestTarget target)
 						{
-							boolean isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(iModel.getObject(),
+							boolean isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(getModelObject(),
 								ScreenitSession.get().getLoggedInInstellingGebruiker().getMedewerker().getGebruikersnaam(), DashboardStatusPanel.this.getModelObject());
 							if (!isGedowngrade)
 							{
@@ -202,27 +218,20 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 						@Override
 						protected void onClick(AjaxRequestTarget target)
 						{
-							controleerMissendeUitslagDialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, Model.of(getString("controleerUitslagDialog.header")),
-								Model.of(getString("controleerUitslagDialog.content")),
+							var dashboardStatus = DashboardStatusPanel.this.getModelObject();
+							String dialogPropertyPrefix = "controleerDialog." + dashboardStatus.getType();
+							controleerdVastleggenDialog.openWith(target, new ConfirmPanel(IDialog.CONTENT_ID, Model.of(getString(dialogPropertyPrefix + ".header")),
+								Model.of(getString(dialogPropertyPrefix + ".content")),
 								new DefaultConfirmCallback()
 								{
 									@Override
 									public void onYesClick(AjaxRequestTarget target)
 									{
-										var isGedowngrade = colonDossierService.setUitslagenGecontroleerdEnUpdateDashboard(getModelObject(),
-											ScreenitSession.get().getLoggedInInstellingGebruiker(), DashboardStatusPanel.this.getModelObject());
-
-										if (!isGedowngrade)
-										{
-											target.add(dashboardTabelContainer);
-										}
-										else
-										{
-											setResponsePage(new DashboardPage());
-										}
+										onControleerd(target, getModelObject());
 									}
-								}, controleerMissendeUitslagDialog));
+								}, controleerdVastleggenDialog));
 						}
+
 					});
 				}
 				else
@@ -234,15 +243,47 @@ public class DashboardStatusPanel extends GenericPanel<DashboardStatus>
 		};
 	}
 
-	private boolean isDashboardMetGecontroleerdKnop()
+	private void onControleerd(AjaxRequestTarget target, LogRegel logRegel)
 	{
-		return Arrays.asList(COLON_CONTROLE_MISSENDE_UITSLAGEN).contains(getModelObject().getType());
+		var dashboardStatus = getModelObject();
+		var dashboardLevelDowngraded = false;
+		var ingelogdeInstellingGebruiker = ScreenitSession.get().getLoggedInInstellingGebruiker();
+
+		switch (dashboardStatus.getType())
+		{
+		case CERVIX_CONTROLE_MISSENDE_UITSLAGEN:
+			dashboardLevelDowngraded = cervixDossierService.setUitslagenGecontroleerdEnUpdateDashboard(logRegel,
+				ingelogdeInstellingGebruiker, dashboardStatus);
+			break;
+		case COLON_CONTROLE_MISSENDE_UITSLAGEN:
+			dashboardLevelDowngraded = colonDossierService.setUitslagenGecontroleerdEnUpdateDashboard(logRegel,
+				ingelogdeInstellingGebruiker, dashboardStatus);
+			break;
+		case MAMMA_CONTROLE_MISSENDE_UITSLAGEN:
+			dashboardLevelDowngraded = mammaDossierService.setUitslagenGecontroleerdEnUpdateDashboard(logRegel,
+				ingelogdeInstellingGebruiker, dashboardStatus);
+			break;
+		case CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN:
+			dashboardLevelDowngraded = logService.verwijderLogRegelsVanDashboards(List.of(logRegel), ScreenitSession.get().getLoggedInInstellingGebruiker(),
+				LogGebeurtenis.CERVIX_DIGITAAL_LABFORMULIER_FOUT_ONTVANGEN_GECONTROLEERD);
+			break;
+		default:
+			break;
+		}
+
+		if (!dashboardLevelDowngraded)
+		{
+			target.add(dashboardTabelContainer);
+		}
+		else
+		{
+			setResponsePage(new DashboardPage());
+		}
 	}
 
-	@Override
-	protected void onDetach()
+	private boolean isDashboardMetGecontroleerdKnop()
 	{
-		super.onDetach();
-		ModelUtil.nullSafeDetach(getModel());
+		return List.of(COLON_CONTROLE_MISSENDE_UITSLAGEN, CERVIX_CONTROLE_MISSENDE_UITSLAGEN, MAMMA_CONTROLE_MISSENDE_UITSLAGEN, CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN)
+			.contains(getModelObject().getType());
 	}
 }

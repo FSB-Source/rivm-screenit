@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep;
 import java.util.Date;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenWriter;
 import nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.BezwaarBrievenConstants;
 import nl.rivm.screenit.document.BaseDocumentCreator;
@@ -42,12 +44,14 @@ import nl.rivm.screenit.service.BezwaarService;
 import nl.rivm.screenit.util.BriefUtil;
 
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class BezwaarBrievenGenererenWriter extends AbstractBrievenGenererenWriter<BezwaarBrief, BezwaarMergedBrieven>
 {
-	@Autowired
-	private BezwaarService bezwaarService;
+
+	private final BezwaarService bezwaarService;
 
 	@Override
 	protected BezwaarMergedBrieven createConcreteMergedBrieven(Date aangemaaktOp)

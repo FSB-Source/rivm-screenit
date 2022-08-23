@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.dao.colon.IFobtDao;
@@ -100,55 +101,42 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.ObjectNotFoundException;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import static nl.rivm.screenit.Constants.COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class ColonDossierServiceImpl implements ColonDossierService
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ClientService clientService;
+	private final ClientService clientService;
 
-	@Autowired
-	private BaseBriefService briefService;
+	private final BaseBriefService briefService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private OngeldigeBerichtenService ongeldigeBerichtenService;
+	private final OngeldigeBerichtenService ongeldigeBerichtenService;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private AfspraakService afspraakService;
+	private final AfspraakService afspraakService;
 
-	@Autowired
-	private IFobtService ifobtService;
+	private final IFobtService ifobtService;
 
-	@Autowired
-	private IFobtDao ifobtDao;
+	private final IFobtDao ifobtDao;
 
-	@Autowired
-	private ColonDossierBaseService dossierBaseService;
+	private final ColonDossierBaseService dossierBaseService;
 
-	@Autowired
-	private CoordinatenService coordinatenService;
+	private final CoordinatenService coordinatenService;
 
-	@Autowired
-	private InstellingService instellingService;
+	private final InstellingService instellingService;
 
-	@Autowired
-	private DashboardService dashboardService;
+	private final DashboardService dashboardService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -759,7 +747,7 @@ public class ColonDossierServiceImpl implements ColonDossierService
 
 		var nu = currentDateSupplier.getLocalDate();
 		var laatstGesignaleerdeIfobt = ifobtDao.getLaatsteIfobtTestMetMissendeUitslagVanDossier(dossier,
-			nu.minusDays(COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN), nu.minusDays(signaleringsTermijn));
+			nu.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN), nu.minusDays(signaleringsTermijn));
 
 		boolean isGedowngrade = dashboardService.updateLogRegelMetDashboardStatus(logRegel, medewerker.getMedewerker().getGebruikersnaam(), dashboardStatus);
 

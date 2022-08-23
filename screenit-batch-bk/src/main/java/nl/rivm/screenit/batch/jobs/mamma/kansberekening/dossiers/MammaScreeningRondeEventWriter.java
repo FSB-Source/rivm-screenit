@@ -21,27 +21,27 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventWriter;
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaKansberekeningConstants;
 import nl.rivm.screenit.model.mamma.MammaDossier;
-import nl.rivm.screenit.model.mamma.MammaKansberekeningScreeningRondeEvent;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
-import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaScreeningRondeEventWriter extends MammaAbstractEventWriter<MammaDossier>
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private MammaBaseKansberekeningService baseKansberekeningService;
+	private final MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Override
 	protected void write(MammaDossier dossier)
@@ -53,7 +53,7 @@ public class MammaScreeningRondeEventWriter extends MammaAbstractEventWriter<Mam
 	@Override
 	protected Criteria getCriteria(Session session)
 	{
-		Criteria criteria = session.createCriteria(MammaDossier.class, "dossier");
+		var criteria = session.createCriteria(MammaDossier.class, "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
 		criteria.createAlias("dossier.screeningRondeEvent", "screeningRondeEvent", JoinType.LEFT_OUTER_JOIN);

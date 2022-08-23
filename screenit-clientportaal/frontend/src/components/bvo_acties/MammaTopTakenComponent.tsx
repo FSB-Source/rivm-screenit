@@ -64,25 +64,25 @@ const MammaTopTakenComponent = (props: MammaTopTakenComponentProps) => {
             {props.beschikbareActies && (props.beschikbareActies.includes(ClientContactActieType.MAMMA_AFSPRAAK_MAKEN) || props.beschikbareActies.includes(ClientContactActieType.MAMMA_AFSPRAAK_WIJZIGEN)) &&
 			<Col lg={4}>
 				<TopTaakComponent icon={<AfspraakIcon/>}
-								  link="/mamma/afspraak"
+								  link="/mamma/afspraak/"
 								  titel={props.beschikbareActies.includes(ClientContactActieType.MAMMA_AFSPRAAK_MAKEN) ? getString(properties.afspraak.maken) : getString(properties.afspraak.verzetten)}/>
 			</Col>}
             {props.beschikbareActies && huidigeAfspraak && props.beschikbareActies.includes(ClientContactActieType.MAMMA_AFMELDEN) &&
 			<Col lg={4}>
 				<TopTaakComponent icon={<AfspraakIcon/>}
-								  link="/mamma/afmelden"
+								  link="/mamma/afmelden/"
 								  titel={getString(properties.afspraak.afzeggen)}/>
 			</Col>}
             {props.beschikbareActies && props.beschikbareActies.includes(ClientContactActieType.MAMMA_HERAANMELDEN) &&
 			<Col lg={4}>
 				<TopTaakComponent icon={<HeraanmeldenIcon/>}
-								  link="/mamma/heraanmelden"
+								  link="/mamma/heraanmelden/"
 								  titel={getString(properties.heraanmelden)}/>
 			</Col>}
             {props.beschikbareActies && props.beschikbareActies.includes(ClientContactActieType.MAMMA_HUISARTS_WIJZIGEN) &&
 			<Col lg={4}>
 				<TopTaakComponent icon={<HuisartsIcon/>}
-								  link="/mamma/huisarts"
+								  link="/mamma/huisarts/"
 								  titel={getString(properties.huisarts[props.getTekstHuisartsToptaak(huisartsHuidigeRondeIsBekend || geenHuisartsOptieHuidigeRonde, huisartsVorigeRondeIsBekend || geenHuisartsOptieVorigeRonde)])}/>
 			</Col>}
         </Row>

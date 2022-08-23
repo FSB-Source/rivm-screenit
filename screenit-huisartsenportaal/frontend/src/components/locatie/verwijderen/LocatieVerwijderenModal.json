@@ -1,0 +1,8 @@
+{
+  "title": "Locatie verwijderen",
+  "body": "Weet u zeker dat u deze locatie wilt verwijderen?",
+  "button": {
+    "close": "Annuleren",
+    "submit": "Locatie verwijderen"
+  }
+}

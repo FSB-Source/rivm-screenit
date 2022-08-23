@@ -76,6 +76,7 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -148,11 +149,8 @@ public class RetourzendingServiceImpl implements RetourzendingService
 
 		logEvent.setSanddBestand(uploadDocument);
 
-		Workbook workbook;
-		try (PushbackInputStream pushbackInputStream = new PushbackInputStream(new FileInputStream(uploadDocumentService.load(uploadDocument))))
+		try (Workbook workbook = WorkbookFactory.create(new PushbackInputStream(new FileInputStream(uploadDocumentService.load(uploadDocument)))))
 		{
-			workbook = WorkbookFactory.create(pushbackInputStream);
-
 			Sheet sheet = workbook.getSheetAt(0);
 			if (sheet == null)
 			{
@@ -498,7 +496,7 @@ public class RetourzendingServiceImpl implements RetourzendingService
 		String cellValue = null;
 		if (cell != null)
 		{
-			if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC)
+			if (cell.getCellType() == CellType.NUMERIC)
 			{
 				cellValue = "" + (int) cell.getNumericCellValue();
 			}

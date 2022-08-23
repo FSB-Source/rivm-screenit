@@ -21,46 +21,53 @@ package nl.rivm.screenit.main.web.component.dropdown;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.List;
+
+import nl.topicuszorg.wicket.input.RequiredSubmitComponent;
+
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.model.IModel;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class RequiredScreenitDropdown<T> extends ScreenitDropdown<T>
+public class RequiredScreenitDropdown<T> extends ScreenitDropdown<T> implements RequiredSubmitComponent
 {
 
-    private List<IFormSubmittingComponent> formSubmittingComponents;
+	private List<IFormSubmittingComponent> formSubmittingComponents;
 
-    public RequiredScreenitDropdown(String id, IModel<? extends List<? extends T>> choices, IChoiceRenderer<? super T> renderer, IFormSubmittingComponent formSubmittingComponent)
-    {
-        super(id, choices, renderer);
-        addFormSubmittingComponent(formSubmittingComponent);
-    }
+	public RequiredScreenitDropdown(String id, IModel<? extends List<? extends T>> choices, IChoiceRenderer<? super T> renderer, IFormSubmittingComponent formSubmittingComponent)
+	{
+		super(id, choices, renderer);
+		addFormSubmittingComponent(formSubmittingComponent);
+	}
 
-    @Override
-    public boolean isRequired()
-    {
-        Form<?> form = findParent(Form.class);
-        boolean required = false;
-        if (formSubmittingComponents != null && form != null)
-        {
-            required = formSubmittingComponents.contains(form.getRootForm().findSubmittingButton());
-        }
-        return required;
-    }
+	@Override
+	public boolean isRequired()
+	{
+		Form<?> form = findParent(Form.class);
+		boolean required = false;
+		if (formSubmittingComponents != null && form != null)
+		{
+			required = formSubmittingComponents.contains(findSubmittingButton(form.getRootForm()));
+		}
+		return required;
+	}
 
-    public void addFormSubmittingComponent(IFormSubmittingComponent formSubmittingComponent) {
-        if(formSubmittingComponent == null) {
-            throw new IllegalArgumentException("formSubmittingComponent == null");
-        } else {
-            if(this.formSubmittingComponents == null) {
-                this.formSubmittingComponents = new ArrayList();
-            }
+	public void addFormSubmittingComponent(IFormSubmittingComponent formSubmittingComponent)
+	{
+		if (formSubmittingComponent == null)
+		{
+			throw new IllegalArgumentException("formSubmittingComponent == null");
+		}
+		else
+		{
+			if (this.formSubmittingComponents == null)
+			{
+				this.formSubmittingComponents = new ArrayList();
+			}
 
-            this.formSubmittingComponents.add(formSubmittingComponent);
-        }
-    }
+			this.formSubmittingComponents.add(formSubmittingComponent);
+		}
+	}
 }

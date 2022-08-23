@@ -21,49 +21,42 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.selectiestep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.cervix.selectie.CervixSelectieConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.rivm.screenit.util.DateUtil;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixSelectieWriter extends BaseWriter<Client>
 {
-	@Autowired
-	private CervixFactory factory;
+	private final CervixFactory factory;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
 	protected void write(Client client) throws Exception
 	{
-		CervixDossier dossier = client.getCervixDossier();
-		CervixScreeningRonde laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
+		var dossier = client.getCervixDossier();
+		var laatsteScreeningRonde = dossier.getLaatsteScreeningRonde();
 
-		CervixLeeftijdcategorie leeftijdcategorie = CervixLeeftijdcategorie.getLeeftijdcategorie(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()),
-			dateSupplier.getLocalDateTime());
-		int leeftijd = CervixLeeftijdcategorie.getLeeftijd(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), dateSupplier.getLocalDateTime());
+		var leeftijdcategorie = CervixLeeftijdcategorie.getLeeftijdcategorie(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), dateSupplier.getLocalDateTime());
 
-		if (leeftijd < CervixLeeftijdcategorie._30.getLeeftijd())
-		{
-			CervixScreeningRonde ronde = factory.maakRonde(dossier, false);
-			factory.maakVooraankondiging(ronde);
-		}
-		else if (CervixLeeftijdcategorie._30.equals(leeftijdcategorie) && laatsteScreeningRonde != null)
+		if (CervixLeeftijdcategorie._30.equals(leeftijdcategorie) && laatsteScreeningRonde != null)
 		{
 			factory.updateDossierMetVolgendeRondeDatum(dossier, dateSupplier.getLocalDateTime());
 			factory.maakUitnodiging(laatsteScreeningRonde, laatsteScreeningRonde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 		}
 		else
 		{
-			CervixScreeningRonde ronde = factory.maakRonde(dossier);
+			var ronde = factory.maakRonde(dossier);
 			factory.maakUitnodiging(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief(), true, false);
 		}
 

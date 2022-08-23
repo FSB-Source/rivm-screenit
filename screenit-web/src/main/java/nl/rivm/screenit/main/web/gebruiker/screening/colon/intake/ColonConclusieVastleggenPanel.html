@@ -49,94 +49,119 @@
 		       	</div>
                 <hr/>
                 <div class="row-fluid">
-                    <div class="span5">
-                        <div class="control-group value">
-                            <label class="control-label">Zorgverlener intake</label>
-                            <div class="controls" wicket:id="conclusie.instellingGebruiker.medewerker.naamVolledig"></div>
-                        </div>
-                        <div class="control-group value">
-                            <label class="control-label">Datum uitslag ontlastingstest</label>
-                            <div class="controls" wicket:id="datumEerstOngunstigeUitslag"></div>
-                        </div>
-                    </div>
-                    <div class="span7">
-                        <div class="control-group value">
-                            <label class="control-label">Datum brief afspraak</label>
-                            <div class="controls" wicket:id="printDatum"></div>
-                        </div>
-                        <div class="control-group value">
-                            <label class="control-label">Datum/Tijd conclusie</label>
-                            <div class="controls" wicket:id="conclusie.datum"></div>
-                        </div>
-                    </div>
-                </div>
+					<div class="span5">
+						<div class="control-group value">
+							<label class="control-label">Zorgverlener intake</label>
+							<div class="controls" wicket:id="conclusie.instellingGebruiker.medewerker.naamVolledig"></div>
+						</div>
+						<div class="control-group value">
+							<label class="control-label">Datum uitslag ontlastingstest</label>
+							<div class="controls" wicket:id="datumEerstOngunstigeUitslag"></div>
+						</div>
+					</div>
+					<div class="span7">
+						<div class="control-group value">
+							<label class="control-label">Datum brief afspraak</label>
+							<div class="controls" wicket:id="printDatum"></div>
+						</div>
+						<div class="control-group value">
+							<label class="control-label">Datum/Tijd conclusie</label>
+							<div class="controls" wicket:id="conclusie.datum"></div>
+						</div>
+					</div>
+				</div>
 
-				<wicket:enclosure child="bezwaar">				
-                <hr/>
-                <div class="control-groups row-fluid">
-                    <label class="control-label span5">Bezwaar gegevensuitwisseling met SO</label>
-                    <div class="controls span7">
-                        <div class="btn-group">
-                            <a href="javascript:void(0);" wicket:id="bezwaar" class="btn">
-                                <wicket:container wicket:id="label"></wicket:container>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-                </wicket:enclosure>
-            </fieldset>
-        </div>
-        <div class="modal-footer">
-        	<div class="row-fluid">
-                <div class="span9 form-horizontal">
-                    <div class="control-group geselecteerde-organisatie value" wicket:id="tekstOntvangenMDLverslag">
-                        <strong>Vervolgbeleid is bekend, conclusie kan niet meer worden aangepast/ongedaan worden gemaakt.</strong>
-                    </div>
-                    <div class="control-group geselecteerde-organisatie value" wicket:id="tekstGeenLaatsteAfspraak">
-                        <strong>Er is een nieuwe intake gepland, conclusie kan niet meer worden aangepast/ongedaan worden gemaakt.</strong>
-                    </div>
-            		<button class="btn btn-danger pull-left" wicket:id="conclusieVerwijderen">Conclusie ongedaan maken</button>
-                </div>
-                <div class="span3">
-		            <a class="btn" data-dismiss="modal">Annuleren</a>
-		            <a class="btn btn-primary" wicket:id="conclusieOpslaan">Opslaan</a>
-                </div>
-            </div>
-        </div>
-        <div wicket:id="dialog"></div>
-    </form>
-    <wicket:fragment wicket:id="conclusieFragment">
+				<wicket:enclosure child="bezwaar">
+					<hr/>
+					<div class="control-groups row-fluid">
+						<label class="control-label span5">Bezwaar gegevensuitwisseling met SO</label>
+						<div class="controls span7">
+							<div class="btn-group">
+								<a href="javascript:void(0);" wicket:id="bezwaar" class="btn">
+									<wicket:container wicket:id="label"></wicket:container>
+								</a>
+							</div>
+						</div>
+					</div>
+				</wicket:enclosure>
+			</fieldset>
+		</div>
+		<div class="modal-footer">
+			<div class="row-fluid">
+				<div class="span9 form-horizontal">
+					<div class="control-group geselecteerde-organisatie value" wicket:id="tekstOntvangenMDLverslag">
+						<strong>Vervolgbeleid is bekend, conclusie kan niet meer worden aangepast/ongedaan worden gemaakt.</strong>
+					</div>
+					<div class="control-group geselecteerde-organisatie value" wicket:id="tekstGeenLaatsteAfspraak">
+						<strong>Er is een nieuwe intake gepland, conclusie kan niet meer worden aangepast/ongedaan worden gemaakt.</strong>
+					</div>
+					<button class="btn btn-danger pull-left" wicket:id="conclusieVerwijderen">Conclusie ongedaan maken</button>
+				</div>
+				<div class="span3">
+					<a class="btn" data-dismiss="modal">Annuleren</a>
+					<a class="btn btn-primary" wicket:id="conclusieOpslaan">Opslaan</a>
+				</div>
+			</div>
+		</div>
+		<div wicket:id="dialog"></div>
+	</form>
+	<wicket:fragment wicket:id="conclusieFragment">
 		<div class="row-fluid">
-           <div class="span12">
-               <div class="control-group">
-                   <label class="control-label"></label>
-                   <div class="controls">
-                       <div class="btn-group">
-                            <a href="javascript:void(0);" wicket:id="conclusie.type" class="btn">
-                                <wicket:container wicket:id="label"></wicket:container>
-                            </a>
-                        </div>
-                   </div>
-               </div>
-               <div class="intake-result" wicket:id="container"></div>
-           </div>
-       </div>
-    </wicket:fragment>   
-    <wicket:fragment wicket:id="vraagFragment">
+			<div class="span12">
+				<div class="control-group">
+					<label class="control-label"></label>
+					<div class="controls">
+						<div class="btn-group">
+							<a href="javascript:void(0);" wicket:id="conclusie.type" class="btn">
+								<wicket:container wicket:id="label"></wicket:container>
+							</a>
+						</div>
+					</div>
+				</div>
+				<div class="intake-result" wicket:id="container"></div>
+			</div>
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="onHoldRedenFragment">
 		<div class="row-fluid">
-           <div class="span12">
-               <div class="control-group">
-                   <label class="control-label" wicket:id="vraag">Vraag?</label>
-                   <div class="controls span4">
-                        <div class="btn-group">
-                            <a href="javascript:void(0);" wicket:id="antwoord" class="btn">
-                                <wicket:container wicket:id="label"></wicket:container>
-                            </a>
-                        </div>
-                    </div>
-               </div>
-           </div>
-       </div>      
+			<div class="span12">
+				<div class="control-group">
+					<label class="control-label">Reden (optioneel)</label>
+					<div class="controls">
+						<div class="btn-group">
+							<a href="javascript:void(0);" wicket:id="conclusie.onHoldReden" class="btn">
+								<wicket:container wicket:id="label"></wicket:container>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row-fluid">
+				<div class="span12">
+					<div class="control-group">
+						<label class="control-label">Gevolg</label>
+						<div class="controls">Cli&euml;nt wordt geplaatst op werklijst openstaande afspraken</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+	</wicket:fragment>
+	<wicket:fragment wicket:id="vraagFragment">
+		<div class="row-fluid">
+			<div class="span12">
+				<div class="control-group">
+					<label class="control-label" wicket:id="vraag">Vraag?</label>
+					<div class="controls span4">
+						<div class="btn-group">
+							<a href="javascript:void(0);" wicket:id="antwoord" class="btn">
+								<wicket:container wicket:id="label"></wicket:container>
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
        <div wicket:id="vervolg"></div>
     </wicket:fragment>
     <wicket:fragment wicket:id="terugNaarScreeningFragment">

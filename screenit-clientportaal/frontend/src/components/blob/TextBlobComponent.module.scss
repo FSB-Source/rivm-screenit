@@ -2,18 +2,24 @@
 @import "src/scss/media-mixins";
 
 .titelBox {
-  margin-bottom: 20px;
+	margin-bottom: 20px;
 
-  .titel {
-    font-size: 0.70rem;
-    width: 100%
-  }
+	.titel {
+		font-size: 0.70rem;
+		width: 100%
+	}
 
-  .tekstTitel {
-    display: inline-block;
-    font-size: 1.17rem;
-    width: 100%;
-  }
+	.tekstTitel {
+		display: inline-block;
+		font-size: 1.17rem;
+		width: 100%;
+	}
+
+	.extraTekst {
+		line-height: 0.8rem;
+		font-size: 0.82rem;
+		width: 100%;
+	}
 
 }
 

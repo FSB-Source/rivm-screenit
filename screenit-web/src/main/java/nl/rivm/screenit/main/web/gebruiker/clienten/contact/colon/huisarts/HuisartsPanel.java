@@ -21,7 +21,9 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.contact.colon.huisarts;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.service.RondeNummerService;
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
@@ -32,9 +34,10 @@ import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
-import nl.rivm.screenit.service.colon.AfspraakService;
+import nl.rivm.screenit.service.RondeNummerService;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.rivm.screenit.util.NaamUtil;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.lang3.StringUtils;
@@ -49,19 +52,18 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
+@Getter
+@Setter
 public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 {
-
-	private static final long serialVersionUID = 1L;
+	@SpringBean
+	private HibernateService hibernateService;
 
 	private BootstrapDialog dialog;
 
 	private IModel<EnovationHuisarts> zoekModel;
 
 	private ColonHuisartsWijzigenPanel huisartsWijzigenPanel;
-
-	@SpringBean
-	private AfspraakService afspraakService;
 
 	@SpringBean
 	private RondeNummerService rondeNummerService;
@@ -81,9 +83,6 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 
 		AjaxLink<ColonScreeningRonde> wijzigHuisartsBtn = new IndicatingAjaxLink<ColonScreeningRonde>("wijzigHuisarts", getModel())
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onConfigure()
 			{
@@ -102,9 +101,6 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 					getDialog().openWith(target, new HuisartsVorigeRondeDialogPanel(IDialog.CONTENT_ID, getModel(), ModelUtil.sModel(vorigeRonde.getColonHuisarts()),
 						getZoekModel(), getDialog(), getHuisartsWijzigenPanel())
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void close(AjaxRequestTarget target)
 						{
@@ -115,16 +111,22 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 				else
 				{
 					getDialog().openWith(target,
-						new HuisartsZoekenDialogPanel(IDialog.CONTENT_ID, getModel(), getZoekModel(), getDialog(), false, getHuisartsWijzigenPanel())
+						new HuisartsZoekenDialogPanel(IDialog.CONTENT_ID)
 						{
-
-							private static final long serialVersionUID = 1L;
-
 							@Override
 							protected void close(AjaxRequestTarget target)
 							{
 								getDialog().close(target);
 							}
+
+							@Override
+							protected void onHuisartsGekozen(AjaxRequestTarget target, EnovationHuisarts huisarts)
+							{
+								HuisartsPanel.this.getModelObject().setColonHuisarts(huisarts);
+								getHuisartsWijzigenPanel().verversHuisarts(target);
+								getDialog().close(target);
+							}
+
 						});
 				}
 			}
@@ -218,33 +220,4 @@ public class HuisartsPanel extends GenericPanel<ColonScreeningRonde>
 		ModelUtil.nullSafeDetach(getZoekModel());
 	}
 
-	public IModel<EnovationHuisarts> getZoekModel()
-	{
-		return zoekModel;
-	}
-
-	private void setZoekModel(IModel<EnovationHuisarts> zoekModel)
-	{
-		this.zoekModel = zoekModel;
-	}
-
-	private BootstrapDialog getDialog()
-	{
-		return dialog;
-	}
-
-	private void setDialog(BootstrapDialog dialog)
-	{
-		this.dialog = dialog;
-	}
-
-	private ColonHuisartsWijzigenPanel getHuisartsWijzigenPanel()
-	{
-		return huisartsWijzigenPanel;
-	}
-
-	private void setHuisartsWijzigenPanel(ColonHuisartsWijzigenPanel huisartsWijzigenPanel)
-	{
-		this.huisartsWijzigenPanel = huisartsWijzigenPanel;
-	}
 }

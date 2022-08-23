@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten;
 
 /*-
@@ -22,18 +21,17 @@ package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 import nl.topicuszorg.wicket.planning.services.RecurrenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public abstract class OneindigeTijdslotWriter<T extends AbstractAppointment> extends BaseWriter<T>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(OneindigeTijdslotWriter.class);
 
 	@Autowired
 	private RecurrenceService recurrenceService;
@@ -43,12 +41,10 @@ public abstract class OneindigeTijdslotWriter<T extends AbstractAppointment> ext
 	{
 		if (LOG.isDebugEnabled())
 		{
-			StringBuilder sb = new StringBuilder();
+			String sb = "Uitrollen oneindig rooster, id: " + item.getId() + " (" + item.getClass().getSimpleName() + ")"
+				+ ", type herhaling: " + item.getRecurrence().getClass().getSimpleName();
 
-			sb.append("Uitrollen oneindig rooster, id: ").append(item.getId()).append(" (").append(item.getClass().getSimpleName()).append(")");
-			sb.append(", type herhaling: ").append(item.getRecurrence().getClass().getSimpleName());
-
-			LOG.debug(sb.toString());
+			LOG.debug(sb);
 		}
 
 		recurrenceService.toevoegenHerhaling(item, null);

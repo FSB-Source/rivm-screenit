@@ -111,8 +111,8 @@ public class MammaPalgaImportPanel extends Panel
 					try
 					{
 						palgaService.saveOrUpdateImport(importDocument);
-						setResponsePage(new MammaPalgaUitwisselingPage());
 						ScreenitSession.get().info(getString("palga.import.success"));
+						setResponsePage(new MammaPalgaUitwisselingPage());
 					}
 					catch (IOException e)
 					{

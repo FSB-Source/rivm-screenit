@@ -21,28 +21,28 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.CervixHerinnerenConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 {
-	@Autowired
-	private BaseBriefService briefService;
+	private final BaseBriefService briefService;
 
-	@Autowired
-	private CervixFactory factory;
+	private final CervixFactory factory;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void write(CervixUitnodiging uitnodiging) throws Exception
@@ -50,8 +50,8 @@ public class CervixHerinnerenWriter extends BaseWriter<CervixUitnodiging>
 		uitnodiging.setHerinneren(false);
 		hibernateService.saveOrUpdate(uitnodiging);
 
-		CervixScreeningRonde ronde = uitnodiging.getScreeningRonde();
-		CervixBrief brief = uitnodiging.getBrief();
+		var ronde = uitnodiging.getScreeningRonde();
+		var brief = uitnodiging.getBrief();
 
 		CervixBrief nieuweBrief = null;
 		switch (uitnodiging.getMonsterType())

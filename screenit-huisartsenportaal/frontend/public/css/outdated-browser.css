@@ -1,0 +1,102 @@
+/*-
+ * ========================LICENSE_START=================================
+ * screenit-huisartsenportaal
+ * %%
+ * Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * =========================LICENSE_END==================================
+ */
+#outdated {
+    font-family: 'Roboto', Helvetica, Arial, 'sans-serif';
+    font-size: 1rem;
+    position: absolute;
+    display: none;
+    overflow: hidden;
+    left: 0;
+    text-align: center;
+    top: 0;
+    width: 100%;
+    z-index: 1500;
+    background-color: #F3F6F9;
+    color: #231F20;
+}
+
+#outdated #logo {
+    font-style: italic;
+    fill: currentColor;
+}
+
+#outdated.fullscreen {
+    height: 100%;
+}
+
+#outdated .vertical-center {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#outdated #logo {
+    margin-bottom: 24px;
+}
+
+#outdated h6 {
+    font-size: 1.5rem;
+    line-height: 25px;
+    margin: 12px 0;
+}
+
+#outdated p {
+    margin: 0;
+}
+
+#outdated #buttonUpdateBrowser {
+    position: relative;
+    text-align: left;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 15px 30px;
+    transition: 0.4s;
+    background-color: #006DAB;
+    font-weight: 500;
+    display: inline-block;
+    margin: 24px;
+    text-decoration: none;
+}
+
+#outdated .last {
+    height: 20px;
+    position: absolute;
+    right: 70px;
+    top: 10px;
+    width: auto;
+    display: inline-table;
+}
+
+#outdated .last[dir=rtl] {
+    left: 25px !important;
+    right: auto !important;
+}
+
+#outdated #buttonCloseUpdateBrowser {
+    color: #231F20;
+    display: block;
+    font-size: 3rem;
+    height: 100%;
+    position: relative;
+    text-decoration: none;
+    width: 100%;
+}

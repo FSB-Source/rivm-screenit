@@ -28,15 +28,11 @@ import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.dashboard.DashboardType;
-import nl.rivm.screenit.model.enums.ToegangLevel;
 import nl.rivm.screenit.model.logging.LogRegel;
 
 public interface DashboardDao
 {
-
 	List<DashboardStatus> getDashboardStatussen(DashboardType item);
-
-	List<DashboardStatus> getListOfDashboardStatussen(ToegangLevel toegang);
 
 	void maakDashboardStatusLeeg(DashboardType dashboardType);
 

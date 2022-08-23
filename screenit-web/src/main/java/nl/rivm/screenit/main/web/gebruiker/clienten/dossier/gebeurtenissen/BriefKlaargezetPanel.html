@@ -20,73 +20,30 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="pdfDialog"></div>
-    <fieldset class="form-horizontal" wicket:id="inzienContainer">
-        <div class="row-fluid span12">
-            <h3>Gebruikte template</h3>
-            <div class="control-group value no-label" wicket:id="inzienGroep">
-                <div class="controls">
-                    Wilt u "
-                    <wicket:container wicket:id="brief.briefType">brief type</wicket:container>
-                    <wicket:container wicket:id="brief.templateNaam">naam</wicket:container>
-                    " (
-                    <wicket:container wicket:id="brief.creatieDatum">12-10-2010</wicket:container>
-                    ) inzien?
-                </div>
-                <div class="buttons">
-                    <button class="btn left btn-primary" wicket:id="inzien">Inzien</button>
-                </div>
-            </div>
-            <div class="control-group value no-label" wicket:id="inzienMeldingGroup" style="margin-right: 24px;">
+	<wicket:container wicket:id="templateInzienPanel"></wicket:container>
+	<wicket:container wicket:id="briefOpnieuwAanmakenPanel"></wicket:container>
 
-                <div class="controls"><span wicket:id="inzienMelding"></span></div>
-            </div>
-        </div>
-    </fieldset>
-
-    <fieldset class="form-horizontal" wicket:id="opnieuwContainer">
-        <div class="row-fluid span12">
-            <h3>Opnieuw aanmaken</h3>
-            <div class="control-group value no-label" wicket:id="opnieuwMogelijk">
-                <div class="controls">
-                    Wilt u "
-                    <wicket:container wicket:id="brief.briefType">brief type</wicket:container>
-                    <wicket:container wicket:id="brief.templateNaam">naam</wicket:container>
-                    " (
-                    <wicket:container wicket:id="brief.creatieDatum">12-10-2010</wicket:container>
-                    ) opnieuw aanmaken?
-                </div>
-                <div class="buttons">
-                    <button class="btn left btn-primary" wicket:id="aanmaken">Aanmaken</button>
-                </div>
-            </div>
-            <div class="control-group value no-label" wicket:id="nietOpnieuw">
-                <div class="controls"><span wicket:id="tekstNietOpnieuw"></span></div>
-            </div>
-        </div>
-    </fieldset>
-
-    <fieldset class="form-horizontal" wicket:id="tegenhoudenContainer">
-        <div class="row-fluid span12">
-            <h3>Tegenhouden</h3>
-            <div class="control-group value no-label" wicket:id="mogelijk">
-                <div class="controls">
-                    Wilt u "
-                    <wicket:container wicket:id="brief.briefType">uitslag intake</wicket:container>
-                    <wicket:container wicket:id="brief.templateNaam">naam</wicket:container>
-                    " (
-                    <wicket:container wicket:id="brief.creatieDatum">12-10-2010</wicket:container>
-                    ) <span wicket:id="nietMeer">niet meer</span> tegenhouden?
-                </div>
-                <div class="buttons">
-                    <button class="btn left btn-primary" wicket:id="tegenhouden">Tegenhouden</button>
-                    <button class="btn left btn-primary" wicket:id="activeren">Herstel brief aanmaken</button>
-                </div>
-            </div>
-            <div class="control-group value no-label" wicket:id="nietMogelijk">
-                <div class="controls"><span wicket:id="tekst"></span></div>
-            </div>
-        </div>
-    </fieldset>
+	<fieldset class="form-horizontal" wicket:id="tegenhoudenContainer">
+		<div class="row-fluid span12">
+			<h3>Tegenhouden</h3>
+			<div class="control-group value no-label" wicket:id="mogelijk">
+				<div class="controls">
+					Wilt u "
+					<wicket:container wicket:id="brief.briefType">uitslag intake</wicket:container>
+					<wicket:container wicket:id="brief.templateNaam">naam</wicket:container>
+					" (
+					<wicket:container wicket:id="brief.creatieDatum">12-10-2010</wicket:container>
+					) <span wicket:id="nietMeer">niet meer</span> tegenhouden?
+				</div>
+				<div class="buttons">
+					<button class="btn left btn-primary" wicket:id="tegenhouden">Tegenhouden</button>
+					<button class="btn left btn-primary" wicket:id="activeren">Herstel brief aanmaken</button>
+				</div>
+			</div>
+			<div class="control-group value no-label" wicket:id="nietMogelijk">
+				<div class="controls"><span wicket:id="tekst"></span></div>
+			</div>
+		</div>
+	</fieldset>
 </wicket:panel>
 </html>

@@ -21,16 +21,16 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class MammaBriefConstants
 {
 
-    private MammaBriefConstants()
-    {
-    }
+	@Deprecated
+	public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";
 
-    @Deprecated
-    public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";
-
-    public static final String RAPPORTAGEKEYAANTALBRIEVEN = "key.brieven.rapportage";
+	public static final String RAPPORTAGEKEYAANTALBRIEVEN = "key.brieven.rapportage";
 
 }

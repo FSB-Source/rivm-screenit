@@ -46,6 +46,7 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -80,13 +81,11 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 	@Transactional(propagation = Propagation.REQUIRED)
 	public Level verwerkBestand(InstellingGebruiker loggedInInstellingGebruiker, File file)
 	{
-		Workbook workbook;
 		String melding = "";
 		Level level = Level.INFO;
-		try (PushbackInputStream pushbackInputStream = new PushbackInputStream(new FileInputStream(file)))
+		try (Workbook workbook = WorkbookFactory.create(new PushbackInputStream(new FileInputStream(file))))
 		{
-			workbook = WorkbookFactory.create(pushbackInputStream);
-			workbook.setMissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
+			workbook.setMissingCellPolicy(Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
 
 			Sheet sheet = workbook.getSheetAt(0);
 			if (sheet == null)
@@ -107,7 +106,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 					while (row.getLastCellNum() >= colIdx)
 					{
 						long ilId = getNummericCellValue(row, colIdx).longValue();
-						capVerdeling.put(ilId, new ArrayList<String>());
+						capVerdeling.put(ilId, new ArrayList<>());
 						colToId.put(colIdx, ilId);
 						colIdx += 4;
 					}
@@ -257,7 +256,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 					for (ColoscopieCentrumColonCapaciteitVerdeling verdeling : verdelingToDelete)
 					{
 						UitnodigingsGebied uitnodigingsGebied = verdeling.getUitnodigingsGebied();
-						uitnodigingsGebied.getVerdeling().remove(uitnodigingsGebied);
+						uitnodigingsGebied.getVerdeling().remove(verdeling);
 						hibernateService.saveOrUpdate(uitnodigingsGebied);
 						intakelocatie.getCapaciteitVerdeling().remove(verdeling);
 						hibernateService.delete(verdeling);
@@ -325,7 +324,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 			Cell cell = row.getCell(index);
 			if (cell != null)
 			{
-				if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC)
+				if (cell.getCellType() == CellType.NUMERIC)
 				{
 					cellValue = "" + ((int) (cell.getNumericCellValue() * factor));
 				}
@@ -346,7 +345,7 @@ public class ImportCapVerdelingServiceImpl implements ImportCapVerdelingService
 			Cell cell = row.getCell(index);
 			if (cell != null)
 			{
-				if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC)
+				if (cell.getCellType() == CellType.NUMERIC)
 				{
 					cellValue = cell.getNumericCellValue();
 				}

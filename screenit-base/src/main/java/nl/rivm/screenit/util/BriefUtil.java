@@ -21,12 +21,13 @@ package nl.rivm.screenit.util;
  * =========================LICENSE_END==================================
  */
 
-import java.lang.reflect.ParameterizedType;
+import java.util.Date;
 
 import nl.rivm.screenit.model.Brief;
 import nl.rivm.screenit.model.ClientBrief;
 import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.colon.ColonBrief;
+import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.project.ProjectBrief;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
@@ -40,12 +41,12 @@ public class BriefUtil
 
 	public static String getBriefTypeNaam(Brief brief)
 	{
-		return brief.getBriefType().toString();
+		return brief.getBriefType() != null ? brief.getBriefType().name() : brief.getClass().getSimpleName();
 	}
 
-	public static <B extends Brief, MB extends MergedBrieven<B>> Class<B> getBriefClass(MB mergedBrieven)
+	public static Bevolkingsonderzoek[] getOnderzoekenUitBriefType(Brief brief)
 	{
-		return (Class<B>) ((ParameterizedType) mergedBrieven.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+		return brief.getBriefType() != null ? brief.getBriefType().getOnderzoeken() : new Bevolkingsonderzoek[0];
 	}
 
 	public static boolean isOngunstigeUitslagBrief(ColonBrief bestaandeBrief)
@@ -67,13 +68,9 @@ public class BriefUtil
 		{
 			brief = (Brief) HibernateHelper.deproxy(brief);
 		}
-		if (brief instanceof ProjectBrief)
+		if (brief instanceof ProjectBrief && ((ProjectBrief) brief).getBrief() != null)
 		{
-			brief = ((ProjectBrief) brief).getBrief();
-			if (brief != null)
-			{
-				brief = (ClientBrief<?, ?, ?>) HibernateHelper.deproxy(brief);
-			}
+			brief = (ClientBrief<?, ?, ?>) HibernateHelper.deproxy(((ProjectBrief) brief).getBrief());
 		}
 		return brief;
 	}
@@ -106,6 +103,11 @@ public class BriefUtil
 			return brief.isGegenereerd();
 		}
 		return false;
+	}
+
+	public static boolean isNietGegenereerdEnNietVervangen(Brief brief)
+	{
+		return !isGegenereerd(brief) && !brief.isVervangen();
 	}
 
 	public static ClientBrief getHerdruk(ClientBrief brief)
@@ -166,4 +168,23 @@ public class BriefUtil
 		return null;
 	}
 
+	public static Date geefDatumVoorGebeurtenisoverzicht(Brief brief)
+	{
+		MergedBrieven<?> mergedBrieven = getMergedBrieven(brief);
+		if (BriefUtil.isGegenereerd(brief) && mergedBrieven != null)
+		{
+			if (mergedBrieven.getPrintDatum() != null)
+			{
+				return mergedBrieven.getPrintDatum();
+			}
+			else
+			{
+				return mergedBrieven.getCreatieDatum();
+			}
+		}
+		else
+		{
+			return brief.getCreatieDatum();
+		}
+	}
 }

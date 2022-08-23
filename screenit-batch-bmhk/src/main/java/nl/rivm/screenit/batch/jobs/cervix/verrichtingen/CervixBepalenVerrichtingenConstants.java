@@ -21,6 +21,10 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CervixBepalenVerrichtingenConstants
 {
 	public static final String VERRICHTINGEN_LAB_HPV_UITSTRIJKJE_AANTAL_KEY = "verrichtingen.hpvuitstrijkje.aantal";

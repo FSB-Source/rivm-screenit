@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag.gunstigestep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.Client;
@@ -41,19 +43,20 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class GunstigeUitslagBriefReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		try
 		{
-			Criteria criteria = session.createCriteria(Client.class);
+			var criteria = session.createCriteria(Client.class);
 
 			criteria.createAlias("colonDossier", "colonDossier");
 			criteria.createAlias("colonDossier.laatsteScreeningRonde", "laatsteScreeningRonde");
@@ -75,7 +78,7 @@ public class GunstigeUitslagBriefReader extends BaseScrollableResultReader
 					Restrictions.le("uitnodiging.uitgesteldeUitslagDatum", currentDateSupplier.getDate())));
 			criteria.add(ColonRestrictions.critGunstig("ifobten."));
 
-			DetachedCriteria subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");
+			var subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");
 			subquery.setProjection(Projections.id());
 			subquery.add(Restrictions.eqProperty("brief.screeningRonde", "laatsteScreeningRonde.id"));
 			subquery.add( 

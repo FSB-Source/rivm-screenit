@@ -22,28 +22,30 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client.genererenstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenReader;
 import nl.rivm.screenit.model.cervix.CervixBrief;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
-
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
 import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixBrievenGenererenReader extends AbstractBrievenGenererenReader<CervixBrief>
 {
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	protected Long getScreeningOrganisatieId(ExecutionContext context)
@@ -56,7 +58,7 @@ public class CervixBrievenGenererenReader extends AbstractBrievenGenererenReader
 	{
 		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
 
-		BriefType briefType = BriefType.valueOf(context.getString(CervixBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		var briefType = BriefType.valueOf(context.getString(CervixBrievenGenererenPartitioner.KEY_BRIEFTYPE));
 		crit.add(Restrictions.eq("briefType", briefType));
 
 		switch (briefType)

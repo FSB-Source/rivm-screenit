@@ -23,8 +23,11 @@ package nl.rivm.screenit.batch.service.impl;
 
 import java.time.LocalDate;
 
+import lombok.RequiredArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.service.CervixSelectieRestrictionsService;
+import nl.rivm.screenit.model.cervix.berichten.CervixHpvResultValue;
 import nl.rivm.screenit.model.cervix.enums.CervixCytologieUitslag;
 import nl.rivm.screenit.model.cervix.enums.CervixHpvBeoordelingWaarde;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
@@ -35,21 +38,19 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
+	@RequiredArgsConstructor
 public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRestrictionsService
 {
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	public void addClientSelectieRestrictions(Criteria criteria)
@@ -60,13 +61,7 @@ public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRest
 	@Override
 	public void addClientSelectieRestrictions(Criteria criteria, int daysToAddToToday)
 	{
-		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("ronde.monsterHpvUitslag", "monsterHpvUitslag", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("monsterHpvUitslag.laatsteHpvBeoordeling", "laatsteHpvBeoordeling", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("ronde.uitstrijkjeCytologieUitslag", "uitstrijkjeCytologieUitslag", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("uitstrijkjeCytologieUitslag.cytologieVerslag", "cytologieVerslag", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("ronde.uitstrijkjeVervolgonderzoekUitslag", "uitstrijkjeVervolgonderzoekUitslag", JoinType.LEFT_OUTER_JOIN);
-		criteria.createAlias("uitstrijkjeVervolgonderzoekUitslag.cytologieVerslag", "vervolgonderzoekVerslag", JoinType.LEFT_OUTER_JOIN);
+		addLeftOuterJoins(criteria);
 
 		LocalDate vandaag = dateSupplier.getLocalDate();
 		if (daysToAddToToday > 0)
@@ -75,43 +70,81 @@ public class CervixSelectieRestrictionsServiceImpl implements CervixSelectieRest
 		}
 
 		LocalDate geboortedatumMinimaal = vandaag.minusYears(CervixLeeftijdcategorie._65.getLeeftijd());
-		LocalDate geboortedatumMinimaalVervolgonderzoekNegatief = vandaag.minusYears(CervixLeeftijdcategorie._70.getLeeftijd());
+		LocalDate geboortedatumMinimaalExtraRonde = vandaag.minusYears(CervixLeeftijdcategorie._70.getLeeftijd());
 
-		Integer dagenVoorDeVooraankondiging = preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name());
 		LocalDate exactDertigJaarGeleden = vandaag.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
 		LocalDate exact35JaarGeleden = vandaag.minusYears(CervixLeeftijdcategorie._35.getLeeftijd());
-		LocalDate dertigJaarGeledenPlusVooraankondigingsDagen =
-			dagenVoorDeVooraankondiging != null ? exactDertigJaarGeleden.plusDays(dagenVoorDeVooraankondiging) : exactDertigJaarGeleden;
+
+		criteria.add(
+			Restrictions.and( 
+				Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(exactDertigJaarGeleden)),
+				Restrictions.or(
+					Restrictions.isNull("ronde.uitstel"),
+					Restrictions.isNotNull("uitstel.geannuleerdDatum"),
+					Restrictions.le("dossier.volgendeRondeVanaf", DateUtil.toUtilDate(vandaag))
+				),
+				Restrictions.or(
+					Restrictions.and(
+						Restrictions.isNull("dossier.volgendeRondeVanaf"),
+						Restrictions.or(
+							Restrictions.isNull("dossier.laatsteScreeningRonde"),
+							Restrictions.eq("ronde.aangemeld", true),
+							Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(exact35JaarGeleden)))),
+					Restrictions.le("dossier.volgendeRondeVanaf", DateUtil.toUtilDate(vandaag)))));
 
 		criteria.add(
 			Restrictions.or(
-				Restrictions.and( 
-					Restrictions.isNull("dossier.vooraankondigingsBrief"),
-					Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(exactDertigJaarGeleden)),
-					Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(dertigJaarGeledenPlusVooraankondigingsDagen))),
-				Restrictions.and( 
-					Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(exactDertigJaarGeleden)),
+				Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal)),
+				Restrictions.and(
+					Restrictions.eq("ronde.leeftijdcategorie", CervixLeeftijdcategorie._60),
+					Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaalExtraRonde)),
 					Restrictions.or(
-						Restrictions.and(
-							Restrictions.isNull("dossier.volgendeRondeVanaf"),
-							Restrictions.or(
-								Restrictions.isNull("dossier.laatsteScreeningRonde"),
-								Restrictions.eq("ronde.aangemeld", true),
-								Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(exact35JaarGeleden)))),
-						Restrictions.le("dossier.volgendeRondeVanaf", DateUtil.toUtilDate(vandaag))))));
 
-		criteria.add(Restrictions.or(
-			Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaal)),
-			Restrictions.and(
-				Restrictions.eq("ronde.leeftijdcategorie", CervixLeeftijdcategorie._60),
-				Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.POSITIEF),
-				Restrictions.or(
-					Restrictions.isNull("cytologieVerslag.cytologieUitslag"),
-					Restrictions.eq("cytologieVerslag.cytologieUitslag", CervixCytologieUitslag.PAP1)),
-				Restrictions.or(
-					Restrictions.isNull("vervolgonderzoekVerslag.cytologieUitslag"),
-					Restrictions.eq("vervolgonderzoekVerslag.cytologieUitslag", CervixCytologieUitslag.PAP1)),
-				Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(geboortedatumMinimaalVervolgonderzoekNegatief)))));
+						Restrictions.and(
+							Restrictions.eq("laatsteHpvBeoordeling.hpvUitslag", CervixHpvBeoordelingWaarde.POSITIEF),
+							Restrictions.or(
+								Restrictions.isNull("cytologieVerslag.cytologieUitslag"),
+								Restrictions.eq("cytologieVerslag.cytologieUitslag", CervixCytologieUitslag.PAP1)),
+							Restrictions.or(
+								Restrictions.isNull("vervolgonderzoekVerslag.cytologieUitslag"),
+								Restrictions.eq("vervolgonderzoekVerslag.cytologieUitslag", CervixCytologieUitslag.PAP1))),
+
+						Restrictions.and(
+							Restrictions.eq("analyseresultaten.hpvohr", CervixHpvResultValue.POS_OTHER_HR_HPV),
+							Restrictions.or(
+								Restrictions.eq("cytologieVerslag.cytologieUitslag", CervixCytologieUitslag.PAP2),
+								Restrictions.eq("cytologieVerslag.cytologieUitslag", CervixCytologieUitslag.PAP3A1)
+							),
+							Restrictions.isNull("vervolgonderzoekVerslag.id")
+						)))));
+	}
+
+	@Override
+	public void addVooraankondigingSelectieRestrictions(Criteria criteria)
+	{
+		LocalDate vandaag = dateSupplier.getLocalDate();
+
+		Integer dagenVoorDeVooraankondiging = preferenceService.getInteger(PreferenceKey.CERVIX_VOORAANKONDIGINGS_PERIODE.name());
+		LocalDate exactDertigJaarGeleden = vandaag.minusYears(CervixLeeftijdcategorie._30.getLeeftijd());
+		LocalDate dertigJaarGeledenPlusVooraankondigingsDagen =
+			dagenVoorDeVooraankondiging != null ? exactDertigJaarGeleden.plusDays(dagenVoorDeVooraankondiging) : exactDertigJaarGeleden;
+
+		criteria.add(Restrictions.isNull("dossier.vooraankondigingsBrief"));
+		criteria.add(Restrictions.gt("persoon.geboortedatum", DateUtil.toUtilDate(exactDertigJaarGeleden)));
+		criteria.add(Restrictions.le("persoon.geboortedatum", DateUtil.toUtilDate(dertigJaarGeledenPlusVooraankondigingsDagen)));
+	}
+
+	private void addLeftOuterJoins(Criteria criteria)
+	{
+		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("ronde.monsterHpvUitslag", "monsterHpvUitslag", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("monsterHpvUitslag.laatsteHpvBeoordeling", "laatsteHpvBeoordeling", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("ronde.uitstrijkjeCytologieUitslag", "uitstrijkjeCytologieUitslag", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("uitstrijkjeCytologieUitslag.cytologieVerslag", "cytologieVerslag", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("ronde.uitstrijkjeVervolgonderzoekUitslag", "uitstrijkjeVervolgonderzoekUitslag", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("uitstrijkjeVervolgonderzoekUitslag.cytologieVerslag", "vervolgonderzoekVerslag", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("laatsteHpvBeoordeling.analyseresultaten", "analyseresultaten", JoinType.LEFT_OUTER_JOIN);
+		criteria.createAlias("ronde.uitstel", "uitstel", JoinType.LEFT_OUTER_JOIN);
 	}
 
 }

@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.CohortUitnodiging;
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.ProjectGroupUitnodiging;
 import nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep.ColonClientSelectieContext.UitnodigingsTaak;
@@ -45,13 +47,10 @@ import org.apache.commons.lang.NotImplementedException;
 import org.hibernate.Criteria;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class ClientSelectieMetCapaciteitPerGebiedItemCursor implements Iterator<ClientCategorieEntry>
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientSelectieMetCapaciteitPerGebiedItemCursor.class);
 
 	private ColonUitnodigingCategorie uitnodigingscategorie = ColonUitnodigingCategorie.U2;
 

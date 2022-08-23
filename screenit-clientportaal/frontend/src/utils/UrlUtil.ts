@@ -22,61 +22,31 @@ import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
 import {RoutePath} from "../routes/routes"
 
 export function getBvoBaseUrl(bvo: Bevolkingsonderzoek | undefined): RoutePath {
-    switch (bvo) {
-        case Bevolkingsonderzoek.CERVIX:
-            return "/cervix"
-        case Bevolkingsonderzoek.MAMMA:
-            return "/mamma"
-        case Bevolkingsonderzoek.COLON:
-            return "/colon"
-        case undefined:
-        default:
-            return "/"
-    }
+	return bvo ? `/${bvo.toLowerCase()}` as RoutePath : "/"
 }
 
-export function getAfmeldenUrl(bvo: Bevolkingsonderzoek | undefined): RoutePath {
-    switch (bvo) {
-        case Bevolkingsonderzoek.CERVIX:
-            return "/cervix/afmelden"
-        case Bevolkingsonderzoek.MAMMA:
-            return "/mamma/afmelden"
-        case Bevolkingsonderzoek.COLON:
-            return "/colon/afmelden"
-        case undefined:
-        default:
-            return "/"
-    }
+export function getAfmeldenUrl(bvo: Bevolkingsonderzoek): RoutePath {
+	return `/${bvo.toLowerCase()}/afmelden` as RoutePath
 }
 
-export function getBezwaarUrl(bvo: Bevolkingsonderzoek) {
-    switch (bvo) {
-        case Bevolkingsonderzoek.CERVIX:
-            return "/cervix/bezwaar"
-        case Bevolkingsonderzoek.MAMMA:
-            return "/mamma/bezwaar"
-        case Bevolkingsonderzoek.COLON:
-            return "/colon/bezwaar"
-        case undefined:
-        default:
-            return "/"
-    }
+export function getBezwaarUrl(bvo: Bevolkingsonderzoek): RoutePath {
+	return `/${bvo.toLowerCase()}/bezwaar` as RoutePath
 }
 
 export function getContactUrl(regio: string) {
-    return regio ? `${getBevolkingsonderzoekNederlandUrl()}/over-ons/${regio.replace(" ", "-").toLowerCase()}` : `${getBevolkingsonderzoekNederlandUrl()}/over-ons/`
+	return regio ? `${getBevolkingsonderzoekNederlandUrl()}/over-ons/${regio.replace(" ", "-").toLowerCase()}` : `${getBevolkingsonderzoekNederlandUrl()}/over-ons/`
 }
 
 export function getBevolkingsonderzoekNederlandUrl() {
-    return "https:
+	return "https:
 }
 
 export function getBevolkingsonderzoekNederlandUrlNaam() {
-    return "bevolkingsonderzoeknederland.nl"
+	return "bevolkingsonderzoeknederland.nl"
 }
 
 export function isExternalUrl(link: String) {
-    const str = "https:
-    return link.match(str)
+	const str = "https:
+	return link.match(str)
 
 }

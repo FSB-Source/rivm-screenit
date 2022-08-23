@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtkoppelen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
@@ -32,18 +34,18 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class IfobtKoppelenListener extends BaseLogListener
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		IfobtKoppelingBeeindigdLogEvent koppelLogEvent = new IfobtKoppelingBeeindigdLogEvent();
+		var koppelLogEvent = new IfobtKoppelingBeeindigdLogEvent();
 		jobExecution.getExecutionContext().put(IfobtKoppelenConstants.RAPPORTAGEKEYIFOBTKOPPELEN, koppelLogEvent);
 	}
 
@@ -69,7 +71,7 @@ public class IfobtKoppelenListener extends BaseLogListener
 	protected LogEvent getEindLogEvent()
 	{
 		String key = IfobtKoppelenConstants.RAPPORTAGEKEYIFOBTKOPPELEN;
-		ExecutionContext context = getJobExecution().getExecutionContext();
+		var context = getJobExecution().getExecutionContext();
 		if (context.containsKey(key))
 		{
 			return (IfobtKoppelingBeeindigdLogEvent) context.get(key);
@@ -86,10 +88,10 @@ public class IfobtKoppelenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent logEvent = getEindLogEvent();
+		var logEvent = getEindLogEvent();
 		if (logEvent != null)
 		{
-			IfobtKoppelingBeeindigdLogEvent koppelLogEvent = (IfobtKoppelingBeeindigdLogEvent) logEvent;
+			var koppelLogEvent = (IfobtKoppelingBeeindigdLogEvent) logEvent;
 			if (!Level.ERROR.equals(koppelLogEvent.getLevel()) && jobHasExitCode(ExitStatus.FAILED))
 			{
 				String error = "De job heeft onsuccesvol gedraaid, neem contact op met de helpdesk";

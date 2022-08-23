@@ -22,8 +22,6 @@ package nl.rivm.screenit.service.colon.impl;
  */
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -137,19 +135,15 @@ public class PlanningServiceImpl<T extends VrijSlot> implements PlanningService<
 
 		if (sortProperty.equals("afstand"))
 		{
-			Collections.sort(vrijeSlotenZonderKamer, new Comparator<VrijSlotZonderKamer>()
+			vrijeSlotenZonderKamer.sort((o1, o2) ->
 			{
-				@Override
-				public int compare(VrijSlotZonderKamer o1, VrijSlotZonderKamer o2)
+				if (asc)
 				{
-					if (asc)
-					{
-						return ObjectUtils.compare(o1.getAfstand(), o2.getAfstand(), true);
-					}
-					else
-					{
-						return ObjectUtils.compare(o2.getAfstand(), o1.getAfstand(), true);
-					}
+					return ObjectUtils.compare(o1.getAfstand(), o2.getAfstand(), true);
+				}
+				else
+				{
+					return ObjectUtils.compare(o2.getAfstand(), o1.getAfstand(), true);
 				}
 			});
 		}

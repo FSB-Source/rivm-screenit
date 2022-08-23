@@ -30,24 +30,22 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
-import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.TablePerClassHibernateObject;
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
-import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 
+@Setter
+@Getter
 @Entity
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "screenit.cache")
 @Audited
 public abstract class HuisartsBericht extends TablePerClassHibernateObject
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	private Client client;
 
@@ -63,53 +61,7 @@ public abstract class HuisartsBericht extends TablePerClassHibernateObject
 
 	private Date aanmaakDatum;
 
-	public Client getClient()
-	{
-		return client;
-	}
+	@Column(nullable = false)
+	private boolean isEenOpnieuwVerzondenBericht;
 
-	public void setClient(Client client)
-	{
-		this.client = client;
-	}
-
-	public HuisartsBerichtType getBerichtType()
-	{
-		return berichtType;
-	}
-
-	public void setBerichtType(HuisartsBerichtType berichtType)
-	{
-		this.berichtType = berichtType;
-	}
-
-	public String getBerichtInhoud()
-	{
-		return berichtInhoud;
-	}
-
-	public void setBerichtInhoud(String berichtInhoud)
-	{
-		this.berichtInhoud = berichtInhoud;
-	}
-
-	public ScreeningOrganisatie getScreeningsOrganisatie()
-	{
-		return screeningsOrganisatie;
-	}
-
-	public void setScreeningsOrganisatie(ScreeningOrganisatie screeningsOrganisatie)
-	{
-		this.screeningsOrganisatie = screeningsOrganisatie;
-	}
-
-	public Date getAanmaakDatum()
-	{
-		return aanmaakDatum;
-	}
-
-	public void setAanmaakDatum(Date aanmaakDatum)
-	{
-		this.aanmaakDatum = aanmaakDatum;
-	}
 }

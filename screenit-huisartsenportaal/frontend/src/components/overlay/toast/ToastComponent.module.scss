@@ -1,0 +1,50 @@
+@import "../../../styling/scss/colors";
+
+.style {
+	width: 300px;
+	color: $wit;
+	box-shadow: 0 0 12px #999;
+	animation: fadeInAnimation ease 1.5s;
+	animation-iteration-count: 1;
+	animation-fill-mode: forwards;
+
+	&.success {
+		background-color: $groen;
+	}
+
+	&.info {
+		background-color: $blauw;
+	}
+
+	&.warn {
+		background-color: $oranje;
+	}
+
+	&.error {
+		background-color: $donkerrood;
+	}
+
+	&.dismiss {
+		animation: fadeOutAnimation ease 1s;
+		animation-iteration-count: 1;
+		animation-fill-mode: forwards;
+	}
+
+	@keyframes fadeInAnimation {
+		0% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@keyframes fadeOutAnimation {
+		0% {
+			opacity: 1;
+		}
+		100% {
+			opacity: 0;
+		}
+	}
+}

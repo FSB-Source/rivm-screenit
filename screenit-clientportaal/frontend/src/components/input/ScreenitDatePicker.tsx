@@ -65,7 +65,7 @@ const ScreenitDatePicker = (props: ScreenitDatePickerProps) => {
 						onChange={props.onChange}
 					/>
 				</MuiPickersUtilsProvider>
-				<p data-testid={"error_" + props.propertyName} className={styles.errorLabel}>{props.errorLabel}</p>
+				<p data-testid={"error_" + props.propertyName} className={styles.errorLabel}>{props.errorLabel && String(props.errorLabel)}</p>
 			</div>
 		</div>
 	)

@@ -21,8 +21,6 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
  * =========================LICENSE_END==================================
  */
 
-import static nl.rivm.screenit.model.cervix.enums.signaleringen.CervixLabformulierSignalering.AFNAMEDATUM_NIET_OF_VERKEERD_OVERGENOMEN_IN_SCREENIT;
-
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,6 +79,8 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 
+import static nl.rivm.screenit.model.cervix.enums.signaleringen.CervixLabformulierSignalering.AFNAMEDATUM_NIET_OF_VERKEERD_OVERGENOMEN_IN_SCREENIT;
+
 public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLabformulier>
 {
 
@@ -138,6 +138,10 @@ public abstract class CervixLabformulierBasePanel extends GenericPanel<CervixLab
 		else if (labformulier.getKunstmatig())
 		{
 			add(new CervixKunstmatigLabformulierPanel("labformulier"));
+		}
+		else if (labformulier.getDatumGewist() != null)
+		{
+			add(new CervixVerwijderdLabformulierPanel("labformulier"));
 		}
 		else
 		{

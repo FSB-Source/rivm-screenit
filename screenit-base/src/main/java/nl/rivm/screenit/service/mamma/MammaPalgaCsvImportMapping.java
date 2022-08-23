@@ -21,283 +21,64 @@ package nl.rivm.screenit.service.mamma;
  * =========================LICENSE_END==================================
  */
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class MammaPalgaCsvImportMapping
 {
 
-	private int pseudoId;
+	private int pseudoId = -1;
 
-	private int geboortejaar;
+	private int geboortejaar = -1;
 
-	private int aanvangVerrichting;
+	private int aanvangVerrichting = -1;
 
-	private int eindeVerrichting;
+	private int eindeVerrichting = -1;
 
-	private int datumOntvangstMateriaal;
+	private int datumOntvangstMateriaal = -1;
 
-	private int datumEersteAutorisatie;
+	private int datumEersteAutorisatie = -1;
 
-	private int verkrijgingswijze;
+	private int verkrijgingswijze = -1;
 
-	private int zijdigheid;
+	private int zijdigheid = -1;
 
-	private int locatie;
+	private int locatie = -1;
 
-	private int locatieInUren;
+	private int locatieInUren = -1;
 
-	private int oestrogeenReceptorStatus;
+	private int oestrogeenReceptorStatus = -1;
 
-	private int progesteronReceptorStatus;
+	private int progesteronReceptorStatus = -1;
 
-	private int her2Status;
+	private int her2Status = -1;
 
-	private int bClassificatie;
+	private int bClassificatie = -1;
 
-	private int cClassificatie;
+	private int cClassificatie = -1;
 
-	private int maligniteitsgraad;
+	private int maligniteitsgraad = -1;
 
-	private int ptnm;
+	private int pt = -1;
 
-	private int stadiering;
+	private int pn = -1;
 
-	private int versieProtocol;
+	private int typeInvasieveTumor = -1;
 
-	private int isReedsAangeleverd;
+	private int graderingDcis = -1;
 
-	private int matchniveau;
+	private int typeNietEenduidigBenigneLaesies = -1;
 
-	public MammaPalgaCsvImportMapping()
-	{
-		this.pseudoId = -1;
-		this.geboortejaar = -1;
-		this.aanvangVerrichting = -1;
-		this.eindeVerrichting = -1;
-		this.datumOntvangstMateriaal = -1;
-		this.datumEersteAutorisatie = -1;
-		this.verkrijgingswijze = -1;
-		this.zijdigheid = -1;
-		this.locatie = -1;
-		this.locatieInUren = -1;
-		this.oestrogeenReceptorStatus = -1;
-		this.progesteronReceptorStatus = -1;
-		this.her2Status = -1;
-		this.bClassificatie = -1;
-		this.cClassificatie = -1;
-		this.maligniteitsgraad = -1;
-		this.ptnm = -1;
-		this.stadiering = -1;
-		this.versieProtocol = -1;
-		this.isReedsAangeleverd = -1;
-		this.matchniveau = -1;
-	}
+	private int typeEenduidigBenigneLaesies = -1;
 
-	public int getPseudoId()
-	{
-		return pseudoId;
-	}
+	private int typeCis = -1;
 
-	public void setPseudoId(int pseudoId)
-	{
-		this.pseudoId = pseudoId;
-	}
+	private int versieProtocol = -1;
 
-	public int getGeboortejaar()
-	{
-		return geboortejaar;
-	}
+	private int isReedsAangeleverd = -1;
 
-	public void setGeboortejaar(int geboortejaar)
-	{
-		this.geboortejaar = geboortejaar;
-	}
+	private int matchniveau = -1;
 
-	public int getAanvangVerrichting()
-	{
-		return aanvangVerrichting;
-	}
-
-	public void setAanvangVerrichting(int aanvangVerrichting)
-	{
-		this.aanvangVerrichting = aanvangVerrichting;
-	}
-
-	public int getEindeVerrichting()
-	{
-		return eindeVerrichting;
-	}
-
-	public void setEindeVerrichting(int eindeVerrichting)
-	{
-		this.eindeVerrichting = eindeVerrichting;
-	}
-
-	public int getDatumOntvangstMateriaal()
-	{
-		return datumOntvangstMateriaal;
-	}
-
-	public void setDatumOntvangstMateriaal(int datumOntvangstMateriaal)
-	{
-		this.datumOntvangstMateriaal = datumOntvangstMateriaal;
-	}
-
-	public int getDatumEersteAutorisatie()
-	{
-		return datumEersteAutorisatie;
-	}
-
-	public void setDatumEersteAutorisatie(int datumEersteAutorisatie)
-	{
-		this.datumEersteAutorisatie = datumEersteAutorisatie;
-	}
-
-	public int getVerkrijgingswijze()
-	{
-		return verkrijgingswijze;
-	}
-
-	public void setVerkrijgingswijze(int verkrijgingswijze)
-	{
-		this.verkrijgingswijze = verkrijgingswijze;
-	}
-
-	public int getZijdigheid()
-	{
-		return zijdigheid;
-	}
-
-	public void setZijdigheid(int zijdigheid)
-	{
-		this.zijdigheid = zijdigheid;
-	}
-
-	public int getLocatie()
-	{
-		return locatie;
-	}
-
-	public void setLocatie(int locatie)
-	{
-		this.locatie = locatie;
-	}
-
-	public int getLocatieInUren()
-	{
-		return locatieInUren;
-	}
-
-	public void setLocatieInUren(int locatieInUren)
-	{
-		this.locatieInUren = locatieInUren;
-	}
-
-	public int getOestrogeenReceptorStatus()
-	{
-		return oestrogeenReceptorStatus;
-	}
-
-	public void setOestrogeenReceptorStatus(int oestrogeenReceptorStatus)
-	{
-		this.oestrogeenReceptorStatus = oestrogeenReceptorStatus;
-	}
-
-	public int getProgesteronReceptorStatus()
-	{
-		return progesteronReceptorStatus;
-	}
-
-	public void setProgesteronReceptorStatus(int progesteronReceptorStatus)
-	{
-		this.progesteronReceptorStatus = progesteronReceptorStatus;
-	}
-
-	public int getHer2Status()
-	{
-		return her2Status;
-	}
-
-	public void setHer2Status(int her2Status)
-	{
-		this.her2Status = her2Status;
-	}
-
-	public int getbClassificatie()
-	{
-		return bClassificatie;
-	}
-
-	public void setbClassificatie(int bClassificatie)
-	{
-		this.bClassificatie = bClassificatie;
-	}
-
-	public int getcClassificatie()
-	{
-		return cClassificatie;
-	}
-
-	public void setcClassificatie(int cClassificatie)
-	{
-		this.cClassificatie = cClassificatie;
-	}
-
-	public int getMaligniteitsgraad()
-	{
-		return maligniteitsgraad;
-	}
-
-	public void setMaligniteitsgraad(int maligniteitsgraad)
-	{
-		this.maligniteitsgraad = maligniteitsgraad;
-	}
-
-	public int getPtnm()
-	{
-		return ptnm;
-	}
-
-	public void setPtnm(int ptnm)
-	{
-		this.ptnm = ptnm;
-	}
-
-	public int getStadiering()
-	{
-		return stadiering;
-	}
-
-	public void setStadiering(int stadiering)
-	{
-		this.stadiering = stadiering;
-	}
-
-	public int getVersieProtocol()
-	{
-		return versieProtocol;
-	}
-
-	public void setVersieProtocol(int versieProtocol)
-	{
-		this.versieProtocol = versieProtocol;
-	}
-
-	public int getIsReedsAangeleverd()
-	{
-		return isReedsAangeleverd;
-	}
-
-	public void setIsReedsAangeleverd(int isReedsAangeleverd)
-	{
-		this.isReedsAangeleverd = isReedsAangeleverd;
-	}
-
-	public int getMatchniveau()
-	{
-		return matchniveau;
-	}
-
-	public void setMatchniveau(int matchniveau)
-	{
-		this.matchniveau = matchniveau;
-	}
 }

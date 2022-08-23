@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.mamma.uitwisselportaal.cleanup;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.model.mamma.MammaDownloadOnderzoekenVerzoek;
@@ -31,19 +33,19 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaDownloadedDataCleanUpReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-
-		Criteria crit = session.createCriteria(MammaDownloadOnderzoekenVerzoek.class);
+		var crit = session.createCriteria(MammaDownloadOnderzoekenVerzoek.class);
 		crit.add(Restrictions.le("aangemaaktOp", DateUtil.toUtilDate(currentDateSupplier.getLocalDate().minusDays(7))));
 		crit.add(Restrictions.ne("status", BestandStatus.VERWIJDERD));
 		return crit;

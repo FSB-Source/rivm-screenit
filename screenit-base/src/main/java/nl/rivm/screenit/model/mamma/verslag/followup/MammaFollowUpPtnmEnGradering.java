@@ -59,7 +59,7 @@ public class MammaFollowUpPtnmEnGradering
 		@DSValueSetValue(code = "IV", codeSystem = "2.16.840.1.113883.15.16"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "pTNM (breast) gradering", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300105", isVerplicht = true)
+	@VraagElement(displayName = "pTNM (breast) gradering", extraTekst = "", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300105")
 	private DSValue ptnmbreastGradering;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -85,7 +85,7 @@ public class MammaFollowUpPtnmEnGradering
 		@DSValueSetValue(code = "TX", codeSystem = "2.16.840.1.113883.15.16"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "pT", extraTekst = "pT", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300080", isVerplicht = true)
+	@VraagElement(displayName = "pT", extraTekst = "pT", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300080")
 	private DSValue pt;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -106,7 +106,7 @@ public class MammaFollowUpPtnmEnGradering
 		@DSValueSetValue(code = "NX", codeSystem = "2.16.840.1.113883.15.16"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "pN", extraTekst = "pN", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300090", isVerplicht = true)
+	@VraagElement(displayName = "pN", extraTekst = "pN", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300090")
 	private DSValue pn;
 
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -115,7 +115,7 @@ public class MammaFollowUpPtnmEnGradering
 		@DSValueSetValue(code = "M1", codeSystem = "2.16.840.1.113883.15.16"),
 		@DSValueSetValue(code = "ASKU", codeSystem = "2.16.840.1.113883.5.1008")
 	})
-	@VraagElement(displayName = "pM", extraTekst = "pM", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300100", isVerplicht = true)
+	@VraagElement(displayName = "pM", extraTekst = "pM", code = "2.16.840.1.113883.2.4.3.36.77.0.2.2.300100")
 	private DSValue pm;
 
 	public MammaFollowUpFollowupPa getFollowupPa()

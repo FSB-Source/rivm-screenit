@@ -1,0 +1,56 @@
+{
+  "form": {
+    "controleren": "Registratie controleren",
+    "terug": "Terug",
+    "voltooien": "Registratie voltooien",
+    "opslaan": "Gegevens opslaan"
+  },
+  "agbNaw": {
+    "title": "1. AGB-code en NAW gegevens",
+    "fields": {
+      "agbcode": "AGB-code",
+      "email": "E-mail",
+      "extraEmails": "E-mails (extra)",
+      "username": "Gebruikersnaam",
+      "wachtwoord": "Wachtwoord",
+      "wachtwoordControle": "Wachtwoord controle",
+      "aanhef": "Aanhef",
+      "achternaam": "Achternaam",
+      "tussenvoegsel": "Tussenvoegsel",
+      "voorletters": "Voorletters",
+      "telefoon": "Telefoonnummer",
+      "postadres": {
+        "straat": "Straat",
+        "huisnummertoevoeging": "Huisnummer + toevoeging",
+        "postcode": "Postcode",
+        "woonplaats": "Plaats"
+      }
+    }
+  },
+  "locaties": {
+    "title": "2. Locaties",
+    "filter": "Uw locaties zijn gefilterd op:",
+    "fields": {
+      "naam": "Locatienaam",
+      "status": "Status",
+      "locatieAdres": {
+        "adres": "Adres",
+        "postcode": "Postcode",
+        "woonplaats": "Plaats"
+      }
+    },
+    "nieuweLocatie": "Locatie toevoegen"
+  },
+  "zakelijkeVoorwaarden": {
+    "title": "3. Zakelijke voorwaarden",
+    "akkoord": "Ik ga akkoord met de",
+    "zakelijkeVoorwaarden": "zakelijke voorwaarden"
+  },
+  "message": {
+    "zorgmailVerificatie": "Om uw Zorgmail klantnummer te bevestigen is een bericht met een verificatiecode naar uw zorgmailadres (HIS) gestuurd. Volg de instructies in de mail om uw Zorgmail klantnummer te bevestigen.",
+    "opgeslagen": "De gegevens zijn succesvol opgeslagen",
+    "controleren": "U kunt nu uw registratie controleren",
+    "overeenkomstGewijzigd": "De zakelijke voorwaarden zijn gewijzigd. U dient deze te accepteren voordat u verder kan gaan",
+    "registrerenVerplicht": "U moet zich eerst registreren om te kunnen inloggen"
+  }
+}

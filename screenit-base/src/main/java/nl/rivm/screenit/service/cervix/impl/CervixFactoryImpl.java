@@ -180,7 +180,7 @@ public class CervixFactoryImpl implements CervixFactory
 		var dossier = ronde.getDossier();
 		if (dossier.getVooraankondigingsBrief() == null)
 		{
-			LOG.debug("CervixVooraankondigingbrief aanmaken (clientId: " + dossier.getClient().getId() + ")");
+			LOG.info("CervixVooraankondigingbrief aanmaken (clientId: " + dossier.getClient().getId() + ")");
 			var brief = briefService.maakBvoBrief(ronde, BriefType.CERVIX_VOORAANKONDIGING);
 			dossier.setVooraankondigingsBrief(brief);
 			hibernateService.saveOrUpdate(dossier);
@@ -446,8 +446,7 @@ public class CervixFactoryImpl implements CervixFactory
 		uitstel.setUitstelType(uitstelType);
 		uitstel.setWijzigingsDatum(dateSupplier.getDate());
 		ronde.setUitstel(uitstel);
-		hibernateService.saveOrUpdate(uitstel);
-		hibernateService.saveOrUpdate(ronde);
+		hibernateService.saveOrUpdateAll(uitstel,ronde);
 		return uitstel;
 	}
 }

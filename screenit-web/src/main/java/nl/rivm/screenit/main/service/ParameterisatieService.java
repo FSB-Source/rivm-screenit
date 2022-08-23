@@ -22,8 +22,8 @@ package nl.rivm.screenit.main.service;
  */
 
 import java.util.List;
+import java.util.Map;
 
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.EmailConfiguratie;
 import nl.rivm.screenit.main.model.OvereenkomstConfiguratie;
 import nl.rivm.screenit.main.model.Parameterisatie;
@@ -34,7 +34,8 @@ import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.colon.ColonUitnodigingsinterval;
 import nl.rivm.screenit.model.colon.UitnodigingCohort;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
-import nl.rivm.screenit.model.project.Project;
+import nl.rivm.screenit.model.mamma.MammaUitnodigingsinterval;
+import nl.rivm.screenit.model.mamma.enums.MammaUitnodigingsintervalType;
 
 public interface ParameterisatieService
 {
@@ -57,13 +58,15 @@ public interface ParameterisatieService
 
 	void saveParameters(Account account, Parameterisatie parameterisatie, Parameterisatie oudParameterisatieObjectParameterisatie, Bevolkingsonderzoek... onderzoek);
 
-	Project getProjectFromPreferences(PreferenceKey key);
-
 	IMSConfiguratie getIMSConfiguratie();
 
 	void saveIMSConfiguratie(Account loggedInAccount, IMSConfiguratie configuratie);
 
-	List<ColonUitnodigingsinterval> getIntervalParameters();
+	List<ColonUitnodigingsinterval> getColonIntervalParameters();
 
-	void saveIntervalParameters(List<ColonUitnodigingsinterval> intervalParameters);
+	void saveColonIntervalParameters(List<ColonUitnodigingsinterval> intervalParameters);
+
+	List<MammaUitnodigingsinterval> getMammmaIntervalParameters();
+
+	void saveMammaIntervalParameters(List<MammaUitnodigingsinterval> nieuweParameters, Map<MammaUitnodigingsintervalType, Integer> oudeParameters, Account account);
 }

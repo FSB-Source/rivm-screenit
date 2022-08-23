@@ -29,19 +29,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.batch.service.impl.ColonUitnodigingsgebiedSelectieContext;
 import nl.rivm.screenit.model.colon.ClientCategorieEntry;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
 
+@Slf4j
 public class ClientSelectieMetCapaciteitItemCursor implements ClientSelectieItemIterator
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(ClientSelectieMetCapaciteitItemCursor.class);
 
 	private final Collection<ColonUitnodigingsgebiedSelectieContext> alleUitnodigingsgebieden;
 

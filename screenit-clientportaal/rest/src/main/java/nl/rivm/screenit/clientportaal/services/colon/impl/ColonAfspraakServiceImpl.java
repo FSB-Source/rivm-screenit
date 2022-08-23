@@ -24,6 +24,8 @@ package nl.rivm.screenit.clientportaal.services.colon.impl;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.mappers.colon.ColonVrijSlotZonderKamerMapper;
 import nl.rivm.screenit.clientportaal.model.colon.ColonVrijSlotZonderKamerDto;
 import nl.rivm.screenit.clientportaal.services.colon.ColonAfspraakService;
@@ -40,27 +42,23 @@ import nl.rivm.screenit.service.colon.PlanningService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.planning.model.Discipline;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonAfspraakServiceImpl implements ColonAfspraakService
 {
 
-	@Autowired
-	private AfspraakService afspraakService;
+	private final AfspraakService afspraakService;
 
-	@Autowired
-	private ColonVrijSlotZonderKamerMapper colonVrijSlotZonderKamerMapper;
+	private final ColonVrijSlotZonderKamerMapper colonVrijSlotZonderKamerMapper;
 
-	@Autowired
-	private PlanningService planningService;
+	private final PlanningService planningService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	public ColonIntakeAfspraak getHuidigeIntakeAfspraak(Client client)

@@ -22,8 +22,9 @@ package nl.rivm.screenit.main.web.gebruiker.gedeeld.brievenafdrukken;
  */
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -56,7 +57,6 @@ import nl.rivm.screenit.model.mamma.MammaMergedBrieven;
 import nl.rivm.screenit.model.project.ProjectMergedBrieven;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
-import nl.rivm.screenit.service.ScopeService;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
@@ -64,7 +64,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -79,16 +78,12 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.time.Duration;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
 public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> extends GebruikerBasePage
 {
-
 	private final class MergedBrievenDataProvider extends SortableDataProvider<MB, String>
 	{
-
-		private static final long serialVersionUID = 1L;
-
 		public MergedBrievenDataProvider()
 		{
 			setSort("briefType", SortOrder.ASCENDING);
@@ -118,9 +113,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 
 	@SpringBean
 	private BriefService briefService;
-
-	@SpringBean
-	private ScopeService scopeService;
 
 	@SpringBean
 	private LogService logService;
@@ -155,11 +147,8 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		documentContainer.setOutputMarkupId(true);
 		add(documentContainer);
 
-		timer = new PollingAbstractAjaxTimerBehavior(Duration.seconds(2))
+		timer = new PollingAbstractAjaxTimerBehavior(Duration.of(2, ChronoUnit.SECONDS))
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onTimer(AjaxRequestTarget target)
 			{
@@ -174,9 +163,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 
 		final BootstrapDialog printDialog = new BootstrapDialog("printDialog")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClose(AjaxRequestTarget target)
 			{
@@ -195,23 +181,20 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		this.screeningOrganisatie = ModelUtil.sModel(screeningOrganisatieToSet);
 
 		List<IColumn<MB, String>> columns = new ArrayList<>();
-		columns.add(new PropertyColumn<MB, String>(Model.of("Naam document"), "mergedBrieven", "mergedBrieven.naam"));
-		columns.add(new BriefTypePropertyColumn<MB, String>(Model.of("Type"), "briefType", "briefType"));
-		columns.add(new PropertyColumn<MB, String>(Model.of("Screeningsorganisatie"), "screeningOrganisatie", "screeningOrganisatie"));
-		columns.add(new PropertyColumn<MB, String>(Model.of("Datum"), "creatieDatum", "creatieDatum"));
-		columns.add(new AbstractColumn<MB, String>(Model.of("Downloaden"))
+		columns.add(new PropertyColumn<>(Model.of("Naam document"), "mergedBrieven", "mergedBrieven.naam"));
+		columns.add(new BriefTypePropertyColumn<>(Model.of("Type"), "briefType", "briefType"));
+		if (!AlgemeneMergedBrieven.class.equals(mergedBrievenClass))
 		{
-
-			private static final long serialVersionUID = 1L;
-
+			columns.add(new PropertyColumn<>(Model.of("Screeningsorganisatie"), "screeningOrganisatie", "screeningOrganisatie"));
+		}
+		columns.add(new PropertyColumn<>(Model.of("Datum"), "creatieDatum", "creatieDatum"));
+		columns.add(new AbstractColumn<>(Model.of("Downloaden"))
+		{
 			@Override
 			public void populateItem(Item<ICellPopulator<MB>> cellItem, String componentId, IModel<MB> rowModel)
 			{
-				cellItem.add(new AjaxImageCellPanel<MB>(componentId, rowModel, "icon-mimetype-pdf")
+				cellItem.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-mimetype-pdf")
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					protected void onClick(AjaxRequestTarget target)
 					{
@@ -236,24 +219,18 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 			}
 		});
 
-		columns.add(new ActiefPropertyColumn<MB, MergedBrievenFilter<MB>>(Model.of("Afgedrukt"), "printDatum", documentContainer, filterModel)
+		columns.add(new ActiefPropertyColumn<>(Model.of("Afgedrukt"), "printDatum", documentContainer, filterModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MB>> item, String componentId, IModel<MB> rowModel)
 			{
-				item.add(DateLabel.forDatePattern(componentId, new PropertyModel<Date>(rowModel, "printDatum"), "dd-MM-yyyy"));
+				item.add(DateLabel.forDatePattern(componentId, new PropertyModel<>(rowModel, "printDatum"), "dd-MM-yyyy"));
 			}
 		});
 
 		filterModel.getObject().setControle(null);
-		columns.add(new BooleanFilterPropertyColumn<MB, MergedBrievenFilter<MB>>(Model.of("Gecontroleerd"), "controle", filterModel, documentContainer, "controleerDatum")
+		columns.add(new BooleanFilterPropertyColumn<>(Model.of("Gecontroleerd"), "controle", filterModel, documentContainer, "controleerDatum")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void populateItem(Item<ICellPopulator<MB>> item, String componentId, IModel<MB> rowModel)
 			{
@@ -267,11 +244,8 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 				}
 				else
 				{
-					item.add(new AjaxImageCellPanel<MB>(componentId, rowModel, "icon-eye-open")
+					item.add(new AjaxImageCellPanel<>(componentId, rowModel, "icon-eye-open")
 					{
-
-						private static final long serialVersionUID = 1L;
-
 						@Override
 						protected void onClick(AjaxRequestTarget target)
 						{
@@ -279,9 +253,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 							timer.setNotPolling(target);
 							printDialog.openWith(target, new AfdrukkenControlePanel<MB>(IDialog.CONTENT_ID, getModel())
 							{
-
-								private static final long serialVersionUID = 1L;
-
 								@Override
 								protected void close(AjaxRequestTarget target)
 								{
@@ -296,17 +267,14 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 				}
 			}
 		});
-		columns.add(new PropertyColumn<MB, String>(Model.of("Gebruiker"), "afgedruktDoor.achternaam", "afgedruktDoor"));
+		columns.add(new PropertyColumn<>(Model.of("Gebruiker"), "afgedruktDoor.achternaam", "afgedruktDoor"));
 
-		ScreenitDataTable<MB, String> brieven = new ScreenitDataTable<MB, String>("brieven", columns, new MergedBrievenDataProvider(), new Model<>(""));
+		ScreenitDataTable<MB, String> brieven = new ScreenitDataTable<>("brieven", columns, new MergedBrievenDataProvider(), new Model<>(""));
 
 		documentContainer.add(brieven);
 
-		AjaxLink<Void> afdrukkenBtn = new AjaxLink<Void>("afdrukken")
+		AjaxLink<Void> afdrukkenBtn = new AjaxLink<>("afdrukken")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -317,11 +285,8 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		};
 		add(afdrukkenBtn);
 
-		AjaxLink<Void> controlerenBtn = new AjaxLink<Void>("controleren")
+		AjaxLink<Void> controlerenBtn = new AjaxLink<>("controleren")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
@@ -361,12 +326,9 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 	@Override
 	protected List<GebruikerMenuItem> getContextMenuItems()
 	{
-		List<GebruikerMenuItem> contextMenuItems = new ArrayList<GebruikerMenuItem>();
+		List<GebruikerMenuItem> contextMenuItems = new ArrayList<>();
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.all.afdrukkendocumentenmammaafdrukken", MammaAfdrukkenDocumentenPage.class)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Component getPostfix(String id)
 			{
@@ -377,9 +339,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.all.afdrukkendocumentencervixafdrukken", CervixAfdrukkenDocumentenPage.class)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Component getPostfix(String id)
 			{
@@ -389,9 +348,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		});
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.all.afdrukkendocumentenregioafdrukken", CervixRegioAfdrukkenDocumentenPage.class)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Component getPostfix(String id)
 			{
@@ -400,9 +356,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		});
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.all.afdrukkendocumentencolonafdrukken", ColonAfdrukkenDocumentenPage.class)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Component getPostfix(String id)
 			{
@@ -414,8 +367,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.all.afdrukkendocumentenbezwaarafdrukken", BezwaarAfdrukkenDocumentenPage.class)
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Component getPostfix(String id)
 			{
@@ -426,8 +377,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.all.afdrukkendocumentenalgemeenafdrukken", AlgemeenAfdrukkenDocumentenPage.class)
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Component getPostfix(String id)
 			{
@@ -437,9 +386,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		});
 		contextMenuItems.add(new GebruikerMenuItem("label.tab.all.afdrukkendocumentenprojectafdrukken", ProjectAfdrukkenDocumentenPage.class)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public Component getPostfix(String id)
 			{
@@ -454,9 +400,6 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 	{
 		Label label = new Label(id, new LoadableDetachableModel<String>()
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected String load()
 			{
@@ -467,7 +410,7 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 					screeningOrganisatieToSet = ScreenitSession.get().getScreeningOrganisatie();
 				}
 
-				MergedBrievenFilter<MBP> mergedBrievenFilter = new MergedBrievenFilter<MBP>();
+				MergedBrievenFilter<MBP> mergedBrievenFilter = new MergedBrievenFilter<>();
 				mergedBrievenFilter.setMergedBrievenClass(clazz);
 				mergedBrievenFilter.setGeprint(false);
 				mergedBrievenFilter.setExctMatch(true);
@@ -485,6 +428,10 @@ public abstract class AfdrukkenDocumentenBasePage<MB extends MergedBrieven<?>> e
 		if (ProjectMergedBrieven.class.equals(clazz))
 		{
 			return Recht.GEBRUIKER_SCREENING_PRINTER_PROJECTBRIEVEN;
+		}
+		else if (AlgemeneMergedBrieven.class.equals(clazz))
+		{
+			return Recht.GEBRUIKER_SCREENING_PRINTER_LANDELIJK;
 		}
 		else
 		{

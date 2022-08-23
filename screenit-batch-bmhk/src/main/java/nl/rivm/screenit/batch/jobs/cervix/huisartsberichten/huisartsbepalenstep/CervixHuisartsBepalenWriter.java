@@ -21,32 +21,31 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.huisartsbepalenstep
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.CervixHuisartsberichtenConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.cervix.CervixHuisartsBericht;
-import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixLabformulierStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
+
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixHuisartsBepalenWriter extends BaseWriter<CervixHuisartsBericht>
 {
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void write(CervixHuisartsBericht huisartsBericht) throws Exception
@@ -55,7 +54,7 @@ public class CervixHuisartsBepalenWriter extends BaseWriter<CervixHuisartsBerich
 		Days daysBetween = Days.daysBetween(new DateTime(huisartsBericht.getAanmaakDatum()), dateSupplier.getDateTime());
 		if (daysBetween.isLessThan(Days.days(wachtOpHuisartsBekend)))
 		{
-			CervixLabformulier labformulier = huisartsBericht.getUitstrijkje().getLabformulier();
+			var labformulier = huisartsBericht.getUitstrijkje().getLabformulier();
 			if (labformulier != null && labformulier.getHuisartsLocatie() != null
 				&& (labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD || labformulier.getStatus() == CervixLabformulierStatus.GECONTROLEERD_CYTOLOGIE))
 			{

@@ -26,11 +26,12 @@ import org.apache.cxf.message.Message;
 
 public class ScreenITLoggingInInterceptor extends LoggingInInterceptor
 {
+
 	private final static int LIMIT = 100 * 1024;
 
-	public ScreenITLoggingInInterceptor()
+	public ScreenITLoggingInInterceptor(ScreenITLoggingSaver loggingSaver)
 	{
-		super(new ScreenITLoggingSaver());
+		super(loggingSaver);
 		setLimit(LIMIT);
 	}
 

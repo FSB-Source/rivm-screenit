@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.mamma.brieven.client.genererenstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenReader;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.GbaStatus;
@@ -34,13 +36,13 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class MammaBrievenGenererenReader extends AbstractBrievenGenererenReader<MammaBrief>
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MammaBrievenGenererenReader.class);
 
 	@Override
 	protected Long getScreeningOrganisatieId(ExecutionContext context)
@@ -52,7 +54,7 @@ public class MammaBrievenGenererenReader extends AbstractBrievenGenererenReader<
 	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
 	{
 		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
-		BriefType briefType = BriefType.valueOf(context.getString(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		var briefType = BriefType.valueOf(context.getString(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPE));
 		crit.add(Restrictions.eq("briefType", briefType));
 
 		if ((boolean) context.get(MammaBrievenGenererenPartitioner.KEY_BRIEFTYPEAPART))
@@ -77,8 +79,8 @@ public class MammaBrievenGenererenReader extends AbstractBrievenGenererenReader<
 			crit.createAlias("uitnodigingStandplaats.locatie", "uitnodigingLocatie");
 			crit.createAlias("uitnodigingLocatie.standplaatsLocatieBijlage", "uitnodigingLocatieBijlage", JoinType.LEFT_OUTER_JOIN);
 
-			boolean tijdelijk = (boolean) context.get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
-			Long standplaatsId = (Long) context.get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
+			var tijdelijk = (boolean) context.get(MammaBrievenGenererenPartitioner.KEY_TIJDELIJK);
+			var standplaatsId = (Long) context.get(MammaBrievenGenererenPartitioner.KEY_MAMMASTANDPLAATSID);
 			if (tijdelijk && standplaatsId != null)
 			{
 
@@ -179,7 +181,7 @@ public class MammaBrievenGenererenReader extends AbstractBrievenGenererenReader<
 	{
 		if (eersteRonde != null)
 		{
-			DetachedCriteria subQuery = DetachedCriteria.forClass(MammaBrief.class);
+			var subQuery = DetachedCriteria.forClass(MammaBrief.class);
 			subQuery.createAlias("client", "briefClient");
 			subQuery.add(Restrictions.eqProperty("briefClient.mammaDossier", "mammaDossier.id"));
 			subQuery.add(Restrictions.in("briefType", BriefType.getMammaEersteRondeBrieftype()));

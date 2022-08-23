@@ -47,6 +47,7 @@ import nl.rivm.screenit.mamma.se.proxy.dao.PersistableTransactionDao;
 import nl.rivm.screenit.mamma.se.proxy.model.WebsocketBerichtType;
 import nl.rivm.screenit.mamma.se.proxy.services.CleanUpService;
 import nl.rivm.screenit.mamma.se.proxy.services.MammaScreeningsEenheidStatusService;
+import nl.rivm.screenit.mamma.se.proxy.services.ProxyService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeDaglijstService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeRestSocketService;
 import nl.rivm.screenit.mamma.se.proxy.services.SeStatusService;
@@ -100,6 +101,8 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 
 	private CleanUpService cleanUpService;
 
+	private ProxyService proxyService;
+
 	private TransactionQueueService transactionQueueService;
 
 	private static ApplicationContext applicationContext;
@@ -139,7 +142,7 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 			catch (Exception e)
 			{
 				setSeVerbindingStatus(false);
-				LOG.error(e.getMessage());
+				LOG.error("Fout bij verbinden met SE REST door {}", e.getMessage(), e);
 			}
 		}
 	}
@@ -205,6 +208,7 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 			{
 				LOG.info("Cleanup DB ontvangen van SE-REST-BK");
 				getPersistableTransactionDao().clearDb();
+				getProxyService().clearTestCache();
 			}
 			break;
 		case VERSTUUR_STATUS:
@@ -431,6 +435,15 @@ public class SeRestSocketServiceImpl implements SeRestSocketService, Application
 			cleanUpService = applicationContext.getBean(CleanUpService.class);
 		}
 		return cleanUpService;
+	}
+
+	private ProxyService getProxyService()
+	{
+		if (proxyService == null)
+		{
+			proxyService = applicationContext.getBean(ProxyService.class);
+		}
+		return proxyService;
 	}
 
 	private Timer getTimer()

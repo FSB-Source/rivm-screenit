@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.kwaliteitsborging;
  * =========================LICENSE_END==================================
  */
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -51,7 +52,6 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
@@ -64,6 +64,7 @@ import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.FileCopyUtils;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 import com.aspose.words.Document;
@@ -240,9 +241,9 @@ public class CervixBarcodesAfdrukkenPage extends CervixBarcodeAfdrukkenBasePage
 		persoon.setBsn("Controlemonster");
 		client.setPersoon(persoon);
 		context.setClient(client);
-		try
+		try (InputStream inputStream = getClass().getResourceAsStream("/CervixUitnodigingsSticker.doc"))
 		{
-			byte[] briefTemplateBytes = IOUtils.toByteArray(CervixBarcodesAfdrukkenPage.class.getResourceAsStream("/CervixUitnodigingsSticker.doc"));
+			byte[] briefTemplateBytes = FileCopyUtils.copyToByteArray(inputStream);
 			document = asposeService.processDocument(briefTemplateBytes, context);
 		}
 		catch (Exception e)

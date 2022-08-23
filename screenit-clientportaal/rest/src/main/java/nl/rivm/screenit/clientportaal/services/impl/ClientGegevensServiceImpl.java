@@ -21,11 +21,14 @@ package nl.rivm.screenit.clientportaal.services.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.mappers.TijdelijkAdresMapper;
 import nl.rivm.screenit.clientportaal.services.ClientGegevensService;
 import nl.rivm.screenit.clientportaal.validators.TelefoonnummerValidator;
 import nl.rivm.screenit.clientportaal.validators.TijdelijkAdresValidator;
 import nl.rivm.screenit.dao.CoordinatenDao;
+import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.TijdelijkAdres;
@@ -36,33 +39,24 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Persoon;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.REQUIRED)
 public class ClientGegevensServiceImpl implements ClientGegevensService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ClientGegevensServiceImpl.class);
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final CoordinatenDao coordinatenDao;
 
-	@Autowired
-	private CoordinatenDao coordinatenDao;
+	private final TijdelijkAdresMapper tijdelijkAdresMapper;
 
-	@Autowired
-	private TijdelijkAdresMapper tijdelijkAdresMapper;
+	private final ClientContactService clientContactService;
 
-	@Autowired
-	private ClientContactService clientContactService;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	public Client setTelefoonnummer(String telefoonnummer1, String telefoonnummer2, Client client)
@@ -122,5 +116,20 @@ public class ClientGegevensServiceImpl implements ClientGegevensService
 			logService.logGebeurtenis(LogGebeurtenis.WIJZIG_TIJDELIJK_ADRES, client, client);
 		}
 		return client;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public Client setAanhef(Aanhef aanhef, Client client)
+	{
+		if (!Aanhef.aanhefVormenClienten().contains(aanhef))
+		{
+			throw new IllegalStateException("De gekozen aanhef is niet geldig");
+		}
+		else
+		{
+			clientContactService.saveAanhef(client, client, aanhef);
+			return client;
+		}
 	}
 }

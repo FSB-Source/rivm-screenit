@@ -1,0 +1,15 @@
+@import "../../styling/scss/colors";
+
+.style {
+
+	form {
+		background-color: $wit;
+		box-shadow: 5px 20px 30px 3px rgba(0, 0, 0, 0.2);
+	}
+
+	.tableContainer {
+		overflow-x: scroll;
+		overflow-y: hidden;
+	}
+
+}

@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.cervix.enums.CervixMonsterType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -39,17 +41,16 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class ZasUitnodigingenVersturenListener extends BaseLogListener
 {
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected Bevolkingsonderzoek getBevolkingsonderzoek()
@@ -60,8 +61,8 @@ public class ZasUitnodigingenVersturenListener extends BaseLogListener
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
-		for (BriefType briefType : BriefType.values())
+		var context = jobExecution.getExecutionContext();
+		for (var briefType : BriefType.values())
 		{
 			context.putLong(briefType.name(), 0);
 		}
@@ -95,16 +96,16 @@ public class ZasUitnodigingenVersturenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		CervixUitnodigingVersturenLogEvent event = (CervixUitnodigingVersturenLogEvent) super.eindLogging(jobExecution);
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var event = (CervixUitnodigingVersturenLogEvent) super.eindLogging(jobExecution);
+		var context = jobExecution.getExecutionContext();
 
 		long totaalVerstuurd = 0;
 
-		for (BriefType brieftype : CervixMonsterType.ZAS.getBriefTypen())
+		for (var brieftype : CervixMonsterType.ZAS.getBriefTypen())
 		{
 			Long aantal = context.getLong(brieftype.name(), 0);
 
-			CervixZasVersturenRapportage entry = new CervixZasVersturenRapportage();
+			var entry = new CervixZasVersturenRapportage();
 			entry.setAantal(aantal);
 			entry.setBriefType(brieftype);
 			hibernateService.saveOrUpdate(entry);
@@ -114,10 +115,10 @@ public class ZasUitnodigingenVersturenListener extends BaseLogListener
 		}
 
 		List<ProjectCounterHolder> projectCounterHolders = (List<ProjectCounterHolder>) context.get(ZasUitnodigingenVersturenConstants.PROJECTENCOUNTERS);
-		for (ProjectCounterHolder projectCounterHolder : projectCounterHolders)
+		for (var projectCounterHolder : projectCounterHolders)
 		{
-			ProjectGroep projectGroep = hibernateService.get(ProjectGroep.class, projectCounterHolder.getProjectGroepId());
-			CervixZasVersturenRapportageProjectEntry projectGroepEntry = new CervixZasVersturenRapportageProjectEntry();
+			var projectGroep = hibernateService.get(ProjectGroep.class, projectCounterHolder.getProjectGroepId());
+			var projectGroepEntry = new CervixZasVersturenRapportageProjectEntry();
 			projectGroepEntry.setProjectGroep(projectGroep);
 			projectGroepEntry.setAantal(projectCounterHolder.getAantalVerstuurd());
 			hibernateService.saveOrUpdate(projectGroepEntry);

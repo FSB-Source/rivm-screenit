@@ -21,6 +21,9 @@ package nl.rivm.screenit.batch.jobs.cervix.selectie.laatsterondesluitenstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
@@ -30,27 +33,23 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class CervixLaatsteRondeSluitenWriter extends BaseWriter<CervixScreeningRonde>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixLaatsteRondeSluitenWriter.class);
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected void write(CervixScreeningRonde ronde) throws Exception
 	{
-		LOG.info("Laatse ronde sluiten voor clientId " + ronde.getDossier().getClient().getId());
+		LOG.info("Laatste ronde sluiten voor clientId " + ronde.getDossier().getClient().getId());
 		ronde.setStatus(ScreeningRondeStatus.AFGEROND);
 		ronde.setStatusDatum(dateSupplier.getDate());
 		hibernateService.saveOrUpdate(ronde);

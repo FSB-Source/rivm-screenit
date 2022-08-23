@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten;
 
 /*-
@@ -22,6 +21,9 @@ package nl.rivm.screenit.batch.jobs.colon.oneindigetijdsloten;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.topicuszorg.wicket.planning.model.appointment.AbstractAppointment;
 
@@ -35,32 +37,28 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class OneindigeTijdslotReader<T extends AbstractAppointment> extends BaseScrollableResultReader
 {
-	private Class<T> type;
-
-	protected OneindigeTijdslotReader(Class<T> type)
-	{
-		this.type = type;
-	}
+	private final Class<T> type;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(type);
+		var criteria = session.createCriteria(type);
 
 		criteria.add(Restrictions.isNotNull("recurrence"));
 
 		criteria.createAlias("recurrence", "r");
 		criteria.add(Restrictions.isNull("r.endDate"));
 
-		DetachedCriteria sub = DetachedCriteria.forClass(type);
+		var subQuery = DetachedCriteria.forClass(type);
 
-		sub.createAlias("recurrence", "subRecurrence");
-		sub.add(Restrictions.eqProperty("r.id", "subRecurrence.id"));
+		subQuery.createAlias("recurrence", "subRecurrence");
+		subQuery.add(Restrictions.eqProperty("r.id", "subRecurrence.id"));
 
-		sub.setProjection(Projections.max("startTime"));
-		criteria.add(Subqueries.propertyEq("startTime", sub));
+		subQuery.setProjection(Projections.max("startTime"));
+		criteria.add(Subqueries.propertyEq("startTime", subQuery));
 
 		criteria.addOrder(Order.asc("id"));
 

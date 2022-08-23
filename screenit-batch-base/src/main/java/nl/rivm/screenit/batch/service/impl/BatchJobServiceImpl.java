@@ -35,13 +35,12 @@ import nl.rivm.screenit.batch.service.BatchJobService;
 import nl.rivm.screenit.model.batch.BatchQueue;
 import nl.rivm.screenit.model.enums.BatchApplicationType;
 import nl.rivm.screenit.model.enums.JobType;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.rivm.screenit.service.DistributedLockService;
+import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.reflect.ConstructorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,11 +56,15 @@ public class BatchJobServiceImpl implements BatchJobService
 
 	private static final String JOB_LOCK_PREFIX = "job_";
 
-	@Autowired
 	private DistributedLockService distributedLockService;
 
-	@Autowired
 	private HibernateService hibernateService;
+
+	public BatchJobServiceImpl(DistributedLockService distributedLockService, HibernateService hibernateService)
+	{
+		this.distributedLockService = distributedLockService;
+		this.hibernateService = hibernateService;
+	}
 
 	private static String mapToString(Map<String, Serializable> map)
 	{

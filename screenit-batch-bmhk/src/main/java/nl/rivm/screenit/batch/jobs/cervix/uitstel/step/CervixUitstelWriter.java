@@ -21,47 +21,47 @@ package nl.rivm.screenit.batch.jobs.cervix.uitstel.step;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.cervix.uitstel.CervixUitstelConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.cervix.CervixBrief;
-import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.model.cervix.CervixUitstel;
-import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
+import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 {
-	@Autowired
-	private CervixFactory factory;
+	private final CervixFactory factory;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ClientService clientService;
+	private final ClientService clientService;
 
-	@Autowired
-	private BaseBriefService briefService;
+	private final BaseBriefService briefService;
+
+	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
 	protected void write(CervixUitstel uitstel) throws Exception
 	{
-		CervixDossier dossier = uitstel.getScreeningRonde().getDossier();
-		CervixScreeningRonde ronde = uitstel.getScreeningRonde();
+		var dossier = uitstel.getScreeningRonde().getDossier();
+		var ronde = uitstel.getScreeningRonde();
 		ronde.setUitstel(null);
 		hibernateService.saveOrUpdate(ronde);
 
 		if (!(ronde.getUitstrijkjeCytologieUitslag() != null && ronde.getUitnodigingVervolgonderzoek() == null))
 		{
 			CervixUitnodiging uitnodiging;
-			CervixCISHistorie cisHistorie = dossier.getCisHistorie();
+			var cisHistorie = dossier.getCisHistorie();
 			if (cisHistorie != null && uitstel.equals(cisHistorie.getUitstel()))
 			{
 
@@ -72,12 +72,16 @@ public class CervixUitstelWriter extends BaseWriter<CervixUitstel>
 			else
 			{
 				boolean herinneren = true;
-				CervixBrief brief = briefService.maakBvoBrief(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief());
+				if (ronde.getLaatsteBrief() != null && ronde.getLaatsteBrief().getBriefType() == BriefType.CERVIX_VOORAANKONDIGING)
+				{
+					factory.updateDossierMetVolgendeRondeDatum(dossier, dateSupplier.getLocalDateTime());
+				}
+				var brief = briefService.maakBvoBrief(ronde, ronde.getLeeftijdcategorie().getUitnodigingsBrief());
 
-				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
+				var laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, false);
 				if (laatsteUitnodiging != null)
 				{
-					CervixBrief laatsteUitnodigingBrief = laatsteUitnodiging.getBrief();
+					var laatsteUitnodigingBrief = laatsteUitnodiging.getBrief();
 					brief.setHerdruk(laatsteUitnodigingBrief);
 					herinneren = laatsteUitnodiging.getHerinneren();
 					hibernateService.saveOrUpdate(brief);

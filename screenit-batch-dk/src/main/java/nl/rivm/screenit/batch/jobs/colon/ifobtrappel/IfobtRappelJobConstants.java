@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.ifobtrappel;
 
 /*-
@@ -22,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtrappel;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class IfobtRappelJobConstants
 {
-
-	private IfobtRappelJobConstants()
-	{
-	}
 
 	public static final String GESELECTEERD = "key.ifobtrappel.geselecteerd";
 

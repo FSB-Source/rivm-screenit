@@ -21,35 +21,34 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.cleanup;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.enums.BestandStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 @Slf4j
 public class BetalingBestandenCleanUpWriter extends BaseWriter<CervixBetaalopdracht>
 {
-	@Autowired
-	private UploadDocumentService uploadDocumentService;
+	private final UploadDocumentService uploadDocumentService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void write(CervixBetaalopdracht item) throws Exception
 	{
-		UploadDocument specificatie = item.getSepaSpecificatiePdf();
-		UploadDocument sepa = item.getSepaDocument();
+		var specificatie = item.getSepaSpecificatiePdf();
+		var sepa = item.getSepaDocument();
 
 		if (specificatie != null)
 		{

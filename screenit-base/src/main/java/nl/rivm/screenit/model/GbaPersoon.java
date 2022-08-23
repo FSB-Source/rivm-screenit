@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.model;
 
 /*-
@@ -41,6 +40,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.enums.AanduidingBijzonderNederlanderschap;
 import nl.rivm.screenit.model.enums.DatumPrecisie;
 import nl.rivm.screenit.model.enums.IndicatieGeheim;
@@ -53,12 +55,13 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Setter
+@Getter
 @Entity
 @Table
 @Audited
 public class GbaPersoon extends Persoon
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@Column(unique = true)
@@ -117,184 +120,7 @@ public class GbaPersoon extends Persoon
 	@Temporal(TemporalType.DATE)
 	private Date datumVestigingNederland;
 
-	public BagAdres getGbaAdres()
-	{
-		return gbaAdres;
-	}
-
-	public void setGbaAdres(BagAdres gbaAdres)
-	{
-		this.gbaAdres = gbaAdres;
-	}
-
-	public TijdelijkAdres getTijdelijkAdres()
-	{
-		return tijdelijkAdres;
-	}
-
-	public void setTijdelijkAdres(TijdelijkAdres tijdelijkAdres)
-	{
-		this.tijdelijkAdres = tijdelijkAdres;
-	}
-
-	public TijdelijkGbaAdres getTijdelijkGbaAdres()
-	{
-		return tijdelijkGbaAdres;
-	}
-
-	public void setTijdelijkGbaAdres(TijdelijkGbaAdres tijdelijkGbaAdres)
-	{
-		this.tijdelijkGbaAdres = tijdelijkGbaAdres;
-	}
-
-	public Land getGbaGeboorteLand()
-	{
-		return gbaGeboorteLand;
-	}
-
-	public void setGbaGeboorteLand(Land gbaGeboorteLand)
-	{
-		this.gbaGeboorteLand = gbaGeboorteLand;
-	}
-
-	public List<Nationaliteit> getGbaNationaliteiten()
-	{
-		return gbaNationaliteiten;
-	}
-
-	public Date getDatumVertrokkenUitNederland()
-	{
-		return datumVertrokkenUitNederland;
-	}
-
-	public void setDatumVertrokkenUitNederland(Date datumVertrokkenUitNederland)
-	{
-		this.datumVertrokkenUitNederland = datumVertrokkenUitNederland;
-	}
-
-	public DatumPrecisie getGeboortedatumPrecisie()
-	{
-		return geboortedatumPrecisie;
-	}
-
-	public void setGeboortedatumPrecisie(DatumPrecisie geboortedatumPrecisie)
-	{
-		this.geboortedatumPrecisie = geboortedatumPrecisie;
-	}
-
-	public String getTitelCode()
-	{
-		return titelCode;
-	}
-
-	public void setTitelCode(String titelCode)
-	{
-		this.titelCode = titelCode;
-	}
-
-	public IndicatieGeheim getIndicatieGeheim()
-	{
-		return indicatieGeheim;
-	}
-
-	public void setIndicatieGeheim(IndicatieGeheim indicatieGeheim)
-	{
-		this.indicatieGeheim = indicatieGeheim;
-	}
-
-	public Gemeente getRegisterGemeenteAkteOverlijden()
-	{
-		return registerGemeenteAkteOverlijden;
-	}
-
-	public void setRegisterGemeenteAkteOverlijden(Gemeente registerGemeenteAkteOverlijden)
-	{
-		this.registerGemeenteAkteOverlijden = registerGemeenteAkteOverlijden;
-	}
-
-	public String getAkteNummerOverlijden()
-	{
-		return akteNummerOverlijden;
-	}
-
-	public void setAkteNummerOverlijden(String akteNummerOverlijden)
-	{
-		this.akteNummerOverlijden = akteNummerOverlijden;
-	}
-
-	public String getAnummer()
-	{
-		return anummer;
-	}
-
-	public void setAnummer(String anummer)
-	{
-		this.anummer = anummer;
-	}
-
-	public AanduidingBijzonderNederlanderschap getAanduidingBijzonderNederlanderschap()
-	{
-		return aanduidingBijzonderNederlanderschap;
-	}
-
-	public void setAanduidingBijzonderNederlanderschap(AanduidingBijzonderNederlanderschap aanduidingBijzonderNederlanderschap)
-	{
-		this.aanduidingBijzonderNederlanderschap = aanduidingBijzonderNederlanderschap;
-	}
-
-	public Date getDatumAangaanPartnerschap()
-	{
-		return datumAangaanPartnerschap;
-	}
-
-	public void setDatumAangaanPartnerschap(Date datumAangaanPartnerschap)
-	{
-		this.datumAangaanPartnerschap = datumAangaanPartnerschap;
-	}
-
-	public Date getDatumOntbindingPartnerschap()
-	{
-		return datumOntbindingPartnerschap;
-	}
-
-	public void setDatumOntbindingPartnerschap(Date datumOntbindingPartnerschap)
-	{
-		this.datumOntbindingPartnerschap = datumOntbindingPartnerschap;
-	}
-
-	public String getRedenOntbindingPartnerschap()
-	{
-		return redenOntbindingPartnerschap;
-	}
-
-	public void setRedenOntbindingPartnerschap(String redenOntbindingPartnerschap)
-	{
-		this.redenOntbindingPartnerschap = redenOntbindingPartnerschap;
-	}
-
-	public Date getDatumAanvangAdreshouding()
-	{
-		return datumAanvangAdreshouding;
-	}
-
-	public void setDatumAanvangAdreshouding(Date datumAanvangAdreshouding)
-	{
-		this.datumAanvangAdreshouding = datumAanvangAdreshouding;
-	}
-
-	public Date getDatumVestigingNederland()
-	{
-		return datumVestigingNederland;
-	}
-
-	public void setDatumVestigingNederland(Date datumVestigingNederland)
-	{
-		this.datumVestigingNederland = datumVestigingNederland;
-	}
-
-	public void setGbaNationaliteiten(List<Nationaliteit> gbaNationaliteiten)
-	{
-		this.gbaNationaliteiten = gbaNationaliteiten;
-	}
+	@Enumerated(EnumType.STRING)
+	private Aanhef aanhef;
 
 }

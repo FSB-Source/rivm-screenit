@@ -32,6 +32,7 @@ import BlobComponent from "./BlobComponent"
 export type TextBlobComponentProps = {
 	titel: string,
 	tekst: string,
+	extraTekst?: string,
 	adresLocatie?: string,
 	onLinkClick?: () => void,
 	linkTekst?: string
@@ -45,6 +46,7 @@ const TextBlobComponent = (props: TextBlobComponentProps) => {
 				<div className={styles.titelBox}>
 					<span className={classNames(styles.titel, bvoStyle.bvoText)}>{props.titel}</span>
 					<SpanWithHtml className={classNames(styles.tekstTitel)} value={props.tekst}/>
+					{props.extraTekst && <span className={styles.extraTekst}>{props.extraTekst}</span>}
 				</div>
 				<div className={styles.adresBox}>
 					<SpanWithHtml className={classNames(styles.adresLocatie)} value={props.adresLocatie || ""}/>

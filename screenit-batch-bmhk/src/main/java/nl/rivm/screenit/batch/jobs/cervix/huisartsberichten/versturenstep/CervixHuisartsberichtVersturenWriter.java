@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.versturenstep;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.cervix.huisartsberichten.CervixHuisartsberichtenConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
@@ -37,20 +40,17 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixEdiService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class CervixHuisartsberichtVersturenWriter extends BaseWriter<CervixHuisartsBericht>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHuisartsberichtVersturenWriter.class);
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
-
-	@Autowired
-	private CervixEdiService ediService;
+	private final CervixEdiService ediService;
 
 	@Override
 	protected void write(CervixHuisartsBericht huisartsBericht) throws Exception
@@ -59,7 +59,7 @@ public class CervixHuisartsberichtVersturenWriter extends BaseWriter<CervixHuisa
 		{
 			if (CervixLocatieStatus.KLANTNUMMER_NIET_GEVERIFIEERD.equals(huisartsBericht.getHuisartsLocatie().getStatus())
 				|| (CervixLocatieStatus.INACTIEF.equals(huisartsBericht.getHuisartsLocatie().getStatus())
-					&& Boolean.TRUE.equals(huisartsBericht.getHuisartsLocatie().getMoetVerifierenVoorActivatie())))
+				&& Boolean.TRUE.equals(huisartsBericht.getHuisartsLocatie().getMoetVerifierenVoorActivatie())))
 			{
 				huisartsBericht.setStatus(CervixHuisartsBerichtStatus.KLANTNUMMER_NIET_GEVERIFIEERD);
 				getHibernateService().saveOrUpdate(huisartsBericht);

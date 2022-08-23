@@ -29,7 +29,9 @@ import nl.rivm.screenit.model.project.ProjectBrief;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProjectBrievenGenererenReader extends AbstractBrievenGenererenReader<ProjectBrief>
 {
 

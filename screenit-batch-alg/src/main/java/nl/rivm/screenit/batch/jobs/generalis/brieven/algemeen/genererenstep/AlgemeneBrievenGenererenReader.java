@@ -29,13 +29,15 @@ import nl.rivm.screenit.model.enums.GbaStatus;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AlgemeneBrievenGenererenReader extends AbstractBrievenGenererenReader<AlgemeneBrief>
 {
 	@Override
 	protected Long getScreeningOrganisatieId(ExecutionContext context)
 	{
-		return context.getLong(AlgemeneBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID);
+		return null;
 	}
 
 	@Override

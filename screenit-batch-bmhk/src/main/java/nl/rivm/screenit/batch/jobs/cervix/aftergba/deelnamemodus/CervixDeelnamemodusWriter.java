@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.aftergba.deelnamemodus;
 import nl.rivm.screenit.batch.jobs.aftergba.deelnamemodus.AbstractDeelnamemodusWriter;
 import nl.rivm.screenit.model.cervix.CervixDossier;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CervixDeelnamemodusWriter extends AbstractDeelnamemodusWriter<CervixDossier>
 {
 }

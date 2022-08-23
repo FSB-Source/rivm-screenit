@@ -21,7 +21,7 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.dossiers;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaAbstractEventReader;
@@ -33,19 +33,20 @@ import org.hibernate.Criteria;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaScreeningRondeSampleReader extends MammaAbstractEventReader
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
 	public Criteria getCriteria(StatelessSession session)
 	{
-		Date printDatumVoor = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusWeeks(Constants.DEELNAMEKANSBEREKENING_NA_WEKEN));
+		var printDatumVoor = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusWeeks(Constants.DEELNAMEKANSBEREKENING_NA_WEKEN));
 
-		Criteria criteria = session.createCriteria(MammaScreeningRonde.class, "screeningRonde");
+		var criteria = session.createCriteria(MammaScreeningRonde.class, "screeningRonde");
 		criteria.createAlias("screeningRonde.uitnodigingen", "uitnodiging");
 		criteria.createAlias("uitnodiging.brief", "brief");
 		criteria.createAlias("brief.mergedBrieven", "mergedBrieven", JoinType.LEFT_OUTER_JOIN);

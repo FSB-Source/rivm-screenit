@@ -53,6 +53,8 @@ public interface CervixBaseTestTimelineService
 
 	CervixUitnodiging nieuweRonde(Client client);
 
+	void uitstelVoorZwangerschap(CervixScreeningRonde ronde);
+
 	void nieuweCISRonde0(Client client, Date creatieDatum);
 
 	void nieuweCISHistorie(Client client);

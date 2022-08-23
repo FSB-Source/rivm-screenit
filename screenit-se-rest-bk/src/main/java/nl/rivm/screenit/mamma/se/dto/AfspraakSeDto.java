@@ -23,6 +23,9 @@ package nl.rivm.screenit.mamma.se.dto;
 
 import java.time.LocalDateTime;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.mamma.se.dto.onderzoek.MammografieSeDto;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.OnderzoekSeDto;
 import nl.rivm.screenit.mamma.se.dto.onderzoek.SignalerenSeDto;
@@ -30,6 +33,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingOpschortenReden;
 import nl.rivm.screenit.model.mamma.enums.MammaGeenHuisartsOption;
 import nl.rivm.screenit.model.mamma.enums.MammaIdentificatiesoort;
 
+@Getter
+@Setter
 public class AfspraakSeDto extends SeDto
 {
 	private LocalDateTime vanaf;
@@ -71,204 +76,4 @@ public class AfspraakSeDto extends SeDto
 	private String eerdereOpschortenRedenTekst;
 
 	private boolean geforceerd;
-
-	public LocalDateTime getVanaf()
-	{
-		return vanaf;
-	}
-
-	public void setVanaf(LocalDateTime vanaf)
-	{
-		this.vanaf = vanaf;
-	}
-
-	public ClientSeDto getClient()
-	{
-		return client;
-	}
-
-	public void setClient(ClientSeDto client)
-	{
-		this.client = client;
-	}
-
-	public AfspraakStatusSe getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(AfspraakStatusSe status)
-	{
-		this.status = status;
-	}
-
-	public Long getUitnodigingsNr()
-	{
-		return uitnodigingsNr;
-	}
-
-	public void setUitnodigingsNr(Long uitnodigingsNr)
-	{
-		this.uitnodigingsNr = uitnodigingsNr;
-	}
-
-	public MammaIdentificatiesoort getIdentificatiesoort()
-	{
-		return identificatiesoort;
-	}
-
-	public void setIdentificatiesoort(MammaIdentificatiesoort identificatiesoort)
-	{
-		this.identificatiesoort = identificatiesoort;
-	}
-
-	public String getIdentificatienummer()
-	{
-		return identificatienummer;
-	}
-
-	public void setIdentificatienummer(String identificatienummer)
-	{
-		this.identificatienummer = identificatienummer;
-	}
-
-	public boolean isBezwaarAangevraagd()
-	{
-		return bezwaarAangevraagd;
-	}
-
-	public void setBezwaarAangevraagd(boolean bezwaarAangevraagd)
-	{
-		this.bezwaarAangevraagd = bezwaarAangevraagd;
-	}
-
-	public long getAantalOproepen()
-	{
-		return aantalOproepen;
-	}
-
-	public void setAantalOproepen(long aantalOproepen)
-	{
-		this.aantalOproepen = aantalOproepen;
-	}
-
-	public long getAantalOpgekomen()
-	{
-		return aantalOpgekomen;
-	}
-
-	public void setAantalOpgekomen(long aantalOpgekomen)
-	{
-		this.aantalOpgekomen = aantalOpgekomen;
-	}
-
-	public OnderzoekSeDto getHuidigOnderzoek()
-	{
-		return huidigOnderzoek;
-	}
-
-	public void setHuidigOnderzoek(OnderzoekSeDto huidigOnderzoek)
-	{
-		this.huidigOnderzoek = huidigOnderzoek;
-	}
-
-	public MammografieSeDto getMammografie()
-	{
-		return mammografie;
-	}
-
-	public void setMammografie(MammografieSeDto mammografie)
-	{
-		this.mammografie = mammografie;
-	}
-
-	public SignalerenSeDto getSignaleren()
-	{
-		return signaleren;
-	}
-
-	public void setSignaleren(SignalerenSeDto signaleren)
-	{
-		this.signaleren = signaleren;
-	}
-
-	public Long getHuisartsId()
-	{
-		return huisartsId;
-	}
-
-	public void setHuisartsId(Long huisartsId)
-	{
-		this.huisartsId = huisartsId;
-	}
-
-	public MammaGeenHuisartsOption getGeenHuisartsOptie()
-	{
-		return geenHuisartsOptie;
-	}
-
-	public void setGeenHuisartsOptie(MammaGeenHuisartsOption geenHuisartsOptie)
-	{
-		this.geenHuisartsOptie = geenHuisartsOptie;
-	}
-
-	public boolean isDoorgevoerd()
-	{
-		return doorgevoerd;
-	}
-
-	public void setDoorgevoerd(boolean doorgevoerd)
-	{
-		this.doorgevoerd = doorgevoerd;
-	}
-
-	public boolean isCentralAvailable()
-	{
-		return centralAvailable;
-	}
-
-	public void setCentralAvailable(boolean centralAvailable)
-	{
-		this.centralAvailable = centralAvailable;
-	}
-
-	public boolean isEerderOnderbrokenInZelfdeRonde()
-	{
-		return eerderOnderbrokenInZelfdeRonde;
-	}
-
-	public void setEerderOnderbrokenInZelfdeRonde(boolean eerderOnderbrokenInZelfdeRonde)
-	{
-		this.eerderOnderbrokenInZelfdeRonde = eerderOnderbrokenInZelfdeRonde;
-	}
-
-	public MammaBeoordelingOpschortenReden getEerdereOpschortenReden()
-	{
-		return eerdereOpschortenReden;
-	}
-
-	public void setEerdereOpschortenReden(MammaBeoordelingOpschortenReden eerdereOpschortenReden)
-	{
-		this.eerdereOpschortenReden = eerdereOpschortenReden;
-	}
-
-	public String getEerdereOpschortenRedenTekst()
-	{
-		return eerdereOpschortenRedenTekst;
-	}
-
-	public void setEerdereOpschortenRedenTekst(String eerdereOpschortenRedenTekst)
-	{
-		this.eerdereOpschortenRedenTekst = eerdereOpschortenRedenTekst;
-	}
-
-	public boolean isGeforceerd()
-	{
-		return geforceerd;
-	}
-
-	public void setGeforceerd(boolean geforceerd)
-	{
-		this.geforceerd = geforceerd;
-	}
 }

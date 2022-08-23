@@ -25,23 +25,20 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.time.Duration;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.main.util.TiffUtil;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.wicket.model.IModel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ContentDisposition;
-import org.apache.wicket.util.time.Duration;
 
+@Slf4j
 public class ScannedFormulierViewerResource extends AbstractResource
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private static final Logger LOG = LoggerFactory.getLogger(ScannedFormulierViewerResourceExternal.class);
-
 	private final boolean alsAttachement;
 
 	private Duration cacheDuration;
@@ -98,7 +95,7 @@ public class ScannedFormulierViewerResource extends AbstractResource
 				}
 				catch (Exception e)
 				{
-					e.printStackTrace();
+					LOG.error("Fout ", e);
 				}
 			}
 		});

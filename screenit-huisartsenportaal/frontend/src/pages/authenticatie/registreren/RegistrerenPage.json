@@ -1,0 +1,15 @@
+{
+  "title": "Registreren huisartsenportaal",
+  "form": {
+    "labels": {
+      "agbCode": "AGB-code",
+      "registrationCode": "Registratiecode"
+    },
+    "buttons": {
+      "submit": "Registreren"
+    }
+  },
+  "toast": {
+    "success": "U kunt nu verder met de registratie."
+  }
+}

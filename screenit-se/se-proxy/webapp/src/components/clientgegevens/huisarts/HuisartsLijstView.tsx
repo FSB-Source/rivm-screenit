@@ -85,9 +85,14 @@ export default class HuisartsLijstView extends Component<HuisartsLijstStateProps
 	render(): JSX.Element {
 		return <div className={"huisarts-table"}>
 			<h5 className={"ml-2"}>Er zijn {this.props.huisartsItems.length} huisartsen gevonden</h5>
-			<BootstrapTable condensed hover bordered rowStyle={{
-				cursor: "pointer",
-			}} pagination={pagination} keyField="id" data={this.props.huisartsItems} columns={huisartsTableColumns} selectRow={this.selectRow}/></div>
+			{}
+			<BootstrapTable
+				condensed hover bordered
+				rowStyle={{
+					cursor: "pointer",
+				}}
+				pagination={pagination} keyField="id" data={this.props.huisartsItems} columns={huisartsTableColumns} selectRow={this.selectRow}/>
+		</div>
 	}
 
 	shouldComponentUpdate(props: HuisartsLijstStateProps & HuisartsLijstDispatchProps): boolean {

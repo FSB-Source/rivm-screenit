@@ -21,21 +21,22 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.BaseScreeningRondeService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
+@Slf4j
 public class MammaVerlopenRondesWriter extends BaseWriter<MammaScreeningRonde>
 {
 
-	private Logger LOG = LoggerFactory.getLogger(MammaVerlopenRondesWriter.class);
-
-	@Autowired
-	private BaseScreeningRondeService screeningRondeService;
+	private final BaseScreeningRondeService screeningRondeService;
 
 	@Override
 	protected void write(MammaScreeningRonde ronde)

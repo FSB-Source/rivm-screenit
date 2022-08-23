@@ -21,19 +21,21 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar.genererenstep;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenPartitioner;
-import nl.rivm.screenit.model.OrganisatieType;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.enums.BriefType;
-import org.springframework.batch.item.ExecutionContext;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenPartitioner;
+import nl.rivm.screenit.model.OrganisatieType;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
+import nl.rivm.screenit.model.enums.BriefType;
+
+import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
+
+@Component
 public class BezwaarBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
-
 	public static final String KEY_SCREENINGORGANISATIEID = "screeningorganisatie.id";
 
 	public static final String KEY_BRIEFTYPE = "brieftype";
@@ -55,7 +57,7 @@ public class BezwaarBrievenGenererenPartitioner extends AbstractBrievenGenereren
 
 	private List<BriefType> getBriefTypes()
 	{
-		List<BriefType> briefTypes = new ArrayList<BriefType>();
+		List<BriefType> briefTypes = new ArrayList<>();
 		briefTypes.add(BriefType.CLIENT_BEZWAAR_AANVRAAG);
 		briefTypes.add(BriefType.CLIENT_BEZWAAR_BEVESTIGING);
 		briefTypes.add(BriefType.CLIENT_BEZWAAR_HANDTEKENING);

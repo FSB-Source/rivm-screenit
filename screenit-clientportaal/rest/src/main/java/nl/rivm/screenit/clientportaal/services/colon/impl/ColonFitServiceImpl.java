@@ -21,6 +21,8 @@ package nl.rivm.screenit.clientportaal.services.colon.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.colon.ColonFitStatusDto;
 import nl.rivm.screenit.clientportaal.services.colon.ColonFitService;
 import nl.rivm.screenit.model.Client;
@@ -28,21 +30,20 @@ import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 import nl.rivm.screenit.service.ClientContactService;
 import nl.rivm.screenit.service.colon.ColonScreeningsrondeService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonFitServiceImpl implements ColonFitService
 {
 
-    @Autowired
-    private ClientContactService clientContactService;
+	private final ClientContactService clientContactService;
 
-    @Autowired
-    private ColonScreeningsrondeService screeningsrondeService;
+	private final ColonScreeningsrondeService screeningsrondeService;
 
     @Override
     public ColonFitStatusDto getFitStatus(Client client)

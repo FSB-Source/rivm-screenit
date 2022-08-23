@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen.controlestep;
 import nl.rivm.screenit.batch.jobs.brieven.controle.AbstractBrievenControleReader;
 import nl.rivm.screenit.model.algemeen.AlgemeneMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class AlgemeneBrievenControleReader extends AbstractBrievenControleReader<AlgemeneMergedBrieven>
 {
 }

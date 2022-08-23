@@ -30,4 +30,6 @@ public interface CervixSelectieRestrictionsService
 
 	void addClientSelectieRestrictions(Criteria criteria, int daysToAddToToday);
 
+	void addVooraankondigingSelectieRestrictions(Criteria criteria);
+
 }

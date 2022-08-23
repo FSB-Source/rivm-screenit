@@ -233,6 +233,7 @@
         <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaUitnodigenRapportage"/>
         <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsRondeUitnodigenRapportage"/>
         <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaStandplaatsPeriodeUitnodigenRapportage"/>
+        <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIntervalUitnodigenRapportage"/>
         <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportage"/>
         <mapping class="nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIlmBeeldenStatusRapportageEntry"/>
 
@@ -370,6 +371,8 @@
         <mapping class="nl.rivm.screenit.model.mamma.MammaUploadBeeldenPoging"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaUploadBeeldenVerzoek"/>
         <mapping class="nl.rivm.screenit.model.mamma.MammaConclusieReview"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaUitnodigingsinterval"/>
+        <mapping class="nl.rivm.screenit.model.mamma.MammaVolgendeUitnodiging"/>
 
         <mapping class="nl.rivm.screenit.model.CentraleEenheid"/>
         <mapping class="nl.rivm.screenit.model.BeoordelingsEenheid"/>

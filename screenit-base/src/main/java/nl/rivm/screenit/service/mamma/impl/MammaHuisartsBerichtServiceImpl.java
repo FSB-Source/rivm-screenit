@@ -21,6 +21,8 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.MailMergeContext;
@@ -38,31 +40,28 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS)
 public class MammaHuisartsBerichtServiceImpl implements MammaHuisartsBerichtService
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammaHuisartsBerichtServiceImpl.class);
 
-	@Autowired
-	private MammaEdiService ediService;
+	private final MammaEdiService ediService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private MammaBaseBeoordelingService baseBeoordelingService;
+	private final MammaBaseBeoordelingService baseBeoordelingService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
-	public void verstuurHuisartsBericht(MammaBeoordeling beoordeling, EnovationHuisarts huisarts, HuisartsBerichtType huisartsBerichtType)
+	public MammaHuisartsBericht verstuurHuisartsBericht(MammaBeoordeling beoordeling, EnovationHuisarts huisarts, HuisartsBerichtType huisartsBerichtType,
+		boolean isOpnieuwVerzonden)
 	{
 		Client client = (Client) HibernateHelper.deproxy(baseBeoordelingService.getClientVanBeoordeling(beoordeling));
 		MailMergeContext context = new MailMergeContext();
@@ -72,21 +71,22 @@ public class MammaHuisartsBerichtServiceImpl implements MammaHuisartsBerichtServ
 		{
 			LOG.debug("Er wordt geen HuisartsBericht gemaakt voor het HuisartsBerichtType: " + huisartsBerichtType + ", voor Client: "
 				+ client.getId() + ". Client is overleden.");
-			return;
+			return null;
 		}
 		LOG.debug("Er wordt een HuisartsBericht gemaakt voor het HuisartsBerichtType: " + huisartsBerichtType + ", voor Client: "
 			+ client.getId());
 
-		final MammaHuisartsBericht huisartsBericht = maakHuisartsbericht(beoordeling, huisarts, huisartsBerichtType);
+		final MammaHuisartsBericht huisartsBericht = maakHuisartsbericht(beoordeling, huisarts, huisartsBerichtType, isOpnieuwVerzonden);
 
 		ediService.maakHuisartsBericht(client, context, huisartsBericht);
 		hibernateService.saveOrUpdate(huisartsBericht);
 		hibernateService.saveOrUpdate(beoordeling);
 		ediService.verstuurMedVry(huisartsBericht, true);
+		return huisartsBericht;
 
 	}
 
-	private MammaHuisartsBericht maakHuisartsbericht(MammaBeoordeling beoordeling, EnovationHuisarts huisarts, HuisartsBerichtType huisartsBerichtType)
+	private MammaHuisartsBericht maakHuisartsbericht(MammaBeoordeling beoordeling, EnovationHuisarts huisarts, HuisartsBerichtType huisartsBerichtType, boolean isOpnieuwVerzonden)
 	{
 		ScreeningOrganisatie screeningOrganisatie = (ScreeningOrganisatie) HibernateHelper
 			.deproxy(beoordeling.getOnderzoek().getScreeningsEenheid().getBeoordelingsEenheid().getParent().getRegio());
@@ -98,14 +98,10 @@ public class MammaHuisartsBerichtServiceImpl implements MammaHuisartsBerichtServ
 		huisartsBericht.setBeoordeling(beoordeling);
 		beoordeling.getHuisartsBerichten().add(huisartsBericht);
 
+		huisartsBericht.setEenOpnieuwVerzondenBericht(isOpnieuwVerzonden);
 		huisartsBericht.setHuisarts(huisarts);
-		setStatus(huisartsBericht, MammaHuisartsBerichtStatus.AANGEMAAKT);
-		return huisartsBericht;
-	}
-
-	private void setStatus(MammaHuisartsBericht huisartsBericht, MammaHuisartsBerichtStatus status)
-	{
-		huisartsBericht.setStatus(status);
+		huisartsBericht.setStatus(MammaHuisartsBerichtStatus.AANGEMAAKT);
 		huisartsBericht.setStatusDatum(currentDateSupplier.getDate());
+		return huisartsBericht;
 	}
 }

@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio.cleanupstep;
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpWriter;
 import nl.rivm.screenit.model.cervix.CervixRegioMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class RegioBrievenCleanUpWriter extends AbstractBrievenCleanUpWriter<CervixRegioMergedBrieven>
 {
 

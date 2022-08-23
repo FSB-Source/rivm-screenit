@@ -21,35 +21,17 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
 public class UitnodigingenVersturenProjectGroepCounterHolder
 {
 	private Long projectGroepId;
 
 	private Long aantalVerstuurd;
 
-	public UitnodigingenVersturenProjectGroepCounterHolder(Long projectGroepId, Long aantalVerstuurd)
-	{
-		this.projectGroepId = projectGroepId;
-		this.aantalVerstuurd = aantalVerstuurd;
-	}
-
-	public Long getProjectGroepId()
-	{
-		return projectGroepId;
-	}
-
-	public void setProjectGroepId(long projectGroepId)
-	{
-		this.projectGroepId = projectGroepId;
-	}
-
-	public Long getAantalVerstuurd()
-	{
-		return aantalVerstuurd;
-	}
-
-	public void setAantalVerstuurd(long aantalVerstuurd)
-	{
-		this.aantalVerstuurd = aantalVerstuurd;
-	}
 }

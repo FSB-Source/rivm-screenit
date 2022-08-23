@@ -25,6 +25,9 @@ import nl.rivm.screenit.batch.jobs.colon.huisartsontkoppelen.ColonHuisartsOntkop
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonScreeningRonde;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ColonHuisartsOntkoppelenWriter extends BaseWriter<ColonScreeningRonde>
 {
 

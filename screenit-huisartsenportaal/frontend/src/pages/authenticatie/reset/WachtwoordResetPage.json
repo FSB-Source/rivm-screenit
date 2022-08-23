@@ -1,0 +1,15 @@
+{
+  "title": "Wachtwoord vergeten",
+  "form": {
+    "labels": {
+      "gebruikersnaam": "Gebruikersnaam",
+      "email": "E-mail"
+    },
+    "buttons": {
+      "submit": "Wachtwoord opvragen"
+    }
+  },
+  "toast": {
+    "success": "Uw wachtwoord is succesvol gereset"
+  }
+}

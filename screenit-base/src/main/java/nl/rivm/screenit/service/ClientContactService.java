@@ -24,6 +24,7 @@ package nl.rivm.screenit.service;
 import java.util.List;
 import java.util.Map;
 
+import nl.rivm.screenit.model.Aanhef;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.AfmeldingType;
 import nl.rivm.screenit.model.Client;
@@ -33,7 +34,6 @@ import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.TijdelijkAdres;
-import nl.rivm.screenit.model.cervix.CervixUitstel;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.ExtraOpslaanKey;
 import nl.rivm.screenit.model.enums.NieuweIfobtResultaat;
@@ -44,19 +44,21 @@ public interface ClientContactService
 	void saveClientContact(ClientContact contact, Map<ClientContactActieType, Map<ExtraOpslaanKey, Object>> extraOpslaanObjecten, Account ingelogdeGebruiker);
 
 	ClientContactActie mammaAfspraakMakenWijzigen(ClientContactActie actie, Client client, Map<ExtraOpslaanKey, Object> extraOpslaanParams, Account account,
-												  boolean isNieuweAfspraak, boolean isGeforceerdeAfspraak);
+		boolean isNieuweAfspraak, boolean isGeforceerdeAfspraak);
 
 	List<ClientContactActieType> getAvailableActies(Client client);
 
 	List<ClientContactActieType> getAvailableActies(Client client, boolean viaClientPortaal);
 
-    boolean availableActiesBevatBenodigdeActie(Client client, ClientContactActieType benodigdeActie);
+	boolean availableActiesBevatBenodigdeActie(Client client, ClientContactActieType benodigdeActie);
 
-    NieuweIfobtResultaat vraagNieuweIfobtAan(Client client, Account account);
+	NieuweIfobtResultaat vraagNieuweIfobtAan(Client client, Account account);
 
 	boolean magNieuweIfobtAanvragen(Client client);
 
 	void saveTijdelijkAdres(Account account, Client client, TijdelijkAdres tijdelijkAdres);
+
+	void saveAanhef(Account account, Client client, Aanhef aanhef);
 
 	List<AfmeldingType> getAvailableAfmeldoptiesColon(Client client, boolean viaPortaalGevraagd);
 

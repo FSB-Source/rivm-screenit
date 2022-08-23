@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.config;
 
 import lombok.Setter;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,155 +37,43 @@ import org.springframework.core.annotation.Order;
 public class WebApplicationConfig
 {
 
-	private String configDir;
+	private String smartCardConfigDir;
 
-	private String uziRootCer;
+	private String smartCardUziRootCer;
 
 	private String antwoordFormulierUrl;
 
-	private String voFileStorePath;
-
 	private String handleidingenPath;
 
-	private String clientportaalUrl;
-
-	private String clientportaalUrlAutoLogin;
-
-	private String clientportaalUrlAutoLoginSecret;
-
-	private String spherionUrl;
-
-	private String spherionUsername;
-
-	private String spherionPassword;
-
 	private String huisartsPortaalUrl;
-
-	private String zooKeeperServerUri;
-
-	private String hpvHost;
-
-	private Integer hpvPort;
-
-	private String hl7IfobtHost;
-
-	private Integer hl7IfobtPort;
-
-	private Integer hl7ImsPort;
-
-	private Integer hl7IlmPort;
 
 	@Bean
 	public String configDir()
 	{
-		return configDir != null ? configDir : "";
+		return StringUtils.defaultIfBlank(smartCardConfigDir, "");
 	}
 
 	@Bean
 	public String uziRootCertificateFile()
 	{
-		return uziRootCer != null ? uziRootCer : "";
+		return StringUtils.defaultIfBlank(smartCardUziRootCer, "");
 	}
 
 	@Bean
 	public String antwoordFormulierUrl()
 	{
-		return antwoordFormulierUrl != null ? antwoordFormulierUrl : "";
-	}
-
-	@Bean
-	public String voFileStorePath()
-	{
-		return voFileStorePath != null ? voFileStorePath : "";
+		return StringUtils.defaultIfBlank(antwoordFormulierUrl, "");
 	}
 
 	@Bean
 	public String handleidingenPath()
 	{
-		return handleidingenPath != null ? handleidingenPath : "";
-	}
-
-	@Bean
-	public String clientportaalUrl()
-	{
-		return clientportaalUrl != null ? clientportaalUrl : "";
-	}
-
-	@Bean
-	public String clientportaalUrlAutoLogin()
-	{
-		return clientportaalUrlAutoLogin != null ? clientportaalUrlAutoLogin : "";
-	}
-
-	@Bean
-	public String clientportaalUrlAutoLoginSecret()
-	{
-		return clientportaalUrlAutoLoginSecret != null ? clientportaalUrlAutoLoginSecret : "";
-	}
-
-	@Bean
-	public String spherionUrl()
-	{
-		return spherionUrl != null ? spherionUrl : "";
-	}
-
-	@Bean
-	public String spherionUsername()
-	{
-		return spherionUsername != null ? spherionUsername : "";
-	}
-
-	@Bean
-	public String spherionPassword()
-	{
-		return spherionPassword != null ? spherionPassword : "";
+		return StringUtils.defaultIfBlank(handleidingenPath, "");
 	}
 
 	@Bean
 	public String huisartsPortaalUrl()
 	{
-		return huisartsPortaalUrl != null ? huisartsPortaalUrl : "";
-	}
-
-	@Bean
-	public String zooKeeperServerUri()
-	{
-		return zooKeeperServerUri != null ? zooKeeperServerUri : "";
-	}
-
-	@Bean
-	public String hpvHost()
-	{
-		return hpvHost != null ? hpvHost : "";
-	}
-
-	@Bean
-	public Integer hpvPort()
-	{
-		return hpvPort != null ? hpvPort : 0;
-	}
-
-	@Bean
-	public String hl7IfobtHost()
-	{
-		return hl7IfobtHost != null ? hl7IfobtHost : "";
-	}
-
-	@Bean
-	public Integer hl7IfobtPort()
-	{
-		return hl7IfobtPort != null ? hl7IfobtPort : 0;
-	}
-
-	@Bean
-	public Integer hl7ImsPort()
-	{
-		return hl7ImsPort != null ? hl7ImsPort : 0;
-	}
-
-	@Bean
-	public Integer hl7IlmPort()
-	{
-		return hl7IlmPort != null ? hl7IlmPort : 0;
+		return StringUtils.defaultIfBlank(huisartsPortaalUrl, "");
 	}
 }

@@ -23,6 +23,7 @@ package nl.rivm.screenit.service.mamma;
  */
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.NavigableSet;
 
@@ -95,9 +96,13 @@ public interface MammaBaseConceptPlanningsApplicatie
 
 	Long[] getConceptGewijzigdDoor(ScreeningOrganisatie screeningOrganisatie);
 
-    Date getPlannenTotEnMetDatum();
+	Date getPlannenTotEnMetDatum();
 
 	void verzetClienten(PlanningVerzetClientenDto verzetClientenDto);
 
 	PlanningStatusDto getStatus();
+
+	void kopieerDag(MammaScreeningsEenheid bronScreeningsEenheid, MammaScreeningsEenheid doelScreeningsEenheid, LocalDate bronDag, LocalTime bronVanTijd, LocalTime bronTotTijd,
+		LocalDate doelDag, InstellingGebruiker ingelogdeInstellingGebruiker);
+
 }

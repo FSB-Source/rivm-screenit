@@ -31,6 +31,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.batch.model.HL7v24ResponseWrapper;
 import nl.rivm.screenit.batch.model.HapiContextType;
@@ -39,7 +42,6 @@ import nl.rivm.screenit.batch.service.CervixHL7BaseService;
 import nl.rivm.screenit.batch.service.CervixHpvOruBerichtService;
 import nl.rivm.screenit.batch.service.HL7BaseSendMessageService;
 import nl.rivm.screenit.model.BMHKLaboratorium;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.cervix.CervixMonster;
@@ -49,12 +51,10 @@ import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.stereotype.Component;
 
 import ca.uhn.hl7v2.HL7Exception;
-import ca.uhn.hl7v2.app.Connection;
 import ca.uhn.hl7v2.llp.LLPException;
 
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURD;
@@ -62,45 +62,46 @@ import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenCon
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.CERVIX_HPV_ORU_BERICHT_VERSTUURD_PER_LAB;
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.KEY_LABORATORIUMID;
 
+@Component
+@StepScope
+@Slf4j
+@AllArgsConstructor
 public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHpvOruBerichtenWriter.class);
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final CervixHpvOruBerichtService hpvOruBerichtService;
 
-	@Autowired
-	private CervixHpvOruBerichtService hpvOruBerichtService;
+	private final CervixHL7BaseService hl7BaseService;
 
-	@Autowired
-	private CervixHL7BaseService hl7BaseService;
-
-	@Autowired
-	private HL7BaseSendMessageService sendMessageService;
+	private final HL7BaseSendMessageService sendMessageService;
 
 	@Override
 	public void writeItems(List<? extends Long> items) throws Exception
 	{
-		BMHKLaboratorium laboratorium = getHibernateService().load(BMHKLaboratorium.class, getStepExecution().getExecutionContext().getLong(KEY_LABORATORIUMID));
+		var laboratoriumId = getStepExecution().getExecutionContext().getLong(KEY_LABORATORIUMID);
+		var laboratorium = getHibernateService().load(BMHKLaboratorium.class, laboratoriumId);
 
 		LocalDateTime limit = (LocalDateTime) getStepExecution().getExecutionContext().get(CERVIX_HPV_ORU_BERICHT_VERSTUURDEN_TIMEOUT);
 		if (LocalDateTime.now().isBefore(limit))
 		{
-			ScreenITHL7MessageContext messageContext = new ScreenITHL7MessageContext(HapiContextType.UTF_8);
-			Connection connection = hl7BaseService.openConnection(laboratorium, 3, messageContext);
+			var messageContext = new ScreenITHL7MessageContext(HapiContextType.UTF_8);
+			var connection = hl7BaseService.openConnection(laboratorium, 3, messageContext);
 			AtomicInteger verzonden = new AtomicInteger(0);
 
 			items.stream().map(item -> getHibernateService().get(CervixScreeningRonde.class, item)).filter(Objects::nonNull).map(CervixScreeningRonde::getMonsterHpvUitslag)
-				.forEach(monster -> {
+				.forEach(monster ->
+				{
 					LOG.info("Oru bericht wordt verstuurd voor monster-id:" + monster.getMonsterId());
 
 					if (!laboratorium.equals(monster.getLaboratorium()))
 					{
-						throw new IllegalArgumentException("Het geselecteerde laboratorium in de reader is anders dan het laboratorium waarmee de verbinding geopend is.");
+						throw new IllegalArgumentException(String.format(
+							"Het geselecteerde laboratorium in de reader is anders dan het laboratorium waarmee de verbinding geopend is. LabIDs: uit partitioner %d uit monster %d",
+							laboratoriumId, monster.getLaboratorium().getId()));
 					}
 					if (connection.isOpen())
 					{
@@ -161,7 +162,7 @@ public class CervixHpvOruBerichtenWriter extends BaseWriter<CervixScreeningRonde
 	{
 		List<Instelling> instellingen = new ArrayList<>();
 		instellingen.add(getHibernateService().loadAll(Rivm.class).get(0));
-		Client client = monster.getOntvangstScreeningRonde().getDossier().getClient();
+		var client = monster.getOntvangstScreeningRonde().getDossier().getClient();
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_HPV_ORU_BERICHTEN_VERSTUREN_MISLUKT, instellingen, client, melding, Bevolkingsonderzoek.CERVIX);
 	}
 

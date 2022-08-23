@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.brieven.genererenstep;
 
 /*-
@@ -33,10 +32,11 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
 
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ColonBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
-
 	public static final String KEY_SCREENINGORGANISATIEID = "screeningorganisatie.id";
 
 	public static final String KEY_BRIEFTYPE = "brieftype";
@@ -44,11 +44,11 @@ public class ColonBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 	@Override
 	protected void fillingData(Map<String, ExecutionContext> partities, ScreeningOrganisatie organisatie)
 	{
-		for (BriefType briefType : getBriefTypes())
+		for (var briefType : getBriefTypes())
 		{
 			if (briefType.getVerzendendeOrganisatieType() == OrganisatieType.SCREENINGSORGANISATIE)
 			{
-				ExecutionContext executionContext = new ExecutionContext();
+				var executionContext = new ExecutionContext();
 				executionContext.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
 				executionContext.put(KEY_BRIEFTYPE, briefType.name());
 				partities.put(organisatie.getId() + briefType.name(), executionContext);
@@ -58,12 +58,7 @@ public class ColonBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	private List<BriefType> getBriefTypes()
 	{
-		List<BriefType> briefTypes = new ArrayList<BriefType>();
-		for (BriefType briefType : BriefType.getBriefTypes(true, Bevolkingsonderzoek.COLON))
-		{
-			briefTypes.add(briefType);
-		}
-		return briefTypes;
+		return new ArrayList<>(BriefType.getBriefTypes(true, Bevolkingsonderzoek.COLON));
 	}
 
 }

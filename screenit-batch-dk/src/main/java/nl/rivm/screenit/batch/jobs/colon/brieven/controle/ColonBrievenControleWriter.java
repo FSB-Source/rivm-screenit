@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.controle;
 import nl.rivm.screenit.batch.jobs.brieven.controle.AbstractBrievenControleWriter;
 import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ColonBrievenControleWriter extends AbstractBrievenControleWriter<ColonMergedBrieven>
 {
 

@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.deelnamemodus;
 import nl.rivm.screenit.batch.jobs.aftergba.deelnamemodus.AbstractDeelnamemodusWriter;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaDeelnamemodusWriter extends AbstractDeelnamemodusWriter<MammaDossier>
 {
 }

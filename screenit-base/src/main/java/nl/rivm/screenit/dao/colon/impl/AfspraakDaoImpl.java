@@ -188,11 +188,19 @@ public class AfspraakDaoImpl extends AbstractAutowiredDao implements AfspraakDao
 		if (!ascending)
 		{
 			criteria.addOrder(Order.desc(property));
+			if (property.equals("conclusie.type"))
+			{
+				criteria.addOrder(Order.desc("conclusie.onHoldReden"));
+			}
 			criteria.addOrder(Order.desc("id"));
 		}
 		else
 		{
 			criteria.addOrder(Order.asc(property));
+			if (property.equals("conclusie.type"))
+			{
+				criteria.addOrder(Order.asc("conclusie.onHoldReden"));
+			}
 			criteria.addOrder(Order.asc("id"));
 		}
 

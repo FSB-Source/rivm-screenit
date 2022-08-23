@@ -26,9 +26,11 @@ import nl.dries.wicket.hibernate.dozer.SessionFinder;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
 import org.hibernate.Session;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@Primary
 public class SessionFinderImpl extends AbstractAutowiredDao implements SessionFinder
 {
 

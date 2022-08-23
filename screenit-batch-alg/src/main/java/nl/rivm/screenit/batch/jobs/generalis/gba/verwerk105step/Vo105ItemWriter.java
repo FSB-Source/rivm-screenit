@@ -34,7 +34,9 @@ import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemStreamException;
 import org.springframework.batch.item.ItemStreamWriter;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.stereotype.Component;
 
+@Component
 public class Vo105ItemWriter implements ItemWriter<Vo105Bericht>, ItemStreamWriter<Vo105Bericht>
 {
 	public static final String VO105_BESTAND_KEY = "key.vo105bestand";

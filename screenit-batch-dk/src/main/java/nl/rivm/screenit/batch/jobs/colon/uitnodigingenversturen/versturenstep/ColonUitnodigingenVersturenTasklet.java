@@ -22,8 +22,10 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen.versturenstep;
  */
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen.UitnodigingenVersturenConstants;
@@ -43,7 +45,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.InstellingService;
@@ -54,36 +55,28 @@ import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
+@Slf4j
 public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVersturenTasklet<ColonUitnodiging>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ColonUitnodigingenVersturenTasklet.class);
 
-	@Autowired
 	private ColonUitnodigingsDao uitnodigingsDao;
 
-	@Autowired
 	private HibernateService hibernateService;
 
-	@Autowired
 	private LogService logService;
 
-	@Autowired
 	private ColonUitnodigingService colonUitnodigingService;
 
-	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
 	private SimplePreferenceService simplePreferenceService;
 
-	@Autowired
 	private ClientService clientService;
 
-	@Autowired
 	private InstellingService instellingService;
 
 	@Override
@@ -126,14 +119,15 @@ public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVer
 	@Override
 	protected boolean geenUitzonderingGevonden(ColonUitnodiging uitnodiging)
 	{
-		Client client = getClientVanUitnodiging(uitnodiging);
+		var client = getClientVanUitnodiging(uitnodiging);
 		if (!AdresUtil.isVolledigAdresVoorInpakcentrum(client))
 		{
 			String melding = "De cliënt heeft een onvolledig adres, dit is geconstateerd bij het aanmaken. De volgende gegevens ontbreken: "
 				+ AdresUtil.bepaalMissendeAdresgegevensString(AdresUtil.getAdres(client.getPersoon(), currentDateSupplier.getDateTime())) + ".";
 			int dagen = simplePreferenceService.getInteger(PreferenceKey.INTERNAL_HERINNERINGSPERIODE_LOGREGEL_ONVOLLEDIG_ADRES.name());
 			LOG.warn("clientId " + client.getId() + ": " + melding);
-			if (logService.heeftBestaandeLogregelBinnenPeriode(Collections.singletonList(LogGebeurtenis.COLON_ADRES_ONVOLLEDIG_VOOR_INPAKCENTRUM), client.getPersoon().getBsn(), melding, dagen))
+			if (logService.heeftGeenBestaandeLogregelBinnenPeriode(List.of(LogGebeurtenis.COLON_ADRES_ONVOLLEDIG_VOOR_INPAKCENTRUM), client.getPersoon().getBsn(),
+				melding, dagen))
 			{
 				List<Instelling> dashboardOrganisaties = addLandelijkBeheerInstelling(new ArrayList<>());
 				dashboardOrganisaties.addAll(clientService.getScreeningOrganisatieVan(client));
@@ -151,14 +145,14 @@ public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVer
 		Long aantalVerstuurd = getExecutionContext().getLong(uitnodiging.getColonUitnodigingCategorie().name());
 		getExecutionContext().put(uitnodiging.getColonUitnodigingCategorie().name(), aantalVerstuurd + 1);
 
-		Client client = getClientVanUitnodiging(uitnodiging);
-		ColonUitnodigingCategorie uitnodigingCategorie = uitnodiging.getColonUitnodigingCategorie();
-		List<ProjectClient> projectClienten = ProjectUtil.getHuidigeProjectClienten(client, currentDateSupplier.getDate(), true);
+		var client = getClientVanUitnodiging(uitnodiging);
+		var uitnodigingCategorie = uitnodiging.getColonUitnodigingCategorie();
+		var projectClienten = ProjectUtil.getHuidigeProjectClienten(client, currentDateSupplier.getDate(), true);
 		if ((uitnodigingCategorie.equals(ColonUitnodigingCategorie.U1) || uitnodigingCategorie.equals(ColonUitnodigingCategorie.U2)) && projectClienten.size() > 0)
 		{
 			List<UitnodigingenVersturenProjectGroepCounterHolder> projectGroepenCounters = (List<UitnodigingenVersturenProjectGroepCounterHolder>) getExecutionContext()
 				.get(UitnodigingenVersturenConstants.PROJECTENCOUNTERS);
-			for (ProjectClient projectClient : projectClienten)
+			for (var projectClient : projectClienten)
 			{
 				boolean projectGroepInList = false;
 				for (UitnodigingenVersturenProjectGroepCounterHolder projectCounterHolder : projectGroepenCounters)
@@ -193,7 +187,7 @@ public class ColonUitnodigingenVersturenTasklet extends AbstractUitnodigingenVer
 	@Override
 	protected void setMergedBrieven(ColonUitnodiging uitnodiging, UploadDocument uploadDocument, BriefDefinitie briefDefinitie)
 	{
-		ColonMergedBrieven colonMergedBrieven = new ColonMergedBrieven();
+		var colonMergedBrieven = new ColonMergedBrieven();
 		colonMergedBrieven.setMergedBrieven(uploadDocument);
 		colonMergedBrieven.setCreatieDatum(currentDateSupplier.getDate());
 		colonMergedBrieven.setBriefType(briefDefinitie.getBriefType());

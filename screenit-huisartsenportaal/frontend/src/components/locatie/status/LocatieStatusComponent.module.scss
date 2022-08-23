@@ -1,0 +1,24 @@
+@import "../../../styling/scss/colors";
+
+.style {
+
+	height: 20px;
+	color: white;
+	border-radius: 4px;
+	font-size: 0.75rem;
+	font-weight: bold;
+	text-align: center;
+
+	&.statusActief {
+		background-color: $groen;
+	}
+
+	&.statusNietGeverifieerd {
+		background-color: $oranje;
+	}
+
+	&.statusVerwijderd {
+		background-color: $rood;
+	}
+
+}

@@ -301,7 +301,7 @@ public class MammaStandplaatsServiceImpl implements MammaStandplaatsService
 		}
 
 		Date brievenGenererenVanaf = DateUtil.startDag(DateUtil.toUtilDate(dateSupplier.getLocalDate().plusDays(1)));
-		if (periodesVoorZoeken.span().lowerEndpoint().before(brievenGenererenVanaf))
+		if (!periodesVoorZoeken.isEmpty() && periodesVoorZoeken.span().lowerEndpoint().before(brievenGenererenVanaf))
 		{
 			periodesVoorZoeken.remove(Range.closed(periodesVoorZoeken.span().lowerEndpoint(), brievenGenererenVanaf));
 		}

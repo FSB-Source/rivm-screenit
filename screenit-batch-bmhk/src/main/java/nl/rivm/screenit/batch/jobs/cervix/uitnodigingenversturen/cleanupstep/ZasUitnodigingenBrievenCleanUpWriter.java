@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen.cleanupstep;
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpWriter;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ZasUitnodigingenBrievenCleanUpWriter extends AbstractBrievenCleanUpWriter<CervixMergedBrieven>
 {
 

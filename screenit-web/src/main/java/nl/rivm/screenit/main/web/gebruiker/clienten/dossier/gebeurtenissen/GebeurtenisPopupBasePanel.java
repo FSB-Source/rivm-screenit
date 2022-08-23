@@ -25,9 +25,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenis;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.util.EnumStringUtil;
+import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,19 +42,26 @@ import org.apache.wicket.markup.html.panel.GenericPanel;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 
+@Slf4j
 public class GebeurtenisPopupBasePanel extends GenericPanel<ScreeningRondeGebeurtenis>
 {
-	private static final long serialVersionUID = 1L;
+	private ScreeningRondeGebeurtenis screeningRondeGebeurtenis;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(GebeurtenisPopupBasePanel.class);
+	private TypeGebeurtenis typeGebeurtenis;
 
 	public GebeurtenisPopupBasePanel(String id, IModel<ScreeningRondeGebeurtenis> model)
 	{
 		super(id, new CompoundPropertyModel<>(model));
+		screeningRondeGebeurtenis = getModelObject();
+		typeGebeurtenis = screeningRondeGebeurtenis.getGebeurtenis();
+	}
+
+	public GebeurtenisPopupBasePanel(String id, TypeGebeurtenis typeGebeurtenis)
+	{
+		super(id);
+		this.typeGebeurtenis = typeGebeurtenis;
 	}
 
 	@Override
@@ -59,19 +69,17 @@ public class GebeurtenisPopupBasePanel extends GenericPanel<ScreeningRondeGebeur
 	{
 		super.onInitialize();
 		WebMarkupContainer gebeurtenisBody = new WebMarkupContainer("gebeurtenisBody");
-		gebeurtenisBody.add(new AttributeAppender("class", Model.of(getModelObject().getGebeurtenis().name().toLowerCase()), " "));
+		gebeurtenisBody.add(new AttributeAppender("class", Model.of(typeGebeurtenis.name().toLowerCase()), " "));
 		add(gebeurtenisBody);
-		ScreeningRondeGebeurtenis screeningRondeGebeurtenis = getModelObject();
 		add(new EnumLabel<TypeGebeurtenis>("gebeurtenis"));
-		gebeurtenisBody.add(new EnumLabel<>("gebeurtenis1", screeningRondeGebeurtenis.getGebeurtenis()));
+		gebeurtenisBody.add(new EnumLabel<>("gebeurtenis1", typeGebeurtenis));
 
 		gebeurtenisBody.add(DateLabel.forDatePattern("datum", "dd-MM-yyyy HH:mm:ss"));
 
-		String type;
-		if (screeningRondeGebeurtenis.getScreeningRondeGebeurtenissen() == null)
+		String type = "";
+		if (screeningRondeGebeurtenis == null || screeningRondeGebeurtenis.getScreeningRondeGebeurtenissen() == null)
 		{
-			type = "Projecten";
-			gebeurtenisBody.add(new Label("screeningRondeGebeurtenissen.rondenr", Model.of("")));
+			gebeurtenisBody.add(new WebMarkupContainer("screeningRondeGebeurtenissen.rondenr").setVisible(false));
 		}
 		else
 		{
@@ -80,18 +88,18 @@ public class GebeurtenisPopupBasePanel extends GenericPanel<ScreeningRondeGebeur
 		}
 
 		gebeurtenisBody.add(new Label("type", type));
-		getGebeurtenisDetailPanel(gebeurtenisBody, "details");
+		getGebeurtenisDetailPanel(gebeurtenisBody);
 	}
 
-	private void getGebeurtenisDetailPanel(WebMarkupContainer gebeurtenisBody, String id)
+	private void getGebeurtenisDetailPanel(WebMarkupContainer gebeurtenisBody)
 	{
 		List<Object> params = new ArrayList<>();
-		params.add(id);
+		params.add("details");
 		params.add(getModel());
 
 		try
 		{
-			Class<? extends AbstractGebeurtenisDetailPanel> detailPanelClass = getModelObject().getGebeurtenis().getDetailPanelClass();
+			Class<? extends AbstractGebeurtenisDetailPanel> detailPanelClass = typeGebeurtenis.getDetailPanelClass();
 			AbstractGebeurtenisDetailPanel detailPanel = (AbstractGebeurtenisDetailPanel) ConstructorUtils.invokeConstructor(detailPanelClass, params.toArray());
 			gebeurtenisBody.add(detailPanel);
 			detailPanel.addButton("button", this);
@@ -101,8 +109,16 @@ public class GebeurtenisPopupBasePanel extends GenericPanel<ScreeningRondeGebeur
 		}
 		catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e)
 		{
-			LOGGER.error("Fout bij maken van gebeurtenis detailpanel", e);
-			gebeurtenisBody.add(new EmptyPanel(id));
+
+			LOG.error("Fout bij maken van gebeurtenis detailpanel", e);
+			gebeurtenisBody.add(new EmptyPanel("details"));
 		}
+	}
+
+	@Override
+	protected void detachModel()
+	{
+		super.detachModel();
+		ModelUtil.nullSafeDetach(screeningRondeGebeurtenis);
 	}
 }

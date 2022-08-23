@@ -23,5 +23,5 @@ package nl.rivm.screenit.batch.jobs.cervix.cismigranten;
 
 public class CervixCISMigrantenConstants
 {
-    public static final String MIGRANT_UITNODIGINGEN_AANTAL_KEY = "migranten.uitnodigingen.aantal";
+	public static final String MIGRANT_UITNODIGINGEN_AANTAL_KEY = "migranten.uitnodigingen.aantal";
 }

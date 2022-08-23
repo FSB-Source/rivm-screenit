@@ -21,6 +21,10 @@ package nl.rivm.screenit.mamma.se.security;
  * =========================LICENSE_END==================================
  */
 
+import javax.annotation.PostConstruct;
+
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Gebruiker;
@@ -36,7 +40,6 @@ import nl.rivm.screenit.security.IScreenitRealm;
 import nl.rivm.screenit.security.InstellingGebruikerToken;
 import nl.rivm.screenit.security.MultipleAuthenticationSourceCredentialsMatcher;
 import nl.rivm.screenit.security.ScreenitPrincipal;
-import nl.rivm.screenit.security.ScreenitRealm;
 import nl.rivm.screenit.service.GebruikersService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.ScopeService;
@@ -60,15 +63,14 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.util.SimpleByteSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class SERealm extends AuthorizingRealm implements IScreenitRealm
 {
-	private static final Logger LOG = LoggerFactory.getLogger(ScreenitRealm.class);
-
 	private static final int YUBIKEY_SESSION_COUNTER_WRAP_AROUND_ALLOWED_RANGE = 200; 
 
 	private static final int YUBIKEY_MAX_SESSION_COUNTER_INCREASE = 1000; 
@@ -89,6 +91,7 @@ public class SERealm extends AuthorizingRealm implements IScreenitRealm
 	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
+	@PostConstruct
 	public void initRealm()
 	{
 		setCredentialsMatcher(new MultipleAuthenticationSourceCredentialsMatcher(

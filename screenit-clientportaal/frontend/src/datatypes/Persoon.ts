@@ -24,6 +24,7 @@ import {isNullOfLeeg} from "../utils/EmptyUtil"
 
 export type Persoon = {
 	id: number,
+	aanhef: string,
 	voorletters: string,
 	aanspreekTussenvoegselEnAchternaam: string,
 	bsn: string,
@@ -40,6 +41,10 @@ export type Persoon = {
 export const heeftTelefoonnummer = (persoon: Persoon): boolean => {
 	return (!isNullOfLeeg(persoon.telefoonnummer1))
 		|| (!isNullOfLeeg(persoon.telefoonnummer2))
+}
+
+export const heeftAanspreekVorm = (persoon: Persoon): boolean => {
+	return (!isNullOfLeeg(persoon.aanhef))
 }
 
 export const legePersoon = {} as Persoon

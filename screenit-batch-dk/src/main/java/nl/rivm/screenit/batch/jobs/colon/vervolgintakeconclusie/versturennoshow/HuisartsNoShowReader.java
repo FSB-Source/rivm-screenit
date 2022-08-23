@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.colon.vervolgintakeconclusie.versturennoshow
 import java.time.LocalDateTime;
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
@@ -40,23 +42,23 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class HuisartsNoShowReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 		Date conclusieMoetGegevenZijnOp = getNoShowDate();
 
-		Criteria criteria = session.createCriteria(ColonScreeningRonde.class);
+		var criteria = session.createCriteria(ColonScreeningRonde.class);
 		criteria.createAlias("dossier", "colonDossier");
 		criteria.createAlias("colonDossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");

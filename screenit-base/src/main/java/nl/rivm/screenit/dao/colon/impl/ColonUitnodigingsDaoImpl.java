@@ -61,7 +61,7 @@ public class ColonUitnodigingsDaoImpl extends AbstractAutowiredDao implements Co
 
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
 
-		criteria.add(Restrictions.eq("verstuurd", false));
+		criteria.add(Restrictions.isNull("verstuurdDatum"));
 		criteria.add(Restrictions.le("uitnodigingsDatum", currentDateSupplier.getDate()));
 
 		DetachedCriteria subquery = DetachedCriteria.forClass(ColonBrief.class, "brief");

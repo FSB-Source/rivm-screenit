@@ -24,11 +24,16 @@ package nl.rivm.screenit.dto.mamma;
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class MammaPalgaCsvImportDto implements Serializable
 {
 	private long pseudoId;
 
-	private Date geboortejaar;
+	private int geboortejaar;
 
 	private Date aanvangVerrichting;
 
@@ -44,7 +49,7 @@ public class MammaPalgaCsvImportDto implements Serializable
 
 	private String locatie;
 
-	private String LocatieInUren;
+	private String locatieInUren;
 
 	private String oestrogeenReceptorStatus;
 
@@ -58,247 +63,28 @@ public class MammaPalgaCsvImportDto implements Serializable
 
 	private String maligniteitsgraad;
 
-	private String ptnm;
+	private String pt;
 
-	private String stadiering;
+	private String pn;
+
+	private String typeInvasieveTumor;
+
+	private String graderingDcis;
+
+	private String typeNietEenduidigBenigneLaesies;
+
+	private String typeEenduidigBenigneLaesies;
+
+	private String typeCis;
 
 	private String versieProtocol;
 
-	private boolean isReedsAangeleverd = false;
+	private boolean reedsAangeleverd = false;
 
-	private boolean isPatid3 = false;
+	private boolean patid3 = false;
 
 	private int regelNummer;
 
-	private boolean heeftFout = false;
+	private boolean fout = false;
 
-	public long getPseudoId()
-	{
-		return pseudoId;
-	}
-
-	public void setPseudoId(long pseudoId)
-	{
-		this.pseudoId = pseudoId;
-	}
-
-	public Date getGeboortejaar()
-	{
-		return geboortejaar;
-	}
-
-	public void setGeboortejaar(Date geboortejaar)
-	{
-		this.geboortejaar = geboortejaar;
-	}
-
-	public Date getAanvangVerrichting()
-	{
-		return aanvangVerrichting;
-	}
-
-	public void setAanvangVerrichting(Date aanvangVerrichting)
-	{
-		this.aanvangVerrichting = aanvangVerrichting;
-	}
-
-	public Date getEindeVerrichting()
-	{
-		return eindeVerrichting;
-	}
-
-	public void setEindeVerrichting(Date eindeVerrichting)
-	{
-		this.eindeVerrichting = eindeVerrichting;
-	}
-
-	public Date getDatumOntvangstMateriaal()
-	{
-		return datumOntvangstMateriaal;
-	}
-
-	public void setDatumOntvangstMateriaal(Date datumOntvangstMateriaal)
-	{
-		this.datumOntvangstMateriaal = datumOntvangstMateriaal;
-	}
-
-	public Date getDatumEersteAutorisatie()
-	{
-		return datumEersteAutorisatie;
-	}
-
-	public void setDatumEersteAutorisatie(Date datumEersteAutorisatie)
-	{
-		this.datumEersteAutorisatie = datumEersteAutorisatie;
-	}
-
-	public String getVerkrijgingswijze()
-	{
-		return verkrijgingswijze;
-	}
-
-	public void setVerkrijgingswijze(String verkrijgingswijze)
-	{
-		this.verkrijgingswijze = verkrijgingswijze;
-	}
-
-	public String getZijdigheid()
-	{
-		return zijdigheid;
-	}
-
-	public void setZijdigheid(String zijdigheid)
-	{
-		this.zijdigheid = zijdigheid;
-	}
-
-	public String getLocatie()
-	{
-		return locatie;
-	}
-
-	public void setLocatie(String locatie)
-	{
-		this.locatie = locatie;
-	}
-
-	public String getLocatieInUren()
-	{
-		return LocatieInUren;
-	}
-
-	public void setLocatieInUren(String locatieInUren)
-	{
-		LocatieInUren = locatieInUren;
-	}
-
-	public String getOestrogeenReceptorStatus()
-	{
-		return oestrogeenReceptorStatus;
-	}
-
-	public void setOestrogeenReceptorStatus(String oestrogeenReceptorStatus)
-	{
-		this.oestrogeenReceptorStatus = oestrogeenReceptorStatus;
-	}
-
-	public String getProgesteronReceptorStatus()
-	{
-		return progesteronReceptorStatus;
-	}
-
-	public void setProgesteronReceptorStatus(String progesteronReceptorStatus)
-	{
-		this.progesteronReceptorStatus = progesteronReceptorStatus;
-	}
-
-	public String getHer2Status()
-	{
-		return her2Status;
-	}
-
-	public void setHer2Status(String her2Status)
-	{
-		this.her2Status = her2Status;
-	}
-
-	public String getbClassificatie()
-	{
-		return bClassificatie;
-	}
-
-	public void setbClassificatie(String bClassificatie)
-	{
-		this.bClassificatie = bClassificatie;
-	}
-
-	public String getcClassificatie()
-	{
-		return cClassificatie;
-	}
-
-	public void setcClassificatie(String cClassificatie)
-	{
-		this.cClassificatie = cClassificatie;
-	}
-
-	public String getMaligniteitsgraad()
-	{
-		return maligniteitsgraad;
-	}
-
-	public void setMaligniteitsgraad(String maligniteitsgraad)
-	{
-		this.maligniteitsgraad = maligniteitsgraad;
-	}
-
-	public String getPtnm()
-	{
-		return ptnm;
-	}
-
-	public void setPtnm(String ptnm)
-	{
-		this.ptnm = ptnm;
-	}
-
-	public String getStadiering()
-	{
-		return stadiering;
-	}
-
-	public void setStadiering(String stadiering)
-	{
-		this.stadiering = stadiering;
-	}
-
-	public String getVersieProtocol()
-	{
-		return versieProtocol;
-	}
-
-	public void setVersieProtocol(String versieProtocol)
-	{
-		this.versieProtocol = versieProtocol;
-	}
-
-	public boolean isReedsAangeleverd()
-	{
-		return isReedsAangeleverd;
-	}
-
-	public void setReedsAangeleverd(boolean reedsAangeleverd)
-	{
-		isReedsAangeleverd = reedsAangeleverd;
-	}
-
-	public boolean isPatid3()
-	{
-		return isPatid3;
-	}
-
-	public void setPatid3(boolean isPatid3)
-	{
-		this.isPatid3 = isPatid3;
-	}
-
-	public int getRegelNummer()
-	{
-		return regelNummer;
-	}
-
-	public void setRegelNummer(int regelNummer)
-	{
-		this.regelNummer = regelNummer;
-	}
-
-	public boolean heeftFout()
-	{
-		return heeftFout;
-	}
-
-	public void setHeeftFout(boolean heeftFout)
-	{
-		this.heeftFout = heeftFout;
-	}
 }

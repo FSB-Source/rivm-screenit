@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.brieven;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ColonBrievenConstants
 {
-
-	private ColonBrievenConstants()
-	{
-	}
 
 	@Deprecated
 	public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";

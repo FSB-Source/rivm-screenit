@@ -36,6 +36,9 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.ws.RequestWrapper;
 import javax.xml.ws.ResponseWrapper;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.algemeen.KoppelData;
 import nl.rivm.screenit.model.batch.BatchJob;
@@ -53,9 +56,6 @@ import nl.rivm.screenit.ws.inpakcentrum.KoppelDataResponse;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,25 +63,20 @@ import org.springframework.transaction.annotation.Transactional;
 import generated.KOPPELDATA;
 import generated.KOPPELDATA.VERZONDENUITNODIGING;
 
-@Service("InpakcentrumKoppelService_PortType")
+@Service
 @Transactional(propagation = Propagation.SUPPORTS)
 @WebService(targetNamespace = "http:screenit.rivm.nl/", name = "InpakcentrumKoppelService")
+@Slf4j
+@AllArgsConstructor
 public class InpakcentrumKoppelServiceImpl implements InpakcentrumKoppelService
 {
+	private final JobService jobService;
 
-	private static final Logger LOG = LoggerFactory.getLogger(InpakcentrumKoppelServiceImpl.class);
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private JobService jobService;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	@WebResult(name = "return", targetNamespace = "")

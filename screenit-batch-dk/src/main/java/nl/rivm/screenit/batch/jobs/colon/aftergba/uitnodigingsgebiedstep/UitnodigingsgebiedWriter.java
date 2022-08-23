@@ -21,17 +21,20 @@ package nl.rivm.screenit.batch.jobs.colon.aftergba.uitnodigingsgebiedstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Gemeente;
 import nl.rivm.screenit.service.GemeenteService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class UitnodigingsgebiedWriter extends BaseWriter<Gemeente>
 {
 
-	@Autowired
-	private GemeenteService gemeenteService;
+	private final GemeenteService gemeenteService;
 
 	@Override
 	public void write(Gemeente gemeente) throws Exception

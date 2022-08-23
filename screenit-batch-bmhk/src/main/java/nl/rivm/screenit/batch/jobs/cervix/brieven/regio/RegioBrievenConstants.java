@@ -21,13 +21,12 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class RegioBrievenConstants
 {
-
-	private RegioBrievenConstants()
-	{
-
-	}
 
 	public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";
 

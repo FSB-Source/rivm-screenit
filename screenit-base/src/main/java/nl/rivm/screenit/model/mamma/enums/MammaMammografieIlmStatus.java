@@ -22,6 +22,7 @@ package nl.rivm.screenit.model.mamma.enums;
  */
 
 import java.util.Arrays;
+import java.util.List;
 
 public enum MammaMammografieIlmStatus
 {
@@ -36,6 +37,8 @@ public enum MammaMammografieIlmStatus
 
 	VERWIJDERD;
 
+	public static final List<MammaMammografieIlmStatus> BEELDEN_BESCHIKBAAR_OF_BESCHIKBAAR_GEWEEST = Arrays.asList(BESCHIKBAAR, TE_VERWIJDEREN, VERWIJDEREN_MISLUKT, VERWIJDERD);
+
 	public static boolean beeldenBeschikbaar(MammaMammografieIlmStatus status)
 	{
 		return BESCHIKBAAR.equals(status);
@@ -43,7 +46,7 @@ public enum MammaMammografieIlmStatus
 
 	public static boolean beeldenBeschikbaarOfBeschikbaarGeweest(MammaMammografieIlmStatus status)
 	{
-		return Arrays.asList(BESCHIKBAAR, TE_VERWIJDEREN, VERWIJDEREN_MISLUKT, VERWIJDERD).contains(status);
+		return BEELDEN_BESCHIKBAAR_OF_BESCHIKBAAR_GEWEEST.contains(status);
 	}
 
 	public static boolean beeldenMogelijkAanwezig(MammaMammografieIlmStatus status)

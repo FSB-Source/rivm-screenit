@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag;
 
 /*-
@@ -22,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class GunstigeUitslagConstants
 {
-
-	private GunstigeUitslagConstants()
-	{
-	}
 
 	public static final String GESELECTEERD = "key.gunstigeuitslag.geselecteerd";
 }

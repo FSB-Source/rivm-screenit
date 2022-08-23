@@ -175,8 +175,7 @@ export default class AanvullendeInformatieView extends Component<AanvullendeInfo
 					<TextAreaValue
 						className={"mbb-signalering-text-area-input"} value={this.props.adviesHuisarts || ""}
 						disabled={this.props.disabled} maxLength={255} placeholder=""
-						onChange={this.adviesHuisartsDidChange} color={"lavender"}>
-					</TextAreaValue>
+						onChange={this.adviesHuisartsDidChange} color={"lavender"}/>
 				</div>
 				<div className={"mbb-signalering-row"}>
 					<AlleenOnlineButton className={"float-right"} label={"Meekijkverzoek LRCB"} online={this.props.online} onClick={(): void => {

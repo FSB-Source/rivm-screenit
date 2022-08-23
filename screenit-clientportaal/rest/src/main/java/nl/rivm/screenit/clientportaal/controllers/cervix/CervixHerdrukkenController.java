@@ -21,8 +21,9 @@ package nl.rivm.screenit.clientportaal.controllers.cervix;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.clientportaal.controllers.AbstractController;
+import lombok.AllArgsConstructor;
 
+import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.cervix.CervixBrief;
@@ -31,25 +32,28 @@ import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ClientService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("cervix/herdrukken")
 @RestController
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@AllArgsConstructor
 public class CervixHerdrukkenController extends AbstractController
 {
 
-	@Autowired
-	private BriefHerdrukkenService herdrukkenService;
+	private final BriefHerdrukkenService herdrukkenService;
 
-	@Autowired
-	private ClientService clientService;
+	private final ClientService clientService;
 
 	@PutMapping("aanvragen")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> vraagHerdrukAan(Authentication authentication)
 	{
 		Client client = getClient(authentication);

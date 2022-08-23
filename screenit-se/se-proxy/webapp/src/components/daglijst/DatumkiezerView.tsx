@@ -28,6 +28,7 @@ export type DatumkiezerViewDispatchProps = {
 const DatumkiezerView = (props: DatumkiezerViewStateProps & DatumkiezerViewDispatchProps): JSX.Element => {
 	return <div className="row datumkiezer-div">
 		<div className="col-10 row-no-gutters">
+			{}
 			<DatePicker
 				className="datumkiezer-view clickable"
 				locale="nl"
@@ -35,8 +36,9 @@ const DatumkiezerView = (props: DatumkiezerViewStateProps & DatumkiezerViewDispa
 				highlightDates={getHighlightDates(props)}
 				onChange={(newDate: Date): void => {
 					props.onChooseDate(moment(newDate).format("YYYY-MM-DD"), props.online, props.dagenDaglijstOphalenLimiet)
-				}}>
-			</DatePicker>
+				}}
+				onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>): void => event.preventDefault()}
+			/>
 		</div>
 		<div className="col-2 datumkiezer-icon">
 			<i className="fa fa-calendar px-1 py-1"/>

@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.wsb.pd.service.impl;
 
 /*-
@@ -22,13 +21,15 @@ package nl.rivm.screenit.wsb.pd.service.impl;
  * =========================LICENSE_END==================================
  */
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.ws.Holder;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.hl7v3.cda.ClinicalDocument;
 import nl.rivm.screenit.hl7v3.cda.II;
@@ -62,32 +63,25 @@ import org.apache.cxf.annotations.SchemaValidation;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptorChain;
 import org.apache.cxf.transport.http.AbstractHTTPDestination;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Service("ProvideDocument_PortType")
+@Service
 @Transactional(propagation = Propagation.SUPPORTS)
 @SchemaValidation
+@Slf4j
+@AllArgsConstructor
 public class ProvideDocumentPortTypeImpl implements ProvideDocumentPortType
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ProvideDocumentPortTypeImpl.class);
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final CdaVerslagService cdaVerslagService;
 
-	@Autowired
-	private CdaVerslagService cdaVerslagService;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	private void provideDocument(DocumentMetaData documentMetaData, byte[] document, Holder<Boolean> success, Holder<String> code, Holder<String> text, String remoteAddr)
 	{

@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client.cleanupstep;
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpReader;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CervixBriefCleanupReader extends AbstractBrievenCleanUpReader<CervixMergedBrieven>
 {
 

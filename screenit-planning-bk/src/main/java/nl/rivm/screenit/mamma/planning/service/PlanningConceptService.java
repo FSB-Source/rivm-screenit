@@ -22,14 +22,20 @@ package nl.rivm.screenit.mamma.planning.service;
  */
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
+import nl.rivm.screenit.exceptions.OpslaanVerwijderenTijdBlokException;
+import nl.rivm.screenit.mamma.planning.model.PlanningDag;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
 import nl.rivm.screenit.mamma.planning.model.PlanningWeek;
 
 public interface PlanningConceptService
 {
-	void herhalen(PlanningScreeningsEenheid screeningsEenheidVan, PlanningScreeningsEenheid screeningsEenheidNaar, PlanningWeek teHerhalenWeek, LocalDate herhalenVanaf,
+	void herhalen(PlanningScreeningsEenheid bronScreeningsEenheid, PlanningScreeningsEenheid doelScreeningsEenheid, PlanningWeek teHerhalenWeek, LocalDate herhalenVanaf,
 		LocalDate herhalenTotEnMet);
 
 	void herhalen(LocalDate herhalenVanaf);
+
+	PlanningDag kopieerDag(PlanningScreeningsEenheid bronScreeningsEenheid, PlanningScreeningsEenheid doelScreeningsEenheid, LocalDate bronDate, LocalTime bronVanTijd,
+		LocalTime bronTotTijd, LocalDate doelDate) throws OpslaanVerwijderenTijdBlokException;
 }

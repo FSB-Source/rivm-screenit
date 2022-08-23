@@ -1,0 +1,13 @@
+{
+  "required": "Dit veld is verplicht",
+  "minLength": "%s moet minstens ${min} tekens bevatten",
+  "maxLength": "%s mag hoogstens ${max} tekens bevatten",
+  "wachtwoord": "Zorg dat het wachtwoord minimaal 1 hoofdletter, 1 kleine letter, 1 nummer en 1 speciaal teken bevat",
+  "wachtwoordControle": "Dit veld moet overeenkomen met het vorige veld",
+  "email": "Dit veld moet minimaal een @ en een punt bevatten",
+  "min": "De minimale waarde moet hoger dan ${min} zijn",
+  "postcode": "Zorg dat de postcode 4 cijfers en 2 letters bevat",
+  "zorgmailklantnummer": "Het zorgmail klantnummer kan alleen cijfers bevatten",
+  "iban": "Geef een geldige IBAN op",
+  "type": "Dit veld mag alleen cijfers bevatten"
+}

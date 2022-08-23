@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
 
 /*-
@@ -22,6 +21,10 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.parameterisatie;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import nl.rivm.screenit.main.model.Parameterisatie;
 import nl.rivm.screenit.main.service.ParameterisatieService;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -29,6 +32,8 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.enums.ToegangLevel;
+import nl.rivm.screenit.model.mamma.MammaUitnodigingsinterval;
+import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -42,15 +47,16 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	constraint = ShiroConstraint.HasPermission)
 public class MammaParameterisatiePage extends ParameterisatieBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
 	private ParameterisatieService parameterisatieService;
 
 	public MammaParameterisatiePage()
 	{
-		Parameterisatie parameteriastie = parameterisatieService.loadParameterisatie();
-		add(new MammaPrimaireParametersPanel("landelijkeParameters", new Model<>(parameteriastie)));
+		Parameterisatie parameterisatie = parameterisatieService.loadParameterisatie();
+		add(new MammaPrimaireParametersPanel("landelijkeParameters", new Model<>(parameterisatie)));
+
+		List<MammaUitnodigingsinterval> intervalParameters = new ArrayList<>(parameterisatieService.getMammmaIntervalParameters());
+		intervalParameters.sort(Comparator.comparing(o -> o.getType().ordinal()));
+		add(new MammaIntervalParameters("interval", ModelUtil.listModel(intervalParameters, false)));
 	}
 }

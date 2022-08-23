@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
+import nl.rivm.screenit.main.web.component.validator.StringIsIntegerValidator;
 import nl.rivm.screenit.model.ProjectParameter;
 import nl.rivm.screenit.model.ProjectParameterKey;
 import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
@@ -40,7 +41,6 @@ import nl.rivm.screenit.util.BigDecimalUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.wicket.hibernate.markup.form.validation.UniqueFieldValidator;
-import nl.topicuszorg.wicket.input.validator.StringIsNumberValidator;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -200,8 +200,8 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 
 	private void addIntegerValidators(ProjectParameterKey parameterKey, FormComponent<String> valueField)
 	{
-		valueField.add(new StringIsNumberValidator());
-		valueField.add(new RangeValidator<>(0, parameterKey.getMaxValue())
+		valueField.add(new StringIsIntegerValidator());
+		valueField.add(new RangeValidator<>(parameterKey.getMinValue(), parameterKey.getMaxValue())
 		{
 			@Override
 			protected Integer getValue(IValidatable<Integer> validatable)
@@ -218,7 +218,7 @@ public class EditProjectParametersPanel extends GenericPanel<Project>
 
 	private void addBigDecimalValidator(ProjectParameterKey parameterKey, FormComponent<String> valueField)
 	{
-		valueField.add(new RangeValidator<>(BigDecimal.ZERO, BigDecimal.valueOf(parameterKey.getMaxValue()))
+		valueField.add(new RangeValidator<>(BigDecimal.valueOf(parameterKey.getMinValue()), BigDecimal.valueOf(parameterKey.getMaxValue()))
 		{
 
 			@Override

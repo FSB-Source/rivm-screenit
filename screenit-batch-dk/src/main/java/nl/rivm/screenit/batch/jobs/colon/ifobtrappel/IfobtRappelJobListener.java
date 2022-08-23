@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.ifobtrappel;
 
 /*-
@@ -30,8 +29,9 @@ import nl.rivm.screenit.model.logging.IfobtHerinneringBeeindigdLogEvent;
 import nl.rivm.screenit.model.logging.LogEvent;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class IfobtRappelJobListener extends BaseLogListener
 {
 
@@ -75,9 +75,9 @@ public class IfobtRappelJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent logEvent = super.eindLogging(jobExecution);
-		ExecutionContext context = jobExecution.getExecutionContext();
-		IfobtHerinneringBeeindigdLogEvent herinneringLogEvent = (IfobtHerinneringBeeindigdLogEvent) logEvent;
+		var logEvent = super.eindLogging(jobExecution);
+		var context = jobExecution.getExecutionContext();
+		var herinneringLogEvent = (IfobtHerinneringBeeindigdLogEvent) logEvent;
 		herinneringLogEvent.setAantalGeselecteerd(context.getInt(IfobtRappelJobConstants.GESELECTEERD));
 		herinneringLogEvent.setAantalHerinnering(context.getInt(IfobtRappelJobConstants.HERINNERD));
 

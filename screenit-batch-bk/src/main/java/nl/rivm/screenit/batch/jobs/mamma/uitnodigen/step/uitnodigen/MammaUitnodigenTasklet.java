@@ -24,31 +24,23 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.step.uitnodigen;
 import javax.annotation.PostConstruct;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
-import nl.rivm.screenit.model.ScreeningOrganisatie;
-import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
-import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaUitnodigenRapportage;
 import nl.rivm.screenit.util.rest.RestApiFactory;
 
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepContribution;
-import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MammaUitnodigenTasklet implements Tasklet
 {
 	@Autowired
 	@Qualifier("planningBkRestUrl")
 	private String planningBkRestUrl;
-
-	@Autowired
-	private HibernateService hibernateService;
 
 	@PostConstruct
 	public void init()
@@ -62,11 +54,10 @@ public class MammaUitnodigenTasklet implements Tasklet
 	@Override
 	public RepeatStatus execute(StepContribution stepContribution, ChunkContext chunkContext)
 	{
-		RestTemplate restApi = RestApiFactory.create();
-		Long rapportageId = restApi.postForEntity(planningBkRestUrl + PlanningRestConstants.C_UITNODIGEN, null, Long.class).getBody();
+		var restApi = RestApiFactory.create();
+		var rapportageId = restApi.postForEntity(planningBkRestUrl + PlanningRestConstants.C_UITNODIGEN, null, Long.class).getBody();
 
-		StepExecution stepExecution = chunkContext.getStepContext().getStepExecution();
-		JobExecution jobExecution = stepExecution.getJobExecution();
+		var jobExecution = chunkContext.getStepContext().getStepExecution().getJobExecution();
 
 		jobExecution.getExecutionContext().put("rapportageId", rapportageId);
 

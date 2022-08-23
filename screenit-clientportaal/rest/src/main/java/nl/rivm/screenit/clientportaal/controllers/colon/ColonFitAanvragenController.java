@@ -21,26 +21,30 @@ package nl.rivm.screenit.clientportaal.controllers.colon;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.clientportaal.model.colon.ColonFitStatusDto;
 import nl.rivm.screenit.clientportaal.services.colon.ColonFitService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("colon/fit")
 @RestController
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class ColonFitAanvragenController extends AbstractController
 {
-	@Autowired
-	private ColonFitService fitService;
+	private final ColonFitService fitService;
 
 	@GetMapping("status")
 	public ResponseEntity<ColonFitStatusDto> getFitStatus(Authentication authentication)
@@ -55,6 +59,7 @@ public class ColonFitAanvragenController extends AbstractController
 	}
 
 	@PutMapping("aanvragen")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<Void> vraagFitAan(Authentication authentication)
 	{
 		Client client = getClient(authentication);

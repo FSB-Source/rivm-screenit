@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.selectie;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SelectieConstants
 {
-
-	private SelectieConstants()
-	{
-	}
 
 	public final static String RAPPORTAGEKEYSELECTIE = "key.colon.selectierapportage";
 

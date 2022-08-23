@@ -24,6 +24,8 @@ package nl.rivm.screenit.batch.jobs.mamma.palga.csvimport.step;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.BaseCsvFileReader;
 import nl.rivm.screenit.batch.jobs.BatchConstants;
@@ -33,17 +35,15 @@ import nl.rivm.screenit.service.mamma.MammaPalgaCsvImportMapping;
 import nl.rivm.screenit.service.mamma.MammaPalgaService;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+@Slf4j
 public class MammaPalgaCsvImportReader extends BaseCsvFileReader<MammaPalgaCsvImportDto>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaPalgaCsvImportReader.class);
 
 	private MammaPalgaCsvImportMapping importMapping = null;
 
-	private static final int ROW_LENGTH = 21;
+	private static final int ROW_LENGTH = 26;
 
 	private static final int HEADER_ROW = 1;
 
@@ -55,7 +55,8 @@ public class MammaPalgaCsvImportReader extends BaseCsvFileReader<MammaPalgaCsvIm
 	{
 		MammaPalgaCsvImportDto importDto = new MammaPalgaCsvImportDto();
 		importDto.setRegelNummer(regelnummer);
-		if (regelnummer == HEADER_ROW && Arrays.asList(line).contains("PseudoID"))
+
+		if (regelnummer == HEADER_ROW && Arrays.stream(line).anyMatch(l -> StringUtils.equalsIgnoreCase("PseudoID", l)))
 		{
 			importMapping = palgaService.maakImportDtoMapping(line);
 		}
@@ -63,11 +64,10 @@ public class MammaPalgaCsvImportReader extends BaseCsvFileReader<MammaPalgaCsvIm
 		{
 			try
 			{
-				SimpleDateFormat yearFormat = new SimpleDateFormat("yyyy");
 				SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.DEFAULT_DATE_FORMAT);
 
 				importDto.setPseudoId((Long.parseLong(line[importMapping.getPseudoId()])));
-				importDto.setGeboortejaar(yearFormat.parse(line[importMapping.getGeboortejaar()]));
+				importDto.setGeboortejaar(Integer.parseUnsignedInt(line[importMapping.getGeboortejaar()]));
 				String aanVangVerrichting = line[importMapping.getAanvangVerrichting()];
 				if (StringUtils.isNotBlank(aanVangVerrichting))
 				{
@@ -83,11 +83,16 @@ public class MammaPalgaCsvImportReader extends BaseCsvFileReader<MammaPalgaCsvIm
 				importDto.setOestrogeenReceptorStatus(StringUtils.defaultIfBlank(line[importMapping.getOestrogeenReceptorStatus()], null));
 				importDto.setProgesteronReceptorStatus(StringUtils.defaultIfBlank(line[importMapping.getProgesteronReceptorStatus()], null));
 				importDto.setHer2Status(StringUtils.defaultIfBlank(line[importMapping.getHer2Status()], null));
-				importDto.setbClassificatie(StringUtils.defaultIfBlank(line[importMapping.getbClassificatie()], null));
-				importDto.setcClassificatie(StringUtils.defaultIfBlank(line[importMapping.getcClassificatie()], null));
+				importDto.setBClassificatie(StringUtils.defaultIfBlank(line[importMapping.getBClassificatie()], null));
+				importDto.setCClassificatie(StringUtils.defaultIfBlank(line[importMapping.getCClassificatie()], null));
 				importDto.setMaligniteitsgraad(StringUtils.defaultIfBlank(line[importMapping.getMaligniteitsgraad()], null));
-				importDto.setPtnm(StringUtils.defaultIfBlank(line[importMapping.getPtnm()], null));
-				importDto.setStadiering(StringUtils.defaultIfBlank(line[importMapping.getStadiering()], null));
+				importDto.setPt(StringUtils.defaultIfBlank(line[importMapping.getPt()], null));
+				importDto.setPn(StringUtils.defaultIfBlank(line[importMapping.getPn()], null));
+				importDto.setTypeInvasieveTumor(StringUtils.defaultIfBlank(line[importMapping.getTypeInvasieveTumor()], null));
+				importDto.setGraderingDcis(StringUtils.defaultIfBlank(line[importMapping.getGraderingDcis()], null));
+				importDto.setTypeNietEenduidigBenigneLaesies(StringUtils.defaultIfBlank(line[importMapping.getTypeNietEenduidigBenigneLaesies()], null));
+				importDto.setTypeEenduidigBenigneLaesies(StringUtils.defaultIfBlank(line[importMapping.getTypeEenduidigBenigneLaesies()], null));
+				importDto.setTypeCis(StringUtils.defaultIfBlank(line[importMapping.getTypeCis()], null));
 				String versieProtocol = line[importMapping.getVersieProtocol()];
 				importDto.setVersieProtocol(StringUtils.defaultIfBlank(versieProtocol, null));
 
@@ -127,7 +132,7 @@ public class MammaPalgaCsvImportReader extends BaseCsvFileReader<MammaPalgaCsvIm
 
 	private void logFout(Exception e, MammaPalgaCsvImportDto dto)
 	{
-		dto.setHeeftFout(true);
+		dto.setFout(true);
 		String errorMessage = "#" + dto.getRegelNummer() + ": technisch";
 
 		String melding = (getExecutionContext().containsKey(BatchConstants.MELDING) ? getExecutionContext().getString(BatchConstants.MELDING) + errorMessage

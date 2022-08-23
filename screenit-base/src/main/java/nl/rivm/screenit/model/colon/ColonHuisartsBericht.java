@@ -30,7 +30,9 @@ import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.HuisartsBericht;
@@ -39,6 +41,8 @@ import nl.rivm.screenit.model.OnbekendeHuisarts;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Setter
+@Getter
 @Entity
 @Table(schema = "colon")
 @Audited
@@ -63,68 +67,4 @@ public class ColonHuisartsBericht extends HuisartsBericht
 
 	private Date verzendDatum;
 
-	@Transient
-	private boolean opnieuwVerzonden;
-
-	public EnovationHuisarts getHuisarts()
-	{
-		return huisarts;
-	}
-
-	public void setHuisarts(EnovationHuisarts huisarts)
-	{
-		this.huisarts = huisarts;
-	}
-
-	@Deprecated
-	public OnbekendeHuisarts getOnbekendeHuisarts()
-	{
-		return onbekendeHuisarts;
-	}
-
-	@Deprecated
-	public void setOnbekendeHuisarts(OnbekendeHuisarts onbekendeHuisarts)
-	{
-		this.onbekendeHuisarts = onbekendeHuisarts;
-	}
-
-	public ColonScreeningRonde getScreeningsRonde()
-	{
-		return screeningsRonde;
-	}
-
-	public void setScreeningsRonde(ColonScreeningRonde screeningsRonde)
-	{
-		this.screeningsRonde = screeningsRonde;
-	}
-
-	public ColonHuisartsBerichtStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(ColonHuisartsBerichtStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getVerzendDatum()
-	{
-		return verzendDatum;
-	}
-
-	public void setVerzendDatum(Date verzendDatum)
-	{
-		this.verzendDatum = verzendDatum;
-	}
-
-	public boolean isOpnieuwVerzonden()
-	{
-		return opnieuwVerzonden;
-	}
-
-	public void setOpnieuwVerzonden(boolean opnieuwVerzonden)
-	{
-		this.opnieuwVerzonden = opnieuwVerzonden;
-	}
 }

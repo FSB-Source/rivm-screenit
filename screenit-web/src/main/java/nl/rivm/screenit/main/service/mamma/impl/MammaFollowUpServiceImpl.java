@@ -40,9 +40,12 @@ import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
+import nl.rivm.screenit.model.mamma.verslag.MammaVerslag;
+import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,13 +68,16 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 	private LogService logService;
 
 	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
-
-	@Autowired
 	private MammaBaseFollowUpService baseFollowUpService;
 
 	@Autowired
 	private MammaConclusieReviewService conclusieReviewService;
+
+	@Autowired
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
+
+	@Autowired
+	private BaseVerslagService verslagService;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -87,7 +93,6 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_RADIOLOGIE_VERSLAG_OPGESLAGEN, loggedInInstellingGebruiker, screeningRonde.getDossier().getClient(),
 			Bevolkingsonderzoek.MAMMA);
-
 	}
 
 	@Override
@@ -95,7 +100,7 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 	public void saveFollowUpConclusieStatus(MammaScreeningRonde screeningRonde, MammaFollowUpConclusieStatus followUpConclusieStatus,
 		Account loggedInInstellingGebruiker)
 	{
-		Date nu = currentDateSupplier.getDate();
+		Date nu = dateSupplier.getDate();
 
 		screeningRonde.setFollowUpConclusieStatus(followUpConclusieStatus);
 		screeningRonde.setFollowUpConclusieStatusGewijzigdOp(nu);
@@ -105,6 +110,10 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 		baseFollowUpService.refreshUpdateFollowUpConclusie(screeningRonde.getDossier());
 
 		conclusieReviewService.maakConclusieReviewVoorBetrokkenRadiologen(screeningRonde);
+
+		volgendeUitnodigingService.updateVolgendeUitnodigingNaFollowUpConclusie(screeningRonde);
+
+		verwijderElectronischePalgaVerslagen(screeningRonde);
 
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_FOLLOW_UP_CONCLUSIE, loggedInInstellingGebruiker, screeningRonde.getDossier().getClient(),
 			"Conclusie: " + followUpConclusieStatus, Bevolkingsonderzoek.MAMMA);
@@ -176,7 +185,20 @@ public class MammaFollowUpServiceImpl implements MammaFollowUpService
 	{
 		return screeningRonde.getFollowUpVerslagen().stream()
 			.filter(v -> v.getStatus().equals(VerslagStatus.AFGEROND))
-			.sorted(Comparator.comparing(x -> x.getDatumVerwerkt(), Comparator.reverseOrder()))
+			.sorted(Comparator.comparing(MammaVerslag::getDatumVerwerkt, Comparator.reverseOrder()))
 			.collect(Collectors.toList());
+	}
+
+	private void verwijderElectronischePalgaVerslagen(MammaScreeningRonde screeningRonde)
+	{
+		if (MammaFollowUpConclusieStatus.TRUE_NEGATIVE == screeningRonde.getFollowUpConclusieStatus())
+		{
+			getTeVerwijderenVerslagen(screeningRonde).forEach(verslag -> verslagService.verwijderVerslag(verslag, null, false));
+		}
+	}
+
+	private List<MammaFollowUpVerslag> getTeVerwijderenVerslagen(MammaScreeningRonde screeningRonde)
+	{
+		return getAfgerondeFollowUpPathologieVerslagen(screeningRonde).stream().filter(verslag -> verslagService.isElektronischPalgaVerslag(verslag)).collect(Collectors.toList());
 	}
 }

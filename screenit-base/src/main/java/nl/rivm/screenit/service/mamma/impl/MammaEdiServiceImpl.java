@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.edi.model.MedVryOut;
 import nl.rivm.screenit.edi.model.OutboundMessageData;
@@ -47,24 +50,19 @@ import nl.rivm.screenit.util.NaamUtil;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5SessionInThread;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS)
 public class MammaEdiServiceImpl extends EdiServiceBaseImpl implements MammaEdiService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(MammaEdiServiceImpl.class);
-
 	private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-	@Autowired
-	private ClientService clientService;
+	private final ClientService clientService;
 
 	@Override
 	public void verstuurMedVry(MammaHuisartsBericht huisartsBericht, boolean async)

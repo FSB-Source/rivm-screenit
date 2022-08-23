@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -32,12 +31,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import javax.management.MBeanServer;
-import javax.servlet.SessionCookieConfig;
-
 import net.ftlines.wicketsource.WicketSource;
-import net.sf.ehcache.CacheManager;
-import net.sf.ehcache.management.ManagementService;
 
 import nl.dries.wicket.hibernate.dozer.SessionFinder;
 import nl.dries.wicket.hibernate.dozer.SessionFinderHolder;
@@ -58,7 +52,6 @@ import nl.rivm.screenit.main.web.gebruiker.login.MedewerkerLoginMethodPage;
 import nl.rivm.screenit.main.web.gebruiker.login.OrganisatieSelectiePage;
 import nl.rivm.screenit.main.web.gebruiker.login.PasswordChangePage;
 import nl.rivm.screenit.main.web.gebruiker.login.UitwisselportaalLoginPage;
-import nl.rivm.screenit.main.web.gebruiker.login.uzipas.CheckUzipas;
 import nl.rivm.screenit.main.web.security.ScreenitAnnotationsShiroAuthorizationStrategy;
 import nl.rivm.screenit.main.web.security.ScreenitShiroUnauthorizedComponentListener;
 import nl.rivm.screenit.model.envers.RevisionInformationResolver;
@@ -84,6 +77,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.AjaxRequestTarget.IJavaScriptResponse;
 import org.apache.wicket.ajax.AjaxRequestTarget.IListener;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.coop.CrossOriginOpenerPolicyConfiguration;
 import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.util.crypt.KeyInSessionSunJceCryptFactory;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxLazyLoadPanel;
@@ -106,10 +100,9 @@ import org.slf4j.LoggerFactory;
 
 import com.googlecode.wicket.jquery.ui.settings.JQueryUILibrarySettings;
 
+@org.springframework.stereotype.Component
 public class ScreenitApplication extends WebApplication
 {
-	public static final String CHECK_UZIPAS_MOUNT = "uzipas";
-
 	private static final int AANTAL_REQUESTS = 3000;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ScreenitApplication.class);
@@ -117,12 +110,6 @@ public class ScreenitApplication extends WebApplication
 	public static final String UITWISSELPORTAAL_MOUNT = "uitwisselportaal";
 
 	private static String sessionAttributePrefix;
-
-	private String version = "unknown";
-
-	private String timestamp;
-
-	private String buildnumber;
 
 	private String versionString;
 
@@ -144,6 +131,8 @@ public class ScreenitApplication extends WebApplication
 		getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
 
 		getRequestCycleListeners().add(new ScreenITCsrfRequestCycleListener());
+		getCspSettings().blocking().disabled();
+		getSecuritySettings().setCrossOriginOpenerPolicyConfiguration(CrossOriginOpenerPolicyConfiguration.CoopMode.SAME_ORIGIN_ALLOW_POPUPS);
 
 		ScreenitAnnotationsShiroAuthorizationStrategy authz = new ScreenitAnnotationsShiroAuthorizationStrategy();
 		getSecuritySettings().setAuthorizationStrategy(authz);
@@ -155,7 +144,6 @@ public class ScreenitApplication extends WebApplication
 		getSecuritySettings().setCryptFactory(new KeyInSessionSunJceCryptFactory());
 
 		mountPage("medewerkerportaal", MedewerkerLoginMethodPage.class);
-		mountPage(CHECK_UZIPAS_MOUNT, CheckUzipas.class);
 		mountPage("passwordchange", PasswordChangePage.class);
 		mountPage(UITWISSELPORTAAL_MOUNT, UitwisselportaalLoginPage.class);
 
@@ -170,10 +158,10 @@ public class ScreenitApplication extends WebApplication
 					if (map != null && map.size() == 1 && map.values().toArray()[0] instanceof AjaxLazyLoadPanel)
 					{
 						boolean sessionFeedbackMessages = !Session.get().getFeedbackMessages().isEmpty();
-						boolean ajaxLazyLoadPanelFeedbackMessages = !((AjaxLazyLoadPanel) map.values().toArray()[0]).getFeedbackMessages().isEmpty();
+						boolean ajaxLazyLoadPanelFeedbackMessages = !((AjaxLazyLoadPanel<?>) map.values().toArray()[0]).getFeedbackMessages().isEmpty();
 						List<FeedbackMessages> childsFeedbackMessages = new ArrayList<>();
 
-						((AjaxLazyLoadPanel) map.values().toArray()[0]).visitChildren((component, iVisit) ->
+						((AjaxLazyLoadPanel<?>) map.values().toArray()[0]).visitChildren((component, iVisit) ->
 						{
 							if (!component.getFeedbackMessages().isEmpty())
 							{
@@ -221,32 +209,10 @@ public class ScreenitApplication extends WebApplication
 			}
 		});
 
-		if (RuntimeConfigurationType.DEPLOYMENT == getConfigurationType())
-		{
-			SessionCookieConfig cookieConfig = getServletContext().getSessionCookieConfig();
-			cookieConfig.setDomain("vervangen-in-reverse-proxy.landelijkescreening.nl");
-		}
-		else
+		if (RuntimeConfigurationType.DEPLOYMENT != getConfigurationType())
 		{
 			getRequestCycleListeners().add(new EntityAndSerializableCheckerListener(new Class[] { OrganisatieSelectiePage.class }, true));
 			WicketSource.configure(this);
-			allowUnsecureCookies();
-		}
-		List<CacheManager> cacheManagers = CacheManager.ALL_CACHE_MANAGERS;
-		for (CacheManager cacheManager : cacheManagers)
-		{
-			try
-			{
-				MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-				if (mBeanServer != null)
-				{
-					ManagementService.registerMBeans(cacheManager, mBeanServer, false, false, false, true);
-				}
-			}
-			catch (Exception e)
-			{
-				LOG.error(e.getMessage(), e);
-			}
 		}
 
 		getJavaScriptLibrarySettings().setJQueryReference(JQueryResourceReference.getV3());
@@ -257,15 +223,6 @@ public class ScreenitApplication extends WebApplication
 		initRequestLogger();
 
 		initDistributedJettySessions();
-	}
-
-	private void allowUnsecureCookies()
-	{
-		var cookieConfig = getServletContext().getSessionCookieConfig();
-		if (cookieConfig != null)
-		{
-			cookieConfig.setSecure(false);
-		}
 	}
 
 	protected void initSpring()
@@ -280,25 +237,25 @@ public class ScreenitApplication extends WebApplication
 		try (InputStream resourceAsStream = this.getClass().getResourceAsStream("/build-info.properties"))
 		{
 			applicationProperties.load(resourceAsStream);
-			version = applicationProperties.getProperty("build.version");
-			timestamp = applicationProperties.getProperty("build.time");
+			String version = applicationProperties.getProperty("build.version");
+			String timestamp = applicationProperties.getProperty("build.time");
 			versieBuilder.append(version);
 			if ("SNAPSHOT".equals(version))
 			{
-				buildnumber = applicationProperties.getProperty("build.number");
+				String buildnumber = applicationProperties.getProperty("build.number");
 
 				if (!"${BUILD_NUMBER}".equals(buildnumber))
 				{
 					versieBuilder.append("-").append(buildnumber);
 				}
 
-				LOG.info("ScreenIT build #" + buildnumber);
+				LOG.info("ScreenIT build #{}", buildnumber);
 			}
 			else
 			{
-				LOG.info("ScreenIT versie " + version);
+				LOG.info("ScreenIT versie {}", version);
 			}
-			LOG.info("Build datum: " + timestamp);
+			LOG.info("Build datum: {}", timestamp);
 
 		}
 		catch (IOException e)
@@ -310,10 +267,9 @@ public class ScreenitApplication extends WebApplication
 
 	private void initRequestLogger()
 	{
-
 		RequestLoggerSettings reqLogger = getRequestLoggerSettings();
-
 		reqLogger.setRequestLoggerEnabled(true);
+		reqLogger.setRecordSessionSize(false);
 
 		reqLogger.setRequestsWindowSize(AANTAL_REQUESTS);
 	}
@@ -371,39 +327,30 @@ public class ScreenitApplication extends WebApplication
 	@Override
 	public final Supplier<IExceptionMapper> getExceptionMapperProvider()
 	{
-		return new Supplier<IExceptionMapper>()
+		return () -> new DefaultExceptionMapper()
 		{
 
 			@Override
-			public IExceptionMapper get()
+			protected IRequestHandler mapUnexpectedExceptions(Exception e, Application application)
 			{
-				return new DefaultExceptionMapper()
+				final ExceptionSettings.UnexpectedExceptionDisplay unexpectedExceptionDisplay = application.getExceptionSettings()
+					.getUnexpectedExceptionDisplay();
+
+				LOG.error("Unexpected error occurred", e);
+
+				if (ExceptionSettings.SHOW_EXCEPTION_PAGE.equals(unexpectedExceptionDisplay))
 				{
+					Page currentPage = extractCurrentPage();
+					return createPageRequestHandler(new PageProvider(new ExceptionErrorPage(e,
+						currentPage)));
+				}
+				else if (ExceptionSettings.SHOW_INTERNAL_ERROR_PAGE.equals(unexpectedExceptionDisplay))
+				{
+					return createPageRequestHandler(new PageProvider(application.getApplicationSettings().getInternalErrorPage()));
 
-					@Override
-					protected IRequestHandler mapUnexpectedExceptions(Exception e, Application application)
-					{
-						final ExceptionSettings.UnexpectedExceptionDisplay unexpectedExceptionDisplay = application.getExceptionSettings()
-							.getUnexpectedExceptionDisplay();
+				}
 
-						LOG.error("Unexpected error occurred", e);
-
-						if (ExceptionSettings.SHOW_EXCEPTION_PAGE.equals(unexpectedExceptionDisplay))
-						{
-							Page currentPage = extractCurrentPage();
-							return createPageRequestHandler(new PageProvider(new ExceptionErrorPage(e,
-								currentPage)));
-						}
-						else if (ExceptionSettings.SHOW_INTERNAL_ERROR_PAGE.equals(unexpectedExceptionDisplay))
-						{
-							return createPageRequestHandler(new PageProvider(application.getApplicationSettings().getInternalErrorPage()));
-
-						}
-
-						return new ErrorCodeRequestHandler(500);
-					}
-
-				};
+				return new ErrorCodeRequestHandler(500);
 			}
 
 		};

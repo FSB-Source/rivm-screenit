@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.main.model;
 
 /*-
@@ -22,15 +21,18 @@ package nl.rivm.screenit.main.model;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.model.enums.GebeurtenisBron;
-
 import java.io.Serializable;
 import java.util.Date;
 
+import lombok.Getter;
+import lombok.Setter;
+
+import nl.rivm.screenit.model.enums.GebeurtenisBron;
+
+@Setter
+@Getter
 public abstract class DossierGebeurtenis implements Serializable
 {
-
-	private static final long serialVersionUID = 1L;
 
 	private Date tijd;
 
@@ -46,36 +48,6 @@ public abstract class DossierGebeurtenis implements Serializable
 	public DossierGebeurtenis(Date tijd)
 	{
 		this.tijd = tijd;
-	}
-
-	public Date getTijd()
-	{
-		return tijd;
-	}
-
-	public void setTijd(Date tijd)
-	{
-		this.tijd = tijd;
-	}
-
-	public DossierGebeurtenisType getDossierGebeurtenisType()
-	{
-		return dossierGebeurtenisType;
-	}
-
-	public void setDossierGebeurtenisType(DossierGebeurtenisType dossierGebeurtenisType)
-	{
-		this.dossierGebeurtenisType = dossierGebeurtenisType;
-	}
-
-	public GebeurtenisBron getBron()
-	{
-		return bron;
-	}
-
-	public void setBron(GebeurtenisBron bron)
-	{
-		this.bron = bron;
 	}
 
 }

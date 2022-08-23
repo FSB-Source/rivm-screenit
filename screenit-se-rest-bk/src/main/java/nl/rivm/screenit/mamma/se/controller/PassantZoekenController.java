@@ -27,13 +27,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import nl.rivm.screenit.mamma.se.dto.ErrorDto;
 import nl.rivm.screenit.mamma.se.security.SEAccountResolverDelegate;
-import nl.rivm.screenit.mamma.se.service.MammaScreeningsEenheidService;
 import nl.rivm.screenit.mamma.se.service.PassantInschrijvenValidatorService;
+import nl.rivm.screenit.mamma.se.service.PassantValidatorResult;
 import nl.rivm.screenit.mamma.se.service.dtomapper.AfspraakDtoMapper;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -49,7 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("passanten")
+@RequestMapping("/api/passanten")
 public class PassantZoekenController extends AuthorizedController
 {
 	@Autowired
@@ -59,15 +57,12 @@ public class PassantZoekenController extends AuthorizedController
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Autowired
-	private MammaScreeningsEenheidService screeningsEenheidService;
-
-	@Autowired
 	private PassantInschrijvenValidatorService passantInschrijvenValidatorService;
 
 	private AfspraakDtoMapper dtoMapper = new AfspraakDtoMapper();
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity getClientByBsnEnControleerGeboortedatum(@RequestParam("bsn") String bsn,
+	public ResponseEntity zoekPassantVoorBsnEnGeboortedatum(@RequestParam("bsn") String bsn,
 		@RequestParam("geboortedatum") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate geboortedatum, HttpServletRequest request)
 	{
 		if (!isAuthorized(request, Recht.GEBRUIKER_SCREENING_MAMMA_SE_INSCHRIJVEN))
@@ -77,35 +72,23 @@ public class PassantZoekenController extends AuthorizedController
 		SEAccountResolverDelegate.setInstellingGebruiker(getInstellingGebruiker(request));
 
 		Client client = clientService.getClientByBsn(bsn);
-		if (client != null && client.getMammaDossier() != null)
+		if (client != null && client.getMammaDossier() != null && DateUtil.isGeboortedatumGelijk(geboortedatum, client))
 		{
-			if (DateUtil.isGeboortedatumGelijk(geboortedatum, client))
+			MammaScreeningsEenheid screeningsEenheid = getScreeningsEenheid(request);
+			PassantValidatorResult validatorResult = passantInschrijvenValidatorService.isGeldigPassantScenario(client, currentDateSupplier.getLocalDate(), screeningsEenheid);
+			if (validatorResult == PassantValidatorResult.OK)
 			{
-				MammaScreeningsEenheid screeningsEenheid = getScreeningsEenheid(request);
-				if (passantInschrijvenValidatorService.isGeldigPassantScenario(client, currentDateSupplier.getLocalDate(), screeningsEenheid))
-				{
-					return ResponseEntity.ok(dtoMapper.createPassantDto(client.getMammaDossier()));
-				}
-				else
-				{
-					MammaScreeningRonde laatsteScreeningRonde = client.getMammaDossier().getLaatsteScreeningRonde();
-					if (laatsteScreeningRonde != null)
-					{
-						MammaAfspraak laatsteAfspraak = laatsteScreeningRonde.getLaatsteUitnodiging().getLaatsteAfspraak();
-						if (laatsteAfspraak != null
-							&& DateUtil.isZelfdeDag(currentDateSupplier.getLocalDate(), laatsteAfspraak.getVanaf()) &&
-							laatsteAfspraak.getStandplaatsPeriode().getScreeningsEenheid().equals(screeningsEenheid))
-						{
-							return ResponseEntity.status(HttpStatus.NOT_FOUND)
-								.body(new ErrorDto("Cliënt heeft al een afspraak voor vandaag op deze SE"));
-						}
-					}
-					return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new ErrorDto("Er kan geen afspraak gemaakt worden voor de cliënt, de client kan voor meer informatie contact opnemen met de infolijn."));
-				}
+				return ResponseEntity.ok(dtoMapper.createPassantDto(client.getMammaDossier()));
 			}
+			else if (validatorResult == PassantValidatorResult.ONGELDIG_ZELFDE_DAG)
+			{
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+					.body(new ErrorDto("Cliënt heeft al een afspraak voor vandaag op deze SE"));
+			}
+			return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ErrorDto("Er kan geen afspraak gemaakt worden voor de cliënt, de client kan voor meer informatie contact opnemen met de infolijn."));
 		}
-
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorDto("Cliënt is niet gevonden."));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+			.body(new ErrorDto("Cliënt is niet gevonden."));
 	}
 }

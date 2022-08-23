@@ -33,23 +33,33 @@ import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixBepalenVerrichtingenJobConfiguration.CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE;
+
+@Component
 public class CervixDubbeleCytologieVerrichtingenReader extends BaseScrollableResultReader
 {
+
+	public CervixDubbeleCytologieVerrichtingenReader()
+	{
+		super.setFetchSize(CERVIX_BEPALEN_VERRICHTINGEN_JOB_FETCH_SIZE);
+	}
+
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(CervixUitstrijkje.class);
+		var criteria = session.createCriteria(CervixUitstrijkje.class);
 		criteria.createAlias("verrichtingen", "verrichtingen");
 
 		criteria.add(Restrictions.isNotNull("cytologieVerslag"));
 
-		DetachedCriteria subcriteria = DetachedCriteria.forClass(CervixVerrichting.class);
-		subcriteria.add(Restrictions.in("type", new CervixTariefType[] { CervixTariefType.LAB_CYTOLOGIE_NA_HPV_ZAS,
+		var verrichtingSubquery = DetachedCriteria.forClass(CervixVerrichting.class);
+		verrichtingSubquery.add(Restrictions.in("type", new CervixTariefType[] { CervixTariefType.LAB_CYTOLOGIE_NA_HPV_ZAS,
 			CervixTariefType.LAB_CYTOLOGIE_NA_HPV_UITSTRIJKJE, CervixTariefType.LAB_CYTOLOGIE_VERVOLGUITSTRIJKJE }));
-		subcriteria.setProjection(Projections.property("monster"));
+		verrichtingSubquery.setProjection(Projections.property("monster"));
 
-		criteria.add(Subqueries.propertyNotIn("verrichtingen.monster", subcriteria));
+		criteria.add(Subqueries.propertyNotIn("verrichtingen.monster", verrichtingSubquery));
 		criteria.add(Restrictions.isNotEmpty("verrichtingen"));
 		return criteria;
 	}

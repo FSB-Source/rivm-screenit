@@ -21,8 +21,9 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.zonderpostcode;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Arrays;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
@@ -31,18 +32,19 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaZonderPostcodeWriter extends BaseWriter<Client>
 {
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected void write(Client client)
 	{
-		List<Instelling> dashboardInstellingen = Arrays.asList(client.getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
+		List<Instelling> dashboardInstellingen = List.of(client.getPersoon().getGbaAdres().getGbaGemeente().getScreeningOrganisatie());
 		logService.logGebeurtenis(LogGebeurtenis.MAMMA_CLIENT_ZONDER_POSTCODE, dashboardInstellingen, null, client, "", Bevolkingsonderzoek.MAMMA);
 	}
 

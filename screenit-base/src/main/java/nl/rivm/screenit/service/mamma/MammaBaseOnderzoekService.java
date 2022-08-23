@@ -63,4 +63,6 @@ public interface MammaBaseOnderzoekService
 	boolean forceerMammografieIlmStatus(long accessionNumber, MammaMammografieIlmStatus status, Account account);
 
 	boolean heeftBinnenMammografieIntervalGeenOnderzoekGehad(MammaDossier dossier);
+
+	MammaOnderzoek getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier);
 }

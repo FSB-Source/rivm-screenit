@@ -55,27 +55,27 @@ const ColonTopTakenComponent = (props: ColonTopTakenComponentProps) => {
         <Row className={props.className}>
 			{props.beschikbareActies.includes(ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN) && <Col lg={4}>
 				<TopTaakComponent icon={<AfspraakIcon/>}
-								  link="/colon/afspraak-wijzigen"
+								  link="/colon/afspraak-wijzigen/"
 								  titel={getString(properties.afspraak.verzetten)}/>
 			</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.COLON_AFSPRAAK_WIJZIGEN_AFZEGGEN) && <Col lg={4}>
 				<TopTaakComponent icon={<AfspraakIcon/>}
-								  link="/colon/afzeggen"
+								  link="/colon/afzeggen/"
 								  titel={getString(properties.afspraak.afzeggen)}/>
 			</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.COLON_HERAANMELDEN) && <Col lg={4}>
 				<TopTaakComponent icon={<HeraanmeldenIcon/>}
-								  link="/colon/heraanmelden"
+								  link="/colon/heraanmelden/"
 								  titel={getString(properties.heraanmelden)}/>
 			</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.COLON_HUISARTS_WIJZIGEN) && <Col lg={4}>
 				<TopTaakComponent icon={<HuisartsIcon/>}
-								  link="/colon/huisarts"
+								  link="/colon/huisarts/"
 								  titel={getString(properties.huisarts[props.getTekstHuisartsToptaak(huisartsHuidigeRondeIsBekend, huisartsVorigeRondeIsBekend)])}/>
 			</Col>}
 			{props.beschikbareActies.includes(ClientContactActieType.COLON_AANVRAGEN_NIEUWE_IFOBT) && <Col lg={4}>
 				<TopTaakComponent icon={<FitAanvragenIcon/>}
-								  link="/colon/fit"
+								  link="/colon/fit/"
 								  titel={getString(properties.fit_aanvragen)}/>
 			</Col>}
 		</Row>

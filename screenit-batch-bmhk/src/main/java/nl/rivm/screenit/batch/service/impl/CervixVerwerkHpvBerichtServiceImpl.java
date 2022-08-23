@@ -54,6 +54,7 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
+import nl.rivm.screenit.service.cervix.CervixVervolgService;
 import nl.rivm.screenit.util.cervix.CervixMonsterUtil;
 import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -97,6 +98,9 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 
 	@Autowired
 	private CervixBepaalHpvBeoordelingService bepaalHpvBeoordelingService;
+
+	@Autowired
+	private CervixVervolgService vervolgService;
 
 	private boolean isGenotyperingAnalyseGestart;
 
@@ -152,6 +156,7 @@ public class CervixVerwerkHpvBerichtServiceImpl implements CervixVerwerkHpvBeric
 							String melding = "Eerste ongeldige hrHPV-analyseresultaat(en) van monster. Monster dient nogmaals op HPV beoordeeld te worden.";
 							logging(LogGebeurtenis.CERVIX_HPV_UITSLAG_VERWERKT, opDashboardVanOrganisaties, Level.INFO, melding, sample, monster);
 						}
+						vervolgService.digitaalLabformulierKlaarVoorCytologie(monster);
 					}
 					else
 					{

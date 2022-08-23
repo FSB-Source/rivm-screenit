@@ -29,6 +29,7 @@ import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.MammaDossier;
@@ -39,7 +40,6 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -95,7 +95,7 @@ public abstract class MammaAfspraakPanel extends GenericPanel<MammaAfspraak>
 		boolean heeftActiveAfspraak = afspraak != null && afspraak.getStatus() == MammaAfspraakStatus.GEPLAND && afspraak.getVanaf().compareTo(dateSupplier.getDate()) >= 0;
 
 		setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_CLIENT_MAMMA_AFSPRAKEN, Actie.INZIEN)
-			&& (Geslacht.VROUW.equals(client.getPersoon().getGeslacht()) || heeftActiveAfspraak));
+			&& ((client.getMammaDossier() != null && client.getMammaDossier().getDeelnamemodus() != Deelnamemodus.SELECTIEBLOKKADE) || heeftActiveAfspraak));
 		inhoud.setVisible(heeftActiveAfspraak);
 
 		if (heeftActiveAfspraak)

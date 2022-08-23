@@ -1,16 +1,18 @@
+import React from "react"
+
 export type PopupActions = ShowPopupAction | AkkoordPopupAction | ClearPopupAction;
 export const SHOW_POPUP = "SHOW_POPUP"
 export type ShowPopupAction = {
 	type: "SHOW_POPUP";
 	titel: string;
-	body: Record<string, any>;
+	body: React.ReactNode;
 	callback?: () => void;
 	cancelCallback?: (() => void);
 	akkoordString?: string;
 	annulerenString?: string;
 	alleenOnline: boolean;
 };
-export const createActionShowPopup = (titel: string, body: Record<string, any>, callback?: () => void, cancelCallback?: (() => void), akkoordString?: string, annulerenString?: string, alleenOnline?: boolean): ShowPopupAction => {
+export const createActionShowPopup = (titel: string, body: React.ReactNode, callback?: () => void, cancelCallback?: (() => void), akkoordString?: string, annulerenString?: string, alleenOnline?: boolean): ShowPopupAction => {
 	return {
 		type: SHOW_POPUP,
 		titel: titel,

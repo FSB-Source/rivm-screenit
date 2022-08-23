@@ -21,6 +21,7 @@ package nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.step;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.cervix.verlatedeelnamecovid.CervixVerlateDeelnameCovidConstants;
@@ -30,7 +31,6 @@ import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.project.GroepInvoer;
 import nl.rivm.screenit.model.project.Project;
-import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.service.BriefHerdrukkenService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -39,35 +39,31 @@ import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 @Slf4j
+@AllArgsConstructor
 public class CervixVerlateDeelnameCovidWriter extends BaseWriter<CervixBrief>
 {
-	@Autowired
-	private BriefHerdrukkenService briefHerdrukkenService;
+	private final BriefHerdrukkenService briefHerdrukkenService;
 
-	@Autowired
-	private ProjectService projectService;
+	private final ProjectService projectService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void write(CervixBrief brief) throws Exception
 	{
-		ProjectGroep projectGroep = prepareProjectGroep();
+		var projectGroep = prepareProjectGroep();
 		try
 		{
 			LOG.info("Voeg client (clientId: " + brief.getClient().getId() + ") toe aan project groep '" + projectGroep.getNaam() + "'");
-			ProjectClient projectClient = projectService.addClientToProjectGroep(projectGroep, brief.getClient());
+			var projectClient = projectService.addClientToProjectGroep(projectGroep, brief.getClient());
 			brief.setAangevraagdeHerdruk(true);
 			briefHerdrukkenService.opnieuwAanmaken(brief, null);
 			projectClient.setActief(false);
@@ -76,7 +72,7 @@ public class CervixVerlateDeelnameCovidWriter extends BaseWriter<CervixBrief>
 		}
 		catch (IllegalStateException e)
 		{
-			String melding = e.getMessage() + ". Geen herdruk van laatste uitnodiging aangemaakt.";
+			var melding = e.getMessage() + ". Geen herdruk van laatste uitnodiging aangemaakt.";
 			LOG.warn(melding);
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_CLIENT_GEEN_VERLATE_DEELNAME_UITNODIGING, brief.getClient(), melding, Bevolkingsonderzoek.CERVIX);
 		}
@@ -85,12 +81,12 @@ public class CervixVerlateDeelnameCovidWriter extends BaseWriter<CervixBrief>
 	private ProjectGroep prepareProjectGroep()
 	{
 		ProjectGroep projectGroep;
-		ExecutionContext context = getExecutionContext();
+		var context = getExecutionContext();
 		if (!context.containsKey(CervixVerlateDeelnameCovidConstants.PROJECT_GROEP_ID))
 		{
 			String groepsNaam = "Populatie van run " + DateUtil.formatShortDate(currentDateSupplier.getDate());
 			Long projectId = context.getLong(CervixVerlateDeelnameCovidConstants.PROJECT_ID);
-			Project project = hibernateService.load(Project.class, projectId);
+			var project = hibernateService.load(Project.class, projectId);
 			LOG.info("Maak project groep " + groepsNaam + " voor project '" + project.getNaam() + "'");
 			projectGroep = new ProjectGroep();
 			projectGroep.setProject(project);

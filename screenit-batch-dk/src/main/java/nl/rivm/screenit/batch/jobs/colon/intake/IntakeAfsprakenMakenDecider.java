@@ -21,17 +21,18 @@ package nl.rivm.screenit.batch.jobs.colon.intake;
  * =========================LICENSE_END==================================
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.job.flow.FlowExecutionStatus;
 import org.springframework.batch.core.job.flow.JobExecutionDecider;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class IntakeAfsprakenMakenDecider implements JobExecutionDecider
 {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(IntakeAfsprakenMakenDecider.class);
 
 	@Override
 	public FlowExecutionStatus decide(JobExecution jobExecution, StepExecution stepExecution)
@@ -50,7 +51,7 @@ public class IntakeAfsprakenMakenDecider implements JobExecutionDecider
 
 		if (!Boolean.TRUE.equals(allesVerwerkt))
 		{
-			LOGGER.info("Ronde gestart voor \"Intake afspraken maken job\". Ronde: " + ronde);
+			LOG.info("Ronde gestart voor \"Intake afspraken maken job\". Ronde: " + ronde);
 			jobExecution.getExecutionContext().putInt(IntakeAfsprakenMakenConstants.HUIDIGE_RONDE, ronde);
 			return FlowExecutionStatus.FAILED;
 		}

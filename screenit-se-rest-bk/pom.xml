@@ -9,9 +9,32 @@
     </parent>
 
     <artifactId>screenit-se-rest-bk</artifactId>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
     <name>screenit-se-rest-bk</name>
     <description>Screenit ScreeningsEenheid REST services voor BorstKanker</description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <additionalProperties>
+                                <number>${buildnumber}</number>
+                            </additionalProperties>
+                            <outputFile>target/classes/build-info.properties</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
@@ -21,6 +44,27 @@
                 <exclusion>
                     <groupId>org.apache.cxf</groupId>
                     <artifactId>cxf-rt-features-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-tomcat</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <exclusions>
+                <exclusion>
+                    <artifactId>org.hibernate</artifactId>
+                    <groupId>hibernate-core</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -39,6 +83,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-websocket</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -55,6 +103,12 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>
@@ -130,6 +184,18 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>

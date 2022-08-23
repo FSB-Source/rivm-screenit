@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen;
  */
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Date;
 
 import nl.topicuszorg.wicket.component.object.PdfObjectContainer;
@@ -34,7 +35,6 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.request.resource.IResource.Attributes;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.time.Duration;
 
 public class OrionViewerContainer extends PdfObjectContainer implements IRequestListener
 {
@@ -74,7 +74,7 @@ public class OrionViewerContainer extends PdfObjectContainer implements IRequest
 	@Override
 	public final void onRequest()
 	{
-		Duration cacheDuration = Duration.minutes(30); 
+		Duration cacheDuration = Duration.ofMinutes(30); 
 
 		IResource resource;
 		if (formulier != null)

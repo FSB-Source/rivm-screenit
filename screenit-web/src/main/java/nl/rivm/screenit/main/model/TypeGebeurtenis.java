@@ -32,10 +32,12 @@ import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervi
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervix.CervixHuisartsberichtDetailsPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.cervix.CervixLabformulierInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colon.ColonHuisartsInzienPanel;
+import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colon.ColonHuisartsberichtDetailsPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.colon.ConclusieInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaFollowUpRadiologieGebeurtenisDetailPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaHerbeoordelingGebeurtenisPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaHuisartsInzienPanel;
+import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaHuisartsberichtDetailsPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaLezingInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaOnderzoekInzienPanel;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.gebeurtenissen.mamma.MammaUploadBeeldenVerzoekGebeurtenisDetailPanel;
@@ -141,6 +143,16 @@ public enum TypeGebeurtenis
 
 	COLON_HUISARTS_TOEGEVOEGD(ColonHuisartsInzienPanel.class),
 
+	COLON_HUISARTSBERICHT_AANGEMAAKT(ColonHuisartsberichtDetailsPanel.class),
+
+	COLON_HUISARTSBERICHT_VERSTUURD(ColonHuisartsberichtDetailsPanel.class),
+
+	COLON_HUISARTSBERICHT_VERSTUREN_MISLUKT(ColonHuisartsberichtDetailsPanel.class),
+
+	COLON_HUISARTSBERICHT_OPNIEUW_VERSTUURD(ColonHuisartsberichtDetailsPanel.class),
+
+	COLON_HUISARTSBERICHT_OPNIEUW_VERSTUREN_MISLUKT(ColonHuisartsberichtDetailsPanel.class),
+
 	UITSTEL(),
 
 	MAMMA_ACHTERVANG_UITSTEL(),
@@ -227,9 +239,14 @@ public enum TypeGebeurtenis
 
 	MAMMA_ARBITRAGE_AFGEROND(MammaLezingInzienPanel.class),
 
-	MAMMA_HUISARTSBERICHT_VERSTUURD,
+	MAMMA_HUISARTSBERICHT_AANGEMAAKT(MammaHuisartsberichtDetailsPanel.class),
+	MAMMA_HUISARTSBERICHT_VERSTUURD(MammaHuisartsberichtDetailsPanel.class),
 
-	MAMMA_HUISARTSBERICHT_VERSTUREN_MISLUKT,
+	MAMMA_HUISARTSBERICHT_VERSTUREN_MISLUKT(MammaHuisartsberichtDetailsPanel.class),
+
+	MAMMA_HUISARTSBERICHT_OPNIEUW_VERSTUURD(MammaHuisartsberichtDetailsPanel.class),
+
+	MAMMA_HUISARTSBERICHT_OPNIEUW_VERSTUREN_MISLUKT(MammaHuisartsberichtDetailsPanel.class),
 
 	MAMMA_VERWIJSVERSLAG_AFGEKEURD,
 

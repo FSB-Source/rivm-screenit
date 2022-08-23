@@ -24,8 +24,10 @@ package nl.rivm.screenit.service.mamma;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
+import nl.rivm.screenit.model.mamma.berichten.MammaHuisartsBericht;
 
 public interface MammaHuisartsBerichtService
 {
-	void verstuurHuisartsBericht(MammaBeoordeling beoordeling, EnovationHuisarts huisarts, HuisartsBerichtType huisartsBerichtType);
+	MammaHuisartsBericht verstuurHuisartsBericht(MammaBeoordeling beoordeling, EnovationHuisarts huisarts, HuisartsBerichtType huisartsBerichtType, boolean isOpnieuwVerzonden);
+
 }

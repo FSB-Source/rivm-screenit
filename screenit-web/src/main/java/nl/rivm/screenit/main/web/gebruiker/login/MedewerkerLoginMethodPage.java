@@ -24,7 +24,7 @@ package nl.rivm.screenit.main.web.gebruiker.login;
 import nl.rivm.screenit.ApplicationEnvironment;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.main.web.ScreenitSession;
-import nl.rivm.screenit.main.web.gebruiker.login.uzipas.UzipasLoginMethodPage;
+import nl.rivm.screenit.main.web.gebruiker.login.uzipas.zorgid.login.LoginUzipasZorgIdPage;
 import nl.rivm.screenit.model.enums.InlogMethode;
 
 import org.apache.commons.lang.StringUtils;
@@ -64,7 +64,7 @@ public class MedewerkerLoginMethodPage extends LoginBasePage
 		}
 		add(usernamePassword);
 		add(new BookmarkablePageLink<>("yubikeyLogin", YubipasLoginPage.class));
-		add(new BookmarkablePageLink<>("uzipasLogin", UzipasLoginMethodPage.class, new PageParameters().add(PAGE_PARAMETER_UITWISSELPORTAAL, Boolean.FALSE)));
+		add(new BookmarkablePageLink<>("uzipasLogin", LoginUzipasZorgIdPage.class, new PageParameters().add(PAGE_PARAMETER_UITWISSELPORTAAL, Boolean.FALSE)));
 
 		String loginMethode = new CookieUtils().load(Constants.COOKIE_KEY_LOGIN_METHOD);
 		if (StringUtils.isNotBlank(loginMethode) && redirect)
@@ -81,9 +81,6 @@ public class MedewerkerLoginMethodPage extends LoginBasePage
 				break;
 			case YUBIKEY:
 				setResponsePage(YubipasLoginPage.class);
-				break;
-			case UZIPAS:
-				setResponsePage(UzipasLoginMethodPage.class, new PageParameters().add(PAGE_PARAMETER_UITWISSELPORTAAL, Boolean.FALSE));
 				break;
 			default:
 				break;

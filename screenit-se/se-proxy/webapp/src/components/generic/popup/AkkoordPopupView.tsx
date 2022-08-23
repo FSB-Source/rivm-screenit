@@ -5,7 +5,7 @@ import AlleenOnlineButton from "../AlleenOnlineButton"
 export type AkkoordPopupViewStateProps = {
 	visible: boolean;
 	titel?: string;
-	body?: Record<string, any>;
+	body?: React.ReactNode;
 	callback?: (...args: Array<any>) => any;
 	cancelCallback?: ((...args: Array<any>) => any);
 	akkoordString?: string;

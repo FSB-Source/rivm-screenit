@@ -23,14 +23,14 @@ package nl.rivm.screenit.batch.jobs.generalis.huisarts.afterimportstep;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.generalis.huisarts.EnovationHuisartsJobListener;
 import nl.rivm.screenit.model.enums.JobType;
 import nl.rivm.screenit.service.EnovationHuisartsService;
 import nl.rivm.screenit.service.JobService;
 import nl.rivm.screenit.service.ZorgmailImportVoortgang;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.StepContribution;
@@ -39,11 +39,12 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Slf4j
+@Component
 public class AfterImportEnovationHuisartsTasklet implements Tasklet
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AfterImportEnovationHuisartsTasklet.class);
-
 	private StepExecution stepExecution;
 
 	@Autowired

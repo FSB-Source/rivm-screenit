@@ -28,14 +28,16 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ColonHuisartsOntkoppelenReader extends BaseScrollableResultReader
 {
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(ColonScreeningRonde.class);
+		var criteria = session.createCriteria(ColonScreeningRonde.class);
 		criteria.createAlias("colonHuisarts", "colonHuisarts");
 		criteria.add(Restrictions.eq("colonHuisarts.verwijderd", true));
 		return criteria;

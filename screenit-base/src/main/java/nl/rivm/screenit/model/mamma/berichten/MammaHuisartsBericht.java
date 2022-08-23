@@ -34,6 +34,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.model.HuisartsBericht;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
@@ -42,6 +45,8 @@ import nl.rivm.screenit.model.mamma.enums.MammaHuisartsBerichtStatus;
 import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 
+@Setter
+@Getter
 @Entity
 @Table(
 	schema = "mamma",
@@ -70,53 +75,4 @@ public class MammaHuisartsBericht extends HuisartsBericht
 	@NotAudited
 	private EnovationHuisarts huisarts;
 
-	public MammaBeoordeling getBeoordeling()
-	{
-		return beoordeling;
-	}
-
-	public void setBeoordeling(MammaBeoordeling beoordeling)
-	{
-		this.beoordeling = beoordeling;
-	}
-
-	public MammaHuisartsBerichtStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(MammaHuisartsBerichtStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public EnovationHuisarts getHuisarts()
-	{
-		return huisarts;
-	}
-
-	public void setHuisarts(EnovationHuisarts huisarts)
-	{
-		this.huisarts = huisarts;
-	}
-
-	public Date getVerzendDatum()
-	{
-		return verzendDatum;
-	}
-
-	public void setVerzendDatum(Date verzendDatum)
-	{
-		this.verzendDatum = verzendDatum;
-	}
 }

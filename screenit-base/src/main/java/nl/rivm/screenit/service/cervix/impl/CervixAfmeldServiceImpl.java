@@ -110,7 +110,7 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 		for (CervixUitnodiging uitnodiging : ronde.getUitnodigingen())
 		{
 			CervixBrief brief = uitnodiging.getBrief();
-			if (!BriefUtil.isGegenereerd(brief) || !uitnodiging.isVerstuurd())
+			if (BriefUtil.isNietGegenereerdEnNietVervangen(brief) || !uitnodiging.isVerstuurd())
 			{
 				hibernateService.saveOrUpdate(BriefUtil.setTegenhouden(brief, true));
 			}
@@ -155,7 +155,7 @@ public class CervixAfmeldServiceImpl implements CervixAfmeldService
 				}
 				CervixUitnodiging laatsteUitnodiging = clientService.getLaatstVerstuurdeUitnodiging(ronde, true);
 				LocalDate geboorteDatum = DateUtil.toLocalDate(ronde.getDossier().getClient().getPersoon().getGeboortedatum());
-				if (CervixLeeftijdcategorie.getLeeftijd(geboorteDatum, creatieDatum) < 30)
+				if (CervixLeeftijdcategorie.getLeeftijd(geboorteDatum, creatieDatum.toLocalDate()) < 30)
 				{
 					return;
 				}

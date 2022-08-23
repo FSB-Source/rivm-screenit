@@ -31,15 +31,16 @@ import nl.topicuszorg.util.date.DateUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class IntakeAfsprakenMakenListener extends BaseLogListener
 {
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		IntakeMakenLogEvent intakeMakenLogEvent = new IntakeMakenLogEvent();
+		var intakeMakenLogEvent = new IntakeMakenLogEvent();
 		jobExecution.getExecutionContext().put(IntakeAfsprakenMakenConstants.RAPPORTAGEKEYINTAKE, intakeMakenLogEvent);
 	}
 
@@ -65,7 +66,7 @@ public class IntakeAfsprakenMakenListener extends BaseLogListener
 	protected LogEvent getEindLogEvent()
 	{
 		String key = IntakeAfsprakenMakenConstants.RAPPORTAGEKEYINTAKE;
-		ExecutionContext executionContext = this.getJobExecution().getExecutionContext();
+		var executionContext = this.getJobExecution().getExecutionContext();
 		if (executionContext.containsKey(key))
 		{
 			return (IntakeMakenLogEvent) getJobExecution().getExecutionContext().get(key);
@@ -76,10 +77,10 @@ public class IntakeAfsprakenMakenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent logEvent = getEindLogEvent();
+		var logEvent = getEindLogEvent();
 		if (logEvent instanceof IntakeMakenLogEvent)
 		{
-			IntakeMakenLogEvent intakeMakenLogEvent = (IntakeMakenLogEvent) logEvent;
+			var intakeMakenLogEvent = (IntakeMakenLogEvent) logEvent;
 
 			for (Throwable throwable : jobExecution.getAllFailureExceptions())
 			{

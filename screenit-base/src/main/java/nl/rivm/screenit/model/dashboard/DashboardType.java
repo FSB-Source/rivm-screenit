@@ -90,6 +90,9 @@ public enum DashboardType
 
 	CERVIX_HUISARTSBERICHTEN("Huisartsberichten", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE), Bevolkingsonderzoek.CERVIX),
 
+	CERVIX_DIGITALE_LABFORMULIER_FOUT_BERICHTEN("Digitaal labformulier fout berichten", List.of(OrganisatieType.RIVM, OrganisatieType.SCREENINGSORGANISATIE),
+		Bevolkingsonderzoek.CERVIX),
+
 	CERVIX_HPV_KOPPELING("HPV koppeling", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_ORDER("Order verwerking", List.of(OrganisatieType.RIVM, OrganisatieType.BMHK_LABORATORIUM), Bevolkingsonderzoek.CERVIX),
@@ -102,11 +105,13 @@ public enum DashboardType
 
 	CERVIX_HEROVERWEGERS("Heroverwegers brief aanmaken", List.of(OrganisatieType.RIVM), Bevolkingsonderzoek.CERVIX),
 
-	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN("HPV(-) labformuliergegevens wissen", Bevolkingsonderzoek.CERVIX),
+	CERVIX_HPVMIN_UITSLAGEN_VERWIJDEREN("HPV(-) labformuliergegevens wissen + scans verwijderen", Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_VERLATE_DEELNAME_COVID19("Verlate deelname COVID-19", Bevolkingsonderzoek.CERVIX),
 
 	CERVIX_ILM("ILM BMHK", Bevolkingsonderzoek.CERVIX),
+
+	CERVIX_CONTROLE_MISSENDE_UITSLAGEN("Controle missende uitslagen", Bevolkingsonderzoek.CERVIX),
 
 	MAMMA_HERINNEREN("Herinneren", Bevolkingsonderzoek.MAMMA),
 
@@ -137,6 +142,8 @@ public enum DashboardType
 	MAMMA_SE_BERICHTEN("SE Berichten", List.of(OrganisatieType.SCREENINGSORGANISATIE, OrganisatieType.RIVM), Bevolkingsonderzoek.MAMMA),
 
 	MAMMA_ILM("ILM BK", Bevolkingsonderzoek.MAMMA),
+
+	MAMMA_CONTROLE_MISSENDE_UITSLAGEN("Controle missende uitslagen", Bevolkingsonderzoek.MAMMA),
 
 	ALGEMENE_BRIEVEN_GENEREREN("Algemene brieven genereren", Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA),
 

@@ -32,16 +32,15 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.wicket.request.http.WebResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+import org.apache.wicket.request.http.WebResponse;
+
+@Slf4j
 public class SecurityHeadersFilter implements Filter
 {
 	private static final String DEFAULT_CONTENT_SECURITY_POLICY = "form-action 'self'; frame-ancestors 'self'; default-src 'self'; " +
 		"script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'";
-
-	private static final Logger LOG = LoggerFactory.getLogger(SecurityHeadersFilter.class);
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException

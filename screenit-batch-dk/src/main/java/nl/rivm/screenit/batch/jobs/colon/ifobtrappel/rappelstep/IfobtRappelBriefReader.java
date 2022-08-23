@@ -21,8 +21,9 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtrappel.rappelstep;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDateTime;
 import java.util.Date;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.colon.ifobtrappel.IfobtRappelJobConstants;
@@ -48,21 +49,21 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class IfobtRappelBriefReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 
-		Criteria criteria = session.createCriteria(Client.class)
+		var criteria = session.createCriteria(Client.class)
 			.createAlias("colonDossier", "colonDossier")
 			.createAlias("colonDossier.laatsteScreeningRonde", "laatsteScreeningRonde")
 			.createAlias("laatsteScreeningRonde.laatsteIFOBTTest", "laatsteTest")
@@ -108,8 +109,8 @@ public class IfobtRappelBriefReader extends BaseScrollableResultReader
 	{
 		try
 		{
-			Integer herinneringsPeriode = preferenceService.getInteger(PreferenceKey.IFOBTRAPELPERIODE.name());
-			LocalDateTime herinneringsDatum = currentDateSupplier.getLocalDateTime().minusDays(herinneringsPeriode);
+			var herinneringsPeriode = preferenceService.getInteger(PreferenceKey.IFOBTRAPELPERIODE.name());
+			var herinneringsDatum = currentDateSupplier.getLocalDateTime().minusDays(herinneringsPeriode);
 			return DateUtil.toUtilDate(herinneringsDatum);
 		}
 		catch (Exception e)

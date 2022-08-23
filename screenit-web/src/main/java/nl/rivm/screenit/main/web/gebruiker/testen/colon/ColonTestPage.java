@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon;
  * =========================LICENSE_END==================================
  */
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,7 +43,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
-import nl.topicuszorg.wicket.input.enumdropdownchoice.EnumChoiceRenderer;
 import nl.topicuszorg.wicket.input.enumdropdownchoice.EnumDropDownChoice;
 import nl.topicuszorg.wicket.input.validator.BSNValidator;
 
@@ -53,6 +53,7 @@ import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.Radio;
 import org.apache.wicket.markup.html.form.RadioGroup;
@@ -89,26 +90,23 @@ public class ColonTestPage extends TestenBasePage
 
 	private static final long serialVersionUID = 1L;
 
-	@SuppressWarnings("unchecked")
 	public ColonTestPage()
 	{
 		if (testModel == null)
 		{
 			TestModel test = new TestModel();
 			test.setGeslacht(Geslacht.MAN);
-			testModel = new CompoundPropertyModel<TestModel>(test);
+			testModel = new CompoundPropertyModel<>(test);
 		}
 
-		final Form<TestModel> form = new Form<TestModel>("testForm", getTestModel());
-		final TextField<String> bsnField = new TextField<String>("bsn");
+		final Form<TestModel> form = new Form<>("testForm", getTestModel());
+		final TextField<String> bsnField = new TextField<>("bsn");
 		bsnField.add(new BSNValidator(true, true));
 		bsnField.setRequired(true);
 		bsnField.setOutputMarkupId(true);
 		form.add(bsnField);
-		form.add(new IndicatingAjaxLink<TestModel>("bsnGenereren", getTestModel())
+		form.add(new IndicatingAjaxLink<>("bsnGenereren", getTestModel())
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget target)
@@ -121,19 +119,18 @@ public class ColonTestPage extends TestenBasePage
 		form.add(new ScreenitDateTextField("geboortedatum").setOutputMarkupId(true).add(new AjaxFormComponentUpdatingBehavior("change")
 		{
 
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
 			{
 				target.add(getComponent());
 			}
 		}));
-		form.add(new ScreenitDropdown<Geslacht>("geslacht", Arrays.asList(Geslacht.values()), new EnumChoiceRenderer<Geslacht>()));
+
+		List<Geslacht> geslachten = new ArrayList<>(Arrays.asList(Geslacht.values()));
+		geslachten.remove(Geslacht.NIET_GESPECIFICEERD);
+		form.add(new ScreenitDropdown<>("geslacht", geslachten, new EnumChoiceRenderer<>(this)));
 		form.add(new ScreenitDateTextField("datumOverlijden").setOutputMarkupId(true).add(new AjaxFormComponentUpdatingBehavior("change")
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onUpdate(AjaxRequestTarget target)
@@ -146,23 +143,21 @@ public class ColonTestPage extends TestenBasePage
 			ModelUtil.listRModel(
 				hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie")).addOrder(Order.asc("naam")).list(),
 				false),
-			new ChoiceRenderer<Gemeente>("naam")));
+			new ChoiceRenderer<>("naam")));
 
 		form.add(new EnumDropDownChoice<>("gbaStatus", GbaStatus.class, false).setOutputMarkupId(true));
 
-		final RadioGroup<ColonTest> testGroup = new RadioGroup<ColonTest>("colonTestActies");
+		final RadioGroup<ColonTest> testGroup = new RadioGroup<>("colonTestActies");
 		List<ColonTest> availableColonTestActies = Arrays.asList(ColonTest.values());
-		testGroup.add(new ListView<ColonTest>("testactie", availableColonTestActies)
+		testGroup.add(new ListView<>("testactie", availableColonTestActies)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void populateItem(ListItem<ColonTest> item)
 			{
-				Radio<ColonTest> radio = new Radio<ColonTest>("radio", new Model<ColonTest>(item.getModelObject()));
+				Radio<ColonTest> radio = new Radio<>("radio", new Model<>(item.getModelObject()));
 				item.add(radio);
-				item.add(new EnumLabel<ColonTest>("label", item.getModelObject()));
+				item.add(new EnumLabel<>("label", item.getModelObject()));
 				item.setVisible(item.getModelObject().getActief());
 			}
 		});
@@ -171,8 +166,6 @@ public class ColonTestPage extends TestenBasePage
 
 		IndicatingAjaxSubmitLink submit = new IndicatingAjaxSubmitLink("submit", form)
 		{
-
-			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
@@ -205,7 +198,6 @@ public class ColonTestPage extends TestenBasePage
 
 		add(new IndicatingAjaxLink<Void>("uitnodigingenDoorzetten")
 		{
-			private static final long serialVersionUID1 = 1L;
 
 			@Override
 			public void onClick(AjaxRequestTarget ajaxRequestTarget)

@@ -21,19 +21,22 @@ package nl.rivm.screenit.batch.jobs.colon.controleuitslag.controlestep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.service.LogService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class ColonControleMissendeUitslagenWriter extends BaseWriter<ColonDossier>
 {
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected void write(ColonDossier dossier) throws Exception

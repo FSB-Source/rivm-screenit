@@ -33,6 +33,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.LocaleResolver;
 import nl.rivm.screenit.main.service.LocaleResolverService;
 import nl.rivm.screenit.main.web.ScreenitApplication;
@@ -43,8 +45,6 @@ import nl.rivm.screenit.model.InstellingGebruiker;
 
 import org.apache.wicket.Session;
 import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.orm.hibernate5.support.OpenSessionInViewFilter;
@@ -52,10 +52,9 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+@Slf4j
 public class LogFilter implements Filter
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(LogFilter.class);
 
 	private String sessionFactoryBeanName = OpenSessionInViewFilter.DEFAULT_SESSION_FACTORY_BEAN_NAME;
 
@@ -63,14 +62,7 @@ public class LogFilter implements Filter
 
 	private LocaleResolverService localeResolverService;
 
-	private static final LocaleResolver DEFAULT_LOCALE_RESOLVER = new LocaleResolver()
-	{
-		@Override
-		public Locale getLocale()
-		{
-			return Locale.ENGLISH;
-		}
-	};
+	private static final LocaleResolver DEFAULT_LOCALE_RESOLVER = () -> Locale.ENGLISH;
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException
@@ -122,17 +114,10 @@ public class LogFilter implements Filter
 					{
 						prefix = "C";
 					}
-					MDC.put("A", prefix + String.valueOf(session.getLoggedInAccountId()));
+					MDC.put("A", prefix + session.getLoggedInAccountId());
 				}
 
-				localeResolver = new LocaleResolver()
-				{
-					@Override
-					public Locale getLocale()
-					{
-						return session.getLocale();
-					}
-				};
+				localeResolver = session::getLocale;
 			}
 		}
 

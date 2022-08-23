@@ -24,6 +24,8 @@ package nl.rivm.screenit.mamma.planning.controller;
 import java.util.Date;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto.PlanningMeldingDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningConceptMeldingenDto.PlanningMeldingenPerSeDto;
@@ -36,7 +38,6 @@ import nl.rivm.screenit.mamma.planning.dao.PlanningReadModelDao;
 import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsOrganisatieIndex;
 import nl.rivm.screenit.mamma.planning.index.PlanningStatusIndex;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
-import nl.rivm.screenit.mamma.planning.service.PlanningConceptService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.model.mamma.enums.MammaMeldingNiveau;
 import nl.rivm.screenit.model.mamma.enums.MammaPlanningStatus;
@@ -51,35 +52,24 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController()
+@RestController
 @RequestMapping("/" + PlanningRestConstants.C_ACTIE)
+@AllArgsConstructor
 public class PlanningActieController
 {
 
 	private final PlanningReadModelDao readModelDao;
 
-	private final PlanningConceptService conceptService;
-
 	private final PlanningConceptOpslaanService conceptOpslaanService;
 
-	public PlanningActieController(PlanningReadModelDao readModelDao, PlanningConceptService planningConceptService,
-		PlanningConceptOpslaanService planningConceptOpslaanService)
-	{
-		this.readModelDao = readModelDao;
-		this.conceptService = planningConceptService;
-		this.conceptOpslaanService = planningConceptOpslaanService;
-	}
-
 	@Transactional(propagation = Propagation.REQUIRED)
-	@RequestMapping(value = "/readModel", method = RequestMethod.POST)
+	@RequestMapping(value = "/" + PlanningRestConstants.C_READMODEL, method = RequestMethod.POST)
 	public void readModel()
 	{
 		PlanningStatusIndex.set(MammaPlanningStatus.RESET_MODEL);
 		try
 		{
 			readModelDao.readDataModel();
-			conceptService.herhalen(readModelDao.getHerhalenVanafDatum());
-			conceptOpslaanService.slaConceptOpVoorAlleScreeningsOrganisaties();
 			PlanningDoorrekenenManager.run();
 			PlanningStatusIndex.set(MammaPlanningStatus.OPERATIONEEL);
 		}

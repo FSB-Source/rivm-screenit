@@ -40,10 +40,11 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.ProjectService;
 import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.ProjectUtil;
-import nl.topicuszorg.hibernate.object.model.HibernateObject;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ProjectBrievenAanmaakWriter extends BaseWriter<ProjectBriefActie>
 {
 	@Autowired

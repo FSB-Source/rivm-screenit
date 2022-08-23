@@ -21,13 +21,13 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen.afronden;
  * =========================LICENSE_END==================================
  */
 
-import java.time.LocalDate;
-import java.util.Date;
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -39,25 +39,25 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaVerlopenRondesReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		LocalDate currentDate = currentDateSupplier.getLocalDate();
+		var currentDate = currentDateSupplier.getLocalDate();
 
-		Date maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name())));
-		Date maxLengteRonde = DateUtil.toUtilDate(currentDate.minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN));
+		var maxLeeftijd = DateUtil.toUtilDate(currentDate.minusYears(preferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name())));
+		var maxLengteRonde = DateUtil.toUtilDate(currentDate.minusMonths(Constants.BK_GELDIGHEID_RONDE_MAANDEN));
 
-		Criteria criteria = session.createCriteria(MammaScreeningRonde.class, "ronde");
+		var criteria = session.createCriteria(MammaScreeningRonde.class, "ronde");
 		criteria.createAlias("ronde.dossier", "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
@@ -65,7 +65,10 @@ public class MammaVerlopenRondesReader extends BaseScrollableResultReader
 		criteria.createAlias("uitnodiging.laatsteAfspraak", "afspraak", JoinType.LEFT_OUTER_JOIN);
 
 		criteria.add(Restrictions.eq("status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.lt("persoon.geboortedatum", maxLeeftijd));
+		criteria.add(Restrictions.or(
+			Restrictions.lt("persoon.geboortedatum", maxLeeftijd),
+			Restrictions.eq("dossier.deelnamemodus", Deelnamemodus.SELECTIEBLOKKADE)
+		));
 		criteria.add(Restrictions.lt("ronde.creatieDatum", maxLengteRonde));
 		criteria.add(Restrictions.isNull("ronde.laatsteOnderzoek"));
 		criteria.add(Restrictions.or(

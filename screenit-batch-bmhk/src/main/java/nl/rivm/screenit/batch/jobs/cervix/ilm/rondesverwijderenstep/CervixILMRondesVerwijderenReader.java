@@ -21,8 +21,6 @@ package nl.rivm.screenit.batch.jobs.cervix.ilm.rondesverwijderenstep;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
@@ -35,23 +33,29 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixILMRondesVerwijderenReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
+
+	public CervixILMRondesVerwijderenReader(SimplePreferenceService preferenceService, ICurrentDateSupplier dateSupplier)
+	{
+		super.setFetchSize(50);
+		this.preferenceService = preferenceService;
+		this.dateSupplier = dateSupplier;
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Date minVerwijderenDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name())));
+		var minVerwijderenDatum = DateUtil.toUtilDate(dateSupplier.getLocalDate().minusDays(preferenceService.getInteger(PreferenceKey.ILM_BEWAARTERMIJN.name())));
 
-		Criteria crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
+		var crit = session.createCriteria(CervixScreeningRonde.class, "ronde");
 
 		crit.add(Restrictions.and(
 			Restrictions.eq("ronde.status", ScreeningRondeStatus.AFGEROND),

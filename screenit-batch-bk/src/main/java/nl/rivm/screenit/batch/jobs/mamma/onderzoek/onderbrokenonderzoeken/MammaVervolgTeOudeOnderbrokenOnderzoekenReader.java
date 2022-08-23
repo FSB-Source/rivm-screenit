@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.mamma.onderzoek.onderbrokenonderzoeken;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
@@ -33,17 +35,19 @@ import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaVervolgTeOudeOnderbrokenOnderzoekenReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(MammaDossier.class, "dossier");
+		var criteria = session.createCriteria(MammaDossier.class, "dossier");
 		criteria.createAlias("dossier.client", "client");
 		criteria.createAlias("client.persoon", "persoon");
 		criteria.createAlias("dossier.laatsteScreeningRonde", "ronde");

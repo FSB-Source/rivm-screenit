@@ -21,6 +21,7 @@ package nl.rivm.screenit.main.web.gebruiker.screening.cervix.labformulier.contro
  * =========================LICENSE_END==================================
  */
 
+import java.time.Duration;
 import java.util.Date;
 
 import nl.topicuszorg.wicket.component.object.PdfObjectContainer;
@@ -31,7 +32,6 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.IResource;
 import org.apache.wicket.request.resource.IResource.Attributes;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.apache.wicket.util.time.Duration;
 
 public class SpherionViewerContainer extends PdfObjectContainer implements IRequestListener
 {
@@ -68,7 +68,7 @@ public class SpherionViewerContainer extends PdfObjectContainer implements IRequ
 	@Override
 	public final void onRequest()
 	{
-		Duration cacheDuration = Duration.minutes(30); 
+		Duration cacheDuration = Duration.ofMinutes(30); 
 		IResource resource = new SpherionFormulierViewerResource(String.format(spherionUrl, objid), false, cacheDuration, spherionUsername, spherionPassword);
 		Attributes a = new Attributes(RequestCycle.get().getRequest(), RequestCycle.get().getResponse(), null);
 		resource.respond(a);

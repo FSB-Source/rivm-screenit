@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.controleuitslag.controlestep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
@@ -31,19 +33,20 @@ import nl.rivm.screenit.service.InstellingService;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.Projections;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import static nl.rivm.screenit.Constants.COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
+import static nl.rivm.screenit.Constants.MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN;
 
+@Component
+@AllArgsConstructor
 public class ColonControleMissendeUitslagenReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private InstellingService instellingService;
+	private final InstellingService instellingService;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
@@ -53,9 +56,10 @@ public class ColonControleMissendeUitslagenReader extends BaseScrollableResultRe
 			var signaleringsTermijn = instellingService.getOrganisatieParameter(null, OrganisatieParameterKey.COLON_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN, 30);
 
 			var criteria = session.createCriteria(IFOBTTest.class, "ifobt");
-			var nu = currentDateSupplier.getLocalDate();
-			ColonRestrictions.addIfobtMissendeUitslagRestrictions(criteria, nu.minusDays(COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN),
-				nu.minusDays(signaleringsTermijn));
+			var vandaag = currentDateSupplier.getLocalDate();
+			ColonRestrictions.addIfobtMissendeUitslagRestrictions(criteria, vandaag.minusDays(MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN),
+				vandaag.minusDays(signaleringsTermijn));
+			criteria.addOrder(Order.asc("dossier.id"));
 			return criteria;
 		}
 		catch (Exception e)

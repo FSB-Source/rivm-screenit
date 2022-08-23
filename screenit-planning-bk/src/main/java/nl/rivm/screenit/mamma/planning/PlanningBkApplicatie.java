@@ -36,7 +36,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Slf4j
 @EnableJpaRepositories(basePackages = { "nl.rivm.screenit" })
 @ComponentScan(
-	basePackages = { "nl.rivm.screenit.mamma.planning", "nl.rivm.screenit", "nl.topicuszorg" },
+	basePackages = { "nl.rivm.screenit", "nl.topicuszorg" },
 	excludeFilters = {
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = DistributedLockService.class),
 		@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = BsnService.class),

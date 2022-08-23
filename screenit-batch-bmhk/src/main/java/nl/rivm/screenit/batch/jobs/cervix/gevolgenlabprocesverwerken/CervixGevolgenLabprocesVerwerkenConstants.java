@@ -21,6 +21,10 @@ package nl.rivm.screenit.batch.jobs.cervix.gevolgenlabprocesverwerken;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public abstract class CervixGevolgenLabprocesVerwerkenConstants
 {
 
@@ -46,7 +50,4 @@ public abstract class CervixGevolgenLabprocesVerwerkenConstants
 
 	public static final String HUISARTSBERICHT_TYPE_KEY = "gevolgenLabprocesVerwerken.huisartsberichtType.";
 
-	private CervixGevolgenLabprocesVerwerkenConstants()
-	{
-	}
 }

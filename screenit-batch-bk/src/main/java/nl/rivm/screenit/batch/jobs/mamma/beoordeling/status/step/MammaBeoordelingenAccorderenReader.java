@@ -24,22 +24,18 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.status.step;
 import nl.rivm.screenit.batch.jobs.mamma.beoordeling.MammaBaseBeoordelingReader;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
-import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class MammaBeoordelingenAccorderenReader extends MammaBaseBeoordelingReader
 {
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
 
 	private final static int DAGEN = 1;
 
@@ -48,9 +44,9 @@ public class MammaBeoordelingenAccorderenReader extends MammaBaseBeoordelingRead
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(MammaBeoordeling.class, "beoordeling");
+		var criteria = session.createCriteria(MammaBeoordeling.class, "beoordeling");
 
-		DetachedCriteria radiologenAanHetWerk = getRadiologenDieAanHetWerkZijn(UREN);
+		var radiologenAanHetWerkSubquery = getRadiologenDieAanHetWerkZijn(UREN);
 
 		criteria.createAlias("beoordeling.eersteLezing", "eersteLezing", JoinType.LEFT_OUTER_JOIN);
 		criteria.createAlias("beoordeling.tweedeLezing", "tweedeLezing", JoinType.LEFT_OUTER_JOIN);
@@ -59,10 +55,10 @@ public class MammaBeoordelingenAccorderenReader extends MammaBaseBeoordelingRead
 			Restrictions.or(
 				Restrictions.and(
 					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN),
-					Subqueries.propertyNotIn("eersteLezing.beoordelaar.id", radiologenAanHetWerk)),
+					Subqueries.propertyNotIn("eersteLezing.beoordelaar.id", radiologenAanHetWerkSubquery)),
 				Restrictions.and(
 					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.TWEEDE_LEZING_OPGESLAGEN),
-					Subqueries.propertyNotIn("tweedeLezing.beoordelaar.id", radiologenAanHetWerk)),
+					Subqueries.propertyNotIn("tweedeLezing.beoordelaar.id", radiologenAanHetWerkSubquery)),
 				Restrictions.and(
 					Restrictions.eq("beoordeling.status", MammaBeoordelingStatus.EERSTE_LEZING_OPGESLAGEN),
 					Restrictions.le("eersteLezing.beoordelingDatum", currentDateSupplier.getDateTime().minusDays(DAGEN).toDate())),

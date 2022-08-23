@@ -1,6 +1,8 @@
+import React from "react"
+
 export type Popup = {
 	titel: string;
-	body: Record<string, any>;
+	body: React.ReactNode;
 	visible: boolean;
 	callback?: (...args: Array<any>) => any;
 	cancelCallback?: ((...args: Array<any>) => any);

@@ -32,6 +32,7 @@ import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
 import nl.rivm.screenit.main.service.cervix.CervixTestTimelineService;
+import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -39,6 +40,7 @@ import nl.rivm.screenit.main.web.component.modal.IDialog;
 import nl.rivm.screenit.main.web.gebruiker.clienten.dossier.GebeurtenisComparator;
 import nl.rivm.screenit.main.web.gebruiker.testen.TestenBasePage;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.TestVervolgKeuzeOptie;
+import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestEnumRadioChoice;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestVervolgKeuzeKnop;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.BijzondereClientDatumPopup;
 import nl.rivm.screenit.main.web.security.SecurityConstraint;
@@ -50,22 +52,24 @@ import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixAfmeldingReden;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.cervix.CervixTestService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
+import nl.topicuszorg.wicket.hibernate.cglib.ModelProxyHelper;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.model.DetachableListModel;
 import nl.topicuszorg.wicket.model.SortingListModel;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -73,7 +77,9 @@ import org.apache.wicket.markup.html.basic.EnumLabel;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -106,29 +112,26 @@ public class CervixTestTimelinePage extends TestenBasePage
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private ClientService clientService;
-
-	@SpringBean
 	private ICurrentDateSupplier dateSupplier;
 
 	@SpringBean
 	private CervixTestService testService;
 
-	private IModel<TestTimelineModel> model;
+	private final IModel<TestTimelineModel> model;
 
 	private IModel<List<Client>> clientModel;
 
 	private IModel<List<TestTimelineRonde>> rondesModel;
 
-	private IModel<List<Gemeente>> gemeentenModel;
+	private final IModel<List<Gemeente>> gemeentenModel;
 
-	private Form<TestTimelineModel> form;
+	private final Form<TestTimelineModel> form;
 
 	private WebMarkupContainer formComponents;
 
 	private final BootstrapDialog dialog;
 
-	private Form<Void> clientDefinitiefAfmeldenForm;
+	private final Form<Void> clientDefinitiefAfmeldenForm;
 
 	private IModel<CervixAfmeldingReden> afmeldingReden = new Model<>(CervixAfmeldingReden.ANDERS);
 
@@ -153,6 +156,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 		TestTimelineModel testTimelineModel = new TestTimelineModel();
 		testTimelineModel.setGeslacht(Geslacht.VROUW);
 		testTimelineModel.setGeboortedatum(dateSupplier.getDateTime().minusYears(30).toDate());
+		testTimelineModel.setLeeftijd(30);
 
 		model = new CompoundPropertyModel<>(testTimelineModel);
 		TestTimelineModel object = model.getObject();
@@ -190,13 +194,13 @@ public class CervixTestTimelinePage extends TestenBasePage
 
 		add(clientResetForm);
 
-		clientDefinitiefAfmeldenForm = new ScreenitForm<Void>("definitiefAfmeldenForm")
+		clientDefinitiefAfmeldenForm = new ScreenitForm<>("definitiefAfmeldenForm")
 		{
 			@Override
 			public boolean isVisible()
 			{
 				List<Client> clienten = ModelUtil.nullSafeGet(clientModel);
-				return clienten != null && clienten.size() > 0 && clienten.get(0).getCervixDossier().getCisHistorie() != null;
+				return clienten != null && !clienten.isEmpty() && clienten.get(0).getCervixDossier().getCisHistorie() != null;
 			}
 		};
 		clientDefinitiefAfmeldenForm.setOutputMarkupId(true);
@@ -229,6 +233,13 @@ public class CervixTestTimelinePage extends TestenBasePage
 		bsnField.setOutputMarkupId(true);
 		container.add(bsnField);
 
+		Label aNummer = new Label("aNummer");
+		container.add(aNummer);
+
+		Label leeftijd = new Label("leeftijd");
+		leeftijd.setOutputMarkupId(true);
+		container.add(leeftijd);
+
 		bsnField.add(new AjaxEventBehavior("change")
 		{
 			@Override
@@ -246,9 +257,27 @@ public class CervixTestTimelinePage extends TestenBasePage
 
 		DatePicker<Date> geboortedatum = ComponentHelper.monthYearDatePicker("geboortedatum");
 		geboortedatum.setOutputMarkupId(true);
+		geboortedatum.add(new AjaxFormComponentUpdatingBehavior("change")
+		{
+			@Override
+			protected void onUpdate(AjaxRequestTarget target)
+			{
+				TestTimelineModel timelineModel = model.getObject();
+				timelineModel.setLeeftijd(DateUtil.getAantalJaarTussenTweeDatums(DateUtil.toLocalDate(timelineModel.getGeboortedatum()), dateSupplier.getLocalDate()));
+				target.add(leeftijd);
+			}
+		});
 		container.add(geboortedatum);
 
-		container.add(new DropDownChoice<>("gemeente", gemeentenModel, new ChoiceRenderer<Gemeente>("naam")));
+		List<Geslacht> geslachten = new ArrayList<>(Arrays.asList(Geslacht.values()));
+		geslachten.remove(Geslacht.NIET_GESPECIFICEERD);
+		RadioChoice<Geslacht> geslachtRadio = new TestEnumRadioChoice<>("geslacht", geslachten, new EnumChoiceRenderer<>(this));
+		geslachtRadio.setPrefix("<label class=\"radio\">");
+		geslachtRadio.setSuffix("</label>");
+		geslachtRadio.setOutputMarkupId(true);
+		container.add(geslachtRadio);
+
+		container.add(new DropDownChoice<>("gemeente", gemeentenModel, new ChoiceRenderer<>("naam")));
 
 		IndicatingAjaxSubmitLink clientVindOfMaak = new IndicatingAjaxSubmitLink("clientVindOfMaak")
 		{
@@ -273,7 +302,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 				clientModel = ModelUtil.listModel(clienten);
 				CervixTestTimelinePage.this.info("Client(en) zijn gevonden en/of succesvol aangemaakt");
 
-				if (clienten.size() > 0)
+				if (!clienten.isEmpty())
 				{
 					refreshTimelineModel(timelineModel, clienten);
 					WebMarkupContainer fCcontainer = getFormComponentsContainer();
@@ -290,6 +319,35 @@ public class CervixTestTimelinePage extends TestenBasePage
 		};
 		form.setDefaultButton(clientVindOfMaak);
 		container.add(clientVindOfMaak);
+
+		IndicatingAjaxSubmitLink clientWijzigOfMaak = new IndicatingAjaxSubmitLink("clientWijzigOfMaak")
+		{
+			@Override
+			protected void onSubmit(AjaxRequestTarget target)
+			{
+				TestTimelineModel timelineModel = model.getObject();
+				List<Client> clienten = testTimelineService.maakOfWijzigClienten(timelineModel);
+				List<String> errors = testTimelineService.validateTestClienten(clienten);
+				errors.forEach(this::error);
+				clientModel = ModelUtil.listModel(clienten);
+				CervixTestTimelinePage.this.info("Client(en) zijn succesvol gewijzigd of aangemaakt");
+
+				if (!clienten.isEmpty())
+				{
+					refreshTimelineModel(timelineModel, clienten);
+					WebMarkupContainer fCcontainer = getFormComponentsContainer();
+					formComponents.replaceWith(fCcontainer);
+					formComponents = fCcontainer;
+					target.add(formComponents);
+				}
+
+				WebMarkupContainer geContainer = getGebeurtenissenContainer();
+				gebeurtenissenContainer.replaceWith(geContainer);
+				gebeurtenissenContainer = geContainer;
+				target.add(gebeurtenissenContainer);
+			}
+		};
+		container.add(clientWijzigOfMaak);
 		return container;
 	}
 
@@ -331,13 +389,17 @@ public class CervixTestTimelinePage extends TestenBasePage
 				@Override
 				public List<TestVervolgKeuzeOptie> getOptions()
 				{
-					List<TestVervolgKeuzeOptie> keuzes = new ArrayList<>();
-					if (clientModel.getObject().get(0).getPersoon().getGeslacht() == Geslacht.VROUW)
+					var keuzes = new ArrayList<TestVervolgKeuzeOptie>();
+					if (!Deelnamemodus.SELECTIEBLOKKADE.equals(clientModel.getObject().get(0).getCervixDossier().getDeelnamemodus()))
 					{
 						keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_RONDE);
 						keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_CISHISTORIE);
 						keuzes.add(TestVervolgKeuzeOptie.CERVIX_NIEUWE_CIS_RONDE0);
 						keuzes.add(TestVervolgKeuzeOptie.CERVIX_VERZET_TIJD);
+					}
+					else
+					{
+						keuzes.add(TestVervolgKeuzeOptie.CERVIX_DEELNAME_WENS);
 					}
 					return keuzes;
 				}
@@ -368,7 +430,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 
 	private ListView<TestTimelineRonde> getListView()
 	{
-		return new ListView<TestTimelineRonde>("rondes", rondesModel)
+		return new ListView<>("rondes", rondesModel)
 		{
 			@Override
 			protected void populateItem(ListItem<TestTimelineRonde> item)
@@ -379,8 +441,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 					@Override
 					public List<TestVervolgKeuzeOptie> getOptions()
 					{
-
-						return testTimelineService.getSnelKeuzeOpties(clientModel.getObject().get(0));
+						return testTimelineService.getSnelKeuzeOpties(ModelProxyHelper.deproxy(clientModel.getObject().get(0)));
 					}
 
 					@Override
@@ -403,8 +464,8 @@ public class CervixTestTimelinePage extends TestenBasePage
 						ScreeningRondeGebeurtenissen gebeurtenissen = timeLineRonde.getCervixScreeningRondeDossier();
 						ScreeningRonde<?, ?, ?, ?> ronde = gebeurtenissen.getScreeningRonde();
 						boolean isLopend = ScreeningRondeStatus.LOPEND.equals(ronde.getStatus());
-						boolean isAangemeld = ronde.getAangemeld().booleanValue();
-						return !isOverleden && (isLopend || !isAangemeld && !isLopend);
+						boolean isAangemeld = ronde.getAangemeld();
+						return !isOverleden && (isLopend || !isAangemeld);
 					}
 
 					@Override
@@ -418,7 +479,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 					new PropertyModel<>(item.getModel(), "cervixScreeningRondeDossier.gebeurtenissen"),
 					new GebeurtenisComparator());
 
-				item.add(new PropertyListView<ScreeningRondeGebeurtenis>("gebeurtenissen", sortingListModel)
+				item.add(new PropertyListView<>("gebeurtenissen", sortingListModel)
 				{
 					@Override
 					protected void populateItem(final ListItem<ScreeningRondeGebeurtenis> item)
@@ -427,43 +488,11 @@ public class CervixTestTimelinePage extends TestenBasePage
 						item.add(new EnumLabel<TypeGebeurtenis>("gebeurtenis"));
 						item.add(new EnumLabel<GebeurtenisBron>("bron"));
 						item.add(new AttributeAppender("class", new Model<>("badge-not-clickable"), " "));
-						item.add(new Label("extraOmschrijving", (IModel<String>) () -> {
-							ScreeningRondeGebeurtenis gebeurtenis2 = item.getModelObject();
-							String[] extraOmschrijvingen = gebeurtenis2.getExtraOmschrijving();
-							String extraOmschrijving = "";
-							if (extraOmschrijvingen != null)
-							{
-								for (String omschrijving : extraOmschrijvingen)
-								{
-									if (omschrijving != null)
-									{
-										if (StringUtils.isNotBlank(extraOmschrijving))
-										{
-											if (extraOmschrijving.trim().endsWith(":"))
-											{
-												if (!extraOmschrijving.endsWith(":"))
-												{
-													extraOmschrijving += " ";
-												}
-											}
-											else
-											{
-												extraOmschrijving += ", ";
-											}
-										}
-										else
-										{
-											extraOmschrijving = "(";
-										}
-										extraOmschrijving += getString(omschrijving, null, omschrijving);
-									}
-								}
-							}
-							if (StringUtils.isNotBlank(extraOmschrijving))
-							{
-								extraOmschrijving += ")";
-							}
-							return extraOmschrijving;
+						item.add(new Label("extraOmschrijving", (IModel<String>) () ->
+						{
+							ScreeningRondeGebeurtenis gebeurtenis = item.getModelObject();
+							String[] extraOmschrijvingen = gebeurtenis.getExtraOmschrijving();
+							return BriefOmschrijvingUtil.verwerkExtraOmschrijvingen(extraOmschrijvingen, CervixTestTimelinePage.this::getString);
 						}));
 					}
 				});
@@ -488,7 +517,7 @@ public class CervixTestTimelinePage extends TestenBasePage
 						gebeurtenissenContainer.replaceWith(geContainer);
 						gebeurtenissenContainer = geContainer;
 						target.add(gebeurtenissenContainer);
-						info("Client aangepast.");
+						CervixTestTimelinePage.this.info("Client aangepast.");
 					}
 				});
 			}

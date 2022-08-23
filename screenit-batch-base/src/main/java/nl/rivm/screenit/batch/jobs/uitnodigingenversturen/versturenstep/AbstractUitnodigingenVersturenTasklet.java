@@ -81,8 +81,6 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.neethi.Policy;
-import org.apache.neethi.PolicyComponent;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -647,19 +645,4 @@ public abstract class AbstractUitnodigingenVersturenTasklet<U extends InpakbareU
 		}
 	}
 
-	private class HttpPolicy extends Policy
-	{
-		@Override
-		public void addPolicyComponent(PolicyComponent component)
-		{
-
-		}
-
-		@Override
-		public void addPolicyComponents(List<? extends PolicyComponent> components)
-		{
-
-		}
-
-	}
 }

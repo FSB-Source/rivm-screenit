@@ -57,6 +57,8 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.wicket.component.link.IndicatingAjaxSubmitLink;
 import nl.topicuszorg.wicket.hibernate.SimpleHibernateModel;
@@ -83,6 +85,9 @@ public class TestenBasePage extends GebruikerBasePage
 
 	@SpringBean
 	private ClientService clientService;
+
+	@SpringBean
+	private ICurrentDateSupplier dateSupplier;
 
 	@SpringBean(name = "clientportaalUrl")
 	private String newClientportaalUrl;
@@ -173,6 +178,9 @@ public class TestenBasePage extends GebruikerBasePage
 			timelineModel.setDeelnamekans(mammaDossier.getDeelnamekans().getDeelnamekans());
 		}
 		timelineModel.setBsn(clienten.stream().map(c -> c.getPersoon().getBsn()).collect(Collectors.joining(",")));
+		timelineModel.setANummer(clienten.stream().map(c ->
+			c.getPersoon().getAnummer() == null ? "onbekend" : c.getPersoon().getAnummer()).collect(Collectors.joining(",")));
+		timelineModel.setLeeftijd(DateUtil.getAantalJaarTussenTweeDatums(DateUtil.toLocalDate(client.getPersoon().getGeboortedatum()), dateSupplier.getLocalDate()));
 		return timelineModel;
 	}
 
@@ -187,7 +195,7 @@ public class TestenBasePage extends GebruikerBasePage
 				@Override
 				protected void onSubmit(AjaxRequestTarget target)
 				{
-					if (model.getObject().getBsns().size() > 0)
+					if (!model.getObject().getBsns().isEmpty())
 					{
 						Client client = clientService.getClientByBsn(model.getObject().getBsns().get(0));
 						setResponsePage(new ClientInzienPage(new SimpleHibernateModel<>(client)));
@@ -213,7 +221,7 @@ public class TestenBasePage extends GebruikerBasePage
 			public void onSubmit(AjaxRequestTarget target)
 			{
 				List<String> bsns = model.getObject().getBsns();
-				if (bsns.size() > 0)
+				if (!bsns.isEmpty())
 				{
 					try
 					{

@@ -67,7 +67,7 @@ public class ClientProjectenDataProvider extends SortableDataProvider<ProjectCli
 	@Override
 	public IModel<ProjectClient> model(ProjectClient object)
 	{
-		return ModelUtil.cModel(object);
+		return ModelUtil.ccModel(object);
 	}
 
 }

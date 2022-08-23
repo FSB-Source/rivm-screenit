@@ -28,6 +28,9 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
+
+@Component
 
 public class UitnodigingsgebiedReader extends BaseScrollableResultReader
 {
@@ -35,7 +38,7 @@ public class UitnodigingsgebiedReader extends BaseScrollableResultReader
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(Gemeente.class);
+		var crit = session.createCriteria(Gemeente.class);
 		crit.add(Restrictions.isEmpty("uitnodigingsGebieden"));
 
 		return crit;

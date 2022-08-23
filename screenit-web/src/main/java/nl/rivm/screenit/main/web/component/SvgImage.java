@@ -23,12 +23,12 @@ package nl.rivm.screenit.main.web.component;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.wicket.markup.html.image.NonCachingImage;
 import org.apache.wicket.request.resource.DynamicImageResource;
 import org.apache.wicket.request.resource.IResource.Attributes;
-import org.apache.wicket.util.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public abstract class SvgImage extends NonCachingImage
 				super.configureResponse(response, attributes);
 				response.setContentType("image/svg+xml");
 				response.setFileName("image_" + System.currentTimeMillis() + ".svg");
-				response.setCacheDuration(Duration.ONE_SECOND);
+				response.setCacheDuration(Duration.ofSeconds(1));
 			}
 		});
 	}

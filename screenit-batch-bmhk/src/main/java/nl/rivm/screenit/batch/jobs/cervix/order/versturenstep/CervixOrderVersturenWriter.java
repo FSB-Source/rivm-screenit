@@ -24,11 +24,12 @@ package nl.rivm.screenit.batch.jobs.cervix.order.versturenstep;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.cervix.order.CervixOrderConstants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
-import nl.rivm.screenit.batch.model.HL7v24ResponseWrapper;
 import nl.rivm.screenit.batch.service.CervixHL7BaseService;
-import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.Rivm;
 import nl.rivm.screenit.model.cervix.CervixCytologieOrder;
@@ -39,33 +40,28 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
+@Slf4j
 public class CervixOrderVersturenWriter extends BaseWriter<CervixCytologieOrder>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(CervixOrderVersturenWriter.class);
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private CervixHL7BaseService hl7BaseService;
+	private final CervixHL7BaseService hl7BaseService;
 
 	@Override
 	protected void write(CervixCytologieOrder cytologieOrder) throws Exception
 	{
 		LOG.info("Order bericht wordt verstuurd voor cytologieOrder:" + cytologieOrder.getId());
 
-		HL7v24ResponseWrapper responseWrapper = hl7BaseService.sendHL7Message(cytologieOrder.getHl7Bericht(), cytologieOrder.getUitstrijkje().getLaboratorium());
+		var responseWrapper = hl7BaseService.sendHL7Message(cytologieOrder.getHl7Bericht(), cytologieOrder.getUitstrijkje().getLaboratorium());
 
 		if (responseWrapper.isSuccess())
 		{
@@ -82,7 +78,6 @@ public class CervixOrderVersturenWriter extends BaseWriter<CervixCytologieOrder>
 
 	private void verstuurd(CervixCytologieOrder cytologieOrder)
 	{
-
 		cytologieOrder.setStatus(CervixCytologieOrderStatus.VERSTUURD);
 		cytologieOrder.setStatusDatum(dateSupplier.getDate());
 		hibernateService.saveOrUpdate(cytologieOrder);
@@ -98,7 +93,7 @@ public class CervixOrderVersturenWriter extends BaseWriter<CervixCytologieOrder>
 
 		List<Instelling> instellingen = new ArrayList<>();
 		instellingen.add(hibernateService.loadAll(Rivm.class).get(0));
-		Client client = cytologieOrder.getUitstrijkje().getOntvangstScreeningRonde().getDossier().getClient();
+		var client = cytologieOrder.getUitstrijkje().getOntvangstScreeningRonde().getDossier().getClient();
 		logService.logGebeurtenis(LogGebeurtenis.CERVIX_ORDER_VERSTUREN_MISLUKT, instellingen, client, melding, Bevolkingsonderzoek.CERVIX);
 	}
 }

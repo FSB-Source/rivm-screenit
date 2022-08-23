@@ -1,0 +1,63 @@
+<!--
+  ========================LICENSE_START=================================
+  screenit-web
+  %%
+  Copyright (C) 2012 - 2022 Facilitaire Samenwerking Bevolkingsonderzoek
+  %%
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+  
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+  
+  You should have received a copy of the GNU Affero General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  =========================LICENSE_END==================================
+  -->
+<html xmlns:wicket="http://wicket.apache.org/">
+<wicket:panel>
+	<div class="row-fluid">
+		<div class="span7">
+			<label><strong>Kies grondslag</strong></label>
+			<span wicket:id="grondslag">
+				<label class="radio">
+					<input type="radio" id="kwaliteitsborging" style="margin-top: 12px;" value="kwaliteitsborging" wicket:id="kwaliteitsborging"/>
+					<label for="kwaliteitsborging">Kwaliteitsborging met volgnummer levering <input type="text" class="input-mini" wicket:id="volgnummerKwaliteitsborging"/></label>
+				</label>
+				<label class="radio">
+					<input type="radio" id="monitor" value="monitor" wicket:id="monitor"/>
+					<label for="monitor">Landelijke monitor</label>
+				</label>
+			</span>
+		</div>
+		<div class="span5">
+			<label><strong>Selecteer cli&euml;nten</strong></label>
+			<span wicket:id="gewensteUitslag"></span>
+			<br>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span7">
+			<label><strong>Kies uw periode</strong></label>
+			<span wicket:id="periodeType">
+				<label class="radio">
+					<input type="radio" id="range" style="margin-top: 12px;" name="tijdsetting" value="range" wicket:id="range"/>
+					<label for="range">Onderzoeksdatum van <input type="text" wicket:id="vanafOnderzoeksDatum"> t/m <input type="text" wicket:id="totEnMetOnderzoeksDatum"></label>
+				</label>
+				<label class="radio">
+					<input type="radio" id="xmaanden" style="margin-top: 12px;" name="tijdsetting" value="xmaanden" wicket:id="xmaanden"/>
+					<label for="xmaanden">Onderzoeksdatum in afgelopen <input type="text" class="input-mini" wicket:id="onderzoekAantalMaandenTerug"> maanden</label>
+				</label>
+			</span>
+		</div>
+		<div class="span5">
+			<label><strong>Maximaal aantal cli&euml;nten per bestand</strong></label>
+			<span style="font-size:13px;  line-height: 20px;"><input type="text" class="input-mini" wicket:id="maxAantalPerFile"> clienten (Max: 2 miljoen)</span>
+		</div>
+	</div>
+</wicket:panel>
+</html>

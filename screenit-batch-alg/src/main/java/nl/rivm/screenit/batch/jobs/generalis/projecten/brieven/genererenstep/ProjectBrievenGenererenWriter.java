@@ -49,9 +49,11 @@ import nl.rivm.screenit.service.ProjectService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.aspose.words.Document;
 
+@Component
 public class ProjectBrievenGenererenWriter extends AbstractBrievenGenererenWriter<ProjectBrief, ProjectMergedBrieven>
 {
 

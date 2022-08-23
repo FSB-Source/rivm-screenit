@@ -38,6 +38,8 @@ import javax.jms.QueueBrowser;
 import javax.jms.Session;
 import javax.jms.TemporaryQueue;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.main.service.AsyncMessageReceiver;
 import nl.rivm.screenit.main.service.BatchService;
 import nl.rivm.screenit.model.InstellingGebruiker;
@@ -61,8 +63,6 @@ import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jms.UncategorizedJmsException;
@@ -72,11 +72,10 @@ import org.springframework.jms.core.MessageCreator;
 import org.springframework.jms.core.SessionCallback;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class BatchServiceImpl implements BatchService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(BatchServiceImpl.class);
 
 	@Autowired
 	private JmsTemplate jmsTemplate;
@@ -102,68 +101,55 @@ public class BatchServiceImpl implements BatchService
 	public List<BatchServerStatus> getBatchServerStatus() throws UncategorizedJmsException
 	{
 		LOG.trace("getBatchServerStatus");
-		List<BatchServerStatus> result = jmsTemplate.execute(new SessionCallback<List<BatchServerStatus>>()
+
+		return jmsTemplate.execute(session ->
 		{
-
-			@Override
-			public List<BatchServerStatus> doInJms(Session session) throws JMSException
+			final List<BatchServerStatus> batchServerStatussen = new ArrayList<>();
+			var temporaryQueue = session.createTemporaryQueue();
+			try
 			{
-				final List<BatchServerStatus> batchServerStatussen = new ArrayList<>();
-				TemporaryQueue temporaryQueue = session.createTemporaryQueue();
-				try
+				jmsTemplate.send(batchServerStatusDestination, new BatchMessageCreator(temporaryQueue)
 				{
-
-					jmsTemplate.send(batchServerStatusDestination, new BatchMessageCreator(temporaryQueue)
+					@Override
+					protected Message createMessageSpecifiek(Session session) throws JMSException
 					{
-						@Override
-						protected Message createMessageSpecifiek(Session session) throws JMSException
-						{
-							return ActiveMQHelper.getActiveMqObjectMessage(new GetBatchStatusRequest());
-						}
+						return ActiveMQHelper.getActiveMqObjectMessage(new GetBatchStatusRequest());
+					}
 
-					});
+				});
 
-					Thread.sleep(2000);
+				Thread.sleep(2000);
 
-					batchServerStatussen.addAll(jmsTemplate.browse(temporaryQueue, new BrowserCallback<List<BatchServerStatus>>()
+				batchServerStatussen.addAll(jmsTemplate.browse(temporaryQueue, (s, browser) ->
+				{
+					LOG.trace("getBatchServerStatus: doInJms");
+					List<BatchServerStatus> result = new ArrayList<>();
+					Enumeration<Message> enumeration = browser.getEnumeration();
+					while (enumeration.hasMoreElements())
 					{
-
-						@Override
-						public List<BatchServerStatus> doInJms(Session session, QueueBrowser browser) throws JMSException
+						Message message = enumeration.nextElement();
+						if (message instanceof ObjectMessage)
 						{
-							LOG.trace("getBatchServerStatus: doInJms");
-							List<BatchServerStatus> result = new ArrayList<>();
-							Enumeration<Message> enumeration = browser.getEnumeration();
-							while (enumeration.hasMoreElements())
+							ObjectMessage objectMessage = (ObjectMessage) message;
+							if (objectMessage.getObject() instanceof BatchServerStatus)
 							{
-								Message message = enumeration.nextElement();
-								if (message instanceof ObjectMessage)
-								{
-									ObjectMessage objectMessage = (ObjectMessage) message;
-									if (objectMessage.getObject() instanceof BatchServerStatus)
-									{
-										result.add((BatchServerStatus) objectMessage.getObject());
-									}
-								}
+								result.add((BatchServerStatus) objectMessage.getObject());
 							}
-							return result;
 						}
-					}));
-
-				}
-				catch (InterruptedException e)
-				{
-					LOG.error("Thread interrupted", e);
-				}
-				finally
-				{
-					temporaryQueue.delete();
-				}
-				return batchServerStatussen;
+					}
+					return result;
+				}));
 			}
+			catch (InterruptedException e)
+			{
+				LOG.error("Thread interrupted", e);
+			}
+			finally
+			{
+				temporaryQueue.delete();
+			}
+			return batchServerStatussen;
 		});
-
-		return result;
 	}
 
 	@Override

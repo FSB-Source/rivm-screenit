@@ -21,6 +21,9 @@ package nl.rivm.screenit.service.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.Gemeente;
@@ -42,31 +45,23 @@ import nl.rivm.screenit.service.cervix.CervixHuisartsBerichtService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
+@AllArgsConstructor
 @Service
 @Transactional(propagation = Propagation.SUPPORTS)
 public class CervixHuisartsBerichtServiceImpl implements CervixHuisartsBerichtService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHuisartsBerichtServiceImpl.class);
-
-	@Autowired
 	private LogService logService;
 
-	@Autowired
 	private CervixEdiService ediService;
 
-	@Autowired
 	private HibernateService hibernateService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
@@ -81,6 +76,7 @@ public class CervixHuisartsBerichtServiceImpl implements CervixHuisartsBerichtSe
 			huisartsBericht.setHuisartsLocatie(locatie);
 			huisartsBericht.setScreeningsOrganisatie(locatie.getLocatieAdres().getGbaGemeente().getScreeningOrganisatie());
 			huisartsBericht.setStatus(CervixHuisartsBerichtStatus.AANGEMAAKT);
+			huisartsBericht.setEenOpnieuwVerzondenBericht(false);
 			huisartsBericht.setStatusDatum(currentDateSupplier.getDate());
 			huisartsBericht.setAanmaakDatum(currentDateSupplier.getDate());
 			ediService.verstuurKlantnummerVerificatieMedVry(huisartsBericht);
@@ -127,6 +123,7 @@ public class CervixHuisartsBerichtServiceImpl implements CervixHuisartsBerichtSe
 	{
 		CervixHuisartsBericht huisartsBericht = new CervixHuisartsBericht();
 		huisartsBericht.setStatus(CervixHuisartsBerichtStatus.AANGEMAAKT);
+		huisartsBericht.setEenOpnieuwVerzondenBericht(false);
 		huisartsBericht.setStatusDatum(currentDateSupplier.getDate());
 		huisartsBericht.setAanmaakDatum(currentDateSupplier.getDate());
 		huisartsBericht.setClient(client);

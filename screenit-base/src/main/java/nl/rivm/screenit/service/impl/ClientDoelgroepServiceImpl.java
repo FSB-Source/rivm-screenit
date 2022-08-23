@@ -30,11 +30,11 @@ import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Dossier;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Deelnamemodus;
 import nl.rivm.screenit.service.ClientDoelgroepService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,10 +87,10 @@ public class ClientDoelgroepServiceImpl implements ClientDoelgroepService
 	{
 		LocalDate geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
 
-		return clientIsOuderDanMinimaleLeeftijd(geboortedatum, Bevolkingsonderzoek.COLON,
-			simplePreferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name()))
-			&& clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.COLON,
-			simplePreferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name()) + 1)
+		Integer minimaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MINIMALE_LEEFTIJD_COLON.name());
+		Integer maximaleLeeftijd = simplePreferenceService.getInteger(PreferenceKey.MAXIMALE_LEEFTIJD_COLON.name());
+		return clientIsOuderDanMinimaleLeeftijd(geboortedatum, Bevolkingsonderzoek.COLON, minimaleLeeftijd)
+			&& clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.COLON, maximaleLeeftijd + 1)
 			|| heeftDossierActiviteit(client.getColonDossier());
 	}
 
@@ -98,9 +98,9 @@ public class ClientDoelgroepServiceImpl implements ClientDoelgroepService
 	{
 		LocalDate geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
 
-		boolean isVrouw = Geslacht.VROUW.equals(client.getPersoon().getGeslacht());
-		return isVrouw && clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.CERVIX, CervixLeeftijdcategorie._70.getLeeftijd())
+		return clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.CERVIX, CervixLeeftijdcategorie._70.getLeeftijd())
 			&& clientIsOuderDanMinimaleLeeftijd(geboortedatum, Bevolkingsonderzoek.CERVIX, CervixLeeftijdcategorie._30.getLeeftijd())
+			&& client.getCervixDossier() != null && client.getCervixDossier().getDeelnamemodus() != Deelnamemodus.SELECTIEBLOKKADE
 			|| heeftDossierActiviteit(client.getCervixDossier());
 	}
 
@@ -113,10 +113,8 @@ public class ClientDoelgroepServiceImpl implements ClientDoelgroepService
 	public boolean behoortTotMammaLeeftijdDoelgroep(Client client)
 	{
 		LocalDate geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
-
-		boolean isVrouw = Geslacht.VROUW.equals(client.getPersoon().getGeslacht());
-		return isVrouw
-			&& clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.MAMMA,
+		boolean neemtDeel = client.getMammaDossier() != null && client.getMammaDossier().getDeelnamemodus() != Deelnamemodus.SELECTIEBLOKKADE;
+		return neemtDeel && clientIsJongerDanMaximaleLeeftijd(geboortedatum, Bevolkingsonderzoek.MAMMA,
 			simplePreferenceService.getInteger(PreferenceKey.MAMMA_MAXIMALE_LEEFTIJD.name()))
 			&& clientIsOuderDanMinimaleLeeftijd(geboortedatum, Bevolkingsonderzoek.MAMMA,
 			simplePreferenceService.getInteger(PreferenceKey.MAMMA_MINIMALE_LEEFTIJD.name()));

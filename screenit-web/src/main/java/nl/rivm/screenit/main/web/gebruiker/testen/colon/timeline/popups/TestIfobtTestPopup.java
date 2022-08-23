@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
@@ -64,7 +64,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 {
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService colonTestTimelineService;
 
 	@SpringBean
 	private SimplePreferenceService preferenceService;
@@ -263,7 +263,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 						try
 						{
 							studietestService.controleerUitslagenbestandOpFouten(buis, null);
-							testTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
+							colonTestTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
 						}
 						catch (ProjectUitslagenUploadException e)
 						{
@@ -274,7 +274,7 @@ public class TestIfobtTestPopup extends AbstractTestBasePopupPanel
 					}
 					else
 					{
-						testTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
+						colonTestTimelineService.ifobtTestOntvangen(buis.getColonScreeningRonde().getDossier().getClient(), verlopenModel.getObject(), buis, 1);
 					}
 				}
 			}

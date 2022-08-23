@@ -21,25 +21,26 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.EnvironmentInfoDto;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("environment")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class EnvironmentInfoController
 {
 
 	private final ICurrentDateSupplier currentDateSupplier;
-
-	public EnvironmentInfoController(ICurrentDateSupplier currentDateSupplier)
-	{
-		this.currentDateSupplier = currentDateSupplier;
-	}
 
 	@GetMapping
 	public ResponseEntity<EnvironmentInfoDto> getEnvironmentInfo()

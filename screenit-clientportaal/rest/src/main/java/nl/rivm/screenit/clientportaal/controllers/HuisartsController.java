@@ -23,6 +23,8 @@ package nl.rivm.screenit.clientportaal.controllers;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.mappers.HuisartsMapper;
 import nl.rivm.screenit.clientportaal.model.HuisartsDto;
 import nl.rivm.screenit.clientportaal.model.HuisartsZoekDto;
@@ -31,9 +33,10 @@ import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.EnovationHuisarts;
 import nl.rivm.screenit.service.EnovationHuisartsService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,14 +45,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("huisarts")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class HuisartsController extends AbstractController
 {
 
-	@Autowired
-	private EnovationHuisartsService huisartsService;
+	private final EnovationHuisartsService huisartsService;
 
-	@Autowired
-	private HuisartsMapper huisartsMapper;
+	private final HuisartsMapper huisartsMapper;
 
 	private final static int MAX_AANTAL_HUISARTSEN_PER_CALL = 10;
 

@@ -22,6 +22,7 @@ package nl.rivm.screenit.main.service.cervix.impl;
  */
 
 import java.io.File;
+import java.io.InputStream;
 
 import nl.rivm.screenit.main.service.cervix.CervixBarcodeAfdrukService;
 import nl.rivm.screenit.model.MailMergeContext;
@@ -29,11 +30,11 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
 
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.FileCopyUtils;
 
 import com.aspose.words.Document;
 
@@ -52,20 +53,20 @@ public class CervixBarcodeAfdrukServiceImpl implements CervixBarcodeAfdrukServic
 	@Override
 	public File saveBarcodeDocument(CervixUitnodiging uitnodiging)
 	{
+		MailMergeContext context = new MailMergeContext();
+		context.setCervixUitnodiging(uitnodiging);
+		context.setClient(uitnodiging.getScreeningRonde().getDossier().getClient());
+
 		File file = null;
-		try
+		try (InputStream inputStream = getClass().getResourceAsStream("/CervixUitnodigingsSticker.doc"))
 		{
-			MailMergeContext context = new MailMergeContext();
-			context.setCervixUitnodiging(uitnodiging);
-			context.setClient(uitnodiging.getScreeningRonde().getDossier().getClient());
-			File template = new File(getClass().getClassLoader().getResource("CervixUitnodigingsSticker.doc").toURI());
-			byte[] templateBytes = FileUtils.readFileToByteArray(template);
+			byte[] templateBytes = FileCopyUtils.copyToByteArray(inputStream);
 			Document document = asposeService.processDocument(templateBytes, context);
 			file = briefService.genereerPdf(document, "MonsterId", true);
 		}
 		catch (Exception e)
 		{
-			LOG.error("Error bij laden PDF barcode monster: {}", uitnodiging.getMonster().getMonsterId());
+			LOG.error("Error bij laden PDF barcode monster: {}", uitnodiging.getMonster().getMonsterId(), e);
 		}
 		return file;
 	}

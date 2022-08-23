@@ -28,10 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakOptieDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakWijzigenFilterDto;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakZoekFilterDto;
+import nl.rivm.screenit.clientportaal.model.mamma.MammaBeschikbaarheidPlaatsOpvragenDto;
 import nl.rivm.screenit.clientportaal.services.DatumValidatieService;
 import nl.rivm.screenit.clientportaal.services.mamma.MammaAfspraakService;
 import nl.rivm.screenit.dto.mamma.afspraken.MammaHuidigeAfspraakDto;
@@ -48,14 +52,12 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
-import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -65,30 +67,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("mamma/afspraak")
+@Slf4j
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class AfspraakController extends AbstractController
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AfspraakController.class);
+	private final MammaBaseStandplaatsService standplaatsService;
 
-	@Autowired
-	private MammaBaseStandplaatsService standplaatsService;
+	private final MammaBaseAfspraakService baseAfspraakService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final ClientContactService clientContactService;
 
-	@Autowired
-	private MammaBaseAfspraakService baseAfspraakService;
+	private final MammaAfspraakService afspraakService;
 
-	@Autowired
-	private ClientContactService clientContactService;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private MammaAfspraakService afspraakService;
-
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
-
-	@Autowired
-	private DatumValidatieService datumValidatieService;
+	private final DatumValidatieService datumValidatieService;
 
 	@GetMapping("/standplaatsPlaatsen")
 	public ResponseEntity<List<String>> getStandplaatsPlaatsen(Authentication authentication)
@@ -117,13 +111,13 @@ public class AfspraakController extends AbstractController
 		return createForbiddenResponse();
 	}
 
-	@GetMapping("/beschikbaarheid/plaats/{plaats}")
-	public ResponseEntity<List<LocalDate>> getDagenMetBeschikbaarheidViaPlaats(Authentication authentication, @PathVariable String plaats)
+	@PostMapping("/beschikbaarheid/plaats")
+	public ResponseEntity<List<LocalDate>> getDagenMetBeschikbaarheidViaPlaats(Authentication authentication, @RequestBody MammaBeschikbaarheidPlaatsOpvragenDto plaatsOpvragenDto)
 	{
 		long start = System.currentTimeMillis();
 		try
 		{
-			return getResponseMetBeschikbareDagen(authentication, plaats, null);
+			return getResponseMetBeschikbareDagen(authentication, plaatsOpvragenDto.getPlaats(), null);
 		}
 		finally
 		{
@@ -190,6 +184,7 @@ public class AfspraakController extends AbstractController
 	}
 
 	@PostMapping("/maak")
+
 	public ResponseEntity<String> maakAfspraak(Authentication authentication, @RequestBody MammaAfspraakOptieDto body)
 	{
 		Client client = getClient(authentication);

@@ -21,12 +21,15 @@ package nl.rivm.screenit.config;
  * =========================LICENSE_END==================================
  */
 
-import lombok.Getter;
+import java.nio.file.Paths;
+
 import lombok.Setter;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
@@ -36,16 +39,13 @@ import org.springframework.core.annotation.Order;
 @Setter
 public class ApplicationConfig
 {
-	@Getter
-	private final Jgroups jgroups = new Jgroups();
-
 	private Boolean testModus;
 
 	private String environment;
 
 	private String instance;
 
-	private String naam;
+	private String name;
 
 	private String url;
 
@@ -58,6 +58,12 @@ public class ApplicationConfig
 	private String asposeLicense;
 
 	private String asposeVragenlijstTemplate;
+
+	private Integer planAhead;
+
+	private Integer maxRoosterUitrolInMonths;
+
+	private String zooKeeperServerUri;
 
 	@Bean
 	public Boolean isJpa()
@@ -72,13 +78,13 @@ public class ApplicationConfig
 	}
 
 	@Bean
-	public String applicatieNaam()
+	public String applicationName()
 	{
-		return naam;
+		return name;
 	}
 
 	@Bean
-	public String applicatieInstantie()
+	public String applicationInstance()
 	{
 		return instance;
 	}
@@ -86,25 +92,26 @@ public class ApplicationConfig
 	@Bean
 	public String applicationUrl()
 	{
-		return url != null ? url : "";
+		return StringUtils.defaultIfBlank(url, "");
 	}
 
 	@Bean
 	public String planningBkRestUrl()
 	{
-		return planningBkRestUrl;
+		return StringUtils.defaultIfBlank(planningBkRestUrl, "");
 	}
 
 	@Bean
 	public String kansberekeningServiceUrl()
 	{
-		return kansberekeningServiceUrl;
+		return StringUtils.defaultIfBlank(kansberekeningServiceUrl, "");
 	}
 
 	@Bean
+	@Profile("!test")
 	public String locatieFilestore()
 	{
-		return filestoreLocation;
+		return Paths.get(filestoreLocation).toString();
 	}
 
 	@Bean
@@ -114,88 +121,32 @@ public class ApplicationConfig
 	}
 
 	@Bean
-	public String versionMapping()
-	{
-		return "";
-	}
-
-	@Bean
-	public Integer jgroupsCommonBindPort()
-	{
-		return jgroups.common.bindPort;
-	}
-
-	@Bean
-	public Integer jgroupsEhcacheBindPort()
-	{
-		return jgroups.ehcache.bindPort;
-	}
-
-	@Bean
-	public String jgroupsCommonIPPorts()
-	{
-		return jgroups.common.ipPorts;
-	}
-
-	@Bean
-	public String jgroupsEhcacheIPPorts()
-	{
-		return jgroups.ehcache.ipPorts;
-	}
-
-	@Bean
-	public String jgroupsBindIP()
-	{
-		return jgroups.bindIp;
-	}
-
-	@Bean
 	public String asposeLicence()
 	{
-		if (asposeLicense == null)
-		{
-			return filestoreLocation + "/aspose/Aspose.Words.lic";
-		}
-		return asposeLicense;
+		return StringUtils.defaultIfBlank(asposeLicense, filestoreLocation + "/aspose/Aspose.Words.lic");
 	}
 
 	@Bean
 	public String vragenlijstTemplate()
 	{
-		return asposeVragenlijstTemplate != null ? asposeVragenlijstTemplate : "";
+		return StringUtils.defaultIfBlank(asposeVragenlijstTemplate, "");
 	}
 
 	@Bean
 	public Integer planAhead()
 	{
-		return 0;
+		return planAhead != null ? planAhead : 0;
 	}
 
 	@Bean
 	public Integer maxRoosterUitrolInMonths()
 	{
-		return 15;
+		return maxRoosterUitrolInMonths != null ? maxRoosterUitrolInMonths : 15;
 	}
 
-	@Setter
-	private static class Jgroups
+	@Bean
+	public String zooKeeperServerUri()
 	{
-		@Getter
-		private final Group common = new Group();
-
-		@Getter
-		private final Group ehcache = new Group();
-
-		private String bindIp;
-
-		@Setter
-		private static class Group
-		{
-			private Integer bindPort;
-
-			private String ipPorts;
-
-		}
+		return StringUtils.defaultIfBlank(zooKeeperServerUri, "");
 	}
-
 }

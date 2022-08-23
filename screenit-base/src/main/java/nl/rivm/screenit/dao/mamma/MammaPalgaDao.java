@@ -26,20 +26,21 @@ import java.util.List;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.model.UploadDocument;
+import nl.rivm.screenit.model.batch.popupconfig.MammaPalgaExportConfig;
 
 public interface MammaPalgaDao
 {
 	long getPatid3MatchCount(GbaPersoon persoon);
 
-	List<Long> getClientenVoorPalga();
+	List<Long> getClientenVoorPalga(MammaPalgaExportConfig exportConfig);
 
 	boolean heeftBezwaar(Client client);
 
-	void deleteExports();
-
 	UploadDocument getExport();
+
+	List<UploadDocument> getExports();
 
 	UploadDocument getImport();
 
-	void deleteImports();
+	List<UploadDocument> getImports();
 }

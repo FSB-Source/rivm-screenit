@@ -35,19 +35,22 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.HuisartsBericht;
 import nl.rivm.screenit.model.cervix.enums.CervixHuisartsBerichtStatus;
 import nl.rivm.screenit.model.cervix.enums.CervixOmissieType;
 
 import org.hibernate.envers.Audited;
 
+@Setter
+@Getter
 @Entity
 @Table(schema = "cervix", name = "huisarts_bericht", indexes = { @Index(name = "idx_CERVIX_HUISARTS_BERICHT_STATUS", columnList = "status") })
 @Audited
 public class CervixHuisartsBericht extends HuisartsBericht
 {
-
-	private static final long serialVersionUID = 1L;
 
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	private CervixScreeningRonde screeningRonde;
@@ -78,93 +81,4 @@ public class CervixHuisartsBericht extends HuisartsBericht
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date extraHuisartsLocatieVerstuurdDatum;
 
-	public CervixHuisartsLocatie getHuisartsLocatie()
-	{
-		return huisartsLocatie;
-	}
-
-	public void setHuisartsLocatie(CervixHuisartsLocatie huisartsLocatie)
-	{
-		this.huisartsLocatie = huisartsLocatie;
-	}
-
-	public CervixScreeningRonde getScreeningRonde()
-	{
-		return screeningRonde;
-	}
-
-	public void setScreeningRonde(CervixScreeningRonde screeningsRonde)
-	{
-		this.screeningRonde = screeningsRonde;
-	}
-
-	public CervixHuisartsBerichtStatus getStatus()
-	{
-		return status;
-	}
-
-	public void setStatus(CervixHuisartsBerichtStatus status)
-	{
-		this.status = status;
-	}
-
-	public Date getStatusDatum()
-	{
-		return statusDatum;
-	}
-
-	public void setStatusDatum(Date statusDatum)
-	{
-		this.statusDatum = statusDatum;
-	}
-
-	public CervixUitstrijkje getUitstrijkje()
-	{
-		return uitstrijkje;
-	}
-
-	public void setUitstrijkje(CervixUitstrijkje uitstrijkje)
-	{
-		this.uitstrijkje = uitstrijkje;
-	}
-
-	public CervixLabformulier getLabformulier()
-	{
-		return labformulier;
-	}
-
-	public void setLabformulier(CervixLabformulier labformulier)
-	{
-		this.labformulier = labformulier;
-	}
-
-	public CervixOmissieType getOmissieType()
-	{
-		return omissieType;
-	}
-
-	public void setOmissieType(CervixOmissieType omissieType)
-	{
-		this.omissieType = omissieType;
-	}
-
-	public CervixHuisartsLocatie getExtraHuisartsLocatie()
-	{
-		return extraHuisartsLocatie;
-	}
-
-	public void setExtraHuisartsLocatie(CervixHuisartsLocatie extraHuisartsLocatie)
-	{
-		this.extraHuisartsLocatie = extraHuisartsLocatie;
-	}
-
-	public Date getExtraHuisartsLocatieVerstuurdDatum()
-	{
-		return extraHuisartsLocatieVerstuurdDatum;
-	}
-
-	public void setExtraHuisartsLocatieVerstuurdDatum(Date extraHuisartsLocatieVerstuurdDatum)
-	{
-		this.extraHuisartsLocatieVerstuurdDatum = extraHuisartsLocatieVerstuurdDatum;
-	}
 }

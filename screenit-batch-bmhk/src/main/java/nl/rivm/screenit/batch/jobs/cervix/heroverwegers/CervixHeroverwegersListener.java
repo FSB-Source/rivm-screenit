@@ -21,20 +21,20 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.cervix.CervixBaseLogListener;
 import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class CervixHeroverwegersListener extends CervixBaseLogListener
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(CervixHeroverwegersListener.class);
 
 	@Override
 	protected LogEvent getStartLogEvent()
@@ -63,8 +63,8 @@ public class CervixHeroverwegersListener extends CervixBaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent event = super.eindLogging(jobExecution);
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var event = super.eindLogging(jobExecution);
+		var context = jobExecution.getExecutionContext();
 		Long totaalVerstuurd = context.getLong(BriefType.CERVIX_HEROVERWEGERS.name(), 0);
 		LOG.info("Er zijn {} heroverwegersbriev(en) klaargezet.", totaalVerstuurd);
 		return event;

@@ -1,0 +1,28 @@
+{
+  "title": "Overzicht betalingen",
+  "table": {
+    "header": {
+      "huisartsLocatie": "Huisartslocatie",
+      "clientNaam": "Naam cliënt",
+      "monsterId": "Monster-id",
+      "bedrag": "Bedrag",
+      "betalingsdatum": "Betalingsdatum",
+      "betalingsKenmerk": "Betalingskenmerk",
+      "regio": "Screeningsorganisatie"
+    },
+    "totaal": "Aantal betaalregels:",
+    "totaalBedrag": "Totaal bedrag:",
+    "export": "Exporteren"
+  },
+  "form": {
+    "labels": {
+      "locatie": "Locatie",
+      "alleenZonderBetalingskenmerk": "Alleen regels zonder betalingskenmerk",
+      "betalingsdatumTotenMet": "Betalingsdatum t/m",
+      "betalingsdatumVanaf": "Betalingsdatum vanaf",
+      "betalingskenmerk": "Betalingskenmerk",
+      "clientNaam": "Naam cliënt"
+    },
+    "submit": "Filteren"
+  }
+}

@@ -21,7 +21,11 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening;
  * =========================LICENSE_END==================================
  */
 
-public abstract class MammaKansberekeningConstants
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class MammaKansberekeningConstants
 {
 
 	public static final String STANDPLAATS_RONDE_DEELNAME_GEMIDDELDEN_KEY = "standplaats.ronde.deelname.gemiddelden";

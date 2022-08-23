@@ -37,6 +37,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.cervix.CervixRondeDao;
@@ -66,6 +69,7 @@ import nl.rivm.screenit.model.MergedBrieven;
 import nl.rivm.screenit.model.NieuweIntakeAfspraakMakenReden;
 import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
+import nl.rivm.screenit.model.algemeen.AlgemeneBrief;
 import nl.rivm.screenit.model.berichten.enums.VerslagStatus;
 import nl.rivm.screenit.model.berichten.enums.VerslagType;
 import nl.rivm.screenit.model.cervix.CervixAfmelding;
@@ -137,7 +141,6 @@ import nl.rivm.screenit.model.mamma.enums.MammaAfmeldingReden;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaBeoordelingStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaFollowUpConclusieStatus;
-import nl.rivm.screenit.model.mamma.enums.MammaHuisartsBerichtStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaOnderzoekStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaZijde;
 import nl.rivm.screenit.model.project.ProjectBrief;
@@ -149,7 +152,6 @@ import nl.rivm.screenit.model.project.ProjectVragenlijstStatus;
 import nl.rivm.screenit.model.project.ScannedVragenlijst;
 import nl.rivm.screenit.service.BaseDossierAuditService;
 import nl.rivm.screenit.service.RondeNummerService;
-import nl.rivm.screenit.service.mamma.MammaBaseStandplaatsService;
 import nl.rivm.screenit.util.BriefUtil;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.EnumStringUtil;
@@ -169,9 +171,6 @@ import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.envers.query.AuditQuery;
 import org.hibernate.envers.query.criteria.AuditCriterion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -180,28 +179,20 @@ import com.google.common.primitives.Ints;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@AllArgsConstructor
+@Slf4j
 public class DossierServiceImpl implements DossierService
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(DossierServiceImpl.class);
+	private final ClientDao clientDao;
 
-	@Autowired
-	private ClientDao clientDao;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final CervixRondeDao cervixRondeDao;
 
-	@Autowired
-	private CervixRondeDao cervixRondeDao;
+	private final RondeNummerService rondeNummerService;
 
-	@Autowired
-	private RondeNummerService rondeNummerService;
-
-	@Autowired
-	private BaseDossierAuditService dossierAuditService;
-
-	@Autowired
-	private MammaBaseStandplaatsService standplaatsService;
+	private final BaseDossierAuditService dossierAuditService;
 
 	@Override
 	public List<ScreeningRondeGebeurtenissen> getScreeningRondeGebeurtenissen(Client client, ClientDossierFilter clientDossierFilter)
@@ -506,24 +497,35 @@ public class DossierServiceImpl implements DossierService
 				for (ColonHuisartsBericht bericht : colonScreeningRonde.getHuisartsBerichten())
 				{
 					ColonHuisartsBerichtStatus statusBericht = bericht.getStatus();
+					ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+					screeningRondeGebeurtenis.setClickable(true);
+					screeningRondeGebeurtenis.setExtraOmschrijving(bericht.getBerichtType().getNaam(), bericht.getHuisarts().getPraktijknaam());
+					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(bericht));
+					rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+					screeningRondeGebeurtenis.setColonHuisartsBericht(bericht);
 
-					if (ColonHuisartsBerichtStatus.TE_CONTROLEREN.equals(statusBericht) || ColonHuisartsBerichtStatus.CONTROLE_NIET_NODIG.equals(statusBericht))
+					switch (statusBericht)
 					{
-						ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+					case TE_CONTROLEREN:
+					case CONTROLE_NIET_NODIG:
 						screeningRondeGebeurtenis.setDatum(bericht.getAanmaakDatum());
-						screeningRondeGebeurtenis.setExtraOmschrijving(bericht.getBerichtType().getNaam());
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.HUISARTSBERICHT_KLAARGEZET);
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(bericht));
-						rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
-					}
-					else if (ColonHuisartsBerichtStatus.VERZENDEN_GELUKT.equals(statusBericht))
-					{
-						ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.COLON_HUISARTSBERICHT_AANGEMAAKT);
+						break;
+					case GEEN_HUISARTS:
+					case VERZENDEN_MISLUKT:
+						screeningRondeGebeurtenis.setDatum(bericht.getAanmaakDatum());
+						screeningRondeGebeurtenis.setGebeurtenis(
+							bericht.isEenOpnieuwVerzondenBericht() ?
+								TypeGebeurtenis.COLON_HUISARTSBERICHT_OPNIEUW_VERSTUREN_MISLUKT :
+								TypeGebeurtenis.COLON_HUISARTSBERICHT_VERSTUREN_MISLUKT);
+						break;
+					case VERZENDEN_GELUKT:
 						screeningRondeGebeurtenis.setDatum(bericht.getVerzendDatum());
-						screeningRondeGebeurtenis.setExtraOmschrijving(bericht.getBerichtType().getNaam());
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.HUISARTSBERICHT_VERZONDEN);
-						screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(bericht));
-						rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
+						screeningRondeGebeurtenis.setGebeurtenis(
+							bericht.isEenOpnieuwVerzondenBericht() ?
+								TypeGebeurtenis.COLON_HUISARTSBERICHT_OPNIEUW_VERSTUURD :
+								TypeGebeurtenis.COLON_HUISARTSBERICHT_VERSTUURD);
+						break;
 					}
 				}
 			}
@@ -1410,13 +1412,30 @@ public class DossierServiceImpl implements DossierService
 
 	private ScreeningRondeGebeurtenis maakMammaHuisartsberichtGebeurtenis(MammaHuisartsBericht huisartsBericht)
 	{
-		ScreeningRondeGebeurtenis gebeurtenis;
-		gebeurtenis = new ScreeningRondeGebeurtenis();
-		gebeurtenis.setClickable(false);
+		ScreeningRondeGebeurtenis gebeurtenis = new ScreeningRondeGebeurtenis();
+		gebeurtenis.setClickable(true);
 		gebeurtenis.setDatum(huisartsBericht.getStatusDatum());
-		gebeurtenis.setGebeurtenis(huisartsBericht.getStatus().equals(MammaHuisartsBerichtStatus.VERSTUURD) ? TypeGebeurtenis.MAMMA_HUISARTSBERICHT_VERSTUURD
-			: TypeGebeurtenis.MAMMA_HUISARTSBERICHT_VERSTUREN_MISLUKT);
-		gebeurtenis.setBron(GebeurtenisBron.AUTOMATISCH);
+		switch (huisartsBericht.getStatus())
+		{
+		case AANGEMAAKT:
+			gebeurtenis.setGebeurtenis(TypeGebeurtenis.MAMMA_HUISARTSBERICHT_AANGEMAAKT);
+			break;
+		case VERSTUURD:
+			gebeurtenis.setGebeurtenis(
+				!huisartsBericht.isEenOpnieuwVerzondenBericht() ?
+					TypeGebeurtenis.MAMMA_HUISARTSBERICHT_VERSTUURD :
+					TypeGebeurtenis.MAMMA_HUISARTSBERICHT_OPNIEUW_VERSTUURD);
+			break;
+		case VERSTUREN_MISLUKT:
+			gebeurtenis.setGebeurtenis(
+				!huisartsBericht.isEenOpnieuwVerzondenBericht() ?
+					TypeGebeurtenis.MAMMA_HUISARTSBERICHT_VERSTUREN_MISLUKT :
+					TypeGebeurtenis.MAMMA_HUISARTSBERICHT_OPNIEUW_VERSTUREN_MISLUKT);
+			break;
+		}
+		gebeurtenis.setBron(bepaalGebeurtenisBron(huisartsBericht));
+		gebeurtenis.setExtraOmschrijving(huisartsBericht.getBerichtType().getNaam(), huisartsBericht.getHuisarts().getPraktijknaam());
+		gebeurtenis.setMammaHuisartsBericht(huisartsBericht);
 		return gebeurtenis;
 	}
 
@@ -1616,53 +1635,9 @@ public class DossierServiceImpl implements DossierService
 			{
 				ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
 				List<String> extraOmschrijvingen = new ArrayList<>();
-				extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
 				if (brief.getProjectBrief() == null)
 				{
-					screeningRondeGebeurtenis.setBrief(brief);
-					screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
-					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
-					if (herdruk != null)
-					{
-						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.BRIEF_HERDRUK);
-					}
-					else if (brief.isGegenereerd())
-					{
-						MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
-						if (mergedBrieven != null)
-						{
-							screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(mergedBrieven));
-							if (mergedBrieven.getPrintDatum() != null)
-							{
-								screeningRondeGebeurtenis.setDatum(mergedBrieven.getPrintDatum());
-								screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AFGEDRUKT);
-							}
-							else
-							{
-								screeningRondeGebeurtenis.setDatum(mergedBrieven.getCreatieDatum());
-								screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_KLAARGEZET);
-							}
-						}
-						else
-						{
-							screeningRondeGebeurtenis.setBron(GebeurtenisBron.MEDEWERKER);
-							screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AFGEDRUKT);
-						}
-						extraOmschrijvingen.add(brief.getTemplateNaam());
-					}
-					else if (brief.isVervangen())
-					{
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_VERVANGEN);
-					}
-					else if (brief.isTegenhouden())
-					{
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_TEGENHOUDEN);
-					}
-					else
-					{
-						screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AANGEMAAKT);
-					}
-
+					maakScreeningRondeGebeurtenis(brief, herdruk, screeningRondeGebeurtenis, extraOmschrijvingen);
 				}
 				else
 				{
@@ -1670,6 +1645,7 @@ public class DossierServiceImpl implements DossierService
 					screeningRondeGebeurtenis.setBrief(projectBrief);
 					screeningRondeGebeurtenis.setDatum(projectBrief.getCreatieDatum());
 					screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(projectBrief));
+					extraOmschrijvingen.add(EnumStringUtil.getPropertyString(briefType));
 					if (projectBrief.getHerdruk() != null)
 					{
 						herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, projectBrief, TypeGebeurtenis.PROJECT_BRIEF_HERDRUK);
@@ -1711,6 +1687,55 @@ public class DossierServiceImpl implements DossierService
 				screeningRondeGebeurtenis.setExtraOmschrijving(extraOmschrijvingen.toArray(new String[] {}));
 				rondeDossier.addGebeurtenis(screeningRondeGebeurtenis);
 			}
+		}
+	}
+
+	private <B extends ClientBrief<SR, ?, ?>, SR extends ScreeningRonde<?, B, ?, ?>> void maakScreeningRondeGebeurtenis(B brief, ClientBrief herdruk,
+		ScreeningRondeGebeurtenis screeningRondeGebeurtenis, List<String> extraOmschrijvingen)
+	{
+		screeningRondeGebeurtenis.setBrief(brief);
+		screeningRondeGebeurtenis.setDatum(brief.getCreatieDatum());
+		screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(brief));
+		extraOmschrijvingen.add(EnumStringUtil.getPropertyString(brief.getBriefType()));
+		if (herdruk != null)
+		{
+			herdrukGebeurtenis(screeningRondeGebeurtenis, extraOmschrijvingen, brief, TypeGebeurtenis.BRIEF_HERDRUK);
+		}
+		else if (brief.isGegenereerd())
+		{
+			MergedBrieven<?> mergedBrieven = brief.getMergedBrieven();
+			if (mergedBrieven != null)
+			{
+				screeningRondeGebeurtenis.setBron(bepaalGebeurtenisBron(mergedBrieven));
+				if (mergedBrieven.getPrintDatum() != null)
+				{
+					screeningRondeGebeurtenis.setDatum(mergedBrieven.getPrintDatum());
+					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AFGEDRUKT);
+				}
+				else
+				{
+					screeningRondeGebeurtenis.setDatum(mergedBrieven.getCreatieDatum());
+					screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_KLAARGEZET);
+				}
+			}
+			else
+			{
+				screeningRondeGebeurtenis.setBron(GebeurtenisBron.MEDEWERKER);
+				screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AFGEDRUKT);
+			}
+			extraOmschrijvingen.add(brief.getTemplateNaam());
+		}
+		else if (brief.isVervangen())
+		{
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_VERVANGEN);
+		}
+		else if (brief.isTegenhouden())
+		{
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_TEGENHOUDEN);
+		}
+		else
+		{
+			screeningRondeGebeurtenis.setGebeurtenis(TypeGebeurtenis.BRIEF_AANGEMAAKT);
 		}
 	}
 
@@ -2341,6 +2366,22 @@ public class DossierServiceImpl implements DossierService
 			}
 			gebeurtenissen.add(screeningRondeGebeurtenis);
 		}
+		return gebeurtenissen;
+	}
+
+	@Override
+	public List<ScreeningRondeGebeurtenis> getAlgemeneBriefGebeurtenissen(List<AlgemeneBrief> brieven)
+	{
+		List<ScreeningRondeGebeurtenis> gebeurtenissen = new ArrayList<>();
+		brieven.forEach(brief ->
+		{
+			ClientBrief herdruk = BriefUtil.getHerdruk(brief);
+			ScreeningRondeGebeurtenis screeningRondeGebeurtenis = new ScreeningRondeGebeurtenis();
+			List<String> extraOmschrijvingen = new ArrayList<>();
+			maakScreeningRondeGebeurtenis(brief, herdruk, screeningRondeGebeurtenis, extraOmschrijvingen);
+			screeningRondeGebeurtenis.setExtraOmschrijving(extraOmschrijvingen.toArray(new String[] {}));
+			gebeurtenissen.add(screeningRondeGebeurtenis);
+		});
 		return gebeurtenissen;
 	}
 

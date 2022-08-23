@@ -38,7 +38,6 @@ import java.util.Map;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ReadListener;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -51,26 +50,22 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.service.TechnischeBerichtenLoggingSaverService;
 import nl.rivm.screenit.util.StringUtil;
-import nl.topicuszorg.spring.injection.SpringBeanProvider;
 
 import org.apache.commons.io.output.TeeOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class WsbRestControllerLoggingFilter implements Filter
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(WsbRestControllerLoggingFilter.class);
-
-	private TechnischeBerichtenLoggingSaverService technischeBerichtenLoggingSaverService;
-
-	@Override
-	public void init(FilterConfig filterConfig) throws ServletException
-	{
-		technischeBerichtenLoggingSaverService = SpringBeanProvider.getInstance().getBean(TechnischeBerichtenLoggingSaverService.class);
-	}
+	private final TechnischeBerichtenLoggingSaverService technischeBerichtenLoggingSaverService;
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -90,10 +85,10 @@ public class WsbRestControllerLoggingFilter implements Filter
 			{
 				exchangeId = technischeBerichtenLoggingSaverService.logRequest("FHIR_REQ_IN",
 					"Method:" + httpServletRequest.getMethod() + "|URI:" + httpServletRequest.getPathInfo() + "/" + requestMap,
-						payloadText(bufferedRequest.getRequestBody()) + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
+					payloadText(bufferedRequest.getRequestBody()) + "|RemoteAddr:" + httpServletRequest.getRemoteAddr());
 				chain.doFilter(bufferedRequest, bufferedResponse);
 				technischeBerichtenLoggingSaverService.logResponse("FHIR_RESP_OUT", exchangeId,
-						payloadText(bufferedResponse.getContent()) + "|Status:" + bufferedResponse.getStatus());
+					payloadText(bufferedResponse.getContent()) + "|Status:" + bufferedResponse.getStatus());
 			}
 			catch (Exception e)
 			{

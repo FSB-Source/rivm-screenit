@@ -121,7 +121,6 @@ import nl.topicuszorg.hibernate.object.helper.HibernateHelper;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
-import nl.topicuszorg.patientregistratie.persoonsgegevens.model.NaamGebruik;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.spring.injection.SpringBeanProvider;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
@@ -1295,42 +1294,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				if (context.getClient() != null)
-				{
-					var persoon = context.getClient().getPersoon();
-					var aanhef = new StringBuilder();
-					aanhef.append("Geachte ");
-					if (persoon.getGeslacht() == Geslacht.MAN)
-					{
-						aanhef.append("heer ");
-					}
-					else if (persoon.getGeslacht() == Geslacht.VROUW)
-					{
-						aanhef.append("mevrouw ");
-					}
-					else if (persoon.getGeslacht() == Geslacht.ONBEKEND)
-					{
-						aanhef.append(NaamUtil.getVoorlettersClient(context.getClient())).append(" ");
-					}
-					else
-					{
-						aanhef.append("heer of mevrouw ");
-					}
-
-					var naamGebruik = persoon.getNaamGebruik();
-					if (NaamGebruik.EIGEN.equals(naamGebruik) || NaamGebruik.EIGEN_PARTNER.equals(naamGebruik))
-					{
-						var naam = persoon.getNaamEigenPartner();
-						aanhef.append(persoon.getGeslacht() == Geslacht.ONBEKEND ? naam : StringUtils.capitalize(naam));
-					}
-					else if (naamGebruik == null || NaamGebruik.PARTNER.equals(naamGebruik) || NaamGebruik.PARTNER_EIGEN.equals(naamGebruik))
-					{
-						var naam = persoon.getNaamPartnerEigen();
-						aanhef.append(persoon.getGeslacht() == Geslacht.ONBEKEND ? naam : StringUtils.capitalize(naam));
-					}
-					return aanhef;
-				}
-				return null;
+				return NaamUtil.getGewensteAanspreekVorm(context.getClient());
 			}
 
 		},
@@ -3584,7 +3548,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
+				MammaBeoordeling beoordeling = getMammaBeoordeling(context);
 				Date onderzoekDatum = null;
 				if (beoordeling != null && beoordeling.getOnderzoek() != null && beoordeling.getOnderzoek().getCreatieDatum() != null)
 				{
@@ -3804,7 +3768,7 @@ public enum MergeField
 			@Override
 			public Object getFieldValue(MailMergeContext context)
 			{
-				MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
+				MammaBeoordeling beoordeling = getMammaBeoordeling(context);
 				if (beoordeling != null)
 				{
 					final MammaBeperktBeoordeelbaarReden reden = MammaBeoordelingUtil.beperktBeoordeelbaarReden(beoordeling);
@@ -4466,7 +4430,12 @@ public enum MergeField
 
 	private static MammaBeoordeling getMammaBeoordeling(MailMergeContext context)
 	{
-		if (context.getClient() != null)
+		MammaBeoordeling beoordeling = context.getValue(MailMergeContext.CONTEXT_MAMMA_BEOORDELING);
+		if (beoordeling != null)
+		{
+			return beoordeling;
+		}
+		else if (context.getClient() != null)
 		{
 			return MammaScreeningRondeUtil.getLaatsteBeoordelingVanLaatsteOnderzoek(context.getClient());
 		}

@@ -40,7 +40,6 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -135,9 +134,9 @@ public class SKMLExterneSchemaXlsServiceImpl implements SKMLExterneSchemaXlsServ
 		try
 		{
 			workbook = WorkbookFactory.create(xlsStream);
-			workbook.setMissingCellPolicy(Row.CREATE_NULL_AS_BLANK);
+			workbook.setMissingCellPolicy(Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
 		}
-		catch (InvalidFormatException | IOException e)
+		catch (IOException e)
 		{
 			LOG.error(e.getMessage(), e);
 		}

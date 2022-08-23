@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -76,14 +77,18 @@ public class FileVo107Provider implements IVo107Provider
 	{
 		private final String path;
 
+		@Getter
+		private File tempFile;
+
 		public Vo107ClasspathFile(String path)
 		{
 			this.path = path;
 		}
 
 		@Override
-		public void saveToFile(File targetFile)
+		public void saveToTempFile(File targetFile)
 		{
+			this.tempFile = targetFile;
 			FileInputStream fileInputStream = null;
 			FileOutputStream fileOutputStream = null;
 			try

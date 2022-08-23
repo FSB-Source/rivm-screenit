@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.vervolgonderzoek;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -31,16 +33,14 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixVervolgonderzoekJobListener extends BaseLogListener
 {
-
-	@Autowired
 	private ICurrentDateSupplier dateSupplier;
 
-	@Autowired
 	private HibernateService hibernateService;
 
 	@Override
@@ -76,14 +76,14 @@ public class CervixVervolgonderzoekJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		long aantal = context.getLong(CervixVervolgonderzoekConstants.VERVOLGONDERZOEK_AANTAL_KEY, 0);
 
-		CervixVervolgonderzoekRapportage rapportage = new CervixVervolgonderzoekRapportage();
+		var rapportage = new CervixVervolgonderzoekRapportage();
 		rapportage.setDatumVerwerking(dateSupplier.getDate());
 		rapportage.setAantal(aantal);
 
-		CervixVervolgonderzoekBeeindigdLogEvent vervolgonderzoekBeeindigdLogEvent = (CervixVervolgonderzoekBeeindigdLogEvent) super.eindLogging(jobExecution);
+		var vervolgonderzoekBeeindigdLogEvent = (CervixVervolgonderzoekBeeindigdLogEvent) super.eindLogging(jobExecution);
 		vervolgonderzoekBeeindigdLogEvent.setRapportage(rapportage);
 		vervolgonderzoekBeeindigdLogEvent.setMelding("Er zijn " + aantal + " client(en) uitgenodigd voor een controle-uitstrijkje");
 

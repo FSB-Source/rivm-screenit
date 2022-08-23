@@ -31,6 +31,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.model.GbaPersoon;
 import nl.rivm.screenit.service.BaseTestTimelineService;
@@ -43,8 +46,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -52,16 +53,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class BaseTestTimelineServiceImpl implements BaseTestTimelineService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(BaseTestTimelineServiceImpl.class);
 
 	@Autowired
 	private HibernateService hibernateService;
 
+	@Setter
+	private boolean terugrekenenEnabled = true;
+
 	@Override
 	public void rekenAllePersoonsDatumTerug(GbaPersoon persoon, int aantalDagen)
 	{
+		if (!terugrekenenEnabled)
+		{
+			return;
+		}
 		if (persoon.getOverlijdensdatum() != null)
 		{
 			persoon.setOverlijdensdatum(DateUtil.minusTijdseenheid(persoon.getOverlijdensdatum(), aantalDagen, ChronoUnit.DAYS));
@@ -80,6 +88,10 @@ public class BaseTestTimelineServiceImpl implements BaseTestTimelineService
 	@Override
 	public boolean rekenObjectTerug(HibernateObject object, int aantalDagen)
 	{
+		if (!terugrekenenEnabled)
+		{
+			return true;
+		}
 		try
 		{
 			if (object != null)

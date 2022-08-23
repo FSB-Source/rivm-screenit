@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch.jobs.mamma.beoordeling.discrepantie;
 
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -31,17 +33,17 @@ import nl.rivm.screenit.service.LogService;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaDiscrepantieNaarArbitrageListener extends BaseLogListener
 {
 	public static final String MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE = "mamma.beoordelingen.doorgezet";
 
 	public static final String MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE_AANTAL = "mamma.beoordelingen.doorgezet.aantal";
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected LogEvent getStartLogEvent()
@@ -82,9 +84,9 @@ public class MammaDiscrepantieNaarArbitrageListener extends BaseLogListener
 
 	private String getResultLoggingString(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		Set<String> radiologen = (Set<String>) jobExecution.getExecutionContext().get(MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE);
-		long aantalBeoordelingen = context.getLong(MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE_AANTAL, 0L);
+		var aantalBeoordelingen = context.getLong(MAMMA_RADIOLOGEN_BEOORDELINGEN_DOORGEZET_NAAR_ARBITRAGE_AANTAL, 0L);
 
 		if (radiologen == null)
 		{

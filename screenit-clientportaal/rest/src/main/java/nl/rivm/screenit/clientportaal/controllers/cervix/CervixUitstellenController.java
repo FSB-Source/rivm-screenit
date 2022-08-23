@@ -21,6 +21,8 @@ package nl.rivm.screenit.clientportaal.controllers.cervix;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.controllers.AbstractController;
 import nl.rivm.screenit.clientportaal.exception.NotValidException;
 import nl.rivm.screenit.clientportaal.model.cervix.CervixUitstelDto;
@@ -29,9 +31,10 @@ import nl.rivm.screenit.clientportaal.services.cervix.CervixUitstellenService;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,11 +43,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RequestMapping("cervix/uitstellen")
 @RestController
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class CervixUitstellenController extends AbstractController
 {
 
-	@Autowired
-	private CervixUitstellenService uitstellenService;
+	private final CervixUitstellenService uitstellenService;
 
 	@GetMapping("huidig")
 	public ResponseEntity<CervixUitstelDto> getHuidigeCervixUitstel(Authentication authentication)
@@ -71,6 +75,7 @@ public class CervixUitstellenController extends AbstractController
 	}
 
 	@PutMapping("aanvragen")
+	@Transactional(propagation = Propagation.REQUIRED)
 	public ResponseEntity<CervixUitstelDto> vraagUitstelAan(@RequestBody CervixUitstelDto uitstellenDto, Authentication authentication)
 	{
 		Client client = getClient(authentication);

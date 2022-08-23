@@ -42,6 +42,7 @@ import nl.rivm.screenit.main.service.impl.zorgid.OpenCancelledSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.OpenedSessieState;
 import nl.rivm.screenit.main.service.impl.zorgid.SessieState;
 import nl.topicuszorg.cloud.distributedsessions.RedisConfig;
+import nl.topicuszorg.cloud.distributedsessions.jedis.JedisFactory;
 import nl.topicuszorg.hibernate.spring.services.impl.OpenHibernate5Session;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import nl.topicuszorg.zorgid.client.ZorgidClient;
@@ -74,7 +75,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 @Configuration
 @EnableScheduling
@@ -99,8 +99,8 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 	private String applicationEnvironment;
 
 	@Inject
-	@Qualifier("applicatieInstantie")
-	private String applicatieInstantie;
+	@Qualifier("applicationInstance")
+	private String applicationInstance;
 
 	private ZorgidClient zorgidClient;
 
@@ -343,17 +343,14 @@ public class ZorgIdSessieServiceImpl implements ZorgIdSessieService, Application
 		if (jedisPool == null && redisConfig != null && redisConfig.isEnabled())
 		{
 
-			JedisPoolConfig poolConfig = new JedisPoolConfig();
-			poolConfig.setBlockWhenExhausted(true);
-			poolConfig.setMaxTotal(MAX_CONCURRENT_CONNECTIONS);
-			jedisPool = new JedisPool(poolConfig, redisConfig.getHost(), redisConfig.getPort());
+			jedisPool = JedisFactory.createJedisPool(true, MAX_CONCURRENT_CONNECTIONS, redisConfig).orElseGet(null);
 		}
 		return jedisPool;
 	}
 
 	private String zorgidCallbackUrl()
 	{
-		return String.format(getStringValue(PreferenceKey.INTERNAL_ZORGID_CALLBACKURL, "http://localhost:14800/rest/zorgid"), applicatieInstantie.toLowerCase());
+		return String.format(getStringValue(PreferenceKey.INTERNAL_ZORGID_CALLBACKURL, "http://localhost:14800/rest/zorgid"), applicationInstance.toLowerCase());
 	}
 
 	private String zorgidServerUrl()

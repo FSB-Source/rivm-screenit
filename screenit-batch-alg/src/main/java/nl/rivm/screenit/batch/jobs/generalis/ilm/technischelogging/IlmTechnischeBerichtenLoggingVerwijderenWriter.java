@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.ilm.technischelogging;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.logging.TechnischeBerichtenLogRegel;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class IlmTechnischeBerichtenLoggingVerwijderenWriter extends BaseWriter<TechnischeBerichtenLogRegel>
 {
 	@Override

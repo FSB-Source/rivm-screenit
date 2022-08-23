@@ -23,15 +23,14 @@ package nl.rivm.screenit.batch.jobs.cervix.cismigranten;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
-import nl.rivm.screenit.model.cervix.CervixDossier;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.cervix.enums.CervixLeeftijdcategorie;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -44,34 +43,30 @@ import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.curator.shaded.com.google.common.primitives.Ints;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixCISMigrantenWriter extends BaseWriter<Client>
 {
+	private final CervixFactory factory;
 
-	@Autowired
-	private CervixFactory factory;
+	private final LogService logService;
 
-	@Autowired
-	private LogService logService;
+	private final SimplePreferenceService preferenceService;
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private HibernateService hibernateService;
-
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
 	protected void write(Client client) throws Exception
 	{
-		String startdatumBMHKString = preferenceService.getString(PreferenceKey.STARTDATUM_BMHK.name());
-		LocalDate eindCIS = LocalDate.parse(startdatumBMHKString, DateTimeFormatter.ofPattern("yyyyMMdd"));
+		var startdatumBMHKString = preferenceService.getString(PreferenceKey.STARTDATUM_BMHK.name());
+		var eindCISdatum = LocalDate.parse(startdatumBMHKString, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
-		LocalDate geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
-		int huidigeLeeftijd = Ints.checkedCast(ChronoUnit.YEARS.between(geboortedatum, dateSupplier.getLocalDate()));
+		var geboortedatum = DateUtil.toLocalDate(client.getPersoon().getGeboortedatum());
+		var huidigeLeeftijd = Ints.checkedCast(DateUtil.getAantalJaarTussenTweeDatums(geboortedatum, dateSupplier.getLocalDate()));
 
 		if (huidigeLeeftijd < CervixLeeftijdcategorie._30.getLeeftijd() || huidigeLeeftijd >= CervixLeeftijdcategorie._65.getLeeftijd())
 		{
@@ -80,16 +75,16 @@ public class CervixCISMigrantenWriter extends BaseWriter<Client>
 			return;
 		}
 
-		CervixDossier dossier = client.getCervixDossier();
+		var dossier = client.getCervixDossier();
 		if (DossierStatus.INACTIEF.equals(dossier.getStatus()))
 		{
 			logService.logGebeurtenis(LogGebeurtenis.CERVIX_CISMIGRANTEN_UITNODIGEN_FOUT, client, "De cliënt is definitief afgemeld en ontvangt geen uitnodiging.");
 			return;
 		}
 
-		LocalDate rondeBeginDatum = geboortedatum.plusYears(CervixLeeftijdcategorie.getLeeftijdcategorie(geboortedatum, dateSupplier.getLocalDateTime()).getLeeftijd());
-		CervixScreeningRonde ronde = dossier.getLaatsteScreeningRonde();
-		CervixCISHistorie cisHistorie = getCISHistorie(client);
+		var rondeBeginDatum = geboortedatum.plusYears(CervixLeeftijdcategorie.getLeeftijdcategorie(geboortedatum, dateSupplier.getLocalDateTime()).getLeeftijd());
+		var ronde = dossier.getLaatsteScreeningRonde();
+		var cisHistorie = getCISHistorie(client);
 
 		if (ronde != null && ScreeningRondeStatus.AFGEROND.equals(ronde.getStatus()))
 		{
@@ -105,7 +100,7 @@ public class CervixCISMigrantenWriter extends BaseWriter<Client>
 			return;
 		}
 
-		if (ronde == null && rondeBeginDatum.isBefore(eindCIS))
+		if (ronde == null && rondeBeginDatum.isBefore(eindCISdatum))
 		{
 			ronde = factory.maakRonde(client.getCervixDossier());
 
@@ -125,8 +120,8 @@ public class CervixCISMigrantenWriter extends BaseWriter<Client>
 
 	private CervixCISHistorie getCISHistorie(Client client)
 	{
-		CervixDossier cervixDossier = client.getCervixDossier();
-		CervixCISHistorie cervixCisHistorie = cervixDossier.getCisHistorie();
+		var cervixDossier = client.getCervixDossier();
+		var cervixCisHistorie = cervixDossier.getCisHistorie();
 		if (cervixCisHistorie == null)
 		{
 			cervixCisHistorie = new CervixCISHistorie();

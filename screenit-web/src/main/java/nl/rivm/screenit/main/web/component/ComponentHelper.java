@@ -22,45 +22,41 @@ package nl.rivm.screenit.main.web.component;
  */
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.EnumSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
-import nl.rivm.screenit.main.web.component.dropdown.ScreenitListMultipleChoice;
 import nl.rivm.screenit.main.web.component.form.PostcodeField;
 import nl.rivm.screenit.model.INaam;
 import nl.topicuszorg.wicket.planning.web.component.DatePickerHelper;
-import nl.topicuszorg.wicket.planning.web.component.TimeField;
 
 import org.apache.wicket.Application;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupException;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.AbstractTextComponent;
 import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
 import org.apache.wicket.validation.validator.DateValidator;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.joda.time.DateTime;
@@ -71,23 +67,10 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePickerYearRange;
 
 import com.google.common.base.Joiner;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class ComponentHelper
 {
-
-	private static ThreadLocal<Integer> tabIndexCounterThreadLocal = new ThreadLocal<Integer>()
-	{
-
-		@Override
-		protected Integer initialValue()
-		{
-			return Integer.valueOf(1);
-		}
-	};
-
-	private ComponentHelper()
-	{
-
-	}
+	private static final ThreadLocal<Integer> tabIndexCounterThreadLocal = ThreadLocal.withInitial(() -> 1);
 
 	public static Label newLabel(String id)
 	{
@@ -99,14 +82,14 @@ public final class ComponentHelper
 		return new Label(id, propertyModel);
 	}
 
-	public static <T> TextField<T> newTextField(String id, Class<T> type)
+	public static <T> TextField<T> newTextField(String id, Class<T> modelType)
 	{
-		return newTextField(id, type, false);
+		return newTextField(id, modelType, false);
 	}
 
-	public static <T> TextField<T> newTextField(String id, Class<T> type, Boolean required)
+	public static <T> TextField<T> newTextField(String id, Class<T> modelType, Boolean required)
 	{
-		TextField<T> textField = new TextField<T>(id, type);
+		TextField<T> textField = new TextField<>(id, modelType);
 		textField.setOutputMarkupId(true);
 		textField.setRequired(required);
 		return textField;
@@ -136,7 +119,7 @@ public final class ComponentHelper
 	public static <T> FormComponent<T> addTextField(WebMarkupContainer webMarkupContainer, final String fieldNaam, boolean required, int maximumLength, Class<T> type,
 		boolean inzien, boolean tabIndex)
 	{
-		FormComponent<T> textField = null;
+		FormComponent<T> textField;
 		if (type != null && type.equals(Date.class) && !inzien)
 		{
 			DatePicker<Date> newDatePicker = DatePickerHelper.newDatePicker(fieldNaam)
@@ -147,13 +130,13 @@ public final class ComponentHelper
 
 		else if (type != null && !type.equals(String.class))
 		{
-			textField = new TextField<T>(fieldNaam, type);
+			textField = new TextField<>(fieldNaam, type);
 		}
 		else
 		{
-			textField = (FormComponent<T>) new TextField<String>(fieldNaam);
-
-			((TextField<String>) textField).add(StringValidator.maximumLength(maximumLength));
+			var stringTextField = new TextField<String>(fieldNaam);
+			stringTextField.add(StringValidator.maximumLength(maximumLength));
+			textField = (FormComponent<T>) stringTextField;
 		}
 		textField.setRequired(required);
 		if (inzien)
@@ -168,7 +151,7 @@ public final class ComponentHelper
 
 		if (tabIndex)
 		{
-			textField.add(new AttributeAppender("tabindex", new Model<Integer>(tabIndexCounterThreadLocal.get()), ""));
+			textField.add(new AttributeAppender("tabindex", new Model<>(tabIndexCounterThreadLocal.get()), ""));
 			tabIndexCounterThreadLocal.set(tabIndexCounterThreadLocal.get() + 1);
 		}
 
@@ -177,7 +160,7 @@ public final class ComponentHelper
 
 	public static TextArea<String> addTextArea(WebMarkupContainer webMarkupContainer, String id, boolean required, int maxLength, boolean inzien)
 	{
-		TextArea<String> textArea = new TextArea<String>(id)
+		TextArea<String> textArea = new TextArea<>(id)
 		{
 			@Override
 			public String getMarkupId()
@@ -208,23 +191,12 @@ public final class ComponentHelper
 		}
 	}
 
-	public static <T extends Enum<T>> ScreenitDropdown<T> newDropDownChoice(String id, IModel<T> model, EnumSet<T> set, IChoiceRenderer<T> renderer)
+	public static <T extends Enum<T>> ScreenitDropdown<T> newDropDownChoice(String id, IModel<T> model, Set<T> set, IChoiceRenderer<T> renderer)
 	{
-		ListModel<T> listModel = new ListModel<T>(new ArrayList<T>(set));
-		ScreenitDropdown<T> dd = new ScreenitDropdown<T>(id, model, listModel, renderer);
-		dd.setOutputMarkupId(true);
-		return dd;
-	}
-
-	public static <T> FormComponent<T> req(FormComponent<T> comp)
-	{
-		comp.setRequired(true);
-		return comp;
-	}
-
-	public static TimeField newTimeField(String id)
-	{
-		return new TimeField(id);
+		ListModel<T> listModel = new ListModel<>(new ArrayList<>(set));
+		ScreenitDropdown<T> dropdown = new ScreenitDropdown<>(id, model, listModel, renderer);
+		dropdown.setOutputMarkupId(true);
+		return dropdown;
 	}
 
 	public static CheckBox newCheckBox(String id)
@@ -253,7 +225,7 @@ public final class ComponentHelper
 
 	public static TextArea<String> newTextArea(String id, int maxLength)
 	{
-		TextArea<String> textArea = new TextArea<String>(id);
+		TextArea<String> textArea = new TextArea<>(id);
 		textArea.add(StringValidator.maximumLength(maxLength));
 
 		return textArea;
@@ -266,14 +238,14 @@ public final class ComponentHelper
 
 	public static <T> ScreenitDropdown<T> newDropDownChoice(String id, IModel<List<T>> choices, IChoiceRenderer<T> choiceRenderer, boolean required)
 	{
-		ScreenitDropdown<T> dd = new ScreenitDropdown<T>(id, choices);
+		ScreenitDropdown<T> dropdown = new ScreenitDropdown<>(id, choices);
 		if (choiceRenderer != null)
 		{
-			dd.setChoiceRenderer(choiceRenderer);
+			dropdown.setChoiceRenderer(choiceRenderer);
 		}
 
-		dd.setRequired(required);
-		return dd;
+		dropdown.setRequired(required);
+		return dropdown;
 	}
 
 	public static <T extends Enum<T>> ScreenitDropdown<T> addDropDownChoice(WebMarkupContainer webMarkupContainer, String dropDownChoiceNaam, boolean required, List<T> values,
@@ -285,16 +257,16 @@ public final class ComponentHelper
 	public static <T extends Enum<T>> ScreenitDropdown<T> addDropDownChoice(WebMarkupContainer webMarkupContainer, String dropDownChoiceNaam, boolean required, List<T> values,
 		IModel<? extends List<T>> valuesModel, boolean inzien)
 	{
-		ScreenitDropdown<T> dropDownChoice = null;
+		ScreenitDropdown<T> dropDownChoice;
 		if (values != null)
 		{
-			dropDownChoice = new ScreenitDropdown<T>(dropDownChoiceNaam, values);
+			dropDownChoice = new ScreenitDropdown<>(dropDownChoiceNaam, values);
 		}
 		else
 		{
-			dropDownChoice = new ScreenitDropdown<T>(dropDownChoiceNaam, valuesModel);
+			dropDownChoice = new ScreenitDropdown<>(dropDownChoiceNaam, valuesModel);
 		}
-		dropDownChoice.setChoiceRenderer(new EnumChoiceRenderer<T>(webMarkupContainer));
+		dropDownChoice.setChoiceRenderer(new EnumChoiceRenderer<>(webMarkupContainer));
 		dropDownChoice.setRequired(required);
 		if (inzien)
 		{
@@ -320,16 +292,16 @@ public final class ComponentHelper
 	public static <T extends INaam> ScreenitDropdown<T> addDropDownChoiceINaam(WebMarkupContainer webMarkupContainer, String dropDownChoiceNaam, boolean required, List<T> values,
 		IModel<? extends List<T>> valuesModel, boolean inzien)
 	{
-		ScreenitDropdown<T> dropDownChoice = null;
+		ScreenitDropdown<T> dropDownChoice;
 		if (values != null)
 		{
-			dropDownChoice = new ScreenitDropdown<T>(dropDownChoiceNaam, values);
+			dropDownChoice = new ScreenitDropdown<>(dropDownChoiceNaam, values);
 		}
 		else
 		{
-			dropDownChoice = new ScreenitDropdown<T>(dropDownChoiceNaam, valuesModel);
+			dropDownChoice = new ScreenitDropdown<>(dropDownChoiceNaam, valuesModel);
 		}
-		dropDownChoice.setChoiceRenderer(new NaamChoiceRenderer<INaam>());
+		dropDownChoice.setChoiceRenderer(new NaamChoiceRenderer<>());
 		dropDownChoice.setRequired(required);
 		if (inzien)
 		{
@@ -340,27 +312,14 @@ public final class ComponentHelper
 		return dropDownChoice;
 	}
 
-	public static <T extends Enum<T>> ScreenitListMultipleChoice<T> addMultipleChoice(WebMarkupContainer webMarkupContainer, String multipleChoiceNaam, boolean required,
-		List<T> values, IModel<? extends List<T>> valuesModel, boolean inzien)
+	public static <T extends Enum<T>> RadioChoice<T> addRadioChoice(WebMarkupContainer webMarkupContainer, String id, Class<T> enumClass)
 	{
-		ScreenitListMultipleChoice<T> multipleChoice = null;
-		if (values != null)
-		{
-			multipleChoice = new ScreenitListMultipleChoice<T>(multipleChoiceNaam, values);
-		}
-		else
-		{
-			multipleChoice = new ScreenitListMultipleChoice<T>(multipleChoiceNaam, valuesModel);
-		}
-		multipleChoice.setChoiceRenderer(new EnumChoiceRenderer<T>(webMarkupContainer));
-		multipleChoice.setRequired(required);
-		if (inzien)
-		{
-			multipleChoice.setEnabled(Boolean.FALSE);
-		}
-		webMarkupContainer.add(multipleChoice);
-
-		return multipleChoice;
+		var radioChoice = new RadioChoice<>(id, Arrays.asList(enumClass.getEnumConstants()), new EnumChoiceRenderer<>(webMarkupContainer));
+		radioChoice.setPrefix("<label class=\"radio\">");
+		radioChoice.setSuffix("</label>");
+		radioChoice.setRequired(true);
+		webMarkupContainer.add(radioChoice);
+		return radioChoice;
 	}
 
 	public static DatePicker<Date> newDatePicker(String id)
@@ -375,11 +334,8 @@ public final class ComponentHelper
 
 	public static DatePicker<Date> newDatePicker(String id, IModel<Date> model, final boolean enabled)
 	{
-		DatePicker<Date> datePicker = new DatePicker<Date>(id, model)
+		DatePicker<Date> datePicker = new DatePicker<>(id, model)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void renderHead(IHeaderResponse response)
 			{
@@ -397,7 +353,7 @@ public final class ComponentHelper
 
 	public static DatePicker<Date> newDatePicker(String id, IModel<Date> model)
 	{
-		DatePicker<Date> datePicker = new DatePicker<Date>(id, model);
+		DatePicker<Date> datePicker = new DatePicker<>(id, model);
 		datePicker.setType(Date.class);
 		setOptions(datePicker);
 		return datePicker;
@@ -415,7 +371,6 @@ public final class ComponentHelper
 	{
 		DatePicker<Date> datePicker = newDatePicker(id);
 		datePicker.setChangeYear(true);
-
 		return datePicker;
 	}
 
@@ -423,7 +378,6 @@ public final class ComponentHelper
 	{
 		DatePicker<Date> datePicker = newDatePicker(id, model);
 		datePicker.setChangeYear(true);
-
 		return datePicker;
 	}
 
@@ -434,53 +388,6 @@ public final class ComponentHelper
 		datePicker.setDateFormat("dd-mm-yy");
 
 		datePicker.add(newDbRangeValidator());
-	}
-
-	public static void enableForm(WebMarkupContainer form)
-	{
-		form.visitChildren(new IVisitor<Component, Void>()
-		{
-
-			@Override
-			public void component(Component component, IVisit<Void> visit)
-			{
-				alterComponent(component, true);
-			}
-		});
-	}
-
-	public static Component disableComponent(Component component)
-	{
-		return alterComponent(component, false);
-	}
-
-	public static Component alterComponent(Component component, boolean enable)
-	{
-		if (component instanceof AbstractTextComponent<?> && !(component instanceof DatePicker<?>))
-		{
-			if (!enable)
-			{
-				component.add(new AttributeModifier("readonly", Model.of("readonly")));
-			}
-			else
-			{
-				Iterator<? extends Behavior> iter = component.getBehaviors().iterator();
-				while (iter.hasNext())
-				{
-					Behavior next = iter.next();
-					if (next instanceof AttributeModifier && ((AttributeModifier) next).getAttribute().equals("readonly"))
-					{
-						iter.remove();
-					}
-				}
-			}
-		}
-		else if (component instanceof FormComponent<?>)
-		{
-			component.setEnabled(enable);
-		}
-
-		return component;
 	}
 
 	public static DateValidator newDbRangeValidator()
@@ -537,5 +444,4 @@ public final class ComponentHelper
 
 		throw new MarkupException(component.getMarkup().getMarkupResourceStream(), msg);
 	}
-
 }

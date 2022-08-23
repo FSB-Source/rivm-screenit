@@ -21,30 +21,32 @@ package nl.rivm.screenit.batch.jobs.colon.huisartsberichten.step;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.model.colon.ColonHuisartsBerichtStatus;
-
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.DateUtil;
+
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class ColonMislukteHuisartsberichtenVersturenReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	private final Integer MAXIMALE_PERIODE_RETRY = 1;
+	private static final Integer MAXIMALE_PERIODE_RETRY = 1;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-
-		Criteria criteria = session.createCriteria(ColonHuisartsBericht.class, "huisartsbericht");
+		var criteria = session.createCriteria(ColonHuisartsBericht.class, "huisartsbericht");
 		criteria.add(Restrictions.eq("huisartsbericht.status", ColonHuisartsBerichtStatus.VERZENDEN_MISLUKT));
 		criteria.add(Restrictions.ge("huisartsbericht.aanmaakDatum", DateUtil.toUtilDate(currentDateSupplier.getLocalDateTime().minusMonths(MAXIMALE_PERIODE_RETRY))));
 

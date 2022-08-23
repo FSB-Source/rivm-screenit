@@ -159,7 +159,9 @@ public class Constants
 
 	public static final String RONDE_AFROND_REDEN_BUITEN_DOELGROEP = "Cli\u00EBnt behoort niet meer tot de doelgroep";
 
-	public static final int COLON_MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN = 366 * 2;
+	public static final int MAX_AANTAL_DAGEN_TERUGKIJKEN_CONTROLE_MISSENDE_UITSLAGEN = 366 * 2;
+
+	public static final int MAMMA_MAX_AANTAL_MAANDEN_GEEN_UITSLAG_ONDERBROKEN_ONDERZOEK = 6;
 
 	private Constants()
 	{

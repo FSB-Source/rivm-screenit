@@ -21,17 +21,20 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.adresgewijzigdmarkerreset;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaAdresGewijzigdMarkerResetWriter extends BaseWriter<GbaMutatie>
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected void write(GbaMutatie gbaMutatie)

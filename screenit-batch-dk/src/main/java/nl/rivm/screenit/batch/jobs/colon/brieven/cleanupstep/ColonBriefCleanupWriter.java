@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.brieven.cleanupstep;
 
 /*-
@@ -25,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.colon.brieven.cleanupstep;
 import nl.rivm.screenit.batch.jobs.brieven.cleanup.AbstractBrievenCleanUpWriter;
 import nl.rivm.screenit.model.colon.ColonMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ColonBriefCleanupWriter extends AbstractBrievenCleanUpWriter<ColonMergedBrieven>
 {
 

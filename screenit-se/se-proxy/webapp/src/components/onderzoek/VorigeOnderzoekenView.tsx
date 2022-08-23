@@ -37,8 +37,7 @@ export default class VorigeOnderzoekenView extends Component<VorigeOnderzoekenVi
 									   heeftRecht={this.props.magOnderzoeken} rechtNaam={"Onderzoek starten op SE."}
 									   onClick={(): void => {
 										   this.props.onConfirm(client, afspraak)
-									   }}>
-					</AutorisatieButton>
+									   }}/>
 				</div>
 			</div>
 			<div className="row">

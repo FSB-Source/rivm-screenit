@@ -23,6 +23,8 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.cleanup;
 
 import java.util.Date;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.cervix.facturatie.CervixBetaalopdracht;
 import nl.rivm.screenit.model.enums.BestandStatus;
@@ -32,20 +34,20 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class BetalingBestandenCleanUpReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 
-		Criteria crit = session.createCriteria(CervixBetaalopdracht.class);
+		var crit = session.createCriteria(CervixBetaalopdracht.class);
 		crit.add(Restrictions.isNotNull("sepaSpecificatiePdf"));
 		crit.add(Restrictions.isNotNull("sepaDocument"));
 		crit.add(Restrictions.le("statusDatum", getDateTwoYearsBack()));
@@ -55,7 +57,7 @@ public class BetalingBestandenCleanUpReader extends BaseScrollableResultReader
 
 	private Date getDateTwoYearsBack()
 	{
-		DateTime dateTime = currentDateSupplier.getDateTimeMidnight();
+		var dateTime = currentDateSupplier.getDateTimeMidnight();
 		dateTime = dateTime.minusYears(2);
 		return dateTime.toDate();
 	}

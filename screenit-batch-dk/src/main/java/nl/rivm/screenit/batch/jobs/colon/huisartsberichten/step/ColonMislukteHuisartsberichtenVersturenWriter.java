@@ -21,17 +21,20 @@ package nl.rivm.screenit.batch.jobs.colon.huisartsberichten.step;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.colon.ColonHuisartsBericht;
 import nl.rivm.screenit.service.colon.ColonEdiService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class ColonMislukteHuisartsberichtenVersturenWriter extends BaseWriter<ColonHuisartsBericht>
 {
 
-	@Autowired
-	private ColonEdiService ediService;
+	private final ColonEdiService ediService;
 
 	@Override
 	protected void write(ColonHuisartsBericht item)

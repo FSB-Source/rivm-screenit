@@ -1,0 +1,51 @@
+@import "../../styling/scss/colors";
+@import "../../styling/scss/media-mixins";
+@import "../../styling/scss/mixins";
+
+.style {
+	position: relative;
+
+	&.error {
+		label {
+			color: $rood;
+		}
+
+		input {
+			border-color: $rood;
+		}
+	}
+
+	&.alignRight {
+		label {
+			display: block;
+			text-align: right;
+
+			@include respond-below(sm) {
+				text-align: left;
+			}
+		}
+	}
+
+	input[type="checkbox"] {
+		width: 20px;
+		height: 20px;
+		@include center-in-div-vertically(50%);
+	}
+
+	label {
+		font-weight: 500;
+
+		@include respond-below(md) {
+			font-size: 0.85rem;
+		}
+	}
+
+	sub {
+		top: 0;
+		margin-left: 2px;
+		font-size: 0.9rem;
+		font-weight: bold;
+		color: $rood;
+	}
+
+}

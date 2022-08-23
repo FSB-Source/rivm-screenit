@@ -1,0 +1,41 @@
+@import "../../styling/scss/colors";
+@import "../../styling/scss/media-mixins";
+
+.style {
+	background-color: $paars;
+	min-height: 50px;
+
+	a, span {
+		cursor: pointer;
+		color: $grijs;
+		text-decoration: none;
+		font-size: 0.85rem;
+		transition: 0.2s;
+
+		&:hover {
+			color: $wit;
+		}
+	}
+
+	.navBarBrand {
+		height: 40px;
+
+		img {
+			height: 15px;
+			margin-top: 5px;
+		}
+	}
+
+	.navBarToggle {
+		margin-right: 15px;
+	}
+
+	.navItem {
+
+		@include respond-below(md) {
+			margin-top: 15px;
+			margin-left: 20px !important;
+		}
+
+	}
+}

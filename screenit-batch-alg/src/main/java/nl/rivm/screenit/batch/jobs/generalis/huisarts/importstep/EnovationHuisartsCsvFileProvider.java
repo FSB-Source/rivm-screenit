@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.generalis.huisarts.importstep;
 
 /*-
@@ -33,22 +32,22 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.CsvFileProvider;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import au.com.bytecode.opencsv.CSVReader;
 
+@Slf4j
+@Component
 public class EnovationHuisartsCsvFileProvider implements CsvFileProvider
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(EnovationHuisartsCsvFileProvider.class);
-
 	@Autowired
 	private SimplePreferenceService preferenceService;
 

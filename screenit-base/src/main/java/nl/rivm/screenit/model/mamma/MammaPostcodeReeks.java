@@ -29,6 +29,9 @@ import javax.persistence.Index;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.helper.HibernateMagicNumber;
 import nl.rivm.screenit.util.DiffSpecs;
 import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
@@ -41,35 +44,17 @@ import org.hibernate.envers.Audited;
 @Table(schema = "mamma", name = "postcode_reeks", indexes = @Index(name = "idx_mamma_postcode_reeks_vanaf_tot", columnList = "vanPostcode, totPostcode"))
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, region = "mamma.cache")
 @Audited
+@Getter
+@Setter
 public class MammaPostcodeReeks extends AbstractHibernateObject
 {
-	private static final long serialVersionUID = 1L;
-
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	@DiffSpecs(displayProperty = "naam")
 	private MammaStandplaats standplaats;
-
 	@Column(nullable = false, length = HibernateMagicNumber.L6)
 	private String vanPostcode;
-
 	@Column(nullable = false, length = HibernateMagicNumber.L6)
 	private String totPostcode;
-
-	public MammaStandplaats getStandplaats()
-	{
-		return standplaats;
-	}
-
-	public void setStandplaats(MammaStandplaats standplaats)
-	{
-		this.standplaats = standplaats;
-	}
-
-	public String getVanPostcode()
-	{
-		return vanPostcode;
-	}
-
 	public void setVanPostcode(String vanPostcode)
 	{
 		if (vanPostcode != null)
@@ -80,11 +65,6 @@ public class MammaPostcodeReeks extends AbstractHibernateObject
 		{
 			this.vanPostcode = null;
 		}
-	}
-
-	public String getTotPostcode()
-	{
-		return totPostcode;
 	}
 
 	public void setTotPostcode(String totPostcode)

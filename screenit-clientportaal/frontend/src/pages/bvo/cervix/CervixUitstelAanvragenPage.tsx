@@ -38,7 +38,17 @@ import ScreenitDatePicker from "../../../components/input/ScreenitDatePicker"
 import properties from "./CervixUitstelAanvragenPage.json"
 import {useSelector} from "react-redux"
 import {State} from "../../../datatypes/State"
-import {formatDate, formatDateText, minDagen, plusDagen, plusMaanden, vandaag} from "../../../utils/DateUtil"
+import {
+	formatDate,
+	formatDateText,
+	getAantalDagenTussenDatums,
+	getBovengrensUitLijst,
+	minDagen,
+	parseIsoDatumNederlandseIso,
+	plusDagen,
+	plusMaanden,
+	vandaag,
+} from "../../../utils/DateUtil"
 import {useNavigate} from "react-router-dom"
 import {showToast} from "../../../utils/ToastUtil"
 
@@ -48,18 +58,25 @@ const CervixUitstelAanvragenPage = () => {
 	const navigate = useNavigate()
 	const cervixUitstel = useSelector((state: State) => state.client.cervixDossier.uitstel)
 	const uitstelStatus = useSelector((state: State) => state.client.cervixDossier.uitstelStatus)
+	const geboortedatumDisplay = useSelector((state: State) => state.client.persoon.geboortedatumDisplay)
 
 	useEffect(() => {
 		dispatch(getHuidigeCervixUitstelStatus())
 		dispatch(getHuidigeCervixUitstel())
 	}, [dispatch])
 
+	const geboortedatum = parseIsoDatumNederlandseIso(geboortedatumDisplay)
+	const datumVanDertigsteVerjaardag = new Date(geboortedatum.setFullYear(geboortedatum.getFullYear() + 30))
 	const duurZwangerschap = 9
+	const periodeTussenVandaagEnDertigsteVerjaardag = getAantalDagenTussenDatums(datumVanDertigsteVerjaardag, vandaag())
+
 	const minPeriodeTussenZwangerEnOnderzoek = uitstelStatus ? uitstelStatus.uitstelBijZwangerschap : 42
-	const minDatumZwangerschap = minDagen(vandaag(), minPeriodeTussenZwangerEnOnderzoek)
+	const periodeTussenZwangerschapEnDertigsteVerjaardag = periodeTussenVandaagEnDertigsteVerjaardag > 0 ? minPeriodeTussenZwangerEnOnderzoek - periodeTussenVandaagEnDertigsteVerjaardag : minPeriodeTussenZwangerEnOnderzoek
+
+	const minDatumZwangerschap = minDagen(vandaag(), periodeTussenZwangerschapEnDertigsteVerjaardag)
 	const maxDatumZwangerschap = plusMaanden(vandaag(), duurZwangerschap)
-	const minDatumAnders = plusDagen(vandaag(), 1)
-	const maxDatumAnders = plusMaanden(vandaag(), 60)
+	const minDatumAnders = getBovengrensUitLijst([plusDagen(datumVanDertigsteVerjaardag, 1), plusDagen(vandaag(), 1)])
+	const maxDatumAnders = uitstelStatus.datumVolgendeRonde != null ? uitstelStatus.datumVolgendeRonde : plusMaanden(vandaag(), 60)
 
 	function getInitialValueUitstellenTotDatum() {
 		if (cervixUitstel.uitstelType === CervixUitstelType.ZWANGERSCHAP && cervixUitstel.uitstellenTotDatum) {
@@ -147,7 +164,7 @@ const CervixUitstelAanvragenPage = () => {
 							{formikProps.values.uitstelType === CervixUitstelType.ZWANGERSCHAP &&
 								<ScreenitDatePicker className={styles.datepicker}
 													propertyName={"uitgerekendeDatum"}
-													label={getString(properties.form.placeholer.zwanger)}
+													label={getString(properties.form.placeholder.zwanger)}
 													title={getString(properties.form.label.zwanger)}
 													value={formikProps.values.uitgerekendeDatum}
 													errorLabel={formikProps.errors.uitgerekendeDatum}
@@ -158,7 +175,7 @@ const CervixUitstelAanvragenPage = () => {
 							{formikProps.values.uitstelType === CervixUitstelType.ANDERS &&
 								<ScreenitDatePicker className={styles.datepicker}
 													propertyName={"uitstellenTotDatum"}
-													label={getString(properties.form.placeholer.anders)}
+													label={getString(properties.form.placeholder.anders)}
 													title={getString(properties.form.label.anders)}
 													value={formikProps.values.uitstellenTotDatum}
 													errorLabel={formikProps.errors.uitstellenTotDatum}

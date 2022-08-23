@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.main.web.ScreenitSession;
 import nl.rivm.screenit.main.web.component.table.ScreenitDataTable;
 import nl.rivm.screenit.main.web.gebruiker.clienten.ClientPage;
@@ -41,6 +40,7 @@ import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectGroep;
 import nl.rivm.screenit.model.project.ProjectStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.EnumStringUtil;
 import nl.rivm.screenit.util.ProjectUtil;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.search.column.DateTimePropertyColumn;
@@ -76,7 +76,7 @@ public class ClientProjectenPage extends ClientPage
 	{
 		super(client);
 
-		projectClientModel = ModelUtil.cModel(new ProjectClient());
+		projectClientModel = ModelUtil.ccModel(new ProjectClient());
 		if (ScreenitSession.get().isZoekObjectGezetForComponent(ClientProjectenPage.class))
 		{
 			projectClientModel = (IModel<ProjectClient>) ScreenitSession.get().getZoekObject(ClientProjectenPage.class);

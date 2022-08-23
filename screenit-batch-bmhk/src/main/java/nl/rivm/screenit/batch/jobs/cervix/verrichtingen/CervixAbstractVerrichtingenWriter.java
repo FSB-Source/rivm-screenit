@@ -21,11 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.cervix.CervixMonster;
-import nl.rivm.screenit.model.cervix.CervixScreeningRonde;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.enums.CervixTariefType;
 import nl.rivm.screenit.service.cervix.CervixVerrichtingFactory;
@@ -41,8 +38,8 @@ public abstract class CervixAbstractVerrichtingenWriter<T extends CervixMonster>
 
 	protected void bepaalCytologieVerrichtingen(CervixUitstrijkje uitstrijkje)
 	{
-		CervixScreeningRonde ronde = uitstrijkje.getOntvangstScreeningRonde();
-		Date cytologieVerrichtingsDatum = uitstrijkje.getCytologieVerslag().getVerslagContent().getVerrichting().getEindeVerrichting();
+		var ronde = uitstrijkje.getOntvangstScreeningRonde();
+		var cytologieVerrichtingsDatum = uitstrijkje.getCytologieVerslag().getVerslagContent().getVerrichting().getEindeVerrichting();
 
 		if (ronde.getInVervolgonderzoekDatum() == null || uitstrijkje.getOntvangstdatum().before(ronde.getInVervolgonderzoekDatum()))
 		{

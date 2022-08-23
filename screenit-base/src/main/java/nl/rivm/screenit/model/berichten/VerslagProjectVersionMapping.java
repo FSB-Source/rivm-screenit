@@ -22,6 +22,7 @@ package nl.rivm.screenit.model.berichten;
  */
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,9 @@ import nl.rivm.screenit.model.berichten.enums.VerslagType;
 public class VerslagProjectVersionMapping
 {
 
-	private static VerslagProjectVersionMapping instance = new VerslagProjectVersionMapping();
+	private static final VerslagProjectVersionMapping instance = new VerslagProjectVersionMapping();
 
-	private Map<String, Map<VerslagType, VerslagGeneratie>> mapping = new HashMap<>();
+	private final Map<String, Map<VerslagType, VerslagGeneratie>> mapping = new HashMap<>();
 
 	private VerslagProjectVersionMapping()
 	{
@@ -49,25 +50,24 @@ public class VerslagProjectVersionMapping
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2018-12-19T11:16:40", VerslagGeneratie.V7, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2019-11-17T20:43:52", VerslagGeneratie.V8, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
 		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2021-12-07T13:10:09", VerslagGeneratie.V10, VerslagType.MDL, VerslagType.PA_LAB, VerslagType.CERVIX_CYTOLOGIE);
-		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2019-04-03T11:23:47", VerslagGeneratie.V2, VerslagType.MAMMA_PA_FOLLOW_UP);
-
+		addProjectVersion("2.16.840.1.113883.2.4.3.36.77.0.1.2022-06-28T15:43:05", VerslagGeneratie.V2, VerslagType.MAMMA_PA_FOLLOW_UP);
 	}
 
 	public void addProjectVersion(String projectVersion, VerslagGeneratie generatie, VerslagType... types)
 	{
-		HashMap<VerslagType, VerslagGeneratie> projectMapping = new HashMap<>();
+		Map<VerslagType, VerslagGeneratie> projectMapping = new EnumMap<>(VerslagType.class);
 		if (types.length == 0)
 		{
 
 			List<String> teRemove = new ArrayList<>();
-			mapping.entrySet().forEach(e ->
+			mapping.forEach((key, value) ->
 			{
-				if (e.getValue().values().contains(generatie))
+				if (value.containsValue(generatie))
 				{
-					teRemove.add(e.getKey());
+					teRemove.add(key);
 				}
 			});
-			teRemove.forEach(r -> mapping.remove(r));
+			teRemove.forEach(mapping::remove);
 		}
 		else
 		{

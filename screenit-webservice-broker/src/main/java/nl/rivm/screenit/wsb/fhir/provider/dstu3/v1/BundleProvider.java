@@ -25,15 +25,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import nl.rivm.screenit.model.Client;
-import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.cervix.CervixLabformulier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
-import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.service.ClientService;
+import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.cervix.CervixLabformulierService;
 import nl.rivm.screenit.wsb.fhir.interceptor.FQDNProvider;
@@ -71,17 +71,20 @@ public class BundleProvider extends BaseResourceProvider
 
 	private final LogService logService;
 
+	private final DashboardService dashboardService;
+
 	private final CervixLabformulierService labformulierService;
 
 	private final FQDNProvider fqdnProvider;
 
 	public BundleProvider()
 	{
-		this.clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
-		this.hibernateService = SpringBeanProvider.getInstance().getBean(HibernateService.class);
-		this.logService = SpringBeanProvider.getInstance().getBean(LogService.class);
-		this.labformulierService = SpringBeanProvider.getInstance().getBean(CervixLabformulierService.class);
-		this.fqdnProvider = SpringBeanProvider.getInstance().getBean(FQDNProvider.class);
+		clientService = SpringBeanProvider.getInstance().getBean(ClientService.class);
+		hibernateService = SpringBeanProvider.getInstance().getBean(HibernateService.class);
+		logService = SpringBeanProvider.getInstance().getBean(LogService.class);
+		dashboardService = SpringBeanProvider.getInstance().getBean(DashboardService.class);
+		labformulierService = SpringBeanProvider.getInstance().getBean(CervixLabformulierService.class);
+		fqdnProvider = SpringBeanProvider.getInstance().getBean(FQDNProvider.class);
 	}
 
 	@Override
@@ -127,10 +130,8 @@ public class BundleProvider extends BaseResourceProvider
 		}
 		catch (Exception e)
 		{
-			LogEvent event = new LogEvent();
-			event.setLevel(Level.WARNING);
-			event.setMelding("Er is een onbekende fout opgetreden. Neem contact op met de helpdesk. (FQDN:" + fqdnProvider.getCurrentFQDN() + ")");
-			logService.logGebeurtenis(LogGebeurtenis.CERVIX_DIGITAAL_LABFORMULIER_ONTVANGEN, event, Bevolkingsonderzoek.CERVIX);
+			String melding = String.format("Er is een onbekende fout opgetreden. Neem contact op met de helpdesk. (FQDN:%s)", fqdnProvider.getCurrentFQDN());
+			logGebeurtenis(Level.WARNING, melding, melding, null);
 			LOG.error("Er is een onbekende fout opgetreden.", e);
 			throw new UnprocessableEntityException("Er is een onbekende fout opgetreden. Neem contact op met het FSB.", e);
 		}
@@ -154,6 +155,7 @@ public class BundleProvider extends BaseResourceProvider
 	private void doAanvraag(LabaanvraagBundle bundle) throws GenericJDBCException, HibernateJdbcException
 	{
 		CervixLabformulier labformulier = LabaanvraagMapper.INSTANCE.toLabformulier(bundle);
+		labformulier.setLeverancierFqdn(fqdnProvider.getCurrentFQDN());
 		hibernateService.saveOrUpdate(labformulier);
 		labformulierService.koppelDigitaalLabformulier(labformulier);
 	}
@@ -161,39 +163,56 @@ public class BundleProvider extends BaseResourceProvider
 	private void logGebeurtenis(LabaanvraagBundle bundle, HttpStatus httpStatus, List<?> valiationOutcomes)
 	{
 		String melding = getMelding(bundle, httpStatus, valiationOutcomes);
-		melding += ". (FQDN:" + fqdnProvider.getCurrentFQDN() + ")";
-		LogGebeurtenis gebeurtenis = LogGebeurtenis.CERVIX_DIGITAAL_LABFORMULIER_ONTVANGEN;
-		Client clientByBsn = this.clientService.getClientByBsn(bundle.getClientBsn());
+		String gegevensMeldingPart = getGegevensMeldingPart(bundle);
+		Client clientByBsn = clientService.getClientByBsn(bundle.getClientBsn());
 
-		LogEvent event = new LogEvent();
-		event.setLevel(httpStatus.value() == 201
-			? Level.INFO
-			: Level.WARNING);
-		event.setMelding(melding);
+		logGebeurtenis(httpStatus.value() == 201 ? Level.INFO : Level.WARNING, melding, gegevensMeldingPart, clientByBsn);
+	}
 
-		List<Instelling> screeningOrganisatie = clientService.getScreeningOrganisatieVan(clientByBsn);
+	private void logGebeurtenis(Level level, String logMelding, String oudLogFinderTekst, Client client)
+	{
+		String bsn = null;
 
-		this.logService.logGebeurtenis(gebeurtenis,
-			screeningOrganisatie,
-			event,
-			clientByBsn,
-			Bevolkingsonderzoek.CERVIX);
+		if (client != null)
+		{
+			bsn = client.getPersoon().getBsn();
+		}
+		var foutLogGebeurtenis = LogGebeurtenis.CERVIX_DIGITAAL_LABFORMULIER_FOUT_ONTVANGEN;
+		boolean heeftBestaandeWarningLogregelInAfgelopenDag = level == Level.WARNING && !logService.heeftGeenBestaandeLogregelBinnenPeriode(List.of(foutLogGebeurtenis), bsn, null,
+			logMelding, 1);
+		if (!heeftBestaandeWarningLogregelInAfgelopenDag)
+		{
+			if (bsn != null)
+			{
+				dashboardService.verwijderLogRegelsVanDashboards(List.of(foutLogGebeurtenis), bsn, null);
+			}
+			dashboardService.verwijderLogRegelsVanDashboards(List.of(foutLogGebeurtenis), null, oudLogFinderTekst);
+			logService.logGebeurtenis(level == Level.WARNING ? foutLogGebeurtenis : LogGebeurtenis.CERVIX_DIGITAAL_LABFORMULIER_ONTVANGEN, client, logMelding,
+				Bevolkingsonderzoek.CERVIX);
+		}
 	}
 
 	private String getMelding(LabaanvraagBundle bundle, HttpStatus httpStatus, List<?> valiationOutcomes)
 	{
-		return String.format("%s%s gegevens[BSN: %s, AGB_individueel: %s, AGB_praktijk: %s, monster_id: %s, controleletters: %s]",
+		return String.format("Validatie %ssuccesvol:%s %s",
 			httpStatus.getReasonPhrase().equals("Created")
-				? "Validatie Succesvol"
-				: "Validatie Onsuccesvol",
+				? ""
+				: "on",
 			httpStatus.value() == 201
 				? ""
-				: String.format(" validatieErrors[%s],", getValidationErrors(valiationOutcomes)),
+				: String.format(" fout(en)[%s],", getValidationErrors(valiationOutcomes)),
+			getGegevensMeldingPart(bundle));
+	}
+
+	private String getGegevensMeldingPart(LabaanvraagBundle bundle)
+	{
+		return String.format("gegevens[BSN: %s, AGB individueel: %s, AGB praktijk: %s, Monster-id: %s, Controleletters: %s]. (FQDN:%s)",
 			bundle.getClientBsn(),
 			bundle.getIndividueleAgb(),
 			bundle.getPraktijkAgb(),
 			bundle.getMonsterId(),
-			bundle.getControleLetters());
+			bundle.getControleLetters(),
+			fqdnProvider.getCurrentFQDN());
 	}
 
 	private String getValidationErrors(List<?> list)
@@ -218,11 +237,15 @@ public class BundleProvider extends BaseResourceProvider
 	{
 		if (!list.isEmpty())
 		{
-			return list.stream()
-				.map(OperationOutcome.OperationOutcomeIssueComponent::getDetails)
+			return Stream.concat(
+					list.stream()
+						.map(OperationOutcome.OperationOutcomeIssueComponent::getDiagnostics),
+					list.stream()
+						.map(OperationOutcome.OperationOutcomeIssueComponent::getDetails)
+						.filter(Objects::nonNull)
+						.map(CodeableConcept::getText))
 				.filter(Objects::nonNull)
-				.map(CodeableConcept::getText)
-				.collect(Collectors.joining(","));
+				.collect(Collectors.joining(", "));
 		}
 		return "";
 	}

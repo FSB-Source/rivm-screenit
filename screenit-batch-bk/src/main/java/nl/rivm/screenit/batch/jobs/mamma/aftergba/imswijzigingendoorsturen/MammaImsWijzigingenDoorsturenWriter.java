@@ -22,28 +22,34 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.imswijzigingendoorsturen;
  */
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.gba.GbaMutatie;
 import nl.rivm.screenit.service.BerichtToBatchService;
+import nl.topicuszorg.hibernate.object.model.AbstractHibernateObject;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class MammaImsWijzigingenDoorsturenWriter extends BaseWriter<Client>
 {
-	@Autowired
-	private BerichtToBatchService berichtToBatchService;
+
+	private final BerichtToBatchService berichtToBatchService;
 
 	@Override
 	protected void write(Client client)
 	{
 		List<GbaMutatie> bsnMarkerMutaties = new ArrayList<>();
 		boolean gegevensGewijzigdMarkerGevonden = false;
-		for (GbaMutatie mutatie : client.getGbaMutaties())
+		for (var mutatie : client.getGbaMutaties())
 		{
 			if (StringUtils.contains(mutatie.getAanvullendeInformatie(), Constants.MAMMA_IMS_CLIENT_BSN_GEWIJZIGD_MARKER))
 			{
@@ -67,7 +73,7 @@ public class MammaImsWijzigingenDoorsturenWriter extends BaseWriter<Client>
 	{
 		bsnMarkerMutaties.stream()
 			.filter(mutatie -> mutatie.getAanvullendeInformatie() != null)
-			.sorted((o1, o2) -> o1.getId() < o2.getId() ? -1 : o1.getId() > o2.getId() ? 1 : 0)
+			.sorted(Comparator.comparing(AbstractHibernateObject::getId))
 			.forEachOrdered(mutatie -> berichtToBatchService.queueMammaBsnWijzigingenImsBericht(client, mutatie));
 	}
 }

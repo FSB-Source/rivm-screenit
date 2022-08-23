@@ -21,38 +21,39 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.clientportaal.model.cervix.CervixDossierDto;
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.mappers.cervix.CervixDossierMapper;
-import nl.rivm.screenit.clientportaal.model.colon.ColonDossierDto;
 import nl.rivm.screenit.clientportaal.mappers.colon.ColonDossierMapper;
-import nl.rivm.screenit.clientportaal.model.mamma.MammaDossierDto;
 import nl.rivm.screenit.clientportaal.mappers.mamma.MammaDossierMapper;
+import nl.rivm.screenit.clientportaal.model.cervix.CervixDossierDto;
+import nl.rivm.screenit.clientportaal.model.colon.ColonDossierDto;
+import nl.rivm.screenit.clientportaal.model.mamma.MammaDossierDto;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.service.BaseClientGebeurtenisService;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("dossier")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class DossierController extends AbstractController
 {
 
-	@Autowired
-	private BaseClientGebeurtenisService clientGebeurtenisService;
+	private final BaseClientGebeurtenisService clientGebeurtenisService;
 
-	@Autowired
-	private CervixDossierMapper cervixDossierMapper;
+	private final CervixDossierMapper cervixDossierMapper;
 
-	@Autowired
-	private ColonDossierMapper colonDossierMapper;
+	private final ColonDossierMapper colonDossierMapper;
 
-	@Autowired
-	private MammaDossierMapper mammaDossierMapper;
+	private final MammaDossierMapper mammaDossierMapper;
 
 	@GetMapping("/mamma")
 	public ResponseEntity<MammaDossierDto> getMammaDossier(Authentication authentication)

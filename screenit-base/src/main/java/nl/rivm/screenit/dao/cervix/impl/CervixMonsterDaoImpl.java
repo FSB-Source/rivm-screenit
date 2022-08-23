@@ -21,7 +21,10 @@ package nl.rivm.screenit.dao.cervix.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+
 import nl.rivm.screenit.dao.cervix.CervixMonsterDao;
+import nl.rivm.screenit.model.cervix.CervixDossier;
 import nl.rivm.screenit.model.cervix.CervixMonster;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 import nl.rivm.screenit.model.cervix.CervixZas;
@@ -30,6 +33,8 @@ import nl.rivm.screenit.util.SequenceGenerator;
 import nl.topicuszorg.hibernate.criteria.BaseCriteria;
 import nl.topicuszorg.hibernate.spring.dao.impl.AbstractAutowiredDao;
 
+import org.hibernate.Criteria;
+import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
@@ -106,6 +111,17 @@ public class CervixMonsterDaoImpl extends AbstractAutowiredDao implements Cervix
 	public Long getNextMonsterId()
 	{
 		return getSession().doReturningWork(new SequenceGenerator(DatabaseSequence.MONSTER_ID, getSessionFactory()));
+	}
+
+	@Override
+	public CervixMonster getLaatsteMonsterMetMissendeUitslagVanDossier(CervixDossier dossier, LocalDate signalerenVanaf, LocalDate minimaleSignaleringsDatum)
+	{
+		Criteria criteria = getSession().createCriteria(CervixMonster.class, "monster");
+		CervixRestrictions.addMissendeUitslagRestrictions(criteria, signalerenVanaf, minimaleSignaleringsDatum);
+		criteria.add(Restrictions.eq("ronde.dossier", dossier));
+		criteria.addOrder(Order.desc("ontvangstdatum"));
+		criteria.setMaxResults(1);
+		return (CervixMonster) criteria.uniqueResult();
 	}
 
 	@Override

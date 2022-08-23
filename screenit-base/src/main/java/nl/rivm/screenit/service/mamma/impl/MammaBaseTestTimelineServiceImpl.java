@@ -24,6 +24,7 @@ package nl.rivm.screenit.service.mamma.impl;
 import java.util.ArrayList;
 import java.util.Date;
 
+import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.UploadDocument;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -75,6 +76,9 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 	@Autowired
 	private MammaBaseKansberekeningService baseKansberekeningService;
+
+	@Autowired
+	private MammaBaseHL7v24Dao baseHL7v24Dao;
 
 	@Override
 	public MammaUitnodiging nieuweRondeAfspraakUitnodiging(Client client, MammaScreeningsEenheid screeningsEenheid)
@@ -160,6 +164,7 @@ public class MammaBaseTestTimelineServiceImpl implements MammaBaseTestTimelineSe
 
 	private MammaScreeningRonde nieuweRonde(Client client, MammaStandplaatsRonde standplaatsRonde, boolean rekenDossierTerug)
 	{
+		baseHL7v24Dao.deleteMessagesForClient(client);
 		MammaDossier dossier = client.getMammaDossier();
 		if (rekenDossierTerug)
 		{

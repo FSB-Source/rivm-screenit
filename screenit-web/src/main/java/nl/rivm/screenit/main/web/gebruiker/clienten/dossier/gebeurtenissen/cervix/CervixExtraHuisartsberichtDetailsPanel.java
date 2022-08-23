@@ -32,16 +32,16 @@ import nl.rivm.screenit.model.enums.Recht;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.wicketstuff.datetime.markup.html.basic.DateLabel;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
-	recht = Recht.GEBRUIKER_CLIENT_SR_CERVIX_HUISARTSBERICHT_DETAILS,
+	recht = Recht.GEBRUIKER_CLIENT_SR_HUISARTSBERICHT_DETAILS,
 	bevolkingsonderzoekScopes = Bevolkingsonderzoek.CERVIX)
 public class CervixExtraHuisartsberichtDetailsPanel extends AbstractGebeurtenisDetailPanel
 {

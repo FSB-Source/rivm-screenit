@@ -99,6 +99,7 @@ class OrganisatieWisselPanel extends GenericPanel<InstellingGebruiker>
 				Component pageForInstellingGebruiker = ScreenitSession.get().getPageForInstellingGebruiker(gewensteInstellingGebruiker);
 				if (pageForInstellingGebruiker != null)
 				{
+					ScreenitSession.get().clear();
 					setResponsePage((WebPage) pageForInstellingGebruiker);
 				}
 				else

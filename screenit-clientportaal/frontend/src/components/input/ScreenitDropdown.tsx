@@ -63,7 +63,6 @@ function ScreenitDropdown(props: ScreenitDropdownProps) {
 					{props.options.map((option, key) =>
 						<MenuItem key={key} value={option.value}>{option.label}</MenuItem>,
 					)}
-
 				</Select>
 			</FormControl>
 			{props.invalidMessage && <label className={styles.errorLabel}>{props.invalidMessage}</label>}

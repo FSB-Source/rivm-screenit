@@ -27,9 +27,11 @@ import java.util.List;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.Instelling;
+import nl.rivm.screenit.model.InstellingGebruiker;
 import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
+import nl.rivm.screenit.model.enums.Level;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.LogRegel;
@@ -86,6 +88,9 @@ public interface LogService
 
 	long countLogRegelsVanDashboard(DashboardStatus item);
 
-	boolean heeftBestaandeLogregelBinnenPeriode(List<LogGebeurtenis> gebeurtenis, String bsn, String melding, int dagen);
+	boolean heeftGeenBestaandeLogregelBinnenPeriode(List<LogGebeurtenis> gebeurtenissen, String bsn, String melding, int dagen);
 
+	boolean heeftGeenBestaandeLogregelBinnenPeriode(List<LogGebeurtenis> gebeurtenissen, String bsn, List<Level> levels, String melding, int dagen);
+
+	boolean verwijderLogRegelsVanDashboards(List<LogRegel> logRegels, InstellingGebruiker ingelogdeGebruiker, LogGebeurtenis logGebeurtenis);
 }

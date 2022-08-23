@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.selectie.selectiestep;
 
 /*-

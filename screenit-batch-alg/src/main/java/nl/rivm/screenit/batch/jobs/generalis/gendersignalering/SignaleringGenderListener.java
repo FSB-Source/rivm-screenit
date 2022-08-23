@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.generalis.gendersignalering;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -28,15 +30,15 @@ import nl.rivm.screenit.model.logging.LogEvent;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class SignaleringGenderListener extends BaseLogListener
 {
 	static final String TOTAAL_AANTAL_BRIEVEN_KEY = "gendersignalering.totaal.aantal.brieven";
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected LogEvent getStartLogEvent()
@@ -65,11 +67,11 @@ public class SignaleringGenderListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 
-		long totaalAantal = context.getLong(TOTAAL_AANTAL_BRIEVEN_KEY, 0);
+		var totaalAantal = context.getLong(TOTAAL_AANTAL_BRIEVEN_KEY, 0);
 
-		LogEvent logEvent = super.eindLogging(jobExecution);
+		var logEvent = super.eindLogging(jobExecution);
 		logEvent.setMelding("Er zijn " + totaalAantal + " brieven aangemaakt");
 
 		hibernateService.saveOrUpdate(logEvent);

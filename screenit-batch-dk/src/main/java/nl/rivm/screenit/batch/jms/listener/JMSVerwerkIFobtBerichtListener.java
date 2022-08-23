@@ -21,25 +21,28 @@ package nl.rivm.screenit.batch.jms.listener;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.batch.service.IFobtHL7BerichtInlezenService;
-import nl.rivm.screenit.model.colon.berichten.ColonIFobtUitslagBericht;
-import org.apache.activemq.command.ActiveMQObjectMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.listener.SessionAwareMessageListener;
+import java.util.List;
 
 import javax.jms.JMSException;
 import javax.jms.Session;
-import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import nl.rivm.screenit.batch.service.IFobtHL7BerichtInlezenService;
+import nl.rivm.screenit.model.colon.berichten.ColonIFobtUitslagBericht;
+
+import org.apache.activemq.command.ActiveMQObjectMessage;
+import org.springframework.jms.listener.SessionAwareMessageListener;
+import org.springframework.stereotype.Component;
+
+@Component
+@Slf4j
+@AllArgsConstructor
 public class JMSVerwerkIFobtBerichtListener implements SessionAwareMessageListener<ActiveMQObjectMessage>
 {
 
-	private static final Logger LOG = LoggerFactory.getLogger(JMSVerwerkIFobtBerichtListener.class);
-
-	@Autowired
-	private IFobtHL7BerichtInlezenService iFobtHL7BerichtInlezenService;
+	private final IFobtHL7BerichtInlezenService iFobtHL7BerichtInlezenService;
 
 	@Override
 	public void onMessage(ActiveMQObjectMessage activeMQObjectMessage, Session session) throws JMSException

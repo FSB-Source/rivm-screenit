@@ -1,0 +1,26 @@
+{
+  "title": "Aanvragen laboratoriumformulieren",
+  "description": "Heeft u geen of onvoldoende laboratoriumformulieren dan kunt u deze bijbestellen. Daarvoor kunt u het onderstaande formulier invullen.",
+  "table": {
+    "header": {
+      "aangevraagdOp": "Aangevraagd op",
+      "aantal": "Aantal",
+      "status": "Status",
+      "statusDatum": "Statusdatum",
+      "aangevraagdDoor": "Aangevraagd door",
+      "locatie": "Locatie"
+    },
+    "totaal": "Aantal aanvragen:"
+  },
+  "form": {
+    "title": "Aanvraag toevoegen",
+    "labels": {
+      "aantal": "Aantal",
+      "locatie": "Locatie"
+    },
+    "submit": "Indienen",
+    "toast": {
+      "success": "De laboratoriumformulieren zijn succesvol aangevraagd"
+    }
+  }
+}

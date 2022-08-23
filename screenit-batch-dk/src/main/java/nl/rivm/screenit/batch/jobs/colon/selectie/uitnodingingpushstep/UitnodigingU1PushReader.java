@@ -21,12 +21,11 @@ package nl.rivm.screenit.batch.jobs.colon.selectie.uitnodingingpushstep;
  * =========================LICENSE_END==================================
  */
 
-import java.util.Date;
-
 import nl.rivm.screenit.dao.colon.impl.ColonRestrictions;
 import nl.rivm.screenit.model.colon.enums.ColonUitnodigingCategorie;
 import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.query.ScreenitRestrictions;
 
 import org.hibernate.Criteria;
@@ -35,7 +34,9 @@ import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UitnodigingU1PushReader extends AbstractUitnodigingPushReader
 {
 
@@ -51,9 +52,9 @@ public class UitnodigingU1PushReader extends AbstractUitnodigingPushReader
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
 
-		Date vandaag = currentDateSupplier.getDateMidnight();
+		var vandaag = currentDateSupplier.getLocalDate();
 
-		Criteria crit = session.createCriteria(ProjectClient.class);
+		var crit = session.createCriteria(ProjectClient.class);
 		crit.createAlias("project", "project", JoinType.INNER_JOIN);
 		crit.createAlias("groep", "groep", JoinType.INNER_JOIN);
 		crit.createAlias("client", "client", JoinType.INNER_JOIN);
@@ -66,20 +67,15 @@ public class UitnodigingU1PushReader extends AbstractUitnodigingPushReader
 		crit.createAlias("dossier.volgendeUitnodiging", "volgendeUitnodiging", JoinType.LEFT_OUTER_JOIN);
 		crit.createAlias("volgendeUitnodiging.interval", "interval", JoinType.LEFT_OUTER_JOIN);
 
-		crit.add(ColonRestrictions.getU1BaseCriteria(currentDateSupplier.getLocalDate(), null));
+		crit.add(ColonRestrictions.getU1BaseCriteria(vandaag, null));
 
 		ScreenitRestrictions.addClientBaseRestrictions(crit, "client", "persoon");
 
 		crit.add(Restrictions.eq("isUitgenodigdInProjectPeriode", Boolean.FALSE));
 
-		crit.add(Restrictions.eq("actief", Boolean.TRUE));
-		crit.add(Restrictions.eq("groep.actief", Boolean.TRUE));
-		crit.add(Restrictions.and(
-			Restrictions.gt("project.eindDatum", vandaag), 
-			Restrictions.le("project.startDatum", vandaag)
-		)); 
+		crit.add(ScreenitRestrictions.addClientActiefInProjectCriteria("", "groep", "project", vandaag));
 
-		crit.add(Restrictions.eq("groep.uitnodigingenPushenNa", vandaag));
+		crit.add(Restrictions.eq("groep.uitnodigingenPushenNa", DateUtil.toUtilDate(vandaag)));
 
 		return crit;
 	}

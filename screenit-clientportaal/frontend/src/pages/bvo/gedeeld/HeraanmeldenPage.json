@@ -39,7 +39,8 @@
     },
     "MAMMA": {
       "algemeen": "U heeft zich weer aangemeld voor het bevolkingsonderzoek. </br>U krijgt een uitnodiging en kunt op een later moment de afspraak inplannen.",
-      "afspraak": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek. </br>U kunt een nieuwe afspraak maken voor het onderzoek."
+      "afspraak": "U heeft zich opnieuw aangemeld voor het bevolkingsonderzoek. </br>U kunt een nieuwe afspraak maken voor het onderzoek.",
+      "postcode": "Helaas, er is iets fout gegaan. </br>Bel met onze informatielijn als u zich opnieuw wilt aanmelden"
     }
   }
 }

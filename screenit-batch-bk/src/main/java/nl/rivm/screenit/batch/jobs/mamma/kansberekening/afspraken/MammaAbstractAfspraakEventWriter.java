@@ -44,7 +44,7 @@ public abstract class MammaAbstractAfspraakEventWriter extends MammaAbstractEven
 	@Override
 	protected void write(MammaAfspraak afspraak)
 	{
-		MammaKansberekeningAfspraakEvent afspraakEvent = afspraak.getAfspraakEvent();
+		var afspraakEvent = afspraak.getAfspraakEvent();
 		if (afspraakEvent == null)
 		{
 			afspraakEvent = new MammaKansberekeningAfspraakEvent();
@@ -73,7 +73,7 @@ public abstract class MammaAbstractAfspraakEventWriter extends MammaAbstractEven
 	@Override
 	protected Criteria getCriteria(Session session)
 	{
-		Criteria criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
+		var criteria = session.createCriteria(MammaAfspraak.class, "afspraak");
 		criteria.createAlias("afspraak.uitnodiging", "uitnodiging");
 		criteria.createAlias("uitnodiging.brief", "brief");
 		criteria.createAlias("uitnodiging.screeningRonde", "screeningRonde");

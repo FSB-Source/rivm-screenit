@@ -28,12 +28,12 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.generalis.gba.GbaFtpConnection;
-import nl.rivm.screenit.batch.jobs.generalis.gba.GbaFtpSettings;
+import nl.rivm.screenit.config.GbaConfig;
 import nl.rivm.screenit.model.gba.GbaVerwerkingsLog;
 
 import org.apache.commons.io.IOUtils;
@@ -42,34 +42,24 @@ import com.google.common.collect.Collections2;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.SftpException;
 
-@Getter
-@Setter
 @Slf4j
+@AllArgsConstructor
 public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 {
-	private String host;
 
-	private int port;
-
-	private String username;
-
-	private String password;
-
-	private String downloadPath;
-
-	private String knownHostPath;
+	private final GbaConfig gbaConfig;
 
 	@Override
 	public List<Vo107File> getVo107Files(final GbaVerwerkingsLog gbaVerwerkingsLog)
 	{
 		final List<Vo107File> vo107Files = new ArrayList<>();
 
-		var gbaFtpConnection = new GbaFtpConnection(maakFtpSettings(), gbaVerwerkingsLog)
+		var gbaFtpConnection = new GbaFtpConnection(gbaConfig, gbaVerwerkingsLog)
 		{
 			@Override
 			protected void ftpActies() throws SftpException
 			{
-				getChannelSftp().cd(downloadPath);
+				getChannelSftp().cd(gbaConfig.gbaDownloadFolder());
 
 				List<LsEntry> files = getChannelSftp().ls(".");
 
@@ -90,22 +80,15 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 		return vo107Files;
 	}
 
-	private GbaFtpSettings maakFtpSettings()
-	{
-		var settings = new GbaFtpSettings();
-		settings.setHost(host);
-		settings.setPort(port);
-		settings.setUsername(username);
-		settings.setPassword(password);
-		settings.setKnownHostPath(knownHostPath);
-		return settings;
-	}
-
 	protected class SFTPVo107File implements Vo107File
 	{
+		@Getter
 		private final String filename;
 
 		private final GbaVerwerkingsLog gbaVerwerkingsLog;
+
+		@Getter
+		private File tempFile;
 
 		public SFTPVo107File(String filename, GbaVerwerkingsLog gbaVerwerkingsLog)
 		{
@@ -114,14 +97,14 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 		}
 
 		@Override
-		public void saveToFile(final File targetFile)
+		public void saveToTempFile(final File targetFile)
 		{
-			var gbaFtpConnection = new GbaFtpConnection(maakFtpSettings(), gbaVerwerkingsLog)
+			var gbaFtpConnection = new GbaFtpConnection(gbaConfig, gbaVerwerkingsLog)
 			{
 				@Override
 				protected void ftpActies() throws SftpException
 				{
-					getChannelSftp().cd(downloadPath);
+					getChannelSftp().cd(gbaConfig.gbaDownloadFolder());
 
 					try (var fileInputStream = getChannelSftp().get(filename); FileOutputStream fileOutputStream = new FileOutputStream(targetFile))
 					{
@@ -135,24 +118,19 @@ public class VertrouwdVerbondenVo107Provider implements IVo107Provider
 					}
 				}
 			};
+			this.tempFile = targetFile;
 			gbaFtpConnection.run();
-		}
-
-		@Override
-		public String getFilename()
-		{
-			return filename;
 		}
 
 		@Override
 		public void deleteFile()
 		{
-			var gbaFtpConnection = new GbaFtpConnection(maakFtpSettings(), gbaVerwerkingsLog)
+			var gbaFtpConnection = new GbaFtpConnection(gbaConfig, gbaVerwerkingsLog)
 			{
 				@Override
 				protected void ftpActies() throws SftpException
 				{
-					getChannelSftp().cd(downloadPath);
+					getChannelSftp().cd(gbaConfig.gbaDownloadFolder());
 					getChannelSftp().rm(filename);
 				}
 			};

@@ -21,47 +21,46 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.afsprakenAnnuleren;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 import nl.rivm.screenit.service.mamma.MammaBaseAfspraakService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
+@AllArgsConstructor
 public class MammaAfsprakenAnnulerenWriter extends BaseWriter<Client>
 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MammaAfsprakenAnnulerenWriter.class);
 
-	@Autowired
-	private MammaBaseAfspraakService afspraakService;
+	private final MammaBaseAfspraakService afspraakService;
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected void write(Client client) throws Exception
 	{
-		MammaAfspraak laatsteAfspraak = client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak();
+		var laatsteAfspraak = client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging().getLaatsteAfspraak();
 		if (MammaAfspraakStatus.GEPLAND.equals(laatsteAfspraak.getStatus()))
 		{
-			MammaAfspraakStatus reden = MammaAfspraakStatus.GEANNULEERD_VERHUIZING_BUITENLAND;
+			var reden = MammaAfspraakStatus.GEANNULEERD_VERHUIZING_BUITENLAND;
 			if (client.getPersoon().getOverlijdensdatum() != null)
 			{
 				reden = MammaAfspraakStatus.GEANNULEERD_OVERLIJDEN;
 			}
 			afspraakService.afspraakAnnuleren(laatsteAfspraak, reden, currentDateSupplier.getDate());
-			LOGGER.info("Afspraak afzeggen voor client {}, met afspraak id {}, en reden {}", client.getId(), laatsteAfspraak.getId(), reden.name());
+			LOG.info("Afspraak afzeggen voor client {}, met afspraak id {}, en reden {}", client.getId(), laatsteAfspraak.getId(), reden.name());
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_AFSPRAAK_GEANNULEERD, new LogEvent("Afspraak automatisch afgezegd met reden " + reden.name()),
 				Bevolkingsonderzoek.MAMMA);
 		}

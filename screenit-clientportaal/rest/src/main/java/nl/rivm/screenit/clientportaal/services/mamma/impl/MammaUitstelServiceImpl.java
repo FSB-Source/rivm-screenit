@@ -21,6 +21,10 @@ package nl.rivm.screenit.clientportaal.services.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.exception.NotValidException;
 import nl.rivm.screenit.clientportaal.mappers.mamma.MammaStandplaatsPeriodeMapper;
 import nl.rivm.screenit.clientportaal.model.mamma.MammaAfspraakWijzigenFilterDto;
@@ -38,31 +42,24 @@ import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
+@AllArgsConstructor
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class MammaUitstelServiceImpl implements MammaUitstelService
 {
 
-	@Autowired
 	private MammaStandplaatsPeriodeMapper standplaatsPeriodeMapper;
 
-	@Autowired
 	private HibernateService hibernateService;
 
-	@Autowired
 	private MammaBaseStandplaatsService standplaatsService;
 
-	@Autowired
 	private MammaBaseUitstelService uitstelService;
 
-	@Autowired
 	private MammaAfspraakService afspraakService;
 
 	@Override

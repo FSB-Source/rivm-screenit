@@ -24,22 +24,19 @@ package nl.rivm.screenit.batch.jobs.helpers;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.model.enums.Level;
 
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Projection;
 import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.internal.CriteriaImpl;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -52,28 +49,30 @@ import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+@Slf4j
 public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T>, ItemStream
 {
-	private static final Logger LOG = LoggerFactory.getLogger(BaseTypedScrollableResultReader.class);
-
-	protected final ThreadLocal<ScrollableResults> resultSet = new ThreadLocal<>();
-
-	private boolean unbindSessionFromThread = false;
 
 	@Autowired
 	private SessionFactory sessionFactory;
+
+	protected final ThreadLocal<ScrollableResults> resultSet = new ThreadLocal<>();
+
+	protected final List<Long> processedIds = new ArrayList<>();
+
+	private boolean unbindSessionFromThread = false;
 
 	private Session hibernateSession;
 
 	private StatelessSession criteriaSession;
 
+	@Getter
 	private StepExecution stepExecution;
 
 	private JobExecution jobExecution;
 
-	private int fetchSize = 20;
-
-	protected List<Long> processedIds = new ArrayList<>();
+	@Setter
+	protected int fetchSize = 20;
 
 	@Override
 	public void open(ExecutionContext executionContext) throws ItemStreamException
@@ -89,16 +88,8 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 				unbindSessionFromThread = true;
 			}
 
-			beforeCriteria(hibernateSession);
-
-			Criteria crit = createCriteria(criteriaSession);
+			resultSet.set(createScrollableResults(criteriaSession));
 			processedIds.clear();
-
-			if (Integer.valueOf(0).equals(((CriteriaImpl) crit).getMaxResults()))
-			{
-				crit.add(Restrictions.sqlRestriction("1 = 0"));
-			}
-			resultSet.set(crit.setFetchSize(fetchSize).setProjection(getProjection()).scroll(ScrollMode.FORWARD_ONLY));
 		}
 		catch (IllegalStateException e)
 		{
@@ -124,18 +115,15 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 		return Projections.distinct(Projections.id());
 	}
 
-	public abstract Criteria createCriteria(StatelessSession session) throws HibernateException;
+	public abstract ScrollableResults createScrollableResults(StatelessSession session);
 
 	@Override
 	public void close() throws ItemStreamException
 	{
-		if (resultSet != null)
+		ScrollableResults scrollableResults = resultSet.get();
+		if (scrollableResults != null)
 		{
-			ScrollableResults scrollableResults = resultSet.get();
-			if (scrollableResults != null)
-			{
-				scrollableResults.close();
-			}
+			scrollableResults.close();
 		}
 		if (hibernateSession != null)
 		{
@@ -178,20 +166,5 @@ public abstract class BaseTypedScrollableResultReader<T> implements ItemReader<T
 	{
 		this.stepExecution = stepExecution;
 		this.jobExecution = stepExecution.getJobExecution();
-	}
-
-	public StepExecution getStepExecution()
-	{
-		return stepExecution;
-	}
-
-	public void setFetchSize(int fetchSize)
-	{
-		this.fetchSize = fetchSize;
-	}
-
-	protected void beforeCriteria(Session session)
-	{
-
 	}
 }

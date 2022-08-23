@@ -33,13 +33,15 @@
 				</thead>
 				<tbody>
 				<tr class="show-active" wicket:id="gebeurtenissenContainer">
-					<td>
-						<div wicket:id="gebeurtenissen">
-									<span class="badge badge-not-clickable" wicket:id="gebeurtenis">
-										<span wicket:id="bron"></span> <span class="omschrijving" wicket:id="omschrijving">
-										</span> <span class="datum right" wicket:id="moment"></span>
-									</span>
-						</div>
+					<td class="gebeurtenissen">
+						<span class="badge badge-clickable" wicket:id="gebeurtenissen">
+							<span class="omschrijving">
+								<wicket:container wicket:id="bron">Afgerond</wicket:container>
+								<wicket:container wicket:id="gebeurtenis">Afgerond</wicket:container>
+								<wicket:container wicket:id="extraOmschrijving">Afgerond</wicket:container>
+							</span>
+							<span class="datum" wicket:id="datum">12-10-2010</span>
+						</span>
 					</td>
 				</tr>
 				</tbody>

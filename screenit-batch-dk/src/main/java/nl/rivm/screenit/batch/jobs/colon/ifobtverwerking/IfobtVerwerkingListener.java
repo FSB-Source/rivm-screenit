@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.colon.ifobtverwerking;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -30,20 +32,20 @@ import nl.rivm.screenit.model.verwerkingverslag.IfobtVerwerkingRapportage;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class IfobtVerwerkingListener extends BaseLogListener
 {
 
-	@Autowired
-	private ICurrentDateSupplier currentDateSupplier;
+	private final ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
-		IfobtVerwerkingBeeindigdLogEvent verwerkingLogEvent = new IfobtVerwerkingBeeindigdLogEvent();
-		IfobtVerwerkingRapportage rapportage = new IfobtVerwerkingRapportage();
+		var verwerkingLogEvent = new IfobtVerwerkingBeeindigdLogEvent();
+		var rapportage = new IfobtVerwerkingRapportage();
 		rapportage.setDatumVerwerking(currentDateSupplier.getDate());
 		verwerkingLogEvent.setRapportage(rapportage);
 		jobExecution.getExecutionContext().put(IfobtVerwerkingConstants.RAPPORTAGEKEYVERWERKING, verwerkingLogEvent);
@@ -77,7 +79,7 @@ public class IfobtVerwerkingListener extends BaseLogListener
 	protected LogEvent getEindLogEvent()
 	{
 		String key = IfobtVerwerkingConstants.RAPPORTAGEKEYVERWERKING;
-		ExecutionContext executionContext = getJobExecution().getExecutionContext();
+		var executionContext = getJobExecution().getExecutionContext();
 		if (executionContext.containsKey(key))
 		{
 			return (IfobtVerwerkingBeeindigdLogEvent) executionContext.get(key);

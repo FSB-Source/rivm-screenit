@@ -21,13 +21,12 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.bezwaar;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BezwaarBrievenConstants
 {
-
-	private BezwaarBrievenConstants()
-	{
-
-	}
 
 	public static final String RAPPORTAGEKEYBRIEVEN = "key.brievenid";
 

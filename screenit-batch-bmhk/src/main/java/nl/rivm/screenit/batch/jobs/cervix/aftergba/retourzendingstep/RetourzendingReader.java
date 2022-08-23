@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.aftergba.retourzendingstep;
 import nl.rivm.screenit.Constants;
 import nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep.BaseRetourzendingReader;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class RetourzendingReader extends BaseRetourzendingReader
 {
 

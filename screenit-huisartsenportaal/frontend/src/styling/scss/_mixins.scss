@@ -1,0 +1,16 @@
+@mixin center-in-div($yPercentage) {
+  margin: 0;
+  position: absolute;
+  top: $yPercentage;
+  left: 50%;
+  -ms-transform: translate(-50%, -$yPercentage);
+  transform: translate(-50%, -$yPercentage);
+}
+
+@mixin center-in-div-vertically($yPercentage) {
+  margin: 0;
+  position: absolute;
+  top: $yPercentage;
+  -ms-transform: translate(0%, -$yPercentage);
+  transform: translate(0%, -$yPercentage);
+}

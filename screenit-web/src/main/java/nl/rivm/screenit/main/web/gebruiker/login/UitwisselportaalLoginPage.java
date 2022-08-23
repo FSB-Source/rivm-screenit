@@ -21,8 +21,9 @@ package nl.rivm.screenit.main.web.gebruiker.login;
  * =========================LICENSE_END==================================
  */
 
-import nl.rivm.screenit.main.web.gebruiker.login.uzipas.UzipasLoginMethodPage;
+import nl.rivm.screenit.main.web.gebruiker.login.uzipas.zorgid.login.LoginUzipasZorgIdPage;
 
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 public class UitwisselportaalLoginPage extends LoginBasePage
@@ -37,7 +38,7 @@ public class UitwisselportaalLoginPage extends LoginBasePage
 	{
 		PageParameters parameters = new PageParameters();
 		parameters.add(PAGE_PARAMETER_UITWISSELPORTAAL, Boolean.TRUE);
-		setResponsePage(UzipasLoginMethodPage.class, parameters);
+		add(new BookmarkablePageLink<>("uzipasLogin", LoginUzipasZorgIdPage.class, parameters));
 	}
 
 	@Override

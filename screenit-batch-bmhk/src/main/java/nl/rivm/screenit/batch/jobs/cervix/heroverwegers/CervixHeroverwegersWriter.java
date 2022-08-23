@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.heroverwegers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.model.cervix.cis.CervixCISHistorie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
@@ -30,19 +32,17 @@ import nl.rivm.screenit.service.BaseBriefService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixHeroverwegersWriter extends BaseWriter<CervixCISHistorie>
 {
+	private final BaseBriefService briefService;
 
-	@Autowired
-	private BaseBriefService briefService;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
 	@Override
 	protected void write(CervixCISHistorie item) throws Exception

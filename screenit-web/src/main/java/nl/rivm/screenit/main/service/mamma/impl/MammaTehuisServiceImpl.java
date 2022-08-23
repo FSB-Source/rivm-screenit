@@ -71,6 +71,7 @@ import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
 import nl.rivm.screenit.service.mamma.MammaBaseScreeningrondeService;
 import nl.rivm.screenit.service.mamma.MammaBaseTehuisService;
 import nl.rivm.screenit.service.mamma.MammaBaseUitstelService;
+import nl.rivm.screenit.service.mamma.MammaVolgendeUitnodigingService;
 import nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie;
 import nl.rivm.screenit.util.EntityAuditUtil;
 import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
@@ -129,6 +130,9 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 
 	@Autowired
 	private MammaBaseKansberekeningService baseKansberekeningService;
+
+	@Autowired
+	private MammaVolgendeUitnodigingService volgendeUitnodigingService;
 
 	private static final BriefType BRIEF_TYPE_TEHUIS_UITNODIGING = BriefType.MAMMA_UITNODIGING_TEHUIS_ZONDER_DATUM;
 
@@ -247,23 +251,23 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 		for (Client client : clienten)
 		{
 			MammaDossier dossier = client.getMammaDossier();
-			boolean isSuspect = baseDossierService.isSuspect(dossier);
+			boolean krijgtSuspectBrief = volgendeUitnodigingService.isSuspect(dossier);
 
 			MammaScreeningRonde screeningRonde = baseFactory.maakRonde(dossier, standplaatsRonde, false);
 
-			BriefType briefType = isSuspect ? BRIEF_TYPE_SUSPECT_UITNODIGING : BRIEF_TYPE_TEHUIS_UITNODIGING;
+			BriefType briefType = krijgtSuspectBrief ? BRIEF_TYPE_SUSPECT_UITNODIGING : BRIEF_TYPE_TEHUIS_UITNODIGING;
 			MammaUitnodiging uitnodiging = baseFactory.maakUitnodiging(screeningRonde, standplaatsRonde, briefType);
 
 			MammaBrief brief = uitnodiging.getBrief();
 			if (!brief.isVervangendeProjectBrief())
 			{
-				if (!isSuspect)
+				if (krijgtSuspectBrief)
 				{
-					uitnodigingen.add(brief);
+					suspectUitnodigingen.add(brief);
 				}
 				else
 				{
-					suspectUitnodigingen.add(brief);
+					uitnodigingen.add(brief);
 				}
 			}
 			else
@@ -272,13 +276,13 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			}
 		}
 		Date nu = dateSupplier.getDate();
-		if (uitnodigingen.size() > 0 || aantalClientenMetProjectBrief.get() > 0)
+		if (!uitnodigingen.isEmpty() || aantalClientenMetProjectBrief.get() > 0)
 		{
 			String melding = uitnodigingen.size() + suspectUitnodigingen.size() + aantalClientenMetProjectBrief.get() + " cliënten uitgenodigd";
 			if (suspectUitnodigingen.size() + aantalClientenMetProjectBrief.get() > 0)
 			{
 				melding += " waarvan ";
-				if (suspectUitnodigingen.size() > 0)
+				if (!suspectUitnodigingen.isEmpty())
 				{
 					melding += suspectUitnodigingen.size() + " suspect cliënten ";
 				}
@@ -299,12 +303,12 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			logService.logGebeurtenis(LogGebeurtenis.MAMMA_TEHUIS_UITGENODIGD, ingelogdeInstellingGebruiker,
 				"'" + tehuis.getNaam() + "' met " + tehuis.getDossiers().size() + " clienten. " + melding, Bevolkingsonderzoek.MAMMA);
 		}
-		if (uitnodigingen.size() > 0)
+		if (!uitnodigingen.isEmpty())
 		{
 			genereerBrieven(tehuis, uitnodigingen, aantalClientenMetBrieven, BRIEF_TYPE_TEHUIS_UITNODIGING);
 		}
 
-		if (suspectUitnodigingen.size() > 0)
+		if (!suspectUitnodigingen.isEmpty())
 		{
 			genereerBrieven(tehuis, suspectUitnodigingen, aantalClientenMetSuspectBrieven, BRIEF_TYPE_SUSPECT_UITNODIGING);
 		}
@@ -420,7 +424,7 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			if (brieven.getScreeningOrganisatie() != null)
 			{
 				String soNaam = brieven.getScreeningOrganisatie().getNaam();
-				soNaam = soNaam.replaceAll(" ", "_");
+				soNaam = soNaam.replace(" ", "_");
 				naam += soNaam + "-";
 			}
 			naam += Normalizer
@@ -430,8 +434,7 @@ public class MammaTehuisServiceImpl implements MammaTehuisService
 			{
 				naam += brieven.getBriefType().name().toLowerCase();
 			}
-			String naamPlusExtensie = naam += ".pdf";
-			return naamPlusExtensie;
+			return naam + ".pdf";
 		}
 
 		@Override

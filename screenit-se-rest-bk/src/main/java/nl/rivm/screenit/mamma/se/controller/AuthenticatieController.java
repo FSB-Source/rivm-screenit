@@ -23,16 +23,11 @@ package nl.rivm.screenit.mamma.se.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import nl.rivm.screenit.mamma.se.SERequestHeader;
 import nl.rivm.screenit.mamma.se.SELogin;
+import nl.rivm.screenit.mamma.se.SERequestHeader;
 import nl.rivm.screenit.mamma.se.dto.LoginDto;
 import nl.rivm.screenit.mamma.se.dto.SeAutorisatieDto;
 import nl.rivm.screenit.mamma.se.security.SERealm;
@@ -61,8 +56,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
 @RestController
-@RequestMapping("/authenticatie")
+@RequestMapping("/api/authenticatie")
 public class AuthenticatieController extends AuthorizedController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(AuthenticatieController.class);

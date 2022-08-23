@@ -43,12 +43,14 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Profile("!test")
 public class MammaAfsprakenDaoImpl extends AbstractAutowiredDao implements MammaAfsprakenDao
 {
 

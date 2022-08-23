@@ -21,26 +21,28 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-    <div class="modal-header">
-        <button type="button" class="close" wicket:id="close">&times;</button>
-        <h3 wicket:id="header">Wilt u deze medewerker inactiveren?</h3>
-    </div>
-    <wicket:enclosure child="content">
-        <div class="modal-body">
-            <fieldset class="hero-unit">
-                <div class="row-fluid">
-                    <div class="span12">
-                        <wicket:container wicket:id="content"></wicket:container>
-                    </div>
-                </div>
-            </fieldset>
+	<div class="modal-header">
+		<button type="button" class="close" wicket:id="close">&times;</button>
+		<h3 wicket:id="header">Wilt u deze medewerker inactiveren?</h3>
+	</div>
+	<div class="modal-body">
+		<wicket:enclosure child="content">
+			<fieldset class="hero-unit">
+				<div class="row-fluid">
+					<div class="span12">
+						<wicket:container wicket:id="content"></wicket:container>
+					</div>
+				</div>
+			</fieldset>
+		</wicket:enclosure>
+		<form wicket:id="form" class="not-tracked-for-changes-on-page">
 			<wicket:container wicket:id="customComponent"></wicket:container>
-        </div>
-    </wicket:enclosure>
-    <div class="modal-footer">
-        <button wicket:id="nee" class="btn">Nee</button>
-        <button wicket:id="ja" class="btn btn-primary">Ja</button>
-    </div>
+		</form>
+	</div>
+	<div class="modal-footer">
+		<button wicket:id="nee" class="btn">Nee</button>
+		<button wicket:id="ja" class="btn btn-primary">Ja</button>
+	</div>
 </wicket:panel>
 </body>
 </html>

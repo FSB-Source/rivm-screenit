@@ -25,10 +25,13 @@ import java.util.Arrays;
 
 import javax.jms.Destination;
 
+import lombok.AllArgsConstructor;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQPrefetchPolicy;
 import org.apache.activemq.RedeliveryPolicy;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.activemq.pool.PooledConnectionFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -36,15 +39,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.core.JmsTemplate;
 
 @Configuration
+@AllArgsConstructor
 public class JmsConfig
 {
-
 	private final ApplicationConfig appConfig;
-
-	public JmsConfig(ApplicationConfig appConfig)
-	{
-		this.appConfig = appConfig;
-	}
 
 	@Bean
 	public Destination verwerkColonCdaBerichtDestination()
@@ -131,21 +129,21 @@ public class JmsConfig
 	}
 
 	@Bean
-	public Destination huisartsporaalDestination()
+	public Destination huisartsportaalDestination()
 	{
-		return new ActiveMQQueue("nl.rivm.screenit.huisartsportaal.listener." + appConfig.applicationEnvironment());
+		return new ActiveMQQueue("nl.rivm.screenit.huisartsportaal." + appConfig.applicationEnvironment());
 	}
 
 	@Bean
 	public Destination huisartsportaalListenerDestination()
 	{
-		return new ActiveMQQueue("nl.rivm.screenit.main.jms.listener.huisartsportaallistener." + appConfig.applicationEnvironment());
+		return new ActiveMQQueue("nl.rivm.screenit.huisartsportaal.listener." + appConfig.applicationEnvironment());
 	}
 
 	@Bean
 	public Destination batchServerStatusDestination()
 	{
-		return new ActiveMQQueue("nl.rivm.screenit.batch.batchServerStatus." + appConfig.applicationEnvironment());
+		return new ActiveMQTopic("nl.rivm.screenit.batch.batchServerStatus." + appConfig.applicationEnvironment() + ".");
 	}
 
 	@Bean
@@ -197,7 +195,7 @@ public class JmsConfig
 	public JmsTemplate jmsTemplate()
 	{
 		final JmsTemplate jmsTemplate = new JmsTemplate();
-		jmsTemplate.setConnectionFactory(activeMQConnectionFactory());
+		jmsTemplate.setConnectionFactory(jmsFactory());
 		return jmsTemplate;
 	}
 

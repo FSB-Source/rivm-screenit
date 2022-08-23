@@ -27,9 +27,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseMammografieDao;
+import nl.rivm.screenit.dao.mamma.MammaBaseOnderzoekDao;
 import nl.rivm.screenit.model.Account;
 import nl.rivm.screenit.model.BeoordelingsEenheid;
 import nl.rivm.screenit.model.Client;
@@ -68,8 +72,6 @@ import nl.rivm.screenit.util.mamma.MammaScreeningRondeUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -80,10 +82,9 @@ import ca.uhn.hl7v2.HL7Exception;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
+@Slf4j
 public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseOnderzoekServiceImpl.class);
-
 	@Autowired
 	private LogService logService;
 
@@ -104,10 +105,14 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 	private MammaBaseAfspraakService afspraakService;
 
 	@Autowired
+	@Lazy
 	private MammaBaseIlmService baseIlmService;
 
 	@Autowired
 	private SimplePreferenceService preferenceService;
+
+	@Autowired
+	private MammaBaseOnderzoekDao baseOnderzoekDao;
 
 	@Override
 	public void onderzoekDoorvoerenVanuitSe(MammaOnderzoek onderzoek)
@@ -133,9 +138,9 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private void vervolgDoorgevoerdOnderzoek(MammaOnderzoek onderzoek)
 	{
-		boolean heeftEerdereBeeldenBinnenUitnodiging = heeftEerdereBeeldenBinnenUitnodiging(onderzoek);
+		boolean heeftEerdereBeeldenBinnenRonde = heeftEerdereBeeldenBinnenRonde(onderzoek);
 		boolean onderzoekOnvolledigZonderFotos = isOnderzoekOnvolledigZonderFotos(onderzoek);
-		if (onderzoekOnvolledigZonderFotos && !heeftEerdereBeeldenBinnenUitnodiging)
+		if (onderzoekOnvolledigZonderFotos && !heeftEerdereBeeldenBinnenRonde)
 		{
 			MammaScreeningRonde screeningRonde = onderzoek.getAfspraak().getUitnodiging().getScreeningRonde();
 			briefService.maakBvoBrief(screeningRonde, BriefType.MAMMA_GEEN_ONDERZOEK);
@@ -154,9 +159,8 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 
 	private void onderzoekMetEerdereFotosDoorzetten(MammaOnderzoek onderzoek)
 	{
-		MammaOnderzoek voorgaandeOnderzoek = onderzoek.getAfspraak().getUitnodiging().getAfspraken().stream()
+		MammaOnderzoek voorgaandeOnderzoek = getAfsprakenMetAnderOnderzoekBinnenRonde(onderzoek)
 			.map(MammaAfspraak::getOnderzoek)
-			.filter(aOnderzoek -> !aOnderzoek.getId().equals(onderzoek.getId()))
 			.max(Comparator.comparing(MammaOnderzoek::getCreatieDatum))
 			.orElseThrow(() -> new IllegalStateException("Geen eerder onderzoek kunnen vinden"));
 		MammaMammografie mammografie = voorgaandeOnderzoek.getMammografie();
@@ -168,12 +172,16 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		voegInitieleBeoordelingToe(onderzoek);
 	}
 
-	private boolean heeftEerdereBeeldenBinnenUitnodiging(MammaOnderzoek onderzoek)
+	private boolean heeftEerdereBeeldenBinnenRonde(MammaOnderzoek onderzoek)
 	{
-
-		return onderzoek.getAfspraak().getUitnodiging().getScreeningRonde().getUitnodigingen().stream().flatMap(mammaUitnodiging -> mammaUitnodiging.getAfspraken().stream())
-			.filter(afspraak -> afspraak.getOnderzoek() != null && !afspraak.getOnderzoek().getId().equals(onderzoek.getId()))
+		return getAfsprakenMetAnderOnderzoekBinnenRonde(onderzoek)
 			.anyMatch(af -> MammaMammografieIlmStatus.BESCHIKBAAR.equals(af.getOnderzoek().getMammografie().getIlmStatus()));
+	}
+
+	private Stream<MammaAfspraak> getAfsprakenMetAnderOnderzoekBinnenRonde(MammaOnderzoek onderzoek)
+	{
+		return onderzoek.getAfspraak().getUitnodiging().getScreeningRonde().getUitnodigingen().stream().flatMap(mammaUitnodiging -> mammaUitnodiging.getAfspraken().stream())
+			.filter(afspraak -> afspraak.getOnderzoek() != null && !afspraak.getOnderzoek().getId().equals(onderzoek.getId()));
 	}
 
 	@Override
@@ -340,7 +348,7 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 			maakBeoordelingEnKoppelAanOnderzoek(onderzoek);
 			annuleerAfspraak(onderzoek);
 		}
-		else if (heeftEerdereBeeldenBinnenUitnodiging(onderzoek))
+		else if (heeftEerdereBeeldenBinnenRonde(onderzoek))
 		{
 			onderzoekMetEerdereFotosDoorzetten(onderzoek);
 			annuleerAfspraak(onderzoek);
@@ -480,10 +488,6 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 		MammaAfspraak afspraak = mammografie.getOnderzoek().getAfspraak();
 		MammaDossier dossier = afspraak.getUitnodiging().getScreeningRonde().getDossier();
 		dossier.setLaatsteMammografieAfgerond(currentDateSupplier.getDate());
-		if (dossier.getEersteMammografieAfgerondStandplaatsRonde() == null)
-		{
-			dossier.setEersteMammografieAfgerondStandplaatsRonde(afspraak.getStandplaatsPeriode().getStandplaatsRonde());
-		}
 		hibernateService.saveOrUpdate(dossier);
 	}
 
@@ -503,5 +507,12 @@ public class MammaBaseOnderzoekServiceImpl implements MammaBaseOnderzoekService
 			return !minimaalIntervalOnderzoeken.isAfter(currentDateSupplier.getLocalDate());
 		}
 		return true;
+	}
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	@Override
+	public MammaOnderzoek getLaatsteOnderzoekMetMissendeUitslagVanDossier(MammaDossier dossier)
+	{
+		return baseOnderzoekDao.getLaatsteOnderzoekMetMissendeUitslagVanDossier(dossier);
 	}
 }

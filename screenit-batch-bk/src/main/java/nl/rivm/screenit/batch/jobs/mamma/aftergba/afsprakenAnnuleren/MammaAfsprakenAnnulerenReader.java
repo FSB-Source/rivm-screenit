@@ -30,17 +30,26 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+
+@Component
 public class MammaAfsprakenAnnulerenReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+
+	private final ICurrentDateSupplier dateSupplier;
+
+	public MammaAfsprakenAnnulerenReader(ICurrentDateSupplier dateSupplier)
+	{
+		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
+		this.dateSupplier = dateSupplier;
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(Client.class);
+		var criteria = session.createCriteria(Client.class);
 		criteria.createAlias("laatsteGbaMutatie", "laatsteGbaMutatie");
 		criteria.createAlias("mammaDossier", "mammaDossier");
 		criteria.createAlias("mammaDossier.laatsteScreeningRonde", "ronde");

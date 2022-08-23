@@ -21,13 +21,12 @@ package nl.rivm.screenit.mamma.planning.controller;
  * =========================LICENSE_END==================================
  */
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
-import java.util.NavigableSet;
 import java.util.UUID;
+
+import lombok.AllArgsConstructor;
 
 import nl.rivm.screenit.dto.mamma.planning.PlanningCapaciteitBlokDto;
 import nl.rivm.screenit.dto.mamma.planning.PlanningRestConstants;
@@ -37,12 +36,11 @@ import nl.rivm.screenit.mamma.planning.index.PlanningScreeningsEenheidIndex;
 import nl.rivm.screenit.mamma.planning.model.PlanningBlok;
 import nl.rivm.screenit.mamma.planning.model.PlanningDag;
 import nl.rivm.screenit.mamma.planning.model.PlanningScreeningsEenheid;
-import nl.rivm.screenit.mamma.planning.model.PlanningStandplaatsPeriode;
-import nl.rivm.screenit.mamma.planning.model.PlanningWeek;
+import nl.rivm.screenit.mamma.planning.service.PlanningCapaciteitBlokService;
 import nl.rivm.screenit.mamma.planning.service.PlanningConceptOpslaanService;
+import nl.rivm.screenit.mamma.planning.service.PlanningWijzigingenBepalenService;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningDoorrekenenManager;
 import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingen;
-import nl.rivm.screenit.mamma.planning.wijzigingen.PlanningWijzigingenRoute;
 import nl.rivm.screenit.model.mamma.MammaCapaciteitBlok;
 import nl.rivm.screenit.model.mamma.enums.MammaCapaciteitBlokType;
 import nl.rivm.screenit.util.DateUtil;
@@ -56,77 +54,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController()
 @RequestMapping("/" + PlanningRestConstants.C_CAPACITEITBLOK)
+@AllArgsConstructor
 public class PlanningCapaciteitBlokController
 {
 	private final HibernateService hibernateService;
 
 	private final PlanningConceptOpslaanService conceptOpslaanService;
 
-	public PlanningCapaciteitBlokController(HibernateService hibernateService, PlanningConceptOpslaanService conceptOpslaanService)
-	{
-		this.hibernateService = hibernateService;
-		this.conceptOpslaanService = conceptOpslaanService;
-	}
+	private final PlanningWijzigingenBepalenService wijzigingenBepalenService;
+
+	private final PlanningCapaciteitBlokService capaciteitBlokService;
 
 	@RequestMapping(method = RequestMethod.POST)
 	public void post(@RequestBody PlanningCapaciteitBlokDto capaciteitBlokDto) throws OpslaanVerwijderenTijdBlokException
 	{
-		PlanningDag dag = maakNieuwBlok(capaciteitBlokDto);
-		bepaalWijzigingen(dag);
+		var dag = capaciteitBlokService.maakBlok(capaciteitBlokDto).getDag();
+		wijzigingenBepalenService.bepaalWijzigingen(dag);
 		PlanningDoorrekenenManager.run();
-	}
-
-	public PlanningDag maakNieuwBlok(PlanningCapaciteitBlokDto capaciteitBlokDto) throws OpslaanVerwijderenTijdBlokException
-	{
-		PlanningScreeningsEenheid screeningsEenheid = PlanningScreeningsEenheidIndex.get(capaciteitBlokDto.screeningsEenheidId);
-
-		PlanningCapaciteitChangeChecker.magCapaciteitOpslaanVerwijderen(capaciteitBlokDto, true);
-		LocalDateTime vanaf = DateUtil.toLocalDateTime(capaciteitBlokDto.vanaf);
-		PlanningBlok blok = new PlanningBlok(null, vanaf.toLocalTime(), DateUtil.toLocalTime(capaciteitBlokDto.tot),
-			capaciteitBlokDto.aantalOnderzoeken, capaciteitBlokDto.blokType, capaciteitBlokDto.opmerkingen, capaciteitBlokDto.minderValideAfspraakMogelijk);
-		blok.setScreeningsEenheid(screeningsEenheid);
-		screeningsEenheid.getBlokSet().add(blok);
-
-		PlanningDag dag = screeningsEenheid.getDagNavigableMap().get(vanaf.toLocalDate());
-		dag.getBlokSet().add(blok);
-		blok.setDag(dag);
-		PlanningBlokIndex.put(blok);
-
-		PlanningBlokIndex.changed(screeningsEenheid, Collections.singleton(blok));
-		PlanningWijzigingen.getWijzigingenRoute(screeningsEenheid).getBlokSet().add(blok);
-		return dag;
-	}
-
-	private void bepaalWijzigingen(PlanningDag dag)
-	{
-		PlanningScreeningsEenheid screeningsEenheid = dag.getScreeningsEenheid();
-		PlanningStandplaatsPeriode standplaatsPeriode = dag.getStandplaatsPeriode();
-		PlanningWijzigingenRoute wijzigingenRoute = PlanningWijzigingen.getWijzigingenRoute(screeningsEenheid);
-		wijzigingenRoute.getDagSet().add(dag);
-		wijzigingenRoute.getWeekSet().add(dag.getWeek());
-		if (standplaatsPeriode != null)
-		{
-			wijzigingenRoute.setVanafStandplaatsPeriode(standplaatsPeriode);
-		}
-		else
-		{
-
-			NavigableSet<PlanningStandplaatsPeriode> standplaatsPeriodeNavigableSet = screeningsEenheid.getStandplaatsPeriodeNavigableSet();
-			if (!standplaatsPeriodeNavigableSet.isEmpty() && standplaatsPeriodeNavigableSet.last().getTotEnMet().isBefore(dag.getDatum()))
-			{
-				wijzigingenRoute.setVanafStandplaatsPeriode(standplaatsPeriodeNavigableSet.first());
-			}
-		}
-
-		PlanningWeek herhalingsWeek = screeningsEenheid.getHerhalingsWeek();
-		if (herhalingsWeek != null)
-		{
-			LocalDate nieuweHerhalingsWeek = dag.getDatum().plusWeeks(1).with(DayOfWeek.MONDAY);
-			if (herhalingsWeek.getDatum().isBefore(nieuweHerhalingsWeek))
-			{
-				screeningsEenheid.setHerhalingsWeek(screeningsEenheid.getWeek(nieuweHerhalingsWeek));
-			}
-		}
 	}
 
 	@RequestMapping(method = RequestMethod.PUT)
@@ -140,7 +84,7 @@ public class PlanningCapaciteitBlokController
 
 		PlanningDag dag = blok.getDag();
 
-		bepaalWijzigingen(dag);
+		wijzigingenBepalenService.bepaalWijzigingen(dag);
 
 		blok.setCapaciteitBlokType(capaciteitBlokDto.blokType);
 		blok.setAantalOnderzoeken(capaciteitBlokDto.aantalOnderzoeken);
@@ -165,7 +109,7 @@ public class PlanningCapaciteitBlokController
 			dag.getBlokSet().remove(blok);
 			dagNieuw.getBlokSet().add(blok);
 			blok.setDag(dagNieuw);
-			bepaalWijzigingen(dagNieuw);
+			wijzigingenBepalenService.bepaalWijzigingen(dagNieuw);
 		}
 
 		PlanningWijzigingen.getWijzigingenRoute(screeningsEenheid).getBlokSet().add(blok);
@@ -178,23 +122,12 @@ public class PlanningCapaciteitBlokController
 	@RequestMapping(value = "/{conceptId}", method = RequestMethod.DELETE)
 	public void delete(@PathVariable UUID conceptId) throws OpslaanVerwijderenTijdBlokException
 	{
-		PlanningDag dag = verwijderBlok(conceptId);
+		var blok = PlanningBlokIndex.get(conceptId);
+		capaciteitBlokService.verwijderBlok(blok);
 
-		bepaalWijzigingen(dag);
+		wijzigingenBepalenService.bepaalWijzigingen(blok.getDag());
 
 		PlanningDoorrekenenManager.run();
-	}
-
-	public PlanningDag verwijderBlok(UUID conceptId) throws OpslaanVerwijderenTijdBlokException
-	{
-		PlanningBlok blok = PlanningBlokIndex.get(conceptId);
-		PlanningCapaciteitChangeChecker.magCapaciteitOpslaanVerwijderen(PlanningMapper.from(blok), false);
-		PlanningBlokIndex.deleted(blok.getScreeningsEenheid(), Collections.singleton(blok));
-
-		PlanningDag dag = blok.getDag();
-
-		dag.getBlokSet().remove(blok);
-		return dag;
 	}
 
 	@RequestMapping(value = "/aantalAfsprakenOpBlok/{conceptId}/{nieuwBlokType}/{vanafTime}/{totTime}/{delete}", method = RequestMethod.GET)

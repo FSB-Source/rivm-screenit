@@ -47,8 +47,6 @@ public interface MammaBaseScreeningrondeService
 
 	Integer getJaarLaatsteVerwijzing(Client client);
 
-	MammaScreeningRonde getLaatsteScreeningRondeMetPositieveUitslag(Client client, Date voorDatum);
-
 	BriefType bepaalBriefTypeVoorOpenUitnodiging(boolean isSuspect, MammaDoelgroep doelgroep);
 
 	boolean isRondeNogGeldig(MammaScreeningRonde laatsteRonde);

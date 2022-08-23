@@ -1,0 +1,24 @@
+{
+  "title": "Locatie verifiëren",
+  "form": {
+    "description": "Voer hier de verificatiecode in die u voor de betreffende locatie heeft ontvangen op uw zorgmailadres. Na het verifiëren kunt u laboratoriumformulieren aanvragen en huisartsberichten ontvangen.",
+    "label": {
+      "locatienaam": "Locatienaam",
+      "zorgmailKlantnummer": "Zorgmail klantnummer",
+      "verificatieCode": "Verificatiecode"
+    },
+    "button": {
+      "resend": "Herzend verificatiemail",
+      "close": "Sluiten",
+      "submit": "Locatie verifiëren"
+    }
+  },
+  "verificatie": {
+    "error": "Verificatie mislukt! Controleer of u de juiste verificatiecode bij de juiste locatie heeft ingevuld. U kunt de verificatiecode opnieuw aanvragen door op de knop 'Herzend verificatiemail' te klikken.",
+    "success": "Bedankt voor het verifiëren van uw Zorgmail klantnummer. U kunt nu voor de betreffende locatie labformulieren aanvragen en huisartsberichten ontvangen."
+  },
+  "resend": {
+    "success": "Zorgmail klantnummer verificatiemail is opnieuw verzonden.",
+    "error": "Er is een fout opgetreden bij het verzenden van de verificatiemail. Probeer het later nog eens of neem contact op met de servicedesk."
+  }
+}

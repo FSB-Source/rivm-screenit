@@ -25,12 +25,18 @@ import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.herinneren.allsteps.CervixHerinnerenReader;
 import nl.rivm.screenit.model.OrganisatieParameterKey;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CervixUitstrijkjeHerinnerenReader extends CervixHerinnerenReader
 {
 
+	private static final int CERVIX_UITSTRIJKJE_HERINNEREN_READER_FETCH_SIZE = 50;
+
 	public CervixUitstrijkjeHerinnerenReader()
 	{
-		super(PreferenceKey.CERVIX_HERINNERINGS_PERIODE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE, "mergedBrieven.printDatum");
+		super(CERVIX_UITSTRIJKJE_HERINNEREN_READER_FETCH_SIZE, PreferenceKey.CERVIX_HERINNERINGS_PERIODE, OrganisatieParameterKey.CERVIX_MAX_AANTAL_HERINNERINGEN_UITSTRIJKJE,
+			"mergedBrieven.printDatum");
 	}
 
 }

@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.dao.ClientDao;
 import nl.rivm.screenit.dao.mamma.MammaBaseHL7v24Dao;
 import nl.rivm.screenit.model.AfmeldingType;
@@ -52,7 +54,6 @@ import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.DossierFactory;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.TestService;
-import nl.rivm.screenit.service.cervix.CervixTestService;
 import nl.rivm.screenit.service.mamma.MammaBaseFactory;
 import nl.rivm.screenit.service.mamma.MammaBaseIlmService;
 import nl.rivm.screenit.service.mamma.MammaBaseKansberekeningService;
@@ -66,8 +67,6 @@ import nl.topicuszorg.util.collections.CollectionUtils;
 import nl.topicuszorg.util.postcode.PostcodeFormatter;
 
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -76,12 +75,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.ImmutableMap;
 
 @Service
+@Slf4j
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaBaseTestServiceImpl implements MammaBaseTestService
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(MammaBaseTestServiceImpl.class);
-
 	@Autowired
 	private TestService testService;
 
@@ -112,7 +109,7 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	@Autowired(required = false)
 	private MammaBaseKwaliteitscontroleService kwaliteitscontroleService;
 
-	@Autowired
+	@Autowired(required = false)
 	private MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Autowired
@@ -307,26 +304,35 @@ public class MammaBaseTestServiceImpl implements MammaBaseTestService
 	public Client maakOfVindClient(GbaPersoon persoon, MammaDoelgroep doelgroep, BigDecimal deelnamekans, BigDecimal opkomstkans, boolean alleenMaken)
 	{
 		Client client = testService.getClientByBsn(persoon.getBsn());
+		boolean bestaandeClient = client != null;
 
-		if (client != null && alleenMaken)
+		if (client == null || !alleenMaken)
 		{
-			return client;
+			client = testService.maakClient(persoon);
 		}
 
-		client = testService.maakClient(persoon);
-		if (deelnamekans != null && doelgroep != null)
+		if (client.getMammaDossier() == null)
+		{
+			dossierFactory.maakBmhkEnBkDossiers(client);
+			baseKansberekeningService.maakDossierEvent(client.getMammaDossier());
+		}
+
+		if (deelnamekans != null && doelgroep != null && alleenMaken)
 		{
 			MammaDossier dossier = client.getMammaDossier();
-			dossier.setDoelgroep(doelgroep);
 
-			MammaDeelnamekans dossierDeelnamekans = dossier.getDeelnamekans();
-			dossierDeelnamekans.setDeelnamekans(deelnamekans);
-
-			if (doelgroep.equals(MammaDoelgroep.DUBBELE_TIJD))
+			if (!bestaandeClient)
 			{
-				dossier.setDubbeleTijdReden("Test cliënt");
+				dossier.setDoelgroep(doelgroep);
+				MammaDeelnamekans dossierDeelnamekans = dossier.getDeelnamekans();
+				dossierDeelnamekans.setDeelnamekans(deelnamekans);
+
+				if (doelgroep.equals(MammaDoelgroep.DUBBELE_TIJD))
+				{
+					dossier.setDubbeleTijdReden("Test cliënt");
+				}
+				hibernateService.saveOrUpdateAll(dossier, dossierDeelnamekans);
 			}
-			hibernateService.saveOrUpdateAll(dossier, dossierDeelnamekans);
 
 			for (MammaScreeningRonde screeningRonde : dossier.getScreeningRondes())
 			{

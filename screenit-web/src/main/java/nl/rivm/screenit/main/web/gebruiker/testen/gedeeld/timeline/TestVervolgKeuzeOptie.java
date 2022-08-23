@@ -22,8 +22,10 @@ package nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline;
  */
 
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixCISHistorieAction;
+import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixDeelnamewensAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixHerdrukAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixNieuweRondeAction;
+import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixUistelZwangerschapAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.actions.TestCervixVerstuurUitnodigingAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixAanvraagPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.cervix.timeline.popups.TestCervixBeoordeeldDoorCytologiePopup;
@@ -50,6 +52,7 @@ import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestMDLV
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestRetourzendingPopup;
 import nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline.popups.TestScreeningRondePopUp;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMammaBeoordelingStatusNaarUitslagOngunstigAction;
+import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMammaDeelnamewensAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMammaNieuweRondeMetOpenUitnodigingAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMammaOnderzoekAdhocMeekijkverzoekAction;
 import nl.rivm.screenit.main.web.gebruiker.testen.mamma.timeline.actions.TestMammaOnderzoekDoorvoerenVanafSeAction;
@@ -109,6 +112,8 @@ public enum TestVervolgKeuzeOptie implements INaam
 
 	CERVIX_VERSTUUR_UITNODIGING("Verstuur uitnodiging", TestCervixVerstuurUitnodigingAction.class),
 
+	CERVIX_UITSTEL_ZWANGER("Maak uitstel aan i.v.m. zwangerschap", TestCervixUistelZwangerschapAction.class),
+
 	CERVIX_NIEUWE_CISHISTORIE("CIS historisch dossier toevoegen", TestCervixCISHistorieAction.class),
 
 	CERVIX_NIEUWE_CIS_RONDE0("Nieuwe CIS Ronde 0", TestCervixNieuweCISRonde0Popup.class),
@@ -122,6 +127,8 @@ public enum TestVervolgKeuzeOptie implements INaam
 	CERVIX_HUISARTS_KOPPELEN("Huisarts koppelen", TestCervixHuisartsKoppelenPopup.class),
 
 	CERVIX_HERDRUK("Herdruk", TestCervixHerdrukAction.class),
+
+	CERVIX_DEELNAME_WENS("Deelnamewens aangeven voor Baarmoederhalskanker", TestCervixDeelnamewensAction.class),
 
 	MAMMA_NIEUWE_RONDE_MET_AFSPRAAK_UITNODIGING("Nieuwe ronde met afspraak uitnodiging", TestMammaKiesSeVoorNieuweRondeMetDatumtijdAfspraakPopup.class),
 
@@ -157,7 +164,9 @@ public enum TestVervolgKeuzeOptie implements INaam
 
 	MAMMA_STATUS_NAAR_UITSLAG_ONGUNSTIG("Naar uitslag ongunstig zetten", TestMammaBeoordelingStatusNaarUitslagOngunstigAction.class),
 
-	MAMMA_FOLLOW_UP_VASTLEGGEN("Follow Up conclusie vastleggen", TestMammaFollowUpVastleggenPopup.class);
+	MAMMA_FOLLOW_UP_VASTLEGGEN("Follow Up conclusie vastleggen", TestMammaFollowUpVastleggenPopup.class),
+
+	MAMMA_DEELNAME_WENS("Deelnamewens aangeven voor Borstkanker", TestMammaDeelnamewensAction.class);
 
 	private String naam;
 

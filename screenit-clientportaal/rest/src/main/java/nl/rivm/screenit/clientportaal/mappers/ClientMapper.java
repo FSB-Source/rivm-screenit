@@ -47,6 +47,7 @@ public interface ClientMapper
 		@Mapping(source = "persoon.emailadres", target = "emailadres"),
 		@Mapping(source = "persoon.tijdelijkAdres", target = "tijdelijkAdresTekst", qualifiedByName = "conversionAdres"),
 		@Mapping(source = "persoon.tijdelijkAdres", target = "tijdelijkAdres"),
+		@Mapping(source = "persoon.aanhef", target = "aanhef"),
 		@Mapping(source = "persoon.telefoonnummer1", target = "telefoonnummer1"),
 		@Mapping(source = "persoon.telefoonnummer2", target = "telefoonnummer2")
 	})

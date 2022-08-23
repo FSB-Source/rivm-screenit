@@ -31,10 +31,11 @@ import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.BriefType;
 
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RegioBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
-
 	public static final String KEY_SCREENINGORGANISATIEID = "screeningorganisatie.id";
 
 	public static final String KEY_BRIEFTYPE = "brieftype";
@@ -42,11 +43,11 @@ public class RegioBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 	@Override
 	protected void fillingData(Map<String, ExecutionContext> map, ScreeningOrganisatie organisatie)
 	{
-		for (BriefType briefType : getBriefTypes())
+		for (var briefType : getBriefTypes())
 		{
 			if (briefType.getVerzendendeOrganisatieType() == OrganisatieType.SCREENINGSORGANISATIE)
 			{
-				ExecutionContext executionContext = new ExecutionContext();
+				var executionContext = new ExecutionContext();
 				executionContext.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
 				executionContext.put(KEY_BRIEFTYPE, briefType.name());
 				map.put(organisatie.getId() + briefType.name(), executionContext);
@@ -56,7 +57,7 @@ public class RegioBrievenGenererenPartitioner extends AbstractBrievenGenererenPa
 
 	private List<BriefType> getBriefTypes()
 	{
-		List<BriefType> briefTypes = new ArrayList<BriefType>();
+		List<BriefType> briefTypes = new ArrayList<>();
 		briefTypes.add(BriefType.REGIO_REGISTRATIE_UITSTRIJKEND_HUISARTS);
 		return briefTypes;
 	}

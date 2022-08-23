@@ -26,16 +26,15 @@ import java.util.List;
 import java.util.Map;
 
 import nl.rivm.screenit.batch.jobs.brieven.genereren.AbstractBrievenGenererenPartitioner;
-import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.BriefType;
 
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class AlgemeneBrievenGenererenPartitioner extends AbstractBrievenGenererenPartitioner
 {
-	static final String KEY_SCREENINGORGANISATIEID = "algemeen.screeningorganisatie.id";
-
 	static final String KEY_BRIEFTYPE = "algemeen.brieftype";
 
 	@Override
@@ -43,13 +42,9 @@ public class AlgemeneBrievenGenererenPartitioner extends AbstractBrievenGenerere
 	{
 		for (BriefType briefType : getBriefTypes())
 		{
-			if (briefType.getVerzendendeOrganisatieType() == OrganisatieType.SCREENINGSORGANISATIE)
-			{
-				ExecutionContext executionContext = new ExecutionContext();
-				executionContext.put(KEY_SCREENINGORGANISATIEID, organisatie.getId());
-				executionContext.put(KEY_BRIEFTYPE, briefType.name());
-				partities.put(organisatie.getId() + briefType.name(), executionContext);
-			}
+			ExecutionContext executionContext = new ExecutionContext();
+			executionContext.put(KEY_BRIEFTYPE, briefType.name());
+			partities.put(briefType.name(), executionContext);
 		}
 	}
 

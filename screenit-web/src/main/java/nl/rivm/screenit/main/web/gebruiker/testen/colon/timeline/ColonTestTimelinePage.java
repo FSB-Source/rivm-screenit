@@ -23,7 +23,6 @@ package nl.rivm.screenit.main.web.gebruiker.testen.colon.timeline;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +31,8 @@ import nl.rivm.screenit.main.model.ScreeningRondeGebeurtenissen;
 import nl.rivm.screenit.main.model.TypeGebeurtenis;
 import nl.rivm.screenit.main.model.testen.TestTimelineModel;
 import nl.rivm.screenit.main.model.testen.TestTimelineRonde;
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
+import nl.rivm.screenit.main.util.BriefOmschrijvingUtil;
 import nl.rivm.screenit.main.web.component.ComponentHelper;
 import nl.rivm.screenit.main.web.component.ScreenitForm;
 import nl.rivm.screenit.main.web.component.modal.BootstrapDialog;
@@ -56,7 +56,6 @@ import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.GebeurtenisBron;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.colon.ColonTestService;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
@@ -66,7 +65,6 @@ import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 import nl.topicuszorg.wicket.model.DetachableListModel;
 import nl.topicuszorg.wicket.model.SortingListModel;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -104,20 +102,14 @@ import org.wicketstuff.wiquery.ui.datepicker.DatePicker;
 		Bevolkingsonderzoek.COLON })
 public class ColonTestTimelinePage extends TestenBasePage
 {
-
-	private static final long serialVersionUID = 1L;
-
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService testTimelineService;
 
 	@SpringBean
 	private HibernateService hibernateService;
 
 	@SpringBean
-	private ClientService clientService;
-
-	@SpringBean
-	private ColonTestService colonTestService;
+	private ColonTestService testService;
 
 	private IModel<TestTimelineModel> model;
 
@@ -138,11 +130,11 @@ public class ColonTestTimelinePage extends TestenBasePage
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
 
-		model = new CompoundPropertyModel<TestTimelineModel>(new TestTimelineModel());
+		model = new CompoundPropertyModel<>(new TestTimelineModel());
 		TestTimelineModel object = model.getObject();
 		object.setBsn(TestBsnGenerator.getValideBsn());
 
-		form = new Form<TestTimelineModel>("form", model);
+		form = new Form<>("form", model);
 		form.setOutputMarkupId(true);
 		add(form);
 
@@ -153,8 +145,8 @@ public class ColonTestTimelinePage extends TestenBasePage
 		form.add(gebeurtenissenContainer);
 
 		Form<Void> clientResetForm = new ScreenitForm<>("clientResetForm");
-		final IModel<String> bsns = new Model<String>("");
-		clientResetForm.add(new TextArea<String>("bsns", bsns).setRequired(true));
+		final IModel<String> bsns = new Model<>("");
+		clientResetForm.add(new TextArea<>("bsns", bsns).setRequired(true));
 		clientResetForm.add(new AjaxButton("resetten", clientResetForm)
 		{
 
@@ -163,7 +155,7 @@ public class ColonTestTimelinePage extends TestenBasePage
 			@Override
 			public void onSubmit(AjaxRequestTarget target)
 			{
-				String message = colonTestService.clientenResetten(bsns.getObject());
+				String message = testService.clientenResetten(bsns.getObject());
 				if (message.contains("Succesvol"))
 				{
 					info(message);
@@ -187,6 +179,9 @@ public class ColonTestTimelinePage extends TestenBasePage
 		bsnField.setRequired(true);
 		bsnField.setOutputMarkupId(true);
 		container.add(bsnField);
+
+		Label aNummer = new Label("aNummer");
+		container.add(aNummer);
 
 		bsnField.add(new AjaxEventBehavior("change")
 		{
@@ -212,7 +207,6 @@ public class ColonTestTimelinePage extends TestenBasePage
 
 		List<Geslacht> geslachten = new ArrayList<Geslacht>(Arrays.asList(Geslacht.values()));
 		geslachten.remove(Geslacht.NIET_GESPECIFICEERD);
-		geslachten.remove(Geslacht.ONBEKEND);
 		RadioChoice<Geslacht> geslachtRadio = new TestEnumRadioChoice<>("geslacht", geslachten, new EnumChoiceRenderer<>(this));
 		geslachtRadio.setPrefix("<label class=\"radio\">");
 		geslachtRadio.setSuffix("</label>");
@@ -223,13 +217,10 @@ public class ColonTestTimelinePage extends TestenBasePage
 			ModelUtil.listRModel(
 				hibernateService.getHibernateSession().createCriteria(Gemeente.class).add(Restrictions.isNotNull("screeningOrganisatie")).addOrder(Order.asc("naam")).list(),
 				false),
-			new ChoiceRenderer<Gemeente>("naam")));
+			new ChoiceRenderer<>("naam")));
 
 		IndicatingAjaxSubmitLink clientVindOfMaak = new IndicatingAjaxSubmitLink("clientVindOfMaak")
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{
@@ -248,7 +239,7 @@ public class ColonTestTimelinePage extends TestenBasePage
 				clientModel = ModelUtil.listRModel(clienten);
 				ColonTestTimelinePage.this.info("Client(en) zijn gevonden en/of succesvol aangemaakt");
 
-				if (clienten != null && clienten.size() > 0)
+				if (clienten != null && !clienten.isEmpty())
 				{
 					refreshTimelineModel(timelineModel, clienten);
 					WebMarkupContainer fCcontainer = getFormComponentsContainer();
@@ -265,6 +256,38 @@ public class ColonTestTimelinePage extends TestenBasePage
 		};
 		form.setDefaultButton(clientVindOfMaak);
 		container.add(clientVindOfMaak);
+
+		IndicatingAjaxSubmitLink clientWijzigOfMaak = new IndicatingAjaxSubmitLink("clientWijzigOfMaak")
+		{
+			@Override
+			protected void onSubmit(AjaxRequestTarget target)
+			{
+				TestTimelineModel timelineModel = model.getObject();
+				List<Client> clienten = testTimelineService.maakOfWijzigClienten(timelineModel);
+				List<String> errors = testTimelineService.validateTestClienten(clienten);
+				for (String error : errors)
+				{
+					this.error(error);
+				}
+				clientModel = ModelUtil.listModel(clienten);
+				this.info("Client(en) zijn succesvol gewijzigd of aangemaakt");
+
+				if (!clienten.isEmpty())
+				{
+					refreshTimelineModel(timelineModel, clienten);
+					WebMarkupContainer fCcontainer = getFormComponentsContainer();
+					formComponents.replaceWith(fCcontainer);
+					formComponents = fCcontainer;
+					target.add(formComponents);
+				}
+
+				WebMarkupContainer geContainer = getGebeurtenissenContainer();
+				gebeurtenissenContainer.replaceWith(geContainer);
+				gebeurtenissenContainer = geContainer;
+				target.add(gebeurtenissenContainer);
+			}
+		};
+		container.add(clientWijzigOfMaak);
 		return container;
 	}
 
@@ -276,15 +299,14 @@ public class ColonTestTimelinePage extends TestenBasePage
 		container.setOutputMarkupPlaceholderTag(true);
 
 		container.setVisible(clientModel != null);
-		if (clientModel != null && clientModel.getObject().size() > 0)
+		if (clientModel != null && !clientModel.getObject().isEmpty())
 		{
 			List<TestTimelineRonde> rondes = testTimelineService.getTimelineRondes(clientModel.getObject().get(0));
-			Collections.sort(rondes, (o1, o2) -> o2.getRondeNummer().compareTo(o1.getRondeNummer()));
+			rondes.sort((o1, o2) -> o2.getRondeNummer().compareTo(o1.getRondeNummer()));
 			rondesModel = new DetachableListModel<>(rondes);
 
 			container.add(new TestVervolgKeuzeKnop("nieuweRonde", clientModel, dialog)
 			{
-
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -318,7 +340,7 @@ public class ColonTestTimelinePage extends TestenBasePage
 				public boolean isVisible()
 				{
 					boolean isOverleden = false;
-					if (clientModel.getObject().size() > 0)
+					if (!clientModel.getObject().isEmpty())
 					{
 						GbaPersoon persoon = clientModel.getObject().get(0).getPersoon();
 						isOverleden = persoon.getOverlijdensdatum() != null;
@@ -338,26 +360,20 @@ public class ColonTestTimelinePage extends TestenBasePage
 			container.add(listView);
 		}
 
-		addbuttons(container);
+		addButtons(container);
 		return container;
 	}
 
 	private ListView<TestTimelineRonde> getListView()
 	{
-		ListView<TestTimelineRonde> listView = new ListView<TestTimelineRonde>("rondes", rondesModel)
+		return new ListView<>("rondes", rondesModel)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void populateItem(ListItem<TestTimelineRonde> item)
 			{
 				item.add(new Label("rondeNummer", item.getModelObject().getRondeNummer()));
 				item.add(new TestVervolgKeuzeKnop("snelKeuze", clientModel, dialog)
 				{
-
-					private static final long serialVersionUID = 1L;
-
 					@Override
 					public List<TestVervolgKeuzeOptie> getOptions()
 					{
@@ -385,7 +401,7 @@ public class ColonTestTimelinePage extends TestenBasePage
 						ScreeningRonde<?, ?, ?, ?> ronde = gebeurtenissen.getScreeningRonde();
 						ColonScreeningRonde colonRonde = (ColonScreeningRonde) ronde;
 						boolean isLopend = ScreeningRondeStatus.LOPEND.equals(ronde.getStatus()) || heeftIfobtMetWijzigbareStatus(colonRonde);
-						boolean isAangemeld = ronde.getAangemeld().booleanValue();
+						boolean isAangemeld = ronde.getAangemeld();
 						return !isOverleden && (isLopend || !isAangemeld && !isLopend);
 					}
 
@@ -408,13 +424,11 @@ public class ColonTestTimelinePage extends TestenBasePage
 					}
 				});
 
-				SortingListModel<ScreeningRondeGebeurtenis> sortingListModel = new SortingListModel<ScreeningRondeGebeurtenis>(
-					new PropertyModel<List<ScreeningRondeGebeurtenis>>(item.getModel(), "colonScreeningRondeDossier.gebeurtenissen"), new GebeurtenisComparator());
+				SortingListModel<ScreeningRondeGebeurtenis> sortingListModel = new SortingListModel<>(
+					new PropertyModel<>(item.getModel(), "colonScreeningRondeDossier.gebeurtenissen"), new GebeurtenisComparator());
 
-				item.add(new PropertyListView<ScreeningRondeGebeurtenis>("gebeurtenissen", sortingListModel)
+				item.add(new PropertyListView<>("gebeurtenissen", sortingListModel)
 				{
-
-					private static final long serialVersionUID = 1L;
 
 					@Override
 					protected void populateItem(final ListItem<ScreeningRondeGebeurtenis> item)
@@ -422,67 +436,23 @@ public class ColonTestTimelinePage extends TestenBasePage
 						item.add(DateLabel.forDatePattern("datum", "dd-MM-yyyy HH:mm:ss"));
 						item.add(new EnumLabel<TypeGebeurtenis>("gebeurtenis"));
 						item.add(new EnumLabel<GebeurtenisBron>("bron"));
-						item.add(new AttributeAppender("class", new Model<String>("badge-not-clickable"), " "));
-						item.add(new Label("extraOmschrijving", new IModel<String>()
+						item.add(new AttributeAppender("class", new Model<>("badge-not-clickable"), " "));
+						item.add(new Label("extraOmschrijving", (IModel<String>) () ->
 						{
-
-							private static final long serialVersionUID = 1L;
-
-							@Override
-							public String getObject()
-							{
-								ScreeningRondeGebeurtenis gebeurtenis2 = item.getModelObject();
-								String[] extraOmschrijvingen = gebeurtenis2.getExtraOmschrijving();
-								String extraOmschrijving = "";
-								if (extraOmschrijvingen != null)
-								{
-									for (String omschrijving : extraOmschrijvingen)
-									{
-										if (omschrijving != null)
-										{
-											if (StringUtils.isNotBlank(extraOmschrijving))
-											{
-												if (extraOmschrijving.trim().endsWith(":"))
-												{
-													if (!extraOmschrijving.endsWith(":"))
-													{
-														extraOmschrijving += " ";
-													}
-												}
-												else
-												{
-													extraOmschrijving += ", ";
-												}
-											}
-											else
-											{
-												extraOmschrijving = "(";
-											}
-											extraOmschrijving += getString(omschrijving, null, omschrijving);
-										}
-									}
-								}
-								if (StringUtils.isNotBlank(extraOmschrijving))
-								{
-									extraOmschrijving += ")";
-								}
-								return extraOmschrijving;
-							}
+							ScreeningRondeGebeurtenis gebeurtenis2 = item.getModelObject();
+							String[] extraOmschrijvingen = gebeurtenis2.getExtraOmschrijving();
+							return BriefOmschrijvingUtil.verwerkExtraOmschrijvingen(extraOmschrijvingen, ColonTestTimelinePage.this::getString);
 						}));
 					}
 				});
 			}
 		};
-		return listView;
 	}
 
-	private void addbuttons(WebMarkupContainer container)
+	private void addButtons(WebMarkupContainer container)
 	{
 		container.add(new AjaxButton("bijzondereClientData", form)
 		{
-
-			private static final long serialVersionUID = 1L;
-
 			@Override
 			protected void onSubmit(AjaxRequestTarget target)
 			{

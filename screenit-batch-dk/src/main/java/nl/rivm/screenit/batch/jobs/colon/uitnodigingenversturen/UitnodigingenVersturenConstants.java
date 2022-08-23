@@ -21,13 +21,12 @@ package nl.rivm.screenit.batch.jobs.colon.uitnodigingenversturen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UitnodigingenVersturenConstants
 {
-
-    private UitnodigingenVersturenConstants()
-    {
-    }
-
-    public static final String PROJECTENCOUNTERS = "key.projectcounters";
+	public static final String PROJECTENCOUNTERS = "key.projectcounters";
 
 }

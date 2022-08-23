@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.cismigranten;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
@@ -31,17 +33,18 @@ import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixCISMigrantenReader extends BaseScrollableResultReader
 {
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
 	@Override
 	public Criteria createCriteria(StatelessSession statelessSession) throws HibernateException
 	{
-		Criteria criteria = statelessSession.createCriteria(Client.class, "client");
+		var criteria = statelessSession.createCriteria(Client.class, "client");
 		criteria.createAlias("client.projecten", "projectclient");
 		criteria.add(Restrictions.eq("projectclient.actief", true));
 		criteria.createAlias("projectclient.groep", "projectgroep");

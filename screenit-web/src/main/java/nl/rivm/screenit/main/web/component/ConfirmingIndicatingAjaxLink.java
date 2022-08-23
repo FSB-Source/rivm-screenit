@@ -24,12 +24,12 @@ package nl.rivm.screenit.main.web.component;
 import nl.rivm.screenit.main.web.component.modal.ConfirmationBehavior;
 import nl.rivm.screenit.main.web.component.modal.IDialog;
 
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.extensions.ajax.markup.html.IndicatingAjaxLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
@@ -121,17 +121,16 @@ public abstract class ConfirmingIndicatingAjaxLink<T> extends IndicatingAjaxLink
 			}
 
 			@Override
-			protected Component createCustomComponent(String id)
+			protected void createCustomComponent(String id, Form<?> form)
 			{
-				return ConfirmingIndicatingAjaxLink.this.createCustomComponent(id);
-
+				ConfirmingIndicatingAjaxLink.this.createCustomComponent(id, form);
 			}
 		};
 	}
 
-	protected Component createCustomComponent(String id)
+	protected void createCustomComponent(String id, Form<?> form)
 	{
-		return new WebMarkupContainer(id).setVisible(false);
+		form.add(new WebMarkupContainer(id).setVisible(false));
 	}
 
 	protected void onClose(AjaxRequestTarget target)

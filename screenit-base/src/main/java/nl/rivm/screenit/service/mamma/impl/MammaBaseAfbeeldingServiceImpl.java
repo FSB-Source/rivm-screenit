@@ -314,7 +314,7 @@ public class MammaBaseAfbeeldingServiceImpl implements MammaBaseAfbeeldingServic
 			String output = writer.getBuffer().toString();
 			return IOUtils.toInputStream(output, "UTF-8");
 		}
-		catch (TransformerException | IOException e)
+		catch (TransformerException e)
 		{
 			LOG.error("Bij het transformeren naar stream van " + afbeelding);
 		}

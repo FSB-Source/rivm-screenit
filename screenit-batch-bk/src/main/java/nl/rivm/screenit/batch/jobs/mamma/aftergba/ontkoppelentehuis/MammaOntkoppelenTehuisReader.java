@@ -23,17 +23,27 @@ package nl.rivm.screenit.batch.jobs.mamma.aftergba.ontkoppelentehuis;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.model.mamma.MammaTehuis;
+
 import org.hibernate.Criteria;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
 
+import static nl.rivm.screenit.batch.jobs.mamma.aftergba.AfterGbaJobConfiguration.AFTER_GBA_JOB_READER_FETCH_SIZE;
+
+@Component
 public class MammaOntkoppelenTehuisReader extends BaseScrollableResultReader
 {
+
+	public MammaOntkoppelenTehuisReader()
+	{
+		super.setFetchSize(AFTER_GBA_JOB_READER_FETCH_SIZE);
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session)
 	{
-		Criteria crit = session.createCriteria(MammaTehuis.class, "tehuis");
+		var crit = session.createCriteria(MammaTehuis.class, "tehuis");
 		crit.add(Restrictions.eq("tehuis.actief", true));
 		return crit;
 	}

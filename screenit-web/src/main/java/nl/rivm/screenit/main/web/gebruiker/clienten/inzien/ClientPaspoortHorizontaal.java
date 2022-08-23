@@ -77,8 +77,8 @@ public class ClientPaspoortHorizontaal extends GenericPanel<Client>
 		add(new MammaDoelgroepIndicatorPanel("doelgroep", getModelObject().getMammaDossier(), true));
 
 		add(new Label("persoon.bsn"));
-		add(new Label("persoon.anummer").setVisible(ScreenitSession.get().checkPermission(Recht.TESTEN, Actie.INZIEN)));
-		add(new EnumLabel<>("persoon.geslacht"));
+		add(new Label("persoon.anummer").setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_INZIEN_A_NUMMER, Actie.INZIEN)));
+		add(new EnumLabel<>("persoon.geslacht").setVisible(ScreenitSession.get().checkPermission(Recht.GEBRUIKER_TOON_GENDERINDETITEIT, Actie.INZIEN)));
 		add(new Label("persoon.achternaam", NaamUtil.getGeboorteTussenvoegselEnAchternaam(getModelObject().getPersoon())));
 
 		add(new Label("persoon.telefoonnummer1").setVisible(metTelefoonnummer));

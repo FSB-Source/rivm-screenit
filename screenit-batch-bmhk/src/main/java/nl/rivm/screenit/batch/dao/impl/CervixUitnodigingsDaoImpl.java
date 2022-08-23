@@ -73,7 +73,7 @@ public class CervixUitnodigingsDaoImpl extends AbstractAutowiredDao implements C
 		ScreenitRestrictions.addClientBaseRestrictions(criteria, "client", "persoon");
 
 		criteria.add(Restrictions.eq("screeningRonde.status", ScreeningRondeStatus.LOPEND));
-		criteria.add(Restrictions.eq("verstuurd", false));
+		criteria.add(Restrictions.isNull("verstuurdDatum"));
 		criteria.add(Restrictions.le("uitnodigingsDatum", currentDateSupplier.getDate()));
 		criteria.add(Restrictions.eq("monsterType", CervixMonsterType.ZAS));
 		criteria.add(Restrictions.isNull("geannuleerdDatum"));

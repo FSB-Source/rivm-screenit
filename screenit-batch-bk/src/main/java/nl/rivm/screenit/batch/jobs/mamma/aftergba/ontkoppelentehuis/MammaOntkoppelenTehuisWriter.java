@@ -27,6 +27,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseWriter;
 import nl.rivm.screenit.dao.mamma.MammaBaseTehuisClientenDao;
 import nl.rivm.screenit.model.Client;
@@ -42,32 +46,30 @@ import nl.rivm.screenit.service.mamma.enums.MammaTehuisSelectie;
 import nl.rivm.screenit.util.AdresUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 import nl.topicuszorg.organisatie.model.Adres;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import org.hibernate.criterion.Restrictions;
+import org.springframework.stereotype.Component;
+
+@Component
+@AllArgsConstructor
 public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 {
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private LogService logService;
+	private final LogService logService;
 
-	@Autowired
-	private MammaBaseTehuisClientenDao baseTehuisClientenDao;
+	private final MammaBaseTehuisClientenDao baseTehuisClientenDao;
 
-	@Autowired
-	private MammaBaseKansberekeningService baseKansberekeningService;
+	private final MammaBaseKansberekeningService baseKansberekeningService;
 
 	@Override
 	protected void write(MammaTehuis tehuis)
 	{
-		Criteria crit = hibernateService.getHibernateSession().createCriteria(Client.class, "client");
+		var crit = hibernateService.getHibernateSession().createCriteria(Client.class, "client");
 		crit.createAlias("client.mammaDossier", "dossier");
 		crit.add(Restrictions.eq("dossier.tehuis", tehuis));
-		List<Client> gekoppeldeClienten = crit.list();
 
+		List<Client> gekoppeldeClienten = crit.list();
 		List<Client> terechtGekoppeldeClienten = baseTehuisClientenDao.getClienten(tehuis, MammaTehuisSelectie.GEKOPPELD, null);
 
 		List<Client> teOntkoppelenClienten = new ArrayList<>();
@@ -114,14 +116,10 @@ public class MammaOntkoppelenTehuisWriter extends BaseWriter<MammaTehuis>
 		}
 	}
 
+	@AllArgsConstructor(access = AccessLevel.PRIVATE)
 	private static class AdresWrapper
 	{
-		private Adres adres;
-
-		private AdresWrapper(Adres adres)
-		{
-			this.adres = adres;
-		}
+		private final Adres adres;
 
 		@Override
 		public boolean equals(Object o)

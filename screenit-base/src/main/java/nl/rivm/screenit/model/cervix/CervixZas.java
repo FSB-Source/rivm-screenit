@@ -29,10 +29,15 @@ import javax.persistence.Enumerated;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import nl.rivm.screenit.model.cervix.enums.CervixZasStatus;
 
 import org.hibernate.envers.Audited;
 
+@Setter
+@Getter
 @Entity
 @Audited
 public class CervixZas extends CervixMonster
@@ -46,23 +51,4 @@ public class CervixZas extends CervixMonster
 	@Temporal(TemporalType.DATE)
 	private Date verstuurd;
 
-	public CervixZasStatus getZasStatus()
-	{
-		return zasStatus;
-	}
-
-	public void setZasStatus(CervixZasStatus zasStatus)
-	{
-		this.zasStatus = zasStatus;
-	}
-
-	public Date getVerstuurd()
-	{
-		return verstuurd;
-	}
-
-	public void setVerstuurd(Date verstuurd)
-	{
-		this.verstuurd = verstuurd;
-	}
 }

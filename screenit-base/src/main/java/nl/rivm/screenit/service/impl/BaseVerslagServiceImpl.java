@@ -28,7 +28,6 @@ import nl.rivm.screenit.dao.mamma.MammaBaseBeoordelingDao;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.DossierStatus;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.ScreeningRonde;
 import nl.rivm.screenit.model.ScreeningRondeStatus;
 import nl.rivm.screenit.model.berichten.Verslag;
 import nl.rivm.screenit.model.berichten.cda.OntvangenCdaBericht;
@@ -44,7 +43,6 @@ import nl.rivm.screenit.model.colon.PaVerslag;
 import nl.rivm.screenit.model.colon.enums.MdlVervolgbeleid;
 import nl.rivm.screenit.model.mamma.MammaFollowUpVerslag;
 import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
-import nl.rivm.screenit.service.BaseScreeningRondeService;
 import nl.rivm.screenit.service.BaseVerslagService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.LogService;
@@ -82,14 +80,11 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 	private MammaBaseBeoordelingDao mammaBeoordelingDao;
 
 	@Autowired
-	private BaseScreeningRondeService baseScreeningRondeService;
-
-	@Autowired
 	private ICurrentDateSupplier currentDateSupplier;
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	public void verwijderVerslag(Verslag verslag, InstellingGebruiker instellingGebruiker, boolean heropenRondeEnDossier)
+	public void verwijderVerslag(Verslag<?, ?> verslag, InstellingGebruiker instellingGebruiker, boolean heropenRondeEnDossier)
 	{
 		VerslagType type = verslag.getType();
 		Class<? extends Verslag<?, ?>> verslagClazz = type.getClazz();
@@ -101,7 +96,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 		}
 
 		String melding = createLogMelding(verslag);
-		ScreeningRonde screeningRonde = verslag.getScreeningRonde();
+		var screeningRonde = verslag.getScreeningRonde();
 		Client client = screeningRonde.getDossier().getClient();
 
 		if (instellingGebruiker != null)
@@ -113,7 +108,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 			logService.logGebeurtenis(type.getVerwijderdVerslagLogGebeurtenis(), client, melding, type.getBevolkingsonderzoek());
 		}
 
-		removeVerslagUitRonde(verslag, type, client);
+		removeVerslagUitRonde(verslag, type);
 		verslag.setScreeningRonde(null);
 		verslag.setUitvoerderMedewerker(null);
 		verslag.setUitvoerderOrganisatie(null);
@@ -132,7 +127,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 
 	}
 
-	private void removeVerslagUitRonde(Verslag verslag, VerslagType type, Client client)
+	private void removeVerslagUitRonde(Verslag<?, ?> verslag, VerslagType type)
 	{
 		if (type == VerslagType.MDL && VerslagStatus.AFGEROND == verslag.getStatus())
 		{
@@ -156,7 +151,7 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 
 	@Override
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void heropenRondeEnDossier(Verslag verslag)
+	public void heropenRondeEnDossier(Verslag<?, ?> verslag)
 	{
 		VerslagType type = verslag.getType();
 		if (type == VerslagType.MDL && VerslagStatus.AFGEROND == verslag.getStatus())
@@ -234,28 +229,42 @@ public class BaseVerslagServiceImpl implements BaseVerslagService
 
 	@Override
 	@Transactional(propagation = Propagation.SUPPORTS)
-	public String createLogMelding(Verslag verslag)
+	public String createLogMelding(Verslag<?, ?> verslag)
 	{
-		String melding = "";
-		OntvangenCdaBericht ontvangenBericht = verslag.getOntvangenBericht();
+		String melding;
+		var verwerktVerslag = (Verslag<?, ?>) HibernateHelper.deproxy(verslag);
+		OntvangenCdaBericht ontvangenBericht = verwerktVerslag.getOntvangenBericht();
 		if (ontvangenBericht != null)
 		{
-			melding = "Electronisch bericht: berichtId: " + ontvangenBericht.getBerichtId() + ", setId: " + ontvangenBericht.getSetId() + ", versie: "
+			melding = "Elektronisch bericht: berichtId: " + ontvangenBericht.getBerichtId() + ", setId: " + ontvangenBericht.getSetId() + ", versie: "
 				+ ontvangenBericht.getVersie() + ",";
+		}
+		else if (verwerktVerslag instanceof MammaFollowUpVerslag && isElektronischPalgaVerslag((MammaFollowUpVerslag) verwerktVerslag))
+		{
+			melding = "Elektronische invoer: ";
 		}
 		else
 		{
 			melding = "Handmatige invoer: ";
 		}
-		Date datumOnderzoek = verslag.getDatumOnderzoek();
+		Date datumOnderzoek = verwerktVerslag.getDatumOnderzoek();
 		if (datumOnderzoek != null)
 		{
 			melding += " datum onderzoek " + Constants.getDateFormat().format(datumOnderzoek);
 		}
-		if (verslag.getId() == null)
+		if (verwerktVerslag.getId() == null)
 		{
 			melding = "Nieuw. " + melding;
 		}
 		return melding;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public boolean isElektronischPalgaVerslag(MammaFollowUpVerslag followUpVerslag)
+	{
+		return followUpVerslag.getInvoerder() == null && followUpVerslag.getVerslagContent() != null
+			&& followUpVerslag.getVerslagContent().getPathologieMedischeObservatie() != null
+			&& Constants.BK_TNUMMER_ELEKTRONISCH.equals(followUpVerslag.getVerslagContent().getPathologieMedischeObservatie().getTnummerLaboratorium());
 	}
 }

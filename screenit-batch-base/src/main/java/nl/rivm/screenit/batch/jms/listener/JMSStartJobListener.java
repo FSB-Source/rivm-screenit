@@ -170,7 +170,7 @@ public class JMSStartJobListener implements SessionAwareMessageListener<ActiveMQ
 			var jobParametersBuilder = new JobParametersBuilder();
 			overrideParametersWithSaved(jobParametersBuilder, jobArgs);
 
-			var job = jobLocator.getJob(jobType.name().toLowerCase());
+			var job = jobLocator.getJob(jobType.name());
 			launcher.run(job, jobParametersBuilder.toJobParameters());
 		}
 		catch (Exception e)

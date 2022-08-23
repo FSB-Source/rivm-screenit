@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.HuisartsBerichtType;
@@ -38,17 +40,16 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixHuisartsberichtenJobListener extends BaseLogListener
 {
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected LogEvent getStartLogEvent()
@@ -83,8 +84,8 @@ public class CervixHuisartsberichtenJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
-		CervixHuisartsberichtenRapportage rapportage = new CervixHuisartsberichtenRapportage();
+		var context = jobExecution.getExecutionContext();
+		var rapportage = new CervixHuisartsberichtenRapportage();
 
 		rapportage.setDatumVerwerking(dateSupplier.getDate());
 		rapportage.setAantalHuisartsBepaald(context.getLong(CervixHuisartsberichtenConstants.HUISARTS_BEPAALD, 0));
@@ -123,9 +124,9 @@ public class CervixHuisartsberichtenJobListener extends BaseLogListener
 
 		rapportage.setEntries(new ArrayList<>(rapportagePerHuisartsBerichtType.values()));
 
-		CervixHuisartsberichtenBeeindigdLogEvent huisartsberichtenBeeindigdLogEvent = (CervixHuisartsberichtenBeeindigdLogEvent) super.eindLogging(jobExecution);
+		var huisartsberichtenBeeindigdLogEvent = (CervixHuisartsberichtenBeeindigdLogEvent) super.eindLogging(jobExecution);
 		huisartsberichtenBeeindigdLogEvent.setRapportage(rapportage);
-		 if (rapportage.getAantalVersturenMislukt() > 0)
+		if (rapportage.getAantalVersturenMislukt() > 0)
 		{
 			huisartsberichtenBeeindigdLogEvent.setMelding("Één of meer berichten kon niet worden verzonden");
 			huisartsberichtenBeeindigdLogEvent.setLevel(Level.ERROR);

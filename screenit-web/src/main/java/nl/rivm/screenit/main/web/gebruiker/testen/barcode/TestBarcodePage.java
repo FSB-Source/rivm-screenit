@@ -23,6 +23,7 @@ package nl.rivm.screenit.main.web.gebruiker.testen.barcode;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,8 +40,11 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.Recht;
 import nl.rivm.screenit.service.AsposeService;
 import nl.rivm.screenit.service.BaseBriefService;
+import nl.rivm.screenit.service.ICurrentDateSupplier;
+import nl.rivm.screenit.service.TestService;
 import nl.rivm.screenit.service.UploadDocumentService;
 import nl.rivm.screenit.service.cervix.CervixTestService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.rivm.screenit.util.TestBsnGenerator;
 import nl.topicuszorg.patientregistratie.persoonsgegevens.model.Geslacht;
 
@@ -57,7 +61,6 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.apache.wicket.util.encoding.UrlEncoder;
 import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.time.Duration;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 import com.aspose.words.Document;
@@ -73,10 +76,16 @@ public class TestBarcodePage extends TestenBasePage
 	private CervixTestService cervixTestService;
 
 	@SpringBean
+	private TestService testService;
+
+	@SpringBean
 	private AsposeService asposeService;
 
 	@SpringBean
 	private BaseBriefService briefService;
+
+	@SpringBean
+	private ICurrentDateSupplier dateSupplier;
 
 	@SpringBean
 	private UploadDocumentService uploadDocService;
@@ -105,6 +114,7 @@ public class TestBarcodePage extends TestenBasePage
 						gbaPersoon.setAchternaam("Doe-" + gbaPersoon.getBsn());
 						gbaPersoon.setVoornaam("Jane");
 						gbaPersoon.setVoorletters("J");
+						gbaPersoon.setGeboortedatum(DateUtil.toUtilDate(dateSupplier.getLocalDate().minusYears(50)));
 						gbaPersoon.setGbaAdres(new BagAdres());
 
 						CervixScreeningRonde ronde = cervixTestService.geefScreeningRonde(gbaPersoon);
@@ -144,7 +154,7 @@ public class TestBarcodePage extends TestenBasePage
 					fileName = UrlEncoder.QUERY_INSTANCE.encode(fileName, getRequest().getCharset());
 					IResourceStream resourceStream = new FileResourceStream(new org.apache.wicket.util.file.File(tmpPdfFile));
 					getRequestCycle().scheduleRequestHandlerAfterCurrent(new ResourceStreamRequestHandler(resourceStream).setFileName(fileName)
-						.setContentDisposition(ContentDisposition.ATTACHMENT).setCacheDuration(Duration.NONE));
+						.setContentDisposition(ContentDisposition.ATTACHMENT).setCacheDuration(Duration.ZERO));
 				}
 			}
 		});
@@ -172,6 +182,7 @@ public class TestBarcodePage extends TestenBasePage
 						gbaPersoon.setAchternaam("Doe-" + gbaPersoon.getBsn());
 						gbaPersoon.setVoornaam("Jane");
 						gbaPersoon.setVoorletters("J");
+						gbaPersoon.setGeboortedatum(DateUtil.toUtilDate(dateSupplier.getLocalDate().minusYears(50)));
 						gbaPersoon.setGbaAdres(new BagAdres());
 
 						CervixScreeningRonde ronde = cervixTestService.geefScreeningRonde(gbaPersoon);
@@ -230,7 +241,7 @@ public class TestBarcodePage extends TestenBasePage
 					fileName = UrlEncoder.QUERY_INSTANCE.encode(fileName, getRequest().getCharset());
 					IResourceStream resourceStream = new FileResourceStream(new org.apache.wicket.util.file.File(tmpPdfFile));
 					getRequestCycle().scheduleRequestHandlerAfterCurrent(new ResourceStreamRequestHandler(resourceStream).setFileName(fileName)
-						.setContentDisposition(ContentDisposition.ATTACHMENT).setCacheDuration(Duration.NONE));
+						.setContentDisposition(ContentDisposition.ATTACHMENT).setCacheDuration(Duration.ZERO));
 				}
 			}
 		});

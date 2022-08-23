@@ -96,6 +96,8 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 
 	private AjaxLink<Void> weekHerhalenLink;
 
+	private AjaxLink<Void> dagKopierenLink;
+
 	private final Label herhalingsWeek;
 
 	private final List<PlanningMeldingDto> meldingen = new ArrayList<>();
@@ -124,7 +126,7 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 			}
 		});
 
-		if (screeningsEenheidModel.getObject().getVrijgegevenTotEnMet() != null)
+		if (screeningsEenheidModel.getObject().getVrijgegevenTotEnMet() != null && startWeek == null)
 		{
 			startWeek = screeningsEenheidModel.getObject().getVrijgegevenTotEnMet();
 		}
@@ -208,13 +210,13 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 		dialog = new BootstrapDialog("dialog");
 		add(dialog);
 
-		weekHerhalenLink = new AjaxLink<Void>("weekHerhalen")
+		weekHerhalenLink = new AjaxLink<>("weekHerhalen")
 		{
 			@Override
 			public void onClick(AjaxRequestTarget target)
 			{
 				dialog.openWith(target,
-					new MammaCapaciteitHerhalenPopup(IDialog.CONTENT_ID, calenderPanel.getModel(), DateUtil.toLocalDate(calenderPanel.getHuidigeStartVanWeek().toDate()))
+					new MammaWeekHerhalenPopup(IDialog.CONTENT_ID, calenderPanel.getModel(), DateUtil.toLocalDate(calenderPanel.getHuidigeStartVanWeek().toDate()))
 					{
 
 						@Override
@@ -232,6 +234,31 @@ public class MammaSECapaciteitEditPage extends MammaPlanningBasePage
 		weekHerhalenLink.setOutputMarkupPlaceholderTag(true);
 		weekHerhalenLink.setOutputMarkupId(true);
 		add(weekHerhalenLink);
+
+		dagKopierenLink = new AjaxLink<>("dagKopieren")
+		{
+			@Override
+			public void onClick(AjaxRequestTarget target)
+			{
+				dialog.openWith(target,
+					new MammaDagKopierenPopup(IDialog.CONTENT_ID, calenderPanel.getModel(), calenderPanel.getHuidigeStartVanWeek().toDate())
+					{
+
+						@Override
+						protected void onOpgeslagen(AjaxRequestTarget target)
+						{
+							Date huidigeDatum = calenderPanel.getHuidigeStartVanWeek().toDate();
+							refreshKalender(target, huidigeDatum);
+							dialog.close(target);
+						}
+
+					});
+			}
+		};
+		dagKopierenLink.setVisible(magAanpassen);
+		dagKopierenLink.setOutputMarkupPlaceholderTag(true);
+		dagKopierenLink.setOutputMarkupId(true);
+		add(dagKopierenLink);
 
 		add(new AjaxLink<Void>("terug")
 		{

@@ -38,7 +38,6 @@ import org.springframework.batch.item.ExecutionContext;
 
 public abstract class AbstractBrievenGenererenReader<B extends Brief> extends BaseScrollableResultReader
 {
-
 	protected abstract Long getScreeningOrganisatieId(ExecutionContext context);
 
 	@SuppressWarnings("unchecked")
@@ -57,8 +56,16 @@ public abstract class AbstractBrievenGenererenReader<B extends Brief> extends Ba
 		crit.createAlias("client.persoon", "persoon");
 		crit.createAlias("persoon.gbaAdres", "gbaAdres");
 		crit.createAlias("gbaAdres.gbaGemeente", "gemeente");
-		crit.createAlias("gemeente.screeningOrganisatie", "screeningOrganisatie");
-		crit.add(Restrictions.eq("screeningOrganisatie.id", getScreeningOrganisatieId(stepContext)));
+		Long screeningOrganisatieId = getScreeningOrganisatieId(stepContext);
+		if (screeningOrganisatieId != null)
+		{
+			crit.createAlias("gemeente.screeningOrganisatie", "screeningOrganisatie");
+			crit.add(Restrictions.eq("screeningOrganisatie.id", screeningOrganisatieId));
+		}
+		else
+		{
+			crit.add(Restrictions.isNotNull("gemeente.screeningOrganisatie"));
+		}
 
 		ScreenitRestrictions.addPersoonBaseRestrictions(crit, "persoon");
 

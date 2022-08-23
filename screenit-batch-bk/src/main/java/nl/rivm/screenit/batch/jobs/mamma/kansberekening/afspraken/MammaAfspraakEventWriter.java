@@ -22,12 +22,10 @@ package nl.rivm.screenit.batch.jobs.mamma.kansberekening.afspraken;
  */
 
 import nl.rivm.screenit.batch.jobs.mamma.kansberekening.MammaKansberekeningConstants;
-import nl.rivm.screenit.model.mamma.MammaAfspraak;
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Session;
-import org.hibernate.sql.JoinType;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class MammaAfspraakEventWriter extends MammaAbstractAfspraakEventWriter
 {
 	@Override

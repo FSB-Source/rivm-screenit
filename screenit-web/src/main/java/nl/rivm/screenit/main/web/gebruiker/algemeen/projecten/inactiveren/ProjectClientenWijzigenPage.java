@@ -137,7 +137,6 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 			{
 				if (clientenBestanden.getObject().size() == 1)
 				{
-					FileUpload attributenBestand = clientenBestanden.getObject().get(0);
 					stelFileVeilig(); 
 
 					ProjectBestand projectBestand = (ProjectBestand) form.getModelObject();
@@ -154,14 +153,15 @@ public class ProjectClientenWijzigenPage extends ProjectBasePage
 								ProjectBestand projectBestand = ProjectClientenWijzigenPage.this.form.getModelObject();
 								UploadDocument uploadDocument = documentModel.getObject();
 
-								projectService.queueProjectBestandVoorClientWijzigingen(project, projectBestand, uploadDocument, attributenBestand.getContentType(),
-									attributenBestand.getClientFileName(),
-									attributenBestand.writeToTempFile(), ScreenitSession.get().getLoggedInAccount());
+								projectService.queueProjectBestandVoorClientWijzigingen(project, projectBestand, uploadDocument, uploadDocument.getContentType(),
+									uploadDocument.getNaam(),
+									uploadDocument.getFile(), ScreenitSession.get().getLoggedInAccount());
 
 								setResponsePage(new ProjectBestandenOverzicht(getProjectModel()));
 							}
 							catch (Exception e)
 							{
+								LOG.error("Fout", e);
 								error("Bestand kon niet worden geimporteerd.");
 							}
 						}

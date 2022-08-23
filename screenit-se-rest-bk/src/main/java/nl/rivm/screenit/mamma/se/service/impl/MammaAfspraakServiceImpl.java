@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.mamma.MammaBaseStandplaatsPeriodeDao;
 import nl.rivm.screenit.mamma.se.dao.MammaAfsprakenDao;
@@ -33,9 +35,9 @@ import nl.rivm.screenit.mamma.se.dto.actions.AfspraakMakenPassantDto;
 import nl.rivm.screenit.mamma.se.dto.actions.AfspraakSignalerenDto;
 import nl.rivm.screenit.mamma.se.service.MammaAfspraakService;
 import nl.rivm.screenit.mamma.se.service.PassantInschrijvenValidatorService;
+import nl.rivm.screenit.mamma.se.service.PassantValidatorResult;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.InstellingGebruiker;
-import nl.rivm.screenit.model.Mail;
 import nl.rivm.screenit.model.dashboard.DashboardType;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.mamma.MammaAfspraak;
@@ -43,7 +45,6 @@ import nl.rivm.screenit.model.mamma.MammaScreeningsEenheid;
 import nl.rivm.screenit.model.mamma.MammaUitnodiging;
 import nl.rivm.screenit.model.mamma.enums.MammaAfspraakStatus;
 import nl.rivm.screenit.model.mamma.enums.MammaVerzettenReden;
-import nl.rivm.screenit.repository.MailRepository;
 import nl.rivm.screenit.service.BaseAfmeldService;
 import nl.rivm.screenit.service.ClientService;
 import nl.rivm.screenit.service.DashboardService;
@@ -63,6 +64,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(propagation = Propagation.REQUIRED)
 public class MammaAfspraakServiceImpl implements MammaAfspraakService
@@ -138,11 +140,16 @@ public class MammaAfspraakServiceImpl implements MammaAfspraakService
 		var client = clientService.getClientByBsn(actionDto.getBsn());
 		if (client != null && DateUtil.isGeboortedatumGelijk(actionDto.getGeboortedatum(), client))
 		{
-			if (passantInschrijvenValidatorService.isGeldigPassantScenario(client, currentDateSupplier.getLocalDate(), screeningsEenheid))
+			PassantValidatorResult validatorResult = passantInschrijvenValidatorService.isGeldigPassantScenario(client, currentDateSupplier.getLocalDate(), screeningsEenheid);
+			if (validatorResult == PassantValidatorResult.OK)
 			{
 				var laatsteUitnodiging = client.getMammaDossier().getLaatsteScreeningRonde().getLaatsteUitnodiging();
 				heraanmeldenIndienNodig(gebruiker, client);
 				maakAfspraak(gebruiker, screeningsEenheid, client, laatsteUitnodiging);
+			}
+			else if (validatorResult == PassantValidatorResult.ONGELDIG_ZELFDE_DAG)
+			{
+				LOG.info("Client met id {} heeft al een afspraak op zelfde dag, tweede aanmelding wordt genegeerd", client.getId());
 			}
 			else
 			{

@@ -43,7 +43,7 @@ public enum PlanningStatusIndex
 
 	public static MammaPlanningStatus get()
 	{
-		if (isNogNietLangGenoegNietOperationeel())
+		if (MammaPlanningStatus.OPSTARTEN != status && MammaPlanningStatus.ERROR != status && isNogNietLangGenoegNietOperationeel())
 		{
 			return MammaPlanningStatus.OPERATIONEEL;
 		}

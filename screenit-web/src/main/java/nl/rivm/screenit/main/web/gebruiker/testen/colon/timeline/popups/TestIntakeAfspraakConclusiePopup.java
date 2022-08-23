@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
 import nl.rivm.screenit.model.Client;
@@ -38,11 +38,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class TestIntakeAfspraakConclusiePopup extends AbstractTestBasePopupPanel
 {
-
 	private static final long serialVersionUID = 1L;
 
 	@SpringBean
-	private TestTimelineService testTimelineService;
+	private ColonTestTimelineService colonTestTimelineService;
 
 	private IModel<ColonConclusieType> typeModel = Model.of(ColonConclusieType.COLOSCOPIE);
 
@@ -51,8 +50,8 @@ public class TestIntakeAfspraakConclusiePopup extends AbstractTestBasePopupPanel
 		super(id, clientModel);
 
 		List<ColonConclusieType> choices = new ArrayList<>(Arrays.asList(ColonConclusieType.values()));
-		ScreenitDropdown<ColonConclusieType> conclusieDropDown = new ScreenitDropdown<ColonConclusieType>("conclusieDropDown", typeModel,
-			choices, new EnumChoiceRenderer<ColonConclusieType>());
+		ScreenitDropdown<ColonConclusieType> conclusieDropDown = new ScreenitDropdown<>("conclusieDropDown", typeModel,
+			choices, new EnumChoiceRenderer<>());
 		add(conclusieDropDown);
 	}
 
@@ -61,7 +60,7 @@ public class TestIntakeAfspraakConclusiePopup extends AbstractTestBasePopupPanel
 	{
 		for (Client client : getModelObject())
 		{
-			testTimelineService.maakIntakeAfspraakConclusieVoorClient(client, typeModel.getObject());
+			colonTestTimelineService.maakIntakeAfspraakConclusieVoorClient(client, typeModel.getObject());
 		}
 	}
 

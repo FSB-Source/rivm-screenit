@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.herinneren;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.BriefType;
@@ -33,17 +35,15 @@ import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixHerinnerenJobListener extends BaseLogListener
 {
+	private final ICurrentDateSupplier dateSupplier;
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
-
-	@Autowired
-	private HibernateService hibernateService;
+	private final HibernateService hibernateService;
 
 	@Override
 	protected Bevolkingsonderzoek getBevolkingsonderzoek()
@@ -78,11 +78,11 @@ public class CervixHerinnerenJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 
 		long totaalAantal = context.getLong(CervixHerinnerenConstants.TOTAAL_AANTAL_BRIEVEN_KEY, 0);
 
-		CervixHerinnerenRapportage rapportage = new CervixHerinnerenRapportage();
+		var rapportage = new CervixHerinnerenRapportage();
 		rapportage.setDatumVerwerking(dateSupplier.getDate());
 		rapportage.setTotaalAantal(totaalAantal);
 
@@ -95,7 +95,7 @@ public class CervixHerinnerenJobListener extends BaseLogListener
 			}
 		});
 
-		CervixHerinnerenBeeindigdLogEvent herinneringBeeindigdLogEvent = (CervixHerinnerenBeeindigdLogEvent) super.eindLogging(jobExecution);
+		var herinneringBeeindigdLogEvent = (CervixHerinnerenBeeindigdLogEvent) super.eindLogging(jobExecution);
 		herinneringBeeindigdLogEvent.setRapportage(rapportage);
 		herinneringBeeindigdLogEvent.setMelding("Er zijn " + totaalAantal + " herinneringen verstuurd");
 

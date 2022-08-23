@@ -1,4 +1,3 @@
-
 package nl.rivm.screenit.batch.jobs.colon.gunstigeuitslag;
 
 /*-
@@ -30,8 +29,9 @@ import nl.rivm.screenit.model.logging.GunstigeUitslagBeeindigdLogEvent;
 import nl.rivm.screenit.model.logging.LogEvent;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class GunstigeUitslagJobListener extends BaseLogListener
 {
 
@@ -74,14 +74,14 @@ public class GunstigeUitslagJobListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent logEvent = super.eindLogging(jobExecution);
+		var logEvent = super.eindLogging(jobExecution);
 		fillWaardes((GunstigeUitslagBeeindigdLogEvent) logEvent, jobExecution);
 		return logEvent;
 	}
 
 	private void fillWaardes(GunstigeUitslagBeeindigdLogEvent log, JobExecution execution)
 	{
-		ExecutionContext context = execution.getExecutionContext();
+		var context = execution.getExecutionContext();
 		if (context.containsKey(GunstigeUitslagConstants.GESELECTEERD))
 		{
 			log.setAantalGunstigeBrievenUitGestuurd(context.getInt(GunstigeUitslagConstants.GESELECTEERD));

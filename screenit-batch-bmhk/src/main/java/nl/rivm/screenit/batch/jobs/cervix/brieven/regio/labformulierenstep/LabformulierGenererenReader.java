@@ -21,9 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.regio.labformulierenstep;
  * =========================LICENSE_END==================================
  */
 
-import java.util.ArrayList;
+import lombok.AllArgsConstructor;
 
-import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.helpers.BaseScrollableResultReader;
 import nl.rivm.screenit.huisartsenportaal.enums.CervixLocatieStatus;
 import nl.rivm.screenit.model.cervix.CervixHuisartsLocatie;
@@ -33,25 +32,25 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
-import org.hibernate.QueryException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Property;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.Subqueries;
 import org.hibernate.sql.JoinType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class LabformulierGenererenReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
-	public Criteria createCriteria(StatelessSession session) throws HibernateException, QueryException
+	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixLabformulierAanvraag.class);
+		var crit = session.createCriteria(CervixLabformulierAanvraag.class);
 		crit.createAlias("huisartsLocatie", "locatie");
 
 		crit.createAlias("locatie.huisarts", "huisarts");
@@ -62,13 +61,13 @@ public class LabformulierGenererenReader extends BaseScrollableResultReader
 
 		crit.add(Restrictions.ne("locatie.status", CervixLocatieStatus.INACTIEF));
 
-		DetachedCriteria subCrit = DetachedCriteria.forClass(CervixHuisartsLocatie.class);
-		subCrit.createAlias("locatieAdres", "locatieAdres", JoinType.INNER_JOIN);
-		subCrit.createAlias("locatieAdres.gbaGemeente", "gemeente", JoinType.INNER_JOIN);
-		subCrit.createAlias("gemeente.screeningOrganisatie", "screeningOrganisatie", JoinType.INNER_JOIN);
-		subCrit.add(Restrictions.eq("screeningOrganisatie.id", getScreeningOrganisatieId()));
-		subCrit.setProjection(Property.forName("id"));
-		crit.add(Subqueries.propertyIn("locatie.id", subCrit));
+		var uitstrijkendeArtsSubQuery = DetachedCriteria.forClass(CervixHuisartsLocatie.class);
+		uitstrijkendeArtsSubQuery.createAlias("locatieAdres", "locatieAdres", JoinType.INNER_JOIN);
+		uitstrijkendeArtsSubQuery.createAlias("locatieAdres.gbaGemeente", "gemeente", JoinType.INNER_JOIN);
+		uitstrijkendeArtsSubQuery.createAlias("gemeente.screeningOrganisatie", "screeningOrganisatie", JoinType.INNER_JOIN);
+		uitstrijkendeArtsSubQuery.add(Restrictions.eq("screeningOrganisatie.id", getScreeningOrganisatieId()));
+		uitstrijkendeArtsSubQuery.setProjection(Property.forName("id"));
+		crit.add(Subqueries.propertyIn("locatie.id", uitstrijkendeArtsSubQuery));
 
 		return crit;
 	}

@@ -33,7 +33,9 @@ public interface IVo107Provider
 
 	interface Vo107File
 	{
-		void saveToFile(File targetFile);
+		void saveToTempFile(File targetFile);
+
+		File getTempFile();
 
 		String getFilename();
 

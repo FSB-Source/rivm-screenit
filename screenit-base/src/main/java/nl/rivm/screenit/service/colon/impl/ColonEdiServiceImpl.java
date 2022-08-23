@@ -90,7 +90,7 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 		haBericht.setStatus(status);
 		haBericht.setHuisarts(huisarts);
 		haBericht.setClient(client);
-		haBericht.setOpnieuwVerzonden(opnieuwVerzonden);
+		haBericht.setEenOpnieuwVerzondenBericht(opnieuwVerzonden);
 		Gemeente gbaGemeente = client.getPersoon().getGbaAdres().getGbaGemeente();
 		ScreeningOrganisatie screeningOrganisatie = gbaGemeente.getScreeningOrganisatie();
 		if (screeningOrganisatie == null)
@@ -127,7 +127,7 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 			MailVerzenden mailVerzenden = manipulateEmailadressen(sender, outboundMessageData);
 			if (StringUtils.isBlank(foutmelding)
 				&& (MailVerzenden.UIT.equals(mailVerzenden)
-					|| ediMessageService.sendMedVry(sender, sender.getEmail(), outboundMessageData, transactionId)))
+				|| ediMessageService.sendMedVry(sender, sender.getEmail(), outboundMessageData, transactionId)))
 			{
 				huisartsBericht.setStatus(ColonHuisartsBerichtStatus.VERZENDEN_GELUKT);
 				huisartsBericht.setVerzendDatum(currentDateSupplier.getDate());
@@ -153,7 +153,7 @@ public class ColonEdiServiceImpl extends EdiServiceBaseImpl implements ColonEdiS
 
 			if (ColonHuisartsBerichtStatus.VERZENDEN_GELUKT == huisartsBericht.getStatus())
 			{
-				if (Boolean.TRUE.equals(huisartsBericht.isOpnieuwVerzonden()))
+				if (Boolean.TRUE.equals(huisartsBericht.isEenOpnieuwVerzondenBericht()))
 				{
 					logGebeurtenis = LogGebeurtenis.HUISARTSBERICHT_OPNIEUW_VERSTUURD;
 				}

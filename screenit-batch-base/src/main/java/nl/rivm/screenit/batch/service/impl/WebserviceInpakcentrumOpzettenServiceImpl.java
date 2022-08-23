@@ -29,41 +29,30 @@ import javax.xml.ws.BindingProvider;
 import nl.rivm.screenit.batch.service.WebserviceInpakcentrumOpzettenService;
 import nl.rivm.screenit.util.logging.cxf.ScreenITLoggingInInterceptor;
 import nl.rivm.screenit.util.logging.cxf.ScreenITLoggingOutInterceptor;
+import nl.rivm.screenit.util.logging.cxf.ScreenITLoggingSaver;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.ConduitSelector;
 import org.apache.cxf.endpoint.PreexistingConduitSelector;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.transport.http.HTTPConduit;
-import org.apache.cxf.transports.http.configuration.ProxyServerType;
 import org.apache.cxf.ws.policy.PolicyConstants;
 import org.apache.neethi.Policy;
 import org.apache.neethi.PolicyComponent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 import org.tempuri.DaklapackWebService;
 import org.tempuri.IUpload;
 
-@Service
 public class WebserviceInpakcentrumOpzettenServiceImpl implements WebserviceInpakcentrumOpzettenService
 {
 	@Autowired
-	@Qualifier(value = "inpakCentrumEndpointUrl")
+	private ScreenITLoggingSaver loggingSaver;
+
+	@Autowired
 	private String inpakCentrumEndpointUrl;
 
 	@Autowired
-	@Qualifier(value = "inpakCentrumProxyServer")
-	private String inpakCentrumProxyServer;
-
-	@Autowired
-	@Qualifier(value = "inpakCentrumProxyServerPort")
-	private Integer inpakCentrumProxyServerPort;
-
-	@Autowired
-	@Qualifier(value = "testModus")
 	private Boolean testModus;
 
 	@Override
@@ -81,8 +70,8 @@ public class WebserviceInpakcentrumOpzettenServiceImpl implements WebserviceInpa
 		}
 
 		Client client = ClientProxy.getClient(upload);
-		client.getInInterceptors().add(new ScreenITLoggingInInterceptor());
-		client.getOutInterceptors().add(new ScreenITLoggingOutInterceptor());
+		client.getInInterceptors().add(new ScreenITLoggingInInterceptor(loggingSaver));
+		client.getOutInterceptors().add(new ScreenITLoggingOutInterceptor(loggingSaver));
 
 		HTTPConduit httpConduit = (HTTPConduit) client.getConduit();
 
@@ -90,17 +79,6 @@ public class WebserviceInpakcentrumOpzettenServiceImpl implements WebserviceInpa
 		tlsClientParameters.setDisableCNCheck(true);
 
 		httpConduit.setTlsClientParameters(tlsClientParameters);
-
-		if (StringUtils.isNotBlank(inpakCentrumProxyServer))
-		{
-			httpConduit.getClient().setProxyServerType(ProxyServerType.HTTP);
-			httpConduit.getClient().setProxyServer(inpakCentrumProxyServer);
-		}
-
-		if (inpakCentrumProxyServerPort != null && inpakCentrumProxyServerPort > 0)
-		{
-			httpConduit.getClient().setProxyServerPort(inpakCentrumProxyServerPort);
-		}
 
 		ConduitSelector selector = new PreexistingConduitSelector(httpConduit, client.getEndpoint());
 		client.setConduitSelector(selector);

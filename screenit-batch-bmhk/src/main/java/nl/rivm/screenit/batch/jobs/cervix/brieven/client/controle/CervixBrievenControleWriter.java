@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.cervix.brieven.client.controle;
 import nl.rivm.screenit.batch.jobs.brieven.controle.AbstractBrievenControleWriter;
 import nl.rivm.screenit.model.cervix.CervixMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class CervixBrievenControleWriter extends AbstractBrievenControleWriter<CervixMergedBrieven>
 {
 

@@ -23,12 +23,12 @@ package nl.rivm.screenit.model.cervix.enums;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import nl.rivm.screenit.model.enums.BriefType;
+import nl.rivm.screenit.util.DateUtil;
 
 import com.google.common.primitives.Ints;
 
@@ -50,14 +50,14 @@ public enum CervixLeeftijdcategorie
 
 	private final BriefType uitnodigingsBrief;
 
-	public static int getLeeftijd(LocalDate geboortedatum, LocalDateTime peilDatum)
+	public static int getLeeftijd(LocalDate geboortedatum, LocalDate peilDatum)
 	{
-		return Ints.checkedCast(ChronoUnit.YEARS.between(geboortedatum, peilDatum));
+		return Ints.checkedCast(DateUtil.getAantalJaarTussenTweeDatums(geboortedatum, peilDatum));
 	}
 
 	public static CervixLeeftijdcategorie getLeeftijdcategorie(LocalDate geboortedatum, LocalDateTime peilDatum)
 	{
-		int leeftijd = getLeeftijd(geboortedatum, peilDatum);
+		int leeftijd = getLeeftijd(geboortedatum, peilDatum.toLocalDate());
 		int remainder = leeftijd % 5;
 		int leeftijdCategorieInteger = leeftijd - remainder;
 		switch (leeftijdCategorieInteger)

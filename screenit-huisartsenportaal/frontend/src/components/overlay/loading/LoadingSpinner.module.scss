@@ -1,0 +1,33 @@
+@import "../../../styling/scss/colors";
+@import "../../../styling/scss/mixins";
+
+.style {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: -1;
+	opacity: 0;
+	transition: 1s;
+	background-color: rgba(0, 0, 0, 0.4);
+
+	&.visible {
+		opacity: 1;
+		z-index: 9998;
+	}
+
+	.spinnerContainer {
+		width: 6rem;
+		height: 6rem;
+		@include center-in-div(50%);
+
+		.spinner {
+			border: 0.5em solid $paars;
+			border-right-color: transparent;
+			width: 100%;
+			height: 100%;
+		}
+
+	}
+}

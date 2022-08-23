@@ -22,36 +22,52 @@ package nl.rivm.screenit.batch.jobs.mamma.uitnodigen;
  */
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.batch.jobs.helpers.BaseLogListener;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.Rivm;
+import nl.rivm.screenit.model.ScreeningOrganisatie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.MammaUitnodigenLogEvent;
+import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaIntervalUitnodigenRapportage;
 import nl.rivm.screenit.model.verwerkingverslag.mamma.MammaUitnodigenRapportage;
 import nl.rivm.screenit.service.InstellingService;
 import nl.rivm.screenit.service.LogService;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
 
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
+@Slf4j
 public class MammaUitnodigenListener extends BaseLogListener
 {
 	private static final String RAPPORTAGE_ID_KEY = "rapportageId";
 
-	@Autowired
-	private HibernateService hibernateService;
+	public static final String INTERVAL_RAPPORTAGE_KEY = "intervalRapportageKey";
 
-	@Autowired
-	private LogService logService;
+	private final HibernateService hibernateService;
 
-	@Autowired
-	private InstellingService instellingService;
+	private final LogService logService;
+
+	private final InstellingService instellingService;
+
+	@Override
+	protected void beforeStarting(JobExecution jobExecution)
+	{
+		super.beforeStarting(jobExecution);
+		jobExecution.getExecutionContext().put(MammaUitnodigenListener.INTERVAL_RAPPORTAGE_KEY, new HashMap<Long, MammaIntervalUitnodigenRapportage>());
+	}
 
 	@Override
 	protected LogGebeurtenis getStartLogGebeurtenis()
@@ -86,13 +102,15 @@ public class MammaUitnodigenListener extends BaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		MammaUitnodigenLogEvent logEvent = (MammaUitnodigenLogEvent) super.eindLogging(jobExecution);
+		var logEvent = (MammaUitnodigenLogEvent) super.eindLogging(jobExecution);
 
-		ExecutionContext executionContext = jobExecution.getExecutionContext();
+		var executionContext = jobExecution.getExecutionContext();
 		if (executionContext.containsKey(RAPPORTAGE_ID_KEY))
 		{
-			final Long rapportageId = executionContext.getLong(RAPPORTAGE_ID_KEY);
-			MammaUitnodigenRapportage rapportage = hibernateService.get(MammaUitnodigenRapportage.class, rapportageId);
+			var rapportageId = executionContext.getLong(RAPPORTAGE_ID_KEY);
+			var rapportage = hibernateService.get(MammaUitnodigenRapportage.class, rapportageId);
+
+			intervalUitnodigingenBijwerkenInRapportage(rapportage);
 
 			logEvent.setRapportage(rapportage);
 		}
@@ -100,18 +118,31 @@ public class MammaUitnodigenListener extends BaseLogListener
 		return logEvent;
 	}
 
+	private void intervalUitnodigingenBijwerkenInRapportage(MammaUitnodigenRapportage eindRapportage)
+	{
+		Map<Long, MammaIntervalUitnodigenRapportage> intervalRapportages = getTypedValueFromExecutionContext(INTERVAL_RAPPORTAGE_KEY);
+		for (var rapportageEntry : intervalRapportages.entrySet())
+		{
+			var screeningsorganisatie = hibernateService.get(ScreeningOrganisatie.class, rapportageEntry.getKey());
+			var intervalRapportage = rapportageEntry.getValue();
+			intervalRapportage.setScreeningOrganisatie(screeningsorganisatie);
+			intervalRapportage.setUitnodigenRapportage(eindRapportage);
+			eindRapportage.getIntervalUitnodigenRapportages().add(intervalRapportage);
+			hibernateService.saveOrUpdateAll(intervalRapportage, eindRapportage);
+		}
+	}
+
 	@Override
 	protected void saveEindLogGebeurtenis(LogEvent logEvent)
 	{
 		final List<Instelling> dashboardOrganisaties = new ArrayList<>(instellingService.getActieveInstellingen(Rivm.class));
 
-		MammaUitnodigenRapportage rapportage = ((MammaUitnodigenLogEvent) logEvent).getRapportage();
+		var rapportage = ((MammaUitnodigenLogEvent) logEvent).getRapportage();
 		if (rapportage != null)
 		{
-			rapportage.getStandplaatsRondeUitnodigenRapportages().stream()
-				.map(uitnodigenRapportageEntry -> uitnodigenRapportageEntry.getStandplaatsRonde().getStandplaats().getRegio())
-				.distinct()
-				.forEach(dashboardOrganisaties::add);
+			var standplaatsUitnodigenRegios = rapportage.getStandplaatsRondeUitnodigenRapportages().stream().map(ur -> ur.getStandplaatsRonde().getStandplaats().getRegio());
+			var intervalUitnodigenRegios = rapportage.getIntervalUitnodigenRapportages().stream().map(MammaIntervalUitnodigenRapportage::getScreeningOrganisatie);
+			Stream.concat(standplaatsUitnodigenRegios, intervalUitnodigenRegios).distinct().forEach(dashboardOrganisaties::add);
 		}
 
 		logService.logGebeurtenis(getEindLogGebeurtenis(), dashboardOrganisaties, logEvent, getBevolkingsonderzoek());

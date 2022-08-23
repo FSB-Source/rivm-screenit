@@ -24,6 +24,7 @@ package nl.rivm.screenit.batch.jobs.generalis.brieven.algemeen;
 public class AlgemeneBrievenConstants
 {
 	public static final String RAPPORTAGEKEYAANTALBRIEVEN = "key.brieven.rapportage";
+	public static final String KEY_BRIEVEN = "zijnErBrieven";
 
 	private AlgemeneBrievenConstants()
 	{

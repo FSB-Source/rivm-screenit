@@ -26,21 +26,30 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.dao.DashboardDao;
+import nl.rivm.screenit.dao.LogDao;
 import nl.rivm.screenit.model.Instelling;
 import nl.rivm.screenit.model.OrganisatieType;
 import nl.rivm.screenit.model.Rivm;
+import nl.rivm.screenit.model.SortState;
 import nl.rivm.screenit.model.dashboard.DashboardActieType;
 import nl.rivm.screenit.model.dashboard.DashboardLogRegel;
 import nl.rivm.screenit.model.dashboard.DashboardStatus;
 import nl.rivm.screenit.model.dashboard.DashboardType;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Level;
+import nl.rivm.screenit.model.enums.LogGebeurtenis;
 import nl.rivm.screenit.model.enums.MailPriority;
 import nl.rivm.screenit.model.logging.LogEvent;
 import nl.rivm.screenit.model.logging.LogRegel;
+import nl.rivm.screenit.model.logging.LoggingZoekCriteria;
 import nl.rivm.screenit.service.DashboardService;
 import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.service.MailService;
@@ -51,22 +60,22 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
-@Transactional(propagation = Propagation.SUPPORTS)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class DashboardServiceImpl implements DashboardService
 {
-	private static final Logger LOG = LoggerFactory.getLogger(DashboardServiceImpl.class);
-
 	@Autowired
 	private DashboardDao dashboardDao;
+
+	@Autowired
+	private LogDao logDao;
 
 	@Autowired
 	private MailService mailService;
@@ -150,7 +159,7 @@ public class DashboardServiceImpl implements DashboardService
 		}
 	}
 
-	private boolean downgradeDashboardStatusLevelNaarBenedenAlsMogelijk(DashboardStatus dashboardStatus)
+	private boolean downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(DashboardStatus dashboardStatus)
 	{
 		Level oldDashboardStatus = dashboardStatus.getLevel();
 		Criteria crit = hibernateService.getHibernateSession().createCriteria(DashboardLogRegel.class);
@@ -175,15 +184,50 @@ public class DashboardServiceImpl implements DashboardService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public boolean updateLogRegelMetDashboardStatus(LogRegel logregel, String gebruikersnaam, DashboardStatus dashboardStatus)
 	{
 		logregel.getLogEvent().setLevel(Level.INFO);
 		LOG.info("Gebruiker " + gebruikersnaam + " heeft aangemerkt logregel " + logregel.getId() + " te hebben gezien.");
 		hibernateService.saveOrUpdate(logregel);
 
-		boolean isGedowngrade = downgradeDashboardStatusLevelNaarBenedenAlsMogelijk(dashboardStatus);
-		getDashboardStatussen(dashboardStatus.getType()).forEach(this::downgradeDashboardStatusLevelNaarBenedenAlsMogelijk);
+		boolean isGedowngrade = downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(dashboardStatus);
+		downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(getDashboardStatussen(dashboardStatus.getType()));
 		return isGedowngrade;
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public boolean verwijderLogRegelsVanDashboards(List<LogGebeurtenis> gebeurtenissen, String bsn, String melding)
+	{
+		LoggingZoekCriteria loggingZoekCriteria = new LoggingZoekCriteria();
+		loggingZoekCriteria.setGebeurtenis(gebeurtenissen);
+		loggingZoekCriteria.setBsnClient(bsn);
+		loggingZoekCriteria.setMelding(melding);
+
+		loggingZoekCriteria.setVanaf(DateUtil.toUtilDate(dateSupplier.getLocalDate().minusDays(1)));
+
+		List<LogRegel> logRegels = logDao.getLogRegels(loggingZoekCriteria, 0, Integer.MAX_VALUE, new SortState<>("gebeurtenisDatum", Boolean.FALSE));
+
+		return verwijderLogRegelsVanDashboards(logRegels);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
+	public boolean verwijderLogRegelsVanDashboards(List<LogRegel> logRegels)
+	{
+		Set<DashboardLogRegel> dashboardLogRegels = logRegels.stream().flatMap(lr -> dashboardDao.getDashboardLogRegelMetLogRegel(lr).stream()).collect(Collectors.toSet());
+		Set<DashboardStatus> dashboardStatussen = dashboardLogRegels.stream().map(DashboardLogRegel::getDashboardStatus).collect(Collectors.toSet());
+		hibernateService.deleteAll(dashboardLogRegels);
+
+		return downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(new ArrayList<>(dashboardStatussen));
+	}
+
+	private boolean downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(List<DashboardStatus> dashboardStatussen)
+	{
+		AtomicBoolean downgraded = new AtomicBoolean(false);
+		dashboardStatussen.forEach(s -> downgraded.set(downgraded.get() || downgradeDashboardStatussenLevelNaarBenedenAlsMogelijk(s)));
+		return downgraded.get();
 	}
 
 	private DashboardStatus maakDashboardStatus(DashboardType dashboardType, Instelling instellingNogGeenDashboardStatus)
@@ -236,6 +280,7 @@ public class DashboardServiceImpl implements DashboardService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public Level getHoogsteLevelDashboardItems(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken)
 	{
 		Level highestLevel = Level.INFO;
@@ -251,6 +296,7 @@ public class DashboardServiceImpl implements DashboardService
 	}
 
 	@Override
+	@Transactional(propagation = Propagation.REQUIRED)
 	public List<DashboardStatus> getListOfDashboardStatussen(Instelling ingelogdVoorOrganisatie, List<Bevolkingsonderzoek> bevolkingsOnderzoeken)
 	{
 		List<DashboardStatus> listOfDashboardStatussen = dashboardDao.getListOfDashboardStatussen(ingelogdVoorOrganisatie);
@@ -291,17 +337,9 @@ public class DashboardServiceImpl implements DashboardService
 
 			}
 		}
-		Collections.sort(listOfDashboardStatussenPerBVO, new Comparator<>()
-		{
-
-			@Override
-			public int compare(DashboardStatus o1, DashboardStatus o2)
-			{
-				return Integer.compare(o1.getType().ordinal(), o2.getType().ordinal());
-			}
-
-		});
+		Collections.sort(listOfDashboardStatussenPerBVO, Comparator.comparingInt(o -> o.getType().ordinal()));
 
 		return listOfDashboardStatussenPerBVO;
 	}
+
 }

@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/daglijst")
+@RequestMapping("/api/daglijst")
 public class DaglijstController extends AuthorizedController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(DaglijstController.class);

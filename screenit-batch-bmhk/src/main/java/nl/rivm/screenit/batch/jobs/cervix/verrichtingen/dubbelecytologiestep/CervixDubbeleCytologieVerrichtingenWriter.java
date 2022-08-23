@@ -21,15 +21,17 @@ package nl.rivm.screenit.batch.jobs.cervix.verrichtingen.dubbelecytologiestep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.cervix.verrichtingen.CervixAbstractVerrichtingenWriter;
 import nl.rivm.screenit.model.cervix.CervixUitstrijkje;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
+@Component
+@Slf4j
 public class CervixDubbeleCytologieVerrichtingenWriter extends CervixAbstractVerrichtingenWriter<CervixUitstrijkje>
 {
-	private static final Logger LOG = LoggerFactory.getLogger(CervixDubbeleCytologieVerrichtingenWriter.class);
 
 	@Override
 	protected void write(CervixUitstrijkje uitstrijkje) throws Exception

@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.order;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.batch.jobs.cervix.CervixBaseLogListener;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
@@ -29,20 +31,20 @@ import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.item.ExecutionContext;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class CervixOrderListener extends CervixBaseLogListener
 {
-	@Autowired
-	private SimplePreferenceService preferenceService;
+	private final SimplePreferenceService preferenceService;
 
 	@Override
 	protected void beforeStarting(JobExecution jobExecution)
 	{
 		super.beforeStarting(jobExecution);
 
-		String startdatumAanleveringGenotyperingString = preferenceService.getString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
+		var startdatumAanleveringGenotyperingString = preferenceService.getString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name());
 		getJobExecution().getExecutionContext().putString(PreferenceKey.CERVIX_START_AANLEVERING_GENOTYPERING_EN_INVOERING_TRIAGE.name(), startdatumAanleveringGenotyperingString);
 	}
 
@@ -73,9 +75,9 @@ public class CervixOrderListener extends CervixBaseLogListener
 	@Override
 	protected LogEvent eindLogging(JobExecution jobExecution)
 	{
-		LogEvent event = super.eindLogging(jobExecution);
+		var event = super.eindLogging(jobExecution);
 
-		ExecutionContext context = jobExecution.getExecutionContext();
+		var context = jobExecution.getExecutionContext();
 		long aangemaakt = context.getLong(CervixOrderConstants.KEY_ORDER_AANGEMAAKT, 0);
 
 		long verstuurd = context.getLong(CervixOrderConstants.KEY_ORDER_VERSTUURD, 0);

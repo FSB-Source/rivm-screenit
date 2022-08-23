@@ -36,6 +36,8 @@ public enum ClientContactActieType
 
 	DEELNAMEWENSEN(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
+	AANPASSEN_AANHEF(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
+
 	CERVIX_DEELNAME_BUITEN_BVO_BMHK(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.MAMMA }),
 
 	COLON_AANVRAGEN_NIEUWE_IFOBT(new Bevolkingsonderzoek[] { Bevolkingsonderzoek.COLON }),

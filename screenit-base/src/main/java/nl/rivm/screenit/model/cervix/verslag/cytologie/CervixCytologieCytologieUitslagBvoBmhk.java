@@ -1,3 +1,4 @@
+
 package nl.rivm.screenit.model.cervix.verslag.cytologie;
 
 /*-
@@ -214,6 +215,7 @@ public class CervixCytologieCytologieUitslagBvoBmhk
 	@DSValueSet(name = "vs_adviesBMHK", values = {
 		@DSValueSetValue(code = "0", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.101"),
 		@DSValueSetValue(code = "2", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.101"),
+		@DSValueSetValue(code = "3", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.101"),
 		@DSValueSetValue(code = "4", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.101"),
 		@DSValueSetValue(code = "5", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.101"),
 		@DSValueSetValue(code = "6", codeSystem = "2.16.840.1.113883.2.4.3.36.77.5.101"),

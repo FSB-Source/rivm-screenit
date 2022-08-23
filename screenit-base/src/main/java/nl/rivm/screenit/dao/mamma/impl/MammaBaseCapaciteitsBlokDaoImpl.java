@@ -184,7 +184,7 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 			.add(Projections.property("blok.id")) 
 			.add(Projections.property("dossier.doelgroep")) 
 			.add(Projections.property("dossier.tehuis.id")) 
-			.add(Projections.property("dossier.laatsteBeoordelingMetUitslag.id")) 
+			.add(Projections.property("dossier.eersteOnderzoek")) 
 			.add(Projections.property("opkomstkans.opkomstkans")) 
 			.add(Projections.property("blok.vanaf")) 
 			.add(Projections.property("blok.tot")) 
@@ -232,9 +232,9 @@ public class MammaBaseCapaciteitsBlokDaoImpl extends AbstractAutowiredDao implem
 			{
 				MammaDoelgroep doelgroep = (MammaDoelgroep) rowItems[2];
 				Long tehuisId = (Long) rowItems[3];
-				Long laatsteBeoordelingMetUitslagId = (Long) rowItems[4];
+				Boolean eersteOnderzoek = (Boolean) rowItems[4];
 				BigDecimal opkomstkans = (BigDecimal) rowItems[5];
-				BigDecimal factor = MammaFactorType.getFactorType(tehuisId != null, doelgroep, laatsteBeoordelingMetUitslagId != null).getFactor(screeningOrganisatie);
+				BigDecimal factor = MammaFactorType.getFactorType(tehuisId != null, doelgroep, eersteOnderzoek).getFactor(screeningOrganisatie);
 				MammaAfspraakDto afspraakDto = new MammaAfspraakDto();
 				afspraakDto.capaciteitBlokDto = capaciteitBlokDto;
 				afspraakDto.vanaf = afspraakVanaf;

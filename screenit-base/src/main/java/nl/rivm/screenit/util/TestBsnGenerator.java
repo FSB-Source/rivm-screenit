@@ -23,23 +23,19 @@ package nl.rivm.screenit.util;
 
 import java.util.Random;
 
-import nl.topicuszorg.util.bsn.BsnUtils;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import nl.topicuszorg.util.bsn.BsnUtils;
 
 import com.google.common.math.DoubleMath;
 
+@Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestBsnGenerator
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(TestBsnGenerator.class);
-
 	private static Random randomNum = new Random();
-
-	private TestBsnGenerator()
-	{
-	}
 
 	public static String getValideBsn()
 	{
@@ -84,7 +80,7 @@ public class TestBsnGenerator
 
 		double uitkomst = (double) waarde / (double) 11;
 
-		LOG.debug("totaal: " + totaal + " Uitkomst: " + uitkomst + " lastNumber: " + lastNumber + " value-1:  " + value);
+		LOG.trace("totaal: " + totaal + " Uitkomst: " + uitkomst + " lastNumber: " + lastNumber + " value-1:  " + value);
 
 		return DoubleMath.isMathematicalInteger(uitkomst);
 	}

@@ -29,7 +29,9 @@ import nl.rivm.screenit.model.enums.GbaStatus;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ColonBrievenGenererenReader extends AbstractBrievenGenererenReader<ColonBrief>
 {
 
@@ -43,7 +45,7 @@ public class ColonBrievenGenererenReader extends AbstractBrievenGenererenReader<
 	protected Criteria additionalRestrictions(Criteria crit, ExecutionContext context)
 	{
 		crit.add(Restrictions.eq("client.gbaStatus", GbaStatus.INDICATIE_AANWEZIG));
-		BriefType briefType = BriefType.valueOf(context.getString(ColonBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		var briefType = BriefType.valueOf(context.getString(ColonBrievenGenererenPartitioner.KEY_BRIEFTYPE));
 		crit.add(Restrictions.eq("briefType", briefType));
 
 		return crit;

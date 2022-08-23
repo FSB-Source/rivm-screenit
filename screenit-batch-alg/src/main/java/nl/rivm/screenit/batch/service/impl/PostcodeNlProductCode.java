@@ -21,17 +21,15 @@ package nl.rivm.screenit.batch.service.impl;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
+@AllArgsConstructor
 public enum PostcodeNlProductCode
 {
 	WPL("GEO-WPL-M"),
 	NUM("GEO-NUM-M");
 
-	String code;
-
-	PostcodeNlProductCode(String code)
-	{
-		this.code = code;
-	}
+	final String code;
 
 	@Override
 	public String toString()

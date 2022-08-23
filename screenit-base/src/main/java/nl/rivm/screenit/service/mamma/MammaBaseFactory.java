@@ -45,15 +45,13 @@ public interface MammaBaseFactory
 {
 	MammaScreeningRonde maakRonde(MammaDossier dossier, MammaStandplaatsRonde standplaatsRonde, boolean isGeforceerd);
 
-	MammaUitnodiging maakUitnodiging(MammaScreeningRonde screeningRonde, BriefType briefType);
-
 	MammaUitnodiging maakUitnodiging(MammaScreeningRonde ronde, MammaStandplaatsRonde standplaatsRonde, BriefType briefType);
 
-    MammaAfspraak maakDummyAfspraak(MammaUitnodiging uitnodiging, Date vanaf, MammaCapaciteitBlok capaciteitBlok, MammaStandplaatsPeriode standplaatsPeriode,
-                                    MammaVerzettenReden verzettenReden);
+	MammaAfspraak maakDummyAfspraak(MammaUitnodiging uitnodiging, Date vanaf, MammaCapaciteitBlok capaciteitBlok, MammaStandplaatsPeriode standplaatsPeriode,
+		MammaVerzettenReden verzettenReden);
 
-    MammaAfspraak maakAfspraak(MammaScreeningRonde ronde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
-                               MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, boolean stuurBerichtNaarSectra, boolean isGeforceerdeAfspraak);
+	MammaAfspraak maakAfspraak(MammaScreeningRonde ronde, MammaCapaciteitBlok capaciteitBlok, Date vanaf, MammaStandplaatsPeriode standplaatsPeriode,
+		MammaVerzettenReden verzettenReden, boolean notificeerBetrokkenSe, boolean stuurBerichtNaarSectra, boolean isGeforceerdeAfspraak);
 
 	MammaUitstel maakUitstel(MammaScreeningRonde screeningRonde, MammaStandplaats standplaats, Date streefDatum, MammaUitstelReden uitstelReden);
 

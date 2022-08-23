@@ -21,17 +21,22 @@ package nl.rivm.screenit.clientportaal.controllers;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.clientportaal.model.HeraanmeldenOptiesDto;
 import nl.rivm.screenit.clientportaal.services.HeraanmeldenService;
+import nl.rivm.screenit.exceptions.MammaStandplaatsVanPostcodeOnbekendException;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.ClientContactActieType;
 import nl.rivm.screenit.model.colon.ColonDossier;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.service.ClientContactService;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -40,13 +45,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("heraanmelden")
+@AllArgsConstructor
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 public class HeraanmeldenController extends AbstractController
 {
-	@Autowired
-	private ClientContactService clientContactService;
+	private final ClientContactService clientContactService;
 
-	@Autowired
-	private HeraanmeldenService heraanmeldenService;
+	private final HeraanmeldenService heraanmeldenService;
 
 	@GetMapping(value = "/{bevolkingsonderzoek}")
 	public ResponseEntity<HeraanmeldenOptiesDto> getHeraanmeldStatus(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, Authentication authentication)
@@ -70,15 +75,21 @@ public class HeraanmeldenController extends AbstractController
 	}
 
 	@PostMapping(value = "/{bevolkingsonderzoek}/{wilNieuweUitnodigingOntvangen}")
-	public ResponseEntity<Void> saveHeraanmeldVerzoek(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, @PathVariable boolean wilNieuweUitnodigingOntvangen,
+	public ResponseEntity<String> saveHeraanmeldVerzoek(@PathVariable Bevolkingsonderzoek bevolkingsonderzoek, @PathVariable boolean wilNieuweUitnodigingOntvangen,
 		Authentication authentication)
 	{
 		Client client = getClient(authentication);
-
-		if (aanvraagIsToegestaneActie(client, getClientContactActieType(bevolkingsonderzoek)))
+		try
 		{
-			heraanmeldenService.saveHeraanmeldenVerzoek(getClient(authentication), bevolkingsonderzoek, wilNieuweUitnodigingOntvangen);
-			return ResponseEntity.ok().build();
+			if (aanvraagIsToegestaneActie(client, getClientContactActieType(bevolkingsonderzoek)))
+			{
+				heraanmeldenService.saveHeraanmeldenVerzoek(getClient(authentication), bevolkingsonderzoek, wilNieuweUitnodigingOntvangen);
+				return ResponseEntity.ok().build();
+			}
+		}
+		catch (MammaStandplaatsVanPostcodeOnbekendException e)
+		{
+			return ResponseEntity.status(HttpStatus.CONFLICT).body("mamma.standplaats.postcode.onbekend");
 		}
 		return createForbiddenResponse();
 	}

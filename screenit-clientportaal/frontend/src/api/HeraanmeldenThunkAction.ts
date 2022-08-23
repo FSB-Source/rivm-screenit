@@ -23,15 +23,24 @@ import {Bevolkingsonderzoek} from "../datatypes/Bevolkingsonderzoek"
 import {ResetBeschikbareContactActies, setBeschikbareContactActies} from "../actions/ContactActiesReduxAction"
 import {Dispatch} from "redux"
 import {ContactActiesDto} from "../datatypes/ContactActiesDto"
+import {showToast} from "../utils/ToastUtil"
+import {ToastMessageType} from "../datatypes/toast/ToastMessage"
+import properties from "../pages/bvo/gedeeld/HeraanmeldenPage.json"
+import {getString} from "../utils/TekstPropertyUtil"
+import HttpStatusCode from "../datatypes/HttpStatus"
 
 export const saveHeraanmeldVerzoekEnGeefBeschikbareActies = (bvo: Bevolkingsonderzoek, wilNieuweUitnodigingOntvangen: boolean, dispatch: Dispatch<ResetBeschikbareContactActies>) => (): Promise<ContactActiesDto> => {
 	return new Promise<ContactActiesDto>((resolve => {
 		ScreenitBackend.post(`/heraanmelden/${bvo}/${wilNieuweUitnodigingOntvangen}`).then(() => {
 			ScreenitBackend.get(`/acties/beschikbaar`)
-				.then(async response => {
-					await dispatch(setBeschikbareContactActies(response.data))
+				.then(response => {
+					dispatch(setBeschikbareContactActies(response.data))
 					resolve(response.data)
 				})
+		}).catch((error) => {
+			if (error.response.status === HttpStatusCode.CONFLICT && error.response.data === "mamma.standplaats.postcode.onbekend") {
+				showToast(undefined, getString(properties.toast.MAMMA.postcode), ToastMessageType.ERROR)
+			}
 		})
 	}))
 }

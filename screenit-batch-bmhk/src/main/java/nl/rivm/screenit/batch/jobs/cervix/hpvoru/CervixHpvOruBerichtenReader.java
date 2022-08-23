@@ -30,15 +30,19 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.batch.core.configuration.annotation.StepScope;
+import org.springframework.stereotype.Component;
 
 import static nl.rivm.screenit.batch.jobs.cervix.hpvoru.CervixHpvOruBerichtenConstants.KEY_LABORATORIUMID;
 
+@Component
+@StepScope
 public class CervixHpvOruBerichtenReader extends BaseScrollableResultReader
 {
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria criteria = session.createCriteria(CervixScreeningRonde.class);
+		var criteria = session.createCriteria(CervixScreeningRonde.class);
 		criteria.add(Restrictions.isNotNull("monsterHpvUitslag"));
 		criteria.createAlias("monsterHpvUitslag", "monster");
 		criteria.createAlias("monster.laboratorium", "laboratorium");
@@ -53,4 +57,5 @@ public class CervixHpvOruBerichtenReader extends BaseScrollableResultReader
 		criteria.add(Restrictions.eq("laboratorium.id", getStepExecutionContext().getLong(KEY_LABORATORIUMID)));
 		return criteria;
 	}
+
 }

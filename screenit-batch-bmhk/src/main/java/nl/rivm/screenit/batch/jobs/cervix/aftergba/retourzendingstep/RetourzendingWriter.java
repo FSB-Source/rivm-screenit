@@ -21,6 +21,8 @@ package nl.rivm.screenit.batch.jobs.cervix.aftergba.retourzendingstep;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AllArgsConstructor;
+
 import nl.rivm.screenit.batch.jobs.aftergba.retourzendingstep.BaseRetourzendingWriter;
 import nl.rivm.screenit.model.Client;
 import nl.rivm.screenit.model.cervix.CervixDossier;
@@ -29,16 +31,16 @@ import nl.rivm.screenit.model.cervix.CervixUitnodiging;
 import nl.rivm.screenit.service.cervix.CervixBaseScreeningrondeService;
 import nl.rivm.screenit.service.cervix.CervixFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
+@AllArgsConstructor
 public class RetourzendingWriter extends BaseRetourzendingWriter<Client, CervixUitnodiging, CervixScreeningRonde, CervixDossier>
 {
 
-	@Autowired
-	private CervixBaseScreeningrondeService screeningrondeService;
+	private final CervixBaseScreeningrondeService screeningrondeService;
 
-	@Autowired
-	private CervixFactory factory;
+	private final CervixFactory factory;
 
 	@Override
 	protected CervixUitnodiging maakNieuweUitnodiging(CervixUitnodiging uitnoding)

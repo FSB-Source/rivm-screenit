@@ -22,7 +22,6 @@ package nl.rivm.screenit.main.web.gebruiker.algemeen.organisatie.huisarts;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import nl.rivm.screenit.main.service.cervix.CervixHuisartsService;
@@ -129,7 +128,9 @@ public class AanvullendeHaGegevensPage extends OrganisatieBeheer
 		form.add(new Label("gebruikersnaamHuisartsenPortaal"));
 		ComponentHelper.addTextField(form, "email", true, 100, String.class, alleenInzien).add(EmailAddressValidator.getInstance());
 		ComponentHelper.addTextField(form, "extraEmails", false, 255, alleenInzien).add(EmailAddressenValidator.getInstance());
-		ComponentHelper.addDropDownChoiceINaam(form, "organisatieMedewerkers[0].medewerker.aanhef", false, Arrays.asList(Aanhef.values()), alleenInzien).setNullValid(true);
+
+		ComponentHelper.addDropDownChoice(form, "organisatieMedewerkers[0].medewerker.aanhef", false, Aanhef.aanhefVormenMedewerkers(), alleenInzien).setNullValid(true);
+
 		ComponentHelper.addTextField(form, "organisatieMedewerkers[0].medewerker.achternaam", true, 50, alleenInzien).add(new AchternaamValidator())
 			.setLabel(Model.of("Achternaam"));
 		ComponentHelper.addTextField(form, "organisatieMedewerkers[0].medewerker.tussenvoegsel", false, 20, alleenInzien).add(new TussenvoegselValidator());

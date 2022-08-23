@@ -25,4 +25,6 @@ public abstract class CervixSelectieConstants
 {
 	public static final String SELECTIE_AANTAL_KEY = "selectie.aantal";
 
+	public static final String VOORAANKONDIGING_SELECTIE_AANTAL_KEY = "selectie.vooraankondiging";
+
 }

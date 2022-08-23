@@ -34,19 +34,20 @@ import nl.rivm.screenit.model.enums.BriefType;
 import nl.rivm.screenit.model.enums.FileStoreLocation;
 import nl.rivm.screenit.model.enums.LogGebeurtenis;
 
-import org.springframework.batch.item.ExecutionContext;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ColonBrievenGenererenWriter extends AbstractBrievenGenererenWriter<ColonBrief, ColonMergedBrieven>
 {
 	@Override
 	protected ColonMergedBrieven createConcreteMergedBrieven(Date aangemaaktOp)
 	{
-		ExecutionContext context = getStepExecutionContext();
-		BriefType briefType = BriefType.valueOf(context.getString(ColonBrievenGenererenPartitioner.KEY_BRIEFTYPE));
-		ScreeningOrganisatie screeningOrganisatie = getHibernateService().load(ScreeningOrganisatie.class,
+		var context = getStepExecutionContext();
+		var briefType = BriefType.valueOf(context.getString(ColonBrievenGenererenPartitioner.KEY_BRIEFTYPE));
+		var screeningOrganisatie = getHibernateService().load(ScreeningOrganisatie.class,
 			context.getLong(ColonBrievenGenererenPartitioner.KEY_SCREENINGORGANISATIEID));
 
-		ColonMergedBrieven mergedBrieven = new ColonMergedBrieven();
+		var mergedBrieven = new ColonMergedBrieven();
 		mergedBrieven.setScreeningOrganisatie(screeningOrganisatie);
 		mergedBrieven.setCreatieDatum(aangemaaktOp);
 		mergedBrieven.setBriefType(briefType);
@@ -62,7 +63,7 @@ public class ColonBrievenGenererenWriter extends AbstractBrievenGenererenWriter<
 	@Override
 	public void additionalMergedContext(MailMergeContext context)
 	{
-		ColonBrief brief = (ColonBrief) context.getBrief();
+		var brief = (ColonBrief) context.getBrief();
 		context.setIntakeAfspraak(brief.getIntakeAfspraak());
 		context.setVorigeIntakeAfspraak(brief.getVorigeIntakeAfspraak());
 	}

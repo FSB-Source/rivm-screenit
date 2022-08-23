@@ -34,6 +34,7 @@ import nl.rivm.screenit.model.OrganisatieParameterKey;
 import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.CERVIX;
 import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.COLON;
 import static nl.rivm.screenit.model.enums.Bevolkingsonderzoek.MAMMA;
+import static nl.rivm.screenit.model.enums.JobFlag.BLOCK_CRON_TRIGGER;
 import static nl.rivm.screenit.model.enums.JobFlag.BLOCK_MANUAL_START;
 
 public enum JobType
@@ -52,7 +53,7 @@ public enum JobType
 
 	IFOBT_HERINNERING(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
-	KOPPELDATA_VERWERKING(new JobFlag[] { BLOCK_MANUAL_START }, BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
+	KOPPELDATA_VERWERKING(new JobFlag[] { BLOCK_MANUAL_START, BLOCK_CRON_TRIGGER }, BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	GUNSTIGE_UITSLAG(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
@@ -62,7 +63,7 @@ public enum JobType
 
 	VERVOLG_INTAKE_CONCLUSIE_BATCH(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
-	HUISARTS_ONTKOPPELEN_JOB_DK(new JobFlag[] { BLOCK_MANUAL_START }, BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
+	HUISARTS_ONTKOPPELEN_JOB_DK(new JobFlag[] { BLOCK_MANUAL_START, BLOCK_CRON_TRIGGER }, BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
 	ONEINDIGE_ROOSTERITEMS_UITROLLEN(BatchApplicationType.COLON, new Bevolkingsonderzoek[] { COLON }),
 
@@ -80,7 +81,7 @@ public enum JobType
 		new Bevolkingsonderzoek[] { CERVIX },
 		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_SELECTIE }),
 
-	CERVIX_KOPPELDATA_VERWERKING(new JobFlag[] { BLOCK_MANUAL_START }, BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
+	CERVIX_KOPPELDATA_VERWERKING(new JobFlag[] { BLOCK_MANUAL_START, BLOCK_CRON_TRIGGER }, BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
 	CERVIX_ILM(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
@@ -106,7 +107,9 @@ public enum JobType
 
 	REGIO_BRIEVEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
-	CERVIX_ORDER(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
+	CERVIX_ORDER(BatchApplicationType.CERVIX,
+		new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_ORDER_NIEUWE_STIJL }),
 
 	CERVIX_HPV_ORU(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX }),
 
@@ -125,6 +128,9 @@ public enum JobType
 		BatchApplicationType.CERVIX,
 		new Bevolkingsonderzoek[] { CERVIX },
 		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_MAX_AANTAL_CLIENTEN_VERLATE_DEELNAME, OrganisatieParameterKey.CERVIX_PROJECT_VERLATE_DEELNAME }),
+
+	CERVIX_CONTROLE_MISSENDE_UITSLAGEN(BatchApplicationType.CERVIX, new Bevolkingsonderzoek[] { CERVIX },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.CERVIX_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN }),
 
 	MAMMA_NA_GBA(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
@@ -161,9 +167,12 @@ public enum JobType
 
 	MAMMA_XDS(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
-	MAMMA_PALGA_CSV_EXPORT(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
+	MAMMA_PALGA_CSV_EXPORT(new JobFlag[] { BLOCK_CRON_TRIGGER }, BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
 
-	MAMMA_PALGA_CSV_IMPORT(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
+	MAMMA_PALGA_CSV_IMPORT(new JobFlag[] { BLOCK_CRON_TRIGGER }, BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA }),
+
+	MAMMA_CONTROLE_MISSENDE_UITSLAGEN(BatchApplicationType.MAMMA, new Bevolkingsonderzoek[] { MAMMA },
+		new OrganisatieParameterKey[] { OrganisatieParameterKey.MAMMA_SIGNALERINGSTERMIJN_MISSENDE_UITSLAGEN }),
 
 	COORDINATEN(BatchApplicationType.GENERALIS, new Bevolkingsonderzoek[] { COLON, CERVIX, MAMMA }),
 

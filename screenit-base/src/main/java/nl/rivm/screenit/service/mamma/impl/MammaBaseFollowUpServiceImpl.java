@@ -21,6 +21,10 @@ package nl.rivm.screenit.service.mamma.impl;
  * =========================LICENSE_END==================================
  */
 
+import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
+
 import nl.rivm.screenit.dao.mamma.MammaBaseFollowUpDao;
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingDto;
 import nl.rivm.screenit.dto.mamma.MammaFollowUpInstellingRadiologieDto;
@@ -31,14 +35,15 @@ import nl.rivm.screenit.model.enums.MammaFollowUpDoorverwezenFilterOptie;
 import nl.rivm.screenit.model.mamma.MammaBeoordeling;
 import nl.rivm.screenit.model.mamma.MammaDossier;
 import nl.rivm.screenit.model.mamma.MammaFollowUpRadiologieVerslag;
+import nl.rivm.screenit.model.mamma.MammaScreeningRonde;
 import nl.rivm.screenit.service.mamma.MammaBaseFollowUpService;
+import nl.rivm.screenit.util.DateUtil;
 import nl.topicuszorg.hibernate.spring.dao.HibernateService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -111,5 +116,18 @@ public class MammaBaseFollowUpServiceImpl implements MammaBaseFollowUpService
 			dossier.setUpdateFollowUpConclusie(heeftOpenstaandeFollowUpConclusie);
 			hibernateService.saveOrUpdate(dossier);
 		}
+	}
+
+	@Override
+	public LocalDate getEersteAutorisatieDatumPaVerslag(MammaScreeningRonde screeningRonde)
+	{
+		return screeningRonde.getFollowUpVerslagen()
+			.stream()
+			.filter(v -> v.getVerslagContent() != null && v.getVerslagContent().getPathologieMedischeObservatie() != null
+				&& v.getVerslagContent().getPathologieMedischeObservatie().getDatumAutorisatieUitslag() != null)
+			.map(v -> v.getVerslagContent().getPathologieMedischeObservatie().getDatumAutorisatieUitslag())
+			.map(DateUtil::toLocalDate)
+			.min(Comparator.naturalOrder())
+			.orElse(null);
 	}
 }

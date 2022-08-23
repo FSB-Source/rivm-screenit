@@ -25,6 +25,7 @@ import java.util.Iterator;
 
 import nl.rivm.screenit.dao.ProjectDao;
 import nl.rivm.screenit.model.SortState;
+import nl.rivm.screenit.model.project.ProjectClient;
 import nl.rivm.screenit.model.project.ProjectClientAttribuut;
 import nl.topicuszorg.wicket.hibernate.util.ModelUtil;
 
@@ -36,15 +37,12 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 public class ClientProjectAttributenDataProvider extends SortableDataProvider<ProjectClientAttribuut, String>
 {
-
-	private static final long serialVersionUID = 1L;
-
-	private IModel<ProjectClientAttribuut> filterModel;
+	private IModel<ProjectClient> filterModel;
 
 	@SpringBean
 	private ProjectDao projectDao;
 
-	public ClientProjectAttributenDataProvider(IModel<ProjectClientAttribuut> filterModel)
+	public ClientProjectAttributenDataProvider(IModel<ProjectClient> filterModel)
 	{
 		Injector.get().inject(this);
 		this.filterModel = filterModel;
@@ -54,7 +52,7 @@ public class ClientProjectAttributenDataProvider extends SortableDataProvider<Pr
 	@Override
 	public Iterator<? extends ProjectClientAttribuut> iterator(long first, long count)
 	{
-		return projectDao.getAttributenVoorProjectClient(ModelUtil.nullSafeGet(filterModel), first, count, new SortState<String>(getSort().getProperty(), getSort().isAscending()));
+		return projectDao.getAttributenVoorProjectClient(ModelUtil.nullSafeGet(filterModel), first, count, new SortState<>(getSort().getProperty(), getSort().isAscending()));
 	}
 
 	@Override
@@ -69,4 +67,10 @@ public class ClientProjectAttributenDataProvider extends SortableDataProvider<Pr
 		return ModelUtil.sModel(object);
 	}
 
+	@Override
+	public void detach()
+	{
+		super.detach();
+		ModelUtil.nullSafeDetach(filterModel);
+	}
 }

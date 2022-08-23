@@ -295,7 +295,7 @@ h5 {
 	position: absolute;
 	z-index: 1000;
 	top: 0;
-	left: -3px;
+	right: 3px;
 	color: rgba(0, 0, 0, 0.19);
 	cursor: pointer;
 }
@@ -761,21 +761,6 @@ thead {
 
 .react-bootstrap-table-pagination {
 	margin: 20px 20px;
-}
-
-.select-container-lavendel div div {
-	color: black;
-	background-color: lavender;
-}
-
-.select-container-lavendel div:nth-child(3) div div:hover {
-	color: var(--donker-paars);
-	background-color: var(--licht-paars);
-	cursor: pointer;
-}
-
-.multiselect-container div div div div {
-	background-color: var(--licht-paars);
 }
 
 .non-selectable {

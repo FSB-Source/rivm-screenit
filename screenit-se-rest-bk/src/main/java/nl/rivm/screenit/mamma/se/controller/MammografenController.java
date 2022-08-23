@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/mammografen")
+@RequestMapping("/api/mammografen")
 public class MammografenController extends AuthorizedController
 {
 	private static final Logger LOG = LoggerFactory.getLogger(MammografenController.class);

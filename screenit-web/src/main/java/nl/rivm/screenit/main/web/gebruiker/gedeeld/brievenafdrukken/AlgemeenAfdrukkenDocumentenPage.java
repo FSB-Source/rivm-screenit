@@ -34,7 +34,7 @@ import org.wicketstuff.shiro.ShiroConstraint;
 	actie = Actie.INZIEN,
 	checkScope = true,
 	constraint = ShiroConstraint.HasPermission,
-	recht = Recht.GEBRUIKER_SCREENING_PRINTER,
+	recht = Recht.GEBRUIKER_SCREENING_PRINTER_LANDELIJK,
 	bevolkingsonderzoekScopes = {
 		Bevolkingsonderzoek.CERVIX, Bevolkingsonderzoek.COLON, Bevolkingsonderzoek.MAMMA })
 public class AlgemeenAfdrukkenDocumentenPage extends AfdrukkenDocumentenBasePage<AlgemeneMergedBrieven>

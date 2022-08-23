@@ -26,7 +26,7 @@ import java.util.List;
 
 import nl.rivm.screenit.PreferenceKey;
 import nl.rivm.screenit.main.model.testen.TestTimeLineDossierTijdstip;
-import nl.rivm.screenit.main.service.TestTimelineService;
+import nl.rivm.screenit.main.service.colon.ColonTestTimelineService;
 import nl.rivm.screenit.main.web.component.dropdown.ScreenitDropdown;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.components.TestEnumRadioChoice;
 import nl.rivm.screenit.main.web.gebruiker.testen.gedeeld.timeline.popups.AbstractTestBasePopupPanel;
@@ -37,7 +37,6 @@ import nl.rivm.screenit.model.colon.ColonOnderzoeksVariant;
 import nl.rivm.screenit.model.enums.Actie;
 import nl.rivm.screenit.model.enums.Bevolkingsonderzoek;
 import nl.rivm.screenit.model.enums.Recht;
-import nl.rivm.screenit.service.ICurrentDateSupplier;
 import nl.rivm.screenit.util.ColonScreeningRondeUtil;
 import nl.topicuszorg.preferencemodule.service.SimplePreferenceService;
 
@@ -48,8 +47,6 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.wicketstuff.shiro.ShiroConstraint;
 
 @SecurityConstraint(
@@ -64,13 +61,8 @@ public class TestScreeningRondePopUp extends AbstractTestBasePopupPanel
 
 	private static final long serialVersionUID = 1L;
 
-	private static final Logger LOG = LoggerFactory.getLogger(TestScreeningRondePopUp.class);
-
 	@SpringBean
-	private TestTimelineService testTimeLineService;
-
-	@SpringBean
-	private ICurrentDateSupplier currentDateSupplier;
+	private ColonTestTimelineService colonTestTimeLineService;
 
 	@SpringBean
 	private SimplePreferenceService simplePreferenceService;
@@ -108,7 +100,7 @@ public class TestScreeningRondePopUp extends AbstractTestBasePopupPanel
 			redenen.add(TestTimeLineDossierTijdstip.DAG_NA_UITNODIGING_ZONDER_FIT);
 		}
 
-		RadioChoice<TestTimeLineDossierTijdstip> reden = new TestEnumRadioChoice<TestTimeLineDossierTijdstip>("reden", dossierTijdStipModel, redenen,
+		RadioChoice<TestTimeLineDossierTijdstip> reden = new TestEnumRadioChoice<>("reden", dossierTijdStipModel, redenen,
 			new EnumChoiceRenderer<>(this));
 		reden.setPrefix("<label class=\"radio\">");
 		reden.setSuffix("</label>");
@@ -134,7 +126,7 @@ public class TestScreeningRondePopUp extends AbstractTestBasePopupPanel
 		TestTimeLineDossierTijdstip tijdStip = dossierTijdStipModel.getObject();
 		for (Client client : getModelObject())
 		{
-			testTimeLineService.maakNieuweScreeningRonde(client, tijdStip, onderzoeksVariantModel.getObject());
+			colonTestTimeLineService.maakNieuweScreeningRonde(client, tijdStip, onderzoeksVariantModel.getObject());
 		}
 	}
 }

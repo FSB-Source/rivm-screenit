@@ -24,6 +24,9 @@ package nl.rivm.screenit.batch.jobs.generalis.projecten.brieven.controle;
 import nl.rivm.screenit.batch.jobs.brieven.controle.AbstractBrievenControleWriter;
 import nl.rivm.screenit.model.project.ProjectMergedBrieven;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ProjectBrievenControleWriter extends AbstractBrievenControleWriter<ProjectMergedBrieven>
 {
 

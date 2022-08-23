@@ -72,7 +72,7 @@ const BvoTakenComponent = (props: BvoTakenComponentProps) => {
 		<Row className={styles.bvoSelectie}>
 			<Col lg={4}>
 				<TaakComponent icon={<TelefoonnummerIcon/>}
-							   link="/profiel/telefoonnummer"
+							   link="/profiel/telefoonnummer/"
 							   tekst={(persoon.telefoonnummer1 || persoon.telefoonnummer2) ? getString(properties.taak.telefoonnummer.wijzigen) : getString(properties.taak.telefoonnummer.doorgeven)}/>
 			</Col>
 			{beschikbareActies.includes(afmeldContactActieTypeVanBvo) &&
@@ -92,7 +92,7 @@ const BvoTakenComponent = (props: BvoTakenComponentProps) => {
 			{beschikbareActies.includes(ClientContactActieType.TIJDELIJK_ADRES) &&
 			<Col lg={4}>
 				<TaakComponent icon={<HuisIcon/>}
-							   link="/profiel/adres"
+							   link="/profiel/adres/"
 							   tekst={persoon.tijdelijkAdres ? getString(properties.taak.adres.wijzigen) : getString(properties.taak.adres.doorgeven)}/>
 			</Col>
 			}

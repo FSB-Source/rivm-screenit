@@ -99,8 +99,11 @@ public class LabaanvraagValidator
 			{
 				if (e.getCause() instanceof ParseException)
 				{
-					addMappingIssue(e.getCause()
-						.getMessage());
+					addMappingIssue(e.getCause().getMessage());
+				}
+				else if (e instanceof IllegalArgumentException)
+				{
+					addMappingIssue(e.getMessage());
 				}
 				else
 				{
@@ -132,12 +135,6 @@ public class LabaanvraagValidator
 			.count() != 1)
 		{
 			addQuestionIssue(CodeSystem.ASPECT_CERVIX);
-		}
-
-		if (labformulier.isAspectCervixAbnormaalOfVerdachtePortio() &&
-			StringUtils.isBlank(labformulier.getAspectCervixAbnormaalOfVerdachtePortioTekst()))
-		{
-			addQuestionIssue(CodeSystem.ASPECT_CERVIX_VRIJE_TEKST);
 		}
 	}
 
@@ -514,6 +511,15 @@ public class LabaanvraagValidator
 
 	private void validateHuisartsGerelateerdeData(LabaanvraagResource resource)
 	{
+		if (resource instanceof LabaanvraagBundle)
+		{
+			LabaanvraagBundle bundle = (LabaanvraagBundle) resource;
+			if (bundle.getAuthorReferences().size() > 1)
+			{
+				addMappingIssue("meer dan één author reference");
+				return;
+			}
+		}
 		if (resource.getIndividueleAgb() != null)
 		{
 			validateIndividueleAgb(resource);
@@ -536,6 +542,10 @@ public class LabaanvraagValidator
 		{
 			validatePraktijkAgb(resource);
 		}
+		else if (huisarts != null)
+		{
+			validateGemeenteGekoppeldAanBmhkLaboratorium(resource);
+		}
 	}
 
 	private void validatePraktijkAgb(LabaanvraagResource resource)
@@ -544,6 +554,23 @@ public class LabaanvraagValidator
 		if (huisarts == null)
 		{
 			addBusinessRuleErrorOperationOutcomeIssueComponent(ValidationMessage.AGB_CODE_ONBEKEND);
+		}
+		else
+		{
+			validateGemeenteGekoppeldAanBmhkLaboratorium(resource);
+		}
+	}
+
+	private void validateGemeenteGekoppeldAanBmhkLaboratorium(LabaanvraagResource resource)
+	{
+		if (resource instanceof LabaanvraagBundle)
+		{
+			LabaanvraagBundle bundle = (LabaanvraagBundle) resource;
+			if (bundle.getLaboratorium() == null)
+			{
+				addErrorOperationOutcomeIssueComponent(OperationOutcome.IssueType.EXCEPTION,
+					new RequiredPropertyException("De gemeente waar de huisarts is gevestigd is (nog) niet aan een laboratorium gekoppeld. Neem contact op met BVO-NL!"));
+			}
 		}
 	}
 
@@ -575,7 +602,7 @@ public class LabaanvraagValidator
 		ValidationMessage message)
 	{
 		LOG.error("Validatiefout digitaal labformulier: {}", message);
-		operationOutcome.addIssue(new OperationOutcome.OperationOutcomeIssueComponent()
+		addOperationOutcomeIssueComponent(new OperationOutcome.OperationOutcomeIssueComponent()
 			.setSeverity(severity)
 			.setCode(issueType)
 			.setDetails(createDetails(message)));
@@ -586,10 +613,18 @@ public class LabaanvraagValidator
 		Exception exception)
 	{
 		LOG.error("Validatiefout digitaal labformulier: {} ", exception.getMessage());
-		operationOutcome.addIssue(new OperationOutcome.OperationOutcomeIssueComponent()
+		addOperationOutcomeIssueComponent(new OperationOutcome.OperationOutcomeIssueComponent()
 			.setSeverity(severity)
 			.setCode(issueType)
 			.setDiagnosticsElement(new StringType(exception.getClass().getSimpleName() + ": " + exception.getMessage())));
+	}
+
+	private void addOperationOutcomeIssueComponent(OperationOutcome.OperationOutcomeIssueComponent outcomeIssueComponent)
+	{
+		if (operationOutcome.getIssue().stream().noneMatch(i -> i.equalsDeep(outcomeIssueComponent)))
+		{
+			operationOutcome.addIssue(outcomeIssueComponent);
+		}
 	}
 
 	public boolean isSuccesful()

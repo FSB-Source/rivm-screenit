@@ -29,14 +29,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import nl.rivm.screenit.batch.jobs.BatchConstants;
 import nl.rivm.screenit.model.enums.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.annotation.BeforeStep;
@@ -50,15 +51,15 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import au.com.bytecode.opencsv.CSVReader;
 
+@Slf4j
 public abstract class BaseCsvFileReader<T> implements ItemReader<T>, ItemStream
 {
-
-	private static final Logger LOG = LoggerFactory.getLogger(BaseCsvFileReader.class);
 
 	@Autowired
 	private SessionFactory sessionFactory;
 
-	private CsvFileProvider cvsFileProvider;
+	@Setter
+	private CsvFileProvider csvFileProvider;
 
 	private Iterator<CSVReader> readers;
 
@@ -139,18 +140,6 @@ public abstract class BaseCsvFileReader<T> implements ItemReader<T>, ItemStream
 	}
 
 	protected abstract T parseLine(String[] line, int regelnummer, String bestandsNaam) throws ParseException, IllegalStateException;
-
-	protected static String nullCheckColumn(String waarde) throws ParseException
-	{
-		if (StringUtils.isNotBlank(waarde))
-		{
-			return waarde;
-		}
-		else
-		{
-			throw new IllegalStateException("Syntax is incorrect, verplicht veld is leeg.");
-		}
-	}
 
 	private String setNextReaderToCurrentAndReturnBestandsNaam() throws IOException
 	{
@@ -239,7 +228,7 @@ public abstract class BaseCsvFileReader<T> implements ItemReader<T>, ItemStream
 				TransactionSynchronizationManager.bindResource(sessionFactory, new SessionHolder(hibernateSession));
 			}
 
-			readers = cvsFileProvider.getReaders();
+			readers = csvFileProvider.getReaders();
 		}
 		catch (IllegalStateException e)
 		{
@@ -287,8 +276,4 @@ public abstract class BaseCsvFileReader<T> implements ItemReader<T>, ItemStream
 		}
 	}
 
-	public void setCsvFileProvider(CsvFileProvider cvsFileProvider)
-	{
-		this.cvsFileProvider = cvsFileProvider;
-	}
 }

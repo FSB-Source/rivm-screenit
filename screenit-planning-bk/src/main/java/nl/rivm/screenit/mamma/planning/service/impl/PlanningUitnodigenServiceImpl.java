@@ -129,9 +129,8 @@ public class PlanningUitnodigenServiceImpl implements PlanningUitnodigenService
 		for (PlanningClient client : openUitnodigingClientSet)
 		{
 			BriefType briefType = screeningrondeService.bepaalBriefTypeVoorOpenUitnodiging(client.isSuspect(), client.getDoelgroep());
-
 			maakRondeEnUitnodiging(getDossier(client), briefType, mammaStandplaatsRonde, false);
-			voegToe(getStandplaatsPeriodeUitnodigenRapportage(rapportageDto, eersteMammaStandplaatsPeriode), briefType , client);
+			voegToe(getStandplaatsPeriodeUitnodigenRapportage(rapportageDto, eersteMammaStandplaatsPeriode), briefType, client);
 		}
 
 		for (PlanningClient client : afspraakUitnodigingClientSet)

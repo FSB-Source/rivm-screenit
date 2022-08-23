@@ -20,257 +20,257 @@
   -->
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <form wicket:id="form" class="mammaStandplaatsPeriode form-horizontal">
-        <div class="modal-header">
-            <button type="button" class="close" wicket:id="close">&times;</button>
-            <h3>Standplaatsperiode <span wicket:id="standplaatsRonde.standplaats.naam"/></h3>
-        </div>
-        <div class="modal-body">
-            <div class="accordion" data-chevron-direction="left" wicket:id="accordionContainer">
-                <div class="accordion-group">
-                    <div class="accordion-heading">
-                        <a class="accordion-toggle" data-toggle="collapse" wicket:id="standVanZakenLink">
-                            <i class="icon-purple pull-right icon-chevron-left"></i>
-                            Stand van zaken
-                        </a>
-                    </div>
-                    <div class="accordion-body collapse in" wicket:id="standVanZakenContainer">
-                        <div class="control-group accordion-inner">
-                            <h4>Vrijgegeven capaciteit</h4>
-                            <div wicket:id="geenCapaciteitOverzicht">Van toepassing nadat er is vrijgegeven voor deze standplaatsperiode</div>
-                            <div wicket:id="capaciteitOverzichtContainer">
-                                <table class="table-bordered table-condensed">
-                                    <thead>
-                                    <tr>
-                                        <th/>
-                                        <th width="60"><a>Regulier</a></th>
-                                        <th width="130"><a>Tehuis</a></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td>Beschikbaar</td>
-                                        <td wicket:id="beschikbaarRegulier">12</td>
-                                        <td wicket:id="beschikbaarTehuis">15</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Vrij</td>
-                                        <td wicket:id="vrijRegulier">12.0</td>
-                                        <td wicket:id="vrijTehuis">15</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <hr>
-                            <h4>Uitnodigen</h4>
-                            <div wicket:id="nietUitgenodigd">Bekend nadat er is uitgenodigd voor deze standplaatsronde</div>
-                            <div wicket:id="uitnodigenOverzichtContainer">
-                                <table class="table-bordered table-condensed">
-                                    <thead>
-                                    <tr>
-                                        <th/>
-                                        <th><a>Totaal</a></th>
-                                        <th><a>Vervolgronde</a></th>
-                                        <th><a>Eerste ronde</a></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td>Totaal</td>
-                                        <td wicket:id="totaalTotaal">12</td>
-                                        <td wicket:id="totaalVervolgRonde">12</td>
-                                        <td wicket:id="totaalEersteRonde">12</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Uit te nodigen</td>
-                                        <td wicket:id="uitTeNodigenTotaal">12</td>
-                                        <td wicket:id="uitTeNodigenVervolgRonde">12</td>
-                                        <td wicket:id="uitTeNodigenEersteRonde">12</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                                <p>De onderstaande groepen overlappen</p>
-                                <table class="table-bordered table-condensed">
-                                    <thead>
-                                    <tr>
-                                        <th/>
-                                        <th><a>Dubbele tijd</a></th>
-                                        <th><a>Mindervalide</a></th>
-                                        <th><a>Tehuis</a></th>
-                                        <th><a>Suspect</a></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr>
-                                        <td>Totaal</td>
-                                        <td wicket:id="totaalDubbeleTijd">12</td>
-                                        <td wicket:id="totaalMinderValide">12</td>
-                                        <td wicket:id="totaalTehuis">12</td>
-                                        <td wicket:id="totaalSuspect">12</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Uit te nodigen</td>
-                                        <td wicket:id="uitTeNodigenDubbeleTijd">12</td>
-                                        <td wicket:id="uitTeNodigenMinderValide">12</td>
-                                        <td wicket:id="uitTeNodigenTehuis">12</td>
-                                        <td wicket:id="uitTeNodigenSuspect">12</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+	<form wicket:id="form" class="mammaStandplaatsPeriode form-horizontal">
+		<div class="modal-header">
+			<button type="button" class="close" wicket:id="close">&times;</button>
+			<h3>Standplaatsperiode <span wicket:id="standplaatsRonde.standplaats.naam"/></h3>
+		</div>
+		<div class="modal-body">
+			<div class="accordion" data-chevron-direction="left" wicket:id="accordionContainer">
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" wicket:id="standVanZakenLink">
+							<i class="icon-purple pull-right icon-chevron-left"></i>
+							Stand van zaken
+						</a>
+					</div>
+					<div class="accordion-body collapse in" wicket:id="standVanZakenContainer">
+						<div class="control-group accordion-inner">
+							<h4>Vrijgegeven capaciteit</h4>
+							<div wicket:id="geenCapaciteitOverzicht">Van toepassing nadat er is vrijgegeven voor deze standplaatsperiode</div>
+							<div wicket:id="capaciteitOverzichtContainer">
+								<table class="table-bordered table-condensed">
+									<thead>
+									<tr>
+										<th/>
+										<th width="60"><a>Regulier</a></th>
+										<th width="130"><a>Tehuis</a></th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<td>Beschikbaar</td>
+										<td wicket:id="beschikbaarRegulier">12</td>
+										<td wicket:id="beschikbaarTehuis">15</td>
+									</tr>
+									<tr>
+										<td>Vrij</td>
+										<td wicket:id="vrijRegulier">12.0</td>
+										<td wicket:id="vrijTehuis">15</td>
+									</tr>
+									</tbody>
+								</table>
+							</div>
+							<hr>
+							<h4>Uitnodigen</h4>
+							<div wicket:id="nietUitgenodigd">Bekend nadat er is uitgenodigd voor deze standplaatsronde</div>
+							<div wicket:id="uitnodigenOverzichtContainer">
+								<table class="table-bordered table-condensed">
+									<thead>
+									<tr>
+										<th/>
+										<th><a>Totaal</a></th>
+										<th><a>Vervolgronde</a></th>
+										<th><a>Eerste ronde</a></th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<td>Totaal</td>
+										<td wicket:id="totaalTotaal">12</td>
+										<td wicket:id="totaalVervolgRonde">12</td>
+										<td wicket:id="totaalEersteRonde">12</td>
+									</tr>
+									<tr>
+										<td>Uit te nodigen</td>
+										<td wicket:id="uitTeNodigenTotaal">12</td>
+										<td wicket:id="uitTeNodigenVervolgRonde">12</td>
+										<td wicket:id="uitTeNodigenEersteRonde">12</td>
+									</tr>
+									</tbody>
+								</table>
+								<p>De onderstaande groepen overlappen</p>
+								<table class="table-bordered table-condensed">
+									<thead>
+									<tr>
+										<th/>
+										<th><a>Dubbele tijd</a></th>
+										<th><a>Mindervalide</a></th>
+										<th><a>Tehuis</a></th>
+										<th><a>Suspect met uitstel</a></th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<td>Totaal</td>
+										<td wicket:id="totaalDubbeleTijd">12</td>
+										<td wicket:id="totaalMinderValide">12</td>
+										<td wicket:id="totaalTehuis">12</td>
+										<td wicket:id="totaalSuspect">12</td>
+									</tr>
+									<tr>
+										<td>Uit te nodigen</td>
+										<td wicket:id="uitTeNodigenDubbeleTijd">12</td>
+										<td wicket:id="uitTeNodigenMinderValide">12</td>
+										<td wicket:id="uitTeNodigenTehuis">12</td>
+										<td wicket:id="uitTeNodigenSuspect">12</td>
+									</tr>
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
 
-                <div class="accordion-group">
-                    <div class="accordion-heading">
-                        <a class="accordion-toggle" data-toggle="collapse" wicket:id="configurationLink">
-                            <i class="icon-purple pull-right icon-chevron-left"></i>
-                            Configuratie
-                        </a>
-                    </div>
-                    <div class="accordion-body collapse" wicket:id="configurationContainer">
-                        <div class="accordion-inner">
-                        	<div class="row-fluid form-horizontal">
-                				<div class="span6">
-		                            <div class="control-group">
-		                                <label class="control-label">Begindatum</label>
-		                                <div class="controls">
-		                                    <wicket:enclosure child="vanaf">
-		                                        <div class="btn-group periode-filter">
-		                                            <div class="input-append">
-		                                                <input name="vanaf" wicket:id="vanaf" type="text"
-		                                                       placeholder="dd-mm-jaar" size="16"
-		                                                       class="input-small datum three-months"/>
-		                                                <a href="javascript:void(0);" class="add-on"
-		                                                   onclick="$(this).prev().datepicker('show');"
-		                                                   title="vanaf"
-		                                                   tabindex="-1">
-		                                                    <i class="icon-calendar"></i>
-		                                                </a>
-		                                            </div>
-		                                        </div>
-		                                    </wicket:enclosure>
-		                                    <span wicket:id="vanafLabel"></span>
-		                                </div>
-		                            </div>
-		                            <div class="control-group">
-		                                <label class="control-label">Einddatum</label>
-		                                <div class="controls">
-		                                    <div>
-		                                        <div class="btn-group periode-filter">
-		                                            <div class="input-append">
-		                                                <input name="totEnMet" wicket:id="totEnMet" type="text"
-		                                                       placeholder="dd-mm-jaar" size="16"
-		                                                       class="input-small datum three-months"/>
-		                                                <a href="javascript:void(0);" class="add-on"
-		                                                   onclick="$(this).prev().datepicker('show');"
-		                                                   title="totEnMet"
-		                                                   tabindex="-1">
-		                                                    <i class="icon-calendar"></i>
-		                                                </a>
-		                                            </div>
-		                                        </div>
-		                                        <span wicket:id="totEnMetPrognose"></span>
-		                                    </div>
-		                                </div>
-		                            </div>
-		                            <div wicket:id="achtervangStandplaatsContainer">
-		                                <div class="control-group">
-		                                    <label class="control-label">Achtervang standplaats</label>
-		                                    <div class="controls">
-		                                        <div>
-		                                            <select wicket:id="achtervangStandplaatsId"></select>
-		                                        </div>
-		                                    </div>
-		                                </div>
-		                            </div>
-                                    <div wicket:id="minderValideUitwijkStandplaatsContainer">
-                                        <div class="control-group">
-                                            <label class="control-label">Mindervalide uitwijk standplaats</label>
-                                            <div class="controls">
-                                                <div>
-                                                    <select wicket:id="minderValideUitwijkStandplaatsId"></select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-		                            <div class="control-group">
-		                                <label class="control-label">Alle mindervalide uitnodigen vanaf</label>
-		                                <div class="controls">
-		                                    <div>
-		                                        <div class="btn-group periode-filter">
-		                                            <div class="input-append">
-		                                                <input name="minderValideUitnodigenVanaf" wicket:id="minderValideUitnodigenVanaf" type="text"
-		                                                       placeholder="dd-mm-jaar" size="16"
-		                                                       class="input-small datum three-months"/>
-		                                                <a href="javascript:void(0);" class="add-on"
-		                                                   onclick="$(this).prev().datepicker('show');"
-		                                                   title="minderValideUitnodigenVanaf"
-		                                                   tabindex="-1">
-		                                                    <i class="icon-calendar"></i>
-		                                                </a>
-		                                            </div>
-		                                        </div>
-		                                    </div>
-		                                </div>
-	                                </div>
-	                            </div>
-                    			<div class="span6">
-                    				 <div class="control-group">
-				                        <label class="control-label">Afspraakcapaciteit beschikbaar voor <span
-				                                class="label label-info">Multiselect</span></label>
-					                        <div class="controls">
-					                            <select multiple="multiple" wicket:id="afspraakcapaciteitBeschikbaarVoorIds">
-					                            </select>
-					                        </div>
-				                    </div>
-                    			</div>
-	                         </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="accordion-group">
-                    <div class="accordion-heading">
-                        <a class="accordion-toggle" data-toggle="collapse" wicket:id="afspraakDrempelLink">
-                            <i class="icon-purple pull-right icon-chevron-left"></i>
-                            Afspraakdrempel
-                        </a>
-                    </div>
-                    <div class="accordion-body collapse" wicket:id="afspraakDrempelContainer">
-                        <div class="control-group">
-                            <div class="accordion-inner">
-                                <label class="control-label">Afspraakdrempel (SO <span wicket:id="standplaatsRonde.standplaats.regio.afspraakDrempelBk" class="afspraakDrempelSO"/>%)
-                                </label>
-                                <div class="controls">
-                                    <input wicket:id="afspraakDrempel" class="afspraakDrempel input-large" type="text" maxlength="3"
-                                           onchange="deVoorspellingsgrafiekenDeelnamekans.onAfspraakDrempelChange()"/> %
-                                </div>
-                            </div>
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" wicket:id="configurationLink">
+							<i class="icon-purple pull-right icon-chevron-left"></i>
+							Configuratie
+						</a>
+					</div>
+					<div class="accordion-body collapse" wicket:id="configurationContainer">
+						<div class="accordion-inner">
+							<div class="row-fluid form-horizontal">
+								<div class="span6">
+									<div class="control-group">
+										<label class="control-label">Begindatum</label>
+										<div class="controls">
+											<wicket:enclosure child="vanaf">
+												<div class="btn-group periode-filter">
+													<div class="input-append">
+														<input name="vanaf" wicket:id="vanaf" type="text"
+															   placeholder="dd-mm-jaar" size="16"
+															   class="input-small datum three-months"/>
+														<a href="javascript:void(0);" class="add-on"
+														   onclick="$(this).prev().datepicker('show');"
+														   title="vanaf"
+														   tabindex="-1">
+															<i class="icon-calendar"></i>
+														</a>
+													</div>
+												</div>
+											</wicket:enclosure>
+											<span wicket:id="vanafLabel"></span>
+										</div>
+									</div>
+									<div class="control-group">
+										<label class="control-label">Einddatum</label>
+										<div class="controls">
+											<div>
+												<div class="btn-group periode-filter">
+													<div class="input-append">
+														<input name="totEnMet" wicket:id="totEnMet" type="text"
+															   placeholder="dd-mm-jaar" size="16"
+															   class="input-small datum three-months"/>
+														<a href="javascript:void(0);" class="add-on"
+														   onclick="$(this).prev().datepicker('show');"
+														   title="totEnMet"
+														   tabindex="-1">
+															<i class="icon-calendar"></i>
+														</a>
+													</div>
+												</div>
+												<span wicket:id="totEnMetPrognose"></span>
+											</div>
+										</div>
+									</div>
+									<div wicket:id="achtervangStandplaatsContainer">
+										<div class="control-group">
+											<label class="control-label">Achtervang standplaats</label>
+											<div class="controls">
+												<div>
+													<select wicket:id="achtervangStandplaatsId"></select>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div wicket:id="minderValideUitwijkStandplaatsContainer">
+										<div class="control-group">
+											<label class="control-label">Mindervalide uitwijk standplaats</label>
+											<div class="controls">
+												<div>
+													<select wicket:id="minderValideUitwijkStandplaatsId"></select>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="control-group">
+										<label class="control-label">Alle mindervalide uitnodigen vanaf</label>
+										<div class="controls">
+											<div>
+												<div class="btn-group periode-filter">
+													<div class="input-append">
+														<input name="minderValideUitnodigenVanaf" wicket:id="minderValideUitnodigenVanaf" type="text"
+															   placeholder="dd-mm-jaar" size="16"
+															   class="input-small datum three-months"/>
+														<a href="javascript:void(0);" class="add-on"
+														   onclick="$(this).prev().datepicker('show');"
+														   title="minderValideUitnodigenVanaf"
+														   tabindex="-1">
+															<i class="icon-calendar"></i>
+														</a>
+													</div>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="span6">
+									<div class="control-group">
+										<label class="control-label">Afspraakcapaciteit beschikbaar voor <span
+												class="label label-info">Multiselect</span></label>
+										<div class="controls">
+											<select multiple="multiple" wicket:id="afspraakcapaciteitBeschikbaarVoorIds">
+											</select>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="accordion-group">
+					<div class="accordion-heading">
+						<a class="accordion-toggle" data-toggle="collapse" wicket:id="afspraakDrempelLink">
+							<i class="icon-purple pull-right icon-chevron-left"></i>
+							Afspraakdrempel
+						</a>
+					</div>
+					<div class="accordion-body collapse" wicket:id="afspraakDrempelContainer">
+						<div class="control-group">
+							<div class="accordion-inner">
+								<label class="control-label">Afspraakdrempel (SO <span wicket:id="standplaatsRonde.standplaats.regio.afspraakDrempelBk" class="afspraakDrempelSO"/>%)
+								</label>
+								<div class="controls">
+									<input wicket:id="afspraakDrempel" class="afspraakDrempel input-large" type="text" maxlength="3"
+										   onchange="deVoorspellingsgrafiekenDeelnamekans.onAfspraakDrempelChange()"/> %
+								</div>
+							</div>
 
-                            <div id="voorspellingsgrafiekDeelnamekansDiv">
-                                <input type="hidden" wicket:id="applicationUrl" class="applicationUrl"/>
-                                <input type="hidden" wicket:id="subUrl" class="subUrl"/>
-                                <svg id="voorspellingsgrafiekDeelnamekans"/>
-                                <svg id="voorspellingsGrafiekMatrix1"/>
-                                <svg id="voorspellingsGrafiekMatrix2"/>
-                            </div>
-                            <script src="assets/js/voorspellingsgrafiek/util.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/data.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/rij.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/matrix.js"></script>
-                            <script src="assets/js/voorspellingsgrafiek/voorspellingsgrafiek.js"></script>
-                        </div>
-                    </div>
-                </div>
-            </div>
+							<div id="voorspellingsgrafiekDeelnamekansDiv">
+								<input type="hidden" wicket:id="applicationUrl" class="applicationUrl"/>
+								<input type="hidden" wicket:id="subUrl" class="subUrl"/>
+								<svg id="voorspellingsgrafiekDeelnamekans"/>
+								<svg id="voorspellingsGrafiekMatrix1"/>
+								<svg id="voorspellingsGrafiekMatrix2"/>
+							</div>
+							<script src="assets/js/voorspellingsgrafiek/util.js"></script>
+							<script src="assets/js/voorspellingsgrafiek/data.js"></script>
+							<script src="assets/js/voorspellingsgrafiek/rij.js"></script>
+							<script src="assets/js/voorspellingsgrafiek/matrix.js"></script>
+							<script src="assets/js/voorspellingsgrafiek/voorspellingsgrafiek.js"></script>
+						</div>
+					</div>
+				</div>
+			</div>
 
-            <div class="modal-footer">
-                <a class="btn btn-info left" wicket:id="splitsen">Splitsen</a>
-                <a class="btn btn-info right" wicket:id="opslaan">Onthouden</a>
-            </div>
-        </div>
-    </form>
-    <div wicket:id="dialog"></div>
+			<div class="modal-footer">
+				<a class="btn btn-info left" wicket:id="splitsen">Splitsen</a>
+				<a class="btn btn-info right" wicket:id="opslaan">Onthouden</a>
+			</div>
+		</div>
+	</form>
+	<div wicket:id="dialog"></div>
 </wicket:panel>
 </html>

@@ -21,12 +21,12 @@ package nl.rivm.screenit.batch.jobs.cervix.uitnodigingenversturen;
  * =========================LICENSE_END==================================
  */
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ZasUitnodigingenVersturenConstants
 {
 
-    private ZasUitnodigingenVersturenConstants()
-    {
-    }
-
-    public static final String PROJECTENCOUNTERS = "key.projectcounters";
+	public static final String PROJECTENCOUNTERS = "key.projectcounters";
 }

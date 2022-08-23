@@ -70,6 +70,8 @@ import org.hibernate.criterion.Subqueries;
 import org.hibernate.engine.spi.TypedValue;
 import org.hibernate.sql.JoinType;
 
+import static nl.rivm.screenit.model.colon.IFOBTType.GOLD;
+
 public abstract class ColonRestrictions
 {
 
@@ -173,10 +175,24 @@ public abstract class ColonRestrictions
 	private static Criterion createReferentieCriteria(LocalDate peildatum, LocalDate vandaag)
 	{
 		long afwijking = ChronoUnit.DAYS.between(vandaag, peildatum);
-		Criterion referentieCriteria = Restrictions.leProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum");
+		Criterion referentieCriteria = Restrictions.or(
+			Restrictions.and(
+				Restrictions.isNull("volgendeUitnodiging.projectPeildatum"),
+				Restrictions.leProperty("volgendeUitnodiging.peildatum", "interval.berekendeReferentieDatum")),
+			Restrictions.and(
+				Restrictions.isNotNull("volgendeUitnodiging.projectPeildatum"),
+				Restrictions.leProperty("volgendeUitnodiging.projectPeildatum", "interval.berekendeReferentieDatum"))
+		);
 		if (afwijking != 0)
 		{
-			referentieCriteria = new SpecialPropertyExpression("volgendeUitnodiging.peildatum", "<=", "interval.berekendeReferentieDatum", " + interval '" + afwijking + "' day");
+			referentieCriteria = Restrictions.or(
+				Restrictions.and(
+					Restrictions.isNull("volgendeUitnodiging.projectPeildatum"),
+					new SpecialPropertyExpression("volgendeUitnodiging.peildatum", "<=", "interval.berekendeReferentieDatum", " + interval '" + afwijking + "' day")),
+				Restrictions.and(
+					Restrictions.isNotNull("volgendeUitnodiging.projectPeildatum"),
+					new SpecialPropertyExpression("volgendeUitnodiging.projectPeildatum", "<=", "interval.berekendeReferentieDatum", " + interval '" + afwijking + "' day"))
+			);
 		}
 		return referentieCriteria;
 	}
@@ -592,16 +608,21 @@ public abstract class ColonRestrictions
 		criteria.createAlias("client.persoon", "persoon");
 
 		criteria.add(Restrictions.le("ifobt.statusDatum", DateUtil.toUtilDate(minimaleSignaleringsDatum)));
+		criteria.add(Restrictions.eq("ifobt.type", GOLD));
 
 		criteria.add(
 			Restrictions.or(
 				Restrictions.and(
-					Restrictions.gt("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(minimaleSignaleringsDatum)),
-					Restrictions.gtProperty("ifobt.analyseDatum", "dossier.datumLaatstGecontroleerdeSignalering")
+					Restrictions.gt("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(signalerenVanaf)),
+					DateRestrictions.gtProperty("ifobt.analyseDatum", "dossier.datumLaatstGecontroleerdeSignalering")
 				),
 				Restrictions.and(
-					Restrictions.isNull("dossier.datumLaatstGecontroleerdeSignalering"),
-					Restrictions.gt("ifobt.analyseDatum", DateUtil.toUtilDate(signalerenVanaf)))
+					Restrictions.or(
+						DateRestrictions.le("dossier.datumLaatstGecontroleerdeSignalering", DateUtil.toUtilDate(signalerenVanaf)),
+						Restrictions.isNull("dossier.datumLaatstGecontroleerdeSignalering")
+					),
+					Restrictions.gt("ifobt.analyseDatum", DateUtil.toUtilDate(signalerenVanaf))
+				)
 			)
 		);
 

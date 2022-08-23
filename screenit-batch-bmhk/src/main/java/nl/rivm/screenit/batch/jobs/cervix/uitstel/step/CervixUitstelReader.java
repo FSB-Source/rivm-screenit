@@ -31,18 +31,24 @@ import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.StatelessSession;
 import org.hibernate.criterion.Restrictions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CervixUitstelReader extends BaseScrollableResultReader
 {
 
-	@Autowired
-	private ICurrentDateSupplier dateSupplier;
+	private final ICurrentDateSupplier dateSupplier;
+
+	public CervixUitstelReader(ICurrentDateSupplier dateSupplier)
+	{
+		super.setFetchSize(50);
+		this.dateSupplier = dateSupplier;
+	}
 
 	@Override
 	public Criteria createCriteria(StatelessSession session) throws HibernateException
 	{
-		Criteria crit = session.createCriteria(CervixUitstel.class, "uitstel");
+		var crit = session.createCriteria(CervixUitstel.class, "uitstel");
 		crit.createAlias("uitstel.screeningRonde", "ronde");
 		crit.createAlias("ronde.dossier", "dossier");
 		crit.createAlias("dossier.client", "client");
